@@ -1,0 +1,193 @@
+import { ReactNode } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  LayoutDashboard,
+  ShoppingBag,
+  Bell,
+  HeadphonesIcon,
+  Settings,
+  LogOut,
+  ChevronRight,
+  Menu,
+  X,
+  User,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+
+interface NavItem {
+  label: string;
+  href: string;
+  icon: React.ElementType;
+}
+
+const clientNavItems: NavItem[] = [
+  { label: "نظرة عامة", href: "/dashboard", icon: LayoutDashboard },
+  { label: "الطلبات", href: "/dashboard/orders", icon: ShoppingBag },
+  { label: "الإشعارات", href: "/dashboard/notifications", icon: Bell },
+  { label: "الدعم الفني", href: "/dashboard/support", icon: HeadphonesIcon },
+  { label: "الإعدادات", href: "/dashboard/settings", icon: Settings },
+];
+
+interface ClientDashboardLayoutProps {
+  children: ReactNode;
+}
+
+const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
+
+  const isActive = (path: string) => {
+    if (path === "/dashboard") {
+      return location.pathname === "/dashboard";
+    }
+    return location.pathname.startsWith(path);
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex">
+      {/* Desktop Sidebar */}
+      <motion.aside
+        initial={false}
+        animate={{ width: isSidebarOpen ? 280 : 80 }}
+        className={cn(
+          "hidden lg:flex flex-col fixed top-0 right-0 h-full bg-card border-l border-border z-40 transition-all duration-300"
+        )}
+      >
+        {/* Logo */}
+        <div className="p-6 border-b border-border flex items-center justify-between">
+          {isSidebarOpen && (
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
+                <span className="font-display font-bold text-xl text-primary-foreground">م</span>
+              </div>
+              <span className="font-display font-bold text-lg">ماركت برو</span>
+            </Link>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="shrink-0"
+          >
+            <ChevronRight className={cn("w-5 h-5 transition-transform", !isSidebarOpen && "rotate-180")} />
+          </Button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-2">
+          {clientNavItems.map((item) => (
+            <Link
+              key={item.href}
+              to={item.href}
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
+                isActive(item.href)
+                  ? "bg-primary text-primary-foreground shadow-glow"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              )}
+            >
+              <item.icon className="w-5 h-5 shrink-0" />
+              {isSidebarOpen && <span className="font-medium">{item.label}</span>}
+            </Link>
+          ))}
+        </nav>
+
+        {/* User Section */}
+        <div className="p-4 border-t border-border">
+          <div className={cn("flex items-center gap-3 mb-4", !isSidebarOpen && "justify-center")}>
+            <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center">
+              <User className="w-5 h-5 text-primary-foreground" />
+            </div>
+            {isSidebarOpen && (
+              <div>
+                <p className="font-medium text-sm">محمد أحمد</p>
+                <p className="text-xs text-muted-foreground">عميل مميز</p>
+              </div>
+            )}
+          </div>
+          <Link to="/">
+            <Button variant="outline" className={cn("w-full gap-2", !isSidebarOpen && "px-2")}>
+              <LogOut className="w-4 h-4" />
+              {isSidebarOpen && <span>تسجيل الخروج</span>}
+            </Button>
+          </Link>
+        </div>
+      </motion.aside>
+
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-50 flex items-center justify-between px-4">
+        <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
+          <Menu className="w-6 h-6" />
+        </Button>
+        <Link to="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
+            <span className="font-display font-bold text-primary-foreground">م</span>
+          </div>
+          <span className="font-display font-bold">ماركت برو</span>
+        </Link>
+        <div className="w-10" />
+      </div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="lg:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-50"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          <motion.div
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 20 }}
+            className="absolute top-0 right-0 h-full w-72 bg-card border-l border-border"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 border-b border-border flex items-center justify-between">
+              <span className="font-display font-bold">القائمة</span>
+              <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            <nav className="p-4 space-y-2">
+              {clientNavItems.map((item) => (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
+                    isActive(item.href)
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-secondary"
+                  )}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span className="font-medium">{item.label}</span>
+                </Link>
+              ))}
+            </nav>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Main Content */}
+      <main
+        className={cn(
+          "flex-1 transition-all duration-300 pt-16 lg:pt-0",
+          isSidebarOpen ? "lg:mr-[280px]" : "lg:mr-[80px]"
+        )}
+      >
+        <div className="p-6 lg:p-8">{children}</div>
+      </main>
+    </div>
+  );
+};
+
+export default ClientDashboardLayout;
