@@ -15,10 +15,10 @@ const passwordSchema = z.string().min(6, "كلمة المرور يجب أن تك
 const AdminAuth = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const { toast } = useToast();
-  const { user, isAdmin, signIn } = useAuth();
+  const { user, isAdmin, isLoading, signIn } = useAuth();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -27,6 +27,9 @@ const AdminAuth = () => {
 
   // Redirect if already logged in as admin
   useEffect(() => {
+    // Wait until auth state is fully loaded
+    if (isLoading) return;
+    
     if (user && isAdmin) {
       navigate("/admin");
     } else if (user && !isAdmin) {
@@ -37,7 +40,7 @@ const AdminAuth = () => {
       });
       navigate("/dashboard");
     }
-  }, [user, isAdmin, navigate, toast]);
+  }, [user, isAdmin, isLoading, navigate, toast]);
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -69,7 +72,7 @@ const AdminAuth = () => {
       return;
     }
 
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     try {
       const { error } = await signIn(formData.email, formData.password);
@@ -97,7 +100,7 @@ const AdminAuth = () => {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -186,10 +189,10 @@ const AdminAuth = () => {
 
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isSubmitting}
               className="w-full h-12 bg-destructive hover:bg-destructive/90 text-lg font-semibold"
             >
-              {isLoading ? (
+              {isSubmitting ? (
                 <div className="w-5 h-5 border-2 border-destructive-foreground/30 border-t-destructive-foreground rounded-full animate-spin" />
               ) : (
                 <>
