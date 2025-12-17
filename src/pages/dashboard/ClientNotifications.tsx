@@ -1,86 +1,250 @@
-import { motion } from "framer-motion";
-import { Bell, Check, Trash2, Settings } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Bell, ShoppingBag, MessageSquare, Clock, CheckCircle, Loader2, Package } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { format, formatDistanceToNow } from "date-fns";
+import { ar } from "date-fns/locale";
 
-const notifications = [
-  { id: 1, title: "تم استلام طلبك", message: "تم استلام طلب #1234 بنجاح وسيتم البدء في العمل قريباً", time: "منذ 5 دقائق", read: false, type: "success" },
-  { id: 2, title: "تحديث على الطلب", message: "تم تحديث حالة طلب #1233 إلى 'قيد التنفيذ'", time: "منذ ساعة", read: false, type: "info" },
-  { id: 3, title: "رسالة من الدعم", message: "تم الرد على استفسارك بخصوص الخدمة", time: "منذ 3 ساعات", read: true, type: "message" },
-  { id: 4, title: "طلب مكتمل!", message: "تهانينا! تم إكمال طلب #1230 بنجاح", time: "منذ يوم", read: true, type: "success" },
-  { id: 5, title: "عرض خاص", message: "خصم 20% على جميع خدمات التسويق - لفترة محدودة", time: "منذ يومين", read: true, type: "promo" },
-];
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  time: string;
+  type: "order" | "ticket" | "info";
+  status?: string;
+}
 
 const getTypeStyles = (type: string) => {
   switch (type) {
-    case "success": return "bg-success/10 border-success/20";
-    case "info": return "bg-primary/10 border-primary/20";
-    case "message": return "bg-accent/10 border-accent/20";
-    case "promo": return "bg-warning/10 border-warning/20";
+    case "order": return "bg-primary/10 border-primary/20";
+    case "ticket": return "bg-accent/10 border-accent/20";
+    case "info": return "bg-success/10 border-success/20";
     default: return "bg-muted border-border";
   }
 };
 
+const getTypeIcon = (type: string) => {
+  switch (type) {
+    case "order": return ShoppingBag;
+    case "ticket": return MessageSquare;
+    default: return Bell;
+  }
+};
+
+const statusLabels: Record<string, string> = {
+  pending: "قيد الانتظار",
+  confirmed: "تم تأكيد الطلب",
+  in_progress: "قيد التنفيذ",
+  completed: "تم الاكتمال",
+  cancelled: "ملغي",
+  open: "تذكرة مفتوحة",
+  resolved: "تم الحل",
+};
+
 const ClientNotifications = () => {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
+
+      // Real-time subscriptions
+      const ordersChannel = supabase
+        .channel("client-notifications-orders")
+        .on("postgres_changes", { 
+          event: "*", 
+          schema: "public", 
+          table: "orders",
+          filter: `user_id=eq.${user.id}`
+        }, () => {
+          fetchNotifications();
+        })
+        .subscribe();
+
+      const ticketsChannel = supabase
+        .channel("client-notifications-tickets")
+        .on("postgres_changes", { 
+          event: "*", 
+          schema: "public", 
+          table: "support_tickets",
+          filter: `user_id=eq.${user.id}`
+        }, () => {
+          fetchNotifications();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(ordersChannel);
+        supabase.removeChannel(ticketsChannel);
+      };
+    }
+  }, [user]);
+
+  const fetchNotifications = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    const notificationsList: Notification[] = [];
+
+    // Fetch recent orders
+    const { data: orders } = await supabase
+      .from("orders")
+      .select(`
+        id, order_number, status, created_at, updated_at,
+        service:services(name)
+      `)
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false })
+      .limit(10);
+
+    orders?.forEach(order => {
+      const service = order.service as { name: string } | null;
+      notificationsList.push({
+        id: `order-${order.id}`,
+        title: `طلب ${order.order_number}`,
+        message: `${statusLabels[order.status] || order.status} - ${service?.name || "خدمة"}`,
+        time: formatDistanceToNow(new Date(order.updated_at), { addSuffix: true, locale: ar }),
+        type: "order",
+        status: order.status,
+      });
+    });
+
+    // Fetch recent tickets
+    const { data: tickets } = await supabase
+      .from("support_tickets")
+      .select("id, subject, status, created_at, updated_at")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false })
+      .limit(10);
+
+    tickets?.forEach(ticket => {
+      notificationsList.push({
+        id: `ticket-${ticket.id}`,
+        title: ticket.subject,
+        message: statusLabels[ticket.status] || ticket.status,
+        time: formatDistanceToNow(new Date(ticket.updated_at!), { addSuffix: true, locale: ar }),
+        type: "ticket",
+        status: ticket.status,
+      });
+    });
+
+    // Sort by time
+    notificationsList.sort((a, b) => {
+      return new Date(b.time).getTime() - new Date(a.time).getTime();
+    });
+
+    setNotifications(notificationsList);
+    setLoading(false);
+  };
+
+  if (loading) {
+    return (
+      <ClientDashboardLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          >
+            <Loader2 className="w-12 h-12 text-primary" />
+          </motion.div>
+        </div>
+      </ClientDashboardLayout>
+    );
+  }
+
   return (
     <ClientDashboardLayout>
-      <div className="space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="font-display text-3xl font-bold mb-2"
-            >
-              الإشعارات
-            </motion.h1>
-            <p className="text-muted-foreground">تابع جميع التحديثات والإشعارات</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" className="gap-2">
-              <Check className="w-4 h-4" />
-              تعليم الكل كمقروء
-            </Button>
-            <Button variant="outline" size="icon">
-              <Settings className="w-4 h-4" />
-            </Button>
-          </div>
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-3"
+          >
+            <Bell className="w-8 h-8 text-primary" />
+            الإشعارات
+          </motion.h1>
+          <p className="text-muted-foreground">تابع جميع التحديثات على طلباتك وتذاكرك</p>
         </div>
 
         {/* Notifications List */}
-        <div className="space-y-4">
-          {notifications.map((notification, index) => (
-            <motion.div
-              key={notification.id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <Card className={`glass border ${getTypeStyles(notification.type)} ${!notification.read ? "border-r-4 border-r-primary" : ""}`}>
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${notification.read ? "bg-muted" : "bg-primary/10"}`}>
-                        <Bell className={`w-5 h-5 ${notification.read ? "text-muted-foreground" : "text-primary"}`} />
-                      </div>
-                      <div>
-                        <h4 className={`font-medium ${!notification.read ? "text-foreground" : "text-muted-foreground"}`}>
-                          {notification.title}
-                        </h4>
-                        <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
-                        <p className="text-xs text-muted-foreground mt-2">{notification.time}</p>
-                      </div>
-                    </div>
-                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+        {notifications.length === 0 ? (
+          <Card className="card-elevated border-border/30">
+            <CardContent className="py-16">
+              <div className="text-center">
+                <Bell className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
+                <p className="text-muted-foreground text-lg">لا توجد إشعارات</p>
+                <p className="text-sm text-muted-foreground mt-2">ستظهر هنا جميع التحديثات على طلباتك وتذاكرك</p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            <AnimatePresence>
+              {notifications.map((notification, index) => {
+                const Icon = getTypeIcon(notification.type);
+                return (
+                  <motion.div
+                    key={notification.id}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Card className={`card-elevated border ${getTypeStyles(notification.type)}`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-4">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                            notification.type === "order" ? "bg-primary/10" : 
+                            notification.type === "ticket" ? "bg-accent/10" : "bg-success/10"
+                          }`}>
+                            <Icon className={`w-5 h-5 ${
+                              notification.type === "order" ? "text-primary" : 
+                              notification.type === "ticket" ? "text-accent" : "text-success"
+                            }`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-4">
+                              <div>
+                                <h4 className="font-medium">{notification.title}</h4>
+                                <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
+                              </div>
+                              {notification.status && (
+                                <span className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+                                  notification.status === "completed" || notification.status === "resolved" 
+                                    ? "bg-success/10 text-success" 
+                                    : notification.status === "in_progress" || notification.status === "open"
+                                    ? "bg-warning/10 text-warning"
+                                    : notification.status === "cancelled"
+                                    ? "bg-destructive/10 text-destructive"
+                                    : "bg-primary/10 text-primary"
+                                }`}>
+                                  {notification.status === "completed" && <CheckCircle className="w-3 h-3 inline ml-1" />}
+                                  {notification.status === "in_progress" && <Clock className="w-3 h-3 inline ml-1" />}
+                                  {statusLabels[notification.status] || notification.status}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {notification.time}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
     </ClientDashboardLayout>
   );
