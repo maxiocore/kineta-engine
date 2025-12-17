@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 const navItems = [
-  { label: "Services", href: "#services" },
-  { label: "How It Works", href: "#how-it-works" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "About", href: "#about" },
+  { label: "الخدمات", href: "#services" },
+  { label: "كيف يعمل", href: "#how-it-works" },
+  { label: "الأسعار", href: "#pricing" },
+  { label: "من نحن", href: "#about" },
 ];
 
 const Header = () => {
@@ -37,9 +37,9 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
-              <span className="font-display font-bold text-xl text-primary-foreground">M</span>
+              <span className="font-display font-bold text-xl text-primary-foreground">م</span>
             </div>
-            <span className="font-display font-bold text-xl">MarketPro</span>
+            <span className="font-display font-bold text-xl">ماركت برو</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -59,12 +59,12 @@ const Header = () => {
           <div className="hidden md:flex items-center gap-4">
             <Link to="/auth">
               <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
-                Sign In
+                تسجيل الدخول
               </Button>
             </Link>
             <Link to="/auth?mode=signup">
               <Button className="bg-gradient-primary hover:opacity-90">
-                Get Started
+                ابدأ الآن
               </Button>
             </Link>
           </div>
@@ -101,10 +101,10 @@ const Header = () => {
                 ))}
                 <div className="flex flex-col gap-2 pt-4 border-t border-border/50 mt-2">
                   <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="outline" className="w-full">Sign In</Button>
+                    <Button variant="outline" className="w-full">تسجيل الدخول</Button>
                   </Link>
                   <Link to="/auth?mode=signup" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button className="w-full bg-gradient-primary">Get Started</Button>
+                    <Button className="w-full bg-gradient-primary">ابدأ الآن</Button>
                   </Link>
                 </div>
               </nav>

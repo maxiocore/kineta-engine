@@ -3,24 +3,24 @@ import { Star, Quote } from "lucide-react";
 
 const testimonials = [
   {
-    name: "Sarah Johnson",
-    role: "Marketing Director",
-    company: "TechCorp",
-    content: "This platform completely transformed our marketing strategy. We've seen a 300% increase in qualified leads within the first quarter.",
+    name: "سارة الأحمد",
+    role: "مدير التسويق",
+    company: "تك كورب",
+    content: "غيّرت هذه المنصة استراتيجيتنا التسويقية بالكامل. شهدنا زيادة بنسبة 300% في العملاء المؤهلين خلال الربع الأول.",
     rating: 5,
   },
   {
-    name: "Michael Chen",
-    role: "CEO",
-    company: "InnovateCo",
-    content: "The automation features alone have saved us countless hours. The AI insights are incredibly accurate and actionable.",
+    name: "محمد العلي",
+    role: "الرئيس التنفيذي",
+    company: "إنوفيت",
+    content: "ميزات الأتمتة وحدها وفرت علينا ساعات لا تحصى. رؤى الذكاء الاصطناعي دقيقة وقابلة للتنفيذ بشكل مذهل.",
     rating: 5,
   },
   {
-    name: "Emily Rodriguez",
-    role: "Growth Lead",
-    company: "ScaleUp",
-    content: "Best marketing investment we've ever made. The ROI tracking is exceptional and the support team is incredibly responsive.",
+    name: "نورة الخالد",
+    role: "مسؤول النمو",
+    company: "سكيل أب",
+    content: "أفضل استثمار تسويقي قمنا به على الإطلاق. تتبع العائد استثنائي وفريق الدعم متجاوب بشكل لا يصدق.",
     rating: 5,
   },
 ];
@@ -40,10 +40,10 @@ const TestimonialsSection = () => {
           className="text-center mb-16"
         >
           <span className="text-primary font-medium text-sm tracking-wider uppercase">
-            Testimonials
+            آراء العملاء
           </span>
-          <h2 className="font-display text-4xl md:text-5xl font-bold mt-4 mb-6">
-            What Our <span className="text-gradient">Clients Say</span>
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mt-4 mb-6">
+            ماذا يقول <span className="text-gradient">عملاؤنا</span>
           </h2>
         </motion.div>
 
@@ -84,7 +84,7 @@ const TestimonialsSection = () => {
                   <div>
                     <p className="font-semibold">{testimonial.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {testimonial.role} at {testimonial.company}
+                      {testimonial.role} في {testimonial.company}
                     </p>
                   </div>
                 </div>
