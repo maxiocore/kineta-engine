@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import ThemeToggle from "@/components/ThemeToggle";
 
 interface NavItem {
   label: string;
@@ -75,14 +76,17 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
               <span className="font-display font-bold text-lg">ماركت برو</span>
             </Link>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="shrink-0"
-          >
-            <ChevronRight className={cn("w-5 h-5 transition-transform", !isSidebarOpen && "rotate-180")} />
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="shrink-0"
+            >
+              <ChevronRight className={cn("w-5 h-5 transition-transform", !isSidebarOpen && "rotate-180")} />
+            </Button>
+          </div>
         </div>
 
         {/* Navigation */}
@@ -139,7 +143,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
           </div>
           <span className="font-display font-bold">ماركت برو</span>
         </Link>
-        <div className="w-10" />
+        <ThemeToggle />
       </div>
 
       {/* Mobile Menu */}
