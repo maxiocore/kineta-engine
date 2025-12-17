@@ -27,6 +27,7 @@ import AdminEmails from "./pages/admin/AdminEmails";
 import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminLogs from "./pages/admin/AdminLogs";
 import AdminSupport from "./pages/admin/AdminSupport";
+import AdminAuth from "./pages/admin/AdminAuth";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App = () => (
             } />
             
             {/* Admin Dashboard Routes */}
+            <Route path="/admin/auth" element={<AdminAuth />} />
             <Route path="/admin" element={
               <ProtectedRoute requireAdmin>
                 <AdminDashboard />

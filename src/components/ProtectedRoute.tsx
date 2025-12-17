@@ -21,6 +21,10 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
   }
 
   if (!user) {
+    // Redirect to admin auth if trying to access admin routes
+    if (requireAdmin) {
+      return <Navigate to="/admin/auth" replace />;
+    }
     return <Navigate to="/auth" replace />;
   }
 
