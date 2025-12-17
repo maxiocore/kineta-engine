@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard,
@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 interface NavItem {
   label: string;
@@ -47,12 +48,19 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { profile, signOut } = useAuth();
 
   const isActive = (path: string) => {
     if (path === "/admin") {
       return location.pathname === "/admin";
     }
     return location.pathname.startsWith(path);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
   };
 
   return (
@@ -115,17 +123,19 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
             </div>
             {isSidebarOpen && (
               <div>
-                <p className="font-medium text-sm">المدير العام</p>
+                <p className="font-medium text-sm">{profile?.full_name || "المدير"}</p>
                 <p className="text-xs text-muted-foreground">Super Admin</p>
               </div>
             )}
           </div>
-          <Link to="/">
-            <Button variant="outline" className={cn("w-full gap-2", !isSidebarOpen && "px-2")}>
-              <LogOut className="w-4 h-4" />
-              {isSidebarOpen && <span>تسجيل الخروج</span>}
-            </Button>
-          </Link>
+          <Button 
+            variant="outline" 
+            className={cn("w-full gap-2", !isSidebarOpen && "px-2")}
+            onClick={handleSignOut}
+          >
+            <LogOut className="w-4 h-4" />
+            {isSidebarOpen && <span>تسجيل الخروج</span>}
+          </Button>
         </div>
       </motion.aside>
 
