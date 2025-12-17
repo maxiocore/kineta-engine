@@ -11,38 +11,38 @@ import {
 const services = [
   {
     icon: BarChart3,
-    title: "Analytics & Insights",
-    description: "Deep dive into your data with AI-powered analytics that reveal actionable insights and growth opportunities.",
+    title: "التحليلات والرؤى",
+    description: "تعمق في بياناتك مع تحليلات مدعومة بالذكاء الاصطناعي تكشف عن رؤى قابلة للتنفيذ وفرص النمو.",
     gradient: "from-primary to-cyan-400",
   },
   {
     icon: Megaphone,
-    title: "Campaign Management",
-    description: "Launch, manage, and optimize multi-channel campaigns with intelligent automation and real-time tracking.",
+    title: "إدارة الحملات",
+    description: "أطلق وأدِر وحسّن الحملات متعددة القنوات مع أتمتة ذكية وتتبع في الوقت الفعلي.",
     gradient: "from-accent to-pink-400",
   },
   {
     icon: Target,
-    title: "Audience Targeting",
-    description: "Reach the right people at the right time with precision targeting powered by machine learning algorithms.",
+    title: "استهداف الجمهور",
+    description: "وصول للأشخاص المناسبين في الوقت المناسب مع استهداف دقيق مدعوم بخوارزميات التعلم الآلي.",
     gradient: "from-success to-emerald-400",
   },
   {
     icon: Zap,
-    title: "Marketing Automation",
-    description: "Automate repetitive tasks and create sophisticated workflows that nurture leads 24/7.",
+    title: "أتمتة التسويق",
+    description: "أتمتة المهام المتكررة وإنشاء سير عمل متطور يرعى العملاء المحتملين على مدار الساعة.",
     gradient: "from-warning to-orange-400",
   },
   {
     icon: LineChart,
-    title: "Performance Tracking",
-    description: "Monitor KPIs in real-time with customizable dashboards and comprehensive reporting tools.",
+    title: "تتبع الأداء",
+    description: "راقب مؤشرات الأداء في الوقت الفعلي مع لوحات تحكم قابلة للتخصيص وأدوات تقارير شاملة.",
     gradient: "from-primary to-blue-400",
   },
   {
     icon: Users,
-    title: "Lead Generation",
-    description: "Capture and convert high-quality leads with optimized funnels and smart lead scoring.",
+    title: "توليد العملاء المحتملين",
+    description: "التقط وحوّل العملاء المحتملين عالي الجودة مع قمع مُحسّن وتقييم ذكي للعملاء.",
     gradient: "from-accent to-purple-400",
   },
 ];
@@ -62,14 +62,14 @@ const ServicesSection = () => {
           className="text-center mb-16"
         >
           <span className="text-primary font-medium text-sm tracking-wider uppercase">
-            Our Services
+            خدماتنا
           </span>
-          <h2 className="font-display text-4xl md:text-5xl font-bold mt-4 mb-6">
-            Everything You Need to <span className="text-gradient">Succeed</span>
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mt-4 mb-6">
+            كل ما تحتاجه <span className="text-gradient">للنجاح</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-            Comprehensive marketing solutions designed to accelerate your growth 
-            and maximize your ROI.
+            حلول تسويقية شاملة مصممة لتسريع نموك
+            وتعظيم عائد استثمارك.
           </p>
         </motion.div>
 

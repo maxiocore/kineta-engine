@@ -2,10 +2,10 @@ import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { useEffect, useState } from "react";
 
 const stats = [
-  { value: 500, suffix: "+", label: "Happy Clients" },
-  { value: 98, suffix: "%", label: "Success Rate" },
-  { value: 2.5, suffix: "M+", label: "Leads Generated" },
-  { value: 150, suffix: "+", label: "Campaigns Launched" },
+  { value: 500, suffix: "+", label: "عميل سعيد" },
+  { value: 98, suffix: "%", label: "معدل النجاح" },
+  { value: 2.5, suffix: "M+", label: "عميل محتمل" },
+  { value: 150, suffix: "+", label: "حملة منفذة" },
 ];
 
 const Counter = ({ value, suffix }: { value: number; suffix: string }) => {
@@ -30,8 +30,8 @@ const Counter = ({ value, suffix }: { value: number; suffix: string }) => {
   }, [value, count, rounded]);
 
   return (
-    <span className="text-gradient font-display text-5xl md:text-6xl font-bold">
-      {displayValue.toLocaleString()}{suffix}
+    <span className="text-gradient font-display text-4xl md:text-5xl lg:text-6xl font-bold">
+      {displayValue.toLocaleString('ar-EG')}{suffix}
     </span>
   );
 };
@@ -52,10 +52,10 @@ const StatsSection = () => {
           className="text-center mb-16"
         >
           <span className="text-primary font-medium text-sm tracking-wider uppercase">
-            Our Impact
+            تأثيرنا
           </span>
-          <h2 className="font-display text-4xl md:text-5xl font-bold mt-4">
-            Numbers That <span className="text-gradient">Speak</span>
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mt-4">
+            أرقام <span className="text-gradient">تتحدث</span>
           </h2>
         </motion.div>
 

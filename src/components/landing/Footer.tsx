@@ -1,14 +1,14 @@
 import { motion } from "framer-motion";
-import { Mail, MapPin, Phone, ArrowRight } from "lucide-react";
+import { Mail, MapPin, Phone, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 
 const footerLinks = {
-  Product: ["Features", "Pricing", "Integrations", "API"],
-  Company: ["About", "Blog", "Careers", "Contact"],
-  Resources: ["Documentation", "Help Center", "Guides", "Community"],
-  Legal: ["Privacy", "Terms", "Security", "Cookies"],
+  "المنتج": ["المميزات", "الأسعار", "التكاملات", "API"],
+  "الشركة": ["من نحن", "المدونة", "الوظائف", "تواصل معنا"],
+  "المصادر": ["التوثيق", "مركز المساعدة", "الأدلة", "المجتمع"],
+  "قانوني": ["الخصوصية", "الشروط", "الأمان", "الكوكيز"],
 };
 
 const Footer = () => {
@@ -23,23 +23,24 @@ const Footer = () => {
           className="glass rounded-2xl p-8 md:p-12 mb-16 -mt-32 relative z-10"
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="text-center md:text-left">
+            <div className="text-center md:text-right">
               <h3 className="font-display text-2xl md:text-3xl font-bold mb-2">
-                Stay Updated
+                ابقَ على اطلاع
               </h3>
               <p className="text-muted-foreground">
-                Get the latest marketing tips and product updates delivered to your inbox.
+                احصل على أحدث النصائح التسويقية وتحديثات المنتج في بريدك.
               </p>
             </div>
-            <div className="flex w-full md:w-auto gap-2">
+            <div className="flex w-full md:w-auto gap-2 flex-row-reverse md:flex-row">
               <Input
                 type="email"
-                placeholder="Enter your email"
-                className="w-full md:w-80 bg-background/50 border-border/50"
+                placeholder="أدخل بريدك الإلكتروني"
+                className="w-full md:w-80 bg-background/50 border-border/50 text-right"
+                dir="rtl"
               />
               <Button className="bg-gradient-primary hover:opacity-90 shrink-0">
-                Subscribe
-                <ArrowRight className="w-4 h-4 ml-2" />
+                اشترك
+                <ArrowLeft className="w-4 h-4 me-2" />
               </Button>
             </div>
           </div>
@@ -51,13 +52,13 @@ const Footer = () => {
           <div className="lg:col-span-2">
             <Link to="/" className="flex items-center gap-2 mb-4">
               <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
-                <span className="font-display font-bold text-xl text-primary-foreground">M</span>
+                <span className="font-display font-bold text-xl text-primary-foreground">م</span>
               </div>
-              <span className="font-display font-bold text-xl">MarketPro</span>
+              <span className="font-display font-bold text-xl">ماركت برو</span>
             </Link>
             <p className="text-muted-foreground mb-6 max-w-sm">
-              Transform your digital presence with our cutting-edge marketing platform. 
-              AI-powered, results-driven.
+              حوّل حضورك الرقمي مع منصتنا التسويقية المتطورة.
+              مدعومة بالذكاء الاصطناعي، موجهة للنتائج.
             </p>
             <div className="space-y-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
@@ -66,11 +67,11 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-primary" />
-                <span>+1 (555) 123-4567</span>
+                <span dir="ltr">+966 55 123 4567</span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-primary" />
-                <span>San Francisco, CA</span>
+                <span>الرياض، المملكة العربية السعودية</span>
               </div>
             </div>
           </div>
@@ -98,7 +99,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-border/50 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            © 2024 MarketPro. All rights reserved.
+            © 2024 ماركت برو. جميع الحقوق محفوظة.
           </p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
