@@ -18,7 +18,7 @@ const AdminAuth = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const { toast } = useToast();
-  const { user, isAdmin, isLoading, signIn } = useAuth();
+  const { user, isAdmin, isLoading, isRoleChecked, signIn } = useAuth();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -27,8 +27,8 @@ const AdminAuth = () => {
 
   // Redirect if already logged in as admin
   useEffect(() => {
-    // Wait until auth state is fully loaded
-    if (isLoading) return;
+    // Wait until auth state AND role check are fully loaded
+    if (isLoading || !isRoleChecked) return;
     
     if (user && isAdmin) {
       navigate("/admin");
@@ -40,7 +40,7 @@ const AdminAuth = () => {
       });
       navigate("/dashboard");
     }
-  }, [user, isAdmin, isLoading, navigate, toast]);
+  }, [user, isAdmin, isLoading, isRoleChecked, navigate, toast]);
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
