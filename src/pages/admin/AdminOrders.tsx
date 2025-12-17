@@ -15,7 +15,11 @@ import {
   User,
   FileText,
   TrendingUp,
-  ArrowLeft
+  ArrowLeft,
+  CalendarDays,
+  SlidersHorizontal,
+  X,
+  RotateCcw
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,11 +29,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, isAfter, isBefore, startOfDay, endOfDay } from "date-fns";
 import { ar } from "date-fns/locale";
+
+interface Service {
+  id: string;
+  name: string;
+  category: string;
+}
 
 interface Order {
   id: string;
@@ -93,17 +106,30 @@ const itemVariants = {
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [serviceFilter, setServiceFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [newStatus, setNewStatus] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
   const [updating, setUpdating] = useState(false);
   const [stats, setStats] = useState<OrderStats>({ pending: 0, in_progress: 0, completed: 0, total: 0, cancelled: 0 });
 
+  const activeFiltersCount = [
+    statusFilter !== "all",
+    serviceFilter !== "all",
+    dateFrom !== undefined,
+    dateTo !== undefined
+  ].filter(Boolean).length;
+
   useEffect(() => {
     fetchOrders();
+    fetchServices();
 
     const channel = supabase
       .channel("orders-changes")
@@ -116,6 +142,14 @@ const AdminOrders = () => {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  const fetchServices = async () => {
+    const { data } = await supabase
+      .from("services")
+      .select("id, name, category")
+      .order("name");
+    if (data) setServices(data);
+  };
 
   const fetchOrders = async () => {
     const { data, error } = await supabase
@@ -172,13 +206,27 @@ const AdminOrders = () => {
     setAdminNotes(order.admin_notes || "");
   };
 
+  const resetFilters = () => {
+    setStatusFilter("all");
+    setServiceFilter("all");
+    setDateFrom(undefined);
+    setDateTo(undefined);
+    setSearchQuery("");
+  };
+
   const filteredOrders = orders.filter(order => {
     const matchesSearch = 
       order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.profile?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.service?.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesService = serviceFilter === "all" || order.service?.id === serviceFilter;
+    
+    const orderDate = new Date(order.created_at);
+    const matchesDateFrom = !dateFrom || !isBefore(orderDate, startOfDay(dateFrom));
+    const matchesDateTo = !dateTo || !isAfter(orderDate, endOfDay(dateTo));
+    
+    return matchesSearch && matchesStatus && matchesService && matchesDateFrom && matchesDateTo;
   });
 
   const statsData = [
@@ -250,8 +298,9 @@ const AdminOrders = () => {
         {/* Filters */}
         <motion.div variants={itemVariants}>
           <Card className="card-elevated border-border/30">
-            <CardContent className="p-4">
-              <div className="flex flex-col sm:flex-row gap-4">
+            <CardContent className="p-4 space-y-4">
+              {/* Main Filters Row */}
+              <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input 
@@ -261,19 +310,189 @@ const AdminOrders = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-44 bg-secondary/50 border-border/50">
-                    <Filter className="w-4 h-4 ml-2" />
-                    <SelectValue placeholder="فلترة الحالة" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">جميع الحالات</SelectItem>
-                    {statusOptions.map(opt => (
-                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Button
+                  variant={showAdvancedFilters ? "default" : "outline"}
+                  onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                  className="gap-2"
+                >
+                  <SlidersHorizontal className="w-4 h-4" />
+                  فلترة متقدمة
+                  {activeFiltersCount > 0 && (
+                    <Badge variant="secondary" className="mr-1 bg-primary/20 text-primary">
+                      {activeFiltersCount}
+                    </Badge>
+                  )}
+                </Button>
+                {activeFiltersCount > 0 && (
+                  <Button variant="ghost" size="icon" onClick={resetFilters} className="text-muted-foreground hover:text-foreground">
+                    <RotateCcw className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
+
+              {/* Advanced Filters */}
+              <AnimatePresence>
+                {showAdvancedFilters && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-border/30">
+                      {/* Status Filter */}
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Filter className="w-3 h-3" />
+                          الحالة
+                        </Label>
+                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                          <SelectTrigger className="bg-secondary/50 border-border/50">
+                            <SelectValue placeholder="جميع الحالات" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">جميع الحالات</SelectItem>
+                            {statusOptions.map(opt => (
+                              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Service Filter */}
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Package className="w-3 h-3" />
+                          الخدمة
+                        </Label>
+                        <Select value={serviceFilter} onValueChange={setServiceFilter}>
+                          <SelectTrigger className="bg-secondary/50 border-border/50">
+                            <SelectValue placeholder="جميع الخدمات" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">جميع الخدمات</SelectItem>
+                            {services.map(service => (
+                              <SelectItem key={service.id} value={service.id}>{service.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Date From */}
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                          <CalendarDays className="w-3 h-3" />
+                          من تاريخ
+                        </Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-right bg-secondary/50 border-border/50",
+                                !dateFrom && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarDays className="ml-2 h-4 w-4" />
+                              {dateFrom ? format(dateFrom, "d MMM yyyy", { locale: ar }) : "اختر التاريخ"}
+                              {dateFrom && (
+                                <X 
+                                  className="mr-auto h-4 w-4 hover:text-destructive" 
+                                  onClick={(e) => { e.stopPropagation(); setDateFrom(undefined); }}
+                                />
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarComponent
+                              mode="single"
+                              selected={dateFrom}
+                              onSelect={setDateFrom}
+                              initialFocus
+                              className="pointer-events-auto"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      {/* Date To */}
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                          <CalendarDays className="w-3 h-3" />
+                          إلى تاريخ
+                        </Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-right bg-secondary/50 border-border/50",
+                                !dateTo && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarDays className="ml-2 h-4 w-4" />
+                              {dateTo ? format(dateTo, "d MMM yyyy", { locale: ar }) : "اختر التاريخ"}
+                              {dateTo && (
+                                <X 
+                                  className="mr-auto h-4 w-4 hover:text-destructive" 
+                                  onClick={(e) => { e.stopPropagation(); setDateTo(undefined); }}
+                                />
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarComponent
+                              mode="single"
+                              selected={dateTo}
+                              onSelect={setDateTo}
+                              initialFocus
+                              className="pointer-events-auto"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+
+                    {/* Active Filters Tags */}
+                    {activeFiltersCount > 0 && (
+                      <div className="flex flex-wrap gap-2 pt-3">
+                        {statusFilter !== "all" && (
+                          <Badge variant="secondary" className="gap-1 pr-1">
+                            الحالة: {statusOptions.find(s => s.value === statusFilter)?.label}
+                            <Button variant="ghost" size="icon" className="h-4 w-4 p-0 hover:bg-transparent" onClick={() => setStatusFilter("all")}>
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </Badge>
+                        )}
+                        {serviceFilter !== "all" && (
+                          <Badge variant="secondary" className="gap-1 pr-1">
+                            الخدمة: {services.find(s => s.id === serviceFilter)?.name}
+                            <Button variant="ghost" size="icon" className="h-4 w-4 p-0 hover:bg-transparent" onClick={() => setServiceFilter("all")}>
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </Badge>
+                        )}
+                        {dateFrom && (
+                          <Badge variant="secondary" className="gap-1 pr-1">
+                            من: {format(dateFrom, "d MMM", { locale: ar })}
+                            <Button variant="ghost" size="icon" className="h-4 w-4 p-0 hover:bg-transparent" onClick={() => setDateFrom(undefined)}>
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </Badge>
+                        )}
+                        {dateTo && (
+                          <Badge variant="secondary" className="gap-1 pr-1">
+                            إلى: {format(dateTo, "d MMM", { locale: ar })}
+                            <Button variant="ghost" size="icon" className="h-4 w-4 p-0 hover:bg-transparent" onClick={() => setDateTo(undefined)}>
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </CardContent>
           </Card>
         </motion.div>
