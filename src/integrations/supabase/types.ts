@@ -201,6 +201,33 @@ export type Database = {
         }
         Relationships: []
       }
+      system_settings: {
+        Row: {
+          category: string
+          id: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          category?: string
+          id?: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          category?: string
+          id?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       ticket_messages: {
         Row: {
           created_at: string | null

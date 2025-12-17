@@ -1,163 +1,119 @@
 import { motion } from "framer-motion";
-import { Settings, Globe, Palette, Bell, Shield, Database } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
+import { Settings, RefreshCw } from "lucide-react";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
+import { useSystemSettings } from "@/hooks/useSystemSettings";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+
+// Settings Components
+import SettingsSkeleton from "@/components/admin/settings/SettingsSkeleton";
+import GeneralSettings from "@/components/admin/settings/GeneralSettings";
+import NotificationSettings from "@/components/admin/settings/NotificationSettings";
+import SecuritySettings from "@/components/admin/settings/SecuritySettings";
+import SystemInfoSettings from "@/components/admin/settings/SystemInfoSettings";
+import MaintenanceSettings from "@/components/admin/settings/MaintenanceSettings";
+import AppearanceSettings from "@/components/admin/settings/AppearanceSettings";
 
 const AdminSettings = () => {
+  const { settings, loading, saving, updateSetting, updateMultipleSettings, refetch } = useSystemSettings();
+
+  const handleToggle = async (key: string, value: boolean) => {
+    await updateSetting(key, value);
+  };
+
+  if (loading) {
+    return (
+      <AdminDashboardLayout>
+        <SettingsSkeleton />
+      </AdminDashboardLayout>
+    );
+  }
+
   return (
     <AdminDashboardLayout>
       <div className="space-y-8">
-        <div>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="font-display text-3xl font-bold mb-2"
-          >
-            إعدادات النظام
-          </motion.h1>
-          <p className="text-muted-foreground">تكوين وإدارة إعدادات المنصة</p>
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* General Settings */}
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <Card className="glass border-border/50">
-              <CardHeader>
-                <CardTitle className="font-display flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-primary" />
-                  الإعدادات العامة
-                </CardTitle>
-                <CardDescription>إعدادات الموقع الأساسية</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">اسم الموقع</label>
-                  <Input defaultValue="ماركت برو" className="bg-secondary/50" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">وصف الموقع</label>
-                  <Textarea 
-                    defaultValue="منصة تسويق رقمي متكاملة مدعومة بالذكاء الاصطناعي" 
-                    className="bg-secondary/50" 
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">البريد الإلكتروني للتواصل</label>
-                  <Input defaultValue="hello@marketpro.com" className="bg-secondary/50" dir="ltr" />
-                </div>
-                <Button className="bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground">
-                  حفظ التغييرات
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="flex items-center gap-3 mb-2">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring" }}
+                className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20"
+              >
+                <Settings className="w-6 h-6 text-primary" />
+              </motion.div>
+              <h1 className="font-display text-3xl font-bold">إعدادات النظام</h1>
+              <Badge variant="outline" className="text-xs">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse ml-1" />
+                متصل
+              </Badge>
+            </div>
+            <p className="text-muted-foreground">تكوين وإدارة إعدادات المنصة - التغييرات تُحفظ تلقائياً</p>
           </motion.div>
 
-          {/* Notification Settings */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <Card className="glass border-border/50">
-              <CardHeader>
-                <CardTitle className="font-display flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-primary" />
-                  إعدادات الإشعارات
-                </CardTitle>
-                <CardDescription>تكوين نظام الإشعارات</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {[
-                  { label: "إشعارات الطلبات الجديدة", desc: "تنبيه عند استلام طلب جديد" },
-                  { label: "إشعارات تسجيل المستخدمين", desc: "تنبيه عند تسجيل مستخدم جديد" },
-                  { label: "إشعارات المدفوعات", desc: "تنبيه عند استلام دفعة" },
-                  { label: "تقارير يومية", desc: "إرسال ملخص يومي بالبريد" },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center justify-between py-2">
-                    <div>
-                      <p className="font-medium text-sm">{item.label}</p>
-                      <p className="text-xs text-muted-foreground">{item.desc}</p>
-                    </div>
-                    <Switch defaultChecked />
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Security Settings */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Card className="glass border-border/50">
-              <CardHeader>
-                <CardTitle className="font-display flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-primary" />
-                  إعدادات الأمان
-                </CardTitle>
-                <CardDescription>تكوين إعدادات الحماية</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {[
-                  { label: "التحقق بخطوتين إلزامي", desc: "للمشرفين فقط", checked: true },
-                  { label: "تسجيل النشاطات", desc: "حفظ سجل لجميع العمليات", checked: true },
-                  { label: "قفل الحساب", desc: "بعد 5 محاولات فاشلة", checked: true },
-                  { label: "التحقق من البريد", desc: "إلزامي للتسجيل", checked: false },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center justify-between py-2">
-                    <div>
-                      <p className="font-medium text-sm">{item.label}</p>
-                      <p className="text-xs text-muted-foreground">{item.desc}</p>
-                    </div>
-                    <Switch defaultChecked={item.checked} />
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* System Info */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <Card className="glass border-border/50">
-              <CardHeader>
-                <CardTitle className="font-display flex items-center gap-2">
-                  <Database className="w-5 h-5 text-primary" />
-                  معلومات النظام
-                </CardTitle>
-                <CardDescription>حالة النظام والموارد</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {[
-                  { label: "إصدار النظام", value: "2.1.0" },
-                  { label: "حالة الخادم", value: "يعمل بشكل طبيعي", status: "success" },
-                  { label: "استخدام التخزين", value: "45% من 100GB" },
-                  { label: "آخر نسخة احتياطية", value: "منذ ساعتين" },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-                    <span className="text-sm text-muted-foreground">{item.label}</span>
-                    <span className={`text-sm font-medium ${item.status === "success" ? "text-success" : ""}`}>
-                      {item.value}
-                    </span>
-                  </div>
-                ))}
-                <Button variant="outline" className="w-full">إنشاء نسخة احتياطية</Button>
-              </CardContent>
-            </Card>
+            <Button 
+              variant="outline" 
+              onClick={refetch}
+              className="gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              تحديث
+            </Button>
           </motion.div>
         </div>
+
+        {/* Settings Grid */}
+        <div className="grid lg:grid-cols-2 gap-6">
+          <GeneralSettings 
+            settings={settings} 
+            saving={saving} 
+            onSave={updateMultipleSettings} 
+          />
+          
+          <NotificationSettings 
+            settings={settings} 
+            saving={saving} 
+            onToggle={handleToggle} 
+          />
+          
+          <SecuritySettings 
+            settings={settings} 
+            saving={saving} 
+            onToggle={handleToggle} 
+          />
+          
+          <SystemInfoSettings />
+          
+          <MaintenanceSettings 
+            settings={settings} 
+            saving={saving} 
+            onToggle={handleToggle}
+            onSave={updateMultipleSettings}
+          />
+          
+          <AppearanceSettings />
+        </div>
+
+        {/* Footer Status */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="flex items-center justify-center gap-2 py-4 text-sm text-muted-foreground"
+        >
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span>جميع الإعدادات محفوظة ومتزامنة في الوقت الفعلي</span>
+        </motion.div>
       </div>
     </AdminDashboardLayout>
   );
