@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import ThemeToggle from "@/components/ThemeToggle";
 
 interface NavItem {
   label: string;
@@ -137,19 +138,22 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
               </Link>
             </motion.div>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="shrink-0 hover:bg-secondary/80"
-          >
-            <motion.div
-              animate={{ rotate: isSidebarOpen ? 0 : 180 }}
-              transition={{ duration: 0.3 }}
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="shrink-0 hover:bg-secondary/80"
             >
-              <ChevronLeft className="w-5 h-5" />
-            </motion.div>
-          </Button>
+              <motion.div
+                animate={{ rotate: isSidebarOpen ? 0 : 180 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </motion.div>
+            </Button>
+          </div>
         </div>
 
         {/* Navigation */}
@@ -261,7 +265,7 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
           </div>
           <span className="font-bold">لوحة الأدمن</span>
         </div>
-        <div className="w-10" />
+        <ThemeToggle />
       </div>
 
       {/* Mobile Menu */}
