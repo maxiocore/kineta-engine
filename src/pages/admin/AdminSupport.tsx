@@ -1,9 +1,19 @@
+import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { motion } from "framer-motion";
-import { HeadphonesIcon, Plus, MessageCircle, Clock, CheckCircle, Send, X, AlertCircle } from "lucide-react";
+import { 
+  HeadphonesIcon, 
+  MessageCircle, 
+  Clock, 
+  CheckCircle,
+  Send,
+  User,
+  AlertCircle,
+  Search,
+  Filter
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -18,19 +28,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
-
-// Validation schema
-const ticketSchema = z.object({
-  subject: z.string().trim().min(5, "الموضوع يجب أن يكون 5 أحرف على الأقل").max(200, "الموضوع يجب أن يكون أقل من 200 حرف"),
-  description: z.string().trim().min(10, "الوصف يجب أن يكون 10 أحرف على الأقل").max(2000, "الوصف يجب أن يكون أقل من 2000 حرف"),
-  priority: z.enum(["low", "medium", "high", "urgent"]),
-});
 
 const messageSchema = z.object({
   message: z.string().trim().min(1, "الرسالة مطلوبة").max(1000, "الرسالة يجب أن تكون أقل من 1000 حرف"),
@@ -38,6 +40,7 @@ const messageSchema = z.object({
 
 interface Ticket {
   id: string;
+  user_id: string;
   subject: string;
   description: string;
   status: "open" | "in_progress" | "resolved" | "closed";
@@ -107,31 +110,23 @@ const formatDate = (date: string) => {
   return d.toLocaleDateString("ar-SA");
 };
 
-const ClientSupport = () => {
-  const [showNewTicket, setShowNewTicket] = useState(false);
+const AdminSupport = () => {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [messages, setMessages] = useState<TicketMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{ subject?: string; description?: string; message?: string }>({});
-  
-  const [newTicket, setNewTicket] = useState({
-    subject: "",
-    description: "",
-    priority: "medium" as "low" | "medium" | "high" | "urgent",
-  });
   const [newMessage, setNewMessage] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [error, setError] = useState<string | null>(null);
   
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Fetch tickets
   useEffect(() => {
-    if (user) {
-      fetchTickets();
-    }
-  }, [user]);
+    fetchTickets();
+  }, []);
 
   const fetchTickets = async () => {
     try {
@@ -172,60 +167,13 @@ const ClientSupport = () => {
     }
   };
 
-  const handleCreateTicket = async () => {
-    // Validate
-    const result = ticketSchema.safeParse(newTicket);
-    if (!result.success) {
-      const fieldErrors: { subject?: string; description?: string } = {};
-      result.error.errors.forEach((err) => {
-        if (err.path[0] === "subject") fieldErrors.subject = err.message;
-        if (err.path[0] === "description") fieldErrors.description = err.message;
-      });
-      setErrors(fieldErrors);
-      return;
-    }
-    setErrors({});
-
-    if (!user) return;
-    
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase.from("support_tickets").insert({
-        user_id: user.id,
-        subject: newTicket.subject.trim(),
-        description: newTicket.description.trim(),
-        priority: newTicket.priority,
-      });
-      
-      if (error) throw error;
-      
-      toast({
-        title: "تم إنشاء التذكرة",
-        description: "سيتم الرد عليك في أقرب وقت",
-      });
-      
-      setNewTicket({ subject: "", description: "", priority: "medium" });
-      setShowNewTicket(false);
-      fetchTickets();
-    } catch (error) {
-      toast({
-        title: "خطأ",
-        description: "فشل في إنشاء التذكرة",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleSendMessage = async () => {
-    // Validate
     const result = messageSchema.safeParse({ message: newMessage });
     if (!result.success) {
-      setErrors({ message: result.error.errors[0].message });
+      setError(result.error.errors[0].message);
       return;
     }
-    setErrors({});
+    setError(null);
 
     if (!user || !selectedTicket) return;
     
@@ -235,7 +183,7 @@ const ClientSupport = () => {
         ticket_id: selectedTicket.id,
         sender_id: user.id,
         message: newMessage.trim(),
-        is_admin: false,
+        is_admin: true,
       });
       
       if (error) throw error;
@@ -253,10 +201,45 @@ const ClientSupport = () => {
     }
   };
 
+  const handleUpdateStatus = async (ticketId: string, newStatus: "open" | "in_progress" | "resolved" | "closed") => {
+    try {
+      const { error } = await supabase
+        .from("support_tickets")
+        .update({ status: newStatus })
+        .eq("id", ticketId);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "تم التحديث",
+        description: "تم تحديث حالة التذكرة بنجاح",
+      });
+      
+      fetchTickets();
+      if (selectedTicket?.id === ticketId) {
+        setSelectedTicket({ ...selectedTicket, status: newStatus });
+      }
+    } catch (error) {
+      toast({
+        title: "خطأ",
+        description: "فشل في تحديث الحالة",
+        variant: "destructive",
+      });
+    }
+  };
+
   const openTicketChat = (ticket: Ticket) => {
     setSelectedTicket(ticket);
     fetchMessages(ticket.id);
   };
+
+  // Filter tickets
+  const filteredTickets = tickets.filter(ticket => {
+    const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
+    const matchesSearch = ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         ticket.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
 
   // Calculate stats
   const openCount = tickets.filter(t => t.status === "open").length;
@@ -264,101 +247,21 @@ const ClientSupport = () => {
   const resolvedCount = tickets.filter(t => t.status === "resolved" || t.status === "closed").length;
 
   return (
-    <ClientDashboardLayout>
-      <div className="space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="font-display text-3xl font-bold mb-2"
-            >
-              الدعم الفني
-            </motion.h1>
-            <p className="text-muted-foreground">تواصل معنا وسنكون سعداء بمساعدتك</p>
-          </div>
-          <Button 
-            className="bg-gradient-primary hover:opacity-90"
-            onClick={() => setShowNewTicket(!showNewTicket)}
-          >
-            <Plus className="w-4 h-4 ms-2" />
-            تذكرة جديدة
-          </Button>
+    <AdminDashboardLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl md:text-3xl font-display font-bold">إدارة الدعم الفني</h1>
+          <p className="text-muted-foreground mt-1">إدارة تذاكر الدعم والرد على العملاء</p>
         </div>
 
-        {/* New Ticket Form */}
-        {showNewTicket && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-          >
-            <Card className="glass border-border/50 border-primary/30">
-              <CardHeader>
-                <CardTitle className="font-display">إنشاء تذكرة جديدة</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">الموضوع</label>
-                  <Input 
-                    placeholder="أدخل موضوع التذكرة" 
-                    className="bg-secondary/50"
-                    value={newTicket.subject}
-                    onChange={(e) => setNewTicket({ ...newTicket, subject: e.target.value })}
-                  />
-                  {errors.subject && (
-                    <p className="text-sm text-destructive mt-1">{errors.subject}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">الأولوية</label>
-                  <Select 
-                    value={newTicket.priority}
-                    onValueChange={(value: "low" | "medium" | "high" | "urgent") => setNewTicket({ ...newTicket, priority: value })}
-                  >
-                    <SelectTrigger className="bg-secondary/50">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">منخفضة</SelectItem>
-                      <SelectItem value="medium">متوسطة</SelectItem>
-                      <SelectItem value="high">عالية</SelectItem>
-                      <SelectItem value="urgent">عاجلة</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">الرسالة</label>
-                  <Textarea 
-                    placeholder="اشرح مشكلتك أو استفسارك بالتفصيل..." 
-                    className="bg-secondary/50 min-h-32"
-                    value={newTicket.description}
-                    onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
-                  />
-                  {errors.description && (
-                    <p className="text-sm text-destructive mt-1">{errors.description}</p>
-                  )}
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <Button variant="outline" onClick={() => setShowNewTicket(false)}>إلغاء</Button>
-                  <Button 
-                    className="bg-gradient-primary"
-                    onClick={handleCreateTicket}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "جاري الإرسال..." : "إرسال التذكرة"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
         {/* Stats */}
-        <div className="grid sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "التذاكر المفتوحة", value: openCount.toString(), icon: MessageCircle, color: "from-primary to-cyan-400" },
-            { label: "قيد المعالجة", value: inProgressCount.toString(), icon: Clock, color: "from-warning to-orange-400" },
-            { label: "تم الحل", value: resolvedCount.toString(), icon: CheckCircle, color: "from-success to-emerald-400" },
+            { label: "إجمالي التذاكر", value: tickets.length.toString(), icon: HeadphonesIcon, color: "from-primary to-primary/70" },
+            { label: "التذاكر المفتوحة", value: openCount.toString(), icon: MessageCircle, color: "from-success to-emerald-500" },
+            { label: "قيد المعالجة", value: inProgressCount.toString(), icon: Clock, color: "from-warning to-orange-500" },
+            { label: "تم الحل", value: resolvedCount.toString(), icon: CheckCircle, color: "from-blue-500 to-cyan-500" },
           ].map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -367,13 +270,15 @@ const ClientSupport = () => {
               transition={{ delay: index * 0.1 }}
             >
               <Card className="glass border-border/50">
-                <CardContent className="p-6 flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} p-3`}>
-                    <stat.icon className="w-full h-full text-primary-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold font-display">{stat.value}</p>
-                    <p className="text-sm text-muted-foreground">{stat.label}</p>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center`}>
+                      <stat.icon className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold">{stat.value}</p>
+                      <p className="text-xs text-muted-foreground">{stat.label}</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -381,39 +286,67 @@ const ClientSupport = () => {
           ))}
         </div>
 
+        {/* Filters */}
+        <Card className="glass border-border/50">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap gap-4">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input 
+                  placeholder="بحث في التذاكر..." 
+                  className="pr-9"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="الحالة" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع الحالات</SelectItem>
+                  <SelectItem value="open">مفتوح</SelectItem>
+                  <SelectItem value="in_progress">قيد المعالجة</SelectItem>
+                  <SelectItem value="resolved">تم الحل</SelectItem>
+                  <SelectItem value="closed">مغلق</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Tickets List */}
         <Card className="glass border-border/50">
           <CardHeader>
-            <CardTitle className="font-display">التذاكر السابقة</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <HeadphonesIcon className="w-5 h-5" />
+              تذاكر الدعم
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="flex justify-center py-12">
                 <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
               </div>
-            ) : tickets.length === 0 ? (
+            ) : filteredTickets.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <HeadphonesIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>لا توجد تذاكر حالياً</p>
-                <Button className="mt-4" onClick={() => setShowNewTicket(true)}>
-                  <Plus className="w-4 h-4 ms-2" />
-                  إنشاء تذكرة جديدة
-                </Button>
+                <p>لا توجد تذاكر</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {tickets.map((ticket, index) => (
+              <div className="space-y-3">
+                {filteredTickets.map((ticket, index) => (
                   <motion.div
                     key={ticket.id}
-                    initial={{ opacity: 0, x: 20 }}
+                    initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
                     className="flex items-center justify-between p-4 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors cursor-pointer"
                     onClick={() => openTicketChat(ticket)}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <HeadphonesIcon className="w-5 h-5 text-primary" />
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+                        <User className="w-5 h-5 text-primary-foreground" />
                       </div>
                       <div>
                         <p className="font-medium">{ticket.subject}</p>
@@ -427,7 +360,7 @@ const ClientSupport = () => {
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusStyles(ticket.status)}`}>
                         {getStatusLabel(ticket.status)}
                       </span>
-                      <span className="text-sm text-muted-foreground hidden sm:block">{formatDate(ticket.created_at)}</span>
+                      <span className="text-sm text-muted-foreground hidden lg:block">{formatDate(ticket.created_at)}</span>
                     </div>
                   </motion.div>
                 ))}
@@ -440,15 +373,28 @@ const ClientSupport = () => {
         <Dialog open={!!selectedTicket} onOpenChange={() => setSelectedTicket(null)}>
           <DialogContent className="max-w-2xl h-[80vh] flex flex-col">
             <DialogHeader>
-              <DialogTitle className="flex items-center justify-between">
+              <DialogTitle className="flex items-center justify-between flex-wrap gap-2">
                 <span>{selectedTicket?.subject}</span>
                 <div className="flex items-center gap-2">
+                  <Select 
+                    value={selectedTicket?.status} 
+                    onValueChange={(value: "open" | "in_progress" | "resolved" | "closed") => {
+                      if (selectedTicket) handleUpdateStatus(selectedTicket.id, value);
+                    }}
+                  >
+                    <SelectTrigger className={`w-32 h-8 text-xs ${getStatusStyles(selectedTicket?.status || "open")}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="open">مفتوح</SelectItem>
+                      <SelectItem value="in_progress">قيد المعالجة</SelectItem>
+                      <SelectItem value="resolved">تم الحل</SelectItem>
+                      <SelectItem value="closed">مغلق</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <Badge variant="outline" className={getPriorityStyles(selectedTicket?.priority || "medium")}>
                     {getPriorityLabel(selectedTicket?.priority || "medium")}
                   </Badge>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusStyles(selectedTicket?.status || "open")}`}>
-                    {getStatusLabel(selectedTicket?.status || "open")}
-                  </span>
                 </div>
               </DialogTitle>
             </DialogHeader>
@@ -457,9 +403,10 @@ const ClientSupport = () => {
             <div className="flex-1 overflow-y-auto space-y-4 py-4">
               {/* Original Description */}
               <div className="flex justify-end">
-                <div className="max-w-[80%] bg-primary text-primary-foreground rounded-2xl rounded-tr-sm p-4">
+                <div className="max-w-[80%] bg-secondary/50 rounded-2xl rounded-tr-sm p-4">
+                  <p className="text-xs font-medium text-primary mb-1">العميل</p>
                   <p>{selectedTicket?.description}</p>
-                  <p className="text-xs opacity-70 mt-2">{selectedTicket && formatDate(selectedTicket.created_at)}</p>
+                  <p className="text-xs text-muted-foreground mt-2">{selectedTicket && formatDate(selectedTicket.created_at)}</p>
                 </div>
               </div>
               
@@ -468,14 +415,14 @@ const ClientSupport = () => {
                 <div key={msg.id} className={`flex ${msg.is_admin ? "justify-start" : "justify-end"}`}>
                   <div className={`max-w-[80%] rounded-2xl p-4 ${
                     msg.is_admin 
-                      ? "bg-secondary/50 rounded-tl-sm" 
-                      : "bg-primary text-primary-foreground rounded-tr-sm"
+                      ? "bg-primary text-primary-foreground rounded-tl-sm" 
+                      : "bg-secondary/50 rounded-tr-sm"
                   }`}>
-                    {msg.is_admin && (
-                      <p className="text-xs font-medium text-primary mb-1">فريق الدعم</p>
-                    )}
+                    <p className={`text-xs font-medium mb-1 ${msg.is_admin ? "text-primary-foreground/80" : "text-primary"}`}>
+                      {msg.is_admin ? "فريق الدعم" : "العميل"}
+                    </p>
                     <p>{msg.message}</p>
-                    <p className={`text-xs mt-2 ${msg.is_admin ? "text-muted-foreground" : "opacity-70"}`}>
+                    <p className={`text-xs mt-2 ${msg.is_admin ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
                       {formatDate(msg.created_at)}
                     </p>
                   </div>
@@ -487,7 +434,7 @@ const ClientSupport = () => {
             {selectedTicket?.status !== "closed" && (
               <div className="flex gap-2 pt-4 border-t">
                 <Input
-                  placeholder="اكتب رسالتك..."
+                  placeholder="اكتب ردك..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
@@ -498,8 +445,8 @@ const ClientSupport = () => {
                 </Button>
               </div>
             )}
-            {errors.message && (
-              <p className="text-sm text-destructive">{errors.message}</p>
+            {error && (
+              <p className="text-sm text-destructive">{error}</p>
             )}
             {selectedTicket?.status === "closed" && (
               <div className="flex items-center gap-2 text-muted-foreground text-sm pt-4 border-t">
@@ -510,8 +457,8 @@ const ClientSupport = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </ClientDashboardLayout>
+    </AdminDashboardLayout>
   );
 };
 
-export default ClientSupport;
+export default AdminSupport;
