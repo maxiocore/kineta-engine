@@ -15,6 +15,7 @@ import {
   X,
   Shield,
   Mail,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -33,6 +34,7 @@ const adminNavItems: NavItem[] = [
   { label: "الطلبات", href: "/admin/orders", icon: ShoppingBag },
   { label: "الإشعارات", href: "/admin/notifications", icon: Bell },
   { label: "البريد", href: "/admin/emails", icon: Mail },
+  { label: "سجل العمليات", href: "/admin/logs", icon: FileText },
   { label: "التقارير", href: "/admin/reports", icon: BarChart3 },
   { label: "الإعدادات", href: "/admin/settings", icon: Settings },
 ];
