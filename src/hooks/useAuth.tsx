@@ -69,6 +69,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Defer profile fetch with setTimeout to avoid deadlocks
         if (session?.user) {
+          // Set isRoleChecked to false IMMEDIATELY before setTimeout
+          setIsRoleChecked(false);
           setTimeout(() => {
             fetchProfile(session.user.id);
             checkAdminRole(session.user.id);
