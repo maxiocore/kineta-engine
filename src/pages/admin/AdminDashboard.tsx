@@ -3,26 +3,25 @@ import { motion } from "framer-motion";
 import {
   Users,
   ShoppingBag,
-  TrendingUp,
   DollarSign,
-  ArrowUpLeft,
-  ArrowDownRight,
-  Activity,
-  Eye,
-  Zap,
-  Clock,
-  Loader2,
-  Package,
   CheckCircle,
   AlertCircle,
+  Clock,
+  TrendingUp,
+  Sparkles,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
+import { format, subDays } from "date-fns";
 import { ar } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
+
+import StatCard from "@/components/admin/StatCard";
+import ActivityTimeline, { Activity } from "@/components/admin/ActivityTimeline";
+import TopServicesWidget, { TopService } from "@/components/admin/TopServicesWidget";
+import QuickActions from "@/components/admin/QuickActions";
+import DashboardSkeleton from "@/components/admin/DashboardSkeleton";
 
 interface DashboardStats {
   totalUsers: number;
@@ -32,22 +31,9 @@ interface DashboardStats {
   completedOrders: number;
   totalRevenue: number;
   monthlyRevenue: number;
-}
-
-interface RecentActivity {
-  id: string;
-  type: "order" | "user" | "ticket";
-  message: string;
-  time: string;
-  icon: typeof Users;
-  color: string;
-}
-
-interface TopService {
-  id: string;
-  name: string;
-  orders: number;
-  revenue: number;
+  usersTrend: number;
+  ordersTrend: number;
+  revenueTrend: number;
 }
 
 const containerVariants = {
@@ -70,31 +56,54 @@ const AdminDashboard = () => {
     completedOrders: 0,
     totalRevenue: 0,
     monthlyRevenue: 0,
+    usersTrend: 0,
+    ordersTrend: 0,
+    revenueTrend: 0,
   });
-  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [topServices, setTopServices] = useState<TopService[]>([]);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchDashboardData();
 
-    // Real-time subscriptions
+    // Real-time subscriptions with notifications
     const ordersChannel = supabase
-      .channel("dashboard-orders")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => {
+      .channel("dashboard-orders-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload) => {
+        if (payload.eventType === "INSERT") {
+          toast({
+            title: "🎉 طلب جديد!",
+            description: `تم استلام طلب جديد رقم ${(payload.new as any).order_number}`,
+          });
+        }
         fetchDashboardData();
       })
       .subscribe();
 
     const profilesChannel = supabase
-      .channel("dashboard-profiles")
-      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => {
+      .channel("dashboard-profiles-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, (payload) => {
+        if (payload.eventType === "INSERT") {
+          toast({
+            title: "👤 مستخدم جديد!",
+            description: `انضم مستخدم جديد للمنصة`,
+          });
+        }
         fetchDashboardData();
       })
       .subscribe();
 
     const ticketsChannel = supabase
-      .channel("dashboard-tickets")
-      .on("postgres_changes", { event: "*", schema: "public", table: "support_tickets" }, () => {
+      .channel("dashboard-tickets-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "support_tickets" }, (payload) => {
+        if (payload.eventType === "INSERT") {
+          toast({
+            title: "🎫 تذكرة دعم جديدة",
+            description: (payload.new as any).subject,
+          });
+        }
         fetchDashboardData();
       })
       .subscribe();
@@ -107,174 +116,211 @@ const AdminDashboard = () => {
   }, []);
 
   const fetchDashboardData = async () => {
-    setLoading(true);
+    try {
+      // Fetch users stats
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, is_verified, created_at");
 
-    // Fetch users stats
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, is_verified, created_at");
+      const totalUsers = profiles?.length || 0;
+      const verifiedUsers = profiles?.filter(p => p.is_verified)?.length || 0;
 
-    const totalUsers = profiles?.length || 0;
-    const verifiedUsers = profiles?.filter(p => p.is_verified)?.length || 0;
+      // Calculate users trend (last 7 days)
+      const weekAgo = subDays(new Date(), 7);
+      const newUsersThisWeek = profiles?.filter(p => new Date(p.created_at!) > weekAgo).length || 0;
+      const usersTrend = totalUsers > 0 ? Math.round((newUsersThisWeek / totalUsers) * 100) : 0;
 
-    // Fetch orders stats
-    const { data: orders } = await supabase
-      .from("orders")
-      .select("id, status, total_price, created_at, service_id");
+      // Fetch orders stats
+      const { data: orders } = await supabase
+        .from("orders")
+        .select("id, status, total_price, created_at, service_id");
 
-    const totalOrders = orders?.length || 0;
-    const pendingOrders = orders?.filter(o => o.status === "pending")?.length || 0;
-    const completedOrders = orders?.filter(o => o.status === "completed")?.length || 0;
-    const totalRevenue = orders?.reduce((sum, o) => sum + Number(o.total_price), 0) || 0;
+      const totalOrders = orders?.length || 0;
+      const pendingOrders = orders?.filter(o => o.status === "pending")?.length || 0;
+      const completedOrders = orders?.filter(o => o.status === "completed")?.length || 0;
+      const totalRevenue = orders?.reduce((sum, o) => sum + Number(o.total_price), 0) || 0;
 
-    // Monthly revenue (current month)
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-    const monthlyRevenue = orders?.filter(o => {
-      const orderDate = new Date(o.created_at);
-      return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
-    }).reduce((sum, o) => sum + Number(o.total_price), 0) || 0;
+      // Monthly revenue (current month)
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      const monthlyRevenue = orders?.filter(o => {
+        const orderDate = new Date(o.created_at);
+        return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
+      }).reduce((sum, o) => sum + Number(o.total_price), 0) || 0;
 
-    setStats({
-      totalUsers,
-      verifiedUsers,
-      totalOrders,
-      pendingOrders,
-      completedOrders,
-      totalRevenue,
-      monthlyRevenue,
-    });
+      // Calculate orders trend
+      const newOrdersThisWeek = orders?.filter(o => new Date(o.created_at) > weekAgo).length || 0;
+      const ordersTrend = totalOrders > 0 ? Math.round((newOrdersThisWeek / totalOrders) * 100) : 0;
 
-    // Fetch recent activities
-    const activities: RecentActivity[] = [];
+      // Calculate revenue trend
+      const lastMonthRevenue = orders?.filter(o => {
+        const orderDate = new Date(o.created_at);
+        return orderDate.getMonth() === (currentMonth - 1) && orderDate.getFullYear() === currentYear;
+      }).reduce((sum, o) => sum + Number(o.total_price), 0) || 0;
+      const revenueTrend = lastMonthRevenue > 0 
+        ? Math.round(((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100) 
+        : monthlyRevenue > 0 ? 100 : 0;
 
-    // Recent orders
-    const { data: recentOrders } = await supabase
-      .from("orders")
-      .select(`
-        id, order_number, status, created_at,
-        service:services(name),
-        profile:profiles(full_name)
-      `)
-      .order("created_at", { ascending: false })
-      .limit(3);
-
-    recentOrders?.forEach(order => {
-      activities.push({
-        id: `order-${order.id}`,
-        type: "order",
-        message: `طلب جديد ${order.order_number} - ${(order.service as any)?.name || "خدمة"}`,
-        time: format(new Date(order.created_at), "منذ d دقيقة", { locale: ar }),
-        icon: ShoppingBag,
-        color: "text-success",
+      setStats({
+        totalUsers,
+        verifiedUsers,
+        totalOrders,
+        pendingOrders,
+        completedOrders,
+        totalRevenue,
+        monthlyRevenue,
+        usersTrend,
+        ordersTrend,
+        revenueTrend,
       });
-    });
 
-    // Recent users
-    const { data: recentUsers } = await supabase
-      .from("profiles")
-      .select("id, full_name, email, created_at")
-      .order("created_at", { ascending: false })
-      .limit(2);
+      // Fetch recent activities
+      const activitiesList: Activity[] = [];
 
-    recentUsers?.forEach(user => {
-      activities.push({
-        id: `user-${user.id}`,
-        type: "user",
-        message: `مستخدم جديد: ${user.full_name || user.email || "مستخدم"}`,
-        time: format(new Date(user.created_at!), "منذ d دقيقة", { locale: ar }),
-        icon: Users,
-        color: "text-primary",
+      // Recent orders
+      const { data: recentOrders } = await supabase
+        .from("orders")
+        .select(`
+          id, order_number, status, created_at,
+          service:services(name),
+          profile:profiles(full_name)
+        `)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      recentOrders?.forEach(order => {
+        activitiesList.push({
+          id: `order-${order.id}`,
+          type: "order",
+          message: `طلب جديد ${order.order_number}`,
+          details: (order.service as any)?.name || "خدمة",
+          time: format(new Date(order.created_at), "منذ d دقيقة", { locale: ar }),
+          timestamp: new Date(order.created_at),
+          isNew: new Date(order.created_at) > subDays(new Date(), 1),
+        });
       });
-    });
 
-    // Recent tickets
-    const { data: recentTickets } = await supabase
-      .from("support_tickets")
-      .select("id, subject, created_at")
-      .order("created_at", { ascending: false })
-      .limit(2);
+      // Recent users
+      const { data: recentUsers } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, created_at")
+        .order("created_at", { ascending: false })
+        .limit(3);
 
-    recentTickets?.forEach(ticket => {
-      activities.push({
-        id: `ticket-${ticket.id}`,
-        type: "ticket",
-        message: `تذكرة دعم: ${ticket.subject}`,
-        time: format(new Date(ticket.created_at!), "منذ d دقيقة", { locale: ar }),
-        icon: AlertCircle,
-        color: "text-warning",
+      recentUsers?.forEach(user => {
+        activitiesList.push({
+          id: `user-${user.id}`,
+          type: "user",
+          message: `مستخدم جديد: ${user.full_name || "مستخدم"}`,
+          details: user.email || undefined,
+          time: format(new Date(user.created_at!), "منذ d دقيقة", { locale: ar }),
+          timestamp: new Date(user.created_at!),
+          isNew: new Date(user.created_at!) > subDays(new Date(), 1),
+        });
       });
-    });
 
-    // Sort by time
-    activities.sort((a, b) => b.time.localeCompare(a.time));
-    setRecentActivities(activities.slice(0, 5));
+      // Recent tickets
+      const { data: recentTickets } = await supabase
+        .from("support_tickets")
+        .select("id, subject, created_at, priority")
+        .order("created_at", { ascending: false })
+        .limit(3);
 
-    // Fetch top services
-    const { data: services } = await supabase
-      .from("services")
-      .select("id, name")
-      .eq("status", "active");
-
-    const serviceStats: TopService[] = [];
-    for (const service of services || []) {
-      const serviceOrders = orders?.filter(o => o.service_id === service.id) || [];
-      serviceStats.push({
-        id: service.id,
-        name: service.name,
-        orders: serviceOrders.length,
-        revenue: serviceOrders.reduce((sum, o) => sum + Number(o.total_price), 0),
+      recentTickets?.forEach(ticket => {
+        activitiesList.push({
+          id: `ticket-${ticket.id}`,
+          type: "ticket",
+          message: ticket.subject,
+          details: `أولوية: ${ticket.priority}`,
+          time: format(new Date(ticket.created_at!), "منذ d دقيقة", { locale: ar }),
+          timestamp: new Date(ticket.created_at!),
+          isNew: new Date(ticket.created_at!) > subDays(new Date(), 1),
+        });
       });
+
+      // Sort by timestamp
+      activitiesList.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+      setActivities(activitiesList.slice(0, 8));
+
+      // Fetch top services
+      const { data: services } = await supabase
+        .from("services")
+        .select("id, name")
+        .eq("status", "active");
+
+      const serviceStats: TopService[] = [];
+      for (const service of services || []) {
+        const serviceOrders = orders?.filter(o => o.service_id === service.id) || [];
+        const revenue = serviceOrders.reduce((sum, o) => sum + Number(o.total_price), 0);
+        
+        // Calculate trend for this service
+        const recentServiceOrders = serviceOrders.filter(o => new Date(o.created_at) > weekAgo);
+        const trend = serviceOrders.length > 0 
+          ? Math.round((recentServiceOrders.length / serviceOrders.length) * 100) 
+          : 0;
+
+        serviceStats.push({
+          id: service.id,
+          name: service.name,
+          orders: serviceOrders.length,
+          revenue,
+          trend,
+        });
+      }
+
+      serviceStats.sort((a, b) => b.revenue - a.revenue);
+      setTopServices(serviceStats.slice(0, 5));
+
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      setLoading(false);
     }
-
-    serviceStats.sort((a, b) => b.revenue - a.revenue);
-    setTopServices(serviceStats.slice(0, 4));
-
-    setLoading(false);
   };
 
   const statsData = [
     { 
       title: "إجمالي المستخدمين", 
-      value: stats.totalUsers.toLocaleString("ar-SA"), 
+      value: stats.totalUsers, 
       icon: Users, 
       gradient: "from-primary via-cyan-400 to-primary",
-      shadowColor: "shadow-primary/20"
+      shadowColor: "shadow-primary/20",
+      trend: stats.usersTrend,
+      onClick: () => navigate("/admin/users"),
     },
     { 
-      title: "الطلبات الجديدة", 
-      value: stats.pendingOrders.toLocaleString("ar-SA"), 
-      icon: ShoppingBag, 
+      title: "الطلبات المعلقة", 
+      value: stats.pendingOrders, 
+      icon: Clock, 
       gradient: "from-warning via-orange-400 to-warning",
-      shadowColor: "shadow-warning/20"
+      shadowColor: "shadow-warning/20",
+      trend: stats.ordersTrend,
+      onClick: () => navigate("/admin/orders"),
     },
     { 
       title: "الطلبات المكتملة", 
-      value: stats.completedOrders.toLocaleString("ar-SA"), 
+      value: stats.completedOrders, 
       icon: CheckCircle, 
       gradient: "from-success via-emerald-400 to-success",
-      shadowColor: "shadow-success/20"
+      shadowColor: "shadow-success/20",
+      onClick: () => navigate("/admin/orders"),
     },
     { 
       title: "الإيرادات الشهرية", 
-      value: `${stats.monthlyRevenue.toLocaleString("ar-SA")} ر.س`, 
+      value: stats.monthlyRevenue, 
       icon: DollarSign, 
       gradient: "from-accent via-pink-400 to-accent",
-      shadowColor: "shadow-accent/20"
+      shadowColor: "shadow-accent/20",
+      suffix: " ر.س",
+      trend: stats.revenueTrend,
+      onClick: () => navigate("/admin/reports"),
     },
   ];
 
   if (loading) {
     return (
       <AdminDashboardLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          >
-            <Loader2 className="w-12 h-12 text-primary" />
-          </motion.div>
-        </div>
+        <DashboardSkeleton />
       </AdminDashboardLayout>
     );
   }
@@ -288,198 +334,67 @@ const AdminDashboard = () => {
         animate="visible"
       >
         {/* Header */}
-        <motion.div variants={itemVariants}>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-3">
-            <motion.span
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-            >
-              🎯
-            </motion.span>
-            لوحة التحكم
-          </h1>
-          <p className="text-muted-foreground">نظرة شاملة على أداء المنصة</p>
+        <motion.div variants={itemVariants} className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-3">
+              <motion.div
+                className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center"
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                <Sparkles className="w-5 h-5 text-primary-foreground" />
+              </motion.div>
+              لوحة التحكم
+            </h1>
+            <p className="text-muted-foreground">نظرة شاملة على أداء المنصة في الوقت الفعلي</p>
+          </div>
+          
+          <motion.div 
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-success/10 border border-success/20"
+            animate={{ opacity: [1, 0.7, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+            <span className="text-sm text-success font-medium">مباشر</span>
+          </motion.div>
         </motion.div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {statsData.map((stat, index) => (
-            <motion.div
+            <StatCard
               key={stat.title}
-              variants={itemVariants}
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
-            >
-              <Card className={`card-elevated border-border/30 hover:border-primary/30 transition-all duration-300 ${stat.shadowColor} shadow-lg`}>
-                <CardContent className="p-5 sm:p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <motion.div 
-                      className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.gradient} p-3 shadow-lg`}
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      transition={{ type: "spring", stiffness: 300 }}
-                    >
-                      <stat.icon className="w-full h-full text-primary-foreground" />
-                    </motion.div>
-                  </div>
-                  <motion.p 
-                    className="text-2xl sm:text-3xl font-bold mb-1"
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.1 + 0.2 }}
-                  >
-                    {stat.value}
-                  </motion.p>
-                  <p className="text-sm text-muted-foreground">{stat.title}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
+              title={stat.title}
+              value={stat.value}
+              icon={stat.icon}
+              gradient={stat.gradient}
+              shadowColor={stat.shadowColor}
+              trend={stat.trend}
+              suffix={stat.suffix}
+              delay={index * 0.1}
+              onClick={stat.onClick}
+            />
           ))}
         </div>
 
+        {/* Two Column Layout */}
         <div className="grid lg:grid-cols-2 gap-6">
-          {/* Recent Activity */}
           <motion.div variants={itemVariants}>
-            <Card className="card-elevated border-border/30 h-full">
-              <CardHeader className="flex flex-row items-center justify-between pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <motion.div
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    <Activity className="w-5 h-5 text-primary" />
-                  </motion.div>
-                  النشاط الأخير
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {recentActivities.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Clock className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                    <p>لا يوجد نشاط حديث</p>
-                  </div>
-                ) : (
-                  recentActivities.map((activity, index) => (
-                    <motion.div 
-                      key={activity.id} 
-                      className="flex items-center gap-4 p-3 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors group"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      whileHover={{ x: 4 }}
-                    >
-                      <motion.div 
-                        className={`w-10 h-10 rounded-xl bg-secondary flex items-center justify-center ${activity.color}`}
-                        whileHover={{ rotate: 10 }}
-                      >
-                        <activity.icon className="w-5 h-5" />
-                      </motion.div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{activity.message}</p>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {activity.time}
-                        </p>
-                      </div>
-                    </motion.div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
+            <ActivityTimeline 
+              activities={activities}
+              maxItems={6}
+              onViewAll={() => navigate("/admin/logs")}
+            />
           </motion.div>
 
-          {/* Top Services */}
           <motion.div variants={itemVariants}>
-            <Card className="card-elevated border-border/30 h-full">
-              <CardHeader className="flex flex-row items-center justify-between pb-4">
-                <CardTitle className="text-lg">أفضل الخدمات</CardTitle>
-                <Link to="/admin/services">
-                  <Button variant="ghost" size="sm" className="gap-2 text-xs">
-                    عرض الكل
-                    <Eye className="w-4 h-4" />
-                  </Button>
-                </Link>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {topServices.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                    <p>لا توجد خدمات بعد</p>
-                  </div>
-                ) : (
-                  topServices.map((service, index) => (
-                    <motion.div 
-                      key={service.id} 
-                      className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors"
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      whileHover={{ x: -4 }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <motion.span 
-                          className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-sm font-bold text-primary border border-primary/20"
-                          whileHover={{ scale: 1.1 }}
-                        >
-                          {index + 1}
-                        </motion.span>
-                        <div>
-                          <p className="font-medium text-sm">{service.name}</p>
-                          <p className="text-xs text-muted-foreground">{service.orders} طلب</p>
-                        </div>
-                      </div>
-                      <div className="text-left">
-                        <span className="font-medium text-sm text-success block">
-                          {service.revenue.toLocaleString("ar-SA")} ر.س
-                        </span>
-                      </div>
-                    </motion.div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
+            <TopServicesWidget services={topServices} />
           </motion.div>
         </div>
 
         {/* Quick Actions */}
         <motion.div variants={itemVariants}>
-          <Card className="card-elevated border-border/30 bg-gradient-to-l from-destructive/5 via-orange-500/5 to-transparent">
-            <CardContent className="p-6">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-xl font-bold mb-1 flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-warning" />
-                    إجراءات سريعة
-                  </h3>
-                  <p className="text-muted-foreground text-sm">إدارة المنصة بسرعة وكفاءة</p>
-                </div>
-                <div className="flex gap-2 flex-wrap justify-center">
-                  <Link to="/admin/users">
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Button variant="outline" className="gap-2">
-                        <Users className="w-4 h-4" />
-                        المستخدمين
-                      </Button>
-                    </motion.div>
-                  </Link>
-                  <Link to="/admin/orders">
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Button variant="outline" className="gap-2">
-                        <ShoppingBag className="w-4 h-4" />
-                        الطلبات
-                      </Button>
-                    </motion.div>
-                  </Link>
-                  <Link to="/admin/reports">
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Button className="bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground gap-2 shadow-lg shadow-destructive/20">
-                        <TrendingUp className="w-4 h-4" />
-                        التقارير
-                      </Button>
-                    </motion.div>
-                  </Link>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <QuickActions />
         </motion.div>
       </motion.div>
     </AdminDashboardLayout>
