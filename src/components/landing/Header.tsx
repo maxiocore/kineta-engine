@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const navItems = [
   { label: "الرئيسية", href: "/" },
@@ -84,6 +85,7 @@ const Header = () => {
 
           {/* Desktop CTA */}
           <div className="hidden lg:flex items-center gap-3">
+            <ThemeToggle />
             <Link to="/auth">
               <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
                 تسجيل الدخول
@@ -167,6 +169,9 @@ const Header = () => {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
                 >
+                  <div className="flex justify-center pb-2">
+                    <ThemeToggle />
+                  </div>
                   <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>
                     <Button variant="outline" className="w-full">تسجيل الدخول</Button>
                   </Link>
