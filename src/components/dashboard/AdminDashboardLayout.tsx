@@ -18,12 +18,17 @@ import {
   FileText,
   HeadphonesIcon,
   Sparkles,
+  Search,
+  Command,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import ThemeToggle from "@/components/ThemeToggle";
+import NotificationBell from "@/components/admin/NotificationBell";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 
 interface NavItem {
   label: string;
@@ -85,9 +90,52 @@ const AnimatedIcon = ({
 const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [navBadges, setNavBadges] = useState<Record<string, number>>({});
   const location = useLocation();
   const navigate = useNavigate();
   const { profile, signOut } = useAuth();
+
+  // Fetch badge counts for navigation items
+  useEffect(() => {
+    const fetchBadgeCounts = async () => {
+      try {
+        const { count: pendingOrders } = await supabase
+          .from("orders")
+          .select("*", { count: "exact", head: true })
+          .eq("status", "pending");
+
+        const { count: openTickets } = await supabase
+          .from("support_tickets")
+          .select("*", { count: "exact", head: true })
+          .in("status", ["open", "in_progress"]);
+
+        setNavBadges({
+          "/admin/orders": pendingOrders || 0,
+          "/admin/support": openTickets || 0,
+        });
+      } catch (error) {
+        console.error("Error fetching badge counts:", error);
+      }
+    };
+
+    fetchBadgeCounts();
+
+    // Real-time updates for badges
+    const ordersChannel = supabase
+      .channel("nav-badges-orders")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, fetchBadgeCounts)
+      .subscribe();
+
+    const ticketsChannel = supabase
+      .channel("nav-badges-tickets")
+      .on("postgres_changes", { event: "*", schema: "public", table: "support_tickets" }, fetchBadgeCounts)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ordersChannel);
+      supabase.removeChannel(ticketsChannel);
+    };
+  }, []);
 
   const isActive = (path: string) => {
     if (path === "/admin") {
@@ -113,7 +161,7 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
         )}
       >
         {/* Logo */}
-        <div className="p-6 border-b border-border/50 flex items-center justify-between">
+        <div className="p-5 border-b border-border/50 flex items-center justify-between">
           {isSidebarOpen && (
             <motion.div
               initial={{ opacity: 0, x: 20 }}
@@ -122,7 +170,7 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
             >
               <Link to="/" className="flex items-center gap-3">
                 <motion.div 
-                  className="w-11 h-11 rounded-xl bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg"
+                  className="w-11 h-11 rounded-xl bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg shadow-destructive/30"
                   whileHover={{ scale: 1.05, rotate: 5 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -138,7 +186,8 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
               </Link>
             </motion.div>
           )}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <NotificationBell />
             <ThemeToggle />
             <Button
               variant="ghost"
@@ -156,68 +205,111 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
-          {adminNavItems.map((item, index) => (
-            <motion.div
-              key={item.href}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
+        {/* Search (when sidebar is open) */}
+        <AnimatePresence>
+          {isSidebarOpen && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="p-4 border-b border-border/30"
             >
-              <Link
-                to={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden",
-                  isActive(item.href)
-                    ? "bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground shadow-lg shadow-destructive/20"
-                    : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
-                )}
-              >
-                {/* Hover Effect */}
-                {!isActive(item.href) && (
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-l from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
-                  />
-                )}
-                
-                <AnimatedIcon 
-                  icon={item.icon} 
-                  isActive={isActive(item.href)} 
-                  className="shrink-0"
+              <div className="relative">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input 
+                  placeholder="بحث سريع..."
+                  className="pr-9 pl-12 bg-secondary/50 border-border/50 h-9 text-sm"
                 />
-                
-                <AnimatePresence>
-                  {isSidebarOpen && (
+                <kbd className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">
+                  ⌘K
+                </kbd>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          {adminNavItems.map((item, index) => {
+            const badge = navBadges[item.href];
+            
+            return (
+              <motion.div
+                key={item.href}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.03 }}
+              >
+                <Link
+                  to={item.href}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 group relative overflow-hidden",
+                    isActive(item.href)
+                      ? "bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground shadow-lg shadow-destructive/20"
+                      : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                  )}
+                >
+                  {/* Hover Effect */}
+                  {!isActive(item.href) && (
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-l from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+                    />
+                  )}
+                  
+                  <AnimatedIcon 
+                    icon={item.icon} 
+                    isActive={isActive(item.href)} 
+                    className="shrink-0"
+                  />
+                  
+                  <AnimatePresence>
+                    {isSidebarOpen && (
+                      <motion.span
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: "auto" }}
+                        exit={{ opacity: 0, width: 0 }}
+                        className="font-medium whitespace-nowrap flex-1"
+                      >
+                        {item.label}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Badge */}
+                  {badge && badge > 0 && (
                     <motion.span
-                      initial={{ opacity: 0, width: 0 }}
-                      animate={{ opacity: 1, width: "auto" }}
-                      exit={{ opacity: 0, width: 0 }}
-                      className="font-medium whitespace-nowrap"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className={cn(
+                        "px-2 py-0.5 text-xs font-bold rounded-full",
+                        isActive(item.href)
+                          ? "bg-primary-foreground/20 text-primary-foreground"
+                          : "bg-destructive/10 text-destructive"
+                      )}
                     >
-                      {item.label}
+                      {badge}
                     </motion.span>
                   )}
-                </AnimatePresence>
 
-                {/* Active Indicator */}
-                {isActive(item.href) && (
-                  <motion.div
-                    layoutId="activeIndicator"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary-foreground rounded-r-full"
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  />
-                )}
-              </Link>
-            </motion.div>
-          ))}
+                  {/* Active Indicator */}
+                  {isActive(item.href) && (
+                    <motion.div
+                      layoutId="activeIndicator"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary-foreground rounded-r-full"
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                </Link>
+              </motion.div>
+            );
+          })}
         </nav>
 
         {/* Admin Info */}
-        <div className="p-4 border-t border-border/50 bg-secondary/20">
-          <div className={cn("flex items-center gap-3 mb-4", !isSidebarOpen && "justify-center")}>
+        <div className="p-4 border-t border-border/50 bg-gradient-to-t from-secondary/30 to-transparent">
+          <div className={cn("flex items-center gap-3 mb-3", !isSidebarOpen && "justify-center")}>
             <motion.div 
-              className="w-11 h-11 rounded-full bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg"
+              className="w-11 h-11 rounded-full bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg shadow-destructive/20"
               whileHover={{ scale: 1.05 }}
             >
               <Shield className="w-5 h-5 text-primary-foreground" />
@@ -228,8 +320,9 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 10 }}
+                  className="flex-1 min-w-0"
                 >
-                  <p className="font-medium">{profile?.full_name || "المدير"}</p>
+                  <p className="font-medium truncate">{profile?.full_name || "المدير"}</p>
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
                     Super Admin
@@ -260,12 +353,15 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
           <Menu className="w-6 h-6" />
         </Button>
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg shadow-destructive/30">
             <Shield className="w-5 h-5 text-primary-foreground" />
           </div>
           <span className="font-bold">لوحة الأدمن</span>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-1">
+          <NotificationBell />
+          <ThemeToggle />
+        </div>
       </div>
 
       {/* Mobile Menu */}
@@ -283,39 +379,94 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="absolute top-0 right-0 h-full w-72 bg-card border-l border-border/50 overflow-y-auto"
+              className="absolute top-0 right-0 h-full w-80 bg-card border-l border-border/50 overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-4 border-b border-border/50 flex items-center justify-between">
-                <span className="font-bold">القائمة</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-primary-foreground" />
+                  </div>
+                  <span className="font-bold">القائمة</span>
+                </div>
                 <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
                   <X className="w-5 h-5" />
                 </Button>
               </div>
-              <nav className="p-4 space-y-2">
-                {adminNavItems.map((item, index) => (
-                  <motion.div
-                    key={item.href}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <Link
-                      to={item.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
-                        isActive(item.href)
-                          ? "bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground"
-                          : "text-muted-foreground hover:bg-secondary"
-                      )}
+
+              {/* Mobile Search */}
+              <div className="p-4 border-b border-border/30">
+                <div className="relative">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="بحث..."
+                    className="pr-9 bg-secondary/50 border-border/50"
+                  />
+                </div>
+              </div>
+
+              <nav className="p-4 space-y-1">
+                {adminNavItems.map((item, index) => {
+                  const badge = navBadges[item.href];
+                  
+                  return (
+                    <motion.div
+                      key={item.href}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.03 }}
                     >
-                      <item.icon className="w-5 h-5" />
-                      <span className="font-medium">{item.label}</span>
-                    </Link>
-                  </motion.div>
-                ))}
+                      <Link
+                        to={item.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={cn(
+                          "flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
+                          isActive(item.href)
+                            ? "bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground"
+                            : "text-muted-foreground hover:bg-secondary"
+                        )}
+                      >
+                        <item.icon className="w-5 h-5" />
+                        <span className="font-medium flex-1">{item.label}</span>
+                        {badge && badge > 0 && (
+                          <span className={cn(
+                            "px-2 py-0.5 text-xs font-bold rounded-full",
+                            isActive(item.href)
+                              ? "bg-primary-foreground/20 text-primary-foreground"
+                              : "bg-destructive/10 text-destructive"
+                          )}>
+                            {badge}
+                          </span>
+                        )}
+                      </Link>
+                    </motion.div>
+                  );
+                })}
               </nav>
+
+              {/* Mobile Admin Info */}
+              <div className="p-4 border-t border-border/50 mt-auto">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-medium">{profile?.full_name || "المدير"}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                      Super Admin
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="w-full gap-2 border-destructive/30 text-destructive"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="w-4 h-4" />
+                  تسجيل الخروج
+                </Button>
+              </div>
             </motion.div>
           </motion.div>
         )}
@@ -328,7 +479,7 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
           isSidebarOpen ? "lg:mr-[280px]" : "lg:mr-[80px]"
         )}
       >
-        <div className="p-4 sm:p-6 lg:p-8">{children}</div>
+        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">{children}</div>
       </main>
     </div>
   );
