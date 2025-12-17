@@ -16,6 +16,7 @@ interface AuthContextType {
   profile: Profile | null;
   isAdmin: boolean;
   isLoading: boolean;
+  isRoleChecked: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -29,6 +30,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRoleChecked, setIsRoleChecked] = useState(false);
+
+  const fetchProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+    
+    if (!error && data) {
+      setProfile(data);
+    }
+  };
+
+  const checkAdminRole = async (userId: string) => {
+    setIsRoleChecked(false);
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    if (!error && data) {
+      setIsAdmin(data.role === 'admin');
+    } else {
+      setIsAdmin(false);
+    }
+    setIsRoleChecked(true);
+  };
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -46,47 +76,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           setProfile(null);
           setIsAdmin(false);
+          setIsRoleChecked(true);
         }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
-        checkAdminRole(session.user.id);
+        await fetchProfile(session.user.id);
+        await checkAdminRole(session.user.id);
+      } else {
+        setIsRoleChecked(true);
       }
       setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
-    
-    if (!error && data) {
-      setProfile(data);
-    }
-  };
-
-  const checkAdminRole = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .maybeSingle();
-    
-    if (!error && data) {
-      setIsAdmin(data.role === 'admin');
-    }
-  };
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const redirectUrl = `${window.location.origin}/`;
@@ -120,6 +129,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSession(null);
     setProfile(null);
     setIsAdmin(false);
+    setIsRoleChecked(false);
   };
 
   return (
@@ -129,6 +139,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       profile,
       isAdmin,
       isLoading,
+      isRoleChecked,
       signUp,
       signIn,
       signOut,
