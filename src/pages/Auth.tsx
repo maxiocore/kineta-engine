@@ -4,15 +4,23 @@ import { Mail, Lock, User, ArrowLeft, Eye, EyeOff, Sparkles } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { z } from "zod";
+
+const emailSchema = z.string().email("البريد الإلكتروني غير صالح");
+const passwordSchema = z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل");
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(searchParams.get("mode") === "signup");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string; name?: string }>({});
   const { toast } = useToast();
+  const { user, signUp, signIn } = useAuth();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -24,20 +32,108 @@ const Auth = () => {
     setIsSignUp(searchParams.get("mode") === "signup");
   }, [searchParams]);
 
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+
+  const validateForm = () => {
+    const newErrors: { email?: string; password?: string; name?: string } = {};
+    
+    try {
+      emailSchema.parse(formData.email);
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        newErrors.email = e.errors[0].message;
+      }
+    }
+
+    try {
+      passwordSchema.parse(formData.password);
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        newErrors.password = e.errors[0].message;
+      }
+    }
+
+    if (isSignUp && !formData.name.trim()) {
+      newErrors.name = "الاسم مطلوب";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      if (isSignUp) {
+        const { error } = await signUp(formData.email, formData.password, formData.name);
+        
+        if (error) {
+          if (error.message.includes("User already registered")) {
+            toast({
+              title: "خطأ",
+              description: "هذا البريد الإلكتروني مسجل بالفعل. حاول تسجيل الدخول.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "خطأ",
+              description: error.message,
+              variant: "destructive",
+            });
+          }
+        } else {
+          toast({
+            title: "تم إنشاء الحساب!",
+            description: "تم تسجيل حسابك بنجاح. سيتم توجيهك للوحة التحكم.",
+          });
+          navigate("/dashboard");
+        }
+      } else {
+        const { error } = await signIn(formData.email, formData.password);
+        
+        if (error) {
+          if (error.message.includes("Invalid login credentials")) {
+            toast({
+              title: "خطأ",
+              description: "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "خطأ",
+              description: error.message,
+              variant: "destructive",
+            });
+          }
+        } else {
+          toast({
+            title: "مرحباً بعودتك!",
+            description: "تم تسجيل دخولك بنجاح.",
+          });
+          navigate("/dashboard");
+        }
+      }
+    } catch (error) {
       toast({
-        title: isSignUp ? "تم إنشاء الحساب!" : "مرحباً بعودتك!",
-        description: isSignUp 
-          ? "يرجى التحقق من بريدك الإلكتروني لتأكيد حسابك." 
-          : "تم تسجيل دخولك بنجاح.",
+        title: "خطأ",
+        description: "حدث خطأ غير متوقع. حاول مرة أخرى.",
+        variant: "destructive",
       });
-    }, 1500);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -93,6 +189,9 @@ const Auth = () => {
                       required={isSignUp}
                     />
                   </div>
+                  {errors.name && (
+                    <p className="text-sm text-destructive mt-1">{errors.name}</p>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -112,6 +211,9 @@ const Auth = () => {
                   required
                 />
               </div>
+              {errors.email && (
+                <p className="text-sm text-destructive mt-1">{errors.email}</p>
+              )}
             </div>
 
             <div>
@@ -143,6 +245,9 @@ const Auth = () => {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              {errors.password && (
+                <p className="text-sm text-destructive mt-1">{errors.password}</p>
+              )}
             </div>
 
             <Button
