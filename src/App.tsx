@@ -26,6 +26,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminEmails from "./pages/admin/AdminEmails";
 import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminLogs from "./pages/admin/AdminLogs";
+import AdminSupport from "./pages/admin/AdminSupport";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +102,11 @@ const App = () => (
             <Route path="/admin/logs" element={
               <ProtectedRoute requireAdmin>
                 <AdminLogs />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/support" element={
+              <ProtectedRoute requireAdmin>
+                <AdminSupport />
               </ProtectedRoute>
             } />
             <Route path="/admin/reports" element={
