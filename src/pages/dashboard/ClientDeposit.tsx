@@ -1,17 +1,29 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Wallet, 
   CreditCard, 
-  ArrowLeft, 
   Check, 
   Info,
   Loader2,
   Gift,
-  Percent,
+  Sparkles,
+  ArrowUpRight,
+  Shield,
+  Clock,
+  Zap,
+  DollarSign,
+  BadgeCheck,
+  Send,
+  Copy,
+  CheckCircle2,
+  Banknote,
+  Smartphone,
+  Globe,
+  Bitcoin,
 } from 'lucide-react';
 import ClientDashboardLayout from '@/components/dashboard/ClientDashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -46,7 +58,46 @@ interface PaymentBonus {
   is_active: boolean;
 }
 
-const presetAmounts = [10, 25, 50, 100, 250, 500];
+// أيقونات طرق الدفع
+const paymentIcons: Record<string, { icon: typeof CreditCard; gradient: string; color: string }> = {
+  'visa': { icon: CreditCard, gradient: 'from-blue-500 to-blue-600', color: 'text-blue-500' },
+  'mastercard': { icon: CreditCard, gradient: 'from-red-500 to-orange-500', color: 'text-red-500' },
+  'paypal': { icon: Globe, gradient: 'from-blue-400 to-blue-600', color: 'text-blue-400' },
+  'crypto': { icon: Bitcoin, gradient: 'from-orange-400 to-yellow-500', color: 'text-orange-400' },
+  'bitcoin': { icon: Bitcoin, gradient: 'from-orange-400 to-yellow-500', color: 'text-orange-400' },
+  'bank': { icon: Banknote, gradient: 'from-green-500 to-emerald-600', color: 'text-green-500' },
+  'vodafone': { icon: Smartphone, gradient: 'from-red-500 to-red-600', color: 'text-red-500' },
+  'instapay': { icon: Zap, gradient: 'from-purple-500 to-pink-500', color: 'text-purple-500' },
+  'usdt': { icon: DollarSign, gradient: 'from-green-400 to-teal-500', color: 'text-green-400' },
+  'default': { icon: CreditCard, gradient: 'from-primary to-primary/80', color: 'text-primary' },
+};
+
+const getPaymentIcon = (type: string, name: string) => {
+  const lowerName = name.toLowerCase();
+  const lowerType = type.toLowerCase();
+  
+  for (const key of Object.keys(paymentIcons)) {
+    if (lowerName.includes(key) || lowerType.includes(key)) {
+      return paymentIcons[key];
+    }
+  }
+  return paymentIcons.default;
+};
+
+const presetAmounts = [10, 25, 50, 100, 250, 500, 1000];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
+};
 
 const ClientDeposit = () => {
   const { user } = useAuth();
@@ -60,10 +111,17 @@ const ClientDeposit = () => {
   const [transactionId, setTransactionId] = useState('');
   const [notes, setNotes] = useState('');
   const [currentBalance, setCurrentBalance] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
 
   useEffect(() => {
     fetchData();
   }, [user]);
+
+  useEffect(() => {
+    if (selectedMethod) setCurrentStep(2);
+    if (selectedMethod && parseFloat(amount) > 0) setCurrentStep(3);
+  }, [selectedMethod, amount]);
 
   const fetchData = async () => {
     if (!user) return;
@@ -72,7 +130,7 @@ const ClientDeposit = () => {
     const [methodsRes, bonusesRes, balanceRes] = await Promise.all([
       supabase.from('payment_methods').select('*').eq('is_active', true).order('display_order'),
       supabase.from('payment_bonuses').select('*').eq('is_active', true),
-      supabase.from('user_balances').select('balance').eq('user_id', user.id).single(),
+      supabase.from('user_balances').select('balance').eq('user_id', user.id).maybeSingle(),
     ]);
 
     if (methodsRes.data) setPaymentMethods(methodsRes.data);
@@ -101,7 +159,6 @@ const ClientDeposit = () => {
 
     if (applicableBonuses.length === 0) return 0;
 
-    // Get the best bonus
     const bestBonus = applicableBonuses.reduce((best, current) => {
       const currentValue = current.bonus_type === 'percentage' 
         ? (baseAmount * current.bonus_value) / 100 
@@ -121,6 +178,16 @@ const ClientDeposit = () => {
   const fee = calculateFee(numericAmount);
   const bonus = calculateBonus(numericAmount);
   const totalCredited = numericAmount - fee + bonus;
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast({
+      title: 'تم النسخ',
+      description: 'تم نسخ النص إلى الحافظة',
+    });
+  };
 
   const handleSubmit = async () => {
     if (!user || !selectedMethod || numericAmount <= 0) return;
@@ -169,22 +236,27 @@ const ClientDeposit = () => {
     }
 
     toast({
-      title: 'تم إرسال طلب الإيداع',
-      description: 'سيتم مراجعة طلبك وإضافة الرصيد بعد التأكيد',
+      title: 'تم إرسال طلب الإيداع بنجاح',
+      description: 'سيتم مراجعة طلبك وإضافة الرصيد خلال 24 ساعة',
     });
 
-    // Reset form
     setAmount('');
     setTransactionId('');
     setNotes('');
     setSelectedMethod(null);
+    setCurrentStep(1);
   };
 
   if (loading) {
     return (
       <ClientDashboardLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          >
+            <Loader2 className="w-12 h-12 text-primary" />
+          </motion.div>
         </div>
       </ClientDashboardLayout>
     );
@@ -192,263 +264,531 @@ const ClientDeposit = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">إيداع رصيد</h1>
-            <p className="text-muted-foreground">أضف رصيد إلى حسابك</p>
-          </div>
-          <Card className="px-4 py-2 bg-gradient-to-l from-primary/10 to-accent/10 border-primary/20">
-            <div className="flex items-center gap-3">
-              <Wallet className="w-5 h-5 text-primary" />
+      <motion.div 
+        className="space-y-6 pb-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Header Section */}
+        <motion.div variants={itemVariants} className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-primary/20 via-primary/10 to-accent/20 p-6 md:p-8">
+          <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+          <div className="absolute top-0 left-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-0 w-40 h-40 bg-accent/20 rounded-full blur-3xl" />
+          
+          <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <motion.div 
+                className="relative"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/30">
+                  <Wallet className="w-8 h-8 text-primary-foreground" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-success rounded-full flex items-center justify-center">
+                  <Sparkles className="w-3 h-3 text-success-foreground" />
+                </div>
+              </motion.div>
               <div>
-                <p className="text-xs text-muted-foreground">رصيدك الحالي</p>
-                <p className="text-lg font-bold text-primary">${currentBalance.toFixed(2)}</p>
+                <h1 className="text-2xl md:text-3xl font-bold">إيداع رصيد</h1>
+                <p className="text-muted-foreground">أضف رصيد إلى حسابك بكل سهولة وأمان</p>
               </div>
             </div>
-          </Card>
-        </div>
+            
+            <motion.div 
+              whileHover={{ scale: 1.02 }}
+              className="bg-background/80 backdrop-blur-sm rounded-xl p-4 border border-border/50 shadow-lg min-w-[200px]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-success to-success/60 flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 text-success-foreground" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">رصيدك الحالي</p>
+                  <p className="text-2xl font-bold text-success">${currentBalance.toFixed(2)}</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Progress Steps */}
+          <div className="relative mt-8">
+            <div className="flex items-center justify-between">
+              {[
+                { step: 1, label: 'طريقة الدفع', icon: CreditCard },
+                { step: 2, label: 'المبلغ', icon: DollarSign },
+                { step: 3, label: 'التأكيد', icon: Send },
+              ].map(({ step, label, icon: Icon }, index) => (
+                <div key={step} className="flex items-center flex-1">
+                  <motion.div 
+                    className="flex flex-col items-center gap-2"
+                    animate={{ 
+                      scale: currentStep >= step ? 1 : 0.9,
+                      opacity: currentStep >= step ? 1 : 0.5 
+                    }}
+                  >
+                    <div className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300",
+                      currentStep >= step 
+                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30" 
+                        : "bg-muted text-muted-foreground"
+                    )}>
+                      {currentStep > step ? (
+                        <CheckCircle2 className="w-5 h-5" />
+                      ) : (
+                        <Icon className="w-5 h-5" />
+                      )}
+                    </div>
+                    <span className={cn(
+                      "text-xs font-medium hidden sm:block",
+                      currentStep >= step ? "text-primary" : "text-muted-foreground"
+                    )}>
+                      {label}
+                    </span>
+                  </motion.div>
+                  {index < 2 && (
+                    <div className="flex-1 mx-4">
+                      <div className={cn(
+                        "h-1 rounded-full transition-all duration-500",
+                        currentStep > step ? "bg-primary" : "bg-muted"
+                      )} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Features */}
+        <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { icon: Shield, label: 'دفع آمن', desc: '100% مشفر', color: 'text-green-500' },
+            { icon: Zap, label: 'سريع', desc: 'إضافة فورية', color: 'text-yellow-500' },
+            { icon: Clock, label: 'دعم 24/7', desc: 'متاح دائماً', color: 'text-blue-500' },
+            { icon: Gift, label: 'بونص', desc: 'على الإيداعات', color: 'text-purple-500' },
+          ].map((feature, i) => (
+            <motion.div 
+              key={i}
+              whileHover={{ y: -2 }}
+              className="bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border/50 text-center"
+            >
+              <feature.icon className={cn("w-6 h-6 mx-auto mb-2", feature.color)} />
+              <p className="font-medium text-sm">{feature.label}</p>
+              <p className="text-xs text-muted-foreground">{feature.desc}</p>
+            </motion.div>
+          ))}
+        </motion.div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Payment Methods */}
+          {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Step 1: Select Payment Method */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
-                    1
-                  </div>
-                  اختر طريقة الدفع
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {paymentMethods.map((method) => (
-                    <motion.div
-                      key={method.id}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setSelectedMethod(method)}
-                      className={cn(
-                        "p-4 rounded-xl border-2 cursor-pointer transition-all",
-                        selectedMethod?.id === method.id
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50"
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "w-10 h-10 rounded-lg flex items-center justify-center",
-                          selectedMethod?.id === method.id ? "bg-primary text-primary-foreground" : "bg-secondary"
-                        )}>
-                          <CreditCard className="w-5 h-5" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium">{method.name_ar}</p>
-                          <p className="text-xs text-muted-foreground">{method.type}</p>
-                        </div>
-                        {selectedMethod?.id === method.id && (
-                          <Check className="w-5 h-5 text-primary" />
-                        )}
-                      </div>
-                      {method.extra_fee_value && method.extra_fee_value > 0 && (
-                        <Badge variant="secondary" className="mt-2 text-xs">
-                          رسوم: {method.extra_fee_type === 'percentage' ? `${method.extra_fee_value}%` : `$${method.extra_fee_value}`}
-                        </Badge>
-                      )}
-                    </motion.div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Step 2: Enter Amount */}
-            {selectedMethod && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
-                        2
-                      </div>
-                      أدخل المبلغ
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Preset amounts */}
-                    <div className="flex flex-wrap gap-2">
-                      {presetAmounts.map((preset) => (
-                        <Button
-                          key={preset}
-                          variant={amount === preset.toString() ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setAmount(preset.toString())}
-                        >
-                          ${preset}
-                        </Button>
-                      ))}
+            {/* Payment Methods */}
+            <motion.div variants={itemVariants}>
+              <Card className="border-border/50 shadow-lg overflow-hidden">
+                <CardHeader className="bg-gradient-to-l from-primary/5 to-transparent border-b border-border/50">
+                  <CardTitle className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground font-bold shadow-lg shadow-primary/20">
+                      1
                     </div>
-
-                    <div className="space-y-2">
-                      <Label>المبلغ ($)</Label>
-                      <Input
-                        type="number"
-                        placeholder="أدخل المبلغ"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        min={selectedMethod.min_amount || 1}
-                        max={selectedMethod.max_amount || undefined}
-                      />
-                      {(selectedMethod.min_amount || selectedMethod.max_amount) && (
-                        <p className="text-xs text-muted-foreground">
-                          {selectedMethod.min_amount && `الحد الأدنى: $${selectedMethod.min_amount}`}
-                          {selectedMethod.min_amount && selectedMethod.max_amount && ' - '}
-                          {selectedMethod.max_amount && `الحد الأقصى: $${selectedMethod.max_amount}`}
-                        </p>
-                      )}
+                    <div>
+                      <span className="text-lg">اختر طريقة الدفع</span>
+                      <p className="text-sm font-normal text-muted-foreground">حدد الطريقة المناسبة لك</p>
                     </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {paymentMethods.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <CreditCard className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>لا توجد طرق دفع متاحة حالياً</p>
+                    </div>
+                  ) : (
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      {paymentMethods.map((method, index) => {
+                        const iconData = getPaymentIcon(method.type, method.name);
+                        const IconComponent = iconData.icon;
+                        
+                        return (
+                          <motion.div
+                            key={method.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            whileHover={{ scale: 1.02, y: -2 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setSelectedMethod(method)}
+                            className={cn(
+                              "relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 group overflow-hidden",
+                              selectedMethod?.id === method.id
+                                ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
+                                : "border-border hover:border-primary/50 hover:bg-accent/30"
+                            )}
+                          >
+                            {/* Background Gradient */}
+                            <div className={cn(
+                              "absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity",
+                              `bg-gradient-to-br ${iconData.gradient}`
+                            )} />
+                            
+                            <div className="relative flex items-center gap-4">
+                              <div className={cn(
+                                "w-14 h-14 rounded-xl flex items-center justify-center transition-all shadow-lg",
+                                selectedMethod?.id === method.id
+                                  ? `bg-gradient-to-br ${iconData.gradient} text-white`
+                                  : "bg-secondary group-hover:bg-gradient-to-br group-hover:" + iconData.gradient
+                              )}>
+                                <IconComponent className={cn(
+                                  "w-7 h-7 transition-colors",
+                                  selectedMethod?.id === method.id ? "text-white" : iconData.color
+                                )} />
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-semibold text-lg">{method.name_ar}</p>
+                                <p className="text-sm text-muted-foreground">{method.type}</p>
+                                {method.min_amount && (
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    الحد الأدنى: ${method.min_amount}
+                                  </p>
+                                )}
+                              </div>
+                              <AnimatePresence>
+                                {selectedMethod?.id === method.id && (
+                                  <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    exit={{ scale: 0 }}
+                                    className="w-8 h-8 rounded-full bg-primary flex items-center justify-center"
+                                  >
+                                    <Check className="w-5 h-5 text-primary-foreground" />
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                            
+                            {method.extra_fee_value && method.extra_fee_value > 0 && (
+                              <Badge variant="secondary" className="absolute top-3 left-3 text-xs">
+                                رسوم: {method.extra_fee_type === 'percentage' ? `${method.extra_fee_value}%` : `$${method.extra_fee_value}`}
+                              </Badge>
+                            )}
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
 
-                    {/* Bonuses info */}
-                    {bonuses.length > 0 && (
-                      <div className="p-3 rounded-lg bg-success/10 border border-success/20">
-                        <div className="flex items-center gap-2 text-success mb-2">
-                          <Gift className="w-4 h-4" />
-                          <span className="font-medium text-sm">بونص الإيداع</span>
+            {/* Amount Selection */}
+            <AnimatePresence mode="wait">
+              {selectedMethod && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20, height: 0 }}
+                  animate={{ opacity: 1, y: 0, height: 'auto' }}
+                  exit={{ opacity: 0, y: -20, height: 0 }}
+                  variants={itemVariants}
+                >
+                  <Card className="border-border/50 shadow-lg overflow-hidden">
+                    <CardHeader className="bg-gradient-to-l from-success/5 to-transparent border-b border-border/50">
+                      <CardTitle className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-success to-success/60 flex items-center justify-center text-success-foreground font-bold shadow-lg shadow-success/20">
+                          2
                         </div>
-                        <div className="space-y-1">
-                          {bonuses.filter(b => !b.payment_method_id || b.payment_method_id === selectedMethod.id).map((b) => (
-                            <p key={b.id} className="text-xs text-muted-foreground">
-                              أودع ${b.min_amount}+ واحصل على {b.bonus_type === 'percentage' ? `${b.bonus_value}%` : `$${b.bonus_value}`} بونص
-                            </p>
+                        <div>
+                          <span className="text-lg">أدخل المبلغ</span>
+                          <p className="text-sm font-normal text-muted-foreground">حدد المبلغ الذي تريد إيداعه</p>
+                        </div>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-6">
+                      {/* Preset Amounts */}
+                      <div>
+                        <Label className="text-sm text-muted-foreground mb-3 block">اختر مبلغ سريع</Label>
+                        <div className="flex flex-wrap gap-3">
+                          {presetAmounts.map((preset, i) => (
+                            <motion.button
+                              key={preset}
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: i * 0.05 }}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => setAmount(preset.toString())}
+                              className={cn(
+                                "px-5 py-3 rounded-xl font-semibold transition-all border-2",
+                                amount === preset.toString()
+                                  ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/30"
+                                  : "bg-secondary/50 border-border hover:border-primary/50 hover:bg-secondary"
+                              )}
+                            >
+                              ${preset}
+                            </motion.button>
                           ))}
                         </div>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
 
-            {/* Step 3: Payment Details */}
-            {selectedMethod && numericAmount > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
-                        3
+                      {/* Custom Amount */}
+                      <div className="space-y-2">
+                        <Label className="text-sm text-muted-foreground">أو أدخل مبلغ مخصص</Label>
+                        <div className="relative">
+                          <DollarSign className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                          <Input
+                            type="number"
+                            placeholder="أدخل المبلغ"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            min={selectedMethod.min_amount || 1}
+                            max={selectedMethod.max_amount || undefined}
+                            className="h-14 text-xl font-bold pr-12 text-center border-2 focus:border-primary"
+                          />
+                        </div>
+                        {(selectedMethod.min_amount || selectedMethod.max_amount) && (
+                          <p className="text-xs text-muted-foreground text-center">
+                            {selectedMethod.min_amount && `الحد الأدنى: $${selectedMethod.min_amount}`}
+                            {selectedMethod.min_amount && selectedMethod.max_amount && ' • '}
+                            {selectedMethod.max_amount && `الحد الأقصى: $${selectedMethod.max_amount}`}
+                          </p>
+                        )}
                       </div>
-                      تفاصيل الدفع
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Instructions */}
-                    {selectedMethod.instructions_ar && (
-                      <div className="p-4 rounded-lg bg-secondary/50 border border-border">
-                        <div className="flex items-start gap-2">
-                          <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                          <div>
-                            <p className="font-medium text-sm mb-2">تعليمات الدفع:</p>
-                            <p className="text-sm text-muted-foreground whitespace-pre-line">
-                              {selectedMethod.instructions_ar}
-                            </p>
+
+                      {/* Bonuses Display */}
+                      {bonuses.filter(b => !b.payment_method_id || b.payment_method_id === selectedMethod.id).length > 0 && (
+                        <motion.div 
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="p-4 rounded-xl bg-gradient-to-l from-success/10 to-success/5 border border-success/20"
+                        >
+                          <div className="flex items-center gap-2 text-success mb-3">
+                            <Gift className="w-5 h-5" />
+                            <span className="font-semibold">عروض البونص المتاحة</span>
+                            <Sparkles className="w-4 h-4" />
                           </div>
+                          <div className="space-y-2">
+                            {bonuses
+                              .filter(b => !b.payment_method_id || b.payment_method_id === selectedMethod.id)
+                              .map((b) => (
+                                <div key={b.id} className="flex items-center gap-2 text-sm">
+                                  <BadgeCheck className="w-4 h-4 text-success" />
+                                  <span>
+                                    أودع <span className="font-bold">${b.min_amount}+</span> واحصل على{' '}
+                                    <span className="font-bold text-success">
+                                      {b.bonus_type === 'percentage' ? `${b.bonus_value}%` : `$${b.bonus_value}`}
+                                    </span>{' '}
+                                    بونص
+                                  </span>
+                                </div>
+                              ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Payment Details */}
+            <AnimatePresence mode="wait">
+              {selectedMethod && numericAmount > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  variants={itemVariants}
+                >
+                  <Card className="border-border/50 shadow-lg overflow-hidden">
+                    <CardHeader className="bg-gradient-to-l from-accent/10 to-transparent border-b border-border/50">
+                      <CardTitle className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center text-accent-foreground font-bold shadow-lg shadow-accent/20">
+                          3
+                        </div>
+                        <div>
+                          <span className="text-lg">تفاصيل الدفع</span>
+                          <p className="text-sm font-normal text-muted-foreground">أكمل معلومات الدفع</p>
+                        </div>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-6">
+                      {/* Instructions */}
+                      {selectedMethod.instructions_ar && (
+                        <motion.div 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="p-5 rounded-xl bg-gradient-to-l from-primary/10 to-primary/5 border border-primary/20"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                              <Info className="w-5 h-5 text-primary" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-semibold text-primary mb-2">تعليمات الدفع</p>
+                              <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+                                {selectedMethod.instructions_ar}
+                              </p>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="mt-3 gap-2"
+                                onClick={() => copyToClipboard(selectedMethod.instructions_ar || '')}
+                              >
+                                {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                نسخ التعليمات
+                              </Button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+
+                      <div className="grid gap-4">
+                        <div className="space-y-2">
+                          <Label>رقم المعاملة / Transaction ID</Label>
+                          <Input
+                            placeholder="أدخل رقم المعاملة (اختياري)"
+                            value={transactionId}
+                            onChange={(e) => setTransactionId(e.target.value)}
+                            className="h-12"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>ملاحظات إضافية</Label>
+                          <Textarea
+                            placeholder="أي ملاحظات تريد إضافتها... (اختياري)"
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            rows={3}
+                            className="resize-none"
+                          />
                         </div>
                       </div>
-                    )}
-
-                    <div className="space-y-2">
-                      <Label>رقم المعاملة / Transaction ID (اختياري)</Label>
-                      <Input
-                        placeholder="أدخل رقم المعاملة"
-                        value={transactionId}
-                        onChange={(e) => setTransactionId(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>ملاحظات (اختياري)</Label>
-                      <Textarea
-                        placeholder="أي ملاحظات إضافية..."
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        rows={3}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Summary */}
+          {/* Summary Sidebar */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-6">
-              <CardHeader>
-                <CardTitle>ملخص الإيداع</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">المبلغ</span>
-                    <span className="font-medium">${numericAmount.toFixed(2)}</span>
+            <motion.div variants={itemVariants} className="sticky top-6">
+              <Card className="border-border/50 shadow-xl overflow-hidden">
+                <CardHeader className="bg-gradient-to-l from-primary/10 to-transparent border-b border-border/50">
+                  <CardTitle className="flex items-center gap-2">
+                    <Wallet className="w-5 h-5 text-primary" />
+                    ملخص الإيداع
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 space-y-6">
+                  {/* Selected Method */}
+                  {selectedMethod && (
+                    <div className="p-4 rounded-xl bg-secondary/50 border border-border/50">
+                      <p className="text-xs text-muted-foreground mb-2">طريقة الدفع</p>
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br",
+                          getPaymentIcon(selectedMethod.type, selectedMethod.name).gradient
+                        )}>
+                          {(() => {
+                            const Icon = getPaymentIcon(selectedMethod.type, selectedMethod.name).icon;
+                            return <Icon className="w-5 h-5 text-white" />;
+                          })()}
+                        </div>
+                        <span className="font-semibold">{selectedMethod.name_ar}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Amount Breakdown */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-muted-foreground">المبلغ</span>
+                      <span className="font-semibold text-lg">${numericAmount.toFixed(2)}</span>
+                    </div>
+                    
+                    <AnimatePresence>
+                      {fee > 0 && (
+                        <motion.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="flex justify-between items-center py-2 text-destructive"
+                        >
+                          <span>رسوم الدفع</span>
+                          <span className="font-semibold">-${fee.toFixed(2)}</span>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <AnimatePresence>
+                      {bonus > 0 && (
+                        <motion.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="flex justify-between items-center py-2"
+                        >
+                          <span className="flex items-center gap-2 text-success">
+                            <Gift className="w-4 h-4" />
+                            بونص
+                          </span>
+                          <span className="font-semibold text-success">+${bonus.toFixed(2)}</span>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <div className="border-t border-border pt-4">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold">سيضاف لرصيدك</span>
+                        <motion.span 
+                          key={totalCredited}
+                          initial={{ scale: 0.8 }}
+                          animate={{ scale: 1 }}
+                          className="text-2xl font-bold text-primary"
+                        >
+                          ${totalCredited.toFixed(2)}
+                        </motion.span>
+                      </div>
+                    </div>
                   </div>
-                  
-                  {fee > 0 && (
-                    <div className="flex justify-between text-sm text-destructive">
-                      <span>رسوم الدفع</span>
-                      <span>-${fee.toFixed(2)}</span>
-                    </div>
-                  )}
 
-                  {bonus > 0 && (
-                    <div className="flex justify-between text-sm text-success">
-                      <span className="flex items-center gap-1">
-                        <Gift className="w-3 h-3" />
-                        بونص
-                      </span>
-                      <span>+${bonus.toFixed(2)}</span>
-                    </div>
-                  )}
+                  {/* Submit Button */}
+                  <Button
+                    className="w-full h-14 text-lg gap-3 shadow-lg shadow-primary/30"
+                    size="lg"
+                    disabled={!selectedMethod || numericAmount <= 0 || submitting}
+                    onClick={handleSubmit}
+                  >
+                    {submitting ? (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      >
+                        <Loader2 className="w-5 h-5" />
+                      </motion.div>
+                    ) : (
+                      <>
+                        <Send className="w-5 h-5" />
+                        إرسال طلب الإيداع
+                      </>
+                    )}
+                  </Button>
 
-                  <div className="border-t border-border pt-3">
-                    <div className="flex justify-between">
-                      <span className="font-medium">سيضاف لرصيدك</span>
-                      <span className="text-xl font-bold text-primary">${totalCredited.toFixed(2)}</span>
-                    </div>
+                  <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                    <Shield className="w-4 h-4 text-success" />
+                    <span>دفع آمن ومشفر 100%</span>
                   </div>
-                </div>
 
-                <Button
-                  className="w-full gap-2"
-                  size="lg"
-                  disabled={!selectedMethod || numericAmount <= 0 || submitting}
-                  onClick={handleSubmit}
-                >
-                  {submitting ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <ArrowLeft className="w-4 h-4" />
-                  )}
-                  إرسال طلب الإيداع
-                </Button>
-
-                <p className="text-xs text-center text-muted-foreground">
-                  سيتم مراجعة طلبك وإضافة الرصيد خلال 24 ساعة
-                </p>
-              </CardContent>
-            </Card>
+                  <p className="text-xs text-center text-muted-foreground bg-secondary/50 p-3 rounded-lg">
+                    سيتم مراجعة طلبك وإضافة الرصيد خلال 24 ساعة كحد أقصى
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </ClientDashboardLayout>
   );
 };
