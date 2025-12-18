@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, Plus, Loader2, Sparkles, RefreshCw } from "lucide-react";
+import { Package, Plus, Loader2, Sparkles, RefreshCw, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Link } from "react-router-dom";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import ServiceStats from "@/components/admin/services/ServiceStats";
 import ServiceFilters from "@/components/admin/services/ServiceFilters";
@@ -271,6 +272,12 @@ const AdminServices = () => {
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
             </Button>
+            <Link to="/admin/services/import">
+              <Button variant="outline" className="gap-2">
+                <Download className="w-4 h-4" />
+                استيراد
+              </Button>
+            </Link>
             <Button 
               onClick={openNewDialog} 
               className="bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground gap-2"
