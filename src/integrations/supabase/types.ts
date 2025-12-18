@@ -1430,6 +1430,8 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "refunded"
+        | "partial"
+        | "processing"
       service_status: "active" | "inactive" | "archived"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "resolved" | "closed"
@@ -1568,6 +1570,8 @@ export const Constants = {
         "completed",
         "cancelled",
         "refunded",
+        "partial",
+        "processing",
       ],
       service_status: ["active", "inactive", "archived"],
       ticket_priority: ["low", "medium", "high", "urgent"],
