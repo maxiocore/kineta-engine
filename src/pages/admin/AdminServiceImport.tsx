@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import AdminDashboardLayout from '@/components/dashboard/AdminDashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -83,9 +83,9 @@ const AdminServiceImport = () => {
   // Step management
   const [currentStep, setCurrentStep] = useState<'provider' | 'categories' | 'services'>('provider');
   
-  // Use ref to store large services array to avoid re-render on store
-  const servicesRef = useRef<ProviderService[]>([]);
-  const [servicesLoaded, setServicesLoaded] = useState(false);
+  // Services are loaded ONLY for selected categories (not all 8000+)
+  const [filteredServices, setFilteredServices] = useState<ProviderService[]>([]);
+  const [loadingServices, setLoadingServices] = useState(false);
   
   const [providerCategories, setProviderCategories] = useState<ProviderCategory[]>([]);
   const [loading, setLoading] = useState(false);
@@ -165,7 +165,7 @@ const AdminServiceImport = () => {
     }
   }, [selectedProvider, providers, useProviderMargin]);
 
-  // Fetch categories from provider (fetches all services but only extracts categories)
+  // Fetch ONLY categories from provider (lightweight - no services stored)
   const fetchCategories = async () => {
     if (!selectedProvider) {
       toast.error('اختر مزود أولاً');
@@ -173,11 +173,10 @@ const AdminServiceImport = () => {
     }
 
     setLoadingCategories(true);
-    servicesRef.current = [];
-    setServicesLoaded(false);
     setProviderCategories([]);
     setSelectedServices(new Set());
     setSelectedProviderCategories(new Set());
+    setFilteredServices([]);
     
     try {
       const { data, error } = await supabase.functions.invoke('provider-services', {
@@ -190,7 +189,7 @@ const AdminServiceImport = () => {
         const fetchedServices = data.services as ProviderService[];
         const providerName = data.provider?.name_ar || 'المزود';
         
-        // Extract categories first (lightweight operation)
+        // Extract ONLY categories (don't store services in memory)
         const categoryMap = new Map<string, number>();
         fetchedServices.forEach((service: ProviderService) => {
           const count = categoryMap.get(service.category) || 0;
@@ -201,21 +200,16 @@ const AdminServiceImport = () => {
           .map(([name, count]) => ({ name, count }))
           .sort((a, b) => a.name.localeCompare(b.name));
         
-        // Store services in ref (no re-render)
-        servicesRef.current = fetchedServices;
+        // Only store categories, NOT services
+        setProviderCategories(categoriesList);
+        setCurrentStep('categories');
+        setLoadingCategories(false);
         
-        // Update state after storing in ref
-        setTimeout(() => {
-          setProviderCategories(categoriesList);
-          setServicesLoaded(true);
-          setCurrentStep('categories');
-          setLoadingCategories(false);
-          toast.success(`تم جلب ${categoriesList.length} فئة (${fetchedServices.length} خدمة) من ${providerName}`);
-          
-          // Refresh providers list to update services_count
-          queryClient.invalidateQueries({ queryKey: ['api-providers-active'] });
-        }, 50);
+        const totalServices = fetchedServices.length;
+        toast.success(`تم جلب ${categoriesList.length} فئة (${totalServices} خدمة) من ${providerName}`);
         
+        // Refresh providers list to update services_count
+        queryClient.invalidateQueries({ queryKey: ['api-providers-active'] });
         return;
       } else {
         toast.error('فشل في جلب الخدمات');
@@ -228,11 +222,39 @@ const AdminServiceImport = () => {
     setLoadingCategories(false);
   };
 
-  // Get services for selected categories
-  const filteredServices = useMemo(() => {
-    if (!servicesLoaded || selectedProviderCategories.size === 0) return [];
-    return servicesRef.current.filter(s => selectedProviderCategories.has(s.category));
-  }, [servicesLoaded, selectedProviderCategories]);
+  // Fetch services for selected categories ONLY when proceeding to services step
+  const fetchServicesForSelectedCategories = async () => {
+    if (!selectedProvider || selectedProviderCategories.size === 0) {
+      toast.error('اختر فئة واحدة على الأقل');
+      return;
+    }
+
+    setLoadingServices(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('provider-services', {
+        body: { provider_id: selectedProvider }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.services && Array.isArray(data.services)) {
+        // Filter only services from selected categories
+        const selectedCats = selectedProviderCategories;
+        const filtered = (data.services as ProviderService[]).filter(s => selectedCats.has(s.category));
+        
+        setFilteredServices(filtered);
+        setCurrentStep('services');
+        setExpandedCategories(new Set(selectedProviderCategories));
+        toast.success(`تم تحميل ${filtered.length} خدمة من ${selectedCats.size} فئات`);
+      }
+    } catch (error: any) {
+      console.error('Error fetching services:', error);
+      toast.error('حدث خطأ: ' + (error.message || ''));
+    } finally {
+      setLoadingServices(false);
+    }
+  };
 
   const categories = useMemo(() => {
     const cats = new Set(filteredServices.map(s => s.category));
@@ -366,15 +388,13 @@ const AdminServiceImport = () => {
     }
   };
 
-  // Proceed to services step
-  const proceedToServices = () => {
+  // Proceed to services step - fetch services for selected categories only
+  const proceedToServices = async () => {
     if (selectedProviderCategories.size === 0) {
       toast.error('اختر فئة واحدة على الأقل للمتابعة');
       return;
     }
-    setCurrentStep('services');
-    // Expand all selected categories
-    setExpandedCategories(new Set(selectedProviderCategories));
+    await fetchServicesForSelectedCategories();
   };
 
   const calculateFinalPrice = (originalRate: string): number => {
@@ -603,8 +623,7 @@ const AdminServiceImport = () => {
   // Reset to provider selection
   const resetToProvider = () => {
     setCurrentStep('provider');
-    servicesRef.current = [];
-    setServicesLoaded(false);
+    setFilteredServices([]);
     setProviderCategories([]);
     setSelectedServices(new Set());
     setSelectedProviderCategories(new Set());
@@ -615,6 +634,7 @@ const AdminServiceImport = () => {
   const backToCategories = () => {
     setCurrentStep('categories');
     setSelectedServices(new Set());
+    setFilteredServices([]);
   };
 
   return (
@@ -757,7 +777,7 @@ const AdminServiceImport = () => {
                     <Server className="h-5 w-5 text-blue-500" />
                     <div>
                       <p className="font-medium">{currentProvider?.name_ar}</p>
-                      <p className="text-xs text-muted-foreground">{servicesRef.current.length} خدمة متاحة</p>
+                      <p className="text-xs text-muted-foreground">{providerCategories.reduce((sum, c) => sum + c.count, 0)} خدمة متاحة</p>
                     </div>
                   </div>
                   <Button variant="outline" size="sm" onClick={resetToProvider}>
@@ -965,11 +985,18 @@ const AdminServiceImport = () => {
                     <Button 
                       size="lg" 
                       onClick={proceedToServices}
-                      disabled={selectedProviderCategories.size === 0}
+                      disabled={selectedProviderCategories.size === 0 || loadingServices}
                       className="min-w-[200px]"
                     >
-                      <Package className="h-5 w-5 ml-2" />
-                      متابعة لاختيار الخدمات ({filteredServices.length})
+                      {loadingServices ? (
+                        <Loader2 className="h-5 w-5 ml-2 animate-spin" />
+                      ) : (
+                        <Package className="h-5 w-5 ml-2" />
+                      )}
+                      {loadingServices 
+                        ? 'جاري تحميل الخدمات...' 
+                        : `متابعة لاختيار الخدمات (${providerCategories.filter(c => selectedProviderCategories.has(c.name)).reduce((sum, c) => sum + c.count, 0)})`
+                      }
                     </Button>
                   </div>
                 </div>
