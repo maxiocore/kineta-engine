@@ -340,8 +340,8 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
         });
       }
 
-      // Send order to BulkFollows API
-      const { error: apiError } = await supabase.functions.invoke('bulkfollows-order', {
+      // Send order to provider API
+      const { error: apiError } = await supabase.functions.invoke('provider-order', {
         body: {
           orderId: orderData.id,
           serviceId: currentService.id,
@@ -351,7 +351,7 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
       });
 
       if (apiError) {
-        console.warn('BulkFollows API error:', apiError);
+        console.warn('Provider API error:', apiError);
       }
 
       setOrderNumber(orderData.order_number);

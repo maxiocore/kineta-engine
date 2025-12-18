@@ -81,24 +81,16 @@ serve(async (req) => {
         .maybeSingle();
 
       if (defaultError || !defaultProvider) {
-        // Try legacy BulkFollows API key
-        const legacyApiKey = Deno.env.get('BULKFOLLOWS_API_KEY');
-        if (legacyApiKey) {
-          apiUrl = 'https://bulkfollows.com/api/v2';
-          apiKey = legacyApiKey;
-          providerName = 'BulkFollows (Legacy)';
-        } else {
-          console.error('No provider found for service and no default provider');
-          return new Response(
-            JSON.stringify({ error: 'No provider configured for this service' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-      } else {
-        apiUrl = defaultProvider.api_url;
-        apiKey = defaultProvider.api_key;
-        providerName = defaultProvider.name;
+        console.error('No provider found for service and no default provider');
+        return new Response(
+          JSON.stringify({ error: 'No provider configured for this service' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
+      
+      apiUrl = defaultProvider.api_url;
+      apiKey = defaultProvider.api_key;
+      providerName = defaultProvider.name;
     }
 
     // Send order to provider API

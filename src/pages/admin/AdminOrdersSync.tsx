@@ -94,17 +94,17 @@ const AdminOrdersSync = () => {
   const handleSyncAll = async () => {
     setSyncing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("bulkfollows-status", {
-        body: { action: "sync_all" },
+      const { data, error } = await supabase.functions.invoke("sync-orders-status", {
+        body: {},
       });
 
       if (error) throw error;
 
       setLastSync(new Date());
-      setSyncResult({ updated: data.updated, total: data.total });
+      setSyncResult({ updated: data.synced || 0, total: data.synced + (data.errors || 0) });
       
-      if (data.updated > 0) {
-        toast.success(`تم تحديث ${data.updated} طلب من أصل ${data.total}`);
+      if (data.synced > 0) {
+        toast.success(`تم تحديث ${data.synced} طلب`);
         fetchOrders();
       } else {
         toast.info("لا توجد تحديثات جديدة");
@@ -119,8 +119,8 @@ const AdminOrdersSync = () => {
 
   const handleCheckSingle = async (externalOrderId: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke("bulkfollows-status", {
-        body: { action: "status", order_id: externalOrderId },
+      const { data, error } = await supabase.functions.invoke("sync-orders-status", {
+        body: {},
       });
 
       if (error) throw error;
@@ -174,7 +174,7 @@ const AdminOrdersSync = () => {
               </div>
               <h1 className="text-2xl md:text-3xl font-bold">مزامنة الطلبات الخارجية</h1>
             </motion.div>
-            <p className="text-muted-foreground">تتبع وتحديث حالة الطلبات من BulkFollows API</p>
+            <p className="text-muted-foreground">تتبع وتحديث حالة الطلبات من المزودين الخارجيين</p>
           </div>
 
           <div className="flex items-center gap-4">
@@ -324,7 +324,7 @@ const AdminOrdersSync = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ExternalLink className="w-5 h-5" />
-              الطلبات المرتبطة بـ BulkFollows
+              الطلبات المرتبطة بالمزودين الخارجيين
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -334,7 +334,7 @@ const AdminOrdersSync = () => {
               </div>
             ) : orders.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                لا توجد طلبات مرتبطة بـ BulkFollows
+                لا توجد طلبات مرتبطة بمزودين خارجيين
               </div>
             ) : (
               <div className="overflow-x-auto">

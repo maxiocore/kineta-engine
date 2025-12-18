@@ -78,7 +78,6 @@ serve(async (req) => {
 
     // Group orders by provider
     const ordersByProvider = new Map<string, { apiUrl: string; apiKey: string; providerName: string; orders: any[] }>();
-    const legacyApiKey = Deno.env.get('BULKFOLLOWS_API_KEY');
 
     // Get default provider
     const { data: defaultProvider } = await supabase
@@ -105,11 +104,6 @@ serve(async (req) => {
         apiKey = defaultProvider.api_key;
         providerName = defaultProvider.name;
         providerKey = defaultProvider.id;
-      } else if (legacyApiKey) {
-        apiUrl = 'https://bulkfollows.com/api/v2';
-        apiKey = legacyApiKey;
-        providerName = 'BulkFollows (Legacy)';
-        providerKey = 'legacy';
       }
 
       if (apiUrl && apiKey) {

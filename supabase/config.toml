@@ -6,15 +6,6 @@ verify_jwt = false
 [functions.track-order]
 verify_jwt = false
 
-[functions.bulkfollows-services]
-verify_jwt = true
-
-[functions.bulkfollows-order]
-verify_jwt = true
-
-[functions.bulkfollows-status]
-verify_jwt = true
-
 [functions.translate-service]
 verify_jwt = true
 
@@ -28,6 +19,9 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.provider-balance]
+verify_jwt = true
+
+[functions.provider-order]
 verify_jwt = true
 
 [functions.sync-orders-status]
