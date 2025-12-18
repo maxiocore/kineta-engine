@@ -165,7 +165,7 @@ const AdminServiceImport = () => {
     }
   }, [selectedProvider, providers, useProviderMargin]);
 
-  // Fetch ONLY categories from provider (lightweight - no services stored)
+  // Fetch ONLY categories from provider (lightweight - server-side extraction)
   const fetchCategories = async () => {
     if (!selectedProvider) {
       toast.error('اختر مزود أولاً');
@@ -179,44 +179,35 @@ const AdminServiceImport = () => {
     setFilteredServices([]);
     
     try {
+      // Use categories_only=true to get only categories (much smaller response)
       const { data, error } = await supabase.functions.invoke('provider-services', {
-        body: { provider_id: selectedProvider }
+        body: { 
+          provider_id: selectedProvider,
+          categories_only: true  // Only return categories, not all services
+        }
       });
       
       if (error) throw error;
       
-      if (data?.services && Array.isArray(data.services)) {
-        const fetchedServices = data.services as ProviderService[];
+      if (data?.categories && Array.isArray(data.categories)) {
         const providerName = data.provider?.name_ar || 'المزود';
+        const totalServices = data.services_count || 0;
         
-        // Extract ONLY categories (don't store services in memory)
-        const categoryMap = new Map<string, number>();
-        fetchedServices.forEach((service: ProviderService) => {
-          const count = categoryMap.get(service.category) || 0;
-          categoryMap.set(service.category, count + 1);
-        });
-        
-        const categoriesList: ProviderCategory[] = Array.from(categoryMap.entries())
-          .map(([name, count]) => ({ name, count }))
-          .sort((a, b) => a.name.localeCompare(b.name));
-        
-        // Only store categories, NOT services
-        setProviderCategories(categoriesList);
+        setProviderCategories(data.categories);
         setCurrentStep('categories');
         setLoadingCategories(false);
         
-        const totalServices = fetchedServices.length;
-        toast.success(`تم جلب ${categoriesList.length} فئة (${totalServices} خدمة) من ${providerName}`);
+        toast.success(`تم جلب ${data.categories.length} فئة (${totalServices} خدمة) من ${providerName}`);
         
         // Refresh providers list to update services_count
         queryClient.invalidateQueries({ queryKey: ['api-providers-active'] });
         return;
       } else {
-        toast.error('فشل في جلب الخدمات');
+        toast.error('فشل في جلب الفئات');
       }
     } catch (error: any) {
-      console.error('Error fetching services:', error);
-      toast.error('حدث خطأ أثناء جلب الخدمات: ' + (error.message || ''));
+      console.error('Error fetching categories:', error);
+      toast.error('حدث خطأ أثناء جلب الفئات: ' + (error.message || ''));
     }
     
     setLoadingCategories(false);
@@ -232,21 +223,21 @@ const AdminServiceImport = () => {
     setLoadingServices(true);
     
     try {
+      // Pass selected_categories to filter services on the server
       const { data, error } = await supabase.functions.invoke('provider-services', {
-        body: { provider_id: selectedProvider }
+        body: { 
+          provider_id: selectedProvider,
+          selected_categories: Array.from(selectedProviderCategories)  // Filter on server
+        }
       });
       
       if (error) throw error;
       
       if (data?.services && Array.isArray(data.services)) {
-        // Filter only services from selected categories
-        const selectedCats = selectedProviderCategories;
-        const filtered = (data.services as ProviderService[]).filter(s => selectedCats.has(s.category));
-        
-        setFilteredServices(filtered);
+        setFilteredServices(data.services as ProviderService[]);
         setCurrentStep('services');
         setExpandedCategories(new Set(selectedProviderCategories));
-        toast.success(`تم تحميل ${filtered.length} خدمة من ${selectedCats.size} فئات`);
+        toast.success(`تم تحميل ${data.services.length} خدمة من ${selectedProviderCategories.size} فئات`);
       }
     } catch (error: any) {
       console.error('Error fetching services:', error);
