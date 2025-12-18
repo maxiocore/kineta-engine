@@ -12,27 +12,29 @@ serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get('BULKFOLLOWS_API_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
-    if (!apiKey) {
-      console.error('BULKFOLLOWS_API_KEY not configured');
-      return new Response(
-        JSON.stringify({ error: 'API key not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { orderId, serviceId, link, quantity } = await req.json();
 
     console.log('Processing order:', { orderId, serviceId, link, quantity });
 
-    // Get service external ID
+    // Get service with provider information
     const { data: service, error: serviceError } = await supabase
       .from('services')
-      .select('external_service_id, name')
+      .select(`
+        external_service_id, 
+        name,
+        provider_id,
+        api_providers (
+          id,
+          name,
+          api_url,
+          api_key,
+          is_active
+        )
+      `)
       .eq('id', serviceId)
       .maybeSingle();
 
@@ -45,15 +47,62 @@ serve(async (req) => {
     }
 
     if (!service.external_service_id) {
-      console.log('No external service ID, skipping BulkFollows API');
+      console.log('No external service ID, skipping provider API');
       return new Response(
         JSON.stringify({ success: true, message: 'Local order only - no external service ID' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Send order to BulkFollows API
-    console.log('Sending to BulkFollows:', { service: service.external_service_id, link, quantity });
+    // Get provider info - either from service or use default
+    let apiUrl: string;
+    let apiKey: string;
+    let providerName: string;
+
+    if (service.provider_id && service.api_providers) {
+      const provider = service.api_providers as any;
+      if (!provider.is_active) {
+        console.error('Provider is not active:', provider.name);
+        return new Response(
+          JSON.stringify({ error: 'Provider is not active' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      apiUrl = provider.api_url;
+      apiKey = provider.api_key;
+      providerName = provider.name;
+    } else {
+      // Fallback to default provider
+      const { data: defaultProvider, error: defaultError } = await supabase
+        .from('api_providers')
+        .select('id, name, api_url, api_key, is_active')
+        .eq('is_default', true)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (defaultError || !defaultProvider) {
+        // Try legacy BulkFollows API key
+        const legacyApiKey = Deno.env.get('BULKFOLLOWS_API_KEY');
+        if (legacyApiKey) {
+          apiUrl = 'https://bulkfollows.com/api/v2';
+          apiKey = legacyApiKey;
+          providerName = 'BulkFollows (Legacy)';
+        } else {
+          console.error('No provider found for service and no default provider');
+          return new Response(
+            JSON.stringify({ error: 'No provider configured for this service' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      } else {
+        apiUrl = defaultProvider.api_url;
+        apiKey = defaultProvider.api_key;
+        providerName = defaultProvider.name;
+      }
+    }
+
+    // Send order to provider API
+    console.log(`Sending to ${providerName}:`, { service: service.external_service_id, link, quantity, apiUrl });
 
     const formData = new FormData();
     formData.append('key', apiKey);
@@ -62,13 +111,13 @@ serve(async (req) => {
     formData.append('link', link);
     formData.append('quantity', quantity.toString());
 
-    const response = await fetch('https://bulkfollows.com/api/v2', {
+    const response = await fetch(apiUrl, {
       method: 'POST',
       body: formData,
     });
 
     const result = await response.json();
-    console.log('BulkFollows response:', result);
+    console.log(`${providerName} response:`, result);
 
     if (result.error) {
       // Update order with error status
@@ -76,7 +125,7 @@ serve(async (req) => {
         .from('orders')
         .update({ 
           external_status: 'error',
-          admin_notes: `BulkFollows Error: ${result.error}`
+          admin_notes: `${providerName} Error: ${result.error}`
         })
         .eq('id', orderId);
 
@@ -103,13 +152,14 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         external_order_id: result.order,
-        message: 'Order sent to BulkFollows successfully'
+        provider: providerName,
+        message: `Order sent to ${providerName} successfully`
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error: unknown) {
-    console.error('Error in bulkfollows-order:', error);
+    console.error('Error in provider-order:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),
