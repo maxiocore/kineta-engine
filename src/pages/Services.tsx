@@ -46,12 +46,38 @@ interface Service {
   name: string;
   description: string | null;
   category: string;
+  category_id: string | null;
   price: number;
   status: string;
   features: string[];
   image_url: string | null;
   external_service_id: string | null;
 }
+
+interface Category {
+  id: string;
+  name: string;
+  name_ar: string;
+  slug: string;
+  icon: string;
+  color: string;
+  display_order: number;
+  is_active: boolean;
+}
+
+// Icon mapping for dynamic icons
+const iconMap: Record<string, React.ComponentType<any>> = {
+  Instagram,
+  Facebook,
+  Youtube,
+  Twitter,
+  Linkedin,
+  Music2,
+  Send,
+  Globe,
+  Layers,
+  MoreHorizontal,
+};
 
 const Services = () => {
   const navigate = useNavigate();
@@ -75,6 +101,21 @@ const Services = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Fetch categories from database
+  const { data: dbCategories } = useQuery({
+    queryKey: ["categories-public"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+      
+      if (error) throw error;
+      return data as Category[];
+    },
+  });
 
   const { data: services, isLoading } = useQuery({
     queryKey: ["services-public"],
@@ -211,54 +252,85 @@ const Services = () => {
               transition={{ delay: 0.2 }}
               className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3"
             >
-              {[
-                { name: "Instagram", icon: Instagram, color: "from-pink-500 to-purple-500", iconColor: "text-pink-500" },
-                { name: "Facebook", icon: Facebook, color: "from-blue-600 to-blue-500", iconColor: "text-blue-600" },
-                { name: "Youtube", icon: Youtube, color: "from-red-600 to-red-500", iconColor: "text-red-600" },
-                { name: "Twitter", icon: Twitter, color: "from-sky-500 to-sky-400", iconColor: "text-sky-500" },
-                { name: "Spotify", icon: Music2, color: "from-green-500 to-green-400", iconColor: "text-green-500" },
-                { name: "TikTok", icon: Music2, color: "from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300", iconColor: "text-foreground" },
-                { name: "Telegram", icon: Send, color: "from-sky-500 to-blue-500", iconColor: "text-sky-500" },
-                { name: "LinkedIn", icon: Linkedin, color: "from-blue-700 to-blue-600", iconColor: "text-blue-700" },
-                { name: "SoundCloud", icon: Music2, color: "from-orange-500 to-orange-400", iconColor: "text-orange-500" },
-                { name: "زيارات المواقع", icon: Globe, color: "from-emerald-500 to-teal-500", iconColor: "text-emerald-500" },
-                { name: "أخرى", icon: MoreHorizontal, color: "from-gray-500 to-gray-400", iconColor: "text-gray-500" },
-                { name: "الكل", icon: Layers, color: "from-primary to-accent", iconColor: "text-primary" },
-              ].map((platform, index) => (
-                <motion.button
-                  key={platform.name}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.03 }}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    if (platform.name === "الكل") {
-                      setSelectedCategory("all");
-                    } else {
-                      // Find category that matches platform name
-                      const matchingCategory = categories.find(cat => 
-                        cat.toLowerCase().includes(platform.name.toLowerCase()) ||
-                        platform.name.toLowerCase().includes(cat.toLowerCase())
+              {/* Show All button first */}
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0 }}
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setSelectedCategory("all")}
+                className={`group relative flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl border transition-all duration-300 text-right ${
+                  selectedCategory === "all" 
+                    ? "bg-primary/10 border-primary/50" 
+                    : "bg-card hover:bg-muted/50 border-border/50 hover:border-primary/30"
+                }`}
+              >
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-primary to-accent shadow-lg">
+                  <Layers className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                </div>
+                <span className="font-medium text-xs sm:text-sm text-foreground group-hover:text-primary transition-colors">
+                  الكل
+                </span>
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </motion.button>
+
+              {/* Dynamic categories from database */}
+              {dbCategories?.map((cat, index) => {
+                const IconComponent = iconMap[cat.icon] || Layers;
+                const serviceCount = services?.filter(s => 
+                  s.category.toLowerCase().includes(cat.name.toLowerCase()) ||
+                  cat.name.toLowerCase().includes(s.category.toLowerCase()) ||
+                  s.category_id === cat.id
+                ).length || 0;
+
+                return (
+                  <motion.button
+                    key={cat.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: (index + 1) * 0.03 }}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      // Find matching category from services
+                      const matchingCategory = categories.find(c => 
+                        c.toLowerCase().includes(cat.name.toLowerCase()) ||
+                        cat.name.toLowerCase().includes(c.toLowerCase())
                       );
                       if (matchingCategory) {
                         setSelectedCategory(matchingCategory);
                       } else {
-                        setSearchQuery(platform.name);
+                        setSearchQuery(cat.name_ar || cat.name);
                       }
-                    }
-                  }}
-                  className="group relative flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-card hover:bg-muted/50 border border-border/50 hover:border-primary/30 transition-all duration-300 text-right"
-                >
-                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center bg-gradient-to-br ${platform.color} shadow-lg`}>
-                    <platform.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                  </div>
-                  <span className="font-medium text-xs sm:text-sm text-foreground group-hover:text-primary transition-colors">
-                    {platform.name}
-                  </span>
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </motion.button>
-              ))}
+                    }}
+                    className={`group relative flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl border transition-all duration-300 text-right ${
+                      categories.some(c => 
+                        (c.toLowerCase().includes(cat.name.toLowerCase()) ||
+                        cat.name.toLowerCase().includes(c.toLowerCase())) &&
+                        selectedCategory === c
+                      )
+                        ? "bg-primary/10 border-primary/50" 
+                        : "bg-card hover:bg-muted/50 border-border/50 hover:border-primary/30"
+                    }`}
+                  >
+                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center bg-gradient-to-br ${cat.color} shadow-lg`}>
+                      <IconComponent className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    </div>
+                    <div className="flex flex-col items-start">
+                      <span className="font-medium text-xs sm:text-sm text-foreground group-hover:text-primary transition-colors">
+                        {cat.name_ar}
+                      </span>
+                      {serviceCount > 0 && (
+                        <span className="text-[10px] text-muted-foreground">
+                          {serviceCount} خدمة
+                        </span>
+                      )}
+                    </div>
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </motion.button>
+                );
+              })}
             </motion.div>
           </div>
         </section>
