@@ -29,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -62,6 +63,10 @@ const AdminUsers = () => {
   const [updating, setUpdating] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteType, setDeleteType] = useState<"single" | "bulk">("single");
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -145,52 +150,50 @@ const AdminUsers = () => {
     setSelectedUser(null);
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!confirm("هل أنت متأكد من حذف هذا المستخدم؟ سيتم حذف جميع بياناته.")) return;
-
-    try {
-      // Delete user's orders first
-      await supabase.from("orders").delete().eq("user_id", userId);
-      // Delete user's notifications
-      await supabase.from("notifications").delete().eq("user_id", userId);
-      // Delete user's support tickets
-      await supabase.from("support_tickets").delete().eq("user_id", userId);
-      // Delete user's role
-      await supabase.from("user_roles").delete().eq("user_id", userId);
-      // Delete user profile
-      const { error } = await supabase.from("profiles").delete().eq("id", userId);
-
-      if (error) throw error;
-      toast.success("تم حذف المستخدم بنجاح");
-      setSelectedIds(prev => prev.filter(id => id !== userId));
-      fetchUsers();
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      toast.error("فشل في حذف المستخدم");
-    }
+  const openDeleteDialog = (userId: string) => {
+    setDeletingId(userId);
+    setDeleteType("single");
+    setDeleteDialogOpen(true);
   };
 
-  const handleBulkDelete = async () => {
+  const openBulkDeleteDialog = () => {
     if (selectedIds.length === 0) return;
-    if (!confirm(`هل أنت متأكد من حذف ${selectedIds.length} مستخدم؟`)) return;
+    setDeleteType("bulk");
+    setDeleteDialogOpen(true);
+  };
 
-    setBulkDeleting(true);
+  const handleConfirmDelete = async () => {
+    setDeleting(true);
     try {
-      for (const userId of selectedIds) {
-        await supabase.from("orders").delete().eq("user_id", userId);
-        await supabase.from("notifications").delete().eq("user_id", userId);
-        await supabase.from("support_tickets").delete().eq("user_id", userId);
-        await supabase.from("user_roles").delete().eq("user_id", userId);
-        await supabase.from("profiles").delete().eq("id", userId);
+      if (deleteType === "single" && deletingId) {
+        await supabase.from("orders").delete().eq("user_id", deletingId);
+        await supabase.from("notifications").delete().eq("user_id", deletingId);
+        await supabase.from("support_tickets").delete().eq("user_id", deletingId);
+        await supabase.from("user_roles").delete().eq("user_id", deletingId);
+        const { error } = await supabase.from("profiles").delete().eq("id", deletingId);
+
+        if (error) throw error;
+        toast.success("تم حذف المستخدم بنجاح");
+        setSelectedIds(prev => prev.filter(id => id !== deletingId));
+      } else if (deleteType === "bulk") {
+        for (const userId of selectedIds) {
+          await supabase.from("orders").delete().eq("user_id", userId);
+          await supabase.from("notifications").delete().eq("user_id", userId);
+          await supabase.from("support_tickets").delete().eq("user_id", userId);
+          await supabase.from("user_roles").delete().eq("user_id", userId);
+          await supabase.from("profiles").delete().eq("id", userId);
+        }
+        toast.success(`تم حذف ${selectedIds.length} مستخدم بنجاح`);
+        setSelectedIds([]);
       }
-      toast.success(`تم حذف ${selectedIds.length} مستخدم بنجاح`);
-      setSelectedIds([]);
       fetchUsers();
     } catch (error) {
-      console.error("Error bulk deleting users:", error);
-      toast.error("فشل في حذف المستخدمين");
+      console.error("Error deleting user(s):", error);
+      toast.error("فشل في حذف المستخدم");
     } finally {
-      setBulkDeleting(false);
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+      setDeletingId(null);
     }
   };
 
@@ -306,11 +309,10 @@ const AdminUsers = () => {
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={handleBulkDelete}
-                    disabled={bulkDeleting}
+                    onClick={openBulkDeleteDialog}
                     className="gap-2"
                   >
-                    {bulkDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                    <Trash2 className="w-4 h-4" />
                     حذف المحدد
                   </Button>
                 </div>
@@ -445,7 +447,7 @@ const AdminUsers = () => {
                                   </DropdownMenuItem>
                                 )}
                                 <DropdownMenuItem 
-                                  onClick={() => handleDeleteUser(user.id)}
+                                  onClick={() => openDeleteDialog(user.id)}
                                   className="text-destructive"
                                 >
                                   <Trash2 className="w-4 h-4 ml-2" />
@@ -537,6 +539,18 @@ const AdminUsers = () => {
             )}
           </DialogContent>
         </Dialog>
+
+        <ConfirmDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          title={deleteType === "bulk" ? `حذف ${selectedIds.length} مستخدم` : "حذف المستخدم"}
+          description={deleteType === "bulk" 
+            ? `هل أنت متأكد من حذف ${selectedIds.length} مستخدم؟ سيتم حذف جميع بياناتهم ولا يمكن التراجع.`
+            : "هل أنت متأكد من حذف هذا المستخدم؟ سيتم حذف جميع بياناته ولا يمكن التراجع."
+          }
+          onConfirm={handleConfirmDelete}
+          loading={deleting}
+        />
       </div>
     </AdminDashboardLayout>
   );

@@ -44,6 +44,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -70,6 +71,10 @@ const AdminCoupons = () => {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteType, setDeleteType] = useState<"single" | "bulk">("single");
+  const [deleting, setDeleting] = useState(false);
   
   const [formData, setFormData] = useState({
     code: "",
@@ -179,45 +184,48 @@ const AdminCoupons = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("هل أنت متأكد من حذف هذا الكوبون؟")) return;
-
-    try {
-      const { error } = await supabase
-        .from("coupons")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-      toast.success("تم حذف الكوبون بنجاح");
-      setSelectedIds(prev => prev.filter(i => i !== id));
-      fetchCoupons();
-    } catch (error: any) {
-      console.error("Error deleting coupon:", error);
-      toast.error("فشل في حذف الكوبون");
-    }
+  const openDeleteDialog = (id: string) => {
+    setDeletingId(id);
+    setDeleteType("single");
+    setDeleteDialogOpen(true);
   };
 
-  const handleBulkDelete = async () => {
+  const openBulkDeleteDialog = () => {
     if (selectedIds.length === 0) return;
-    if (!confirm(`هل أنت متأكد من حذف ${selectedIds.length} كوبون؟`)) return;
+    setDeleteType("bulk");
+    setDeleteDialogOpen(true);
+  };
 
-    setBulkDeleting(true);
+  const handleConfirmDelete = async () => {
+    setDeleting(true);
     try {
-      const { error } = await supabase
-        .from("coupons")
-        .delete()
-        .in("id", selectedIds);
+      if (deleteType === "single" && deletingId) {
+        const { error } = await supabase
+          .from("coupons")
+          .delete()
+          .eq("id", deletingId);
 
-      if (error) throw error;
-      toast.success(`تم حذف ${selectedIds.length} كوبون بنجاح`);
-      setSelectedIds([]);
+        if (error) throw error;
+        toast.success("تم حذف الكوبون بنجاح");
+        setSelectedIds(prev => prev.filter(i => i !== deletingId));
+      } else if (deleteType === "bulk") {
+        const { error } = await supabase
+          .from("coupons")
+          .delete()
+          .in("id", selectedIds);
+
+        if (error) throw error;
+        toast.success(`تم حذف ${selectedIds.length} كوبون بنجاح`);
+        setSelectedIds([]);
+      }
       fetchCoupons();
     } catch (error: any) {
-      console.error("Error bulk deleting coupons:", error);
-      toast.error("فشل في حذف الكوبونات");
+      console.error("Error deleting coupon(s):", error);
+      toast.error("فشل في حذف الكوبون");
     } finally {
-      setBulkDeleting(false);
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+      setDeletingId(null);
     }
   };
 
@@ -306,11 +314,10 @@ const AdminCoupons = () => {
               <Button
                 variant="destructive"
                 size="sm"
-                onClick={handleBulkDelete}
-                disabled={bulkDeleting}
+                onClick={openBulkDeleteDialog}
                 className="gap-2"
               >
-                {bulkDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                <Trash2 className="w-4 h-4" />
                 حذف المحدد
               </Button>
             </div>
@@ -512,7 +519,7 @@ const AdminCoupons = () => {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => handleDelete(coupon.id)}
+                          onClick={() => openDeleteDialog(coupon.id)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -640,6 +647,18 @@ const AdminCoupons = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title={deleteType === "bulk" ? `حذف ${selectedIds.length} كوبون` : "حذف الكوبون"}
+        description={deleteType === "bulk" 
+          ? `هل أنت متأكد من حذف ${selectedIds.length} كوبون؟ لا يمكن التراجع عن هذا الإجراء.`
+          : "هل أنت متأكد من حذف هذا الكوبون؟ لا يمكن التراجع عن هذا الإجراء."
+        }
+        onConfirm={handleConfirmDelete}
+        loading={deleting}
+      />
     </AdminDashboardLayout>
   );
 };
