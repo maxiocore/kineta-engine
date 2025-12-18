@@ -1,86 +1,89 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, ShoppingBag, MessageSquare, Clock, CheckCircle, Loader2, Package } from "lucide-react";
+import { Bell, ShoppingBag, MessageSquare, Clock, CheckCircle, Loader2, AlertCircle, Info, CheckCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
+import { toast } from "sonner";
 
 interface Notification {
   id: string;
   title: string;
   message: string;
-  time: string;
-  type: "order" | "ticket" | "info";
-  status?: string;
+  type: string;
+  is_read: boolean;
+  related_order_id: string | null;
+  created_at: string;
 }
 
-const getTypeStyles = (type: string) => {
+const getTypeStyles = (type: string, isRead: boolean) => {
+  const opacity = isRead ? "opacity-60" : "";
   switch (type) {
-    case "order": return "bg-primary/10 border-primary/20";
-    case "ticket": return "bg-accent/10 border-accent/20";
-    case "info": return "bg-success/10 border-success/20";
-    default: return "bg-muted border-border";
+    case "success": return `bg-success/10 border-success/20 ${opacity}`;
+    case "error": return `bg-destructive/10 border-destructive/20 ${opacity}`;
+    case "warning": return `bg-warning/10 border-warning/20 ${opacity}`;
+    default: return `bg-primary/10 border-primary/20 ${opacity}`;
   }
 };
 
 const getTypeIcon = (type: string) => {
   switch (type) {
-    case "order": return ShoppingBag;
-    case "ticket": return MessageSquare;
-    default: return Bell;
+    case "success": return CheckCircle;
+    case "error": return AlertCircle;
+    case "warning": return AlertCircle;
+    default: return Info;
   }
 };
 
-const statusLabels: Record<string, string> = {
-  pending: "قيد الانتظار",
-  confirmed: "تم تأكيد الطلب",
-  in_progress: "قيد التنفيذ",
-  completed: "تم الاكتمال",
-  cancelled: "ملغي",
-  open: "تذكرة مفتوحة",
-  resolved: "تم الحل",
+const getIconColor = (type: string) => {
+  switch (type) {
+    case "success": return "text-success";
+    case "error": return "text-destructive";
+    case "warning": return "text-warning";
+    default: return "text-primary";
+  }
 };
 
 const ClientNotifications = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [markingAll, setMarkingAll] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchNotifications();
 
-      // Real-time subscriptions
-      const ordersChannel = supabase
-        .channel("client-notifications-orders")
+      // Real-time subscription for notifications
+      const channel = supabase
+        .channel("client-notifications")
         .on("postgres_changes", { 
           event: "*", 
           schema: "public", 
-          table: "orders",
+          table: "notifications",
           filter: `user_id=eq.${user.id}`
-        }, () => {
-          fetchNotifications();
-        })
-        .subscribe();
-
-      const ticketsChannel = supabase
-        .channel("client-notifications-tickets")
-        .on("postgres_changes", { 
-          event: "*", 
-          schema: "public", 
-          table: "support_tickets",
-          filter: `user_id=eq.${user.id}`
-        }, () => {
-          fetchNotifications();
+        }, (payload) => {
+          if (payload.eventType === "INSERT") {
+            setNotifications(prev => [payload.new as Notification, ...prev]);
+            toast.info("إشعار جديد", {
+              description: (payload.new as Notification).message,
+            });
+          } else if (payload.eventType === "UPDATE") {
+            setNotifications(prev => 
+              prev.map(n => n.id === (payload.new as Notification).id ? payload.new as Notification : n)
+            );
+          } else if (payload.eventType === "DELETE") {
+            setNotifications(prev => prev.filter(n => n.id !== (payload.old as Notification).id));
+          }
         })
         .subscribe();
 
       return () => {
-        supabase.removeChannel(ordersChannel);
-        supabase.removeChannel(ticketsChannel);
+        supabase.removeChannel(channel);
       };
     }
   }, [user]);
@@ -89,58 +92,52 @@ const ClientNotifications = () => {
     if (!user) return;
 
     setLoading(true);
-    const notificationsList: Notification[] = [];
-
-    // Fetch recent orders
-    const { data: orders } = await supabase
-      .from("orders")
-      .select(`
-        id, order_number, status, created_at, updated_at,
-        service:services(name)
-      `)
+    const { data, error } = await supabase
+      .from("notifications")
+      .select("*")
       .eq("user_id", user.id)
-      .order("updated_at", { ascending: false })
-      .limit(10);
+      .order("created_at", { ascending: false })
+      .limit(50);
 
-    orders?.forEach(order => {
-      const service = order.service as { name: string } | null;
-      notificationsList.push({
-        id: `order-${order.id}`,
-        title: `طلب ${order.order_number}`,
-        message: `${statusLabels[order.status] || order.status} - ${service?.name || "خدمة"}`,
-        time: formatDistanceToNow(new Date(order.updated_at), { addSuffix: true, locale: ar }),
-        type: "order",
-        status: order.status,
-      });
-    });
-
-    // Fetch recent tickets
-    const { data: tickets } = await supabase
-      .from("support_tickets")
-      .select("id, subject, status, created_at, updated_at")
-      .eq("user_id", user.id)
-      .order("updated_at", { ascending: false })
-      .limit(10);
-
-    tickets?.forEach(ticket => {
-      notificationsList.push({
-        id: `ticket-${ticket.id}`,
-        title: ticket.subject,
-        message: statusLabels[ticket.status] || ticket.status,
-        time: formatDistanceToNow(new Date(ticket.updated_at!), { addSuffix: true, locale: ar }),
-        type: "ticket",
-        status: ticket.status,
-      });
-    });
-
-    // Sort by time
-    notificationsList.sort((a, b) => {
-      return new Date(b.time).getTime() - new Date(a.time).getTime();
-    });
-
-    setNotifications(notificationsList);
+    if (error) {
+      console.error("Error fetching notifications:", error);
+    } else {
+      setNotifications(data || []);
+    }
     setLoading(false);
   };
+
+  const markAsRead = async (id: string) => {
+    const { error } = await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("id", id);
+
+    if (!error) {
+      setNotifications(prev => 
+        prev.map(n => n.id === id ? { ...n, is_read: true } : n)
+      );
+    }
+  };
+
+  const markAllAsRead = async () => {
+    if (!user) return;
+    setMarkingAll(true);
+
+    const { error } = await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", user.id)
+      .eq("is_read", false);
+
+    if (!error) {
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      toast.success("تم تعليم جميع الإشعارات كمقروءة");
+    }
+    setMarkingAll(false);
+  };
+
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   if (loading) {
     return (
@@ -161,16 +158,39 @@ const ClientNotifications = () => {
     <ClientDashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-3"
-          >
-            <Bell className="w-8 h-8 text-primary" />
-            الإشعارات
-          </motion.h1>
-          <p className="text-muted-foreground">تابع جميع التحديثات على طلباتك وتذاكرك</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-3"
+            >
+              <Bell className="w-8 h-8 text-primary" />
+              الإشعارات
+              {unreadCount > 0 && (
+                <span className="bg-destructive text-destructive-foreground text-sm px-2.5 py-0.5 rounded-full">
+                  {unreadCount}
+                </span>
+              )}
+            </motion.h1>
+            <p className="text-muted-foreground">تابع جميع التحديثات على طلباتك</p>
+          </div>
+
+          {unreadCount > 0 && (
+            <Button
+              variant="outline"
+              onClick={markAllAsRead}
+              disabled={markingAll}
+              className="gap-2"
+            >
+              {markingAll ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CheckCheck className="w-4 h-4" />
+              )}
+              تعليم الكل كمقروء
+            </Button>
+          )}
         </div>
 
         {/* Notifications List */}
@@ -180,7 +200,7 @@ const ClientNotifications = () => {
               <div className="text-center">
                 <Bell className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
                 <p className="text-muted-foreground text-lg">لا توجد إشعارات</p>
-                <p className="text-sm text-muted-foreground mt-2">ستظهر هنا جميع التحديثات على طلباتك وتذاكرك</p>
+                <p className="text-sm text-muted-foreground mt-2">ستظهر هنا جميع التحديثات على طلباتك</p>
               </div>
             </CardContent>
           </Card>
@@ -195,45 +215,39 @@ const ClientNotifications = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    transition={{ delay: index * 0.05 }}
+                    transition={{ delay: index * 0.03 }}
+                    onClick={() => !notification.is_read && markAsRead(notification.id)}
+                    className="cursor-pointer"
                   >
-                    <Card className={`card-elevated border ${getTypeStyles(notification.type)}`}>
+                    <Card className={`card-elevated border transition-all hover:scale-[1.01] ${getTypeStyles(notification.type, notification.is_read)}`}>
                       <CardContent className="p-4">
                         <div className="flex items-start gap-4">
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                            notification.type === "order" ? "bg-primary/10" : 
-                            notification.type === "ticket" ? "bg-accent/10" : "bg-success/10"
+                            notification.type === "success" ? "bg-success/20" : 
+                            notification.type === "error" ? "bg-destructive/20" :
+                            notification.type === "warning" ? "bg-warning/20" : "bg-primary/20"
                           }`}>
-                            <Icon className={`w-5 h-5 ${
-                              notification.type === "order" ? "text-primary" : 
-                              notification.type === "ticket" ? "text-accent" : "text-success"
-                            }`} />
+                            <Icon className={`w-5 h-5 ${getIconColor(notification.type)}`} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-4">
                               <div>
-                                <h4 className="font-medium">{notification.title}</h4>
-                                <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
+                                <div className="flex items-center gap-2">
+                                  <h4 className={`font-medium ${notification.is_read ? "text-muted-foreground" : ""}`}>
+                                    {notification.title}
+                                  </h4>
+                                  {!notification.is_read && (
+                                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                                  )}
+                                </div>
+                                <p className={`text-sm mt-1 ${notification.is_read ? "text-muted-foreground/70" : "text-muted-foreground"}`}>
+                                  {notification.message}
+                                </p>
                               </div>
-                              {notification.status && (
-                                <span className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-                                  notification.status === "completed" || notification.status === "resolved" 
-                                    ? "bg-success/10 text-success" 
-                                    : notification.status === "in_progress" || notification.status === "open"
-                                    ? "bg-warning/10 text-warning"
-                                    : notification.status === "cancelled"
-                                    ? "bg-destructive/10 text-destructive"
-                                    : "bg-primary/10 text-primary"
-                                }`}>
-                                  {notification.status === "completed" && <CheckCircle className="w-3 h-3 inline ml-1" />}
-                                  {notification.status === "in_progress" && <Clock className="w-3 h-3 inline ml-1" />}
-                                  {statusLabels[notification.status] || notification.status}
-                                </span>
-                              )}
                             </div>
                             <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
                               <Clock className="w-3 h-3" />
-                              {notification.time}
+                              {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: ar })}
                             </p>
                           </div>
                         </div>
