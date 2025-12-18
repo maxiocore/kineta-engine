@@ -7,8 +7,9 @@ import {
   Trash2,
   Loader2,
   Search,
-  Eye,
-  EyeOff,
+  Users,
+  TrendingUp,
+  Trophy,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,13 @@ const COLOR_OPTIONS = [
 
 const AdminBadges = () => {
   const [badges, setBadges] = useState<BadgeType[]>([]);
+  const [badgeUserCounts, setBadgeUserCounts] = useState<Record<string, number>>({});
+  const [totalStats, setTotalStats] = useState({
+    totalBadges: 0,
+    activeBadges: 0,
+    totalAwarded: 0,
+    uniqueUsers: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -97,6 +105,8 @@ const AdminBadges = () => {
 
   const fetchBadges = async () => {
     setLoading(true);
+    
+    // Fetch badges
     const { data, error } = await supabase
       .from("badges")
       .select("*")
@@ -107,7 +117,35 @@ const AdminBadges = () => {
       console.error(error);
     } else {
       setBadges(data || []);
+      setTotalStats(prev => ({
+        ...prev,
+        totalBadges: data?.length || 0,
+        activeBadges: data?.filter(b => b.is_active).length || 0,
+      }));
     }
+
+    // Fetch user badge counts
+    const { data: userBadges } = await supabase
+      .from("user_badges")
+      .select("badge_id, user_id");
+
+    if (userBadges) {
+      // Count users per badge
+      const counts: Record<string, number> = {};
+      userBadges.forEach(ub => {
+        counts[ub.badge_id] = (counts[ub.badge_id] || 0) + 1;
+      });
+      setBadgeUserCounts(counts);
+
+      // Calculate unique users
+      const uniqueUserIds = new Set(userBadges.map(ub => ub.user_id));
+      setTotalStats(prev => ({
+        ...prev,
+        totalAwarded: userBadges.length,
+        uniqueUsers: uniqueUserIds.size,
+      }));
+    }
+
     setLoading(false);
   };
 
@@ -258,6 +296,62 @@ const AdminBadges = () => {
           </Button>
         </div>
 
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="border-primary/20">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Award className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{totalStats.totalBadges}</p>
+                  <p className="text-sm text-muted-foreground">إجمالي الشارات</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-success/20">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+                  <Trophy className="w-5 h-5 text-success" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{totalStats.activeBadges}</p>
+                  <p className="text-sm text-muted-foreground">شارات مفعّلة</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-accent/20">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-accent" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{totalStats.totalAwarded}</p>
+                  <p className="text-sm text-muted-foreground">شارات ممنوحة</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-warning/20">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+                  <Users className="w-5 h-5 text-warning" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{totalStats.uniqueUsers}</p>
+                  <p className="text-sm text-muted-foreground">مستخدم حاصل على شارات</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Search */}
         <div className="relative max-w-md">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -320,6 +414,14 @@ const AdminBadges = () => {
                         {badge.description_ar}
                       </p>
                     )}
+
+                    {/* User Count */}
+                    <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-secondary/50">
+                      <Users className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">
+                        {badgeUserCounts[badge.id] || 0} مستخدم
+                      </span>
+                    </div>
 
                     <div className="flex flex-wrap gap-2">
                       {badge.min_spending > 0 && (
