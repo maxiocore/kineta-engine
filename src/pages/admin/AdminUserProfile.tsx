@@ -31,9 +31,11 @@ import {
   DollarSign,
   TrendingUp,
   FileText,
-  RefreshCw
+  RefreshCw,
+  BarChart3
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import UserAnalyticsCharts from '@/components/admin/UserAnalyticsCharts';
 
 interface UserProfile {
   id: string;
@@ -424,8 +426,12 @@ const AdminUserProfile = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="orders" className="space-y-4">
+        <Tabs defaultValue="analytics" className="space-y-4">
           <TabsList className="bg-muted/50">
+            <TabsTrigger value="analytics" className="gap-2">
+              <BarChart3 className="h-4 w-4" />
+              التحليلات
+            </TabsTrigger>
             <TabsTrigger value="orders" className="gap-2">
               <Package className="h-4 w-4" />
               الطلبات ({orders.length})
@@ -439,6 +445,11 @@ const AdminUserProfile = () => {
               سجل النشاط ({auditLogs.length})
             </TabsTrigger>
           </TabsList>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics">
+            <UserAnalyticsCharts orders={orders} userCreatedAt={user.created_at} />
+          </TabsContent>
 
           {/* Orders Tab */}
           <TabsContent value="orders">
