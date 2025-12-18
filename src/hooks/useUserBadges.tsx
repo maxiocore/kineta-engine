@@ -114,8 +114,20 @@ export const useUserBadges = (userId?: string) => {
           });
 
         if (!error) {
+          // Create notification in database
+          await supabase
+            .from('notifications')
+            .insert({
+              user_id: userId,
+              title: '🏆 تهانينا! حصلت على شارة جديدة',
+              message: `لقد حصلت على شارة "${badge.name_ar}"! ${badge.description_ar || badge.description || 'استمر في التقدم للحصول على المزيد من الشارات.'}`,
+              type: 'success'
+            });
+
+          // Show toast notification
           toast.success(`🏆 تهانينا! حصلت على شارة "${badge.name_ar}"`, {
-            duration: 5000
+            duration: 5000,
+            description: badge.description_ar || badge.description || 'استمر في التقدم!'
           });
         }
       }
