@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Clock, CheckCircle, Loader2, XCircle, RefreshCw, Package } from "lucide-react";
+import { Clock, CheckCircle, Loader2, XCircle, AlertCircle, Package } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
@@ -12,7 +12,7 @@ interface OrderProgressTrackerProps {
 
 const statusSteps = [
   { key: "pending", label: "قيد الانتظار", icon: Clock },
-  { key: "confirmed", label: "مؤكد", icon: CheckCircle },
+  { key: "processing", label: "قيد المعالجة", icon: Loader2 },
   { key: "in_progress", label: "قيد التنفيذ", icon: Loader2 },
   { key: "completed", label: "مكتمل", icon: CheckCircle },
 ];
@@ -20,11 +20,11 @@ const statusSteps = [
 const getStatusProgress = (status: string): number => {
   switch (status) {
     case "pending": return 10;
-    case "confirmed": return 35;
-    case "in_progress": return 65;
+    case "processing": return 30;
+    case "in_progress": return 60;
     case "completed": return 100;
+    case "partial": return 80;
     case "cancelled": return 0;
-    case "refunded": return 0;
     default: return 0;
   }
 };
@@ -32,11 +32,11 @@ const getStatusProgress = (status: string): number => {
 const getStatusColor = (status: string): string => {
   switch (status) {
     case "pending": return "text-warning";
-    case "confirmed": return "text-primary";
+    case "processing": return "text-primary";
     case "in_progress": return "text-accent";
     case "completed": return "text-success";
+    case "partial": return "text-orange-500";
     case "cancelled": return "text-destructive";
-    case "refunded": return "text-muted-foreground";
     default: return "text-muted-foreground";
   }
 };
@@ -44,11 +44,11 @@ const getStatusColor = (status: string): string => {
 const getProgressColor = (status: string): string => {
   switch (status) {
     case "pending": return "bg-warning";
-    case "confirmed": return "bg-primary";
+    case "processing": return "bg-primary";
     case "in_progress": return "bg-accent";
     case "completed": return "bg-success";
+    case "partial": return "bg-orange-500";
     case "cancelled": return "bg-destructive";
-    case "refunded": return "bg-muted";
     default: return "bg-muted";
   }
 };
@@ -60,7 +60,7 @@ export const OrderProgressTracker = ({
   size = "md",
 }: OrderProgressTrackerProps) => {
   const progress = getStatusProgress(status);
-  const isCancelledOrRefunded = status === "cancelled" || status === "refunded";
+  const isCancelledOrPartial = status === "cancelled" || status === "partial";
   
   const sizeClasses = {
     sm: { step: "w-8 h-8", icon: "w-4 h-4", text: "text-xs", progressHeight: "h-1.5" },
@@ -103,7 +103,7 @@ export const OrderProgressTracker = ({
       </div>
 
       {/* Status Steps */}
-      {showSteps && !isCancelledOrRefunded && (
+      {showSteps && !isCancelledOrPartial && (
         <div className="relative">
           {/* Connecting Line */}
           <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-border -translate-y-1/2 z-0" />
@@ -159,27 +159,27 @@ export const OrderProgressTracker = ({
         </div>
       )}
 
-      {/* Cancelled/Refunded State */}
-      {isCancelledOrRefunded && (
+      {/* Cancelled/Partial State */}
+      {isCancelledOrPartial && (
         <div className={cn(
           "flex items-center justify-center gap-3 p-4 rounded-xl border",
           status === "cancelled" 
             ? "bg-destructive/10 border-destructive/20 text-destructive"
-            : "bg-muted border-border text-muted-foreground"
+            : "bg-orange-500/10 border-orange-500/20 text-orange-500"
         )}>
           {status === "cancelled" ? (
             <XCircle className="w-5 h-5" />
           ) : (
-            <RefreshCw className="w-5 h-5" />
+            <AlertCircle className="w-5 h-5" />
           )}
           <span className="font-medium">
-            {status === "cancelled" ? "تم إلغاء الطلب" : "تم استرداد المبلغ"}
+            {status === "cancelled" ? "تم إلغاء الطلب" : "مكتمل جزئياً"}
           </span>
         </div>
       )}
 
       {/* External Status */}
-      {externalStatus && !isCancelledOrRefunded && (
+      {externalStatus && !isCancelledOrPartial && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

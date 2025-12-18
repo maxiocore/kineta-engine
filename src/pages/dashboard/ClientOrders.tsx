@@ -78,11 +78,11 @@ interface OrderStatusHistory {
 const getStatusConfig = (status: string) => {
   switch (status) {
     case "pending": return { label: "قيد الانتظار", color: "bg-warning/10 text-warning border-warning/20", icon: Clock, progress: 10 };
-    case "confirmed": return { label: "مؤكد", color: "bg-primary/10 text-primary border-primary/20", icon: CheckCircle, progress: 30 };
+    case "processing": return { label: "قيد المعالجة", color: "bg-primary/10 text-primary border-primary/20", icon: Loader2, progress: 30 };
     case "in_progress": return { label: "قيد التنفيذ", color: "bg-accent/10 text-accent border-accent/20", icon: Loader2, progress: 60 };
     case "completed": return { label: "مكتمل", color: "bg-success/10 text-success border-success/20", icon: CheckCircle, progress: 100 };
+    case "partial": return { label: "مكتمل جزئي", color: "bg-orange-500/10 text-orange-500 border-orange-500/20", icon: AlertCircle, progress: 80 };
     case "cancelled": return { label: "ملغي", color: "bg-destructive/10 text-destructive border-destructive/20", icon: XCircle, progress: 0 };
-    case "refunded": return { label: "مسترد", color: "bg-muted text-muted-foreground border-border", icon: AlertCircle, progress: 0 };
     default: return { label: status, color: "bg-muted text-muted-foreground border-border", icon: Clock, progress: 0 };
   }
 };
@@ -328,11 +328,12 @@ const ClientOrders = () => {
                   <SelectValue placeholder="فلترة الحالة" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">جميع الحالات</SelectItem>
+                  <SelectItem value="all">كل الطلبات</SelectItem>
                   <SelectItem value="pending">قيد الانتظار</SelectItem>
-                  <SelectItem value="confirmed">مؤكد</SelectItem>
+                  <SelectItem value="processing">قيد المعالجة</SelectItem>
                   <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
                   <SelectItem value="completed">مكتمل</SelectItem>
+                  <SelectItem value="partial">مكتمل جزئي</SelectItem>
                   <SelectItem value="cancelled">ملغي</SelectItem>
                 </SelectContent>
               </Select>

@@ -73,11 +73,11 @@ interface OrderStats {
 
 const statusOptions = [
   { value: "pending", label: "قيد الانتظار", icon: Clock, color: "warning" },
-  { value: "confirmed", label: "مؤكد", icon: CheckCircle, color: "primary" },
+  { value: "processing", label: "قيد المعالجة", icon: Loader2, color: "primary" },
   { value: "in_progress", label: "قيد التنفيذ", icon: Loader2, color: "accent" },
   { value: "completed", label: "مكتمل", icon: CheckCircle, color: "success" },
+  { value: "partial", label: "مكتمل جزئي", icon: AlertCircle, color: "orange" },
   { value: "cancelled", label: "ملغي", icon: XCircle, color: "destructive" },
-  { value: "refunded", label: "مسترد", icon: AlertCircle, color: "muted" },
 ];
 
 const getStatusConfig = (status: string) => {
@@ -89,6 +89,7 @@ const getStatusConfig = (status: string) => {
     primary: "bg-primary/10 text-primary border-primary/20",
     accent: "bg-accent/10 text-accent border-accent/20",
     success: "bg-success/10 text-success border-success/20",
+    orange: "bg-orange-500/10 text-orange-500 border-orange-500/20",
     destructive: "bg-destructive/10 text-destructive border-destructive/20",
     muted: "bg-muted text-muted-foreground border-muted",
   };
@@ -198,7 +199,7 @@ const AdminOrders = () => {
     const { error } = await supabase
       .from("orders")
       .update({
-        status: (newStatus || selectedOrder.status) as "pending" | "confirmed" | "in_progress" | "completed" | "cancelled" | "refunded",
+        status: (newStatus || selectedOrder.status) as "pending" | "processing" | "in_progress" | "completed" | "partial" | "cancelled",
         admin_notes: adminNotes || selectedOrder.admin_notes
       })
       .eq("id", selectedOrder.id);
@@ -489,7 +490,7 @@ const AdminOrders = () => {
                             <SelectValue placeholder="جميع الحالات" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="all">جميع الحالات</SelectItem>
+                            <SelectItem value="all">كل الطلبات</SelectItem>
                             {statusOptions.map(opt => (
                               <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                             ))}
