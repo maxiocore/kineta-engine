@@ -37,6 +37,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, isAfter, isBefore, startOfDay, endOfDay } from "date-fns";
@@ -125,6 +126,10 @@ const AdminOrders = () => {
   const [stats, setStats] = useState<OrderStats>({ pending: 0, in_progress: 0, completed: 0, total: 0, cancelled: 0 });
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteType, setDeleteType] = useState<"single" | "bulk">("single");
+  const [deleting, setDeleting] = useState(false);
 
   const activeFiltersCount = [
     statusFilter !== "all",
@@ -220,45 +225,44 @@ const AdminOrders = () => {
     setSearchQuery("");
   };
 
-  const handleDeleteOrder = async (id: string) => {
-    if (!confirm("هل أنت متأكد من حذف هذا الطلب؟")) return;
-
-    try {
-      // Delete order status history first
-      await supabase.from("order_status_history").delete().eq("order_id", id);
-      // Delete order
-      const { error } = await supabase.from("orders").delete().eq("id", id);
-
-      if (error) throw error;
-      toast.success("تم حذف الطلب بنجاح");
-      setSelectedIds(prev => prev.filter(i => i !== id));
-      fetchOrders();
-    } catch (error) {
-      console.error("Error deleting order:", error);
-      toast.error("فشل في حذف الطلب");
-    }
+  const openDeleteDialog = (id: string) => {
+    setDeletingId(id);
+    setDeleteType("single");
+    setDeleteDialogOpen(true);
   };
 
-  const handleBulkDelete = async () => {
+  const openBulkDeleteDialog = () => {
     if (selectedIds.length === 0) return;
-    if (!confirm(`هل أنت متأكد من حذف ${selectedIds.length} طلب؟`)) return;
+    setDeleteType("bulk");
+    setDeleteDialogOpen(true);
+  };
 
-    setBulkDeleting(true);
+  const handleConfirmDelete = async () => {
+    setDeleting(true);
     try {
-      // Delete order status history for all selected orders
-      await supabase.from("order_status_history").delete().in("order_id", selectedIds);
-      // Delete orders
-      const { error } = await supabase.from("orders").delete().in("id", selectedIds);
+      if (deleteType === "single" && deletingId) {
+        await supabase.from("order_status_history").delete().eq("order_id", deletingId);
+        const { error } = await supabase.from("orders").delete().eq("id", deletingId);
 
-      if (error) throw error;
-      toast.success(`تم حذف ${selectedIds.length} طلب بنجاح`);
-      setSelectedIds([]);
+        if (error) throw error;
+        toast.success("تم حذف الطلب بنجاح");
+        setSelectedIds(prev => prev.filter(i => i !== deletingId));
+      } else if (deleteType === "bulk") {
+        await supabase.from("order_status_history").delete().in("order_id", selectedIds);
+        const { error } = await supabase.from("orders").delete().in("id", selectedIds);
+
+        if (error) throw error;
+        toast.success(`تم حذف ${selectedIds.length} طلب بنجاح`);
+        setSelectedIds([]);
+      }
       fetchOrders();
     } catch (error) {
-      console.error("Error bulk deleting orders:", error);
-      toast.error("فشل في حذف الطلبات");
+      console.error("Error deleting order(s):", error);
+      toast.error("فشل في حذف الطلب");
     } finally {
-      setBulkDeleting(false);
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+      setDeletingId(null);
     }
   };
 
@@ -404,11 +408,10 @@ const AdminOrders = () => {
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={handleBulkDelete}
-                      disabled={bulkDeleting}
+                      onClick={openBulkDeleteDialog}
                       className="gap-2"
                     >
-                      {bulkDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                      <Trash2 className="w-4 h-4" />
                       حذف المحدد
                     </Button>
                   </div>
@@ -686,7 +689,7 @@ const AdminOrders = () => {
                                   variant="ghost" 
                                   size="icon" 
                                   className="rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
-                                  onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order.id); }}
+                                  onClick={(e) => { e.stopPropagation(); openDeleteDialog(order.id); }}
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
@@ -801,7 +804,7 @@ const AdminOrders = () => {
                     variant="destructive" 
                     size="icon"
                     onClick={() => {
-                      handleDeleteOrder(selectedOrder.id);
+                      openDeleteDialog(selectedOrder.id);
                       setSelectedOrder(null);
                     }}
                   >
@@ -812,6 +815,18 @@ const AdminOrders = () => {
             )}
           </DialogContent>
         </Dialog>
+
+        <ConfirmDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          title={deleteType === "bulk" ? `حذف ${selectedIds.length} طلب` : "حذف الطلب"}
+          description={deleteType === "bulk" 
+            ? `هل أنت متأكد من حذف ${selectedIds.length} طلب؟ لا يمكن التراجع عن هذا الإجراء.`
+            : "هل أنت متأكد من حذف هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء."
+          }
+          onConfirm={handleConfirmDelete}
+          loading={deleting}
+        />
       </motion.div>
     </AdminDashboardLayout>
   );
