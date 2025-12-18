@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { provider_id } = await req.json();
+    const { provider_id, log_balance = true } = await req.json();
 
     if (!provider_id) {
       console.error('Provider ID is required');
@@ -81,6 +81,25 @@ serve(async (req) => {
       : (balanceData.funds !== undefined ? parseFloat(balanceData.funds) : null);
     
     const currency = balanceData.currency || 'USD';
+
+    // Log balance to provider_balance_logs if enabled
+    if (log_balance && balance !== null) {
+      const { error: logError } = await supabase
+        .from('provider_balance_logs')
+        .insert({
+          provider_id: provider.id,
+          balance: balance,
+          currency: currency,
+          action_type: 'balance_check',
+          notes: `تم جلب الرصيد من ${provider.name_ar}`
+        });
+
+      if (logError) {
+        console.error('Error logging balance:', logError);
+      } else {
+        console.log('Balance logged successfully');
+      }
+    }
 
     return new Response(
       JSON.stringify({ 

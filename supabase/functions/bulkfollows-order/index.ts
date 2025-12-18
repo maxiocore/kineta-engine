@@ -148,6 +148,51 @@ serve(async (req) => {
       console.error('Error updating order:', updateError);
     }
 
+    // Log the order to provider_balance_logs
+    // Get provider ID
+    let providerId = service.provider_id;
+    if (!providerId) {
+      const { data: defaultProvider } = await supabase
+        .from('api_providers')
+        .select('id')
+        .eq('is_default', true)
+        .eq('is_active', true)
+        .maybeSingle();
+      providerId = defaultProvider?.id;
+    }
+
+    if (providerId) {
+      // Get current balance after order
+      const balanceFormData = new FormData();
+      balanceFormData.append('key', apiKey);
+      balanceFormData.append('action', 'balance');
+      
+      try {
+        const balanceResponse = await fetch(apiUrl, {
+          method: 'POST',
+          body: balanceFormData,
+        });
+        const balanceData = await balanceResponse.json();
+        const currentBalance = parseFloat(balanceData.balance || balanceData.funds || '0');
+
+        // Log the order placement
+        await supabase
+          .from('provider_balance_logs')
+          .insert({
+            provider_id: providerId,
+            balance: currentBalance,
+            currency: balanceData.currency || 'USD',
+            order_id: orderId,
+            order_cost: result.charge || null,
+            action_type: 'order_placed',
+            notes: `طلب رقم ${result.order} - الخدمة: ${service.name}`
+          });
+        console.log('Order logged to balance logs');
+      } catch (logError) {
+        console.error('Error logging order to balance logs:', logError);
+      }
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
