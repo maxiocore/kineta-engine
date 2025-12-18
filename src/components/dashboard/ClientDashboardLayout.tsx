@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -14,12 +14,14 @@ import {
   User,
   Award,
   Code,
+  Wallet,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import ThemeToggle from "@/components/ThemeToggle";
+import { supabase } from "@/integrations/supabase/client";
 
 interface NavItem {
   label: string;
@@ -44,9 +46,46 @@ interface ClientDashboardLayoutProps {
 const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [balance, setBalance] = useState<number>(0);
   const location = useLocation();
   const navigate = useNavigate();
-  const { profile, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      fetchBalance();
+      
+      // Real-time subscription for balance updates
+      const channel = supabase
+        .channel('user-balance')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'user_balances',
+          filter: `user_id=eq.${user.id}`
+        }, () => {
+          fetchBalance();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [user]);
+
+  const fetchBalance = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('user_balances')
+      .select('balance')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (data) {
+      setBalance(data.balance);
+    }
+  };
 
   const isActive = (path: string) => {
     if (path === "/dashboard") {
@@ -112,6 +151,35 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
           ))}
         </nav>
 
+        {/* Balance Section */}
+        <div className="p-4 border-t border-border">
+          <div className={cn(
+            "rounded-xl bg-gradient-to-l from-primary/10 to-accent/10 border border-primary/20 p-4",
+            !isSidebarOpen && "p-2"
+          )}>
+            <div className={cn("flex items-center gap-3", !isSidebarOpen && "justify-center")}>
+              <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shrink-0">
+                <Wallet className="w-5 h-5 text-primary-foreground" />
+              </div>
+              {isSidebarOpen && (
+                <div className="flex-1">
+                  <p className="text-xs text-muted-foreground">رصيدك الحالي</p>
+                  <p className="text-xl font-bold text-primary">${balance.toFixed(2)}</p>
+                </div>
+              )}
+            </div>
+            {isSidebarOpen && (
+              <Button 
+                className="w-full mt-3 gap-2 bg-gradient-to-l from-primary to-accent hover:opacity-90"
+                onClick={() => navigate('/dashboard/deposit')}
+              >
+                <Plus className="w-4 h-4" />
+                إيداع رصيد
+              </Button>
+            )}
+          </div>
+        </div>
+
         {/* User Section */}
         <div className="p-4 border-t border-border">
           <div className={cn("flex items-center gap-3 mb-4", !isSidebarOpen && "justify-center")}>
@@ -141,12 +209,12 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
         <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
           <Menu className="w-6 h-6" />
         </Button>
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-            <span className="font-display font-bold text-primary-foreground">م</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+            <Wallet className="w-4 h-4 text-primary" />
+            <span className="font-bold text-primary text-sm">${balance.toFixed(2)}</span>
           </div>
-          <span className="font-display font-bold">ماركت برو</span>
-        </Link>
+        </div>
         <ThemeToggle />
       </div>
 
@@ -172,6 +240,30 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
               <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
                 <X className="w-5 h-5" />
               </Button>
+            </div>
+            {/* Balance in Mobile Menu */}
+            <div className="p-4 border-b border-border">
+              <div className="rounded-xl bg-gradient-to-l from-primary/10 to-accent/10 border border-primary/20 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
+                    <Wallet className="w-5 h-5 text-primary-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-muted-foreground">رصيدك الحالي</p>
+                    <p className="text-xl font-bold text-primary">${balance.toFixed(2)}</p>
+                  </div>
+                </div>
+                <Button 
+                  className="w-full mt-3 gap-2 bg-gradient-to-l from-primary to-accent hover:opacity-90"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    navigate('/dashboard/deposit');
+                  }}
+                >
+                  <Plus className="w-4 h-4" />
+                  إيداع رصيد
+                </Button>
+              </div>
             </div>
             <nav className="p-4 space-y-2">
               {clientNavItems.map((item) => (
