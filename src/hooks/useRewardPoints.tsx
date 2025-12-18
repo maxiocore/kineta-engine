@@ -3,16 +3,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
+interface TierBenefits {
+  discount_percentage?: number;
+  priority_support?: boolean;
+  exclusive_services?: boolean;
+  free_refills?: boolean;
+  bonus_points?: number;
+  custom_benefits?: string[];
+}
+
 interface RewardTier {
   id: string;
   name: string;
   name_ar: string;
   min_points: number;
   points_multiplier: number;
-  benefits: string[];
+  benefits: TierBenefits | string[];
   color: string;
   icon: string;
 }
+
+export type { TierBenefits, RewardTier };
 
 interface UserPoints {
   id: string;

@@ -164,19 +164,36 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
   const [usePoints, setUsePoints] = useState(false);
   const [pointsToUse, setPointsToUse] = useState(0);
   const [userPoints, setUserPoints] = useState<{ available_points: number } | null>(null);
+  const [userTier, setUserTier] = useState<{ 
+    benefits: { discount_percentage?: number; priority_support?: boolean; free_refills?: boolean } | null;
+    name_ar: string;
+  } | null>(null);
 
-  // Fetch user points
+  // Fetch user points and tier benefits
   useEffect(() => {
-    const fetchUserPoints = async () => {
+    const fetchUserData = async () => {
       if (!user) return;
-      const { data } = await supabase
+      const { data: pointsData } = await supabase
         .from("user_points")
-        .select("available_points")
+        .select(`
+          available_points,
+          tier:reward_tiers(name_ar, benefits)
+        `)
         .eq("user_id", user.id)
         .maybeSingle();
-      setUserPoints(data);
+      
+      if (pointsData) {
+        setUserPoints({ available_points: pointsData.available_points });
+        if (pointsData.tier) {
+          const tierData = pointsData.tier as unknown as { name_ar: string; benefits: any };
+          setUserTier({
+            name_ar: tierData.name_ar,
+            benefits: tierData.benefits || null
+          });
+        }
+      }
     };
-    fetchUserPoints();
+    fetchUserData();
   }, [user]);
 
   // Get min/max from features
@@ -186,21 +203,27 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
   // Points conversion rate: 100 points = 1 SAR
   const POINTS_TO_SAR_RATE = 100;
 
+  // Tier discount
+  const tierDiscountPercent = userTier?.benefits?.discount_percentage || 0;
+  
   // Calculate price
   const basePrice = service ? (service.price / 1000) * quantity : 0;
+  const tierDiscount = basePrice * (tierDiscountPercent / 100);
+  const priceAfterTier = basePrice - tierDiscount;
+  
   const couponDiscount = appliedCoupon 
     ? appliedCoupon.discount_type === 'percentage' 
-      ? basePrice * (appliedCoupon.discount_value / 100)
+      ? priceAfterTier * (appliedCoupon.discount_value / 100)
       : appliedCoupon.discount_value
     : 0;
-  const priceAfterCoupon = Math.max(0, basePrice - couponDiscount);
+  const priceAfterCoupon = Math.max(0, priceAfterTier - couponDiscount);
   
   // Points discount
   const maxPointsDiscount = userPoints ? userPoints.available_points / POINTS_TO_SAR_RATE : 0;
   const actualPointsToUse = usePoints ? Math.min(pointsToUse, (userPoints?.available_points || 0)) : 0;
   const pointsDiscount = actualPointsToUse / POINTS_TO_SAR_RATE;
   
-  const discountAmount = couponDiscount + pointsDiscount;
+  const discountAmount = tierDiscount + couponDiscount + pointsDiscount;
   const finalPrice = Math.max(0, basePrice - discountAmount);
   const discountPercentage = basePrice > 0 ? (discountAmount / basePrice) * 100 : 0;
 
@@ -697,6 +720,26 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
                     <AnimatedPrice value={basePrice} /> ر.س
                   </span>
                 </div>
+
+                {/* Tier Discount */}
+                <AnimatePresence>
+                  {tierDiscountPercent > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0, y: -10 }}
+                      animate={{ opacity: 1, height: "auto", y: 0 }}
+                      exit={{ opacity: 0, height: 0, y: -10 }}
+                      className="flex items-center justify-between text-amber-500 bg-amber-500/10 -mx-2 px-3 py-2 rounded-xl"
+                    >
+                      <span className="text-sm flex items-center gap-2 font-medium">
+                        <Star className="w-4 h-4" />
+                        خصم {userTier?.name_ar} ({tierDiscountPercent}%)
+                      </span>
+                      <span className="font-bold">
+                        -<AnimatedPrice value={tierDiscount} /> ر.س
+                      </span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <AnimatePresence>
                   {appliedCoupon && (
