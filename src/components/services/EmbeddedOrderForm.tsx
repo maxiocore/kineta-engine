@@ -21,7 +21,9 @@ import {
   Percent,
   CreditCard,
   Target,
-  TrendingUp
+  TrendingUp,
+  Star,
+  Coins
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -157,17 +160,47 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
   const [createdOrderNumber, setCreatedOrderNumber] = useState("");
   const formRef = useRef<HTMLDivElement>(null);
 
+  // Points redemption state
+  const [usePoints, setUsePoints] = useState(false);
+  const [pointsToUse, setPointsToUse] = useState(0);
+  const [userPoints, setUserPoints] = useState<{ available_points: number } | null>(null);
+
+  // Fetch user points
+  useEffect(() => {
+    const fetchUserPoints = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from("user_points")
+        .select("available_points")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      setUserPoints(data);
+    };
+    fetchUserPoints();
+  }, [user]);
+
   // Get min/max from features
   const minQuantity = service?.features?.min || 10;
   const maxQuantity = service?.features?.max || 100000;
 
+  // Points conversion rate: 100 points = 1 SAR
+  const POINTS_TO_SAR_RATE = 100;
+
   // Calculate price
   const basePrice = service ? (service.price / 1000) * quantity : 0;
-  const discountAmount = appliedCoupon 
+  const couponDiscount = appliedCoupon 
     ? appliedCoupon.discount_type === 'percentage' 
       ? basePrice * (appliedCoupon.discount_value / 100)
       : appliedCoupon.discount_value
     : 0;
+  const priceAfterCoupon = Math.max(0, basePrice - couponDiscount);
+  
+  // Points discount
+  const maxPointsDiscount = userPoints ? userPoints.available_points / POINTS_TO_SAR_RATE : 0;
+  const actualPointsToUse = usePoints ? Math.min(pointsToUse, (userPoints?.available_points || 0)) : 0;
+  const pointsDiscount = actualPointsToUse / POINTS_TO_SAR_RATE;
+  
+  const discountAmount = couponDiscount + pointsDiscount;
   const finalPrice = Math.max(0, basePrice - discountAmount);
   const discountPercentage = basePrice > 0 ? (discountAmount / basePrice) * 100 : 0;
 
@@ -186,6 +219,8 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
       setNotes("");
       setCouponCode("");
       setAppliedCoupon(null);
+      setUsePoints(false);
+      setPointsToUse(0);
     }
   }, [service?.id]);
 
@@ -290,6 +325,35 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
           updated_at: new Date().toISOString()
         })
         .eq("user_id", user.id);
+
+      // Deduct points if used
+      if (usePoints && actualPointsToUse > 0) {
+        // Insert points transaction
+        await supabase.from("points_transactions").insert({
+          user_id: user.id,
+          points: -actualPointsToUse,
+          type: "redeemed",
+          description: `Points redeemed for order ${orderNumber}`,
+          description_ar: `استبدال نقاط للطلب ${orderNumber}`
+        });
+
+        // Update user points
+        const { data: currentPoints } = await supabase
+          .from("user_points")
+          .select("available_points, redeemed_points")
+          .eq("user_id", user.id)
+          .single();
+
+        if (currentPoints) {
+          await supabase.from("user_points")
+            .update({
+              available_points: currentPoints.available_points - actualPointsToUse,
+              redeemed_points: currentPoints.redeemed_points + actualPointsToUse,
+              updated_at: new Date().toISOString()
+            })
+            .eq("user_id", user.id);
+        }
+      }
 
       // Show progress indicator
       setCreatedOrderNumber(orderNumber);
@@ -644,13 +708,29 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
                     >
                       <span className="text-sm flex items-center gap-2 font-medium">
                         <Gift className="w-4 h-4" />
-                        خصم ({appliedCoupon.code})
-                        <Badge variant="outline" className="text-[10px] border-success/30 text-success">
-                          -{discountPercentage.toFixed(0)}%
-                        </Badge>
+                        خصم كوبون ({appliedCoupon.code})
                       </span>
                       <span className="font-bold">
-                        -<AnimatedPrice value={discountAmount} /> ر.س
+                        -<AnimatedPrice value={couponDiscount} /> ر.س
+                      </span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <AnimatePresence>
+                  {usePoints && pointsDiscount > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0, y: -10 }}
+                      animate={{ opacity: 1, height: "auto", y: 0 }}
+                      exit={{ opacity: 0, height: 0, y: -10 }}
+                      className="flex items-center justify-between text-amber-500 bg-amber-500/10 -mx-2 px-3 py-2 rounded-xl"
+                    >
+                      <span className="text-sm flex items-center gap-2 font-medium">
+                        <Coins className="w-4 h-4" />
+                        خصم النقاط ({actualPointsToUse.toLocaleString()} نقطة)
+                      </span>
+                      <span className="font-bold">
+                        -<AnimatedPrice value={pointsDiscount} /> ر.س
                       </span>
                     </motion.div>
                   )}
@@ -750,6 +830,108 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
                   )}
                 </div>
               </motion.div>
+
+              {/* Points Redemption */}
+              {userPoints && userPoints.available_points > 0 && (
+                <motion.div 
+                  className="space-y-3 p-4 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                >
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                        <Coins className="w-3.5 h-3.5 text-amber-500" />
+                      </div>
+                      استخدام النقاط
+                      <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-500">
+                        {userPoints.available_points.toLocaleString()} نقطة متاحة
+                      </Badge>
+                    </Label>
+                    <Switch
+                      checked={usePoints}
+                      onCheckedChange={(checked) => {
+                        setUsePoints(checked);
+                        if (checked) {
+                          // Set max points that don't exceed the price
+                          const maxUsablePoints = Math.min(
+                            userPoints.available_points,
+                            priceAfterCoupon * POINTS_TO_SAR_RATE
+                          );
+                          setPointsToUse(maxUsablePoints);
+                        } else {
+                          setPointsToUse(0);
+                        }
+                      }}
+                    />
+                  </div>
+                  
+                  <AnimatePresence>
+                    {usePoints && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="space-y-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Input
+                            type="number"
+                            value={pointsToUse}
+                            onChange={(e) => {
+                              const value = Math.min(
+                                parseInt(e.target.value) || 0,
+                                userPoints.available_points,
+                                priceAfterCoupon * POINTS_TO_SAR_RATE
+                              );
+                              setPointsToUse(Math.max(0, value));
+                            }}
+                            className="flex-1 h-10 rounded-xl text-center"
+                            min={0}
+                            max={Math.min(userPoints.available_points, priceAfterCoupon * POINTS_TO_SAR_RATE)}
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-10 rounded-xl"
+                            onClick={() => {
+                              const maxUsablePoints = Math.min(
+                                userPoints.available_points,
+                                priceAfterCoupon * POINTS_TO_SAR_RATE
+                              );
+                              setPointsToUse(maxUsablePoints);
+                            }}
+                          >
+                            الحد الأقصى
+                          </Button>
+                        </div>
+                        
+                        <Slider
+                          value={[pointsToUse]}
+                          onValueChange={([val]) => setPointsToUse(val)}
+                          min={0}
+                          max={Math.min(userPoints.available_points, priceAfterCoupon * POINTS_TO_SAR_RATE)}
+                          step={10}
+                          className="py-2"
+                        />
+                        
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">قيمة الخصم:</span>
+                          <span className="font-bold text-amber-500">
+                            {(pointsToUse / POINTS_TO_SAR_RATE).toFixed(2)} ر.س
+                          </span>
+                        </div>
+                        
+                        <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                          <Star className="w-3 h-3" />
+                          100 نقطة = 1 ريال سعودي
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )}
 
               {/* Notes */}
               <motion.div 
