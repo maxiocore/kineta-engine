@@ -14,6 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_keys: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          key_hash: string
+          last_used_at: string | null
+          name: string
+          prefix: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash: string
+          last_used_at?: string | null
+          name?: string
+          prefix: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash?: string
+          last_used_at?: string | null
+          name?: string
+          prefix?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      api_usage_logs: {
+        Row: {
+          api_key_id: string
+          created_at: string
+          endpoint: string
+          id: string
+          ip_address: string | null
+          method: string
+          response_time_ms: number | null
+          status_code: number | null
+        }
+        Insert: {
+          api_key_id: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          ip_address?: string | null
+          method: string
+          response_time_ms?: number | null
+          status_code?: number | null
+        }
+        Update: {
+          api_key_id?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          ip_address?: string | null
+          method?: string
+          response_time_ms?: number | null
+          status_code?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_usage_logs_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -187,6 +264,59 @@ export type Database = {
           used_count?: number
         }
         Relationships: []
+      }
+      deposits: {
+        Row: {
+          amount: number
+          bonus_amount: number | null
+          completed_at: string | null
+          created_at: string
+          fee_amount: number | null
+          id: string
+          notes: string | null
+          payment_method_id: string | null
+          status: string
+          total_credited: number
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          bonus_amount?: number | null
+          completed_at?: string | null
+          created_at?: string
+          fee_amount?: number | null
+          id?: string
+          notes?: string | null
+          payment_method_id?: string | null
+          status?: string
+          total_credited: number
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          bonus_amount?: number | null
+          completed_at?: string | null
+          created_at?: string
+          fee_amount?: number | null
+          id?: string
+          notes?: string | null
+          payment_method_id?: string | null
+          status?: string
+          total_credited?: number
+          transaction_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deposits_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "payment_methods"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       email_campaigns: {
         Row: {
@@ -496,6 +626,101 @@ export type Database = {
           },
         ]
       }
+      payment_bonuses: {
+        Row: {
+          bonus_type: string
+          bonus_value: number
+          created_at: string
+          id: string
+          is_active: boolean
+          max_amount: number | null
+          min_amount: number
+          payment_method_id: string | null
+        }
+        Insert: {
+          bonus_type?: string
+          bonus_value: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_amount?: number | null
+          min_amount: number
+          payment_method_id?: string | null
+        }
+        Update: {
+          bonus_type?: string
+          bonus_value?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_amount?: number | null
+          min_amount?: number
+          payment_method_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_bonuses_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "payment_methods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_methods: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          extra_fee_type: string | null
+          extra_fee_value: number | null
+          id: string
+          instructions: string | null
+          instructions_ar: string | null
+          is_active: boolean
+          max_amount: number | null
+          min_amount: number | null
+          name: string
+          name_ar: string
+          provider: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          extra_fee_type?: string | null
+          extra_fee_value?: number | null
+          id?: string
+          instructions?: string | null
+          instructions_ar?: string | null
+          is_active?: boolean
+          max_amount?: number | null
+          min_amount?: number | null
+          name: string
+          name_ar: string
+          provider?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          extra_fee_type?: string | null
+          extra_fee_value?: number | null
+          id?: string
+          instructions?: string | null
+          instructions_ar?: string | null
+          is_active?: boolean
+          max_amount?: number | null
+          min_amount?: number | null
+          name?: string
+          name_ar?: string
+          provider?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -526,8 +751,62 @@ export type Database = {
         }
         Relationships: []
       }
+      refill_requests: {
+        Row: {
+          auto_created: boolean | null
+          created_at: string
+          current_quantity: number | null
+          external_refill_id: string | null
+          id: string
+          notes: string | null
+          order_id: string
+          original_quantity: number
+          processed_at: string | null
+          refill_quantity: number | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          auto_created?: boolean | null
+          created_at?: string
+          current_quantity?: number | null
+          external_refill_id?: string | null
+          id?: string
+          notes?: string | null
+          order_id: string
+          original_quantity: number
+          processed_at?: string | null
+          refill_quantity?: number | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          auto_created?: boolean | null
+          created_at?: string
+          current_quantity?: number | null
+          external_refill_id?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string
+          original_quantity?: number
+          processed_at?: string | null
+          refill_quantity?: number | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refill_requests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       services: {
         Row: {
+          auto_refill_enabled: boolean | null
           category: string
           created_at: string
           description: string | null
@@ -537,10 +816,13 @@ export type Database = {
           image_url: string | null
           name: string
           price: number
+          refill_days: number | null
+          refill_enabled: boolean | null
           status: Database["public"]["Enums"]["service_status"]
           updated_at: string
         }
         Insert: {
+          auto_refill_enabled?: boolean | null
           category: string
           created_at?: string
           description?: string | null
@@ -550,10 +832,13 @@ export type Database = {
           image_url?: string | null
           name: string
           price: number
+          refill_days?: number | null
+          refill_enabled?: boolean | null
           status?: Database["public"]["Enums"]["service_status"]
           updated_at?: string
         }
         Update: {
+          auto_refill_enabled?: boolean | null
           category?: string
           created_at?: string
           description?: string | null
@@ -563,6 +848,8 @@ export type Database = {
           image_url?: string | null
           name?: string
           price?: number
+          refill_days?: number | null
+          refill_enabled?: boolean | null
           status?: Database["public"]["Enums"]["service_status"]
           updated_at?: string
         }
@@ -691,6 +978,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_balances: {
+        Row: {
+          balance: number
+          id: string
+          total_deposited: number
+          total_spent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          id?: string
+          total_deposited?: number
+          total_spent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          id?: string
+          total_deposited?: number
+          total_spent?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
