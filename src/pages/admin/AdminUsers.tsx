@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Users, 
@@ -13,7 +13,22 @@ import {
   UserX,
   Eye,
   MoreVertical,
-  Trash2
+  Trash2,
+  ShieldCheck,
+  ShieldOff,
+  Download,
+  RefreshCw,
+  Calendar,
+  ShoppingCart,
+  TrendingUp,
+  Clock,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  UserPlus,
+  Activity,
+  Ban,
+  Star
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,17 +37,31 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
 
 interface User {
@@ -41,9 +70,11 @@ interface User {
   email: string | null;
   is_verified: boolean | null;
   created_at: string | null;
+  updated_at: string | null;
   avatar_url: string | null;
   role?: string;
   orders_count?: number;
+  total_spent?: number;
 }
 
 interface UserStats {
@@ -51,14 +82,22 @@ interface UserStats {
   verified: number;
   unverified: number;
   admins: number;
+  newThisMonth: number;
 }
+
+type SortField = "created_at" | "full_name" | "orders_count" | "total_spent";
+type SortOrder = "asc" | "desc";
+
+const ITEMS_PER_PAGE = 10;
 
 const AdminUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [stats, setStats] = useState<UserStats>({ total: 0, verified: 0, unverified: 0, admins: 0 });
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [stats, setStats] = useState<UserStats>({ total: 0, verified: 0, unverified: 0, admins: 0, newThisMonth: 0 });
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [updating, setUpdating] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -67,6 +106,14 @@ const AdminUsers = () => {
   const [deleteType, setDeleteType] = useState<"single" | "bulk">("single");
   const [deleting, setDeleting] = useState(false);
   const [deleteProgress, setDeleteProgress] = useState({ current: 0, total: 0 });
+  const [sortField, setSortField] = useState<SortField>("created_at");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [roleChangeDialog, setRoleChangeDialog] = useState<{ open: boolean; user: User | null; newRole: string }>({
+    open: false,
+    user: null,
+    newRole: ""
+  });
 
   useEffect(() => {
     fetchUsers();
@@ -76,6 +123,9 @@ const AdminUsers = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => {
         fetchUsers();
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_roles" }, () => {
+        fetchUsers();
+      })
       .subscribe();
 
     return () => {
@@ -83,54 +133,61 @@ const AdminUsers = () => {
     };
   }, []);
 
-  const fetchUsers = async () => {
-    setLoading(true);
+  const fetchUsers = async (showRefresh = false) => {
+    if (showRefresh) setRefreshing(true);
+    else setLoading(true);
 
-    // Fetch profiles
-    const { data: profiles, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .order("created_at", { ascending: false });
+    try {
+      const { data: profiles, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-    if (error) {
+      if (error) throw error;
+
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("user_id, role");
+
+      const { data: orders } = await supabase
+        .from("orders")
+        .select("user_id, total_price");
+
+      const usersWithDetails: User[] = (profiles || []).map(profile => {
+        const userRole = roles?.find(r => r.user_id === profile.id);
+        const userOrders = orders?.filter(o => o.user_id === profile.id) || [];
+        const totalSpent = userOrders.reduce((sum, o) => sum + (Number(o.total_price) || 0), 0);
+        
+        return {
+          ...profile,
+          role: userRole?.role || "user",
+          orders_count: userOrders.length,
+          total_spent: totalSpent,
+        };
+      });
+
+      setUsers(usersWithDetails);
+
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const adminsCount = roles?.filter(r => r.role === "admin").length || 0;
+      const newUsersThisMonth = usersWithDetails.filter(u => 
+        u.created_at && new Date(u.created_at) >= startOfMonth
+      ).length;
+
+      setStats({
+        total: usersWithDetails.length,
+        verified: usersWithDetails.filter(u => u.is_verified).length,
+        unverified: usersWithDetails.filter(u => !u.is_verified).length,
+        admins: adminsCount,
+        newThisMonth: newUsersThisMonth,
+      });
+    } catch (error) {
       toast.error("خطأ في جلب المستخدمين");
+    } finally {
       setLoading(false);
-      return;
+      setRefreshing(false);
     }
-
-    // Fetch user roles
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("user_id, role");
-
-    // Fetch orders count for each user
-    const { data: orders } = await supabase
-      .from("orders")
-      .select("user_id");
-
-    const usersWithDetails: User[] = (profiles || []).map(profile => {
-      const userRole = roles?.find(r => r.user_id === profile.id);
-      const userOrders = orders?.filter(o => o.user_id === profile.id) || [];
-      
-      return {
-        ...profile,
-        role: userRole?.role || "user",
-        orders_count: userOrders.length,
-      };
-    });
-
-    setUsers(usersWithDetails);
-
-    // Calculate stats
-    const adminsCount = roles?.filter(r => r.role === "admin").length || 0;
-    setStats({
-      total: usersWithDetails.length,
-      verified: usersWithDetails.filter(u => u.is_verified).length,
-      unverified: usersWithDetails.filter(u => !u.is_verified).length,
-      admins: adminsCount,
-    });
-
-    setLoading(false);
   };
 
   const handleVerifyUser = async (userId: string, verify: boolean) => {
@@ -150,6 +207,37 @@ const AdminUsers = () => {
     setSelectedUser(null);
   };
 
+  const handleRoleChange = async () => {
+    if (!roleChangeDialog.user) return;
+    
+    setUpdating(true);
+    try {
+      const { error: deleteError } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", roleChangeDialog.user.id);
+
+      if (deleteError) throw deleteError;
+
+      const { error: insertError } = await supabase
+        .from("user_roles")
+        .insert({ 
+          user_id: roleChangeDialog.user.id, 
+          role: roleChangeDialog.newRole as "admin" | "user"
+        });
+
+      if (insertError) throw insertError;
+
+      toast.success(roleChangeDialog.newRole === "admin" ? "تم ترقية المستخدم لمشرف" : "تم إزالة صلاحيات المشرف");
+      fetchUsers();
+    } catch (error) {
+      toast.error("خطأ في تغيير الصلاحيات");
+    } finally {
+      setUpdating(false);
+      setRoleChangeDialog({ open: false, user: null, newRole: "" });
+    }
+  };
+
   const openDeleteDialog = (userId: string) => {
     setDeletingId(userId);
     setDeleteType("single");
@@ -166,8 +254,10 @@ const AdminUsers = () => {
     setDeleting(true);
     try {
       if (deleteType === "single" && deletingId) {
+        await supabase.from("coupon_usages").delete().eq("user_id", deletingId);
         await supabase.from("orders").delete().eq("user_id", deletingId);
         await supabase.from("notifications").delete().eq("user_id", deletingId);
+        await supabase.from("ticket_messages").delete().eq("sender_id", deletingId);
         await supabase.from("support_tickets").delete().eq("user_id", deletingId);
         await supabase.from("user_roles").delete().eq("user_id", deletingId);
         const { error } = await supabase.from("profiles").delete().eq("id", deletingId);
@@ -179,8 +269,10 @@ const AdminUsers = () => {
         setDeleteProgress({ current: 0, total: selectedIds.length });
         for (let i = 0; i < selectedIds.length; i++) {
           const userId = selectedIds[i];
+          await supabase.from("coupon_usages").delete().eq("user_id", userId);
           await supabase.from("orders").delete().eq("user_id", userId);
           await supabase.from("notifications").delete().eq("user_id", userId);
+          await supabase.from("ticket_messages").delete().eq("sender_id", userId);
           await supabase.from("support_tickets").delete().eq("user_id", userId);
           await supabase.from("user_roles").delete().eq("user_id", userId);
           await supabase.from("profiles").delete().eq("id", userId);
@@ -201,11 +293,82 @@ const AdminUsers = () => {
     }
   };
 
+  const exportUsers = () => {
+    const csvContent = [
+      ["الاسم", "البريد", "الدور", "الحالة", "الطلبات", "إجمالي المشتريات", "تاريخ التسجيل"].join(","),
+      ...filteredUsers.map(u => [
+        u.full_name || "بدون اسم",
+        u.email || "-",
+        u.role === "admin" ? "مشرف" : "عميل",
+        u.is_verified ? "موثق" : "غير موثق",
+        u.orders_count || 0,
+        u.total_spent || 0,
+        u.created_at ? format(new Date(u.created_at), "yyyy-MM-dd") : "-"
+      ].join(","))
+    ].join("\n");
+
+    const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `users-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    link.click();
+    toast.success("تم تصدير البيانات بنجاح");
+  };
+
+  const filteredUsers = useMemo(() => {
+    let result = users.filter(user => {
+      const matchesSearch = 
+        user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesStatus = 
+        statusFilter === "all" ||
+        (statusFilter === "verified" && user.is_verified) ||
+        (statusFilter === "unverified" && !user.is_verified);
+
+      const matchesRole =
+        roleFilter === "all" ||
+        (roleFilter === "admin" && user.role === "admin") ||
+        (roleFilter === "user" && user.role === "user");
+      
+      return matchesSearch && matchesStatus && matchesRole;
+    });
+
+    result.sort((a, b) => {
+      let comparison = 0;
+      switch (sortField) {
+        case "full_name":
+          comparison = (a.full_name || "").localeCompare(b.full_name || "");
+          break;
+        case "orders_count":
+          comparison = (a.orders_count || 0) - (b.orders_count || 0);
+          break;
+        case "total_spent":
+          comparison = (a.total_spent || 0) - (b.total_spent || 0);
+          break;
+        case "created_at":
+        default:
+          comparison = new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+      }
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
+
+    return result;
+  }, [users, searchQuery, statusFilter, roleFilter, sortField, sortOrder]);
+
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredUsers.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredUsers, currentPage]);
+
+  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+
   const toggleSelectAll = () => {
-    if (selectedIds.length === filteredUsers.length) {
+    if (selectedIds.length === paginatedUsers.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(filteredUsers.map(u => u.id));
+      setSelectedIds(paginatedUsers.map(u => u.id));
     }
   };
 
@@ -215,26 +378,28 @@ const AdminUsers = () => {
     );
   };
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = 
-      user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = 
-      statusFilter === "all" ||
-      (statusFilter === "verified" && user.is_verified) ||
-      (statusFilter === "unverified" && !user.is_verified) ||
-      (statusFilter === "admin" && user.role === "admin");
-    
-    return matchesSearch && matchesStatus;
-  });
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortOrder("desc");
+    }
+  };
 
   const statsData = [
-    { label: "إجمالي المستخدمين", value: stats.total, color: "from-primary to-cyan-400", icon: Users },
-    { label: "مستخدمين موثّقين", value: stats.verified, color: "from-success to-emerald-400", icon: UserCheck },
-    { label: "في انتظار التوثيق", value: stats.unverified, color: "from-warning to-orange-400", icon: UserX },
-    { label: "مشرفين", value: stats.admins, color: "from-accent to-pink-400", icon: Shield },
+    { label: "إجمالي المستخدمين", value: stats.total, icon: Users, gradient: "from-primary/20 to-primary/5", iconBg: "bg-primary/10", iconColor: "text-primary" },
+    { label: "مستخدمين موثّقين", value: stats.verified, icon: UserCheck, gradient: "from-success/20 to-success/5", iconBg: "bg-success/10", iconColor: "text-success" },
+    { label: "في انتظار التوثيق", value: stats.unverified, icon: Clock, gradient: "from-warning/20 to-warning/5", iconBg: "bg-warning/10", iconColor: "text-warning" },
+    { label: "مشرفين", value: stats.admins, icon: Shield, gradient: "from-accent/20 to-accent/5", iconBg: "bg-accent/10", iconColor: "text-accent" },
+    { label: "جدد هذا الشهر", value: stats.newThisMonth, icon: UserPlus, gradient: "from-cyan-500/20 to-cyan-500/5", iconBg: "bg-cyan-500/10", iconColor: "text-cyan-500" },
   ];
+
+  const getInitials = (name: string | null, email: string | null) => {
+    if (name) return name.charAt(0).toUpperCase();
+    if (email) return email.charAt(0).toUpperCase();
+    return "؟";
+  };
 
   return (
     <AdminDashboardLayout>
@@ -247,15 +412,38 @@ const AdminUsers = () => {
               animate={{ opacity: 1, y: 0 }}
               className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-3"
             >
-              <Users className="w-8 h-8 text-primary" />
+              <div className="p-2 rounded-xl bg-primary/10">
+                <Users className="w-7 h-7 text-primary" />
+              </div>
               إدارة المستخدمين
             </motion.h1>
-            <p className="text-muted-foreground">عرض وإدارة جميع المستخدمين</p>
+            <p className="text-muted-foreground">عرض وإدارة جميع المستخدمين المسجلين</p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchUsers(true)}
+              disabled={refreshing}
+              className="gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
+              تحديث
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportUsers}
+              className="gap-2"
+            >
+              <Download className="w-4 h-4" />
+              تصدير
+            </Button>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {statsData.map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -263,11 +451,11 @@ const AdminUsers = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
             >
-              <Card className="card-elevated border-border/30">
+              <Card className={`relative overflow-hidden border-border/30 bg-gradient-to-br ${stat.gradient}`}>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${stat.color} p-2.5 shadow-lg`}>
-                      <stat.icon className="w-full h-full text-primary-foreground" />
+                    <div className={`p-2.5 rounded-xl ${stat.iconBg}`}>
+                      <stat.icon className={`w-5 h-5 ${stat.iconColor}`} />
                     </div>
                     <div>
                       <p className="text-2xl font-bold">{stat.value.toLocaleString("ar-SA")}</p>
@@ -280,46 +468,44 @@ const AdminUsers = () => {
           ))}
         </div>
 
-        {/* Search & Filter */}
-        <Card className="card-elevated border-border/30">
+        {/* Filters */}
+        <Card className="border-border/30">
           <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col lg:flex-row gap-4">
               <div className="relative flex-1">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input 
-                  placeholder="البحث بالاسم أو البريد..." 
-                  className="pr-10 bg-secondary/50 border-border/50"
+                  placeholder="البحث بالاسم أو البريد الإلكتروني..." 
+                  className="pr-10 bg-background"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-44 bg-secondary/50 border-border/50">
-                  <Filter className="w-4 h-4 ml-2" />
-                  <SelectValue placeholder="فلترة الحالة" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">جميع المستخدمين</SelectItem>
-                  <SelectItem value="verified">موثّقين</SelectItem>
-                  <SelectItem value="unverified">غير موثّقين</SelectItem>
-                  <SelectItem value="admin">مشرفين</SelectItem>
-                </SelectContent>
-              </Select>
-              {filteredUsers.length > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={toggleSelectAll}
-                  className="gap-2"
-                >
-                  {selectedIds.length === filteredUsers.length ? "إلغاء التحديد" : "تحديد الكل"}
-                </Button>
-              )}
-              {selectedIds.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">
-                    {selectedIds.length} محدد
-                  </span>
+              <div className="flex flex-wrap gap-2">
+                <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger className="w-40 bg-background">
+                    <SelectValue placeholder="حالة التوثيق" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع الحالات</SelectItem>
+                    <SelectItem value="verified">موثّقين</SelectItem>
+                    <SelectItem value="unverified">غير موثّقين</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger className="w-36 bg-background">
+                    <SelectValue placeholder="الدور" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع الأدوار</SelectItem>
+                    <SelectItem value="admin">مشرفين</SelectItem>
+                    <SelectItem value="user">عملاء</SelectItem>
+                  </SelectContent>
+                </Select>
+                {selectedIds.length > 0 && (
                   <Button
                     variant="destructive"
                     size="sm"
@@ -327,162 +513,294 @@ const AdminUsers = () => {
                     className="gap-2"
                   >
                     <Trash2 className="w-4 h-4" />
-                    حذف المحدد
+                    حذف ({selectedIds.length})
                   </Button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Users Table */}
-        <Card className="card-elevated border-border/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-primary" />
-              قائمة المستخدمين
-              <Badge variant="secondary" className="mr-2">{filteredUsers.length}</Badge>
-            </CardTitle>
+        <Card className="border-border/30">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                قائمة المستخدمين
+                <Badge variant="secondary" className="mr-2">{filteredUsers.length}</Badge>
+              </CardTitle>
+              <div className="text-sm text-muted-foreground">
+                صفحة {currentPage} من {totalPages || 1}
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {loading ? (
-              <div className="flex items-center justify-center py-16">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                >
-                  <Loader2 className="w-10 h-10 text-primary" />
-                </motion.div>
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="w-8 h-8 text-primary animate-spin" />
               </div>
             ) : filteredUsers.length === 0 ? (
-              <div className="text-center py-16">
+              <div className="text-center py-20">
                 <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
-                <p className="text-muted-foreground text-lg">لا يوجد مستخدمين</p>
+                <p className="text-muted-foreground text-lg mb-2">لا يوجد مستخدمين</p>
+                <p className="text-sm text-muted-foreground/70">جرب تغيير معايير البحث</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-right py-4 px-4 font-medium text-muted-foreground w-12">
-                        <Checkbox
-                          checked={selectedIds.length === filteredUsers.length && filteredUsers.length > 0}
-                          onCheckedChange={toggleSelectAll}
-                        />
-                      </th>
-                      <th className="text-right py-4 px-4 font-medium text-muted-foreground">المستخدم</th>
-                      <th className="text-right py-4 px-4 font-medium text-muted-foreground">الدور</th>
-                      <th className="text-right py-4 px-4 font-medium text-muted-foreground">الحالة</th>
-                      <th className="text-right py-4 px-4 font-medium text-muted-foreground">الطلبات</th>
-                      <th className="text-right py-4 px-4 font-medium text-muted-foreground">تاريخ التسجيل</th>
-                      <th className="text-right py-4 px-4 font-medium text-muted-foreground">الإجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <AnimatePresence>
-                      {filteredUsers.map((user, index) => (
-                        <motion.tr
-                          key={user.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          transition={{ delay: index * 0.03 }}
-                          className={`border-b border-border/50 hover:bg-secondary/30 transition-colors ${selectedIds.includes(user.id) ? "bg-primary/5" : ""}`}
-                        >
-                          <td className="py-4 px-4">
-                            <Checkbox
-                              checked={selectedIds.includes(user.id)}
-                              onCheckedChange={() => toggleSelect(user.id)}
-                            />
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-bold">
-                                {user.full_name?.charAt(0) || user.email?.charAt(0) || "؟"}
+              <>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead className="w-12 text-right">
+                          <Checkbox
+                            checked={selectedIds.length === paginatedUsers.length && paginatedUsers.length > 0}
+                            onCheckedChange={toggleSelectAll}
+                          />
+                        </TableHead>
+                        <TableHead className="text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleSort("full_name")}
+                            className="gap-1 -mr-3 hover:bg-transparent"
+                          >
+                            المستخدم
+                            <ArrowUpDown className="w-3.5 h-3.5" />
+                          </Button>
+                        </TableHead>
+                        <TableHead className="text-right">الدور</TableHead>
+                        <TableHead className="text-right">الحالة</TableHead>
+                        <TableHead className="text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleSort("orders_count")}
+                            className="gap-1 -mr-3 hover:bg-transparent"
+                          >
+                            الطلبات
+                            <ArrowUpDown className="w-3.5 h-3.5" />
+                          </Button>
+                        </TableHead>
+                        <TableHead className="text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleSort("total_spent")}
+                            className="gap-1 -mr-3 hover:bg-transparent"
+                          >
+                            المشتريات
+                            <ArrowUpDown className="w-3.5 h-3.5" />
+                          </Button>
+                        </TableHead>
+                        <TableHead className="text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleSort("created_at")}
+                            className="gap-1 -mr-3 hover:bg-transparent"
+                          >
+                            التسجيل
+                            <ArrowUpDown className="w-3.5 h-3.5" />
+                          </Button>
+                        </TableHead>
+                        <TableHead className="text-right w-20">الإجراءات</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <AnimatePresence mode="popLayout">
+                        {paginatedUsers.map((user, index) => (
+                          <motion.tr
+                            key={user.id}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ delay: index * 0.02 }}
+                            className={`border-b border-border/50 hover:bg-muted/30 transition-colors ${selectedIds.includes(user.id) ? "bg-primary/5" : ""}`}
+                          >
+                            <TableCell>
+                              <Checkbox
+                                checked={selectedIds.includes(user.id)}
+                                onCheckedChange={() => toggleSelect(user.id)}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <Avatar className="w-10 h-10 border-2 border-border">
+                                  <AvatarImage src={user.avatar_url || ""} />
+                                  <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold">
+                                    {getInitials(user.full_name, user.email)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-medium flex items-center gap-1.5">
+                                    {user.full_name || "بدون اسم"}
+                                    {user.role === "admin" && (
+                                      <Shield className="w-3.5 h-3.5 text-primary" />
+                                    )}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground" dir="ltr">{user.email}</p>
+                                </div>
                               </div>
-                              <div>
-                                <p className="font-medium">{user.full_name || "بدون اسم"}</p>
-                                <p className="text-sm text-muted-foreground" dir="ltr">{user.email}</p>
+                            </TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant={user.role === "admin" ? "default" : "secondary"}
+                                className={user.role === "admin" ? "bg-primary/10 text-primary border border-primary/20" : ""}
+                              >
+                                {user.role === "admin" ? "مشرف" : "عميل"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+                                user.is_verified 
+                                  ? "bg-success/10 text-success" 
+                                  : "bg-warning/10 text-warning"
+                              }`}>
+                                {user.is_verified ? <CheckCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                                {user.is_verified ? "موثّق" : "قيد الانتظار"}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1.5">
+                                <ShoppingCart className="w-3.5 h-3.5 text-muted-foreground" />
+                                <span className="font-medium">{user.orders_count || 0}</span>
                               </div>
-                            </div>
-                          </td>
-                          <td className="py-4 px-4">
-                            <Badge variant={user.role === "admin" ? "default" : "secondary"}>
-                              {user.role === "admin" && <Shield className="w-3 h-3 ml-1" />}
-                              {user.role === "admin" ? "مشرف" : "عميل"}
-                            </Badge>
-                          </td>
-                          <td className="py-4 px-4">
-                            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
-                              user.is_verified 
-                                ? "bg-success/10 text-success border border-success/20" 
-                                : "bg-warning/10 text-warning border border-warning/20"
-                            }`}>
-                              {user.is_verified ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                              {user.is_verified ? "موثّق" : "غير موثّق"}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4">
-                            <span className="font-medium">{user.orders_count || 0}</span>
-                          </td>
-                          <td className="py-4 px-4 text-muted-foreground text-sm">
-                            {user.created_at 
-                              ? format(new Date(user.created_at), "d MMMM yyyy", { locale: ar })
-                              : "-"
-                            }
-                          </td>
-                          <td className="py-4 px-4">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreVertical className="w-4 h-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => setSelectedUser(user)}>
-                                  <Eye className="w-4 h-4 ml-2" />
-                                  عرض التفاصيل
-                                </DropdownMenuItem>
-                                {user.is_verified ? (
-                                  <DropdownMenuItem 
-                                    onClick={() => handleVerifyUser(user.id, false)}
-                                    className="text-warning"
-                                  >
-                                    <XCircle className="w-4 h-4 ml-2" />
-                                    إلغاء التوثيق
+                            </TableCell>
+                            <TableCell>
+                              <span className="font-medium text-success">
+                                ${(user.total_spent || 0).toFixed(2)}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">
+                              {user.created_at 
+                                ? formatDistanceToNow(new Date(user.created_at), { addSuffix: true, locale: ar })
+                                : "-"
+                              }
+                            </TableCell>
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreVertical className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48">
+                                  <DropdownMenuItem onClick={() => setSelectedUser(user)}>
+                                    <Eye className="w-4 h-4 ml-2" />
+                                    عرض التفاصيل
                                   </DropdownMenuItem>
-                                ) : (
+                                  <DropdownMenuSeparator />
+                                  {user.is_verified ? (
+                                    <DropdownMenuItem 
+                                      onClick={() => handleVerifyUser(user.id, false)}
+                                      className="text-warning focus:text-warning"
+                                    >
+                                      <XCircle className="w-4 h-4 ml-2" />
+                                      إلغاء التوثيق
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <DropdownMenuItem 
+                                      onClick={() => handleVerifyUser(user.id, true)}
+                                      className="text-success focus:text-success"
+                                    >
+                                      <CheckCircle className="w-4 h-4 ml-2" />
+                                      توثيق الحساب
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuSeparator />
+                                  {user.role === "admin" ? (
+                                    <DropdownMenuItem 
+                                      onClick={() => setRoleChangeDialog({ open: true, user, newRole: "user" })}
+                                      className="text-warning focus:text-warning"
+                                    >
+                                      <ShieldOff className="w-4 h-4 ml-2" />
+                                      إزالة صلاحيات المشرف
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <DropdownMenuItem 
+                                      onClick={() => setRoleChangeDialog({ open: true, user, newRole: "admin" })}
+                                    >
+                                      <ShieldCheck className="w-4 h-4 ml-2" />
+                                      ترقية لمشرف
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuSeparator />
                                   <DropdownMenuItem 
-                                    onClick={() => handleVerifyUser(user.id, true)}
-                                    className="text-success"
+                                    onClick={() => openDeleteDialog(user.id)}
+                                    className="text-destructive focus:text-destructive"
                                   >
-                                    <CheckCircle className="w-4 h-4 ml-2" />
-                                    توثيق الحساب
+                                    <Trash2 className="w-4 h-4 ml-2" />
+                                    حذف المستخدم
                                   </DropdownMenuItem>
-                                )}
-                                <DropdownMenuItem 
-                                  onClick={() => openDeleteDialog(user.id)}
-                                  className="text-destructive"
-                                >
-                                  <Trash2 className="w-4 h-4 ml-2" />
-                                  حذف المستخدم
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </td>
-                        </motion.tr>
-                      ))}
-                    </AnimatePresence>
-                  </tbody>
-                </table>
-              </div>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </motion.tr>
+                        ))}
+                      </AnimatePresence>
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between px-4 py-3 border-t border-border/50">
+                    <div className="text-sm text-muted-foreground">
+                      عرض {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredUsers.length)} من {filteredUsers.length}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let page: number;
+                        if (totalPages <= 5) {
+                          page = i + 1;
+                        } else if (currentPage <= 3) {
+                          page = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          page = totalPages - 4 + i;
+                        } else {
+                          page = currentPage - 2 + i;
+                        }
+                        return (
+                          <Button
+                            key={page}
+                            variant={currentPage === page ? "default" : "outline"}
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => setCurrentPage(page)}
+                          >
+                            {page}
+                          </Button>
+                        );
+                      })}
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
 
         {/* User Details Dialog */}
         <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent className="sm:max-w-xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-primary" />
@@ -490,48 +808,83 @@ const AdminUsers = () => {
               </DialogTitle>
             </DialogHeader>
             {selectedUser && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground text-2xl font-bold">
-                    {selectedUser.full_name?.charAt(0) || selectedUser.email?.charAt(0) || "؟"}
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold">{selectedUser.full_name || "بدون اسم"}</h3>
+              <div className="space-y-6">
+                {/* User Header */}
+                <div className="flex items-start gap-4">
+                  <Avatar className="w-20 h-20 border-4 border-border">
+                    <AvatarImage src={selectedUser.avatar_url || ""} />
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-2xl font-bold">
+                      {getInitials(selectedUser.full_name, selectedUser.email)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-xl font-bold">{selectedUser.full_name || "بدون اسم"}</h3>
+                      {selectedUser.role === "admin" && (
+                        <Badge className="bg-primary/10 text-primary border border-primary/20">
+                          <Shield className="w-3 h-3 ml-1" />
+                          مشرف
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-muted-foreground" dir="ltr">{selectedUser.email}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                        selectedUser.is_verified 
+                          ? "bg-success/10 text-success" 
+                          : "bg-warning/10 text-warning"
+                      }`}>
+                        {selectedUser.is_verified ? <CheckCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                        {selectedUser.is_verified ? "موثّق" : "قيد الانتظار"}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 rounded-xl bg-secondary/30 border border-border/30">
-                    <p className="text-xs text-muted-foreground mb-1">الحالة</p>
-                    <p className={`font-bold ${selectedUser.is_verified ? "text-success" : "text-warning"}`}>
-                      {selectedUser.is_verified ? "موثّق" : "غير موثّق"}
-                    </p>
+                <Separator />
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="p-3 rounded-xl bg-muted/50 text-center">
+                    <ShoppingCart className="w-5 h-5 mx-auto mb-1 text-primary" />
+                    <p className="text-xl font-bold">{selectedUser.orders_count || 0}</p>
+                    <p className="text-xs text-muted-foreground">الطلبات</p>
                   </div>
-                  <div className="p-4 rounded-xl bg-secondary/30 border border-border/30">
-                    <p className="text-xs text-muted-foreground mb-1">الدور</p>
-                    <p className="font-bold">{selectedUser.role === "admin" ? "مشرف" : "عميل"}</p>
+                  <div className="p-3 rounded-xl bg-muted/50 text-center">
+                    <TrendingUp className="w-5 h-5 mx-auto mb-1 text-success" />
+                    <p className="text-xl font-bold text-success">${(selectedUser.total_spent || 0).toFixed(2)}</p>
+                    <p className="text-xs text-muted-foreground">إجمالي المشتريات</p>
                   </div>
-                  <div className="p-4 rounded-xl bg-secondary/30 border border-border/30">
-                    <p className="text-xs text-muted-foreground mb-1">عدد الطلبات</p>
-                    <p className="font-bold">{selectedUser.orders_count || 0}</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-secondary/30 border border-border/30">
-                    <p className="text-xs text-muted-foreground mb-1">تاريخ التسجيل</p>
-                    <p className="font-bold text-sm">
+                  <div className="p-3 rounded-xl bg-muted/50 text-center">
+                    <Calendar className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
+                    <p className="text-sm font-bold">
                       {selectedUser.created_at 
-                        ? format(new Date(selectedUser.created_at), "d MMMM yyyy", { locale: ar })
+                        ? format(new Date(selectedUser.created_at), "d MMM yyyy", { locale: ar })
                         : "-"
                       }
                     </p>
+                    <p className="text-xs text-muted-foreground">تاريخ التسجيل</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-muted/50 text-center">
+                    <Activity className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
+                    <p className="text-sm font-bold">
+                      {selectedUser.updated_at 
+                        ? formatDistanceToNow(new Date(selectedUser.updated_at), { addSuffix: true, locale: ar })
+                        : "-"
+                      }
+                    </p>
+                    <p className="text-xs text-muted-foreground">آخر تحديث</p>
                   </div>
                 </div>
 
-                <div className="flex gap-2 pt-4">
+                <Separator />
+
+                {/* Actions */}
+                <div className="flex flex-wrap gap-2">
                   {selectedUser.is_verified ? (
                     <Button 
                       variant="outline" 
-                      className="flex-1 text-warning border-warning/30"
+                      className="flex-1 text-warning border-warning/30 hover:bg-warning/10"
                       onClick={() => handleVerifyUser(selectedUser.id, false)}
                       disabled={updating}
                     >
@@ -548,12 +901,53 @@ const AdminUsers = () => {
                       توثيق الحساب
                     </Button>
                   )}
+                  {selectedUser.role === "admin" ? (
+                    <Button 
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        setSelectedUser(null);
+                        setRoleChangeDialog({ open: true, user: selectedUser, newRole: "user" });
+                      }}
+                    >
+                      <ShieldOff className="w-4 h-4 ml-2" />
+                      إزالة صلاحيات المشرف
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        setSelectedUser(null);
+                        setRoleChangeDialog({ open: true, user: selectedUser, newRole: "admin" });
+                      }}
+                    >
+                      <ShieldCheck className="w-4 h-4 ml-2" />
+                      ترقية لمشرف
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
           </DialogContent>
         </Dialog>
 
+        {/* Role Change Confirmation */}
+        <ConfirmDialog
+          open={roleChangeDialog.open}
+          onOpenChange={(open) => setRoleChangeDialog({ ...roleChangeDialog, open })}
+          title={roleChangeDialog.newRole === "admin" ? "ترقية لمشرف" : "إزالة صلاحيات المشرف"}
+          description={roleChangeDialog.newRole === "admin" 
+            ? `هل أنت متأكد من ترقية "${roleChangeDialog.user?.full_name || roleChangeDialog.user?.email}" إلى مشرف؟ سيحصل على صلاحيات كاملة للوحة التحكم.`
+            : `هل أنت متأكد من إزالة صلاحيات المشرف من "${roleChangeDialog.user?.full_name || roleChangeDialog.user?.email}"؟`
+          }
+          confirmText={roleChangeDialog.newRole === "admin" ? "ترقية" : "إزالة"}
+          onConfirm={handleRoleChange}
+          loading={updating}
+          variant="warning"
+        />
+
+        {/* Delete Confirmation */}
         <ConfirmDialog
           open={deleteDialogOpen}
           onOpenChange={setDeleteDialogOpen}
