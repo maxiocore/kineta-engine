@@ -20,6 +20,17 @@ import {
   Calendar,
   BarChart3,
   PieChart,
+  Crown,
+  Star,
+  Medal,
+  Award,
+  Gem,
+  Edit,
+  Save,
+  X,
+  Plus,
+  Trash2,
+  Percent,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +46,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 import { ar } from "date-fns/locale";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPie, Pie, Cell } from "recharts";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 interface ReferralWithDetails {
   id: string;
@@ -61,6 +75,33 @@ interface Commission {
   referral_code?: string;
 }
 
+interface VipLevel {
+  id: string;
+  name: string;
+  name_ar: string;
+  min_referrals: number;
+  min_earnings: number;
+  commission_rate: number;
+  color: string;
+  icon: string;
+  benefits: string[];
+  is_active: boolean;
+  display_order: number;
+}
+
+interface ReferralCode {
+  id: string;
+  user_id: string;
+  code: string;
+  custom_commission_rate: number | null;
+  vip_level_id: string | null;
+  total_referrals: number;
+  total_earnings: number;
+  is_active: boolean;
+  user_email?: string;
+  vip_level?: VipLevel;
+}
+
 interface Stats {
   totalReferrals: number;
   activeReferrals: number;
@@ -74,9 +115,24 @@ interface Stats {
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--warning))', 'hsl(var(--accent))'];
 
+const ICON_OPTIONS = [
+  { value: 'Star', label: 'نجمة', icon: Star },
+  { value: 'Medal', label: 'ميدالية', icon: Medal },
+  { value: 'Award', label: 'جائزة', icon: Award },
+  { value: 'Crown', label: 'تاج', icon: Crown },
+  { value: 'Gem', label: 'جوهرة', icon: Gem },
+];
+
+const getIconComponent = (iconName: string) => {
+  const found = ICON_OPTIONS.find(i => i.value === iconName);
+  return found?.icon || Star;
+};
+
 const AdminReferrals = () => {
   const [referrals, setReferrals] = useState<ReferralWithDetails[]>([]);
   const [commissions, setCommissions] = useState<Commission[]>([]);
+  const [vipLevels, setVipLevels] = useState<VipLevel[]>([]);
+  const [referralCodes, setReferralCodes] = useState<ReferralCode[]>([]);
   const [stats, setStats] = useState<Stats>({
     totalReferrals: 0,
     activeReferrals: 0,
@@ -92,6 +148,28 @@ const AdminReferrals = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
   const [chartData, setChartData] = useState<any[]>([]);
+
+  // VIP Level Dialog
+  const [vipDialogOpen, setVipDialogOpen] = useState(false);
+  const [editingVipLevel, setEditingVipLevel] = useState<VipLevel | null>(null);
+  const [vipForm, setVipForm] = useState({
+    name: '',
+    name_ar: '',
+    min_referrals: 0,
+    min_earnings: 0,
+    commission_rate: 5,
+    color: '#6366f1',
+    icon: 'Star',
+    is_active: true,
+    display_order: 0,
+    benefits: [''],
+  });
+
+  // Custom Commission Dialog
+  const [commissionDialogOpen, setCommissionDialogOpen] = useState(false);
+  const [editingReferralCode, setEditingReferralCode] = useState<ReferralCode | null>(null);
+  const [customCommission, setCustomCommission] = useState<number | null>(null);
+  const [selectedVipLevel, setSelectedVipLevel] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -151,6 +229,47 @@ const AdminReferrals = () => {
       })) || [];
 
       setCommissions(enrichedCommissions);
+
+      // Fetch VIP levels
+      const { data: vipData, error: vipError } = await supabase
+        .from('vip_levels')
+        .select('*')
+        .order('display_order', { ascending: true });
+
+      if (vipError) throw vipError;
+      
+      const formattedVipLevels = vipData?.map(v => ({
+        ...v,
+        benefits: Array.isArray(v.benefits) ? v.benefits : JSON.parse(v.benefits as string || '[]'),
+      })) || [];
+      
+      setVipLevels(formattedVipLevels);
+
+      // Fetch referral codes with VIP info
+      const { data: codesData, error: codesError } = await supabase
+        .from('referral_codes')
+        .select('*')
+        .order('total_earnings', { ascending: false });
+
+      if (codesError) throw codesError;
+
+      // Get user emails for codes
+      const codeUserIds = [...new Set(codesData?.map(c => c.user_id) || [])];
+      const { data: codeProfiles } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .in('id', codeUserIds);
+
+      const codeProfilesMap = new Map(codeProfiles?.map(p => [p.id, p.email]) || []);
+      const vipLevelsMap = new Map(formattedVipLevels.map(v => [v.id, v]));
+
+      const enrichedCodes = codesData?.map(c => ({
+        ...c,
+        user_email: codeProfilesMap.get(c.user_id) || 'غير معروف',
+        vip_level: c.vip_level_id ? vipLevelsMap.get(c.vip_level_id) : undefined,
+      })) || [];
+
+      setReferralCodes(enrichedCodes);
 
       // Calculate stats
       const totalReferrals = enrichedReferrals.length;
@@ -220,6 +339,116 @@ const AdminReferrals = () => {
     }
   };
 
+  // VIP Level Functions
+  const openVipDialog = (level?: VipLevel) => {
+    if (level) {
+      setEditingVipLevel(level);
+      setVipForm({
+        name: level.name,
+        name_ar: level.name_ar,
+        min_referrals: level.min_referrals,
+        min_earnings: level.min_earnings,
+        commission_rate: level.commission_rate,
+        color: level.color,
+        icon: level.icon,
+        is_active: level.is_active,
+        display_order: level.display_order,
+        benefits: level.benefits.length > 0 ? level.benefits : [''],
+      });
+    } else {
+      setEditingVipLevel(null);
+      setVipForm({
+        name: '',
+        name_ar: '',
+        min_referrals: 0,
+        min_earnings: 0,
+        commission_rate: 5,
+        color: '#6366f1',
+        icon: 'Star',
+        is_active: true,
+        display_order: vipLevels.length + 1,
+        benefits: [''],
+      });
+    }
+    setVipDialogOpen(true);
+  };
+
+  const saveVipLevel = async () => {
+    try {
+      const filteredBenefits = vipForm.benefits.filter(b => b.trim() !== '');
+      const data = {
+        ...vipForm,
+        benefits: filteredBenefits,
+      };
+
+      if (editingVipLevel) {
+        const { error } = await supabase
+          .from('vip_levels')
+          .update(data)
+          .eq('id', editingVipLevel.id);
+        if (error) throw error;
+        toast.success('تم تحديث مستوى VIP');
+      } else {
+        const { error } = await supabase
+          .from('vip_levels')
+          .insert(data);
+        if (error) throw error;
+        toast.success('تم إنشاء مستوى VIP جديد');
+      }
+
+      setVipDialogOpen(false);
+      fetchData();
+    } catch (error) {
+      console.error('Error saving VIP level:', error);
+      toast.error('خطأ في حفظ مستوى VIP');
+    }
+  };
+
+  const deleteVipLevel = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('vip_levels')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      toast.success('تم حذف مستوى VIP');
+      fetchData();
+    } catch (error) {
+      console.error('Error deleting VIP level:', error);
+      toast.error('خطأ في حذف مستوى VIP');
+    }
+  };
+
+  // Custom Commission Functions
+  const openCommissionDialog = (code: ReferralCode) => {
+    setEditingReferralCode(code);
+    setCustomCommission(code.custom_commission_rate);
+    setSelectedVipLevel(code.vip_level_id);
+    setCommissionDialogOpen(true);
+  };
+
+  const saveCustomCommission = async () => {
+    if (!editingReferralCode) return;
+
+    try {
+      const { error } = await supabase
+        .from('referral_codes')
+        .update({
+          custom_commission_rate: customCommission,
+          vip_level_id: selectedVipLevel,
+        })
+        .eq('id', editingReferralCode.id);
+
+      if (error) throw error;
+      toast.success('تم تحديث إعدادات العمولة');
+      setCommissionDialogOpen(false);
+      fetchData();
+    } catch (error) {
+      console.error('Error saving custom commission:', error);
+      toast.error('خطأ في حفظ إعدادات العمولة');
+    }
+  };
+
   const getStatusConfig = (status: string) => {
     switch (status) {
       case 'pending':
@@ -235,6 +464,16 @@ const AdminReferrals = () => {
     }
   };
 
+  const getEffectiveRate = (code: ReferralCode) => {
+    if (code.custom_commission_rate !== null) {
+      return { rate: code.custom_commission_rate, source: 'مخصص' };
+    }
+    if (code.vip_level) {
+      return { rate: code.vip_level.commission_rate, source: code.vip_level.name_ar };
+    }
+    return { rate: 5, source: 'افتراضي' };
+  };
+
   const filteredReferrals = referrals.filter(referral => {
     const matchesSearch = 
       referral.referral_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -248,6 +487,13 @@ const AdminReferrals = () => {
     const matchesSearch = commission.referral_code?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || commission.status === statusFilter;
     return matchesSearch && matchesStatus;
+  });
+
+  const filteredCodes = referralCodes.filter(code => {
+    const matchesSearch = 
+      code.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      code.user_email?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
   });
 
   const pieData = [
@@ -440,14 +686,22 @@ const AdminReferrals = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="referrals" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsList className="grid w-full grid-cols-4 max-w-2xl">
             <TabsTrigger value="referrals" className="gap-2">
               <Users className="w-4 h-4" />
-              الإحالات ({filteredReferrals.length})
+              <span className="hidden sm:inline">الإحالات</span>
             </TabsTrigger>
             <TabsTrigger value="commissions" className="gap-2">
               <Coins className="w-4 h-4" />
-              العمولات ({filteredCommissions.length})
+              <span className="hidden sm:inline">العمولات</span>
+            </TabsTrigger>
+            <TabsTrigger value="vip-levels" className="gap-2">
+              <Crown className="w-4 h-4" />
+              <span className="hidden sm:inline">مستويات VIP</span>
+            </TabsTrigger>
+            <TabsTrigger value="users" className="gap-2">
+              <Percent className="w-4 h-4" />
+              <span className="hidden sm:inline">تخصيص العمولات</span>
             </TabsTrigger>
           </TabsList>
 
@@ -605,8 +859,463 @@ const AdminReferrals = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* VIP Levels Tab */}
+          <TabsContent value="vip-levels">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Crown className="w-5 h-5 text-primary" />
+                  مستويات VIP
+                </CardTitle>
+                <Button onClick={() => openVipDialog()} className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  إضافة مستوى
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {vipLevels.map((level, index) => {
+                    const IconComponent = getIconComponent(level.icon);
+                    return (
+                      <motion.div
+                        key={level.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <Card className="border-2 relative overflow-hidden" style={{ borderColor: level.color }}>
+                          <div 
+                            className="absolute top-0 left-0 right-0 h-1"
+                            style={{ backgroundColor: level.color }}
+                          />
+                          <CardContent className="pt-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <div 
+                                className="w-12 h-12 rounded-xl flex items-center justify-center"
+                                style={{ backgroundColor: `${level.color}20`, color: level.color }}
+                              >
+                                <IconComponent className="w-6 h-6" />
+                              </div>
+                              <div className="flex gap-1">
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-8 w-8"
+                                  onClick={() => openVipDialog(level)}
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-8 w-8 text-destructive"
+                                  onClick={() => deleteVipLevel(level.id)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                            <h3 className="font-bold text-lg">{level.name_ar}</h3>
+                            <p className="text-sm text-muted-foreground">{level.name}</p>
+                            
+                            <div className="mt-4 space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">العمولة:</span>
+                                <span className="font-bold" style={{ color: level.color }}>{level.commission_rate}%</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">الحد الأدنى للإحالات:</span>
+                                <span>{level.min_referrals}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">الحد الأدنى للأرباح:</span>
+                                <span>${level.min_earnings}</span>
+                              </div>
+                            </div>
+
+                            {level.benefits.length > 0 && (
+                              <div className="mt-4 pt-4 border-t border-border">
+                                <p className="text-xs text-muted-foreground mb-2">المميزات:</p>
+                                <ul className="space-y-1">
+                                  {level.benefits.slice(0, 3).map((benefit, i) => (
+                                    <li key={i} className="text-xs flex items-center gap-1">
+                                      <CheckCircle className="w-3 h-3 text-success" />
+                                      {benefit}
+                                    </li>
+                                  ))}
+                                  {level.benefits.length > 3 && (
+                                    <li className="text-xs text-muted-foreground">+{level.benefits.length - 3} مميزات أخرى</li>
+                                  )}
+                                </ul>
+                              </div>
+                            )}
+
+                            <Badge 
+                              className={`mt-4 ${level.is_active ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}
+                            >
+                              {level.is_active ? 'مفعّل' : 'معطّل'}
+                            </Badge>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Users Tab - Custom Commissions */}
+          <TabsContent value="users">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Percent className="w-5 h-5 text-primary" />
+                  تخصيص نسب العمولات للمستخدمين
+                </CardTitle>
+                <CardDescription>
+                  يمكنك تعيين نسبة عمولة مخصصة لكل مستخدم أو ترقيته لمستوى VIP معين
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {filteredCodes.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>لا توجد أكواد إحالة</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[900px]">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="text-right py-3 px-4 font-medium text-muted-foreground text-sm">المستخدم</th>
+                          <th className="text-right py-3 px-4 font-medium text-muted-foreground text-sm">الكود</th>
+                          <th className="text-right py-3 px-4 font-medium text-muted-foreground text-sm">مستوى VIP</th>
+                          <th className="text-right py-3 px-4 font-medium text-muted-foreground text-sm">نسبة العمولة</th>
+                          <th className="text-right py-3 px-4 font-medium text-muted-foreground text-sm">الإحالات</th>
+                          <th className="text-right py-3 px-4 font-medium text-muted-foreground text-sm">الأرباح</th>
+                          <th className="text-right py-3 px-4 font-medium text-muted-foreground text-sm">الإجراءات</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredCodes.map((code, index) => {
+                          const effectiveRate = getEffectiveRate(code);
+                          return (
+                            <motion.tr
+                              key={code.id}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: index * 0.03 }}
+                              className="border-b border-border/50 hover:bg-secondary/30"
+                            >
+                              <td className="py-3 px-4 text-sm">{code.user_email}</td>
+                              <td className="py-3 px-4">
+                                <code className="px-2 py-1 bg-secondary rounded text-sm font-mono">
+                                  {code.code}
+                                </code>
+                              </td>
+                              <td className="py-3 px-4">
+                                {code.vip_level ? (
+                                  <Badge 
+                                    style={{ 
+                                      backgroundColor: `${code.vip_level.color}20`, 
+                                      color: code.vip_level.color,
+                                      borderColor: code.vip_level.color 
+                                    }}
+                                    className="border"
+                                  >
+                                    {(() => {
+                                      const Icon = getIconComponent(code.vip_level.icon);
+                                      return <Icon className="w-3 h-3 ml-1" />;
+                                    })()}
+                                    {code.vip_level.name_ar}
+                                  </Badge>
+                                ) : (
+                                  <span className="text-muted-foreground text-sm">-</span>
+                                )}
+                              </td>
+                              <td className="py-3 px-4">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-primary">{effectiveRate.rate}%</span>
+                                  <Badge variant="outline" className="text-xs">
+                                    {effectiveRate.source}
+                                  </Badge>
+                                </div>
+                              </td>
+                              <td className="py-3 px-4 text-sm">{code.total_referrals}</td>
+                              <td className="py-3 px-4 text-sm font-bold text-success">
+                                ${code.total_earnings.toFixed(2)}
+                              </td>
+                              <td className="py-3 px-4">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => openCommissionDialog(code)}
+                                  className="gap-1"
+                                >
+                                  <Edit className="w-3 h-3" />
+                                  تعديل
+                                </Button>
+                              </td>
+                            </motion.tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
+
+      {/* VIP Level Dialog */}
+      <Dialog open={vipDialogOpen} onOpenChange={setVipDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingVipLevel ? 'تعديل مستوى VIP' : 'إضافة مستوى VIP جديد'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>الاسم (EN)</Label>
+                <Input
+                  value={vipForm.name}
+                  onChange={(e) => setVipForm({ ...vipForm, name: e.target.value })}
+                  placeholder="Gold"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>الاسم (AR)</Label>
+                <Input
+                  value={vipForm.name_ar}
+                  onChange={(e) => setVipForm({ ...vipForm, name_ar: e.target.value })}
+                  placeholder="ذهبي"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>نسبة العمولة (%)</Label>
+                <Input
+                  type="number"
+                  value={vipForm.commission_rate}
+                  onChange={(e) => setVipForm({ ...vipForm, commission_rate: Number(e.target.value) })}
+                  min={0}
+                  max={100}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>ترتيب العرض</Label>
+                <Input
+                  type="number"
+                  value={vipForm.display_order}
+                  onChange={(e) => setVipForm({ ...vipForm, display_order: Number(e.target.value) })}
+                  min={0}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>الحد الأدنى للإحالات</Label>
+                <Input
+                  type="number"
+                  value={vipForm.min_referrals}
+                  onChange={(e) => setVipForm({ ...vipForm, min_referrals: Number(e.target.value) })}
+                  min={0}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>الحد الأدنى للأرباح ($)</Label>
+                <Input
+                  type="number"
+                  value={vipForm.min_earnings}
+                  onChange={(e) => setVipForm({ ...vipForm, min_earnings: Number(e.target.value) })}
+                  min={0}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>اللون</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={vipForm.color}
+                    onChange={(e) => setVipForm({ ...vipForm, color: e.target.value })}
+                    className="w-12 h-10 p-1"
+                  />
+                  <Input
+                    value={vipForm.color}
+                    onChange={(e) => setVipForm({ ...vipForm, color: e.target.value })}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>الأيقونة</Label>
+                <Select value={vipForm.icon} onValueChange={(v) => setVipForm({ ...vipForm, icon: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ICON_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        <div className="flex items-center gap-2">
+                          <opt.icon className="w-4 h-4" />
+                          {opt.label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>المميزات</Label>
+              {vipForm.benefits.map((benefit, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    value={benefit}
+                    onChange={(e) => {
+                      const newBenefits = [...vipForm.benefits];
+                      newBenefits[index] = e.target.value;
+                      setVipForm({ ...vipForm, benefits: newBenefits });
+                    }}
+                    placeholder="ميزة..."
+                  />
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => {
+                      const newBenefits = vipForm.benefits.filter((_, i) => i !== index);
+                      setVipForm({ ...vipForm, benefits: newBenefits.length > 0 ? newBenefits : [''] });
+                    }}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setVipForm({ ...vipForm, benefits: [...vipForm.benefits, ''] })}
+                className="w-full"
+              >
+                <Plus className="w-4 h-4 ml-2" />
+                إضافة ميزة
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={vipForm.is_active}
+                onCheckedChange={(v) => setVipForm({ ...vipForm, is_active: v })}
+              />
+              <Label>مفعّل</Label>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVipDialogOpen(false)}>
+              إلغاء
+            </Button>
+            <Button onClick={saveVipLevel} className="gap-2">
+              <Save className="w-4 h-4" />
+              حفظ
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Custom Commission Dialog */}
+      <Dialog open={commissionDialogOpen} onOpenChange={setCommissionDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تخصيص العمولة</DialogTitle>
+          </DialogHeader>
+          
+          {editingReferralCode && (
+            <div className="space-y-4">
+              <div className="p-4 bg-secondary/50 rounded-lg">
+                <p className="text-sm text-muted-foreground">المستخدم</p>
+                <p className="font-medium">{editingReferralCode.user_email}</p>
+                <p className="text-sm text-muted-foreground mt-2">كود الإحالة</p>
+                <code className="px-2 py-1 bg-background rounded text-sm font-mono">
+                  {editingReferralCode.code}
+                </code>
+              </div>
+
+              <div className="space-y-2">
+                <Label>مستوى VIP</Label>
+                <Select 
+                  value={selectedVipLevel || 'none'} 
+                  onValueChange={(v) => setSelectedVipLevel(v === 'none' ? null : v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر مستوى VIP" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">بدون مستوى VIP</SelectItem>
+                    {vipLevels.map((level) => (
+                      <SelectItem key={level.id} value={level.id}>
+                        <div className="flex items-center gap-2">
+                          {(() => {
+                            const Icon = getIconComponent(level.icon);
+                            return <Icon className="w-4 h-4" style={{ color: level.color }} />;
+                          })()}
+                          {level.name_ar} ({level.commission_rate}%)
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>نسبة عمولة مخصصة (%)</Label>
+                <Input
+                  type="number"
+                  value={customCommission ?? ''}
+                  onChange={(e) => setCustomCommission(e.target.value ? Number(e.target.value) : null)}
+                  placeholder="اتركه فارغاً لاستخدام نسبة VIP"
+                  min={0}
+                  max={100}
+                />
+                <p className="text-xs text-muted-foreground">
+                  النسبة المخصصة تتجاوز نسبة مستوى VIP
+                </p>
+              </div>
+
+              <div className="p-4 bg-primary/10 rounded-lg">
+                <p className="text-sm font-medium">النسبة الفعالة:</p>
+                <p className="text-2xl font-bold text-primary">
+                  {customCommission ?? (selectedVipLevel ? vipLevels.find(v => v.id === selectedVipLevel)?.commission_rate : 5) ?? 5}%
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCommissionDialogOpen(false)}>
+              إلغاء
+            </Button>
+            <Button onClick={saveCustomCommission} className="gap-2">
+              <Save className="w-4 h-4" />
+              حفظ
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminDashboardLayout>
   );
 };

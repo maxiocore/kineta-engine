@@ -913,31 +913,45 @@ export type Database = {
         Row: {
           code: string
           created_at: string
+          custom_commission_rate: number | null
           id: string
           is_active: boolean
           total_earnings: number
           total_referrals: number
           user_id: string
+          vip_level_id: string | null
         }
         Insert: {
           code: string
           created_at?: string
+          custom_commission_rate?: number | null
           id?: string
           is_active?: boolean
           total_earnings?: number
           total_referrals?: number
           user_id: string
+          vip_level_id?: string | null
         }
         Update: {
           code?: string
           created_at?: string
+          custom_commission_rate?: number | null
           id?: string
           is_active?: boolean
           total_earnings?: number
           total_referrals?: number
           user_id?: string
+          vip_level_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "referral_codes_vip_level_id_fkey"
+            columns: ["vip_level_id"]
+            isOneToOne: false
+            referencedRelation: "vip_levels"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       referral_commissions: {
         Row: {
@@ -1346,6 +1360,51 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      vip_levels: {
+        Row: {
+          benefits: Json | null
+          color: string
+          commission_rate: number
+          created_at: string
+          display_order: number | null
+          icon: string
+          id: string
+          is_active: boolean
+          min_earnings: number
+          min_referrals: number
+          name: string
+          name_ar: string
+        }
+        Insert: {
+          benefits?: Json | null
+          color?: string
+          commission_rate?: number
+          created_at?: string
+          display_order?: number | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          min_earnings?: number
+          min_referrals?: number
+          name: string
+          name_ar: string
+        }
+        Update: {
+          benefits?: Json | null
+          color?: string
+          commission_rate?: number
+          created_at?: string
+          display_order?: number | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          min_earnings?: number
+          min_referrals?: number
+          name?: string
+          name_ar?: string
         }
         Relationships: []
       }
