@@ -75,15 +75,25 @@ serve(async (req) => {
     const servicesCount = Array.isArray(services) ? services.length : 0;
     console.log(`Fetched ${servicesCount} services from ${provider.name}`);
 
-    // Update provider's last_sync_at
+    // Update provider's last_sync_at and services_count
     await supabase
       .from('api_providers')
-      .update({ last_sync_at: new Date().toISOString() })
+      .update({ 
+        last_sync_at: new Date().toISOString(),
+        services_count: servicesCount 
+      })
       .eq('id', provider_id);
+
+    // Extract unique categories from services
+    const categories = Array.isArray(services) 
+      ? [...new Set(services.map((s: any) => s.category))]
+      : [];
 
     return new Response(
       JSON.stringify({ 
         services,
+        categories,
+        services_count: servicesCount,
         provider: {
           id: provider.id,
           name: provider.name,

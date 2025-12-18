@@ -32,7 +32,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Switch } from '@/components/ui/switch';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface ProviderService {
   service: string;
@@ -69,6 +69,7 @@ interface LocalCategory {
 }
 
 const AdminServiceImport = () => {
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const preselectedProvider = searchParams.get('provider');
   
@@ -166,6 +167,9 @@ const AdminServiceImport = () => {
       if (data?.services && Array.isArray(data.services)) {
         setServices(data.services);
         toast.success(`تم جلب ${data.services.length} خدمة من ${data.provider?.name_ar || 'المزود'}`);
+        
+        // Refresh providers list to update services_count
+        queryClient.invalidateQueries({ queryKey: ['api-providers-active'] });
       } else {
         toast.error('فشل في جلب الخدمات');
       }
