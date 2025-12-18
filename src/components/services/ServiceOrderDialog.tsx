@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,24 +9,18 @@ import {
   CheckCircle, 
   Sparkles, 
   Link as LinkIcon, 
-  Hash, 
   Ticket, 
   X, 
   Check,
   Clock,
-  Zap,
-  Shield,
-  Info,
   FileText,
   ChevronDown,
-  Gauge,
-  Calendar,
-  Package,
-  RefreshCw,
   Layers,
   Search,
-  Star,
-  TrendingUp
+  TrendingUp,
+  DollarSign,
+  Minus,
+  Plus
 } from "lucide-react";
 import {
   Dialog,
@@ -118,9 +112,40 @@ interface ServiceOrderDialogProps {
   onOpenChange: (open: boolean) => void;
   userId: string | null;
 }
-
 // Quantity presets
 const quantityPresets = [100, 500, 1000, 5000, 10000, 50000];
+
+// Animated Price Component
+const AnimatedPrice = ({ value, className }: { value: number; className?: string }) => {
+  const spring = useSpring(value, { stiffness: 100, damping: 30 });
+  const display = useTransform(spring, (current) => `$${current.toFixed(4)}`);
+  
+  useEffect(() => {
+    spring.set(value);
+  }, [spring, value]);
+
+  return (
+    <motion.span className={className}>
+      {display}
+    </motion.span>
+  );
+};
+
+// Animated Number Component
+const AnimatedNumber = ({ value, className }: { value: number; className?: string }) => {
+  const spring = useSpring(value, { stiffness: 100, damping: 30 });
+  const display = useTransform(spring, (current) => Math.round(current).toLocaleString());
+  
+  useEffect(() => {
+    spring.set(value);
+  }, [spring, value]);
+
+  return (
+    <motion.span className={className}>
+      {display}
+    </motion.span>
+  );
+};
 
 const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrderDialogProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -639,7 +664,7 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                         />
                       </div>
 
-                      {/* Quantity Field */}
+                      {/* Quantity Field with Live Price */}
                       <div className="space-y-3">
                         <label className="text-sm font-semibold flex items-center justify-between">
                           <span className="flex items-center gap-2 text-foreground">
@@ -650,21 +675,72 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                             {minQuantity.toLocaleString()} - {maxQuantity.toLocaleString()}
                           </span>
                         </label>
+                        
+                        {/* Live Price Preview Card */}
+                        <motion.div 
+                          className="p-4 rounded-xl bg-gradient-to-br from-primary/15 via-primary/10 to-accent/10 border border-primary/30 relative overflow-hidden"
+                          layout
+                        >
+                          <motion.div 
+                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
+                            animate={{ x: ['-100%', '100%'] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                          />
+                          <div className="relative flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="p-2 rounded-lg bg-primary/20">
+                                <DollarSign className="w-5 h-5 text-primary" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">السعر المباشر</p>
+                                <AnimatedPrice value={basePrice} className="text-2xl font-bold text-primary" />
+                              </div>
+                            </div>
+                            <div className="text-left">
+                              <p className="text-xs text-muted-foreground">الكمية</p>
+                              <AnimatedNumber value={quantity} className="text-lg font-bold" />
+                            </div>
+                          </div>
+                        </motion.div>
+
                         <FormField
                           control={form.control}
                           name="quantity"
                           render={({ field }) => (
                             <FormItem>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  min={minQuantity}
-                                  max={maxQuantity}
-                                  className="text-center text-lg font-bold"
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseInt(e.target.value) || minQuantity)}
-                                />
-                              </FormControl>
+                              {/* Quantity Input with +/- Buttons */}
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-12 w-12 shrink-0"
+                                  onClick={() => field.onChange(Math.max(minQuantity, field.value - 100))}
+                                  disabled={field.value <= minQuantity}
+                                >
+                                  <Minus className="w-4 h-4" />
+                                </Button>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    min={minQuantity}
+                                    max={maxQuantity}
+                                    className="text-center text-xl font-bold h-12"
+                                    {...field}
+                                    onChange={(e) => field.onChange(parseInt(e.target.value) || minQuantity)}
+                                  />
+                                </FormControl>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-12 w-12 shrink-0"
+                                  onClick={() => field.onChange(Math.min(maxQuantity, field.value + 100))}
+                                  disabled={field.value >= maxQuantity}
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </Button>
+                              </div>
 
                               {/* Slider */}
                               <Slider
@@ -681,16 +757,20 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                                 {quantityPresets
                                   .filter(q => q >= minQuantity && q <= maxQuantity)
                                   .map((preset) => (
-                                    <Button
-                                      key={preset}
-                                      type="button"
-                                      variant={field.value === preset ? "default" : "outline"}
-                                      size="sm"
-                                      onClick={() => field.onChange(preset)}
-                                      className="text-xs h-7 px-3"
-                                    >
-                                      {preset >= 1000 ? `${preset / 1000}K` : preset}
-                                    </Button>
+                                    <motion.div key={preset} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                      <Button
+                                        type="button"
+                                        variant={field.value === preset ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => field.onChange(preset)}
+                                        className={cn(
+                                          "text-xs h-8 px-4 transition-all",
+                                          field.value === preset && "shadow-lg shadow-primary/20"
+                                        )}
+                                      >
+                                        {preset >= 1000 ? `${preset / 1000}K` : preset}
+                                      </Button>
+                                    </motion.div>
                                   ))}
                               </div>
                               <FormMessage />
@@ -797,24 +877,47 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                         </CollapsibleContent>
                       </Collapsible>
 
-                      {/* Total Price */}
-                      <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 space-y-2">
+                      {/* Total Price with Animation */}
+                      <motion.div 
+                        className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 space-y-2"
+                        layout
+                      >
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-muted-foreground">الكمية × السعر:</span>
-                          <span>{quantity.toLocaleString()} × ${currentService?.price.toFixed(4) || '0'}</span>
+                          <span className="flex items-center gap-1">
+                            <AnimatedNumber value={quantity} className="font-medium" />
+                            <span> × ${currentService?.price.toFixed(4) || '0'}</span>
+                          </span>
                         </div>
-                        {discount > 0 && (
-                          <div className="flex justify-between items-center text-sm text-success">
-                            <span>الخصم:</span>
-                            <span>-${discount.toFixed(4)}</span>
-                          </div>
-                        )}
+                        <AnimatePresence>
+                          {discount > 0 && (
+                            <motion.div 
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="flex justify-between items-center text-sm text-success overflow-hidden"
+                            >
+                              <span>الخصم:</span>
+                              <span>-${discount.toFixed(4)}</span>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                         <Separator />
                         <div className="flex justify-between items-center">
                           <span className="font-semibold">الإجمالي:</span>
-                          <span className="text-2xl font-bold text-primary">${totalPrice.toFixed(4)}</span>
+                          <div className="flex items-center gap-2">
+                            <AnimatedPrice value={totalPrice} className="text-2xl font-bold text-primary" />
+                            <motion.div
+                              key={totalPrice}
+                              initial={{ scale: 1.2, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              className="text-xs text-muted-foreground"
+                            >
+                              ≈ {(totalPrice * 3.75).toFixed(2)} ر.س
+                            </motion.div>
+                          </div>
                         </div>
-                      </div>
+                      </motion.div>
 
                       {/* Submit Button */}
                       <Button 
