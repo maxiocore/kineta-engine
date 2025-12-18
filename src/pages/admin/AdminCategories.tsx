@@ -2,6 +2,24 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
   Layers,
   Plus,
   Pencil,
@@ -21,6 +39,7 @@ import {
   XCircle,
   Eye,
   EyeOff,
+  ArrowUpDown,
 } from "lucide-react";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -103,6 +122,112 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   Globe,
   Layers,
   MoreHorizontal,
+};
+
+// Sortable Category Card Component
+interface SortableCategoryCardProps {
+  category: Category;
+  serviceCount: number;
+  onEdit: (category: Category) => void;
+  onDelete: (category: Category) => void;
+  onToggleActive: (id: string, is_active: boolean) => void;
+}
+
+const SortableCategoryCard = ({
+  category,
+  serviceCount,
+  onEdit,
+  onDelete,
+  onToggleActive,
+}: SortableCategoryCardProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: category.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
+  const IconComponent = iconMap[category.icon] || Layers;
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <Card
+        className={`group hover:shadow-lg transition-all ${
+          !category.is_active && "opacity-60"
+        } ${isDragging && "shadow-2xl ring-2 ring-primary scale-105"}`}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-3">
+              {/* Drag Handle */}
+              <button
+                {...attributes}
+                {...listeners}
+                className="cursor-grab active:cursor-grabbing p-1 -m-1 rounded hover:bg-muted/50 touch-none"
+              >
+                <GripVertical className="w-5 h-5 text-muted-foreground" />
+              </button>
+              <div
+                className={`w-12 h-12 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center shadow-lg`}
+              >
+                <IconComponent className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold">{category.name_ar}</h3>
+                <p className="text-sm text-muted-foreground">{category.name}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => onEdit(category)}
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-destructive hover:text-destructive"
+                onClick={() => onDelete(category)}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs">
+                {serviceCount} خدمة
+              </Badge>
+              <span className="text-muted-foreground">#{category.display_order}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                {category.is_active ? "نشط" : "غير نشط"}
+              </span>
+              <Switch
+                checked={category.is_active}
+                onCheckedChange={(checked) => onToggleActive(category.id, checked)}
+              />
+            </div>
+          </div>
+
+          <div className="mt-2 text-xs text-muted-foreground">/{category.slug}</div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 };
 
 const categorySchema = z.object({
@@ -258,6 +383,58 @@ const AdminCategories = () => {
       toast.success("تم تحديث الحالة بنجاح");
     },
   });
+
+  // Reorder mutation for drag and drop
+  const reorderMutation = useMutation({
+    mutationFn: async (updates: { id: string; display_order: number }[]) => {
+      // Update all categories in a single transaction
+      for (const update of updates) {
+        const { error } = await supabase
+          .from("categories")
+          .update({ display_order: update.display_order })
+          .eq("id", update.id);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
+      toast.success("تم تحديث ترتيب الأقسام بنجاح");
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء تحديث الترتيب");
+    },
+  });
+
+  // DnD Kit sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id && categories) {
+      const oldIndex = categories.findIndex((cat) => cat.id === active.id);
+      const newIndex = categories.findIndex((cat) => cat.id === over.id);
+
+      const newOrder = arrayMove(categories, oldIndex, newIndex);
+      
+      // Create updates array with new display_order values
+      const updates = newOrder.map((cat, index) => ({
+        id: cat.id,
+        display_order: index + 1,
+      }));
+
+      reorderMutation.mutate(updates);
+    }
+  };
 
   const handleOpenDialog = (category?: Category) => {
     if (category) {
@@ -419,82 +596,62 @@ const AdminCategories = () => {
               </Card>
             ))}
           </div>
-        ) : (
+        ) : searchQuery ? (
+          // When searching, show without drag and drop
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <AnimatePresence>
-              {filteredCategories?.map((category, index) => {
-                const IconComponent = iconMap[category.icon] || Layers;
-                const serviceCount = serviceCounts?.[category.id] || 0;
+            {filteredCategories?.map((category) => {
+              const serviceCount = serviceCounts?.[category.id] || 0;
+              return (
+                <SortableCategoryCard
+                  key={category.id}
+                  category={category}
+                  serviceCount={serviceCount}
+                  onEdit={handleOpenDialog}
+                  onDelete={handleDelete}
+                  onToggleActive={(id, is_active) =>
+                    toggleActiveMutation.mutate({ id, is_active })
+                  }
+                />
+              );
+            })}
+          </div>
+        ) : (
+          // With drag and drop when not searching
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={categories?.map((c) => c.id) || []}
+              strategy={rectSortingStrategy}
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {categories?.map((category) => {
+                  const serviceCount = serviceCounts?.[category.id] || 0;
+                  return (
+                    <SortableCategoryCard
+                      key={category.id}
+                      category={category}
+                      serviceCount={serviceCount}
+                      onEdit={handleOpenDialog}
+                      onDelete={handleDelete}
+                      onToggleActive={(id, is_active) =>
+                        toggleActiveMutation.mutate({ id, is_active })
+                      }
+                    />
+                  );
+                })}
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
 
-                return (
-                  <motion.div
-                    key={category.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <Card className={`group hover:shadow-lg transition-all ${!category.is_active && "opacity-60"}`}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center shadow-lg`}>
-                              <IconComponent className="w-6 h-6 text-white" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold">{category.name_ar}</h3>
-                              <p className="text-sm text-muted-foreground">{category.name}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => handleOpenDialog(category)}
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive hover:text-destructive"
-                              onClick={() => handleDelete(category)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="text-xs">
-                              {serviceCount} خدمة
-                            </Badge>
-                            <span className="text-muted-foreground">#{category.display_order}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-muted-foreground">
-                              {category.is_active ? "نشط" : "غير نشط"}
-                            </span>
-                            <Switch
-                              checked={category.is_active}
-                              onCheckedChange={(checked) =>
-                                toggleActiveMutation.mutate({ id: category.id, is_active: checked })
-                              }
-                            />
-                          </div>
-                        </div>
-
-                        <div className="mt-2 text-xs text-muted-foreground">
-                          /{category.slug}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+        {/* Drag hint */}
+        {!isLoading && !searchQuery && categories && categories.length > 1 && (
+          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-2">
+            <ArrowUpDown className="w-4 h-4" />
+            <span>اسحب وأفلت لإعادة ترتيب الأقسام</span>
           </div>
         )}
 
