@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Plus, X, Image as ImageIcon, Sparkles, Search } from "lucide-react";
+import { LucideProps } from "lucide-react";
+import dynamicIconImports from "lucide-react/dynamicIconImports";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +13,27 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
+
+// Dynamic icon component
+interface DynamicIconProps extends Omit<LucideProps, 'ref'> {
+  name: string;
+}
+
+const DynamicIcon = ({ name, ...props }: DynamicIconProps) => {
+  const iconName = name.toLowerCase().replace(/\s+/g, '-') as keyof typeof dynamicIconImports;
+  
+  if (!dynamicIconImports[iconName]) {
+    return <div className="w-4 h-4 rounded bg-muted" />;
+  }
+  
+  const LucideIcon = lazy(dynamicIconImports[iconName]);
+  
+  return (
+    <Suspense fallback={<div className="w-4 h-4 rounded bg-muted animate-pulse" />}>
+      <LucideIcon {...props} />
+    </Suspense>
+  );
+};
 
 interface Service {
   id: string;
@@ -27,6 +50,8 @@ interface Category {
   id: string;
   name: string;
   name_ar: string;
+  icon: string | null;
+  color: string | null;
 }
 
 interface ServiceFormDialogProps {
@@ -72,7 +97,7 @@ const ServiceFormDialog = ({
     const fetchCategories = async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("id, name, name_ar")
+        .select("id, name, name_ar, icon, color")
         .eq("is_active", true)
         .order("display_order", { ascending: true });
       
@@ -190,7 +215,21 @@ const ServiceFormDialog = ({
                           cat.name.toLowerCase().includes(categorySearch.toLowerCase())
                         )
                         .map(cat => (
-                          <SelectItem key={cat.id} value={cat.name}>{cat.name_ar} ({cat.name})</SelectItem>
+                          <SelectItem key={cat.id} value={cat.name}>
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className={`w-6 h-6 rounded flex items-center justify-center text-white bg-gradient-to-br ${cat.color || 'from-primary to-accent'}`}
+                              >
+                                {cat.icon ? (
+                                  <DynamicIcon name={cat.icon} className="w-3.5 h-3.5" />
+                                ) : (
+                                  <div className="w-2 h-2 rounded-full bg-white/50" />
+                                )}
+                              </div>
+                              <span>{cat.name_ar}</span>
+                              <span className="text-muted-foreground text-xs">({cat.name})</span>
+                            </div>
+                          </SelectItem>
                         ))
                       }
                       {dbCategories.filter(cat => 
