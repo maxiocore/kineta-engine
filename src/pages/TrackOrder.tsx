@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, 
@@ -16,18 +16,19 @@ import {
   TrendingUp,
   AlertCircle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
+import OrderProgressTracker from "@/components/orders/OrderProgressTracker";
 
 interface OrderData {
   orderNumber: string;
@@ -66,6 +67,7 @@ const TrackOrder = () => {
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [isPolling, setIsPolling] = useState(false);
 
   const handleTrack = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,6 +102,25 @@ const TrackOrder = () => {
       setIsLoading(false);
     }
   };
+
+  // Auto-refresh every 30 seconds when order is in progress
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (orderData && (orderData.status === 'pending' || orderData.status === 'in_progress' || orderData.status === 'confirmed')) {
+      setIsPolling(true);
+      interval = setInterval(async () => {
+        const { data } = await supabase.functions.invoke('track-order', {
+          body: { orderNumber: orderData.orderNumber }
+        });
+        if (data?.found) {
+          setOrderData(data.order);
+        }
+      }, 30000);
+    } else {
+      setIsPolling(false);
+    }
+    return () => clearInterval(interval);
+  }, [orderData?.orderNumber, orderData?.status]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ar-SA', {
@@ -224,40 +245,27 @@ const TrackOrder = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    {/* Progress Bar */}
-                    <div className="mb-6">
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-muted-foreground">تقدم الطلب</span>
-                        <span className="font-bold">{orderData.progress}%</span>
+                    {/* Live Update Indicator */}
+                    {isPolling && (
+                      <div className="flex items-center gap-2 text-sm text-success mb-4 p-2 rounded-lg bg-success/10 border border-success/20">
+                        <div className="relative">
+                          <div className="w-2 h-2 rounded-full bg-success animate-ping absolute" />
+                          <div className="w-2 h-2 rounded-full bg-success" />
+                        </div>
+                        <Sparkles className="w-4 h-4" />
+                        <span>تحديث تلقائي كل 30 ثانية</span>
                       </div>
-                      <Progress value={orderData.progress} className="h-3" />
-                    </div>
+                    )}
 
-                    {/* Status Steps */}
-                    <div className="flex justify-between items-center mb-6 px-4">
-                      {['pending', 'confirmed', 'in_progress', 'completed'].map((status, index) => {
-                        const StatusIcon = getStatusInfo(status).icon;
-                        const isActive = ['pending', 'confirmed', 'in_progress', 'completed']
-                          .indexOf(orderData.status) >= index;
-                        const isCurrent = orderData.status === status;
-                        
-                        return (
-                          <div key={status} className="flex flex-col items-center gap-2">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all
-                              ${isCurrent ? 'bg-primary text-primary-foreground scale-110 ring-4 ring-primary/20' : 
-                                isActive ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}
-                            >
-                              <StatusIcon className="w-5 h-5" />
-                            </div>
-                            <span className={`text-xs ${isCurrent ? 'font-bold text-primary' : 'text-muted-foreground'}`}>
-                              {getStatusInfo(status).label}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
+                    {/* Order Progress Tracker Component */}
+                    <OrderProgressTracker 
+                      status={orderData.status} 
+                      externalStatus={orderData.externalStatus}
+                      showSteps={true}
+                      size="md"
+                    />
 
-                    <Separator className="my-4" />
+                    <Separator className="my-6" />
 
                     {/* Order Info Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -284,16 +292,6 @@ const TrackOrder = () => {
                         </p>
                       </div>
                     </div>
-
-                    {/* External Status */}
-                    {orderData.externalStatus && (
-                      <div className="mt-4 p-3 rounded-lg bg-info/10 border border-info/20">
-                        <p className="text-sm">
-                          <span className="text-muted-foreground">حالة المزود: </span>
-                          <span className="font-medium">{orderData.externalStatus}</span>
-                        </p>
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
 

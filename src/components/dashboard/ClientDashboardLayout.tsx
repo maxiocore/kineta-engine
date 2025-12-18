@@ -19,6 +19,7 @@ import {
   History,
   Heart,
   Package,
+  Gift,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,7 @@ const clientNavItems: NavItem[] = [
   { label: "طلب جديد", href: "/dashboard/services", icon: Package },
   { label: "الطلبات", href: "/dashboard/orders", icon: ShoppingBag },
   { label: "المفضلة", href: "/dashboard/favorites", icon: Heart },
+  { label: "الإحالات", href: "/dashboard/referrals", icon: Gift },
   { label: "الإيداعات", href: "/dashboard/deposits", icon: History },
   { label: "الشارات", href: "/dashboard/badges", icon: Award },
   { label: "الإشعارات", href: "/dashboard/notifications", icon: Bell },
