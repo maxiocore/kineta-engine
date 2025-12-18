@@ -40,6 +40,8 @@ import {
   Eye,
   EyeOff,
   ArrowUpDown,
+  ChevronDown,
+  FolderTree,
 } from "lucide-react";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -128,17 +130,23 @@ const iconMap: Record<string, React.ComponentType<any>> = {
 interface SortableCategoryCardProps {
   category: Category;
   serviceCount: number;
+  parentCategory?: Category;
+  subCategoriesCount: number;
   onEdit: (category: Category) => void;
   onDelete: (category: Category) => void;
   onToggleActive: (id: string, is_active: boolean) => void;
+  isSubCategory?: boolean;
 }
 
 const SortableCategoryCard = ({
   category,
   serviceCount,
+  parentCategory,
+  subCategoriesCount,
   onEdit,
   onDelete,
   onToggleActive,
+  isSubCategory = false,
 }: SortableCategoryCardProps) => {
   const {
     attributes,
@@ -158,11 +166,11 @@ const SortableCategoryCard = ({
   const IconComponent = iconMap[category.icon] || Layers;
 
   return (
-    <div ref={setNodeRef} style={style}>
+    <div ref={setNodeRef} style={style} className={isSubCategory ? "mr-8" : ""}>
       <Card
         className={`group hover:shadow-lg transition-all ${
           !category.is_active && "opacity-60"
-        } ${isDragging && "shadow-2xl ring-2 ring-primary scale-105"}`}
+        } ${isDragging && "shadow-2xl ring-2 ring-primary scale-105"} ${isSubCategory && "border-r-4 border-r-primary/50"}`}
       >
         <CardContent className="p-4">
           <div className="flex items-start justify-between mb-3">
@@ -181,8 +189,21 @@ const SortableCategoryCard = ({
                 <IconComponent className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold">{category.name_ar}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold">{category.name_ar}</h3>
+                  {isSubCategory && (
+                    <Badge variant="outline" className="text-xs">
+                      فرعي
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground">{category.name}</p>
+                {parentCategory && (
+                  <p className="text-xs text-muted-foreground/70 flex items-center gap-1 mt-0.5">
+                    <FolderTree className="w-3 h-3" />
+                    تابع لـ: {parentCategory.name_ar}
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -210,6 +231,11 @@ const SortableCategoryCard = ({
               <Badge variant="secondary" className="text-xs">
                 {serviceCount} خدمة
               </Badge>
+              {subCategoriesCount > 0 && (
+                <Badge variant="outline" className="text-xs">
+                  {subCategoriesCount} قسم فرعي
+                </Badge>
+              )}
               <span className="text-muted-foreground">#{category.display_order}</span>
             </div>
             <div className="flex items-center gap-2">
@@ -258,6 +284,7 @@ const AdminCategories = () => {
     description_ar: "",
     display_order: 0,
     is_active: true,
+    parent_id: null as string | null,
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
@@ -305,6 +332,7 @@ const AdminCategories = () => {
         description_ar: data.description_ar || null,
         display_order: data.display_order,
         is_active: data.is_active,
+        parent_id: data.parent_id || null,
       }]);
       if (error) throw error;
     },
@@ -336,6 +364,7 @@ const AdminCategories = () => {
           description_ar: data.description_ar || null,
           display_order: data.display_order,
           is_active: data.is_active,
+          parent_id: data.parent_id || null,
         })
         .eq("id", id);
       if (error) throw error;
@@ -449,6 +478,7 @@ const AdminCategories = () => {
         description_ar: category.description_ar || "",
         display_order: category.display_order,
         is_active: category.is_active,
+        parent_id: category.parent_id,
       });
     } else {
       setEditingCategory(null);
@@ -462,6 +492,7 @@ const AdminCategories = () => {
         description_ar: "",
         display_order: (categories?.length || 0) + 1,
         is_active: true,
+        parent_id: null,
       });
     }
     setFormErrors({});
@@ -519,7 +550,39 @@ const AdminCategories = () => {
       cat.slug.includes(searchQuery.toLowerCase())
   );
 
+  // Helper to get parent categories (categories without parent_id)
+  const parentCategories = categories?.filter((c) => !c.parent_id) || [];
+  
+  // Helper to get subcategories count for a parent
+  const getSubCategoriesCount = (parentId: string) =>
+    categories?.filter((c) => c.parent_id === parentId).length || 0;
+
+  // Helper to get parent category by id
+  const getParentCategory = (parentId: string | null) =>
+    parentId ? categories?.find((c) => c.id === parentId) : undefined;
+
+  // Organize categories hierarchically for display
+  const organizedCategories = categories
+    ? [
+        ...parentCategories,
+        ...categories.filter((c) => c.parent_id),
+      ].sort((a, b) => {
+        // Sort: parents first, then their children
+        if (!a.parent_id && !b.parent_id) return a.display_order - b.display_order;
+        if (!a.parent_id && b.parent_id === a.id) return -1;
+        if (!b.parent_id && a.parent_id === b.id) return 1;
+        if (a.parent_id === b.parent_id) return a.display_order - b.display_order;
+        const aParent = a.parent_id ? getParentCategory(a.parent_id)?.display_order || 0 : a.display_order;
+        const bParent = b.parent_id ? getParentCategory(b.parent_id)?.display_order || 0 : b.display_order;
+        if (aParent !== bParent) return aParent - bParent;
+        if (!a.parent_id) return -1;
+        if (!b.parent_id) return 1;
+        return a.display_order - b.display_order;
+      })
+    : [];
+
   const activeCount = categories?.filter((c) => c.is_active).length || 0;
+  const subCategoriesCount = categories?.filter((c) => c.parent_id).length || 0;
   const totalServices = Object.values(serviceCounts || {}).reduce((a, b) => a + b, 0);
 
   return (
@@ -545,7 +608,7 @@ const AdminCategories = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-primary">{categories?.length || 0}</div>
@@ -554,14 +617,20 @@ const AdminCategories = () => {
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-success">{activeCount}</div>
-              <div className="text-sm text-muted-foreground">أقسام نشطة</div>
+              <div className="text-2xl font-bold text-blue-500">{parentCategories.length}</div>
+              <div className="text-sm text-muted-foreground">أقسام رئيسية</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-warning">{(categories?.length || 0) - activeCount}</div>
-              <div className="text-sm text-muted-foreground">أقسام غير نشطة</div>
+              <div className="text-2xl font-bold text-purple-500">{subCategoriesCount}</div>
+              <div className="text-sm text-muted-foreground">أقسام فرعية</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-success">{activeCount}</div>
+              <div className="text-sm text-muted-foreground">أقسام نشطة</div>
             </CardContent>
           </Card>
           <Card>
@@ -601,11 +670,16 @@ const AdminCategories = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredCategories?.map((category) => {
               const serviceCount = serviceCounts?.[category.id] || 0;
+              const subCount = getSubCategoriesCount(category.id);
+              const parent = getParentCategory(category.parent_id);
               return (
                 <SortableCategoryCard
                   key={category.id}
                   category={category}
                   serviceCount={serviceCount}
+                  parentCategory={parent}
+                  subCategoriesCount={subCount}
+                  isSubCategory={!!category.parent_id}
                   onEdit={handleOpenDialog}
                   onDelete={handleDelete}
                   onToggleActive={(id, is_active) =>
@@ -627,13 +701,18 @@ const AdminCategories = () => {
               strategy={rectSortingStrategy}
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {categories?.map((category) => {
+                {organizedCategories?.map((category) => {
                   const serviceCount = serviceCounts?.[category.id] || 0;
+                  const subCount = getSubCategoriesCount(category.id);
+                  const parent = getParentCategory(category.parent_id);
                   return (
                     <SortableCategoryCard
                       key={category.id}
                       category={category}
                       serviceCount={serviceCount}
+                      parentCategory={parent}
+                      subCategoriesCount={subCount}
+                      isSubCategory={!!category.parent_id}
                       onEdit={handleOpenDialog}
                       onDelete={handleDelete}
                       onToggleActive={(id, is_active) =>
@@ -765,6 +844,41 @@ const AdminCategories = () => {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              {/* Parent Category */}
+              <div className="space-y-2">
+                <Label>القسم الرئيسي (اختياري)</Label>
+                <Select
+                  value={formData.parent_id || "none"}
+                  onValueChange={(value) => setFormData({ ...formData, parent_id: value === "none" ? null : value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="بدون قسم رئيسي" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">
+                      <div className="flex items-center gap-2">
+                        <Layers className="w-4 h-4" />
+                        <span>بدون قسم رئيسي</span>
+                      </div>
+                    </SelectItem>
+                    {parentCategories
+                      ?.filter((c) => c.id !== editingCategory?.id)
+                      .map((cat) => {
+                        const Icon = iconMap[cat.icon] || Layers;
+                        return (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            <div className="flex items-center gap-2">
+                              <Icon className="w-4 h-4" />
+                              <span>{cat.name_ar}</span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">اختر قسم رئيسي لجعل هذا القسم فرعياً</p>
               </div>
 
               <div className="space-y-2">
