@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { 
   BarChart3, 
@@ -19,15 +19,20 @@ import {
   Sparkles,
   Star,
   TrendingUp,
-  Filter
+  Filter,
+  ShoppingCart,
+  LogIn
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { User } from "@supabase/supabase-js";
+import ServiceOrderDialog from "@/components/services/ServiceOrderDialog";
+import { toast } from "sonner";
 
 const categoryIcons: Record<string, React.ElementType> = {
   "التسويق": TrendingUp,
@@ -80,7 +85,26 @@ const floatingAnimation = {
 };
 
 const Services = () => {
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [selectedService, setSelectedService] = useState<any>(null);
+  const [orderDialogOpen, setOrderDialogOpen] = useState(false);
+
+  // Check auth state
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const { data: services, isLoading } = useQuery({
     queryKey: ["services-public"],
@@ -110,6 +134,16 @@ const Services = () => {
 
   const getGradient = (category: string) => {
     return categoryGradients[category] || "from-primary to-cyan-400";
+  };
+
+  const handleOrderService = (service: any) => {
+    if (!user) {
+      toast.info("يرجى تسجيل الدخول أولاً لطلب الخدمة");
+      navigate("/auth");
+      return;
+    }
+    setSelectedService(service);
+    setOrderDialogOpen(true);
   };
 
   return (
@@ -376,18 +410,21 @@ const Services = () => {
                           </ul>
 
                           {/* CTA Button */}
-                          <Link to="/contact">
-                            <Button className="w-full gap-2 group/btn overflow-hidden relative">
-                              <span className="relative z-10">اطلب الخدمة</span>
-                              <ArrowLeft className="w-4 h-4 relative z-10 group-hover/btn:-translate-x-1 transition-transform" />
-                              <motion.div
-                                className={`absolute inset-0 bg-gradient-to-l ${gradient}`}
-                                initial={{ x: "100%" }}
-                                whileHover={{ x: 0 }}
-                                transition={{ duration: 0.3 }}
-                              />
-                            </Button>
-                          </Link>
+                          <Button 
+                            onClick={() => handleOrderService(service)}
+                            className="w-full gap-2 group/btn overflow-hidden relative"
+                          >
+                            <span className="relative z-10 flex items-center gap-2">
+                              <ShoppingCart className="w-4 h-4" />
+                              اطلب الخدمة
+                            </span>
+                            <motion.div
+                              className={`absolute inset-0 bg-gradient-to-l ${gradient}`}
+                              initial={{ x: "100%" }}
+                              whileHover={{ x: 0 }}
+                              transition={{ duration: 0.3 }}
+                            />
+                          </Button>
                         </div>
                       </motion.div>
                     );
@@ -498,6 +535,14 @@ const Services = () => {
         </section>
       </main>
       <Footer />
+      
+      {/* Order Dialog */}
+      <ServiceOrderDialog
+        service={selectedService}
+        open={orderDialogOpen}
+        onOpenChange={setOrderDialogOpen}
+        userId={user?.id || null}
+      />
     </div>
   );
 };
