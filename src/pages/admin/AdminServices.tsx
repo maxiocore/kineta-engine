@@ -426,6 +426,7 @@ const AdminServices = () => {
           categories={categories}
           statusOptions={statusOptions}
           serviceCounts={serviceCounts}
+          totalCount={services.length}
         />
 
         {/* Services List */}
