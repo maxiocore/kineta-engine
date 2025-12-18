@@ -144,7 +144,7 @@ export const useUserBadges = (userId?: string) => {
     }
   }, [userId, fetchUserBadges]);
 
-  const awardBadge = useCallback(async (badgeId: string) => {
+  const awardBadge = useCallback(async (badgeId: string, badgeName?: string, userEmail?: string) => {
     if (!userId) return false;
 
     try {
@@ -157,6 +157,21 @@ export const useUserBadges = (userId?: string) => {
 
       if (error) throw error;
       
+      // Log to audit_logs
+      await supabase
+        .from('audit_logs')
+        .insert({
+          table_name: 'user_badges',
+          action: 'INSERT',
+          record_id: badgeId,
+          new_value: {
+            badge_id: badgeId,
+            user_id: userId,
+            badge_name: badgeName || '',
+            user_email: userEmail || ''
+          }
+        });
+
       fetchUserBadges();
       return true;
     } catch (error) {
@@ -165,7 +180,7 @@ export const useUserBadges = (userId?: string) => {
     }
   }, [userId, fetchUserBadges]);
 
-  const revokeBadge = useCallback(async (userBadgeId: string) => {
+  const revokeBadge = useCallback(async (userBadgeId: string, badgeName?: string, userEmail?: string) => {
     try {
       const { error } = await supabase
         .from('user_badges')
@@ -174,6 +189,19 @@ export const useUserBadges = (userId?: string) => {
 
       if (error) throw error;
       
+      // Log to audit_logs
+      await supabase
+        .from('audit_logs')
+        .insert({
+          table_name: 'user_badges',
+          action: 'DELETE',
+          record_id: userBadgeId,
+          old_value: {
+            badge_name: badgeName || '',
+            user_email: userEmail || ''
+          }
+        });
+
       fetchUserBadges();
       return true;
     } catch (error) {

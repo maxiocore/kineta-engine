@@ -597,6 +597,19 @@ const AdminUserProfile = () => {
                                   if (error) {
                                     toast.error('فشل في إزالة الشارة');
                                   } else {
+                                    // Log to audit_logs
+                                    await supabase
+                                      .from('audit_logs')
+                                      .insert({
+                                        table_name: 'user_badges',
+                                        action: 'DELETE',
+                                        record_id: userBadgeRecord.id,
+                                        old_value: {
+                                          badge_name: badge.name_ar,
+                                          user_email: user?.email || ''
+                                        }
+                                      });
+                                    
                                     toast.success(`تم إزالة شارة "${badge.name_ar}"`);
                                     refetchBadges();
                                   }
@@ -621,6 +634,21 @@ const AdminUserProfile = () => {
                                   if (error) {
                                     toast.error('فشل في منح الشارة');
                                   } else {
+                                    // Log to audit_logs
+                                    await supabase
+                                      .from('audit_logs')
+                                      .insert({
+                                        table_name: 'user_badges',
+                                        action: 'INSERT',
+                                        record_id: badge.id,
+                                        new_value: {
+                                          badge_id: badge.id,
+                                          user_id: userId,
+                                          badge_name: badge.name_ar,
+                                          user_email: user?.email || ''
+                                        }
+                                      });
+                                    
                                     // Create notification for user
                                     await supabase
                                       .from('notifications')
