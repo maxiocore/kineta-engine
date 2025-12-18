@@ -18,6 +18,7 @@ import {
   Plus,
   History,
   Heart,
+  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ interface NavItem {
 
 const clientNavItems: NavItem[] = [
   { label: "نظرة عامة", href: "/dashboard", icon: LayoutDashboard },
+  { label: "طلب جديد", href: "/dashboard/services", icon: Package },
   { label: "الطلبات", href: "/dashboard/orders", icon: ShoppingBag },
   { label: "المفضلة", href: "/dashboard/favorites", icon: Heart },
   { label: "الإيداعات", href: "/dashboard/deposits", icon: History },
