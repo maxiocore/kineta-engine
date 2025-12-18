@@ -56,6 +56,51 @@ export type Database = {
         }
         Relationships: []
       }
+      badges: {
+        Row: {
+          color: string
+          created_at: string
+          description: string | null
+          description_ar: string | null
+          icon: string
+          id: string
+          is_active: boolean
+          min_orders: number
+          min_spending: number
+          name: string
+          name_ar: string
+          tier: number
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          icon: string
+          id?: string
+          is_active?: boolean
+          min_orders?: number
+          min_spending?: number
+          name: string
+          name_ar: string
+          tier?: number
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          min_orders?: number
+          min_spending?: number
+          name?: string
+          name_ar?: string
+          tier?: number
+        }
+        Relationships: []
+      }
       coupon_usages: {
         Row: {
           coupon_id: string
@@ -614,6 +659,35 @@ export type Database = {
             columns: ["ticket_id"]
             isOneToOne: false
             referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_badges: {
+        Row: {
+          awarded_at: string
+          badge_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          awarded_at?: string
+          badge_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          awarded_at?: string
+          badge_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
             referencedColumns: ["id"]
           },
         ]

@@ -32,10 +32,13 @@ import {
   TrendingUp,
   FileText,
   RefreshCw,
-  BarChart3
+  BarChart3,
+  Award
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import UserAnalyticsCharts from '@/components/admin/UserAnalyticsCharts';
+import { useUserBadges } from '@/hooks/useUserBadges';
+import { UserBadgesGrid, BadgeProgressCard } from '@/components/badges/UserBadgeDisplay';
 
 interface UserProfile {
   id: string;
@@ -158,6 +161,16 @@ const AdminUserProfile = () => {
     percentileOrders: 0,
     percentileSpending: 0
   });
+
+  // Badges hook
+  const { badges, userBadges, checkAndAwardBadges } = useUserBadges(userId);
+
+  // Check and award badges when stats change
+  useEffect(() => {
+    if (userId && stats.totalOrders > 0) {
+      checkAndAwardBadges(stats.totalSpent, stats.totalOrders);
+    }
+  }, [userId, stats.totalOrders, stats.totalSpent, checkAndAwardBadges]);
 
   useEffect(() => {
     if (userId) {
@@ -497,6 +510,10 @@ const AdminUserProfile = () => {
               <BarChart3 className="h-4 w-4" />
               التحليلات
             </TabsTrigger>
+            <TabsTrigger value="badges" className="gap-2">
+              <Award className="h-4 w-4" />
+              الشارات ({userBadges.length})
+            </TabsTrigger>
             <TabsTrigger value="orders" className="gap-2">
               <Package className="h-4 w-4" />
               الطلبات ({orders.length})
@@ -519,6 +536,58 @@ const AdminUserProfile = () => {
               platformStats={platformStats}
               userStats={stats}
             />
+          </TabsContent>
+
+          {/* Badges Tab */}
+          <TabsContent value="badges">
+            <div className="space-y-6">
+              {/* Earned Badges */}
+              <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Award className="h-5 w-5 text-primary" />
+                    الشارات المكتسبة
+                  </CardTitle>
+                  <CardDescription>
+                    حصل هذا المستخدم على {userBadges.length} شارة من أصل {badges.length}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <UserBadgesGrid 
+                    badges={badges}
+                    userBadges={userBadges.map(ub => ({ badge_id: ub.badge_id, awarded_at: ub.awarded_at }))}
+                    showLocked={true}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Badge Progress */}
+              <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                    تقدم الشارات
+                  </CardTitle>
+                  <CardDescription>التقدم نحو الشارات التالية</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {badges
+                      .sort((a, b) => a.tier - b.tier)
+                      .map(badge => (
+                        <BadgeProgressCard
+                          key={badge.id}
+                          badge={badge}
+                          currentSpending={stats.totalSpent}
+                          currentOrders={stats.totalOrders}
+                          awarded={userBadges.some(ub => ub.badge_id === badge.id)}
+                        />
+                      ))
+                    }
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Orders Tab */}
