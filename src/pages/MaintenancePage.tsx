@@ -1,8 +1,13 @@
 import { motion } from "framer-motion";
 import { Wrench, Clock, Mail, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useMaintenanceMode } from "@/hooks/useMaintenanceMode";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 
 const MaintenancePage = () => {
+  const { maintenanceMessage, scheduledEnd } = useMaintenanceMode();
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4" dir="rtl">
       {/* Background Effects */}
@@ -49,7 +54,7 @@ const MaintenancePage = () => {
           transition={{ delay: 0.4 }}
           className="text-lg text-muted-foreground mb-8 leading-relaxed"
         >
-          نعمل حالياً على تحسين الموقع وإضافة ميزات جديدة.
+          {maintenanceMessage || 'نعمل حالياً على تحسين الموقع وإضافة ميزات جديدة.'}
           <br />
           سنعود قريباً بتجربة أفضل!
         </motion.p>
@@ -70,7 +75,11 @@ const MaintenancePage = () => {
           
           <div className="flex items-center justify-center gap-2 text-muted-foreground">
             <Clock className="w-4 h-4" />
-            <span>الوقت المتوقع: قريباً جداً</span>
+            {scheduledEnd ? (
+              <span>الوقت المتوقع للانتهاء: {format(scheduledEnd, 'dd MMMM yyyy الساعة HH:mm', { locale: ar })}</span>
+            ) : (
+              <span>الوقت المتوقع: قريباً جداً</span>
+            )}
           </div>
         </motion.div>
 
