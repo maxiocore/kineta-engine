@@ -10,12 +10,37 @@ import {
   Zap,
   Shield,
   Clock,
-  TrendingUp
+  TrendingUp,
+  Filter,
+  ChevronDown,
+  Hash,
+  DollarSign,
+  Info,
+  RefreshCw
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import SocialNetworkGrid from "@/components/services/SocialNetworkGrid";
 import ServiceOrderDialog from "@/components/services/ServiceOrderDialog";
@@ -35,32 +60,95 @@ interface Service {
   features: any;
   external_service_id: string | null;
   refill_enabled: boolean | null;
+  refill_days: number | null;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  name_ar: string;
+  slug: string;
+  icon: string | null;
+  color: string | null;
 }
 
 const ClientServices = () => {
   const { user } = useAuth();
   const { favorites, toggleFavorite } = useFavorites();
   const [services, setServices] = useState<Service[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     fetchServices();
+    fetchCategories();
 
-    const channel = supabase
-      .channel("client-services")
-      .on("postgres_changes", { event: "*", schema: "public", table: "services" }, () => {
-        fetchServices();
+    // Realtime subscription for instant updates
+    const servicesChannel = supabase
+      .channel("services-realtime")
+      .on("postgres_changes", { 
+        event: "*", 
+        schema: "public", 
+        table: "services" 
+      }, (payload) => {
+        console.log("Service changed:", payload);
+        handleServiceChange(payload);
+      })
+      .subscribe();
+
+    const categoriesChannel = supabase
+      .channel("categories-realtime")
+      .on("postgres_changes", { 
+        event: "*", 
+        schema: "public", 
+        table: "categories" 
+      }, () => {
+        fetchCategories();
       })
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(servicesChannel);
+      supabase.removeChannel(categoriesChannel);
     };
   }, []);
+
+  const handleServiceChange = (payload: any) => {
+    const { eventType, new: newRecord, old: oldRecord } = payload;
+    
+    setServices(prev => {
+      switch (eventType) {
+        case "INSERT":
+          if (newRecord.status === "active") {
+            toast.success("تمت إضافة خدمة جديدة!", { 
+              description: newRecord.name,
+              duration: 4000 
+            });
+            return [...prev, newRecord];
+          }
+          return prev;
+          
+        case "UPDATE":
+          if (newRecord.status === "active") {
+            return prev.map(s => s.id === newRecord.id ? newRecord : s);
+          } else {
+            return prev.filter(s => s.id !== newRecord.id);
+          }
+          
+        case "DELETE":
+          return prev.filter(s => s.id !== oldRecord.id);
+          
+        default:
+          return prev;
+      }
+    });
+  };
 
   const fetchServices = async () => {
     const { data, error } = await supabase
@@ -77,7 +165,25 @@ const ClientServices = () => {
     setLoading(false);
   };
 
-  // Get category slug from category name
+  const fetchCategories = async () => {
+    const { data } = await supabase
+      .from("categories")
+      .select("*")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
+    
+    if (data) {
+      setCategories(data);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchServices();
+    setIsRefreshing(false);
+    toast.success("تم تحديث الخدمات");
+  };
+
   const getCategorySlug = (categoryName: string) => {
     const slugMap: Record<string, string> = {
       "Instagram": "instagram",
@@ -95,7 +201,6 @@ const ClientServices = () => {
     return slugMap[categoryName] || categoryName.toLowerCase().replace(/\s+/g, "-");
   };
 
-  // Count services by category
   const serviceCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     services.forEach(service => {
@@ -105,13 +210,13 @@ const ClientServices = () => {
     return counts;
   }, [services]);
 
-  // Filter services
   const filteredServices = useMemo(() => {
     return services.filter(service => {
       const matchesSearch = 
         service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         service.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (service.description?.toLowerCase().includes(searchQuery.toLowerCase()));
+        (service.description?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (service.external_service_id?.includes(searchQuery));
       
       const categorySlug = getCategorySlug(service.category);
       const matchesCategory = selectedCategory === "all" || categorySlug === selectedCategory;
@@ -120,7 +225,6 @@ const ClientServices = () => {
     });
   }, [services, searchQuery, selectedCategory]);
 
-  // Group services by category
   const groupedServices = useMemo(() => {
     const groups: Record<string, Service[]> = {};
     filteredServices.forEach(service => {
@@ -131,6 +235,26 @@ const ClientServices = () => {
     });
     return groups;
   }, [filteredServices]);
+
+  const toggleCategory = (category: string) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(category)) {
+        newSet.delete(category);
+      } else {
+        newSet.add(category);
+      }
+      return newSet;
+    });
+  };
+
+  const expandAllCategories = () => {
+    setExpandedCategories(new Set(Object.keys(groupedServices)));
+  };
+
+  const collapseAllCategories = () => {
+    setExpandedCategories(new Set());
+  };
 
   const handleOrder = (service: Service) => {
     if (!user) {
@@ -144,6 +268,13 @@ const ClientServices = () => {
   const checkIsFavorite = (serviceId: string) => {
     return favorites.includes(serviceId);
   };
+
+  // Auto-expand all categories on initial load
+  useEffect(() => {
+    if (Object.keys(groupedServices).length > 0 && expandedCategories.size === 0) {
+      expandAllCategories();
+    }
+  }, [groupedServices]);
 
   if (loading) {
     return (
@@ -168,7 +299,6 @@ const ClientServices = () => {
           animate={{ opacity: 1, y: 0 }}
           className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-accent/5 to-transparent border border-primary/10 p-6"
         >
-          {/* Background decoration */}
           <div className="absolute top-0 left-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 right-0 w-24 h-24 bg-accent/10 rounded-full blur-2xl" />
           
@@ -178,20 +308,35 @@ const ClientServices = () => {
                 <Package className="w-full h-full text-white" />
               </div>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold">الخدمات</h1>
-                <p className="text-muted-foreground text-sm">اختر الخدمة المناسبة واطلبها الآن</p>
+                <h1 className="text-2xl md:text-3xl font-bold">قائمة الخدمات</h1>
+                <p className="text-muted-foreground text-sm">تحديث لحظي • اختر خدمتك وابدأ الآن</p>
               </div>
             </div>
             
-            {/* Quick stats */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 flex-wrap">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-success/10 border border-success/20"
+              >
+                <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                <span className="text-sm font-medium text-success">متصل مباشر</span>
+              </motion.div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="rounded-xl gap-2"
+              >
+                <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+                تحديث
+              </Button>
+              
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50">
-                <Zap className="w-4 h-4 text-warning" />
+                <Zap className="w-4 h-4 text-primary" />
                 <span className="text-sm font-medium">{services.length} خدمة</span>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50">
-                <Heart className="w-4 h-4 text-destructive" />
-                <span className="text-sm font-medium">{favorites.length} مفضلة</span>
               </div>
             </div>
           </div>
@@ -214,7 +359,7 @@ const ClientServices = () => {
           </Card>
         </motion.div>
 
-        {/* Search & Filter Bar */}
+        {/* Search & Controls */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -224,22 +369,39 @@ const ClientServices = () => {
           <div className="relative flex-1">
             <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
-              placeholder="بحث في الخدمات..."
+              placeholder="بحث بالاسم أو الرقم أو الوصف..."
               className="pr-12 h-12 bg-card/50 backdrop-blur-sm border-border/50 rounded-xl text-base"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           
-          {/* Results count */}
-          <div className="flex items-center justify-center px-4 py-2 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50">
-            <span className="text-sm text-muted-foreground">
-              النتائج: <span className="font-bold text-foreground">{filteredServices.length}</span>
-            </span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={expandAllCategories}
+              className="rounded-xl text-xs"
+            >
+              فتح الكل
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={collapseAllCategories}
+              className="rounded-xl text-xs"
+            >
+              إغلاق الكل
+            </Button>
+            <div className="flex items-center justify-center px-4 py-2 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50">
+              <span className="text-sm text-muted-foreground">
+                <span className="font-bold text-foreground">{filteredServices.length}</span> نتيجة
+              </span>
+            </div>
           </div>
         </motion.div>
 
-        {/* Services List */}
+        {/* Services Table */}
         <AnimatePresence mode="wait">
           {filteredServices.length === 0 ? (
             <motion.div
@@ -256,8 +418,8 @@ const ClientServices = () => {
                   <h3 className="text-lg font-bold mb-2">لا توجد خدمات</h3>
                   <p className="text-muted-foreground max-w-sm mx-auto">
                     {searchQuery || selectedCategory !== "all"
-                      ? "لا توجد نتائج مطابقة للبحث، جرب تغيير معايير البحث"
-                      : "لا توجد خدمات متاحة حالياً، عد لاحقاً"}
+                      ? "لا توجد نتائج مطابقة للبحث"
+                      : "لا توجد خدمات متاحة حالياً"}
                   </p>
                   {(searchQuery || selectedCategory !== "all") && (
                     <Button
@@ -268,7 +430,7 @@ const ClientServices = () => {
                         setSelectedCategory("all");
                       }}
                     >
-                      إعادة تعيين الفلاتر
+                      إعادة تعيين
                     </Button>
                   )}
                 </CardContent>
@@ -280,129 +442,224 @@ const ClientServices = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="space-y-8"
+              className="space-y-4"
             >
               {Object.entries(groupedServices).map(([category, categoryServices], categoryIndex) => (
                 <motion.div
                   key={category}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: categoryIndex * 0.05 }}
+                  transition={{ delay: categoryIndex * 0.03 }}
                 >
-                  {/* Category Header */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-1 h-8 rounded-full bg-gradient-to-b from-primary to-accent" />
-                    <h2 className="text-xl font-bold">{category}</h2>
-                    <Badge 
-                      variant="secondary" 
-                      className="bg-primary/10 text-primary border-none"
-                    >
-                      {categoryServices.length} خدمة
-                    </Badge>
-                  </div>
-                  
-                  {/* Services Grid */}
-                  <div className="grid gap-3">
-                    {categoryServices.map((service, index) => (
-                      <motion.div
-                        key={service.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.02 }}
-                      >
-                        <Card className={cn(
-                          "group glass border-border/50 hover:border-primary/30 transition-all duration-300",
-                          "hover:shadow-lg hover:shadow-primary/5"
-                        )}>
-                          <CardContent className="p-4 sm:p-5">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                              {/* Service Info */}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start gap-3">
-                                  {/* Service icon */}
-                                  <div className="hidden sm:flex w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 items-center justify-center shrink-0 group-hover:from-primary/20 group-hover:to-accent/20 transition-colors">
-                                    <Star className="w-5 h-5 text-primary" />
-                                  </div>
-                                  
+                  <Collapsible
+                    open={expandedCategories.has(category)}
+                    onOpenChange={() => toggleCategory(category)}
+                  >
+                    <Card className="glass border-border/50 overflow-hidden">
+                      <CollapsibleTrigger asChild>
+                        <button className="w-full p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                              <Package className="w-5 h-5 text-primary" />
+                            </div>
+                            <div className="text-right">
+                              <h3 className="font-bold text-base sm:text-lg">{category}</h3>
+                              <p className="text-xs text-muted-foreground">{categoryServices.length} خدمة متاحة</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
+                              {categoryServices.length}
+                            </Badge>
+                            <ChevronDown className={cn(
+                              "w-5 h-5 text-muted-foreground transition-transform duration-300",
+                              expandedCategories.has(category) && "rotate-180"
+                            )} />
+                          </div>
+                        </button>
+                      </CollapsibleTrigger>
+                      
+                      <CollapsibleContent>
+                        <div className="border-t border-border/50">
+                          {/* Desktop Table */}
+                          <div className="hidden md:block overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow className="bg-muted/30 hover:bg-muted/30">
+                                  <TableHead className="text-right font-bold w-16">
+                                    <div className="flex items-center gap-1">
+                                      <Hash className="w-4 h-4" />
+                                      ID
+                                    </div>
+                                  </TableHead>
+                                  <TableHead className="text-right font-bold">الخدمة</TableHead>
+                                  <TableHead className="text-right font-bold w-32">
+                                    <div className="flex items-center gap-1">
+                                      <DollarSign className="w-4 h-4" />
+                                      السعر
+                                    </div>
+                                  </TableHead>
+                                  <TableHead className="text-right font-bold w-24">الحالة</TableHead>
+                                  <TableHead className="text-center font-bold w-40">إجراءات</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                <AnimatePresence>
+                                  {categoryServices.map((service, index) => (
+                                    <motion.tr
+                                      key={service.id}
+                                      initial={{ opacity: 0, x: -20 }}
+                                      animate={{ opacity: 1, x: 0 }}
+                                      exit={{ opacity: 0, x: 20 }}
+                                      transition={{ delay: index * 0.02 }}
+                                      className="group hover:bg-muted/20 transition-colors"
+                                    >
+                                      <TableCell className="font-mono text-sm text-muted-foreground">
+                                        {service.external_service_id || "-"}
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="max-w-md">
+                                          <p className="font-medium text-sm leading-relaxed group-hover:text-primary transition-colors">
+                                            {service.name}
+                                          </p>
+                                          {service.description && (
+                                            <TooltipProvider>
+                                              <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                  <p className="text-xs text-muted-foreground mt-1 line-clamp-1 cursor-help">
+                                                    {service.description}
+                                                  </p>
+                                                </TooltipTrigger>
+                                                <TooltipContent side="bottom" className="max-w-sm">
+                                                  <p>{service.description}</p>
+                                                </TooltipContent>
+                                              </Tooltip>
+                                            </TooltipProvider>
+                                          )}
+                                        </div>
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex items-baseline gap-1">
+                                          <span className="text-lg font-bold text-primary">
+                                            {service.price.toFixed(2)}
+                                          </span>
+                                          <span className="text-xs text-muted-foreground">ر.س</span>
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground">لكل 1000</p>
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex flex-wrap gap-1">
+                                          {service.refill_enabled && (
+                                            <Badge className="text-[10px] h-5 px-1.5 bg-success/10 text-success border-success/20">
+                                              <Shield className="w-3 h-3 ml-0.5" />
+                                              {service.refill_days || 30}d
+                                            </Badge>
+                                          )}
+                                          <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-primary/5">
+                                            <Clock className="w-3 h-3 ml-0.5" />
+                                            سريع
+                                          </Badge>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex items-center justify-center gap-2">
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => toggleFavorite(service.id)}
+                                            className={cn(
+                                              "h-8 w-8 rounded-lg transition-all",
+                                              checkIsFavorite(service.id) 
+                                                ? "text-destructive bg-destructive/10 hover:bg-destructive/20" 
+                                                : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                            )}
+                                          >
+                                            <Heart className={cn(
+                                              "w-4 h-4",
+                                              checkIsFavorite(service.id) && "fill-current"
+                                            )} />
+                                          </Button>
+                                          <Button
+                                            onClick={() => handleOrder(service)}
+                                            size="sm"
+                                            className="rounded-lg bg-gradient-to-l from-primary to-accent hover:opacity-90 text-white gap-1.5 h-8 shadow-md shadow-primary/20"
+                                          >
+                                            <ShoppingCart className="w-3.5 h-3.5" />
+                                            طلب
+                                          </Button>
+                                        </div>
+                                      </TableCell>
+                                    </motion.tr>
+                                  ))}
+                                </AnimatePresence>
+                              </TableBody>
+                            </Table>
+                          </div>
+                          
+                          {/* Mobile Cards */}
+                          <div className="md:hidden divide-y divide-border/50">
+                            {categoryServices.map((service, index) => (
+                              <motion.div
+                                key={service.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.02 }}
+                                className="p-4 hover:bg-muted/20 transition-colors"
+                              >
+                                <div className="flex items-start justify-between gap-3 mb-3">
                                   <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-sm sm:text-base leading-relaxed group-hover:text-primary transition-colors">
-                                      {service.name}
-                                    </h3>
-                                    {service.description && (
-                                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                        {service.description}
-                                      </p>
-                                    )}
-                                    
-                                    {/* Badges */}
-                                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                                    <div className="flex items-center gap-2 mb-1">
                                       {service.external_service_id && (
-                                        <Badge variant="outline" className="text-[10px] h-5 px-2 bg-muted/50">
-                                          <TrendingUp className="w-3 h-3 mr-1" />
+                                        <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-mono">
                                           #{service.external_service_id}
                                         </Badge>
                                       )}
                                       {service.refill_enabled && (
-                                        <Badge className="text-[10px] h-5 px-2 bg-success/10 text-success border-success/20 hover:bg-success/20">
-                                          <Shield className="w-3 h-3 mr-1" />
-                                          ضمان
+                                        <Badge className="text-[10px] h-5 px-1.5 bg-success/10 text-success border-success/20">
+                                          <Shield className="w-3 h-3" />
                                         </Badge>
                                       )}
-                                      <Badge variant="outline" className="text-[10px] h-5 px-2 bg-muted/50">
-                                        <Clock className="w-3 h-3 mr-1" />
-                                        سريع
-                                      </Badge>
+                                    </div>
+                                    <p className="font-medium text-sm leading-relaxed">{service.name}</p>
+                                  </div>
+                                  <div className="text-left shrink-0">
+                                    <div className="flex items-baseline gap-0.5">
+                                      <span className="text-lg font-bold text-primary">{service.price.toFixed(2)}</span>
+                                      <span className="text-[10px] text-muted-foreground">ر.س</span>
                                     </div>
                                   </div>
                                 </div>
-                              </div>
-                              
-                              {/* Price & Actions */}
-                              <div className="flex items-center gap-4 shrink-0">
-                                {/* Price */}
-                                <div className="text-left sm:text-center">
-                                  <div className="flex items-baseline gap-1">
-                                    <span className="text-xl sm:text-2xl font-bold bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
-                                      {service.price.toFixed(2)}
-                                    </span>
-                                    <span className="text-xs text-muted-foreground">ر.س</span>
-                                  </div>
-                                  <p className="text-[10px] text-muted-foreground">لكل 1000</p>
-                                </div>
-                                
-                                {/* Action buttons */}
-                                <div className="flex gap-2">
+                                <div className="flex items-center gap-2">
                                   <Button
-                                    variant="ghost"
+                                    onClick={() => handleOrder(service)}
+                                    size="sm"
+                                    className="flex-1 rounded-lg bg-gradient-to-l from-primary to-accent hover:opacity-90 text-white gap-1.5 h-9"
+                                  >
+                                    <ShoppingCart className="w-4 h-4" />
+                                    طلب الآن
+                                  </Button>
+                                  <Button
+                                    variant="outline"
                                     size="icon"
                                     onClick={() => toggleFavorite(service.id)}
                                     className={cn(
-                                      "rounded-xl transition-all",
-                                      checkIsFavorite(service.id) 
-                                        ? "text-destructive bg-destructive/10 hover:bg-destructive/20" 
-                                        : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                      "h-9 w-9 rounded-lg shrink-0",
+                                      checkIsFavorite(service.id) && "text-destructive border-destructive/30 bg-destructive/10"
                                     )}
                                   >
                                     <Heart className={cn(
-                                      "w-5 h-5 transition-transform",
-                                      checkIsFavorite(service.id) && "fill-current scale-110"
+                                      "w-4 h-4",
+                                      checkIsFavorite(service.id) && "fill-current"
                                     )} />
                                   </Button>
-                                  <Button
-                                    onClick={() => handleOrder(service)}
-                                    className="rounded-xl bg-gradient-to-l from-primary to-accent hover:opacity-90 text-white gap-2 shadow-lg shadow-primary/20"
-                                  >
-                                    <ShoppingCart className="w-4 h-4" />
-                                    <span className="hidden sm:inline">طلب</span>
-                                  </Button>
                                 </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Card>
+                  </Collapsible>
                 </motion.div>
               ))}
             </motion.div>
