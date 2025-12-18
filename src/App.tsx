@@ -58,6 +58,7 @@ import AdminApiProviders from "./pages/admin/AdminApiProviders";
 import AdminProviderReports from "./pages/admin/AdminProviderReports";
 import AdminPriceComparison from "./pages/admin/AdminPriceComparison";
 import AdminReferrals from "./pages/admin/AdminReferrals";
+import AdminRewards from "./pages/admin/AdminRewards";
 
 const queryClient = new QueryClient();
 
@@ -233,6 +234,11 @@ const App = () => (
                   <Route path="/admin/badges" element={
                     <ProtectedRoute requireAdmin>
                       <AdminBadges />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/rewards" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminRewards />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/emails" element={
