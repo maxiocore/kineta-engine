@@ -33,7 +33,9 @@ import {
   FileText,
   RefreshCw,
   BarChart3,
-  Award
+  Award,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import UserAnalyticsCharts from '@/components/admin/UserAnalyticsCharts';
@@ -163,7 +165,7 @@ const AdminUserProfile = () => {
   });
 
   // Badges hook
-  const { badges, userBadges, checkAndAwardBadges } = useUserBadges(userId);
+  const { badges, userBadges, checkAndAwardBadges, refetch: refetchBadges } = useUserBadges(userId);
 
   // Check and award badges when stats change
   useEffect(() => {
@@ -541,6 +543,117 @@ const AdminUserProfile = () => {
           {/* Badges Tab */}
           <TabsContent value="badges">
             <div className="space-y-6">
+              {/* Manual Badge Award Section */}
+              <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Plus className="h-5 w-5 text-primary" />
+                    منح شارة يدوياً
+                  </CardTitle>
+                  <CardDescription>
+                    اختر شارة لمنحها للمستخدم
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    {badges.map(badge => {
+                      const isAwarded = userBadges.some(ub => ub.badge_id === badge.id);
+                      const userBadgeRecord = userBadges.find(ub => ub.badge_id === badge.id);
+                      
+                      return (
+                        <motion.div
+                          key={badge.id}
+                          whileHover={{ scale: 1.02 }}
+                          className={`relative p-3 rounded-xl border transition-all ${
+                            isAwarded 
+                              ? 'bg-success/10 border-success/30' 
+                              : 'bg-secondary/30 border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <div className="flex flex-col items-center text-center gap-2">
+                            <div 
+                              className="w-12 h-12 rounded-full flex items-center justify-center text-xl"
+                              style={{ backgroundColor: `${badge.color}20` }}
+                            >
+                              {badge.icon}
+                            </div>
+                            <span className="text-sm font-medium line-clamp-1">{badge.name_ar}</span>
+                            <Badge variant="outline" className="text-xs">
+                              مستوى {badge.tier}
+                            </Badge>
+                            
+                            {isAwarded ? (
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                className="w-full mt-2 gap-1"
+                                onClick={async () => {
+                                  if (!userBadgeRecord) return;
+                                  const { error } = await supabase
+                                    .from('user_badges')
+                                    .delete()
+                                    .eq('id', userBadgeRecord.id);
+                                  
+                                  if (error) {
+                                    toast.error('فشل في إزالة الشارة');
+                                  } else {
+                                    toast.success(`تم إزالة شارة "${badge.name_ar}"`);
+                                    refetchBadges();
+                                  }
+                                }}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                                إزالة
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="default"
+                                className="w-full mt-2 gap-1"
+                                onClick={async () => {
+                                  const { error } = await supabase
+                                    .from('user_badges')
+                                    .insert({
+                                      user_id: userId,
+                                      badge_id: badge.id
+                                    });
+                                  
+                                  if (error) {
+                                    toast.error('فشل في منح الشارة');
+                                  } else {
+                                    // Create notification for user
+                                    await supabase
+                                      .from('notifications')
+                                      .insert({
+                                        user_id: userId,
+                                        title: '🏆 تهانينا! حصلت على شارة جديدة',
+                                        message: `تم منحك شارة "${badge.name_ar}" من قبل الإدارة!`,
+                                        type: 'success'
+                                      });
+                                    
+                                    toast.success(`تم منح شارة "${badge.name_ar}"`);
+                                    refetchBadges();
+                                  }
+                                }}
+                              >
+                                <Plus className="w-3 h-3" />
+                                منح
+                              </Button>
+                            )}
+                          </div>
+                          
+                          {isAwarded && (
+                            <div className="absolute top-1 right-1">
+                              <CheckCircle className="w-4 h-4 text-success" />
+                            </div>
+                          )}
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Earned Badges */}
               <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
                 <CardHeader>
