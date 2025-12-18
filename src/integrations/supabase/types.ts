@@ -50,6 +50,51 @@ export type Database = {
         }
         Relationships: []
       }
+      api_providers: {
+        Row: {
+          api_key: string
+          api_url: string
+          created_at: string
+          id: string
+          is_active: boolean
+          is_default: boolean
+          last_sync_at: string | null
+          name: string
+          name_ar: string
+          profit_margin: number
+          services_count: number
+          updated_at: string
+        }
+        Insert: {
+          api_key: string
+          api_url: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          last_sync_at?: string | null
+          name: string
+          name_ar: string
+          profit_margin?: number
+          services_count?: number
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string
+          api_url?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          last_sync_at?: string | null
+          name?: string
+          name_ar?: string
+          profit_margin?: number
+          services_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       api_usage_logs: {
         Row: {
           api_key_id: string
@@ -873,6 +918,7 @@ export type Database = {
           image_url: string | null
           name: string
           price: number
+          provider_id: string | null
           refill_days: number | null
           refill_enabled: boolean | null
           status: Database["public"]["Enums"]["service_status"]
@@ -890,6 +936,7 @@ export type Database = {
           image_url?: string | null
           name: string
           price: number
+          provider_id?: string | null
           refill_days?: number | null
           refill_enabled?: boolean | null
           status?: Database["public"]["Enums"]["service_status"]
@@ -907,6 +954,7 @@ export type Database = {
           image_url?: string | null
           name?: string
           price?: number
+          provider_id?: string | null
           refill_days?: number | null
           refill_enabled?: boolean | null
           status?: Database["public"]["Enums"]["service_status"]
@@ -918,6 +966,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "services_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "api_providers"
             referencedColumns: ["id"]
           },
         ]
