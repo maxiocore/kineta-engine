@@ -21,7 +21,8 @@ import {
   X,
   RotateCcw,
   ArrowUpDown,
-  Trash2
+  Trash2,
+  RefreshCw
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -130,6 +131,7 @@ const AdminOrders = () => {
   const [deleteType, setDeleteType] = useState<"single" | "bulk">("single");
   const [deleting, setDeleting] = useState(false);
   const [deleteProgress, setDeleteProgress] = useState({ current: 0, total: 0 });
+  const [syncing, setSyncing] = useState(false);
 
   const activeFiltersCount = [
     statusFilter !== "all",
@@ -284,6 +286,29 @@ const AdminOrders = () => {
     );
   };
 
+  const handleSyncOrdersStatus = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-orders-status');
+      
+      if (error) throw error;
+      
+      if (data.synced > 0) {
+        toast.success(`تم تحديث ${data.synced} طلب من المزودين`);
+        fetchOrders();
+      } else if (data.errors > 0) {
+        toast.warning(`لم يتم تحديث أي طلب، ${data.errors} أخطاء`);
+      } else {
+        toast.info("لا توجد طلبات تحتاج للتحديث");
+      }
+    } catch (error) {
+      console.error("Error syncing orders:", error);
+      toast.error("فشل في مزامنة حالة الطلبات");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const filteredOrders = orders.filter(order => {
     const matchesSearch = 
       order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -328,12 +353,23 @@ const AdminOrders = () => {
             </h1>
             <p className="text-muted-foreground">متابعة وإدارة جميع الطلبات</p>
           </div>
-          <Link to="/admin/orders/sync">
-            <Button variant="outline" className="gap-2">
-              <ArrowUpDown className="w-4 h-4" />
-              مزامنة الطلبات الخارجية
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleSyncOrdersStatus}
+              disabled={syncing}
+              className="gap-2"
+            >
+              <RefreshCw className={cn("w-4 h-4", syncing && "animate-spin")} />
+              {syncing ? "جاري المزامنة..." : "تحديث الحالات"}
             </Button>
-          </Link>
+            <Link to="/admin/orders/sync">
+              <Button variant="outline" className="gap-2">
+                <ArrowUpDown className="w-4 h-4" />
+                مزامنة الطلبات الخارجية
+              </Button>
+            </Link>
+          </div>
         </motion.div>
 
         {/* Stats */}
