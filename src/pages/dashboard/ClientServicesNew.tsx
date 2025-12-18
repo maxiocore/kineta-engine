@@ -818,7 +818,7 @@ const ClientServicesNew = () => {
                     </motion.div>
                   ) : (
                     <motion.div 
-                      className="space-y-3"
+                      className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
                       variants={containerVariants}
                       initial="hidden"
                       animate="show"
@@ -826,6 +826,7 @@ const ClientServicesNew = () => {
                       {filteredServices.map((service, index) => {
                         const isActive = selectedService?.id === service.id;
                         const isFavorite = checkIsFavorite(service.id);
+                        const colors = getCategoryColors(service.category);
                         
                         return (
                           <motion.div
@@ -835,133 +836,158 @@ const ClientServicesNew = () => {
                           >
                             <Card 
                               className={cn(
-                                "group border-border/50 hover:border-primary/40 transition-all cursor-pointer overflow-hidden",
-                                isActive && "border-primary ring-2 ring-primary/20 bg-primary/5 shadow-lg shadow-primary/10"
+                                "group relative overflow-hidden border-2 transition-all duration-500 cursor-pointer h-full",
+                                isActive 
+                                  ? "border-primary bg-gradient-to-br from-primary/5 via-background to-accent/5 shadow-2xl shadow-primary/20 scale-[1.02]" 
+                                  : "border-border/40 bg-gradient-to-br from-card to-card/80 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1"
                               )}
                               onClick={() => handleSelectService(service)}
                             >
-                              <CardContent className="p-0">
-                                <div className="flex items-stretch">
-                                  {/* Left accent bar */}
-                                  <motion.div 
-                                    className={cn(
-                                      "w-1.5 shrink-0 transition-all",
-                                      isActive 
-                                        ? "bg-gradient-to-b from-primary to-accent" 
-                                        : "bg-border group-hover:bg-primary/50"
-                                    )}
-                                    layoutId={`accent-${service.id}`}
-                                  />
+                              {/* Background decorations */}
+                              <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                                <div className={cn(
+                                  "absolute -top-20 -right-20 w-40 h-40 rounded-full blur-3xl transition-opacity duration-500",
+                                  isActive ? "bg-primary/20 opacity-100" : "bg-primary/5 opacity-0 group-hover:opacity-100"
+                                )} />
+                                <div className={cn(
+                                  "absolute -bottom-20 -left-20 w-40 h-40 rounded-full blur-3xl transition-opacity duration-500",
+                                  isActive ? "bg-accent/20 opacity-100" : "bg-accent/5 opacity-0 group-hover:opacity-100"
+                                )} />
+                                {/* Grid pattern */}
+                                <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.03)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.03)_1px,transparent_1px)] bg-[size:12px_12px]" />
+                              </div>
+
+                              {/* Favorite button - absolute positioned */}
+                              <motion.button
+                                whileHover={{ scale: 1.15 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleFavorite(service.id);
+                                }}
+                                className={cn(
+                                  "absolute top-4 left-4 z-10 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300",
+                                  isFavorite 
+                                    ? "bg-destructive/10 text-destructive" 
+                                    : "bg-background/80 backdrop-blur-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                )}
+                              >
+                                <Heart className={cn(
+                                  "w-5 h-5 transition-all",
+                                  isFavorite && "fill-current scale-110"
+                                )} />
+                              </motion.button>
+
+                              {/* Selected indicator */}
+                              <AnimatePresence>
+                                {isActive && (
+                                  <motion.div
+                                    initial={{ scale: 0, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0, opacity: 0 }}
+                                    className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-gradient-to-br from-success to-emerald-500 flex items-center justify-center shadow-lg shadow-success/40"
+                                  >
+                                    <Check className="w-4 h-4 text-white" />
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+
+                              <CardContent className="relative p-5 pt-14 flex flex-col h-full">
+                                {/* Service Icon */}
+                                <motion.div 
+                                  className={cn(
+                                    "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-xl transition-all duration-300",
+                                    isActive 
+                                      ? `${colors.bg} ${colors.glow} scale-110` 
+                                      : `bg-gradient-to-br from-secondary to-muted group-hover:${colors.bg.replace('bg-', '')} ${colors.glow}`
+                                  )}
+                                  whileHover={{ rotate: [0, -5, 5, 0], scale: 1.1 }}
+                                  transition={{ duration: 0.5 }}
+                                >
+                                  <Star className={cn(
+                                    "w-7 h-7 transition-colors duration-300",
+                                    isActive ? "text-white" : "text-muted-foreground group-hover:text-white"
+                                  )} />
+                                </motion.div>
+                                
+                                {/* Service Info */}
+                                <div className="flex-1 space-y-3">
+                                  <h3 className={cn(
+                                    "font-bold text-base leading-relaxed line-clamp-2 transition-colors duration-300",
+                                    isActive ? "text-primary" : "text-foreground group-hover:text-primary"
+                                  )}>
+                                    {service.name}
+                                  </h3>
                                   
-                                  <div className="flex-1 p-4 flex items-center gap-4">
-                                    {/* Service Icon */}
-                                    <motion.div 
-                                      className={cn(
-                                        "hidden sm:flex w-12 h-12 rounded-xl items-center justify-center shrink-0 transition-all",
-                                        isActive 
-                                          ? "bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/30" 
-                                          : "bg-gradient-to-br from-muted/50 to-muted group-hover:from-primary/10 group-hover:to-accent/10"
-                                      )}
-                                      whileHover={{ rotate: 5, scale: 1.05 }}
-                                    >
-                                      <Star className={cn(
-                                        "w-5 h-5 transition-colors",
-                                        isActive ? "text-white" : "text-primary"
-                                      )} />
-                                    </motion.div>
-                                    
-                                    {/* Service Info */}
-                                    <div className="flex-1 min-w-0">
-                                      <h3 className={cn(
-                                        "font-semibold text-sm leading-relaxed line-clamp-2 transition-colors",
-                                        isActive ? "text-primary" : "group-hover:text-primary"
-                                      )}>
-                                        {service.name}
-                                      </h3>
-                                      
-                                      {/* Badges */}
-                                      <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                                        {service.external_service_id && (
-                                          <Badge variant="outline" className="text-[10px] h-5 px-2 bg-muted/50 font-mono">
-                                            #{service.external_service_id}
-                                          </Badge>
-                                        )}
-                                        {service.refill_enabled && (
-                                          <Badge className="text-[10px] h-5 px-2 bg-success/10 text-success border-success/20 gap-1">
-                                            <Shield className="w-3 h-3" />
-                                            ضمان
-                                          </Badge>
-                                        )}
-                                        <Badge variant="secondary" className="text-[10px] h-5 px-2 gap-1">
-                                          <Clock className="w-3 h-3" />
-                                          سريع
-                                        </Badge>
-                                      </div>
-                                    </div>
-                                    
-                                    {/* Price & Actions */}
-                                    <div className="flex items-center gap-4 shrink-0">
-                                      <div className="text-left">
-                                        <div className="flex items-baseline gap-1">
-                                          <motion.span 
-                                            className={cn(
-                                              "text-xl font-bold",
-                                              isActive ? "text-primary" : ""
-                                            )}
-                                            key={service.price}
-                                            initial={{ scale: 1.2 }}
-                                            animate={{ scale: 1 }}
-                                          >
-                                            {service.price.toFixed(2)}
-                                          </motion.span>
-                                          <span className="text-[10px] text-muted-foreground">ر.س</span>
-                                        </div>
-                                        <p className="text-[10px] text-muted-foreground">لكل 1000</p>
-                                      </div>
-                                      
-                                      <div className="flex gap-2">
-                                        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-10 w-10 rounded-xl hover:bg-destructive/10"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              toggleFavorite(service.id);
-                                            }}
-                                          >
-                                            <Heart className={cn(
-                                              "w-5 h-5 transition-all",
-                                              isFavorite 
-                                                ? "fill-destructive text-destructive scale-110" 
-                                                : "text-muted-foreground hover:text-destructive"
-                                            )} />
-                                          </Button>
-                                        </motion.div>
-                                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                                          <Button
-                                            size="icon"
-                                            className={cn(
-                                              "h-10 w-10 rounded-xl transition-all shadow-lg",
-                                              isActive 
-                                                ? "bg-gradient-to-l from-success to-success/80 shadow-success/30" 
-                                                : "bg-gradient-to-l from-primary to-accent shadow-primary/30 hover:shadow-primary/50"
-                                            )}
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleSelectService(service);
-                                            }}
-                                          >
-                                            {isActive ? (
-                                              <Check className="w-5 h-5 text-white" />
-                                            ) : (
-                                              <ArrowUpRight className="w-5 h-5 text-white" />
-                                            )}
-                                          </Button>
-                                        </motion.div>
-                                      </div>
-                                    </div>
+                                  {/* Badges */}
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {service.external_service_id && (
+                                      <Badge variant="outline" className="text-[10px] h-6 px-2.5 bg-muted/50 font-mono border-border/50">
+                                        #{service.external_service_id}
+                                      </Badge>
+                                    )}
+                                    {service.refill_enabled && (
+                                      <Badge className="text-[10px] h-6 px-2.5 bg-success/10 text-success border-success/20 gap-1.5">
+                                        <Shield className="w-3 h-3" />
+                                        ضمان
+                                      </Badge>
+                                    )}
+                                    <Badge variant="secondary" className="text-[10px] h-6 px-2.5 gap-1.5 bg-secondary/80">
+                                      <Zap className="w-3 h-3" />
+                                      سريع
+                                    </Badge>
                                   </div>
+                                </div>
+                                
+                                {/* Price & Action section */}
+                                <div className="mt-5 pt-4 border-t border-border/50 flex items-center justify-between">
+                                  <div>
+                                    <div className="flex items-baseline gap-1.5">
+                                      <motion.span 
+                                        className={cn(
+                                          "text-2xl font-black transition-colors",
+                                          isActive ? "text-primary" : "text-foreground"
+                                        )}
+                                        key={service.price}
+                                        initial={{ scale: 1.15 }}
+                                        animate={{ scale: 1 }}
+                                      >
+                                        {service.price.toFixed(2)}
+                                      </motion.span>
+                                      <span className="text-sm text-muted-foreground font-medium">ر.س</span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-0.5">لكل 1000</p>
+                                  </div>
+                                  
+                                  <motion.div 
+                                    whileHover={{ scale: 1.05 }} 
+                                    whileTap={{ scale: 0.95 }}
+                                  >
+                                    <Button
+                                      className={cn(
+                                        "h-12 px-5 rounded-xl transition-all duration-300 shadow-xl gap-2 font-semibold",
+                                        isActive 
+                                          ? "bg-gradient-to-r from-success to-emerald-500 shadow-success/40 text-white" 
+                                          : "bg-gradient-to-r from-primary to-accent shadow-primary/40 text-primary-foreground hover:shadow-primary/60"
+                                      )}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleSelectService(service);
+                                      }}
+                                    >
+                                      {isActive ? (
+                                        <>
+                                          <Check className="w-5 h-5" />
+                                          <span className="hidden sm:inline">محدد</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Plus className="w-5 h-5" />
+                                          <span className="hidden sm:inline">اختيار</span>
+                                        </>
+                                      )}
+                                    </Button>
+                                  </motion.div>
                                 </div>
                               </CardContent>
                             </Card>
