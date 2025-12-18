@@ -128,6 +128,27 @@
     font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
     font-weight: 600;
   }
+
+  /* RTL Support for all elements */
+  [dir="rtl"] input,
+  [dir="rtl"] textarea,
+  [dir="rtl"] select {
+    text-align: right;
+  }
+
+  /* Force RTL for all flex and grid containers */
+  .flex-row-reverse-rtl {
+    @apply flex-row-reverse;
+  }
+
+  /* RTL-aware margins and paddings */
+  .ms-auto {
+    margin-inline-start: auto;
+  }
+  
+  .me-auto {
+    margin-inline-end: auto;
+  }
 }
 
 @layer utilities {
