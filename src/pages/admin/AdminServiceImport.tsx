@@ -22,10 +22,12 @@ import {
   ChevronUp,
   Percent,
   DollarSign,
-  TrendingUp
+  TrendingUp,
+  Languages
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { Switch } from '@/components/ui/switch';
 
 interface BulkFollowsService {
   service: string;
@@ -53,6 +55,7 @@ const AdminServiceImport = () => {
   const [profitMargin, setProfitMargin] = useState<number>(50);
   const [marginType, setMarginType] = useState<'percentage' | 'fixed'>('percentage');
   const [fixedMargin, setFixedMargin] = useState<number>(0.5);
+  const [autoTranslate, setAutoTranslate] = useState<boolean>(true);
 
   const fetchServices = async () => {
     setLoading(true);
@@ -157,16 +160,44 @@ const AdminServiceImport = () => {
 
     setImporting(true);
     let successCount = 0;
+    const servicesToImport = services.filter(s => selectedServices.has(s.service));
+    const total = servicesToImport.length;
+
     try {
-      const servicesToImport = services.filter(s => selectedServices.has(s.service));
-      
-      for (const service of servicesToImport) {
+      for (let i = 0; i < servicesToImport.length; i++) {
+        const service = servicesToImport[i];
+        let translatedName = service.name;
+        let translatedDescription = `النوع: ${service.type} | الحد الأدنى: ${service.min} | الحد الأقصى: ${service.max}`;
+        let translatedCategory = service.category;
+
+        // Translate if enabled
+        if (autoTranslate) {
+          try {
+            toast.loading(`جاري ترجمة ${i + 1}/${total}...`, { id: 'translate' });
+            const { data: translated, error: translateError } = await supabase.functions.invoke('translate-service', {
+              body: {
+                name: service.name,
+                description: `Type: ${service.type} | Min: ${service.min} | Max: ${service.max}`,
+                category: service.category,
+              }
+            });
+
+            if (!translateError && translated && !translated.error) {
+              translatedName = translated.name || service.name;
+              translatedDescription = translated.description || translatedDescription;
+              translatedCategory = translated.category || service.category;
+            }
+          } catch (translateErr) {
+            console.warn('Translation failed for:', service.name, translateErr);
+          }
+        }
+
         const finalPrice = calculateFinalPrice(service.rate);
         const { error } = await supabase.from('services').insert({
-          name: service.name,
-          description: `النوع: ${service.type} | الحد الأدنى: ${service.min} | الحد الأقصى: ${service.max}`,
+          name: translatedName,
+          description: translatedDescription,
           price: parseFloat(finalPrice.toFixed(4)),
-          category: service.category,
+          category: translatedCategory,
           status: 'active',
           external_service_id: service.service,
           features: [
@@ -183,10 +214,12 @@ const AdminServiceImport = () => {
         }
       }
 
+      toast.dismiss('translate');
       toast.success(`تم استيراد ${successCount} خدمة بنجاح`);
       setSelectedServices(new Set());
     } catch (error: any) {
       console.error('Error importing services:', error);
+      toast.dismiss('translate');
       toast.error('حدث خطأ أثناء الاستيراد');
     } finally {
       setImporting(false);
@@ -249,9 +282,22 @@ const AdminServiceImport = () => {
         {/* Profit Margin Settings */}
         <Card className="border-primary/20 bg-primary/5">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              إعدادات هامش الربح
+            <CardTitle className="flex items-center justify-between text-lg">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                إعدادات الاستيراد
+              </div>
+              <div className="flex items-center gap-3">
+                <Label htmlFor="auto-translate" className="flex items-center gap-2 text-sm font-normal cursor-pointer">
+                  <Languages className="h-4 w-4 text-primary" />
+                  ترجمة تلقائية للعربية
+                </Label>
+                <Switch
+                  id="auto-translate"
+                  checked={autoTranslate}
+                  onCheckedChange={setAutoTranslate}
+                />
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
