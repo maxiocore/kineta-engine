@@ -29,7 +29,7 @@ import ClientAPI from "./pages/dashboard/ClientAPI";
 import ClientDeposit from "./pages/dashboard/ClientDeposit";
 import ClientDeposits from "./pages/dashboard/ClientDeposits";
 import ClientFavorites from "./pages/dashboard/ClientFavorites";
-import ClientServices from "./pages/dashboard/ClientServices";
+import ClientServices from "./pages/dashboard/ClientServicesNew";
 
 // Admin Dashboard
 import AdminDashboard from "./pages/admin/AdminDashboard";
