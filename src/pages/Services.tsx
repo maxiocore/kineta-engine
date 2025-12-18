@@ -25,7 +25,9 @@ import {
   Send,
   Globe,
   Layers,
-  MoreHorizontal
+  MoreHorizontal,
+  Heart,
+  Flame
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +42,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { User } from "@supabase/supabase-js";
 import ServiceOrderDialog from "@/components/services/ServiceOrderDialog";
 import { toast } from "sonner";
+import { useFavorites } from "@/hooks/useFavorites";
+import { cn } from "@/lib/utils";
 
 interface Service {
   id: string;
@@ -87,6 +91,7 @@ const Services = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -128,6 +133,37 @@ const Services = () => {
       
       if (error) throw error;
       return data as Service[];
+    },
+  });
+
+  // Fetch popular services (most ordered)
+  const { data: popularServices } = useQuery({
+    queryKey: ["popular-services"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orders")
+        .select("service_id, services!inner(id, name, description, category, price, status, features, external_service_id)")
+        .eq("services.status", "active");
+      
+      if (error) throw error;
+      
+      // Count orders per service
+      const serviceCounts = new Map<string, { count: number; service: Service }>();
+      data?.forEach((order: any) => {
+        const serviceId = order.service_id;
+        const service = order.services;
+        if (serviceCounts.has(serviceId)) {
+          serviceCounts.get(serviceId)!.count++;
+        } else {
+          serviceCounts.set(serviceId, { count: 1, service });
+        }
+      });
+      
+      // Sort by count and return top 6
+      return Array.from(serviceCounts.values())
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 6)
+        .map(item => ({ ...item.service, orderCount: item.count }));
     },
   });
 
@@ -242,6 +278,82 @@ const Services = () => {
             </motion.div>
           </div>
         </section>
+
+        {/* Popular Services Section */}
+        {popularServices && popularServices.length > 0 && (
+          <section className="py-6 sm:py-8 border-b border-border/50 bg-gradient-to-b from-secondary/20 to-transparent">
+            <div className="container px-3 sm:px-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-4 sm:mb-6"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Flame className="w-5 h-5 text-destructive" />
+                  <h2 className="text-lg sm:text-xl font-bold">الخدمات الأكثر طلباً</h2>
+                </div>
+                <p className="text-sm text-muted-foreground">الخدمات الأكثر شعبية بين عملائنا</p>
+              </motion.div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                {popularServices.map((service: any, index: number) => (
+                  <motion.div
+                    key={service.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    whileHover={{ y: -4 }}
+                  >
+                    <Card className="h-full overflow-hidden border-border/50 hover:border-primary/30 transition-all group">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="text-xs">
+                              {service.category}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20">
+                              <Flame className="w-3 h-3 ml-1" />
+                              {service.orderCount} طلب
+                            </Badge>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => {
+                              if (!user) {
+                                toast.info("يرجى تسجيل الدخول أولاً");
+                                return;
+                              }
+                              toggleFavorite(service.id);
+                            }}
+                          >
+                            <Heart className={cn("w-4 h-4", isFavorite(service.id) ? "fill-destructive text-destructive" : "text-muted-foreground")} />
+                          </Button>
+                        </div>
+                        
+                        <h3 className="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                          {service.name}
+                        </h3>
+                        
+                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-border/50">
+                          <div>
+                            <p className="text-xs text-muted-foreground">السعر</p>
+                            <p className="font-bold text-primary">${service.price.toFixed(2)}</p>
+                          </div>
+                          <Button size="sm" onClick={() => handleOrderService(service)} className="gap-1">
+                            <ShoppingCart className="w-3.5 h-3.5" />
+                            طلب
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Social Media Platforms Grid */}
         <section className="py-6 sm:py-8 border-b border-border/50">
@@ -519,7 +631,21 @@ const Services = () => {
                                               <span className="text-xs text-muted-foreground">-</span>
                                             )}
                                           </div>
-                                          <div className="col-span-2 text-center">
+                                          <div className="col-span-2 flex justify-center items-center gap-1">
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-8 w-8"
+                                              onClick={() => {
+                                                if (!user) {
+                                                  toast.info("يرجى تسجيل الدخول أولاً");
+                                                  return;
+                                                }
+                                                toggleFavorite(service.id);
+                                              }}
+                                            >
+                                              <Heart className={cn("w-4 h-4", isFavorite(service.id) ? "fill-destructive text-destructive" : "text-muted-foreground hover:text-destructive")} />
+                                            </Button>
                                             <Button 
                                               size="sm" 
                                               onClick={() => handleOrderService(service)}
@@ -559,13 +685,29 @@ const Services = () => {
                                                 </Badge>
                                               )}
                                             </div>
-                                            <Button 
-                                              size="sm" 
-                                              onClick={() => handleOrderService(service)}
-                                            >
-                                              <ShoppingCart className="w-3.5 h-3.5 ml-1" />
-                                              طلب
-                                            </Button>
+                                            <div className="flex gap-1">
+                                              <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8"
+                                                onClick={() => {
+                                                  if (!user) {
+                                                    toast.info("يرجى تسجيل الدخول أولاً");
+                                                    return;
+                                                  }
+                                                  toggleFavorite(service.id);
+                                                }}
+                                              >
+                                                <Heart className={cn("w-4 h-4", isFavorite(service.id) ? "fill-destructive text-destructive" : "text-muted-foreground")} />
+                                              </Button>
+                                              <Button 
+                                                size="sm" 
+                                                onClick={() => handleOrderService(service)}
+                                              >
+                                                <ShoppingCart className="w-3.5 h-3.5 ml-1" />
+                                                طلب
+                                              </Button>
+                                            </div>
                                           </div>
                                         </div>
                                       </motion.div>
