@@ -15,6 +15,7 @@ import {
   Filter,
   ChevronDown,
   ChevronLeft,
+  ChevronRight,
   Layers,
   Instagram,
   Facebook,
@@ -26,14 +27,16 @@ import {
   Globe,
   MoreHorizontal,
   Sparkles,
-  ArrowLeft
+  ArrowLeft,
+  ShoppingCart,
+  Plus
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import EmbeddedOrderForm from "@/components/services/EmbeddedOrderForm";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,6 +81,20 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   Globe,
   Layers,
   MoreHorizontal,
+};
+
+// Color mapping for categories
+const colorMap: Record<string, { bg: string; icon: string; border: string }> = {
+  instagram: { bg: "bg-gradient-to-br from-pink-500 to-purple-600", icon: "text-white", border: "border-pink-500/30" },
+  facebook: { bg: "bg-gradient-to-br from-blue-500 to-blue-600", icon: "text-white", border: "border-blue-500/30" },
+  youtube: { bg: "bg-gradient-to-br from-red-500 to-red-600", icon: "text-white", border: "border-red-500/30" },
+  twitter: { bg: "bg-gradient-to-br from-sky-400 to-sky-500", icon: "text-white", border: "border-sky-500/30" },
+  tiktok: { bg: "bg-gradient-to-br from-gray-900 to-gray-800", icon: "text-white", border: "border-gray-500/30" },
+  telegram: { bg: "bg-gradient-to-br from-blue-400 to-blue-500", icon: "text-white", border: "border-blue-400/30" },
+  linkedin: { bg: "bg-gradient-to-br from-blue-600 to-blue-700", icon: "text-white", border: "border-blue-600/30" },
+  spotify: { bg: "bg-gradient-to-br from-green-500 to-green-600", icon: "text-white", border: "border-green-500/30" },
+  soundcloud: { bg: "bg-gradient-to-br from-orange-500 to-orange-600", icon: "text-white", border: "border-orange-500/30" },
+  default: { bg: "bg-gradient-to-br from-primary to-accent", icon: "text-white", border: "border-primary/30" },
 };
 
 const ClientServicesNew = () => {
@@ -228,13 +245,19 @@ const ClientServicesNew = () => {
     return Globe;
   };
 
-  // Get category color
-  const getCategoryColor = (categoryName: string) => {
-    const dbCategory = categories.find(c => 
-      c.name.toLowerCase() === categoryName.toLowerCase() ||
-      c.name_ar === categoryName
-    );
-    return dbCategory?.color || "from-primary to-accent";
+  // Get category colors
+  const getCategoryColors = (categoryName: string) => {
+    const name = categoryName.toLowerCase();
+    if (name.includes('instagram')) return colorMap.instagram;
+    if (name.includes('facebook')) return colorMap.facebook;
+    if (name.includes('youtube')) return colorMap.youtube;
+    if (name.includes('twitter') || name.includes('x')) return colorMap.twitter;
+    if (name.includes('tiktok')) return colorMap.tiktok;
+    if (name.includes('telegram')) return colorMap.telegram;
+    if (name.includes('linkedin')) return colorMap.linkedin;
+    if (name.includes('spotify')) return colorMap.spotify;
+    if (name.includes('soundcloud')) return colorMap.soundcloud;
+    return colorMap.default;
   };
 
   if (isLoading) {
@@ -253,49 +276,51 @@ const ClientServicesNew = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-4 md:space-y-6">
-        {/* Header */}
+      <div className="space-y-6">
+        {/* Header Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-xl md:rounded-2xl bg-gradient-to-br from-primary/10 via-accent/5 to-transparent border border-primary/10 p-4 md:p-6"
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card via-card to-muted/20 border border-border/50 p-6"
         >
-          <div className="absolute top-0 left-0 w-24 md:w-32 h-24 md:h-32 bg-primary/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-20 md:w-24 h-20 md:h-24 bg-accent/10 rounded-full blur-2xl" />
+          {/* Decorative elements */}
+          <div className="absolute top-0 left-0 w-40 h-40 bg-primary/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-2xl" />
           
-          <div className="relative flex flex-col gap-4">
-            <div className="flex items-center gap-3 md:gap-4">
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-primary to-accent p-2.5 md:p-3 shadow-lg shadow-primary/20">
+          <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            {/* Title & Stats */}
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent p-3 shadow-lg shadow-primary/20">
                 <Package className="w-full h-full text-white" />
               </div>
               <div>
-                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">الخدمات</h1>
-                <p className="text-muted-foreground text-xs md:text-sm">اختر القسم ثم الخدمة</p>
+                <h1 className="text-2xl md:text-3xl font-bold">الخدمات</h1>
+                <p className="text-muted-foreground text-sm">اختر القسم ثم الخدمة</p>
               </div>
             </div>
             
-            {/* Quick stats */}
-            <div className="flex items-center gap-2 md:gap-4 flex-wrap">
-              <div className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg md:rounded-xl bg-card/50 backdrop-blur-sm border border-border/50">
-                <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-warning" />
-                <span className="text-xs md:text-sm font-medium">{services.length} خدمة</span>
+            {/* Quick Stats */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-background/80 backdrop-blur-sm border border-border/50">
+                <Zap className="w-4 h-4 text-warning" />
+                <span className="text-sm font-semibold">{services.length} خدمة</span>
               </div>
-              <div className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg md:rounded-xl bg-card/50 backdrop-blur-sm border border-border/50">
-                <Layers className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" />
-                <span className="text-xs md:text-sm font-medium">{serviceCategories.length} قسم</span>
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-background/80 backdrop-blur-sm border border-border/50">
+                <Layers className="w-4 h-4 text-primary" />
+                <span className="text-sm font-semibold">{serviceCategories.length} قسم</span>
               </div>
-              <div className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg md:rounded-xl bg-card/50 backdrop-blur-sm border border-border/50">
-                <Heart className="w-3.5 h-3.5 md:w-4 md:h-4 text-destructive" />
-                <span className="text-xs md:text-sm font-medium">{favorites.length} مفضلة</span>
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-background/80 backdrop-blur-sm border border-border/50">
+                <Heart className="w-4 h-4 text-destructive" />
+                <span className="text-sm font-semibold">{favorites.length} مفضلة</span>
               </div>
             </div>
           </div>
         </motion.div>
 
-        {/* Main Content */}
-        <div className="flex flex-col lg:flex-row-reverse gap-4 md:gap-6">
-          {/* Order Form - Right Side (Desktop) / Modal (Mobile) */}
-          <div className="hidden lg:block lg:w-[380px] xl:w-[420px] shrink-0">
+        {/* Main Content - Two Column Layout */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left Side - Order Form (Desktop) */}
+          <div className="hidden lg:block lg:w-[400px] shrink-0 order-2 lg:order-1">
             <div className="sticky top-4">
               <AnimatePresence mode="wait">
                 {selectedService ? (
@@ -315,13 +340,13 @@ const ClientServicesNew = () => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    <Card className="border-border/50 border-dashed bg-muted/20">
-                      <CardContent className="py-20 text-center">
-                        <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-muted/50 flex items-center justify-center">
-                          <Sparkles className="w-10 h-10 text-muted-foreground/30" />
+                    <Card className="border-border/50 border-dashed bg-muted/10">
+                      <CardContent className="py-24 text-center">
+                        <div className="w-24 h-24 mx-auto mb-6 rounded-2xl bg-muted/30 flex items-center justify-center">
+                          <Sparkles className="w-12 h-12 text-muted-foreground/30" />
                         </div>
-                        <h3 className="font-bold text-lg mb-2">اختر خدمة للطلب</h3>
-                        <p className="text-sm text-muted-foreground max-w-[200px] mx-auto">
+                        <h3 className="font-bold text-xl mb-3">اختر خدمة للطلب</h3>
+                        <p className="text-sm text-muted-foreground max-w-[220px] mx-auto leading-relaxed">
                           اختر قسم من الأقسام ثم انقر على الخدمة المطلوبة
                         </p>
                       </CardContent>
@@ -339,7 +364,7 @@ const ClientServicesNew = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="lg:hidden fixed inset-0 z-50 bg-background/95 backdrop-blur-sm"
+                className="lg:hidden fixed inset-0 z-50 bg-background/98 backdrop-blur-sm"
               >
                 <div className="h-full overflow-y-auto p-4 pb-20">
                   <Button
@@ -371,28 +396,46 @@ const ClientServicesNew = () => {
             )}
           </AnimatePresence>
 
-          {/* Services & Categories - Left Side */}
-          <div className="flex-1 min-w-0 space-y-4">
-            {/* Categories Grid - Show when no category selected */}
-            <AnimatePresence mode="wait">
-              {!selectedCategory ? (
-                <motion.div
-                  key="categories"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                >
-                  <Card className="border-border/50">
-                    <CardContent className="p-3 md:p-4">
-                      <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 flex items-center gap-2">
-                        <Layers className="w-4 h-4 md:w-5 md:h-5 text-primary" />
-                        اختر القسم
-                      </h3>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-3">
+          {/* Right Side - Categories & Services */}
+          <div className="flex-1 min-w-0 space-y-6 order-1 lg:order-2">
+            {/* Category Selection */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <Card className="border-border/50 overflow-hidden">
+                <CardContent className="p-4 md:p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-bold text-lg flex items-center gap-2">
+                      <Layers className="w-5 h-5 text-primary" />
+                      اختر القسم
+                    </h3>
+                    {selectedCategory && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedCategory(null);
+                          setSearchQuery("");
+                          setSelectedService(null);
+                        }}
+                        className="text-xs"
+                      >
+                        عرض الكل
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {/* Horizontal Scrollable Categories */}
+                  <div className="relative">
+                    <ScrollArea className="w-full whitespace-nowrap">
+                      <div className="flex gap-3 pb-2">
                         {serviceCategories.map((category, index) => {
                           const IconComponent = getCategoryIcon(category);
+                          const colors = getCategoryColors(category);
                           const count = categoryCounts[category] || 0;
-                          const color = getCategoryColor(category);
+                          const isSelected = selectedCategory === category;
                           
                           return (
                             <motion.button
@@ -400,206 +443,247 @@ const ClientServicesNew = () => {
                               initial={{ opacity: 0, scale: 0.9 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ delay: index * 0.03 }}
-                              whileHover={{ scale: 1.02, y: -2 }}
+                              whileHover={{ scale: 1.02 }}
                               whileTap={{ scale: 0.98 }}
-                              onClick={() => setSelectedCategory(category)}
-                              className="group relative flex flex-col items-center gap-2 p-4 md:p-5 rounded-xl border border-border/50 bg-card hover:border-primary/50 hover:bg-primary/5 transition-all"
+                              onClick={() => {
+                                setSelectedCategory(isSelected ? null : category);
+                                setSearchQuery("");
+                              }}
+                              className={cn(
+                                "flex flex-col items-center gap-2.5 p-4 rounded-xl border-2 transition-all min-w-[100px]",
+                                isSelected 
+                                  ? `${colors.border} bg-primary/5 ring-2 ring-primary/20` 
+                                  : "border-border/50 bg-card hover:border-primary/30 hover:bg-muted/30"
+                              )}
                             >
                               <div className={cn(
-                                "w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center bg-gradient-to-br shadow-lg transition-transform group-hover:scale-110",
-                                color
+                                "w-12 h-12 rounded-xl flex items-center justify-center shadow-lg transition-transform",
+                                colors.bg
                               )}>
-                                <IconComponent className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                                <IconComponent className={cn("w-6 h-6", colors.icon)} />
                               </div>
                               <div className="text-center">
-                                <p className="font-semibold text-sm md:text-base truncate max-w-full">{category}</p>
-                                <p className="text-[11px] md:text-xs text-muted-foreground">{count} خدمة</p>
+                                <p className="font-semibold text-sm truncate max-w-[80px]">{category}</p>
+                                <p className="text-[11px] text-muted-foreground">{count} خدمة</p>
                               </div>
-                              <ChevronLeft className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                             </motion.button>
                           );
                         })}
                       </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ) : (
+                      <ScrollBar orientation="horizontal" />
+                    </ScrollArea>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Services Section */}
+            <AnimatePresence mode="wait">
+              {selectedCategory ? (
                 <motion.div
                   key="services"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="space-y-3 md:space-y-4"
+                  className="space-y-4"
                 >
-                  {/* Back to Categories & Category Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedCategory(null);
-                        setSearchQuery("");
-                      }}
-                      className="gap-2 w-fit"
-                    >
-                      <ArrowLeft className="w-4 h-4" />
-                      جميع الأقسام
-                    </Button>
-                    
-                    <div className="flex items-center gap-3 flex-1">
-                      {(() => {
-                        const IconComponent = getCategoryIcon(selectedCategory);
-                        const color = getCategoryColor(selectedCategory);
-                        return (
-                          <div className={cn(
-                            "w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br shadow-lg",
-                            color
-                          )}>
-                            <IconComponent className="w-5 h-5 text-white" />
-                          </div>
-                        );
-                      })()}
-                      <div>
-                        <h2 className="font-bold text-lg md:text-xl">{selectedCategory}</h2>
-                        <p className="text-xs text-muted-foreground">{filteredServices.length} خدمة</p>
+                  {/* Search & Filter Bar */}
+                  <Card className="border-border/50">
+                    <CardContent className="p-4">
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="relative flex-1">
+                          <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            placeholder="بحث في الخدمات..."
+                            className="pr-11 h-11 bg-muted/30 border-border/50"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                          />
+                        </div>
+                        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+                          <SelectTrigger className="w-full sm:w-[160px] h-11">
+                            <Filter className="w-4 h-4 ml-2" />
+                            <SelectValue placeholder="ترتيب" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="name">الاسم</SelectItem>
+                            <SelectItem value="price-asc">السعر: الأقل</SelectItem>
+                            <SelectItem value="price-desc">السعر: الأعلى</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
 
-                  {/* Search & Filters */}
-                  <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
-                    <div className="relative flex-1">
-                      <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        placeholder="بحث في الخدمات..."
-                        className="pr-10 h-10 md:h-11 bg-card/50 border-border/50 rounded-lg md:rounded-xl text-sm"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                      />
+                  {/* Category Header */}
+                  <div className="flex items-center gap-3">
+                    {(() => {
+                      const IconComponent = getCategoryIcon(selectedCategory);
+                      const colors = getCategoryColors(selectedCategory);
+                      return (
+                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", colors.bg)}>
+                          <IconComponent className="w-5 h-5 text-white" />
+                        </div>
+                      );
+                    })()}
+                    <div>
+                      <h2 className="font-bold text-lg">{selectedCategory}</h2>
+                      <p className="text-sm text-muted-foreground">{filteredServices.length} خدمة متاحة</p>
                     </div>
-                    
-                    <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
-                      <SelectTrigger className="w-full sm:w-40 h-10 md:h-11 rounded-lg md:rounded-xl text-sm">
-                        <Filter className="w-4 h-4 ml-2" />
-                        <SelectValue placeholder="ترتيب" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="name">الاسم</SelectItem>
-                        <SelectItem value="price-asc">السعر: الأقل</SelectItem>
-                        <SelectItem value="price-desc">السعر: الأعلى</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
 
                   {/* Services List */}
-                  <Card className="border-border/50 overflow-hidden">
-                    {filteredServices.length === 0 ? (
-                      <CardContent className="py-12 text-center">
-                        <Package className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
-                        <p className="text-sm text-muted-foreground">لا توجد نتائج</p>
-                        {searchQuery && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="mt-2"
-                            onClick={() => setSearchQuery("")}
-                          >
-                            مسح البحث
-                          </Button>
-                        )}
+                  {filteredServices.length === 0 ? (
+                    <Card className="border-border/50">
+                      <CardContent className="py-16 text-center">
+                        <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
+                        <h3 className="font-bold text-lg mb-2">لا توجد خدمات</h3>
+                        <p className="text-sm text-muted-foreground">
+                          لا توجد نتائج مطابقة للبحث
+                        </p>
                       </CardContent>
-                    ) : (
-                      <ScrollArea className="max-h-[60vh] md:max-h-[70vh]">
-                        <div className="divide-y divide-border/50">
-                          {filteredServices.map((service, index) => (
-                            <motion.button
-                              key={service.id}
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ delay: index * 0.02 }}
-                              onClick={() => handleSelectService(service)}
-                              className={cn(
-                                "w-full text-right p-3 md:p-4 hover:bg-muted/50 transition-all",
-                                selectedService?.id === service.id && "bg-primary/5 border-r-2 border-r-primary"
-                              )}
-                            >
-                              <div className="flex items-start gap-3">
-                                {/* Service Number */}
-                                <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-muted flex items-center justify-center shrink-0 text-xs font-bold text-muted-foreground">
-                                  {service.external_service_id || index + 1}
-                                </div>
-                                
+                    </Card>
+                  ) : (
+                    <div className="space-y-2">
+                      {filteredServices.map((service, index) => (
+                        <motion.div
+                          key={service.id}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.02 }}
+                        >
+                          <Card 
+                            className={cn(
+                              "border-border/50 hover:border-primary/40 transition-all cursor-pointer group",
+                              selectedService?.id === service.id && "border-primary ring-2 ring-primary/20 bg-primary/5"
+                            )}
+                            onClick={() => handleSelectService(service)}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between gap-4">
                                 {/* Service Info */}
                                 <div className="flex-1 min-w-0">
-                                  <h4 className={cn(
-                                    "font-medium text-sm leading-relaxed text-right",
-                                    selectedService?.id === service.id && "text-primary"
-                                  )}>
-                                    {service.name}
-                                  </h4>
-                                  
-                                  {/* Features Badges */}
-                                  <div className="flex flex-wrap gap-1 mt-1.5">
-                                    {service.features?.min && (
-                                      <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal">
-                                        أدنى: {service.features.min.toLocaleString('ar-SA')}
-                                      </Badge>
-                                    )}
-                                    {service.features?.max && (
-                                      <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal">
-                                        أقصى: {service.features.max.toLocaleString('ar-SA')}
-                                      </Badge>
-                                    )}
-                                    {service.refill_enabled && (
-                                      <Badge className="text-[10px] h-5 px-1.5 bg-success/10 text-success border-success/20 font-normal">
-                                        <Shield className="w-3 h-3 ml-0.5" />
-                                        ضمان
-                                      </Badge>
-                                    )}
+                                  <div className="flex items-start gap-3">
+                                    <div className="hidden sm:flex w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 items-center justify-center shrink-0 group-hover:from-primary/20 group-hover:to-accent/20 transition-colors">
+                                      <Star className="w-5 h-5 text-primary" />
+                                    </div>
+                                    
+                                    <div className="flex-1 min-w-0">
+                                      <h3 className="font-semibold text-sm leading-relaxed group-hover:text-primary transition-colors line-clamp-2">
+                                        {service.name}
+                                      </h3>
+                                      
+                                      {/* Badges */}
+                                      <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                                        {service.external_service_id && (
+                                          <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-muted/50">
+                                            #{service.external_service_id}
+                                          </Badge>
+                                        )}
+                                        {service.refill_enabled && (
+                                          <Badge className="text-[10px] h-5 px-1.5 bg-success/10 text-success border-success/20">
+                                            <Shield className="w-3 h-3 mr-0.5" />
+                                            ضمان
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                                 
                                 {/* Price & Actions */}
-                                <div className="flex items-center gap-2 shrink-0">
+                                <div className="flex items-center gap-3 shrink-0">
                                   <div className="text-left">
-                                    <p className="text-base md:text-lg font-bold bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
-                                      {service.price.toFixed(2)}
-                                    </p>
-                                    <p className="text-[10px] text-muted-foreground">ر.س/1000</p>
+                                    <div className="flex items-baseline gap-1">
+                                      <span className="text-lg font-bold text-primary">
+                                        {service.price.toFixed(2)}
+                                      </span>
+                                      <span className="text-[10px] text-muted-foreground">ر.س</span>
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground">لكل 1000</p>
                                   </div>
                                   
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleFavorite(service.id);
-                                    }}
-                                    className={cn(
-                                      "w-8 h-8 rounded-lg transition-all",
-                                      checkIsFavorite(service.id) 
-                                        ? "text-destructive bg-destructive/10" 
-                                        : "text-muted-foreground hover:text-destructive"
-                                    )}
-                                  >
-                                    <Heart className={cn(
-                                      "w-4 h-4",
-                                      checkIsFavorite(service.id) && "fill-current"
-                                    )} />
-                                  </Button>
+                                  <div className="flex gap-1.5">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-9 w-9 rounded-lg"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleFavorite(service.id);
+                                      }}
+                                    >
+                                      <Heart className={cn(
+                                        "w-4 h-4 transition-all",
+                                        checkIsFavorite(service.id) 
+                                          ? "fill-destructive text-destructive" 
+                                          : "text-muted-foreground"
+                                      )} />
+                                    </Button>
+                                    <Button
+                                      size="icon"
+                                      className="h-9 w-9 rounded-lg bg-gradient-to-l from-primary to-accent hover:opacity-90"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleSelectService(service);
+                                      }}
+                                    >
+                                      <Plus className="w-4 h-4 text-white" />
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
-                            </motion.button>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    )}
-                  </Card>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="empty-state"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="text-center py-12"
+                >
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-muted/30 flex items-center justify-center">
+                    <ChevronRight className="w-10 h-10 text-muted-foreground/30" />
+                  </div>
+                  <h3 className="font-bold text-xl mb-3">اختر قسماً للبدء</h3>
+                  <p className="text-sm text-muted-foreground max-w-[280px] mx-auto">
+                    اختر أحد الأقسام أعلاه لعرض الخدمات المتاحة
+                  </p>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         </div>
+
+        {/* New Order Button - Mobile Fixed */}
+        {selectedCategory && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="lg:hidden fixed bottom-20 left-4 right-4 z-40"
+          >
+            <Button
+              size="lg"
+              className="w-full h-14 text-lg gap-3 bg-gradient-to-l from-primary to-accent hover:opacity-90 shadow-2xl shadow-primary/30 rounded-2xl"
+              onClick={() => {
+                if (selectedService) {
+                  setShowMobileForm(true);
+                } else {
+                  toast.info("اختر خدمة أولاً");
+                }
+              }}
+            >
+              <ShoppingCart className="w-5 h-5" />
+              طلب جديد
+            </Button>
+          </motion.div>
+        )}
       </div>
     </ClientDashboardLayout>
   );
