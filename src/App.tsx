@@ -27,6 +27,7 @@ import ClientSupport from "./pages/dashboard/ClientSupport";
 import ClientSettings from "./pages/dashboard/ClientSettings";
 import ClientAPI from "./pages/dashboard/ClientAPI";
 import ClientDeposit from "./pages/dashboard/ClientDeposit";
+import ClientDeposits from "./pages/dashboard/ClientDeposits";
 
 // Admin Dashboard
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -110,6 +111,11 @@ const App = () => (
                   <Route path="/dashboard/deposit" element={
                     <ProtectedRoute>
                       <ClientDeposit />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/deposits" element={
+                    <ProtectedRoute>
+                      <ClientDeposits />
                     </ProtectedRoute>
                   } />
                   
