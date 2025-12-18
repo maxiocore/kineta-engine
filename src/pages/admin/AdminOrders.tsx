@@ -20,7 +20,8 @@ import {
   SlidersHorizontal,
   X,
   RotateCcw,
-  ArrowUpDown
+  ArrowUpDown,
+  Trash2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +32,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -121,6 +123,8 @@ const AdminOrders = () => {
   const [adminNotes, setAdminNotes] = useState("");
   const [updating, setUpdating] = useState(false);
   const [stats, setStats] = useState<OrderStats>({ pending: 0, in_progress: 0, completed: 0, total: 0, cancelled: 0 });
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const activeFiltersCount = [
     statusFilter !== "all",
@@ -214,6 +218,62 @@ const AdminOrders = () => {
     setDateFrom(undefined);
     setDateTo(undefined);
     setSearchQuery("");
+  };
+
+  const handleDeleteOrder = async (id: string) => {
+    if (!confirm("هل أنت متأكد من حذف هذا الطلب؟")) return;
+
+    try {
+      // Delete order status history first
+      await supabase.from("order_status_history").delete().eq("order_id", id);
+      // Delete order
+      const { error } = await supabase.from("orders").delete().eq("id", id);
+
+      if (error) throw error;
+      toast.success("تم حذف الطلب بنجاح");
+      setSelectedIds(prev => prev.filter(i => i !== id));
+      fetchOrders();
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      toast.error("فشل في حذف الطلب");
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`هل أنت متأكد من حذف ${selectedIds.length} طلب؟`)) return;
+
+    setBulkDeleting(true);
+    try {
+      // Delete order status history for all selected orders
+      await supabase.from("order_status_history").delete().in("order_id", selectedIds);
+      // Delete orders
+      const { error } = await supabase.from("orders").delete().in("id", selectedIds);
+
+      if (error) throw error;
+      toast.success(`تم حذف ${selectedIds.length} طلب بنجاح`);
+      setSelectedIds([]);
+      fetchOrders();
+    } catch (error) {
+      console.error("Error bulk deleting orders:", error);
+      toast.error("فشل في حذف الطلبات");
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredOrders.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredOrders.map(o => o.id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
   };
 
   const filteredOrders = orders.filter(order => {
@@ -335,6 +395,23 @@ const AdminOrders = () => {
                   <Button variant="ghost" size="icon" onClick={resetFilters} className="text-muted-foreground hover:text-foreground">
                     <RotateCcw className="w-4 h-4" />
                   </Button>
+                )}
+                {selectedIds.length > 0 && (
+                  <div className="flex items-center gap-2 mr-auto">
+                    <span className="text-sm text-muted-foreground">
+                      {selectedIds.length} محدد
+                    </span>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleBulkDelete}
+                      disabled={bulkDeleting}
+                      className="gap-2"
+                    >
+                      {bulkDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                      حذف المحدد
+                    </Button>
+                  </div>
                 )}
               </div>
 
@@ -536,6 +613,14 @@ const AdminOrders = () => {
                 </motion.div>
               ) : (
                 <div className="space-y-3">
+                  {/* Select All */}
+                  <div className="flex items-center gap-2 pb-2 border-b border-border/30">
+                    <Checkbox
+                      checked={selectedIds.length === filteredOrders.length && filteredOrders.length > 0}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                    <span className="text-sm text-muted-foreground">تحديد الكل</span>
+                  </div>
                   <AnimatePresence>
                     {filteredOrders.map((order, index) => {
                       const statusConfig = getStatusConfig(order.status);
@@ -547,19 +632,23 @@ const AdminOrders = () => {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
                           transition={{ delay: index * 0.03 }}
-                          whileHover={{ x: -4 }}
-                          className="p-4 rounded-xl bg-secondary/30 hover:bg-secondary/50 border border-border/30 hover:border-primary/20 transition-all cursor-pointer group"
-                          onClick={() => openOrderDetails(order)}
+                          className={`p-4 rounded-xl bg-secondary/30 hover:bg-secondary/50 border border-border/30 hover:border-primary/20 transition-all group ${selectedIds.includes(order.id) ? "bg-primary/5 border-primary/30" : ""}`}
                         >
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div className="flex items-center gap-4">
+                              <Checkbox
+                                checked={selectedIds.includes(order.id)}
+                                onCheckedChange={() => toggleSelect(order.id)}
+                                onClick={(e) => e.stopPropagation()}
+                              />
                               <motion.div 
-                                className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20"
+                                className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 cursor-pointer"
                                 whileHover={{ scale: 1.1 }}
+                                onClick={() => openOrderDetails(order)}
                               >
                                 <ShoppingBag className="w-6 h-6 text-primary" />
                               </motion.div>
-                              <div>
+                              <div className="cursor-pointer" onClick={() => openOrderDetails(order)}>
                                 <div className="flex items-center gap-2 mb-1">
                                   <span className="font-bold">{order.order_number}</span>
                                   <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusConfig.color}`}>
@@ -584,14 +673,24 @@ const AdminOrders = () => {
                                   {format(new Date(order.created_at), "d MMM yyyy", { locale: ar })}
                                 </p>
                               </div>
-                              <motion.div
-                                className="opacity-0 group-hover:opacity-100 transition-opacity"
-                                whileHover={{ scale: 1.1 }}
-                              >
-                                <Button variant="ghost" size="icon" className="rounded-full">
-                                  <ArrowLeft className="w-4 h-4" />
+                              <div className="flex items-center gap-2">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={(e) => { e.stopPropagation(); openOrderDetails(order); }}
+                                >
+                                  <Eye className="w-4 h-4" />
                                 </Button>
-                              </motion.div>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order.id); }}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         </motion.div>
@@ -678,25 +777,37 @@ const AdminOrders = () => {
                   />
                 </div>
 
-                <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                <div className="flex gap-2">
+                  <motion.div className="flex-1" whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                    <Button 
+                      onClick={handleUpdateOrder} 
+                      disabled={updating} 
+                      className="w-full bg-gradient-to-l from-primary to-cyan-500 text-primary-foreground shadow-lg shadow-primary/20"
+                    >
+                      {updating ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin ml-2" />
+                          جاري الحفظ...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-4 h-4 ml-2" />
+                          حفظ التغييرات
+                        </>
+                      )}
+                    </Button>
+                  </motion.div>
                   <Button 
-                    onClick={handleUpdateOrder} 
-                    disabled={updating} 
-                    className="w-full bg-gradient-to-l from-primary to-cyan-500 text-primary-foreground shadow-lg shadow-primary/20"
+                    variant="destructive" 
+                    size="icon"
+                    onClick={() => {
+                      handleDeleteOrder(selectedOrder.id);
+                      setSelectedOrder(null);
+                    }}
                   >
-                    {updating ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin ml-2" />
-                        جاري الحفظ...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="w-4 h-4 ml-2" />
-                        حفظ التغييرات
-                      </>
-                    )}
+                    <Trash2 className="w-4 h-4" />
                   </Button>
-                </motion.div>
+                </div>
               </motion.div>
             )}
           </DialogContent>

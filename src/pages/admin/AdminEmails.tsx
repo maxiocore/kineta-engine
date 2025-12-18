@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -111,6 +112,12 @@ const AdminEmails = () => {
   const [stats, setStats] = useState<EmailStats>({ total: 0, delivered: 0, pending: 0, failed: 0 });
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Selection states
+  const [selectedEmailIds, setSelectedEmailIds] = useState<string[]>([]);
+  const [selectedTemplateIds, setSelectedTemplateIds] = useState<string[]>([]);
+  const [selectedCampaignIds, setSelectedCampaignIds] = useState<string[]>([]);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   
   // Dialog states
   const [newEmailDialogOpen, setNewEmailDialogOpen] = useState(false);
@@ -369,7 +376,56 @@ const AdminEmails = () => {
       toast.error("حدث خطأ في حذف الحملة");
     } else {
       toast.success("تم حذف الحملة بنجاح");
+      setSelectedCampaignIds(prev => prev.filter(i => i !== id));
     }
+  };
+
+  const handleBulkDeleteEmails = async () => {
+    if (selectedEmailIds.length === 0) return;
+    if (!confirm(`هل أنت متأكد من حذف ${selectedEmailIds.length} رسالة؟`)) return;
+
+    setBulkDeleting(true);
+    const { error } = await supabase.from('emails').delete().in('id', selectedEmailIds);
+    
+    if (error) {
+      toast.error("حدث خطأ في حذف الرسائل");
+    } else {
+      toast.success(`تم حذف ${selectedEmailIds.length} رسالة بنجاح`);
+      setSelectedEmailIds([]);
+    }
+    setBulkDeleting(false);
+  };
+
+  const handleBulkDeleteTemplates = async () => {
+    if (selectedTemplateIds.length === 0) return;
+    if (!confirm(`هل أنت متأكد من حذف ${selectedTemplateIds.length} قالب؟`)) return;
+
+    setBulkDeleting(true);
+    const { error } = await supabase.from('email_templates').delete().in('id', selectedTemplateIds);
+    
+    if (error) {
+      toast.error("حدث خطأ في حذف القوالب");
+    } else {
+      toast.success(`تم حذف ${selectedTemplateIds.length} قالب بنجاح`);
+      setSelectedTemplateIds([]);
+    }
+    setBulkDeleting(false);
+  };
+
+  const handleBulkDeleteCampaigns = async () => {
+    if (selectedCampaignIds.length === 0) return;
+    if (!confirm(`هل أنت متأكد من حذف ${selectedCampaignIds.length} حملة؟`)) return;
+
+    setBulkDeleting(true);
+    const { error } = await supabase.from('email_campaigns').delete().in('id', selectedCampaignIds);
+    
+    if (error) {
+      toast.error("حدث خطأ في حذف الحملات");
+    } else {
+      toast.success(`تم حذف ${selectedCampaignIds.length} حملة بنجاح`);
+      setSelectedCampaignIds([]);
+    }
+    setBulkDeleting(false);
   };
 
   const handleTemplateChange = (templateId: string) => {

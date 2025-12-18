@@ -20,6 +20,7 @@ import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -67,6 +68,8 @@ const AdminCoupons = () => {
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   
   const [formData, setFormData] = useState({
     code: "",
@@ -187,11 +190,49 @@ const AdminCoupons = () => {
 
       if (error) throw error;
       toast.success("تم حذف الكوبون بنجاح");
+      setSelectedIds(prev => prev.filter(i => i !== id));
       fetchCoupons();
     } catch (error: any) {
       console.error("Error deleting coupon:", error);
       toast.error("فشل في حذف الكوبون");
     }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`هل أنت متأكد من حذف ${selectedIds.length} كوبون؟`)) return;
+
+    setBulkDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("coupons")
+        .delete()
+        .in("id", selectedIds);
+
+      if (error) throw error;
+      toast.success(`تم حذف ${selectedIds.length} كوبون بنجاح`);
+      setSelectedIds([]);
+      fetchCoupons();
+    } catch (error: any) {
+      console.error("Error bulk deleting coupons:", error);
+      toast.error("فشل في حذف الكوبونات");
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredCoupons.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredCoupons.map(c => c.id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
   };
 
   const handleToggleStatus = async (coupon: Coupon) => {
@@ -246,15 +287,34 @@ const AdminCoupons = () => {
           </Button>
         </div>
 
-        {/* Search */}
-        <div className="relative max-w-md">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="بحث بكود الكوبون..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pr-10"
-          />
+        {/* Search & Bulk Actions */}
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="relative max-w-md flex-1">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="بحث بكود الكوبون..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pr-10"
+            />
+          </div>
+          {selectedIds.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                {selectedIds.length} محدد
+              </span>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkDelete}
+                disabled={bulkDeleting}
+                className="gap-2"
+              >
+                {bulkDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                حذف المحدد
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Stats Cards */}
@@ -341,6 +401,12 @@ const AdminCoupons = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={selectedIds.length === filteredCoupons.length && filteredCoupons.length > 0}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
                   <TableHead>الكود</TableHead>
                   <TableHead>نوع الخصم</TableHead>
                   <TableHead>القيمة</TableHead>
@@ -353,7 +419,13 @@ const AdminCoupons = () => {
               </TableHeader>
               <TableBody>
                 {filteredCoupons.map((coupon) => (
-                  <TableRow key={coupon.id}>
+                  <TableRow key={coupon.id} className={selectedIds.includes(coupon.id) ? "bg-primary/5" : ""}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.includes(coupon.id)}
+                        onCheckedChange={() => toggleSelect(coupon.id)}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <code className="px-2 py-1 bg-secondary rounded font-mono text-sm">
