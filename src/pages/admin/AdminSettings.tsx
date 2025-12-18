@@ -13,6 +13,7 @@ import SecuritySettings from "@/components/admin/settings/SecuritySettings";
 import SystemInfoSettings from "@/components/admin/settings/SystemInfoSettings";
 import MaintenanceSettings from "@/components/admin/settings/MaintenanceSettings";
 import AppearanceSettings from "@/components/admin/settings/AppearanceSettings";
+import AuditLogsSettings from "@/components/admin/settings/AuditLogsSettings";
 
 const AdminSettings = () => {
   const { settings, loading, saving, updateSetting, updateMultipleSettings, refetch } = useSystemSettings();
@@ -102,6 +103,9 @@ const AdminSettings = () => {
           />
           
           <AppearanceSettings />
+          
+          {/* Audit Logs - Full width */}
+          <AuditLogsSettings />
         </div>
 
         {/* Footer Status */}
