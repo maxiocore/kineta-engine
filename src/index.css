@@ -67,7 +67,7 @@
   }
 
   .dark {
-    --background: 222 47% 6%;
+    --background: 222 47% 5%;
     --foreground: 210 40% 98%;
 
     --card: 222 47% 8%;
@@ -76,60 +76,107 @@
     --popover: 222 47% 8%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 199 89% 48%;
-    --primary-foreground: 222 47% 6%;
+    --primary: 199 89% 55%;
+    --primary-foreground: 222 47% 5%;
 
-    --secondary: 222 47% 12%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 217 33% 14%;
+    --secondary-foreground: 210 40% 95%;
 
-    --muted: 222 47% 14%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 217 33% 12%;
+    --muted-foreground: 215 20% 60%;
 
-    --accent: 262 83% 68%;
+    --accent: 262 83% 70%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 70% 55%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 222 47% 16%;
-    --input: 222 47% 16%;
-    --ring: 199 89% 48%;
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 199 89% 55%;
 
-    --success: 142 76% 46%;
-    --success-foreground: 222 47% 6%;
-    --warning: 38 92% 50%;
+    --success: 142 76% 50%;
+    --success-foreground: 222 47% 5%;
+    --warning: 38 92% 55%;
 
-    /* Brand colors - Cyan/Blue theme */
-    --brand: 199 89% 48%;
-    --brand-light: 187 100% 50%;
-    --brand-dark: 210 100% 60%;
+    /* Brand colors - Enhanced for dark mode */
+    --brand: 199 89% 55%;
+    --brand-light: 187 100% 60%;
+    --brand-dark: 210 100% 65%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(199, 89%, 48%) 0%, hsl(262, 83%, 68%) 100%);
-    --gradient-brand: linear-gradient(135deg, hsl(187, 100%, 50%) 0%, hsl(199, 89%, 48%) 50%, hsl(210, 100%, 60%) 100%);
-    --gradient-dark: linear-gradient(180deg, hsl(222, 47%, 6%) 0%, hsl(222, 47%, 3%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(199, 89%, 55%) 0%, hsl(262, 83%, 70%) 100%);
+    --gradient-brand: linear-gradient(135deg, hsl(187, 100%, 55%) 0%, hsl(199, 89%, 55%) 50%, hsl(210, 100%, 65%) 100%);
+    --gradient-dark: linear-gradient(180deg, hsl(222, 47%, 5%) 0%, hsl(222, 47%, 3%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(222, 47%, 10%) 0%, hsl(222, 47%, 6%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(199, 89%, 48%, 0.15) 0%, transparent 70%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(199, 89%, 55%, 0.2) 0%, transparent 70%);
 
-    --shadow-glow: 0 0 60px hsl(199, 89%, 48%, 0.3);
-    --shadow-brand: 0 10px 40px hsl(199, 89%, 48%, 0.35);
-    --shadow-card: 0 25px 50px -12px hsl(222, 47%, 3%, 0.5);
-    --shadow-elevated: 0 20px 40px hsl(222, 47%, 3%, 0.4);
+    --shadow-glow: 0 0 80px hsl(199, 89%, 55%, 0.35);
+    --shadow-brand: 0 10px 50px hsl(199, 89%, 55%, 0.4);
+    --shadow-card: 0 25px 60px -12px hsl(222, 47%, 2%, 0.6);
+    --shadow-elevated: 0 20px 50px hsl(222, 47%, 2%, 0.5);
 
-    --sidebar-background: 222 47% 8%;
+    --sidebar-background: 222 47% 7%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 199 89% 48%;
-    --sidebar-primary-foreground: 222 47% 6%;
-    --sidebar-accent: 222 47% 14%;
+    --sidebar-primary: 199 89% 55%;
+    --sidebar-primary-foreground: 222 47% 5%;
+    --sidebar-accent: 217 33% 15%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222 47% 16%;
-    --sidebar-ring: 199 89% 48%;
+    --sidebar-border: 217 33% 18%;
+    --sidebar-ring: 199 89% 55%;
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
+* {
+  @apply border-border;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.15s ease;
+}
+
+/* Smooth theme transitions */
+html {
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark mode enhancements */
+.dark {
+  color-scheme: dark;
+}
+
+.dark .glass-effect {
+  background: hsl(222 47% 9% / 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid hsl(217 33% 20% / 0.5);
+}
+
+.glass-effect {
+  background: hsl(0 0% 100% / 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid hsl(210 20% 90% / 0.5);
+}
+
+/* Glow utilities */
+.glow-primary {
+  box-shadow: var(--glow-primary);
+}
+
+.glow-accent {
+  box-shadow: var(--glow-accent);
+}
+
+/* Dark mode card hover effects */
+.dark .card-hover:hover {
+  box-shadow: var(--shadow-lg), var(--glow-primary);
+  transform: translateY(-2px);
+}
+
+.card-hover:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
   html {
     direction: rtl;
