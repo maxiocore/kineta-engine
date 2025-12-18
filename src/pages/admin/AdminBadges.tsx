@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 import {
   Award,
   Plus,
@@ -10,10 +12,14 @@ import {
   Users,
   TrendingUp,
   Trophy,
+  History,
+  UserPlus,
+  UserMinus,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -55,6 +61,23 @@ interface BadgeType {
   created_at: string;
 }
 
+interface BadgeActivityLog {
+  id: string;
+  action: string;
+  created_at: string;
+  user_email: string | null;
+  new_value: {
+    badge_name?: string;
+    user_email?: string;
+    badge_id?: string;
+    user_id?: string;
+  } | null;
+  old_value: {
+    badge_name?: string;
+    user_email?: string;
+  } | null;
+}
+
 const EMOJI_OPTIONS = ["🌟", "⭐", "🥉", "🥈", "🥇", "💎", "👑", "🏆", "🎖️", "🔥", "💫", "✨", "🎯", "🚀", "💰"];
 
 const COLOR_OPTIONS = [
@@ -85,7 +108,8 @@ const AdminBadges = () => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState<BadgeType | null>(null);
   const [saving, setSaving] = useState(false);
-
+  const [activityLogs, setActivityLogs] = useState<BadgeActivityLog[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     name_ar: "",
@@ -101,7 +125,34 @@ const AdminBadges = () => {
 
   useEffect(() => {
     fetchBadges();
+    fetchActivityLogs();
   }, []);
+
+  const fetchActivityLogs = async () => {
+    setLogsLoading(true);
+    
+    const { data, error } = await supabase
+      .from("audit_logs")
+      .select("*")
+      .eq("table_name", "user_badges")
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (error) {
+      console.error("Error fetching activity logs:", error);
+    } else {
+      setActivityLogs((data || []).map(log => ({
+        id: log.id,
+        action: log.action,
+        created_at: log.created_at,
+        user_email: log.user_email,
+        new_value: log.new_value as BadgeActivityLog['new_value'],
+        old_value: log.old_value as BadgeActivityLog['old_value'],
+      })));
+    }
+    
+    setLogsLoading(false);
+  };
 
   const fetchBadges = async () => {
     setLoading(true);
@@ -352,127 +403,228 @@ const AdminBadges = () => {
           </Card>
         </div>
 
-        {/* Search */}
-        <div className="relative max-w-md">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="بحث في الشارات..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pr-10"
-          />
-        </div>
+        {/* Tabs */}
+        <Tabs defaultValue="badges" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="badges" className="gap-2">
+              <Award className="w-4 h-4" />
+              الشارات
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="gap-2">
+              <History className="w-4 h-4" />
+              سجل العمليات
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Badges Grid */}
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
-        ) : filteredBadges.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <Award className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
-              <p className="text-muted-foreground">لا توجد شارات</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredBadges.map((badge, index) => (
-              <motion.div
-                key={badge.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Card className={`relative overflow-hidden ${!badge.is_active && "opacity-60"}`}>
-                  <div
-                    className="absolute top-0 right-0 left-0 h-1"
-                    style={{ backgroundColor: badge.color }}
-                  />
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl"
-                          style={{ backgroundColor: `${badge.color}20` }}
-                        >
-                          {badge.icon}
+          {/* Badges Tab */}
+          <TabsContent value="badges" className="space-y-4">
+            {/* Search */}
+            <div className="relative max-w-md">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="بحث في الشارات..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pr-10"
+              />
+            </div>
+
+            {/* Badges Grid */}
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : filteredBadges.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Award className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
+                  <p className="text-muted-foreground">لا توجد شارات</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredBadges.map((badge, index) => (
+                  <motion.div
+                    key={badge.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Card className={`relative overflow-hidden ${!badge.is_active && "opacity-60"}`}>
+                      <div
+                        className="absolute top-0 right-0 left-0 h-1"
+                        style={{ backgroundColor: badge.color }}
+                      />
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl"
+                              style={{ backgroundColor: `${badge.color}20` }}
+                            >
+                              {badge.icon}
+                            </div>
+                            <div>
+                              <CardTitle className="text-lg">{badge.name_ar}</CardTitle>
+                              <p className="text-sm text-muted-foreground">{badge.name}</p>
+                            </div>
+                          </div>
+                          <Badge variant={badge.is_active ? "default" : "secondary"}>
+                            المستوى {badge.tier}
+                          </Badge>
                         </div>
-                        <div>
-                          <CardTitle className="text-lg">{badge.name_ar}</CardTitle>
-                          <p className="text-sm text-muted-foreground">{badge.name}</p>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {badge.description_ar && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {badge.description_ar}
+                          </p>
+                        )}
+
+                        {/* User Count */}
+                        <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-secondary/50">
+                          <Users className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm font-medium">
+                            {badgeUserCounts[badge.id] || 0} مستخدم
+                          </span>
                         </div>
-                      </div>
-                      <Badge variant={badge.is_active ? "default" : "secondary"}>
-                        المستوى {badge.tier}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {badge.description_ar && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {badge.description_ar}
-                      </p>
-                    )}
 
-                    {/* User Count */}
-                    <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-secondary/50">
-                      <Users className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">
-                        {badgeUserCounts[badge.id] || 0} مستخدم
-                      </span>
-                    </div>
+                        <div className="flex flex-wrap gap-2">
+                          {badge.min_spending > 0 && (
+                            <Badge variant="outline" className="text-xs">
+                              الحد الأدنى للإنفاق: ${badge.min_spending}
+                            </Badge>
+                          )}
+                          {badge.min_orders > 0 && (
+                            <Badge variant="outline" className="text-xs">
+                              الحد الأدنى للطلبات: {badge.min_orders}
+                            </Badge>
+                          )}
+                        </div>
 
-                    <div className="flex flex-wrap gap-2">
-                      {badge.min_spending > 0 && (
-                        <Badge variant="outline" className="text-xs">
-                          الحد الأدنى للإنفاق: ${badge.min_spending}
-                        </Badge>
-                      )}
-                      {badge.min_orders > 0 && (
-                        <Badge variant="outline" className="text-xs">
-                          الحد الأدنى للطلبات: {badge.min_orders}
-                        </Badge>
-                      )}
-                    </div>
+                        <div className="flex items-center justify-between pt-2 border-t border-border">
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={badge.is_active}
+                              onCheckedChange={() => toggleBadgeStatus(badge)}
+                            />
+                            <span className="text-sm text-muted-foreground">
+                              {badge.is_active ? "مفعّل" : "معطّل"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleOpenForm(badge)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => {
+                                setSelectedBadge(badge);
+                                setIsDeleteOpen(true);
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-border">
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={badge.is_active}
-                          onCheckedChange={() => toggleBadgeStatus(badge)}
-                        />
-                        <span className="text-sm text-muted-foreground">
-                          {badge.is_active ? "مفعّل" : "معطّل"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleOpenForm(badge)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => {
-                            setSelectedBadge(badge);
-                            setIsDeleteOpen(true);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        )}
+          {/* Activity Log Tab */}
+          <TabsContent value="activity" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <History className="w-5 h-5" />
+                  سجل عمليات منح وإزالة الشارات
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {logsLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  </div>
+                ) : activityLogs.length === 0 ? (
+                  <div className="py-12 text-center">
+                    <History className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
+                    <p className="text-muted-foreground">لا توجد عمليات مسجلة</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {activityLogs.map((log, index) => (
+                      <motion.div
+                        key={log.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.03 }}
+                        className="flex items-start gap-4 p-4 rounded-lg bg-secondary/30 border border-border/50"
+                      >
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          log.action === 'INSERT' 
+                            ? 'bg-success/10 text-success' 
+                            : 'bg-destructive/10 text-destructive'
+                        }`}>
+                          {log.action === 'INSERT' ? (
+                            <UserPlus className="w-5 h-5" />
+                          ) : (
+                            <UserMinus className="w-5 h-5" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge variant={log.action === 'INSERT' ? 'default' : 'destructive'}>
+                              {log.action === 'INSERT' ? 'منح شارة' : 'إزالة شارة'}
+                            </Badge>
+                            <span className="text-sm text-muted-foreground">
+                              {format(new Date(log.created_at), 'dd MMM yyyy - HH:mm', { locale: ar })}
+                            </span>
+                          </div>
+                          <div className="mt-2 space-y-1">
+                            {log.new_value?.badge_name && (
+                              <p className="text-sm">
+                                <span className="text-muted-foreground">الشارة: </span>
+                                <span className="font-medium">{log.new_value.badge_name}</span>
+                              </p>
+                            )}
+                            {log.new_value?.user_email && (
+                              <p className="text-sm">
+                                <span className="text-muted-foreground">المستخدم: </span>
+                                <span className="font-medium">{log.new_value.user_email}</span>
+                              </p>
+                            )}
+                            {log.old_value?.badge_name && log.action === 'DELETE' && (
+                              <p className="text-sm">
+                                <span className="text-muted-foreground">الشارة المزالة: </span>
+                                <span className="font-medium">{log.old_value.badge_name}</span>
+                              </p>
+                            )}
+                            {log.user_email && (
+                              <p className="text-sm">
+                                <span className="text-muted-foreground">بواسطة: </span>
+                                <span className="font-medium">{log.user_email}</span>
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         {/* Form Dialog */}
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
