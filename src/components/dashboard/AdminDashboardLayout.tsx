@@ -24,6 +24,7 @@ import {
   Award,
   CreditCard,
   RefreshCw,
+  Layers,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -44,6 +45,7 @@ interface NavItem {
 const adminNavItems: NavItem[] = [
   { label: "نظرة عامة", href: "/admin", icon: LayoutDashboard },
   { label: "المستخدمين", href: "/admin/users", icon: Users },
+  { label: "الأقسام", href: "/admin/categories", icon: Layers },
   { label: "الخدمات", href: "/admin/services", icon: Package },
   { label: "الطلبات", href: "/admin/orders", icon: ShoppingBag },
   { label: "طرق الدفع", href: "/admin/payments", icon: CreditCard },
