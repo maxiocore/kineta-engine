@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -18,7 +19,10 @@ import {
   Loader2,
   ArrowLeft,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Percent,
+  DollarSign,
+  TrendingUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -44,6 +48,11 @@ const AdminServiceImport = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedServices, setSelectedServices] = useState<Set<string>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  
+  // Profit margin settings
+  const [profitMargin, setProfitMargin] = useState<number>(50);
+  const [marginType, setMarginType] = useState<'percentage' | 'fixed'>('percentage');
+  const [fixedMargin, setFixedMargin] = useState<number>(0.5);
 
   const fetchServices = async () => {
     setLoading(true);
@@ -74,6 +83,14 @@ const AdminServiceImport = () => {
     const cats = new Set(services.map(s => s.category));
     return Array.from(cats).sort();
   }, [services]);
+
+  const calculateFinalPrice = (originalRate: string): number => {
+    const original = parseFloat(originalRate) || 0;
+    if (marginType === 'percentage') {
+      return original * (1 + profitMargin / 100);
+    }
+    return original + fixedMargin;
+  };
 
   const groupedServices = useMemo(() => {
     const filtered = services.filter(s => {
@@ -139,14 +156,16 @@ const AdminServiceImport = () => {
     }
 
     setImporting(true);
+    let successCount = 0;
     try {
       const servicesToImport = services.filter(s => selectedServices.has(s.service));
       
       for (const service of servicesToImport) {
+        const finalPrice = calculateFinalPrice(service.rate);
         const { error } = await supabase.from('services').insert({
           name: service.name,
           description: `النوع: ${service.type} | الحد الأدنى: ${service.min} | الحد الأقصى: ${service.max}`,
-          price: parseFloat(service.rate) || 0,
+          price: parseFloat(finalPrice.toFixed(4)),
           category: service.category,
           status: 'active',
           external_service_id: service.service,
@@ -159,10 +178,12 @@ const AdminServiceImport = () => {
 
         if (error) {
           console.error('Error importing service:', service.name, error);
+        } else {
+          successCount++;
         }
       }
 
-      toast.success(`تم استيراد ${selectedServices.size} خدمة بنجاح`);
+      toast.success(`تم استيراد ${successCount} خدمة بنجاح`);
       setSelectedServices(new Set());
     } catch (error: any) {
       console.error('Error importing services:', error);
@@ -171,6 +192,23 @@ const AdminServiceImport = () => {
       setImporting(false);
     }
   };
+
+  // Calculate estimated profit
+  const estimatedProfit = useMemo(() => {
+    const selected = services.filter(s => selectedServices.has(s.service));
+    let totalOriginal = 0;
+    let totalFinal = 0;
+    selected.forEach(s => {
+      const original = parseFloat(s.rate) || 0;
+      totalOriginal += original;
+      totalFinal += calculateFinalPrice(s.rate);
+    });
+    return {
+      original: totalOriginal,
+      final: totalFinal,
+      profit: totalFinal - totalOriginal,
+    };
+  }, [selectedServices, services, profitMargin, marginType, fixedMargin]);
 
   return (
     <AdminDashboardLayout>
@@ -207,6 +245,90 @@ const AdminServiceImport = () => {
             </Button>
           </div>
         </div>
+
+        {/* Profit Margin Settings */}
+        <Card className="border-primary/20 bg-primary/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              إعدادات هامش الربح
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>نوع الهامش</Label>
+                <Select value={marginType} onValueChange={(v: 'percentage' | 'fixed') => setMarginType(v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="percentage">نسبة مئوية (%)</SelectItem>
+                    <SelectItem value="fixed">مبلغ ثابت ($)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {marginType === 'percentage' ? (
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Percent className="h-4 w-4" />
+                    نسبة الربح
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min={0}
+                      max={500}
+                      value={profitMargin}
+                      onChange={(e) => setProfitMargin(Math.max(0, Math.min(500, parseInt(e.target.value) || 0)))}
+                      className="w-24"
+                    />
+                    <span className="text-muted-foreground">%</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    المبلغ الثابت
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      value={fixedMargin}
+                      onChange={(e) => setFixedMargin(Math.max(0, parseFloat(e.target.value) || 0))}
+                      className="w-24"
+                    />
+                    <span className="text-muted-foreground">$</span>
+                  </div>
+                </div>
+              )}
+
+              {selectedServices.size > 0 && (
+                <div className="space-y-2">
+                  <Label>الأرباح المتوقعة</Label>
+                  <div className="p-3 rounded-lg bg-success/10 border border-success/20">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">السعر الأصلي:</span>
+                      <span>${estimatedProfit.original.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">السعر النهائي:</span>
+                      <span>${estimatedProfit.final.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-success border-t border-success/20 pt-2 mt-2">
+                      <span>الربح:</span>
+                      <span>+${estimatedProfit.profit.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Filters */}
         <Card>
@@ -262,9 +384,9 @@ const AdminServiceImport = () => {
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <Download className="h-8 w-8 mx-auto mb-2 text-purple-500" />
-              <p className="text-2xl font-bold">{Object.keys(groupedServices).length}</p>
-              <p className="text-sm text-muted-foreground">أقسام معروضة</p>
+              <TrendingUp className="h-8 w-8 mx-auto mb-2 text-warning" />
+              <p className="text-2xl font-bold">{profitMargin}%</p>
+              <p className="text-sm text-muted-foreground">هامش الربح</p>
             </CardContent>
           </Card>
         </div>
@@ -318,42 +440,50 @@ const AdminServiceImport = () => {
                         >
                           <CardContent className="pt-0">
                             <div className="divide-y">
-                              {categoryServices.map((service) => (
-                                <div 
-                                  key={service.service}
-                                  className={`py-3 px-2 flex items-start gap-3 hover:bg-muted/30 rounded-lg transition-colors cursor-pointer ${
-                                    selectedServices.has(service.service) ? 'bg-primary/5' : ''
-                                  }`}
-                                  onClick={() => toggleService(service.service)}
-                                >
-                                  <Checkbox
-                                    checked={selectedServices.has(service.service)}
-                                    onCheckedChange={() => toggleService(service.service)}
-                                    onClick={(e) => e.stopPropagation()}
-                                  />
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-sm truncate">{service.name}</p>
-                                    <div className="flex flex-wrap gap-2 mt-1">
-                                      <Badge variant="outline" className="text-xs">
-                                        ${service.rate}
-                                      </Badge>
-                                      <Badge variant="outline" className="text-xs">
-                                        {service.min} - {service.max}
-                                      </Badge>
-                                      {service.refill && (
-                                        <Badge className="text-xs bg-green-500/10 text-green-500">
-                                          تعبئة
+                              {categoryServices.map((service) => {
+                                const originalPrice = parseFloat(service.rate) || 0;
+                                const finalPrice = calculateFinalPrice(service.rate);
+                                
+                                return (
+                                  <div 
+                                    key={service.service}
+                                    className={`py-3 px-2 flex items-start gap-3 hover:bg-muted/30 rounded-lg transition-colors cursor-pointer ${
+                                      selectedServices.has(service.service) ? 'bg-primary/5' : ''
+                                    }`}
+                                    onClick={() => toggleService(service.service)}
+                                  >
+                                    <Checkbox
+                                      checked={selectedServices.has(service.service)}
+                                      onCheckedChange={() => toggleService(service.service)}
+                                      onClick={(e) => e.stopPropagation()}
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-medium text-sm truncate">{service.name}</p>
+                                      <div className="flex flex-wrap gap-2 mt-1">
+                                        <Badge variant="outline" className="text-xs line-through text-muted-foreground">
+                                          ${originalPrice.toFixed(2)}
                                         </Badge>
-                                      )}
-                                      {service.dripfeed && (
-                                        <Badge className="text-xs bg-blue-500/10 text-blue-500">
-                                          تنقيط
+                                        <Badge className="text-xs bg-success/10 text-success border-success/20">
+                                          ${finalPrice.toFixed(2)}
                                         </Badge>
-                                      )}
+                                        <Badge variant="outline" className="text-xs">
+                                          {service.min} - {service.max}
+                                        </Badge>
+                                        {service.refill && (
+                                          <Badge className="text-xs bg-green-500/10 text-green-500">
+                                            تعبئة
+                                          </Badge>
+                                        )}
+                                        {service.dripfeed && (
+                                          <Badge className="text-xs bg-blue-500/10 text-blue-500">
+                                            تنقيط
+                                          </Badge>
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           </CardContent>
                         </motion.div>
