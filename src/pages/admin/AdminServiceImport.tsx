@@ -40,6 +40,10 @@ interface BulkFollowsService {
   dripfeed: boolean;
   refill: boolean;
   cancel: boolean;
+  desc?: string;
+  description?: string;
+  average_time?: string;
+  speed?: string;
 }
 
 const AdminServiceImport = () => {
@@ -167,17 +171,47 @@ const AdminServiceImport = () => {
       for (let i = 0; i < servicesToImport.length; i++) {
         const service = servicesToImport[i];
         let translatedName = service.name;
-        let translatedDescription = `النوع: ${service.type} | الحد الأدنى: ${service.min} | الحد الأقصى: ${service.max}`;
+        
+        // Build comprehensive description from all available fields
+        const originalDescription = service.desc || service.description || '';
+        const descriptionParts = [];
+        
+        if (originalDescription) {
+          descriptionParts.push(originalDescription);
+        }
+        
+        // Add service details
+        const detailsLine = [
+          `النوع: ${service.type}`,
+          `الحد الأدنى: ${service.min}`,
+          `الحد الأقصى: ${service.max}`,
+        ].join(' | ');
+        descriptionParts.push(detailsLine);
+        
+        // Add additional info if available
+        const additionalInfo = [];
+        if (service.average_time) additionalInfo.push(`وقت التنفيذ: ${service.average_time}`);
+        if (service.speed) additionalInfo.push(`السرعة: ${service.speed}`);
+        if (additionalInfo.length > 0) {
+          descriptionParts.push(additionalInfo.join(' | '));
+        }
+        
+        let translatedDescription = descriptionParts.join('\n\n');
         let translatedCategory = service.category;
 
         // Translate if enabled
         if (autoTranslate) {
           try {
             toast.loading(`جاري ترجمة ${i + 1}/${total}...`, { id: 'translate' });
+            
+            const textToTranslate = originalDescription 
+              ? `${originalDescription}\n\nType: ${service.type} | Min: ${service.min} | Max: ${service.max}${service.average_time ? ` | Average Time: ${service.average_time}` : ''}${service.speed ? ` | Speed: ${service.speed}` : ''}`
+              : `Type: ${service.type} | Min: ${service.min} | Max: ${service.max}${service.average_time ? ` | Average Time: ${service.average_time}` : ''}${service.speed ? ` | Speed: ${service.speed}` : ''}`;
+            
             const { data: translated, error: translateError } = await supabase.functions.invoke('translate-service', {
               body: {
                 name: service.name,
-                description: `Type: ${service.type} | Min: ${service.min} | Max: ${service.max}`,
+                description: textToTranslate,
                 category: service.category,
               }
             });
@@ -200,10 +234,15 @@ const AdminServiceImport = () => {
           category: translatedCategory,
           status: 'active',
           external_service_id: service.service,
+          refill_enabled: service.refill || false,
+          refill_days: service.refill ? 30 : null,
           features: [
             service.dripfeed ? 'دعم التنقيط' : null,
             service.refill ? 'إعادة التعبئة' : null,
             service.cancel ? 'قابل للإلغاء' : null,
+            service.average_time ? `وقت التنفيذ: ${service.average_time}` : null,
+            `الحد الأدنى: ${service.min}`,
+            `الحد الأقصى: ${service.max}`,
           ].filter(Boolean),
         });
 
