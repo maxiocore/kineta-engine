@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   User,
+  Award,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -28,6 +29,7 @@ interface NavItem {
 const clientNavItems: NavItem[] = [
   { label: "نظرة عامة", href: "/dashboard", icon: LayoutDashboard },
   { label: "الطلبات", href: "/dashboard/orders", icon: ShoppingBag },
+  { label: "الشارات", href: "/dashboard/badges", icon: Award },
   { label: "الإشعارات", href: "/dashboard/notifications", icon: Bell },
   { label: "الدعم الفني", href: "/dashboard/support", icon: HeadphonesIcon },
   { label: "الإعدادات", href: "/dashboard/settings", icon: Settings },
