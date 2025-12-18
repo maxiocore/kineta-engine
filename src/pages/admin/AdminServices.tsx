@@ -1,9 +1,26 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, Plus, Loader2, Sparkles, RefreshCw, Download, DollarSign } from "lucide-react";
+import { Package, Plus, Loader2, Sparkles, RefreshCw, Download, DollarSign, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import ServiceStats from "@/components/admin/services/ServiceStats";
 import ServiceFilters from "@/components/admin/services/ServiceFilters";
@@ -57,6 +74,11 @@ const AdminServices = () => {
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [viewingService, setViewingService] = useState<Service | null>(null);
+
+  // Bulk delete
+  const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
+  const [bulkDeleteCategory, setBulkDeleteCategory] = useState("all");
+  const [deleting, setDeleting] = useState(false);
 
   // Stats from orders
   const [orderStats, setOrderStats] = useState<{ serviceId: string; count: number; revenue: number }[]>([]);
@@ -244,6 +266,45 @@ const AdminServices = () => {
     }
   };
 
+  const handleBulkDelete = async () => {
+    setDeleting(true);
+    
+    let query = supabase.from("services").delete();
+    
+    if (bulkDeleteCategory !== "all") {
+      query = query.eq("category", bulkDeleteCategory);
+    } else {
+      // Delete all - need to use a condition that's always true
+      query = query.neq("id", "00000000-0000-0000-0000-000000000000");
+    }
+
+    const { error, count } = await query.select();
+
+    if (error) {
+      toast.error("خطأ في حذف الخدمات. قد تكون بعضها مرتبطة بطلبات.");
+    } else {
+      const deletedCount = bulkDeleteCategory === "all" 
+        ? services.length 
+        : services.filter(s => s.category === bulkDeleteCategory).length;
+      toast.success(`تم حذف ${deletedCount} خدمة بنجاح`);
+      fetchServices();
+    }
+    
+    setDeleting(false);
+    setIsBulkDeleteOpen(false);
+    setBulkDeleteCategory("all");
+  };
+
+  const getDeleteCount = () => {
+    if (bulkDeleteCategory === "all") return services.length;
+    return services.filter(s => s.category === bulkDeleteCategory).length;
+  };
+
+  // Get unique categories from services
+  const uniqueCategories = useMemo(() => {
+    return [...new Set(services.map(s => s.category))];
+  }, [services]);
+
   return (
     <AdminDashboardLayout>
       <div className="space-y-6">
@@ -263,7 +324,7 @@ const AdminServices = () => {
             <p className="text-muted-foreground">إضافة وتعديل وإدارة الخدمات المقدمة</p>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button 
               variant="outline" 
               size="icon"
@@ -284,6 +345,15 @@ const AdminServices = () => {
                 الأسعار
               </Button>
             </Link>
+            <Button 
+              variant="outline" 
+              className="gap-2 text-destructive border-destructive/50 hover:bg-destructive/10"
+              onClick={() => setIsBulkDeleteOpen(true)}
+              disabled={services.length === 0}
+            >
+              <Trash2 className="w-4 h-4" />
+              حذف جماعي
+            </Button>
             <Button 
               onClick={openNewDialog} 
               className="bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground gap-2"
@@ -385,6 +455,71 @@ const AdminServices = () => {
           onClose={() => setIsDetailsDialogOpen(false)}
           service={viewingService}
         />
+
+        {/* Bulk Delete Dialog */}
+        <AlertDialog open={isBulkDeleteOpen} onOpenChange={setIsBulkDeleteOpen}>
+          <AlertDialogContent className="max-w-md" dir="rtl">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="w-5 h-5" />
+                حذف الخدمات بشكل جماعي
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-right">
+                هذا الإجراء لا يمكن التراجع عنه. سيتم حذف الخدمات المحددة نهائياً.
+                <br />
+                <span className="text-destructive font-medium">
+                  ملاحظة: الخدمات المرتبطة بطلبات لن يتم حذفها.
+                </span>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">اختر نطاق الحذف</label>
+                <Select value={bulkDeleteCategory} onValueChange={setBulkDeleteCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع الخدمات ({services.length})</SelectItem>
+                    {uniqueCategories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat} ({services.filter(s => s.category === cat).length})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 text-center">
+                <p className="text-sm text-muted-foreground">سيتم حذف</p>
+                <p className="text-2xl font-bold text-destructive">{getDeleteCount()}</p>
+                <p className="text-sm text-muted-foreground">خدمة</p>
+              </div>
+            </div>
+
+            <AlertDialogFooter className="gap-2">
+              <AlertDialogCancel disabled={deleting}>إلغاء</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleBulkDelete}
+                disabled={deleting || getDeleteCount() === 0}
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin ml-2" />
+                    جاري الحذف...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4 ml-2" />
+                    حذف {getDeleteCount()} خدمة
+                  </>
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminDashboardLayout>
   );
