@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { provider_id } = await req.json();
+    const { provider_id, categories_only, selected_categories } = await req.json();
 
     if (!provider_id) {
       console.error('Provider ID is required');
@@ -71,8 +71,8 @@ serve(async (req) => {
       );
     }
 
-    const services = await response.json();
-    const servicesCount = Array.isArray(services) ? services.length : 0;
+    const allServices = await response.json();
+    const servicesCount = Array.isArray(allServices) ? allServices.length : 0;
     console.log(`Fetched ${servicesCount} services from ${provider.name}`);
 
     // Update provider's last_sync_at and services_count
@@ -84,14 +84,55 @@ serve(async (req) => {
       })
       .eq('id', provider_id);
 
-    // Extract unique categories from services
-    const categories = Array.isArray(services) 
-      ? [...new Set(services.map((s: any) => s.category))]
+    // If categories_only is true, return only categories with counts (much smaller response)
+    if (categories_only) {
+      const categoryMap = new Map<string, number>();
+      if (Array.isArray(allServices)) {
+        allServices.forEach((service: any) => {
+          const count = categoryMap.get(service.category) || 0;
+          categoryMap.set(service.category, count + 1);
+        });
+      }
+      
+      const categories = Array.from(categoryMap.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      console.log(`Returning ${categories.length} categories only (not full services)`);
+
+      return new Response(
+        JSON.stringify({ 
+          categories,
+          services_count: servicesCount,
+          provider: {
+            id: provider.id,
+            name: provider.name,
+            name_ar: provider.name_ar,
+            profit_margin: provider.profit_margin,
+          }
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // If selected_categories is provided, filter services by those categories
+    let filteredServices = allServices;
+    if (selected_categories && Array.isArray(selected_categories) && selected_categories.length > 0) {
+      const selectedSet = new Set(selected_categories);
+      filteredServices = Array.isArray(allServices) 
+        ? allServices.filter((s: any) => selectedSet.has(s.category))
+        : [];
+      console.log(`Filtered to ${filteredServices.length} services for ${selected_categories.length} categories`);
+    }
+
+    // Extract unique categories from filtered services
+    const categories = Array.isArray(filteredServices) 
+      ? [...new Set(filteredServices.map((s: any) => s.category))]
       : [];
 
     return new Response(
       JSON.stringify({ 
-        services,
+        services: filteredServices,
         categories,
         services_count: servicesCount,
         provider: {
