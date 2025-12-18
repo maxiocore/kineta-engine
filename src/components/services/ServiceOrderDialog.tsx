@@ -16,17 +16,17 @@ import {
   Clock,
   Zap,
   Shield,
-  Timer,
   Info,
-  Copy,
   FileText,
-  TrendingUp,
-  AlertCircle,
   ChevronDown,
   Gauge,
   Calendar,
   Package,
-  RefreshCw
+  RefreshCw,
+  Layers,
+  Search,
+  Star,
+  TrendingUp
 } from "lucide-react";
 import {
   Dialog,
@@ -37,11 +37,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Form,
   FormControl,
@@ -49,7 +49,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
 import {
   Select,
@@ -64,8 +63,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 const orderSchema = z.object({
   link: z.string().url("يرجى إدخال رابط صحيح").min(1, "الرابط مطلوب"),
@@ -80,9 +85,19 @@ interface Service {
   name: string;
   description: string | null;
   category: string;
+  category_id?: string | null;
   price: number;
   features: any;
   external_service_id: string | null;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  name_ar: string;
+  slug: string;
+  icon: string | null;
+  color: string | null;
 }
 
 interface Coupon {
@@ -114,9 +129,14 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
-  const [relatedServices, setRelatedServices] = useState<Service[]>([]);
+  
+  // Category & Service selection states
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [allServices, setAllServices] = useState<Service[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [selectedServiceId, setSelectedServiceId] = useState<string>("");
+  const [serviceSearch, setServiceSearch] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const form = useForm<OrderFormData>({
     resolver: zodResolver(orderSchema),
@@ -128,38 +148,75 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
   });
 
   const quantity = form.watch("quantity");
-  const link = form.watch("link");
 
-  // Fetch related services in same category
+  // Fetch categories and all services
   useEffect(() => {
-    const fetchRelatedServices = async () => {
-      if (!service?.category) return;
+    const fetchData = async () => {
+      // Fetch categories
+      const { data: categoriesData } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
       
-      const { data } = await supabase
+      if (categoriesData) {
+        setCategories(categoriesData);
+      }
+
+      // Fetch all active services
+      const { data: servicesData } = await supabase
         .from("services")
         .select("*")
-        .eq("category", service.category)
         .eq("status", "active")
-        .order("price", { ascending: true });
+        .order("name", { ascending: true });
       
-      if (data) {
-        setRelatedServices(data);
+      if (servicesData) {
+        setAllServices(servicesData);
       }
     };
 
-    if (open && service) {
-      fetchRelatedServices();
-      setSelectedServiceId(service.id);
+    if (open) {
+      fetchData();
     }
-  }, [open, service?.category, service?.id]);
+  }, [open]);
+
+  // Set initial selection when service prop changes
+  useEffect(() => {
+    if (service && open) {
+      setSelectedServiceId(service.id);
+      if (service.category_id) {
+        setSelectedCategoryId(service.category_id);
+      }
+    }
+  }, [service, open]);
+
+  // Get services for selected category
+  const filteredServices = useMemo(() => {
+    let services = allServices;
+    
+    if (selectedCategoryId) {
+      services = services.filter(s => s.category_id === selectedCategoryId);
+    }
+    
+    if (serviceSearch) {
+      const search = serviceSearch.toLowerCase();
+      services = services.filter(s => 
+        s.name.toLowerCase().includes(search) ||
+        s.category.toLowerCase().includes(search) ||
+        s.external_service_id?.includes(search)
+      );
+    }
+    
+    return services;
+  }, [allServices, selectedCategoryId, serviceSearch]);
 
   // Get current selected service
   const currentService = useMemo(() => {
-    if (selectedServiceId && relatedServices.length > 0) {
-      return relatedServices.find(s => s.id === selectedServiceId) || service;
+    if (selectedServiceId) {
+      return allServices.find(s => s.id === selectedServiceId) || service;
     }
     return service;
-  }, [selectedServiceId, relatedServices, service]);
+  }, [selectedServiceId, allServices, service]);
 
   const basePrice = currentService ? currentService.price * quantity : 0;
   
@@ -179,14 +236,11 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
   const features = getServiceFeatures();
   const minQuantity = features.min || 10;
   const maxQuantity = features.max || 1000000;
-  const ratePerHour = features.rate || 10000; // Default rate per hour
-  const averageTime = features.average_time || "1-24 ساعة";
-  const speed = features.speed || "فوري";
+  const ratePerHour = features.rate || 10000;
   const guaranteed = features.refill !== false;
-  const dripfeed = features.dripfeed || false;
   const cancel = features.cancel || false;
 
-  // Calculate estimated delivery time based on quantity and rate
+  // Calculate estimated delivery time
   const estimatedDeliveryTime = useMemo(() => {
     const rate = ratePerHour || 10000;
     const hours = Math.ceil(quantity / rate);
@@ -200,14 +254,6 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
     if (days === 2) return "يومان";
     if (days <= 10) return `${days} أيام`;
     return `${days} يوم`;
-  }, [quantity, ratePerHour]);
-
-  // Calculate delivery progress percentage (visual only)
-  const deliveryProgress = useMemo(() => {
-    const rate = ratePerHour || 10000;
-    const hours = quantity / rate;
-    // Max out at 100 hours for visual purposes
-    return Math.min((hours / 100) * 100, 100);
   }, [quantity, ratePerHour]);
   
   const calculateDiscount = () => {
@@ -253,7 +299,7 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
         return;
       }
 
-      if (data.min_order_amount > basePrice) {
+      if (data.min_order_amount && data.min_order_amount > basePrice) {
         toast.error(`الحد الأدنى للطلب هو $${data.min_order_amount}`);
         return;
       }
@@ -272,34 +318,6 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
     setAppliedCoupon(null);
     setCouponCode("");
     toast.success("تم إزالة الكوبون");
-  };
-
-  const copyExampleLink = () => {
-    const exampleLinks: Record<string, string> = {
-      "instagram": "https://instagram.com/username",
-      "facebook": "https://facebook.com/page",
-      "twitter": "https://twitter.com/username",
-      "youtube": "https://youtube.com/watch?v=xxxxx",
-      "tiktok": "https://tiktok.com/@username",
-      "snapchat": "https://snapchat.com/add/username",
-      "telegram": "https://t.me/channel",
-      "spotify": "https://open.spotify.com/track/xxxxx",
-    };
-    
-    const category = currentService?.category.toLowerCase() || "";
-    let example = "https://example.com/link";
-    
-    for (const [key, value] of Object.entries(exampleLinks)) {
-      if (category.includes(key)) {
-        example = value;
-        break;
-      }
-    }
-    
-    navigator.clipboard.writeText(example);
-    setCopiedLink(true);
-    toast.success("تم نسخ مثال الرابط");
-    setTimeout(() => setCopiedLink(false), 2000);
   };
 
   const onSubmit = async (data: OrderFormData) => {
@@ -374,15 +392,21 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
     setOrderNumber(null);
     setAppliedCoupon(null);
     setCouponCode("");
+    setServiceSearch("");
     form.reset();
     onOpenChange(false);
+  };
+
+  // Get service count per category
+  const getServiceCount = (categoryId: string) => {
+    return allServices.filter(s => s.category_id === categoryId).length;
   };
 
   if (!service) return null;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-4xl max-h-[95vh] overflow-y-auto p-0">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden p-0">
         <AnimatePresence mode="wait">
           {orderSuccess ? (
             <motion.div
@@ -423,433 +447,397 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex flex-col lg:flex-row"
+              className="flex flex-col h-full"
             >
-              {/* Left Side - Order Form */}
-              <div className="flex-1 p-6">
-                <DialogHeader className="mb-4">
-                  <DialogTitle className="flex items-center gap-2 text-xl">
-                    <ShoppingCart className="w-6 h-6 text-primary" />
-                    طلب خدمة جديد
-                  </DialogTitle>
-                </DialogHeader>
+              {/* Header */}
+              <DialogHeader className="px-6 py-4 border-b border-border/50">
+                <DialogTitle className="flex items-center gap-2 text-xl">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <ShoppingCart className="w-5 h-5 text-primary" />
+                  </div>
+                  طلب جديد
+                </DialogTitle>
+              </DialogHeader>
 
-                {/* Service Selection */}
-                {relatedServices.length > 1 && (
-                  <div className="mb-4">
-                    <label className="text-sm font-medium mb-2 block flex items-center gap-2">
-                      <Package className="w-4 h-4" />
-                      اختر نوع الخدمة
+              <ScrollArea className="flex-1 max-h-[calc(90vh-140px)]">
+                <div className="p-6 space-y-5">
+                  {/* Step 1: Category Selection */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">1</div>
+                      اختر القسم
                     </label>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setSelectedCategoryId("")}
+                        className={cn(
+                          "p-3 rounded-xl border text-center transition-all",
+                          !selectedCategoryId
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border/50 hover:border-primary/50 hover:bg-secondary/50"
+                        )}
+                      >
+                        <Layers className="w-5 h-5 mx-auto mb-1" />
+                        <p className="text-xs font-medium">الكل</p>
+                        <p className="text-[10px] text-muted-foreground">{allServices.length}</p>
+                      </motion.button>
+                      
+                      {categories.slice(0, 9).map((cat) => (
+                        <motion.button
+                          key={cat.id}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setSelectedCategoryId(cat.id)}
+                          className={cn(
+                            "p-3 rounded-xl border text-center transition-all",
+                            selectedCategoryId === cat.id
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border/50 hover:border-primary/50 hover:bg-secondary/50"
+                          )}
+                        >
+                          <div className="text-lg mb-1">
+                            {cat.slug === 'instagram' && '📷'}
+                            {cat.slug === 'facebook' && '👤'}
+                            {cat.slug === 'youtube' && '▶️'}
+                            {cat.slug === 'twitter' && '🐦'}
+                            {cat.slug === 'tiktok' && '🎵'}
+                            {cat.slug === 'telegram' && '✈️'}
+                            {cat.slug === 'linkedin' && '💼'}
+                            {cat.slug === 'spotify' && '🎧'}
+                            {cat.slug === 'soundcloud' && '☁️'}
+                            {cat.slug === 'website-traffic' && '🌐'}
+                            {cat.slug === 'other' && '⚡'}
+                            {!['instagram', 'facebook', 'youtube', 'twitter', 'tiktok', 'telegram', 'linkedin', 'spotify', 'soundcloud', 'website-traffic', 'other'].includes(cat.slug) && '📦'}
+                          </div>
+                          <p className="text-xs font-medium truncate">{cat.name_ar}</p>
+                          <p className="text-[10px] text-muted-foreground">{getServiceCount(cat.id)}</p>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Step 2: Service Selection */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">2</div>
+                      اختر الخدمة
+                    </label>
+                    
+                    {/* Service Search */}
+                    <div className="relative">
+                      <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="ابحث عن الخدمة..."
+                        value={serviceSearch}
+                        onChange={(e) => setServiceSearch(e.target.value)}
+                        className="pr-10"
+                      />
+                    </div>
+
+                    {/* Service Select */}
                     <Select value={selectedServiceId} onValueChange={setSelectedServiceId}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="اختر الخدمة" />
+                      <SelectTrigger className="w-full h-auto min-h-[48px] py-2">
+                        <SelectValue placeholder="اختر الخدمة...">
+                          {currentService && (
+                            <div className="text-right">
+                              <p className="font-medium text-sm truncate">{currentService.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                ${currentService.price.toFixed(4)}/1000 • ID: {currentService.external_service_id || 'N/A'}
+                              </p>
+                            </div>
+                          )}
+                        </SelectValue>
                       </SelectTrigger>
-                      <SelectContent>
-                        {relatedServices.map((s) => {
-                          const sFeatures = typeof s.features === 'string' ? JSON.parse(s.features || '{}') : (s.features || {});
-                          return (
-                            <SelectItem key={s.id} value={s.id}>
-                              <div className="flex items-center justify-between gap-4 w-full">
-                                <span className="truncate">{s.name}</span>
-                                <span className="text-xs text-muted-foreground">
-                                  ${s.price.toFixed(4)}/1000
-                                </span>
-                              </div>
-                            </SelectItem>
-                          );
-                        })}
+                      <SelectContent className="max-h-[300px]">
+                        {filteredServices.length === 0 ? (
+                          <div className="py-4 text-center text-muted-foreground text-sm">
+                            لا توجد خدمات متاحة
+                          </div>
+                        ) : (
+                          filteredServices.map((s) => {
+                            const sFeatures = typeof s.features === 'string' ? JSON.parse(s.features || '{}') : (s.features || {});
+                            return (
+                              <SelectItem key={s.id} value={s.id} className="py-2">
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="font-medium text-sm">{s.name}</span>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <span>${s.price.toFixed(4)}/1000</span>
+                                    <span>•</span>
+                                    <span>{sFeatures.min || 10} - {sFeatures.max || '1M'}</span>
+                                    {s.external_service_id && (
+                                      <>
+                                        <span>•</span>
+                                        <span>#{s.external_service_id}</span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              </SelectItem>
+                            );
+                          })
+                        )}
                       </SelectContent>
                     </Select>
-                  </div>
-                )}
 
-                {/* Service Info Card */}
-                <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 mb-5">
-                  <div className="flex items-start justify-between gap-4 mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge>{currentService?.category}</Badge>
-                        {currentService?.external_service_id && (
-                          <Badge variant="outline" className="text-xs">
-                            ID: {currentService.external_service_id}
-                          </Badge>
-                        )}
+                    {/* Selected Service Quick Info */}
+                    {currentService && (
+                      <div className="grid grid-cols-4 gap-2">
+                        <div className="p-2 rounded-lg bg-secondary/50 text-center">
+                          <p className="text-[10px] text-muted-foreground">السعر/1000</p>
+                          <p className="text-xs font-bold text-primary">${currentService.price.toFixed(4)}</p>
+                        </div>
+                        <div className="p-2 rounded-lg bg-secondary/50 text-center">
+                          <p className="text-[10px] text-muted-foreground">الأدنى</p>
+                          <p className="text-xs font-bold">{minQuantity.toLocaleString()}</p>
+                        </div>
+                        <div className="p-2 rounded-lg bg-secondary/50 text-center">
+                          <p className="text-[10px] text-muted-foreground">الأقصى</p>
+                          <p className="text-xs font-bold">{maxQuantity.toLocaleString()}</p>
+                        </div>
+                        <div className="p-2 rounded-lg bg-secondary/50 text-center">
+                          <p className="text-[10px] text-muted-foreground">ضمان</p>
+                          <p className={cn("text-xs font-bold", guaranteed ? "text-success" : "text-muted-foreground")}>
+                            {guaranteed ? "✓ نعم" : "✗ لا"}
+                          </p>
+                        </div>
                       </div>
-                      <h4 className="font-bold text-lg leading-tight">{currentService?.name}</h4>
-                    </div>
-                    <div className="text-left">
-                      <p className="text-xs text-muted-foreground">سعر 1000</p>
-                      <p className="text-2xl font-bold text-primary">${currentService?.price.toFixed(4)}</p>
-                    </div>
+                    )}
                   </div>
-                  
-                  {/* Quick Stats */}
-                  <div className="grid grid-cols-4 gap-2 mt-3">
-                    <div className="text-center p-2 bg-background/50 rounded-lg">
-                      <Clock className="w-4 h-4 mx-auto mb-1 text-warning" />
-                      <p className="text-[10px] text-muted-foreground">البدء</p>
-                      <p className="text-xs font-bold">0-1h</p>
-                    </div>
-                    <div className="text-center p-2 bg-background/50 rounded-lg">
-                      <Gauge className="w-4 h-4 mx-auto mb-1 text-accent" />
-                      <p className="text-[10px] text-muted-foreground">السرعة</p>
-                      <p className="text-xs font-bold">{ratePerHour?.toLocaleString() || "10K"}/h</p>
-                    </div>
-                    <div className="text-center p-2 bg-background/50 rounded-lg">
-                      <Shield className={`w-4 h-4 mx-auto mb-1 ${guaranteed ? "text-success" : "text-muted"}`} />
-                      <p className="text-[10px] text-muted-foreground">ضمان</p>
-                      <p className={`text-xs font-bold ${guaranteed ? "text-success" : ""}`}>
-                        {guaranteed ? "✓" : "✗"}
-                      </p>
-                    </div>
-                    <div className="text-center p-2 bg-background/50 rounded-lg">
-                      <RefreshCw className={`w-4 h-4 mx-auto mb-1 ${cancel ? "text-success" : "text-muted"}`} />
-                      <p className="text-[10px] text-muted-foreground">إلغاء</p>
-                      <p className={`text-xs font-bold ${cancel ? "text-success" : ""}`}>
-                        {cancel ? "✓" : "✗"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
 
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    {/* Link Field */}
-                    <FormField
-                      control={form.control}
-                      name="link"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-2">
-                            <LinkIcon className="w-4 h-4" />
-                            الرابط
-                          </FormLabel>
-                          <div className="relative">
-                            <FormControl>
-                              <Input
-                                placeholder="أدخل الرابط هنا..."
-                                dir="ltr"
-                                className="pr-10 font-mono text-sm"
-                                {...field}
-                              />
-                            </FormControl>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                                    onClick={copyExampleLink}
-                                  >
-                                    {copiedLink ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>نسخ مثال الرابط</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <Separator />
 
-                    {/* Quantity Section */}
-                    <FormField
-                      control={form.control}
-                      name="quantity"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center justify-between">
-                            <span className="flex items-center gap-2">
-                              <Hash className="w-4 h-4" />
-                              الكمية
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {minQuantity.toLocaleString()} - {maxQuantity.toLocaleString()}
-                            </span>
-                          </FormLabel>
-                          
-                          {/* Quantity Input with Slider */}
-                          <div className="space-y-3">
-                            <FormControl>
-                              <Input
-                                type="number"
+                  {/* Step 3: Order Details Form */}
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                      {/* Link Field */}
+                      <div className="space-y-3">
+                        <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                          <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">3</div>
+                          أدخل الرابط
+                        </label>
+                        <FormField
+                          control={form.control}
+                          name="link"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <div className="relative">
+                                  <LinkIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                  <Input
+                                    placeholder="https://..."
+                                    dir="ltr"
+                                    className="pr-10 font-mono text-sm"
+                                    {...field}
+                                  />
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Quantity Field */}
+                      <div className="space-y-3">
+                        <label className="text-sm font-semibold flex items-center justify-between">
+                          <span className="flex items-center gap-2 text-foreground">
+                            <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">4</div>
+                            الكمية
+                          </span>
+                          <span className="text-xs text-muted-foreground font-normal">
+                            {minQuantity.toLocaleString()} - {maxQuantity.toLocaleString()}
+                          </span>
+                        </label>
+                        <FormField
+                          control={form.control}
+                          name="quantity"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min={minQuantity}
+                                  max={maxQuantity}
+                                  className="text-center text-lg font-bold"
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseInt(e.target.value) || minQuantity)}
+                                />
+                              </FormControl>
+
+                              {/* Slider */}
+                              <Slider
+                                value={[field.value]}
                                 min={minQuantity}
-                                max={maxQuantity}
-                                className="text-center text-lg font-bold"
-                                {...field}
-                                onChange={(e) => field.onChange(parseInt(e.target.value) || minQuantity)}
+                                max={Math.min(maxQuantity, 100000)}
+                                step={100}
+                                onValueChange={(values) => field.onChange(values[0])}
+                                className="py-2"
                               />
-                            </FormControl>
 
-                            {/* Slider */}
-                            <Slider
-                              value={[field.value]}
-                              min={minQuantity}
-                              max={Math.min(maxQuantity, 100000)}
-                              step={100}
-                              onValueChange={(values) => field.onChange(values[0])}
-                              className="py-2"
-                            />
+                              {/* Quantity Presets */}
+                              <div className="flex flex-wrap gap-2">
+                                {quantityPresets
+                                  .filter(q => q >= minQuantity && q <= maxQuantity)
+                                  .map((preset) => (
+                                    <Button
+                                      key={preset}
+                                      type="button"
+                                      variant={field.value === preset ? "default" : "outline"}
+                                      size="sm"
+                                      onClick={() => field.onChange(preset)}
+                                      className="text-xs h-7 px-3"
+                                    >
+                                      {preset >= 1000 ? `${preset / 1000}K` : preset}
+                                    </Button>
+                                  ))}
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
-                            {/* Quantity Presets */}
-                            <div className="flex flex-wrap gap-2">
-                              {quantityPresets
-                                .filter(q => q >= minQuantity && q <= maxQuantity)
-                                .map((preset) => (
-                                  <Button
-                                    key={preset}
-                                    type="button"
-                                    variant={field.value === preset ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => field.onChange(preset)}
-                                    className="text-xs h-7 px-3"
-                                  >
-                                    {preset >= 1000 ? `${preset / 1000}K` : preset}
-                                  </Button>
-                                ))}
-                            </div>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Estimated Delivery Time */}
-                    <div className="p-4 rounded-xl bg-accent/10 border border-accent/20">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="flex items-center gap-2 text-sm font-medium">
-                          <Calendar className="w-4 h-4 text-accent" />
+                      {/* Estimated Delivery */}
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-accent/10 border border-accent/20">
+                        <span className="flex items-center gap-2 text-sm">
+                          <Clock className="w-4 h-4 text-accent" />
                           وقت التسليم المتوقع
                         </span>
-                        <span className="text-lg font-bold text-accent">{estimatedDeliveryTime}</span>
+                        <span className="font-bold text-accent">{estimatedDeliveryTime}</span>
                       </div>
-                      <Progress value={deliveryProgress} className="h-2" />
-                      <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                        <Info className="w-3 h-3" />
-                        بناءً على سرعة التسليم: {(ratePerHour || 10000).toLocaleString()}/ساعة
-                      </p>
-                    </div>
 
-                    {/* Notes Field */}
-                    <FormField
-                      control={form.control}
-                      name="notes"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-2">
-                            <FileText className="w-4 h-4" />
-                            ملاحظات (اختياري)
-                          </FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="أضف أي تفاصيل خاصة..."
-                              className="resize-none"
-                              rows={2}
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Coupon Section */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium flex items-center gap-2">
-                        <Ticket className="w-4 h-4" />
-                        كود الخصم
-                      </label>
-                      {appliedCoupon ? (
-                        <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 border border-success/20">
-                          <Check className="w-4 h-4 text-success" />
-                          <span className="text-sm flex-1">
-                            <code className="font-mono font-bold">{appliedCoupon.code}</code>
-                            <span className="text-success mr-2">
-                              (-{appliedCoupon.discount_type === "percentage" 
-                                ? `${appliedCoupon.discount_value}%` 
-                                : `$${appliedCoupon.discount_value}`})
+                      {/* Advanced Options */}
+                      <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+                        <CollapsibleTrigger asChild>
+                          <Button type="button" variant="ghost" className="w-full justify-between text-sm h-9">
+                            <span className="flex items-center gap-2">
+                              <TrendingUp className="w-4 h-4" />
+                              خيارات متقدمة
                             </span>
-                          </span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={removeCoupon}
-                          >
-                            <X className="w-4 h-4" />
+                            <ChevronDown className={cn("w-4 h-4 transition-transform", showAdvanced && "rotate-180")} />
                           </Button>
-                        </div>
-                      ) : (
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="أدخل كود الخصم"
-                            value={couponCode}
-                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                            dir="ltr"
-                            className="flex-1"
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={validateCoupon}
-                            disabled={validatingCoupon}
-                          >
-                            {validatingCoupon ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              "تطبيق"
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="space-y-4 pt-3">
+                          {/* Notes Field */}
+                          <FormField
+                            control={form.control}
+                            name="notes"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm flex items-center gap-2">
+                                  <FileText className="w-4 h-4" />
+                                  ملاحظات (اختياري)
+                                </FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder="أضف أي ملاحظات أو متطلبات خاصة..."
+                                    className="resize-none"
+                                    rows={2}
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
                             )}
-                          </Button>
-                        </div>
-                      )}
-                    </div>
+                          />
 
-                    {/* Total Price */}
-                    <div className="p-4 rounded-xl bg-secondary/50 border border-border/50 space-y-2">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">السعر الأساسي:</span>
-                        <span>${basePrice.toFixed(4)}</span>
-                      </div>
-                      {discount > 0 && (
-                        <div className="flex justify-between items-center text-sm text-success">
-                          <span>الخصم:</span>
-                          <span>-${discount.toFixed(4)}</span>
-                        </div>
-                      )}
-                      <Separator />
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">الإجمالي:</span>
-                        <span className="text-2xl font-bold text-primary">${totalPrice.toFixed(4)}</span>
-                      </div>
-                    </div>
+                          {/* Coupon Section */}
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium flex items-center gap-2">
+                              <Ticket className="w-4 h-4" />
+                              كود الخصم
+                            </label>
+                            {appliedCoupon ? (
+                              <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 border border-success/20">
+                                <Check className="w-4 h-4 text-success" />
+                                <span className="text-sm flex-1">
+                                  <code className="font-mono font-bold">{appliedCoupon.code}</code>
+                                  <span className="text-success mr-2">
+                                    (-{appliedCoupon.discount_type === "percentage" 
+                                      ? `${appliedCoupon.discount_value}%` 
+                                      : `$${appliedCoupon.discount_value}`})
+                                  </span>
+                                </span>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={removeCoupon}
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex gap-2">
+                                <Input
+                                  placeholder="أدخل كود الخصم"
+                                  value={couponCode}
+                                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                  dir="ltr"
+                                  className="flex-1"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={validateCoupon}
+                                  disabled={validatingCoupon}
+                                >
+                                  {validatingCoupon ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    "تطبيق"
+                                  )}
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
 
-                    {/* Submit Buttons */}
-                    <div className="flex gap-3 pt-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleClose}
-                        className="flex-1"
+                      {/* Total Price */}
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 space-y-2">
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">الكمية × السعر:</span>
+                          <span>{quantity.toLocaleString()} × ${currentService?.price.toFixed(4) || '0'}</span>
+                        </div>
+                        {discount > 0 && (
+                          <div className="flex justify-between items-center text-sm text-success">
+                            <span>الخصم:</span>
+                            <span>-${discount.toFixed(4)}</span>
+                          </div>
+                        )}
+                        <Separator />
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold">الإجمالي:</span>
+                          <span className="text-2xl font-bold text-primary">${totalPrice.toFixed(4)}</span>
+                        </div>
+                      </div>
+
+                      {/* Submit Button */}
+                      <Button 
+                        type="submit" 
+                        disabled={isSubmitting || !currentService} 
+                        className="w-full h-12 text-base font-semibold bg-gradient-to-l from-primary to-accent hover:opacity-90"
                       >
-                        إلغاء
-                      </Button>
-                      <Button type="submit" disabled={isSubmitting} className="flex-1 gap-2">
                         {isSubmitting ? (
                           <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            جاري الطلب...
+                            <Loader2 className="w-5 h-5 animate-spin ml-2" />
+                            جاري إرسال الطلب...
                           </>
                         ) : (
                           <>
-                            <CheckCircle className="w-4 h-4" />
-                            تأكيد الطلب
+                            <ShoppingCart className="w-5 h-5 ml-2" />
+                            إرسال الطلب
                           </>
                         )}
                       </Button>
-                    </div>
-                  </form>
-                </Form>
-              </div>
-
-              {/* Right Side - Service Details Panel */}
-              <div className="lg:w-80 bg-secondary/30 border-r border-border/50 p-5">
-                <Tabs defaultValue="details" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-4">
-                    <TabsTrigger value="details" className="text-xs">التفاصيل</TabsTrigger>
-                    <TabsTrigger value="info" className="text-xs">معلومات</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="details" className="space-y-3 mt-0">
-                    {/* Service Details Grid */}
-                    <div className="space-y-2">
-                      <DetailRow label="رقم الخدمة" value={`#${currentService?.external_service_id || 'N/A'}`} />
-                      <DetailRow label="التصنيف" value={currentService?.category || '-'} />
-                      <DetailRow label="السعر لكل 1000" value={`$${currentService?.price.toFixed(4)}`} highlight />
-                      <DetailRow label="الحد الأدنى" value={minQuantity.toLocaleString()} />
-                      <DetailRow label="الحد الأقصى" value={maxQuantity.toLocaleString()} />
-                      <DetailRow label="وقت البدء" value="0-1 ساعة" />
-                      <DetailRow label="السرعة" value={`${(ratePerHour || 10000).toLocaleString()}/ساعة`} />
-                      <DetailRow label="متوسط الإنجاز" value={averageTime} />
-                      <DetailRow 
-                        label="ضمان التعويض" 
-                        value={guaranteed ? "متوفر ✓" : "غير متوفر ✗"} 
-                        valueColor={guaranteed ? "text-success" : "text-destructive"}
-                      />
-                      <DetailRow 
-                        label="إمكانية الإلغاء" 
-                        value={cancel ? "متوفر ✓" : "غير متوفر ✗"} 
-                        valueColor={cancel ? "text-success" : "text-destructive"}
-                      />
-                      <DetailRow 
-                        label="التنقيط (Dripfeed)" 
-                        value={dripfeed ? "متوفر ✓" : "غير متوفر ✗"} 
-                        valueColor={dripfeed ? "text-success" : "text-destructive"}
-                      />
-                    </div>
-
-                    {/* Example Link */}
-                    <div className="p-3 rounded-lg bg-card border border-border/50">
-                      <div className="flex items-center gap-2 mb-2">
-                        <LinkIcon className="w-4 h-4 text-primary" />
-                        <span className="text-sm font-medium">مثال الرابط</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground break-all font-mono" dir="ltr">
-                        {currentService?.category.toLowerCase().includes("instagram") 
-                          ? "https://instagram.com/p/xxxxx"
-                          : currentService?.category.toLowerCase().includes("facebook")
-                          ? "https://facebook.com/post/xxxxx"
-                          : currentService?.category.toLowerCase().includes("youtube")
-                          ? "https://youtube.com/watch?v=xxxxx"
-                          : currentService?.category.toLowerCase().includes("tiktok")
-                          ? "https://tiktok.com/@user/video/xxxxx"
-                          : currentService?.category.toLowerCase().includes("twitter")
-                          ? "https://twitter.com/user/status/xxxxx"
-                          : "https://example.com/link"}
-                      </p>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="info" className="space-y-3 mt-0">
-                    {/* Description */}
-                    <div className="p-3 rounded-lg bg-card border border-border/50">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FileText className="w-4 h-4 text-primary" />
-                        <span className="text-sm font-medium">الوصف</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {currentService?.description || "خدمة احترافية بجودة عالية وتسليم سريع. نضمن لك أفضل النتائج مع دعم فني متواصل."}
-                      </p>
-                    </div>
-
-                    {/* Important Notes */}
-                    <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
-                      <p className="text-sm font-medium mb-2 flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4 text-warning" />
-                        ملاحظات هامة
-                      </p>
-                      <ul className="text-xs text-muted-foreground space-y-1">
-                        <li>• تأكد من صحة الرابط قبل الطلب</li>
-                        <li>• الحساب يجب أن يكون عام (Public)</li>
-                        <li>• لا تغير اسم المستخدم أثناء التنفيذ</li>
-                        <li>• لا تطلب للنفس الرابط أكثر من مرة</li>
-                        <li>• التسليم يبدأ خلال 0-1 ساعة</li>
-                      </ul>
-                    </div>
-
-                    {/* Quality Badge */}
-                    <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 text-center">
-                      <Sparkles className="w-6 h-6 mx-auto mb-2 text-primary" />
-                      <p className="text-sm font-bold">جودة عالية مضمونة</p>
-                      <p className="text-xs text-muted-foreground">دعم فني 24/7</p>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
+                    </form>
+                  </Form>
+                </div>
+              </ScrollArea>
             </motion.div>
           )}
         </AnimatePresence>
@@ -857,23 +845,5 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
     </Dialog>
   );
 };
-
-// Helper component for detail rows
-const DetailRow = ({ 
-  label, 
-  value, 
-  highlight = false,
-  valueColor = ""
-}: { 
-  label: string; 
-  value: string; 
-  highlight?: boolean;
-  valueColor?: string;
-}) => (
-  <div className={`flex justify-between items-center py-2 px-3 rounded-lg ${highlight ? 'bg-primary/10' : 'bg-card/50'}`}>
-    <span className="text-xs text-muted-foreground">{label}</span>
-    <span className={`text-sm font-medium ${valueColor || (highlight ? 'text-primary' : '')}`}>{value}</span>
-  </div>
-);
 
 export default ServiceOrderDialog;
