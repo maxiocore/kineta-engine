@@ -33,6 +33,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
+interface TierBenefits {
+  discount_percentage?: number;
+  priority_support?: boolean;
+  exclusive_services?: boolean;
+  free_refills?: boolean;
+  bonus_points?: number;
+  custom_benefits?: string[];
+}
+
 interface RewardTier {
   id: string;
   name: string;
@@ -41,7 +50,7 @@ interface RewardTier {
   points_multiplier: number;
   icon: string;
   color: string;
-  benefits: string[];
+  benefits: TierBenefits;
   is_active: boolean;
 }
 
@@ -69,7 +78,14 @@ const AdminRewards = () => {
     points_multiplier: 1,
     icon: "Star",
     color: "#6366f1",
-    benefits: [] as string[],
+    benefits: {
+      discount_percentage: 0,
+      priority_support: false,
+      exclusive_services: false,
+      free_refills: false,
+      bonus_points: 0,
+      custom_benefits: [] as string[],
+    } as TierBenefits,
     is_active: true,
   });
   const [newBenefit, setNewBenefit] = useState("");
@@ -128,6 +144,7 @@ const AdminRewards = () => {
 
   const saveMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      const benefitsJson = JSON.parse(JSON.stringify(data.benefits));
       if (editingTier) {
         const { error } = await supabase
           .from("reward_tiers")
@@ -138,22 +155,22 @@ const AdminRewards = () => {
             points_multiplier: data.points_multiplier,
             icon: data.icon,
             color: data.color,
-            benefits: data.benefits,
+            benefits: benefitsJson,
             is_active: data.is_active,
           })
           .eq("id", editingTier.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("reward_tiers").insert({
+        const { error } = await supabase.from("reward_tiers").insert([{
           name: data.name,
           name_ar: data.name_ar,
           min_points: data.min_points,
           points_multiplier: data.points_multiplier,
           icon: data.icon,
           color: data.color,
-          benefits: data.benefits,
+          benefits: benefitsJson,
           is_active: data.is_active,
-        });
+        }]);
         if (error) throw error;
       }
     },
@@ -204,6 +221,7 @@ const AdminRewards = () => {
   const handleOpenDialog = (tier?: RewardTier) => {
     if (tier) {
       setEditingTier(tier);
+      const tierBenefits = tier.benefits as TierBenefits || {};
       setFormData({
         name: tier.name,
         name_ar: tier.name_ar,
@@ -211,7 +229,14 @@ const AdminRewards = () => {
         points_multiplier: tier.points_multiplier,
         icon: tier.icon,
         color: tier.color,
-        benefits: tier.benefits || [],
+        benefits: {
+          discount_percentage: tierBenefits.discount_percentage || 0,
+          priority_support: tierBenefits.priority_support || false,
+          exclusive_services: tierBenefits.exclusive_services || false,
+          free_refills: tierBenefits.free_refills || false,
+          bonus_points: tierBenefits.bonus_points || 0,
+          custom_benefits: tierBenefits.custom_benefits || [],
+        },
         is_active: tier.is_active,
       });
     } else {
@@ -223,7 +248,14 @@ const AdminRewards = () => {
         points_multiplier: 1,
         icon: "Star",
         color: "#6366f1",
-        benefits: [],
+        benefits: {
+          discount_percentage: 0,
+          priority_support: false,
+          exclusive_services: false,
+          free_refills: false,
+          bonus_points: 0,
+          custom_benefits: [],
+        },
         is_active: true,
       });
     }
@@ -240,7 +272,10 @@ const AdminRewards = () => {
     if (newBenefit.trim()) {
       setFormData({
         ...formData,
-        benefits: [...formData.benefits, newBenefit.trim()],
+        benefits: {
+          ...formData.benefits,
+          custom_benefits: [...(formData.benefits.custom_benefits || []), newBenefit.trim()],
+        },
       });
       setNewBenefit("");
     }
@@ -249,7 +284,10 @@ const AdminRewards = () => {
   const handleRemoveBenefit = (index: number) => {
     setFormData({
       ...formData,
-      benefits: formData.benefits.filter((_, i) => i !== index),
+      benefits: {
+        ...formData.benefits,
+        custom_benefits: (formData.benefits.custom_benefits || []).filter((_, i) => i !== index),
+      },
     });
   };
 
@@ -460,26 +498,33 @@ const AdminRewards = () => {
                           </span>
                         </div>
 
-                        {tier.benefits && tier.benefits.length > 0 && (
+                        {/* Show tier benefits */}
+                        {tier.benefits && (
                           <div className="pt-2 border-t border-border/50">
                             <p className="text-xs text-muted-foreground mb-2">
                               المميزات:
                             </p>
                             <div className="flex flex-wrap gap-1">
-                              {tier.benefits.slice(0, 2).map((benefit, i) => (
-                                <Badge
-                                  key={i}
-                                  variant="outline"
-                                  className="text-xs"
-                                >
+                              {(tier.benefits as TierBenefits).discount_percentage && (tier.benefits as TierBenefits).discount_percentage! > 0 && (
+                                <Badge variant="outline" className="text-xs">
+                                  خصم {(tier.benefits as TierBenefits).discount_percentage}%
+                                </Badge>
+                              )}
+                              {(tier.benefits as TierBenefits).priority_support && (
+                                <Badge variant="outline" className="text-xs">
+                                  دعم أولوية
+                                </Badge>
+                              )}
+                              {(tier.benefits as TierBenefits).free_refills && (
+                                <Badge variant="outline" className="text-xs">
+                                  إعادة تعبئة مجانية
+                                </Badge>
+                              )}
+                              {((tier.benefits as TierBenefits).custom_benefits || []).slice(0, 1).map((benefit, i) => (
+                                <Badge key={i} variant="outline" className="text-xs">
                                   {benefit}
                                 </Badge>
                               ))}
-                              {tier.benefits.length > 2 && (
-                                <Badge variant="outline" className="text-xs">
-                                  +{tier.benefits.length - 2}
-                                </Badge>
-                              )}
                             </div>
                           </div>
                         )}
@@ -614,8 +659,100 @@ const AdminRewards = () => {
                 </div>
               </div>
 
+              {/* Tier Benefits Section */}
+              <div className="space-y-4 pt-4 border-t">
+                <Label className="text-base font-semibold">مكافآت المستوى</Label>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm">نسبة الخصم التلقائي (%)</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={formData.benefits.discount_percentage || 0}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          benefits: {
+                            ...formData.benefits,
+                            discount_percentage: parseInt(e.target.value) || 0,
+                          },
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">نقاط إضافية لكل طلب</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={formData.benefits.bonus_points || 0}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          benefits: {
+                            ...formData.benefits,
+                            bonus_points: parseInt(e.target.value) || 0,
+                          },
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">أولوية في الدعم الفني</Label>
+                    <Switch
+                      checked={formData.benefits.priority_support || false}
+                      onCheckedChange={(checked) =>
+                        setFormData({
+                          ...formData,
+                          benefits: {
+                            ...formData.benefits,
+                            priority_support: checked,
+                          },
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">خدمات حصرية</Label>
+                    <Switch
+                      checked={formData.benefits.exclusive_services || false}
+                      onCheckedChange={(checked) =>
+                        setFormData({
+                          ...formData,
+                          benefits: {
+                            ...formData.benefits,
+                            exclusive_services: checked,
+                          },
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">إعادة تعبئة مجانية</Label>
+                    <Switch
+                      checked={formData.benefits.free_refills || false}
+                      onCheckedChange={(checked) =>
+                        setFormData({
+                          ...formData,
+                          benefits: {
+                            ...formData.benefits,
+                            free_refills: checked,
+                          },
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Custom Benefits */}
               <div className="space-y-2">
-                <Label>المميزات</Label>
+                <Label>مميزات إضافية</Label>
                 <div className="flex gap-2">
                   <Input
                     value={newBenefit}
@@ -628,7 +765,7 @@ const AdminRewards = () => {
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {formData.benefits.map((benefit, index) => (
+                  {(formData.benefits.custom_benefits || []).map((benefit, index) => (
                     <Badge key={index} variant="secondary" className="gap-1">
                       {benefit}
                       <button

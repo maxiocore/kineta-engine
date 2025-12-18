@@ -271,7 +271,51 @@ const ClientRewards = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {currentTier?.benefits && (Array.isArray(currentTier.benefits) ? currentTier.benefits : []).map((benefit: string, index: number) => (
+                {/* Structured Benefits */}
+                {currentTier?.benefits && typeof currentTier.benefits === 'object' && !Array.isArray(currentTier.benefits) && (
+                  <>
+                    {(currentTier.benefits as any).discount_percentage > 0 && (
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-500/10">
+                        <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                          <Gift className="w-4 h-4 text-amber-500" />
+                        </div>
+                        <span className="text-sm font-medium">خصم {(currentTier.benefits as any).discount_percentage}% على جميع الطلبات</span>
+                      </div>
+                    )}
+                    {(currentTier.benefits as any).priority_support && (
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-success shrink-0" />
+                        <span className="text-sm">أولوية في الدعم الفني</span>
+                      </div>
+                    )}
+                    {(currentTier.benefits as any).exclusive_services && (
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-success shrink-0" />
+                        <span className="text-sm">وصول لخدمات حصرية</span>
+                      </div>
+                    )}
+                    {(currentTier.benefits as any).free_refills && (
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-success shrink-0" />
+                        <span className="text-sm">إعادة تعبئة مجانية</span>
+                      </div>
+                    )}
+                    {(currentTier.benefits as any).bonus_points > 0 && (
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-success shrink-0" />
+                        <span className="text-sm">+{(currentTier.benefits as any).bonus_points} نقطة إضافية لكل طلب</span>
+                      </div>
+                    )}
+                    {((currentTier.benefits as any).custom_benefits || []).map((benefit: string, index: number) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-success shrink-0" />
+                        <span className="text-sm">{benefit}</span>
+                      </div>
+                    ))}
+                  </>
+                )}
+                {/* Legacy array format */}
+                {currentTier?.benefits && Array.isArray(currentTier.benefits) && currentTier.benefits.map((benefit: string, index: number) => (
                   <div key={index} className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-success shrink-0" />
                     <span className="text-sm">{benefit}</span>
@@ -334,7 +378,16 @@ const ClientRewards = () => {
                           x{tier.points_multiplier} مضاعف
                         </Badge>
                         <div className="space-y-1 text-xs text-muted-foreground">
-                          {(Array.isArray(tier.benefits) ? tier.benefits : []).slice(0, 2).map((benefit: string, i: number) => (
+                          {tier.benefits && typeof tier.benefits === 'object' && !Array.isArray(tier.benefits) && (
+                            <>
+                              {(tier.benefits as any).discount_percentage > 0 && (
+                                <p className="text-amber-500 font-medium">خصم {(tier.benefits as any).discount_percentage}%</p>
+                              )}
+                              {(tier.benefits as any).priority_support && <p>أولوية دعم</p>}
+                              {(tier.benefits as any).free_refills && <p>إعادة تعبئة مجانية</p>}
+                            </>
+                          )}
+                          {tier.benefits && Array.isArray(tier.benefits) && tier.benefits.slice(0, 2).map((benefit: string, i: number) => (
                             <p key={i}>{benefit}</p>
                           ))}
                         </div>
