@@ -96,24 +96,26 @@ const ServiceFilters = ({
           </div>
         </div>
 
-        {/* Category Tabs */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Category Tabs - Horizontal Scrollable */}
+        <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide">
           {/* All Tab */}
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => setSelectedCategory("all")}
             className={cn(
-              "px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2",
+              "px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0",
               selectedCategory === "all"
-                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                : "bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground"
             )}
           >
             الكل
             <span className={cn(
-              "text-xs font-bold",
-              selectedCategory === "all" ? "text-primary-foreground/80" : "text-muted-foreground"
+              "text-[10px] font-bold px-1.5 py-0.5 rounded-full",
+              selectedCategory === "all" 
+                ? "bg-primary-foreground/20 text-primary-foreground" 
+                : "bg-background/50 text-muted-foreground"
             )}>
               {totalCount}
             </span>
@@ -127,20 +129,22 @@ const ServiceFilters = ({
             return (
               <motion.button
                 key={category}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => setSelectedCategory(category)}
                 className={cn(
-                  "px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2",
+                  "px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0",
                   isSelected
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                    : "bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground"
                 )}
               >
                 {category}
                 <span className={cn(
-                  "text-xs font-bold",
-                  isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                  "text-[10px] font-bold px-1.5 py-0.5 rounded-full",
+                  isSelected 
+                    ? "bg-primary-foreground/20 text-primary-foreground" 
+                    : "bg-background/50 text-muted-foreground"
                 )}>
                   {count}
                 </span>
