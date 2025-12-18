@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Award,
@@ -10,6 +11,7 @@ import {
   TrendingUp,
   Users,
   Sparkles,
+  BarChart3,
 } from "lucide-react";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -55,6 +57,7 @@ const colorOptions = [
 ];
 
 const AdminRewards = () => {
+  const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTier, setEditingTier] = useState<RewardTier | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -295,13 +298,23 @@ const AdminRewards = () => {
             </p>
           </div>
 
-          <Button
-            onClick={() => handleOpenDialog()}
-            className="gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
-          >
-            <Plus className="w-4 h-4" />
-            إضافة مستوى
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => navigate("/admin/rewards/reports")}
+              className="gap-2"
+            >
+              <BarChart3 className="w-4 h-4" />
+              التقارير
+            </Button>
+            <Button
+              onClick={() => handleOpenDialog()}
+              className="gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+            >
+              <Plus className="w-4 h-4" />
+              إضافة مستوى
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
