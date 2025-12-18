@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Users, 
@@ -91,6 +92,7 @@ type SortOrder = "asc" | "desc";
 const ITEMS_PER_PAGE = 10;
 
 const AdminUsers = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -685,9 +687,13 @@ const AdminUsers = () => {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-48">
-                                  <DropdownMenuItem onClick={() => setSelectedUser(user)}>
+                                  <DropdownMenuItem onClick={() => navigate(`/admin/users/${user.id}`)}>
                                     <Eye className="w-4 h-4 ml-2" />
-                                    عرض التفاصيل
+                                    عرض الملف الكامل
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => setSelectedUser(user)}>
+                                    <Activity className="w-4 h-4 ml-2" />
+                                    معاينة سريعة
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   {user.is_verified ? (
