@@ -43,6 +43,7 @@ import AdminPriceUpdate from "./pages/admin/AdminPriceUpdate";
 import AdminOrdersSync from "./pages/admin/AdminOrdersSync";
 import AdminCoupons from "./pages/admin/AdminCoupons";
 import AdminUserProfile from "./pages/admin/AdminUserProfile";
+import AdminBadges from "./pages/admin/AdminBadges";
 
 const queryClient = new QueryClient();
 
@@ -143,6 +144,11 @@ const App = () => (
                   <Route path="/admin/coupons" element={
                     <ProtectedRoute requireAdmin>
                       <AdminCoupons />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/badges" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminBadges />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/emails" element={
