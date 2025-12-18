@@ -27,7 +27,9 @@ import {
   Languages,
   Globe,
   Server,
-  AlertCircle
+  AlertCircle,
+  Layers,
+  FolderPlus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -76,9 +78,11 @@ const AdminServiceImport = () => {
   const [services, setServices] = useState<ProviderService[]>([]);
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [importingCategories, setImportingCategories] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedServices, setSelectedServices] = useState<Set<string>>(new Set());
+  const [selectedProviderCategories, setSelectedProviderCategories] = useState<Set<string>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [selectedProvider, setSelectedProvider] = useState<string>(preselectedProvider || '');
   const [providerProfitMargin, setProviderProfitMargin] = useState<number>(30);
@@ -92,6 +96,7 @@ const AdminServiceImport = () => {
   const [fixedMargin, setFixedMargin] = useState<number>(0.5);
   const [autoTranslate, setAutoTranslate] = useState<boolean>(true);
   const [useProviderMargin, setUseProviderMargin] = useState<boolean>(true);
+  const [translateCategories, setTranslateCategories] = useState<boolean>(true);
 
   // Fetch providers
   const { data: providers = [], isLoading: loadingProviders } = useQuery({
@@ -185,6 +190,134 @@ const AdminServiceImport = () => {
     const cats = new Set(services.map(s => s.category));
     return Array.from(cats).sort();
   }, [services]);
+
+  // Toggle provider category for import
+  const toggleProviderCategory = (category: string) => {
+    setSelectedProviderCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(category)) {
+        newSet.delete(category);
+      } else {
+        newSet.add(category);
+      }
+      return newSet;
+    });
+  };
+
+  // Select all provider categories
+  const selectAllProviderCategories = () => {
+    if (selectedProviderCategories.size === categories.length) {
+      setSelectedProviderCategories(new Set());
+    } else {
+      setSelectedProviderCategories(new Set(categories));
+    }
+  };
+
+  // Import selected categories
+  const importSelectedCategories = async () => {
+    if (selectedProviderCategories.size === 0) {
+      toast.error('اختر فئة واحدة على الأقل');
+      return;
+    }
+
+    setImportingCategories(true);
+    let successCount = 0;
+    const categoriesToImport = Array.from(selectedProviderCategories);
+    const total = categoriesToImport.length;
+
+    try {
+      // Get existing local categories to check for duplicates
+      const { data: existingCategories } = await supabase
+        .from('categories')
+        .select('name, slug');
+      
+      const existingSlugs = new Set(existingCategories?.map(c => c.slug) || []);
+
+      // Get the max display_order
+      const { data: maxOrderData } = await supabase
+        .from('categories')
+        .select('display_order')
+        .order('display_order', { ascending: false })
+        .limit(1)
+        .single();
+      
+      let displayOrder = (maxOrderData?.display_order || 0) + 1;
+
+      for (let i = 0; i < categoriesToImport.length; i++) {
+        const categoryName = categoriesToImport[i];
+        
+        // Generate slug
+        const slug = categoryName
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .trim();
+
+        // Skip if slug already exists
+        if (existingSlugs.has(slug)) {
+          console.log(`Category ${categoryName} already exists, skipping...`);
+          continue;
+        }
+
+        let translatedName = categoryName;
+
+        // Translate category name if enabled
+        if (translateCategories) {
+          try {
+            toast.loading(`جاري ترجمة الفئة ${i + 1}/${total}...`, { id: 'translate-cat' });
+            
+            const { data: translated, error: translateError } = await supabase.functions.invoke('translate-service', {
+              body: {
+                name: categoryName,
+                description: '',
+                category: categoryName,
+              }
+            });
+
+            if (!translateError && translated && !translated.error) {
+              translatedName = translated.category || categoryName;
+            }
+          } catch (translateErr) {
+            console.warn('Translation failed for category:', categoryName, translateErr);
+          }
+        }
+
+        const { error } = await supabase.from('categories').insert({
+          name: categoryName,
+          name_ar: translatedName,
+          slug: slug,
+          icon: 'Layers',
+          color: 'from-primary to-accent',
+          is_active: true,
+          display_order: displayOrder++,
+        });
+
+        if (error) {
+          console.error('Error importing category:', categoryName, error);
+        } else {
+          successCount++;
+          existingSlugs.add(slug);
+        }
+      }
+
+      toast.dismiss('translate-cat');
+      
+      if (successCount > 0) {
+        toast.success(`تم استيراد ${successCount} فئة بنجاح`);
+        queryClient.invalidateQueries({ queryKey: ['categories-for-import'] });
+        setSelectedProviderCategories(new Set());
+      } else {
+        toast.info('جميع الفئات موجودة مسبقاً');
+      }
+    } catch (error: any) {
+      console.error('Error importing categories:', error);
+      toast.dismiss('translate-cat');
+      toast.error('حدث خطأ أثناء استيراد الفئات');
+    } finally {
+      setImportingCategories(false);
+    }
+  };
 
   const calculateFinalPrice = (originalRate: string): number => {
     const original = parseFloat(originalRate) || 0;
@@ -626,6 +759,99 @@ const AdminServiceImport = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Import Categories Section */}
+        {services.length > 0 && categories.length > 0 && (
+          <Card className="border-green-500/20 bg-green-500/5">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center justify-between text-lg">
+                <div className="flex items-center gap-2">
+                  <FolderPlus className="h-5 w-5 text-green-500" />
+                  استيراد الفئات من المزود
+                </div>
+                <div className="flex items-center gap-3">
+                  <Label htmlFor="translate-cats" className="flex items-center gap-2 text-sm font-normal cursor-pointer">
+                    <Languages className="h-4 w-4 text-green-500" />
+                    ترجمة تلقائية
+                  </Label>
+                  <Switch
+                    id="translate-cats"
+                    checked={translateCategories}
+                    onCheckedChange={setTranslateCategories}
+                  />
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    اختر الفئات التي تريد استيرادها ({selectedProviderCategories.size} من {categories.length} محدد)
+                  </p>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={selectAllProviderCategories}
+                    >
+                      {selectedProviderCategories.size === categories.length ? 'إلغاء الكل' : 'تحديد الكل'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={importSelectedCategories}
+                      disabled={importingCategories || selectedProviderCategories.size === 0}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {importingCategories ? (
+                        <Loader2 className="h-4 w-4 ml-2 animate-spin" />
+                      ) : (
+                        <FolderPlus className="h-4 w-4 ml-2" />
+                      )}
+                      استيراد الفئات ({selectedProviderCategories.size})
+                    </Button>
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1">
+                  {categories.map((category) => {
+                    const isSelected = selectedProviderCategories.has(category);
+                    const servicesInCategory = services.filter(s => s.category === category).length;
+                    
+                    return (
+                      <div
+                        key={category}
+                        onClick={() => toggleProviderCategory(category)}
+                        className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                          isSelected
+                            ? 'border-green-500 bg-green-500/10'
+                            : 'border-border hover:border-green-500/50 bg-background'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => toggleProviderCategory(category)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate" title={category}>
+                              {category}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {servicesInCategory} خدمة
+                            </p>
+                          </div>
+                          {isSelected && (
+                            <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Category Mapping */}
         {services.length > 0 && categories.length > 0 && localCategories.length > 0 && (
