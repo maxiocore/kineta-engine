@@ -178,6 +178,62 @@ export type Database = {
         }
         Relationships: []
       }
+      categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          description_ar: string | null
+          display_order: number | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          name: string
+          name_ar: string
+          parent_id: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          name_ar: string
+          parent_id?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_ar?: string
+          parent_id?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupon_usages: {
         Row: {
           coupon_id: string
@@ -808,6 +864,7 @@ export type Database = {
         Row: {
           auto_refill_enabled: boolean | null
           category: string
+          category_id: string | null
           created_at: string
           description: string | null
           external_service_id: string | null
@@ -824,6 +881,7 @@ export type Database = {
         Insert: {
           auto_refill_enabled?: boolean | null
           category: string
+          category_id?: string | null
           created_at?: string
           description?: string | null
           external_service_id?: string | null
@@ -840,6 +898,7 @@ export type Database = {
         Update: {
           auto_refill_enabled?: boolean | null
           category?: string
+          category_id?: string | null
           created_at?: string
           description?: string | null
           external_service_id?: string | null
@@ -853,7 +912,15 @@ export type Database = {
           status?: Database["public"]["Enums"]["service_status"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "services_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       support_tickets: {
         Row: {
