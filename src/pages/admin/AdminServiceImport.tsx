@@ -183,12 +183,12 @@ const AdminServiceImport = () => {
       if (error) throw error;
       
       if (data?.services && Array.isArray(data.services)) {
-        // Store all services
-        setServices(data.services);
+        const fetchedServices = data.services as ProviderService[];
+        const providerName = data.provider?.name_ar || 'المزود';
         
-        // Extract unique categories with counts
+        // Extract categories first (lightweight operation)
         const categoryMap = new Map<string, number>();
-        data.services.forEach((service: ProviderService) => {
+        fetchedServices.forEach((service: ProviderService) => {
           const count = categoryMap.get(service.category) || 0;
           categoryMap.set(service.category, count + 1);
         });
@@ -197,21 +197,30 @@ const AdminServiceImport = () => {
           .map(([name, count]) => ({ name, count }))
           .sort((a, b) => a.name.localeCompare(b.name));
         
+        // Update categories first
         setProviderCategories(categories);
-        setCurrentStep('categories');
-        toast.success(`تم جلب ${categories.length} فئة (${data.services.length} خدمة) من ${data.provider?.name_ar || 'المزود'}`);
         
-        // Refresh providers list to update services_count
-        queryClient.invalidateQueries({ queryKey: ['api-providers-active'] });
+        // Use requestAnimationFrame to prevent UI freeze when storing large dataset
+        requestAnimationFrame(() => {
+          setServices(fetchedServices);
+          setCurrentStep('categories');
+          setLoadingCategories(false);
+          toast.success(`تم جلب ${categories.length} فئة (${fetchedServices.length} خدمة) من ${providerName}`);
+          
+          // Refresh providers list to update services_count
+          queryClient.invalidateQueries({ queryKey: ['api-providers-active'] });
+        });
+        
+        return; // Exit early since setLoadingCategories is handled in RAF
       } else {
         toast.error('فشل في جلب الخدمات');
       }
     } catch (error: any) {
       console.error('Error fetching services:', error);
       toast.error('حدث خطأ أثناء جلب الخدمات: ' + (error.message || ''));
-    } finally {
-      setLoadingCategories(false);
     }
+    
+    setLoadingCategories(false);
   };
 
   // Get services for selected categories
