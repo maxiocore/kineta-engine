@@ -17,3 +17,9 @@ verify_jwt = true
 
 [functions.translate-service]
 verify_jwt = true
+
+[functions.user-api]
+verify_jwt = false
+
+[functions.check-refills]
+verify_jwt = true

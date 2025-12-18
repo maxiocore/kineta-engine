@@ -13,6 +13,7 @@ import {
   X,
   User,
   Award,
+  Code,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -31,6 +32,7 @@ const clientNavItems: NavItem[] = [
   { label: "الطلبات", href: "/dashboard/orders", icon: ShoppingBag },
   { label: "الشارات", href: "/dashboard/badges", icon: Award },
   { label: "الإشعارات", href: "/dashboard/notifications", icon: Bell },
+  { label: "API", href: "/dashboard/api", icon: Code },
   { label: "الدعم الفني", href: "/dashboard/support", icon: HeadphonesIcon },
   { label: "الإعدادات", href: "/dashboard/settings", icon: Settings },
 ];
