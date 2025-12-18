@@ -149,6 +149,7 @@ const AdminServiceImport = () => {
           price: parseFloat(service.rate) || 0,
           category: service.category,
           status: 'active',
+          external_service_id: service.service,
           features: [
             service.dripfeed ? 'دعم التنقيط' : null,
             service.refill ? 'إعادة التعبئة' : null,

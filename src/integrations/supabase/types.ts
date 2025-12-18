@@ -255,9 +255,13 @@ export type Database = {
         Row: {
           admin_notes: string | null
           created_at: string
+          external_order_id: string | null
+          external_status: string | null
           id: string
+          link: string | null
           notes: string | null
           order_number: string
+          quantity: number | null
           service_id: string
           status: Database["public"]["Enums"]["order_status"]
           total_price: number
@@ -267,9 +271,13 @@ export type Database = {
         Insert: {
           admin_notes?: string | null
           created_at?: string
+          external_order_id?: string | null
+          external_status?: string | null
           id?: string
+          link?: string | null
           notes?: string | null
           order_number: string
+          quantity?: number | null
           service_id: string
           status?: Database["public"]["Enums"]["order_status"]
           total_price: number
@@ -279,9 +287,13 @@ export type Database = {
         Update: {
           admin_notes?: string | null
           created_at?: string
+          external_order_id?: string | null
+          external_status?: string | null
           id?: string
+          link?: string | null
           notes?: string | null
           order_number?: string
+          quantity?: number | null
           service_id?: string
           status?: Database["public"]["Enums"]["order_status"]
           total_price?: number
@@ -333,6 +345,7 @@ export type Database = {
           category: string
           created_at: string
           description: string | null
+          external_service_id: string | null
           features: Json | null
           id: string
           image_url: string | null
@@ -345,6 +358,7 @@ export type Database = {
           category: string
           created_at?: string
           description?: string | null
+          external_service_id?: string | null
           features?: Json | null
           id?: string
           image_url?: string | null
@@ -357,6 +371,7 @@ export type Database = {
           category?: string
           created_at?: string
           description?: string | null
+          external_service_id?: string | null
           features?: Json | null
           id?: string
           image_url?: string | null
