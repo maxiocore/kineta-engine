@@ -532,8 +532,8 @@ const AdminServiceImport = () => {
                                 return (
                                   <div 
                                     key={service.service}
-                                    className={`py-3 px-2 flex items-start gap-3 hover:bg-muted/30 rounded-lg transition-colors cursor-pointer ${
-                                      selectedServices.has(service.service) ? 'bg-primary/5' : ''
+                                    className={`py-4 px-3 flex items-start gap-3 hover:bg-muted/30 rounded-lg transition-colors cursor-pointer ${
+                                      selectedServices.has(service.service) ? 'bg-primary/5 border border-primary/20' : ''
                                     }`}
                                     onClick={() => toggleService(service.service)}
                                   >
@@ -541,27 +541,81 @@ const AdminServiceImport = () => {
                                       checked={selectedServices.has(service.service)}
                                       onCheckedChange={() => toggleService(service.service)}
                                       onClick={(e) => e.stopPropagation()}
+                                      className="mt-1"
                                     />
-                                    <div className="flex-1 min-w-0">
-                                      <p className="font-medium text-sm truncate">{service.name}</p>
-                                      <div className="flex flex-wrap gap-2 mt-1">
+                                    <div className="flex-1 min-w-0 space-y-2">
+                                      {/* Service Name & ID */}
+                                      <div className="flex items-start justify-between gap-2">
+                                        <p className="font-medium text-sm">{service.name}</p>
+                                        <Badge variant="outline" className="text-xs shrink-0">
+                                          ID: {service.service}
+                                        </Badge>
+                                      </div>
+                                      
+                                      {/* Description if available */}
+                                      {(service.desc || service.description) && (
+                                        <p className="text-xs text-muted-foreground line-clamp-2">
+                                          {service.desc || service.description}
+                                        </p>
+                                      )}
+                                      
+                                      {/* Price & Quantity Info */}
+                                      <div className="flex flex-wrap gap-2">
                                         <Badge variant="outline" className="text-xs line-through text-muted-foreground">
-                                          ${originalPrice.toFixed(2)}
+                                          ${originalPrice.toFixed(4)}
                                         </Badge>
                                         <Badge className="text-xs bg-success/10 text-success border-success/20">
-                                          ${finalPrice.toFixed(2)}
+                                          ${finalPrice.toFixed(4)}
                                         </Badge>
                                         <Badge variant="outline" className="text-xs">
-                                          {service.min} - {service.max}
+                                          النوع: {service.type}
                                         </Badge>
+                                        <Badge variant="outline" className="text-xs">
+                                          الكمية: {service.min} - {service.max}
+                                        </Badge>
+                                      </div>
+                                      
+                                      {/* Additional Info */}
+                                      {(service.average_time || service.speed) && (
+                                        <div className="flex flex-wrap gap-2">
+                                          {service.average_time && (
+                                            <Badge variant="outline" className="text-xs bg-muted">
+                                              ⏱️ وقت التنفيذ: {service.average_time}
+                                            </Badge>
+                                          )}
+                                          {service.speed && (
+                                            <Badge variant="outline" className="text-xs bg-muted">
+                                              ⚡ السرعة: {service.speed}
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      )}
+                                      
+                                      {/* Features */}
+                                      <div className="flex flex-wrap gap-1.5">
                                         {service.refill && (
-                                          <Badge className="text-xs bg-green-500/10 text-green-500">
-                                            تعبئة
+                                          <Badge className="text-xs bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20">
+                                            ✓ إعادة التعبئة
                                           </Badge>
                                         )}
                                         {service.dripfeed && (
-                                          <Badge className="text-xs bg-blue-500/10 text-blue-500">
-                                            تنقيط
+                                          <Badge className="text-xs bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">
+                                            ✓ التنقيط
+                                          </Badge>
+                                        )}
+                                        {service.cancel && (
+                                          <Badge className="text-xs bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20">
+                                            ✓ قابل للإلغاء
+                                          </Badge>
+                                        )}
+                                        {!service.refill && (
+                                          <Badge className="text-xs bg-muted text-muted-foreground">
+                                            ✗ بدون تعبئة
+                                          </Badge>
+                                        )}
+                                        {!service.cancel && (
+                                          <Badge className="text-xs bg-muted text-muted-foreground">
+                                            ✗ غير قابل للإلغاء
                                           </Badge>
                                         )}
                                       </div>
