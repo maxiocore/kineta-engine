@@ -142,36 +142,36 @@ const Services = () => {
       <Header />
       <main className="pt-20">
         {/* Hero Section */}
-        <section className="py-12 relative overflow-hidden border-b border-border/50">
+        <section className="py-8 sm:py-12 relative overflow-hidden border-b border-border/50">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
           <motion.div 
-            className="absolute top-10 right-[20%] w-64 h-64 bg-primary/10 rounded-full blur-[100px]"
+            className="absolute top-10 right-[20%] w-48 sm:w-64 h-48 sm:h-64 bg-primary/10 rounded-full blur-[100px]"
             animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
             transition={{ duration: 6, repeat: Infinity }}
           />
           
-          <div className="container px-4 relative z-10">
+          <div className="container px-3 sm:px-4 relative z-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-center max-w-3xl mx-auto"
             >
-              <Badge className="mb-4 gap-2" variant="secondary">
-                <Sparkles className="w-3 h-3" />
+              <Badge className="mb-3 sm:mb-4 gap-1.5 sm:gap-2 text-xs sm:text-sm" variant="secondary">
+                <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                 خدمات SMM Panel
               </Badge>
-              <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
                 اختر من بين{" "}
                 <span className="bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
                   {totalServices}+ خدمة
                 </span>
               </h1>
-              <p className="text-muted-foreground mb-8">
+              <p className="text-sm sm:text-base text-muted-foreground mb-5 sm:mb-8 px-2">
                 خدمات سوشيال ميديا احترافية بأفضل الأسعار وأعلى جودة
               </p>
 
               {/* Quick Stats */}
-              <div className="flex flex-wrap justify-center gap-6">
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-3 sm:gap-6">
                 {[
                   { icon: Zap, label: "توصيل سريع", color: "text-warning" },
                   { icon: RefreshCcw, label: "تعبئة تلقائية", color: "text-success" },
@@ -180,10 +180,10 @@ const Services = () => {
                 ].map((item) => (
                   <motion.div 
                     key={item.label}
-                    className="flex items-center gap-2 text-sm"
+                    className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
                     whileHover={{ scale: 1.05 }}
                   >
-                    <item.icon className={`w-4 h-4 ${item.color}`} />
+                    <item.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${item.color}`} />
                     <span className="text-muted-foreground">{item.label}</span>
                   </motion.div>
                 ))}
@@ -193,23 +193,23 @@ const Services = () => {
         </section>
 
         {/* Search & Filters */}
-        <section className="py-6 sticky top-16 z-30 bg-background/95 backdrop-blur-lg border-b border-border/50">
-          <div className="container px-4">
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-              <div className="relative flex-1 max-w-md w-full">
+        <section className="py-3 sm:py-6 sticky top-16 z-30 bg-background/95 backdrop-blur-lg border-b border-border/50">
+          <div className="container px-3 sm:px-4">
+            <div className="flex flex-col gap-3 sm:gap-4">
+              <div className="relative w-full">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="ابحث عن خدمة..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pr-10"
+                  className="pr-10 h-9 sm:h-10 text-sm"
                 />
               </div>
               
-              <div className="flex gap-3 items-center">
+              <div className="flex gap-2 sm:gap-3 items-center justify-between">
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="w-[180px]">
-                    <Filter className="h-4 w-4 ml-2" />
+                  <SelectTrigger className="flex-1 sm:w-[180px] sm:flex-none h-9 sm:h-10 text-xs sm:text-sm">
+                    <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4 ml-1.5 sm:ml-2" />
                     <SelectValue placeholder="جميع الأقسام" />
                   </SelectTrigger>
                   <SelectContent>
@@ -223,10 +223,10 @@ const Services = () => {
                 </Select>
 
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="sm" onClick={expandAll}>
+                  <Button variant="ghost" size="sm" onClick={expandAll} className="h-9 w-9 sm:h-10 sm:w-10 p-0">
                     <ChevronDown className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={collapseAll}>
+                  <Button variant="ghost" size="sm" onClick={collapseAll} className="h-9 w-9 sm:h-10 sm:w-10 p-0">
                     <ChevronUp className="h-4 w-4" />
                   </Button>
                 </div>
@@ -277,24 +277,24 @@ const Services = () => {
                     >
                       <Card className="overflow-hidden border-border/50 hover:border-primary/20 transition-colors">
                         <CardHeader 
-                          className="cursor-pointer hover:bg-muted/30 transition-colors py-4"
+                          className="cursor-pointer hover:bg-muted/30 transition-colors py-3 sm:py-4 px-3 sm:px-6"
                           onClick={() => toggleCategory(category)}
                         >
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                                <TrendingUp className="w-5 h-5 text-primary-foreground" />
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
                               </div>
                               <div>
-                                <CardTitle className="text-lg">{category}</CardTitle>
-                                <p className="text-sm text-muted-foreground">{categoryServices.length} خدمة</p>
+                                <CardTitle className="text-sm sm:text-lg">{category}</CardTitle>
+                                <p className="text-xs sm:text-sm text-muted-foreground">{categoryServices.length} خدمة</p>
                               </div>
                             </div>
                             <motion.div
                               animate={{ rotate: expandedCategories.has(category) ? 180 : 0 }}
                               transition={{ duration: 0.2 }}
                             >
-                              <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                              <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                             </motion.div>
                           </div>
                         </CardHeader>
@@ -443,19 +443,19 @@ const Services = () => {
         </section>
 
         {/* Features Section */}
-        <section className="py-16 bg-gradient-to-b from-secondary/30 to-background">
-          <div className="container px-4">
+        <section className="py-10 sm:py-16 bg-gradient-to-b from-secondary/30 to-background">
+          <div className="container px-3 sm:px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-center mb-12"
+              className="text-center mb-8 sm:mb-12"
             >
-              <h2 className="text-2xl font-bold mb-3">لماذا نحن؟</h2>
-              <p className="text-muted-foreground">نقدم لك أفضل الخدمات بأعلى جودة</p>
+              <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">لماذا نحن؟</h2>
+              <p className="text-sm sm:text-base text-muted-foreground">نقدم لك أفضل الخدمات بأعلى جودة</p>
             </motion.div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               {[
                 { icon: Zap, title: "سرعة التنفيذ", desc: "بدء فوري للطلبات" },
                 { icon: Shield, title: "أمان عالي", desc: "حماية كاملة للحسابات" },
@@ -469,12 +469,12 @@ const Services = () => {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
                 >
-                  <Card className="text-center p-6 hover:border-primary/30 transition-colors h-full">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                      <item.icon className="w-6 h-6 text-primary" />
+                  <Card className="text-center p-4 sm:p-6 hover:border-primary/30 transition-colors h-full">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                      <item.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                     </div>
-                    <h3 className="font-semibold mb-2">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                    <h3 className="font-semibold text-sm sm:text-base mb-1 sm:mb-2">{item.title}</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">{item.desc}</p>
                   </Card>
                 </motion.div>
               ))}
