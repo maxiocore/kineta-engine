@@ -51,6 +51,8 @@ import AdminPaymentMethods from "./pages/admin/AdminPaymentMethods";
 import AdminRefills from "./pages/admin/AdminRefills";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminApiProviders from "./pages/admin/AdminApiProviders";
+import AdminProviderReports from "./pages/admin/AdminProviderReports";
+import AdminPriceComparison from "./pages/admin/AdminPriceComparison";
 
 const queryClient = new QueryClient();
 
@@ -161,6 +163,16 @@ const App = () => (
                   <Route path="/admin/providers" element={
                     <ProtectedRoute requireAdmin>
                       <AdminApiProviders />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/providers/reports" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminProviderReports />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/providers/compare" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminPriceComparison />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/services/import" element={

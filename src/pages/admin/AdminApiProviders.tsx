@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import AdminDashboardLayout from '@/components/dashboard/AdminDashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -43,7 +44,9 @@ import {
   Clock,
   Eye,
   EyeOff,
-  Download
+  Download,
+  BarChart3,
+  Scale
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
@@ -289,10 +292,24 @@ const AdminApiProviders = () => {
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">إعدادات المزودين</h1>
             <p className="text-muted-foreground mt-1">إدارة مواقع SMM الخارجية واستيراد الخدمات</p>
           </div>
-          <Button onClick={() => handleOpenDialog()} className="gap-2">
-            <Plus className="h-4 w-4" />
-            إضافة مزود جديد
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Link to="/admin/providers/reports">
+              <Button variant="outline" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                تقارير المزودين
+              </Button>
+            </Link>
+            <Link to="/admin/providers/compare">
+              <Button variant="outline" className="gap-2">
+                <Scale className="h-4 w-4" />
+                مقارنة الأسعار
+              </Button>
+            </Link>
+            <Button onClick={() => handleOpenDialog()} className="gap-2">
+              <Plus className="h-4 w-4" />
+              إضافة مزود جديد
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
