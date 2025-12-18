@@ -1,8 +1,9 @@
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowLeft, Sparkles, Play, CheckCircle, Star, Zap, Shield, Clock } from "lucide-react";
+import { ArrowLeft, Sparkles, Play, CheckCircle, Star, Zap, Shield, Clock, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useRef } from "react";
+import GlobalServiceSearch from "@/components/GlobalServiceSearch";
 
 const HeroSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -167,17 +168,15 @@ const HeroSection = () => {
             </h1>
           </motion.div>
 
-          {/* Subtitle */}
-          <motion.p
+          {/* Global Search Bar */}
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-4xl mx-auto mb-8 sm:mb-12 text-center leading-relaxed px-2"
+            className="max-w-xl mx-auto mb-8 sm:mb-12 px-4"
           >
-            نقدم لك حلول تسويقية متكاملة مدعومة بالذكاء الاصطناعي لتعزيز حضورك الرقمي
-            <br className="hidden sm:block" />
-            وتحقيق نمو مستدام لأعمالك في السوق السعودي والعربي
-          </motion.p>
+            <GlobalServiceSearch />
+          </motion.div>
 
           {/* CTA Buttons */}
           <motion.div

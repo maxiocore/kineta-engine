@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { 
   Search, 
   Package, 
@@ -82,6 +83,7 @@ const iconMap: Record<string, React.ComponentType<any>> = {
 const ClientServicesNew = () => {
   const { user } = useAuth();
   const { favorites, toggleFavorite } = useFavorites();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -117,6 +119,34 @@ const ClientServicesNew = () => {
       return data as Service[];
     },
   });
+
+  // Handle URL params for deep linking from search
+  useEffect(() => {
+    if (!services.length) return;
+    
+    const categoryParam = searchParams.get("category");
+    const serviceParam = searchParams.get("service");
+    
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+    }
+    
+    if (serviceParam) {
+      const service = services.find(s => s.id === serviceParam);
+      if (service) {
+        setSelectedCategory(service.category);
+        setSelectedService(service);
+        if (window.innerWidth < 1024) {
+          setShowMobileForm(true);
+        }
+      }
+    }
+    
+    // Clear params after processing
+    if (categoryParam || serviceParam) {
+      setSearchParams({});
+    }
+  }, [services, searchParams]);
 
   // Get unique categories from services
   const serviceCategories = useMemo(() => {
