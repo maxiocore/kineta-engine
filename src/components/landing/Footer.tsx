@@ -20,6 +20,7 @@ const footerLinks = {
   ],
   "الدعم": [
     { label: "الأسعار", href: "/pricing" },
+    { label: "تتبع الطلب", href: "/track-order" },
     { label: "الأسئلة الشائعة", href: "/pricing" },
     { label: "سياسة الخصوصية", href: "#" },
     { label: "الشروط والأحكام", href: "#" },

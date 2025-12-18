@@ -3,6 +3,9 @@ project_id = "ykhmoelrzqgxrgrsehat"
 [functions.check-maintenance-schedule]
 verify_jwt = false
 
+[functions.track-order]
+verify_jwt = false
+
 [functions.bulkfollows-services]
 verify_jwt = true
 

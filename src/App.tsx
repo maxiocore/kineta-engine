@@ -16,6 +16,7 @@ import Services from "./pages/Services";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Pricing from "./pages/Pricing";
+import TrackOrder from "./pages/TrackOrder";
 
 // Client Dashboard
 import ClientDashboard from "./pages/dashboard/ClientDashboard";
@@ -60,6 +61,7 @@ const App = () => (
                   <Route path="/about" element={<About />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/pricing" element={<Pricing />} />
+                  <Route path="/track-order" element={<TrackOrder />} />
                   <Route path="/auth" element={<Auth />} />
                   
                   {/* Client Dashboard Routes */}
