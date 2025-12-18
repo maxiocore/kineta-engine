@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { 
   AreaChart, 
   Area, 
@@ -14,11 +15,16 @@ import {
   Cell,
   BarChart,
   Bar,
-  Legend
+  Legend,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar
 } from 'recharts';
-import { format, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, eachMonthOfInterval, isWithinInterval, getDay } from 'date-fns';
+import { format, subMonths, startOfMonth, endOfMonth, eachMonthOfInterval, isWithinInterval, getDay } from 'date-fns';
 import { ar } from 'date-fns/locale';
-import { TrendingUp, PieChart as PieChartIcon, BarChart3, Calendar, Clock } from 'lucide-react';
+import { TrendingUp, PieChart as PieChartIcon, BarChart3, Calendar, Clock, Users, Award, Target, ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface Order {
@@ -34,9 +40,31 @@ interface Order {
   };
 }
 
+interface PlatformStats {
+  totalUsers: number;
+  avgOrdersPerUser: number;
+  avgSpentPerUser: number;
+  avgOrderValue: number;
+  userRankByOrders: number;
+  userRankBySpending: number;
+  percentileOrders: number;
+  percentileSpending: number;
+}
+
+interface UserStats {
+  totalOrders: number;
+  totalSpent: number;
+  completedOrders: number;
+  pendingOrders: number;
+  totalTickets: number;
+  openTickets: number;
+}
+
 interface UserAnalyticsChartsProps {
   orders: Order[];
   userCreatedAt: string;
+  platformStats: PlatformStats;
+  userStats: UserStats;
 }
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
@@ -51,7 +79,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 const DAY_NAMES = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
-export const UserAnalyticsCharts = ({ orders, userCreatedAt }: UserAnalyticsChartsProps) => {
+export const UserAnalyticsCharts = ({ orders, userCreatedAt, platformStats, userStats }: UserAnalyticsChartsProps) => {
   // Monthly spending data (last 6 months)
   const monthlyData = useMemo(() => {
     const now = new Date();
@@ -268,6 +296,205 @@ export const UserAnalyticsCharts = ({ orders, userCreatedAt }: UserAnalyticsChar
           </Card>
         </motion.div>
       </div>
+
+      {/* Platform Comparison Section */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Users className="h-5 w-5 text-primary" />
+              مقارنة مع متوسط المستخدمين
+            </CardTitle>
+            <CardDescription>
+              مقارنة أداء هذا المستخدم مع {platformStats.totalUsers.toLocaleString()} مستخدم آخر على المنصة
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              {/* Orders Comparison */}
+              <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-muted-foreground">عدد الطلبات</span>
+                  {userStats.totalOrders > platformStats.avgOrdersPerUser ? (
+                    <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
+                      <ArrowUp className="h-3 w-3 ml-1" />
+                      أعلى من المتوسط
+                    </Badge>
+                  ) : userStats.totalOrders < platformStats.avgOrdersPerUser ? (
+                    <Badge className="bg-red-500/10 text-red-500 border-red-500/20">
+                      <ArrowDown className="h-3 w-3 ml-1" />
+                      أقل من المتوسط
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-muted text-muted-foreground">
+                      <Minus className="h-3 w-3 ml-1" />
+                      يساوي المتوسط
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-end gap-2 mb-2">
+                  <span className="text-2xl font-bold">{userStats.totalOrders}</span>
+                  <span className="text-sm text-muted-foreground mb-0.5">
+                    vs {platformStats.avgOrdersPerUser.toFixed(1)}
+                  </span>
+                </div>
+                <Progress 
+                  value={Math.min((userStats.totalOrders / (platformStats.avgOrdersPerUser * 2)) * 100, 100)} 
+                  className="h-2"
+                />
+              </div>
+
+              {/* Spending Comparison */}
+              <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-muted-foreground">إجمالي الإنفاق</span>
+                  {userStats.totalSpent > platformStats.avgSpentPerUser ? (
+                    <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
+                      <ArrowUp className="h-3 w-3 ml-1" />
+                      أعلى من المتوسط
+                    </Badge>
+                  ) : userStats.totalSpent < platformStats.avgSpentPerUser ? (
+                    <Badge className="bg-red-500/10 text-red-500 border-red-500/20">
+                      <ArrowDown className="h-3 w-3 ml-1" />
+                      أقل من المتوسط
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-muted text-muted-foreground">
+                      <Minus className="h-3 w-3 ml-1" />
+                      يساوي المتوسط
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-end gap-2 mb-2">
+                  <span className="text-2xl font-bold">${userStats.totalSpent.toFixed(2)}</span>
+                  <span className="text-sm text-muted-foreground mb-0.5">
+                    vs ${platformStats.avgSpentPerUser.toFixed(2)}
+                  </span>
+                </div>
+                <Progress 
+                  value={Math.min((userStats.totalSpent / (platformStats.avgSpentPerUser * 2)) * 100, 100)} 
+                  className="h-2"
+                />
+              </div>
+
+              {/* Rank by Orders */}
+              <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-muted-foreground">ترتيب بالطلبات</span>
+                  <Badge className="bg-primary/10 text-primary border-primary/20">
+                    <Award className="h-3 w-3 ml-1" />
+                    Top {platformStats.percentileOrders}%
+                  </Badge>
+                </div>
+                <div className="flex items-end gap-2 mb-2">
+                  <span className="text-2xl font-bold">#{platformStats.userRankByOrders}</span>
+                  <span className="text-sm text-muted-foreground mb-0.5">
+                    من {platformStats.totalUsers}
+                  </span>
+                </div>
+                <Progress 
+                  value={platformStats.percentileOrders} 
+                  className="h-2"
+                />
+              </div>
+
+              {/* Rank by Spending */}
+              <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-muted-foreground">ترتيب بالإنفاق</span>
+                  <Badge className="bg-primary/10 text-primary border-primary/20">
+                    <Target className="h-3 w-3 ml-1" />
+                    Top {platformStats.percentileSpending}%
+                  </Badge>
+                </div>
+                <div className="flex items-end gap-2 mb-2">
+                  <span className="text-2xl font-bold">#{platformStats.userRankBySpending}</span>
+                  <span className="text-sm text-muted-foreground mb-0.5">
+                    من {platformStats.totalUsers}
+                  </span>
+                </div>
+                <Progress 
+                  value={platformStats.percentileSpending} 
+                  className="h-2"
+                />
+              </div>
+            </div>
+
+            {/* Radar Chart Comparison */}
+            <div className="mt-6">
+              <h4 className="text-sm font-medium mb-4 text-muted-foreground">مقارنة شاملة مع المتوسط</h4>
+              <ResponsiveContainer width="100%" height={300}>
+                <RadarChart data={[
+                  {
+                    metric: 'عدد الطلبات',
+                    user: Math.min((userStats.totalOrders / Math.max(platformStats.avgOrdersPerUser, 1)) * 100, 200),
+                    average: 100
+                  },
+                  {
+                    metric: 'الإنفاق',
+                    user: Math.min((userStats.totalSpent / Math.max(platformStats.avgSpentPerUser, 1)) * 100, 200),
+                    average: 100
+                  },
+                  {
+                    metric: 'متوسط الطلب',
+                    user: Math.min((avgOrderValue / Math.max(platformStats.avgOrderValue, 1)) * 100, 200),
+                    average: 100
+                  },
+                  {
+                    metric: 'نسبة الإكتمال',
+                    user: userStats.totalOrders > 0 ? (userStats.completedOrders / userStats.totalOrders) * 100 : 0,
+                    average: 70
+                  },
+                  {
+                    metric: 'التفاعل',
+                    user: Math.min((userStats.totalTickets / Math.max(platformStats.totalUsers > 0 ? 2 : 1, 1)) * 100, 150),
+                    average: 100
+                  }
+                ]}>
+                  <PolarGrid className="stroke-border" />
+                  <PolarAngleAxis 
+                    dataKey="metric" 
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                  />
+                  <PolarRadiusAxis 
+                    angle={90} 
+                    domain={[0, 200]}
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                  />
+                  <Radar
+                    name="المستخدم"
+                    dataKey="user"
+                    stroke="hsl(var(--primary))"
+                    fill="hsl(var(--primary))"
+                    fillOpacity={0.3}
+                    strokeWidth={2}
+                  />
+                  <Radar
+                    name="المتوسط"
+                    dataKey="average"
+                    stroke="hsl(var(--muted-foreground))"
+                    fill="hsl(var(--muted-foreground))"
+                    fillOpacity={0.1}
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                  />
+                  <Legend 
+                    formatter={(value) => <span className="text-sm">{value}</span>}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                    formatter={(value: number) => [`${value.toFixed(0)}%`, '']}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -148,6 +148,16 @@ const AdminUserProfile = () => {
     totalTickets: 0,
     openTickets: 0
   });
+  const [platformStats, setPlatformStats] = useState({
+    totalUsers: 0,
+    avgOrdersPerUser: 0,
+    avgSpentPerUser: 0,
+    avgOrderValue: 0,
+    userRankByOrders: 0,
+    userRankBySpending: 0,
+    percentileOrders: 0,
+    percentileSpending: 0
+  });
 
   useEffect(() => {
     if (userId) {
@@ -238,6 +248,61 @@ const AdminUserProfile = () => {
         pendingOrders,
         totalTickets: ticketsData?.length || 0,
         openTickets
+      });
+
+      // Fetch platform-wide statistics for comparison
+      const { data: allProfiles } = await supabase
+        .from('profiles')
+        .select('id');
+      
+      const { data: allOrders } = await supabase
+        .from('orders')
+        .select('user_id, total_price');
+
+      const totalUsers = allProfiles?.length || 1;
+      
+      // Calculate per-user statistics
+      const userOrdersMap = new Map<string, { count: number; spent: number }>();
+      allOrders?.forEach(order => {
+        const existing = userOrdersMap.get(order.user_id) || { count: 0, spent: 0 };
+        userOrdersMap.set(order.user_id, {
+          count: existing.count + 1,
+          spent: existing.spent + Number(order.total_price)
+        });
+      });
+
+      const userStats = Array.from(userOrdersMap.entries()).map(([id, data]) => ({
+        userId: id,
+        orders: data.count,
+        spent: data.spent
+      }));
+
+      // Calculate averages
+      const totalOrdersAll = allOrders?.length || 0;
+      const totalSpentAll = allOrders?.reduce((sum, o) => sum + Number(o.total_price), 0) || 0;
+      const avgOrdersPerUser = totalUsers > 0 ? totalOrdersAll / totalUsers : 0;
+      const avgSpentPerUser = totalUsers > 0 ? totalSpentAll / totalUsers : 0;
+      const avgOrderValue = totalOrdersAll > 0 ? totalSpentAll / totalOrdersAll : 0;
+
+      // Calculate user rankings
+      const sortedByOrders = [...userStats].sort((a, b) => b.orders - a.orders);
+      const sortedBySpending = [...userStats].sort((a, b) => b.spent - a.spent);
+      
+      const userRankByOrders = sortedByOrders.findIndex(u => u.userId === userId) + 1 || totalUsers;
+      const userRankBySpending = sortedBySpending.findIndex(u => u.userId === userId) + 1 || totalUsers;
+      
+      const percentileOrders = totalUsers > 0 ? Math.round(((totalUsers - userRankByOrders) / totalUsers) * 100) : 0;
+      const percentileSpending = totalUsers > 0 ? Math.round(((totalUsers - userRankBySpending) / totalUsers) * 100) : 0;
+
+      setPlatformStats({
+        totalUsers,
+        avgOrdersPerUser,
+        avgSpentPerUser,
+        avgOrderValue,
+        userRankByOrders,
+        userRankBySpending,
+        percentileOrders,
+        percentileSpending
       });
 
     } catch (error) {
@@ -448,7 +513,12 @@ const AdminUserProfile = () => {
 
           {/* Analytics Tab */}
           <TabsContent value="analytics">
-            <UserAnalyticsCharts orders={orders} userCreatedAt={user.created_at} />
+            <UserAnalyticsCharts 
+              orders={orders} 
+              userCreatedAt={user.created_at}
+              platformStats={platformStats}
+              userStats={stats}
+            />
           </TabsContent>
 
           {/* Orders Tab */}
