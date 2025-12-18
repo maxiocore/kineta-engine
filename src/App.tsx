@@ -49,6 +49,7 @@ import AdminUserProfile from "./pages/admin/AdminUserProfile";
 import AdminBadges from "./pages/admin/AdminBadges";
 import AdminPaymentMethods from "./pages/admin/AdminPaymentMethods";
 import AdminRefills from "./pages/admin/AdminRefills";
+import AdminCategories from "./pages/admin/AdminCategories";
 
 const queryClient = new QueryClient();
 
@@ -149,6 +150,11 @@ const App = () => (
                   <Route path="/admin/services" element={
                     <ProtectedRoute requireAdmin>
                       <AdminServices />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/categories" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminCategories />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/services/import" element={
