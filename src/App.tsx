@@ -59,6 +59,7 @@ import AdminProviderReports from "./pages/admin/AdminProviderReports";
 import AdminPriceComparison from "./pages/admin/AdminPriceComparison";
 import AdminReferrals from "./pages/admin/AdminReferrals";
 import AdminRewards from "./pages/admin/AdminRewards";
+import AdminRewardsReports from "./pages/admin/AdminRewardsReports";
 
 const queryClient = new QueryClient();
 
@@ -239,6 +240,11 @@ const App = () => (
                   <Route path="/admin/rewards" element={
                     <ProtectedRoute requireAdmin>
                       <AdminRewards />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/rewards/reports" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminRewardsReports />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/emails" element={
