@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import AdminDashboardLayout from '@/components/dashboard/AdminDashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,13 +24,17 @@ import {
   Percent,
   DollarSign,
   TrendingUp,
-  Languages
+  Languages,
+  Globe,
+  Server,
+  AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Switch } from '@/components/ui/switch';
+import { useQuery } from '@tanstack/react-query';
 
-interface BulkFollowsService {
+interface ProviderService {
   service: string;
   name: string;
   type: string;
@@ -46,45 +51,107 @@ interface BulkFollowsService {
   speed?: string;
 }
 
+interface ApiProvider {
+  id: string;
+  name: string;
+  name_ar: string;
+  api_url: string;
+  is_active: boolean;
+  profit_margin: number;
+  services_count: number;
+}
+
 const AdminServiceImport = () => {
-  const [services, setServices] = useState<BulkFollowsService[]>([]);
+  const [searchParams] = useSearchParams();
+  const preselectedProvider = searchParams.get('provider');
+  
+  const [services, setServices] = useState<ProviderService[]>([]);
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedServices, setSelectedServices] = useState<Set<string>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [selectedProvider, setSelectedProvider] = useState<string>(preselectedProvider || '');
+  const [providerProfitMargin, setProviderProfitMargin] = useState<number>(30);
   
   // Profit margin settings
   const [profitMargin, setProfitMargin] = useState<number>(50);
   const [marginType, setMarginType] = useState<'percentage' | 'fixed'>('percentage');
   const [fixedMargin, setFixedMargin] = useState<number>(0.5);
   const [autoTranslate, setAutoTranslate] = useState<boolean>(true);
+  const [useProviderMargin, setUseProviderMargin] = useState<boolean>(true);
+
+  // Fetch providers
+  const { data: providers = [], isLoading: loadingProviders } = useQuery({
+    queryKey: ['api-providers-active'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('api_providers')
+        .select('id, name, name_ar, api_url, is_active, profit_margin, services_count')
+        .eq('is_active', true)
+        .order('name_ar');
+      
+      if (error) throw error;
+      return data as ApiProvider[];
+    },
+  });
+
+  // Set preselected provider
+  useEffect(() => {
+    if (preselectedProvider && providers.length > 0) {
+      const provider = providers.find(p => p.id === preselectedProvider);
+      if (provider) {
+        setSelectedProvider(provider.id);
+        setProviderProfitMargin(provider.profit_margin);
+        if (useProviderMargin) {
+          setProfitMargin(provider.profit_margin);
+        }
+      }
+    }
+  }, [preselectedProvider, providers]);
+
+  // Update margin when provider changes
+  useEffect(() => {
+    if (selectedProvider && useProviderMargin) {
+      const provider = providers.find(p => p.id === selectedProvider);
+      if (provider) {
+        setProviderProfitMargin(provider.profit_margin);
+        setProfitMargin(provider.profit_margin);
+      }
+    }
+  }, [selectedProvider, providers, useProviderMargin]);
 
   const fetchServices = async () => {
+    if (!selectedProvider) {
+      toast.error('اختر مزود أولاً');
+      return;
+    }
+
     setLoading(true);
+    setServices([]);
+    setSelectedServices(new Set());
+    
     try {
-      const { data, error } = await supabase.functions.invoke('bulkfollows-services');
+      const { data, error } = await supabase.functions.invoke('provider-services', {
+        body: { provider_id: selectedProvider }
+      });
       
       if (error) throw error;
       
       if (data?.services && Array.isArray(data.services)) {
         setServices(data.services);
-        toast.success(`تم جلب ${data.services.length} خدمة`);
+        toast.success(`تم جلب ${data.services.length} خدمة من ${data.provider?.name_ar || 'المزود'}`);
       } else {
         toast.error('فشل في جلب الخدمات');
       }
     } catch (error: any) {
       console.error('Error fetching services:', error);
-      toast.error('حدث خطأ أثناء جلب الخدمات');
+      toast.error('حدث خطأ أثناء جلب الخدمات: ' + (error.message || ''));
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchServices();
-  }, []);
 
   const categories = useMemo(() => {
     const cats = new Set(services.map(s => s.category));
@@ -107,7 +174,7 @@ const AdminServiceImport = () => {
       return matchesSearch && matchesCategory;
     });
 
-    const grouped: Record<string, BulkFollowsService[]> = {};
+    const grouped: Record<string, ProviderService[]> = {};
     filtered.forEach(s => {
       if (!grouped[s.category]) grouped[s.category] = [];
       grouped[s.category].push(s);
@@ -159,6 +226,11 @@ const AdminServiceImport = () => {
   const importSelectedServices = async () => {
     if (selectedServices.size === 0) {
       toast.error('اختر خدمة واحدة على الأقل');
+      return;
+    }
+
+    if (!selectedProvider) {
+      toast.error('اختر مزود أولاً');
       return;
     }
 
@@ -234,6 +306,7 @@ const AdminServiceImport = () => {
           category: translatedCategory,
           status: 'active',
           external_service_id: service.service,
+          provider_id: selectedProvider,
           refill_enabled: service.refill || false,
           refill_days: service.refill ? 30 : null,
           features: [
@@ -252,6 +325,17 @@ const AdminServiceImport = () => {
           successCount++;
         }
       }
+
+      // Update provider's services count
+      const { count } = await supabase
+        .from('services')
+        .select('*', { count: 'exact', head: true })
+        .eq('provider_id', selectedProvider);
+
+      await supabase
+        .from('api_providers')
+        .update({ services_count: count || 0 })
+        .eq('id', selectedProvider);
 
       toast.dismiss('translate');
       toast.success(`تم استيراد ${successCount} خدمة بنجاح`);
@@ -282,6 +366,8 @@ const AdminServiceImport = () => {
     };
   }, [selectedServices, services, profitMargin, marginType, fixedMargin]);
 
+  const currentProvider = providers.find(p => p.id === selectedProvider);
+
   return (
     <AdminDashboardLayout>
       <div className="space-y-6">
@@ -295,13 +381,13 @@ const AdminServiceImport = () => {
             </Link>
             <div>
               <h1 className="text-2xl font-bold">استيراد الخدمات</h1>
-              <p className="text-muted-foreground">اختر الخدمات من BulkFollows لإضافتها لموقعك</p>
+              <p className="text-muted-foreground">اختر مزود واستورد الخدمات لموقعك</p>
             </div>
           </div>
           <div className="flex gap-2">
-            <Button onClick={fetchServices} disabled={loading} variant="outline">
+            <Button onClick={fetchServices} disabled={loading || !selectedProvider} variant="outline">
               <RefreshCw className={`h-4 w-4 ml-2 ${loading ? 'animate-spin' : ''}`} />
-              تحديث
+              جلب الخدمات
             </Button>
             <Button 
               onClick={importSelectedServices} 
@@ -317,6 +403,73 @@ const AdminServiceImport = () => {
             </Button>
           </div>
         </div>
+
+        {/* Provider Selection */}
+        <Card className="border-blue-500/20 bg-blue-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Globe className="h-5 w-5 text-blue-500" />
+              اختر المزود
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loadingProviders ? (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                جاري تحميل المزودين...
+              </div>
+            ) : providers.length === 0 ? (
+              <div className="flex items-center gap-2 text-warning">
+                <AlertCircle className="h-4 w-4" />
+                <span>لا يوجد مزودين نشطين.</span>
+                <Link to="/admin/providers" className="text-primary hover:underline">
+                  إضافة مزود جديد
+                </Link>
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {providers.map((provider) => (
+                  <div
+                    key={provider.id}
+                    onClick={() => {
+                      setSelectedProvider(provider.id);
+                      setServices([]);
+                      setSelectedServices(new Set());
+                    }}
+                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                      selectedProvider === provider.id
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${
+                        selectedProvider === provider.id ? 'bg-primary/20' : 'bg-muted'
+                      }`}>
+                        <Server className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{provider.name_ar}</p>
+                        <p className="text-xs text-muted-foreground truncate">{provider.name}</p>
+                      </div>
+                      {selectedProvider === provider.id && (
+                        <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
+                      )}
+                    </div>
+                    <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                      <Badge variant="outline" className="text-xs">
+                        {provider.services_count} خدمة
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {provider.profit_margin}% ربح
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Profit Margin Settings */}
         <Card className="border-primary/20 bg-primary/5">
@@ -340,10 +493,35 @@ const AdminServiceImport = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid sm:grid-cols-3 gap-4">
+            <div className="grid sm:grid-cols-4 gap-4">
+              {/* Use Provider Margin Toggle */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  استخدام هامش المزود
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={useProviderMargin}
+                    onCheckedChange={(checked) => {
+                      setUseProviderMargin(checked);
+                      if (checked && currentProvider) {
+                        setProfitMargin(currentProvider.profit_margin);
+                      }
+                    }}
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    {useProviderMargin ? `${providerProfitMargin}%` : 'مخصص'}
+                  </span>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label>نوع الهامش</Label>
-                <Select value={marginType} onValueChange={(v: 'percentage' | 'fixed') => setMarginType(v)}>
+                <Select 
+                  value={marginType} 
+                  onValueChange={(v: 'percentage' | 'fixed') => setMarginType(v)}
+                  disabled={useProviderMargin}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -368,6 +546,7 @@ const AdminServiceImport = () => {
                       value={profitMargin}
                       onChange={(e) => setProfitMargin(Math.max(0, Math.min(500, parseInt(e.target.value) || 0)))}
                       className="w-24"
+                      disabled={useProviderMargin}
                     />
                     <span className="text-muted-foreground">%</span>
                   </div>
@@ -386,6 +565,7 @@ const AdminServiceImport = () => {
                       value={fixedMargin}
                       onChange={(e) => setFixedMargin(Math.max(0, parseFloat(e.target.value) || 0))}
                       className="w-24"
+                      disabled={useProviderMargin}
                     />
                     <span className="text-muted-foreground">$</span>
                   </div>
@@ -416,72 +596,96 @@ const AdminServiceImport = () => {
         </Card>
 
         {/* Filters */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="بحث في الخدمات..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pr-10"
-                />
+        {services.length > 0 && (
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="بحث في الخدمات..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pr-10"
+                  />
+                </div>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <Filter className="h-4 w-4 ml-2" />
+                    <SelectValue placeholder="جميع الأقسام" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع الأقسام</SelectItem>
+                    {categories.map(cat => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full sm:w-[200px]">
-                  <Filter className="h-4 w-4 ml-2" />
-                  <SelectValue placeholder="جميع الأقسام" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">جميع الأقسام</SelectItem>
-                  {categories.map(cat => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Package className="h-8 w-8 mx-auto mb-2 text-primary" />
-              <p className="text-2xl font-bold">{services.length}</p>
-              <p className="text-sm text-muted-foreground">إجمالي الخدمات</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Filter className="h-8 w-8 mx-auto mb-2 text-blue-500" />
-              <p className="text-2xl font-bold">{categories.length}</p>
-              <p className="text-sm text-muted-foreground">الأقسام</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-500" />
-              <p className="text-2xl font-bold">{selectedServices.size}</p>
-              <p className="text-sm text-muted-foreground">محدد</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <TrendingUp className="h-8 w-8 mx-auto mb-2 text-warning" />
-              <p className="text-2xl font-bold">{profitMargin}%</p>
-              <p className="text-sm text-muted-foreground">هامش الربح</p>
-            </CardContent>
-          </Card>
-        </div>
+        {services.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-4 text-center">
+                <Package className="h-8 w-8 mx-auto mb-2 text-primary" />
+                <p className="text-2xl font-bold">{services.length}</p>
+                <p className="text-sm text-muted-foreground">إجمالي الخدمات</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <Filter className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+                <p className="text-2xl font-bold">{categories.length}</p>
+                <p className="text-sm text-muted-foreground">الأقسام</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-500" />
+                <p className="text-2xl font-bold">{selectedServices.size}</p>
+                <p className="text-sm text-muted-foreground">محدد</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <TrendingUp className="h-8 w-8 mx-auto mb-2 text-warning" />
+                <p className="text-2xl font-bold">{profitMargin}%</p>
+                <p className="text-sm text-muted-foreground">هامش الربح</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Services List */}
-        {loading ? (
+        {!selectedProvider ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <Globe className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">اختر مزود</h3>
+              <p className="text-muted-foreground">اختر مزود من القائمة أعلاه لجلب الخدمات</p>
+            </CardContent>
+          </Card>
+        ) : loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="mr-3">جاري جلب الخدمات...</span>
+            <span className="mr-3">جاري جلب الخدمات من {currentProvider?.name_ar}...</span>
           </div>
+        ) : services.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <Package className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">لا توجد خدمات</h3>
+              <p className="text-muted-foreground mb-4">اضغط على "جلب الخدمات" لتحميل الخدمات من المزود</p>
+              <Button onClick={fetchServices} disabled={loading}>
+                <RefreshCw className="h-4 w-4 ml-2" />
+                جلب الخدمات
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-4">
             <AnimatePresence>
