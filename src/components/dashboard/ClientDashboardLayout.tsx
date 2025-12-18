@@ -17,6 +17,7 @@ import {
   Wallet,
   Plus,
   History,
+  Heart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ interface NavItem {
 const clientNavItems: NavItem[] = [
   { label: "نظرة عامة", href: "/dashboard", icon: LayoutDashboard },
   { label: "الطلبات", href: "/dashboard/orders", icon: ShoppingBag },
+  { label: "المفضلة", href: "/dashboard/favorites", icon: Heart },
   { label: "الإيداعات", href: "/dashboard/deposits", icon: History },
   { label: "الشارات", href: "/dashboard/badges", icon: Award },
   { label: "الإشعارات", href: "/dashboard/notifications", icon: Bell },
