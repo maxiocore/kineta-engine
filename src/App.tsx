@@ -25,6 +25,7 @@ import ClientBadges from "./pages/dashboard/ClientBadges";
 import ClientNotifications from "./pages/dashboard/ClientNotifications";
 import ClientSupport from "./pages/dashboard/ClientSupport";
 import ClientSettings from "./pages/dashboard/ClientSettings";
+import ClientAPI from "./pages/dashboard/ClientAPI";
 
 // Admin Dashboard
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -44,6 +45,8 @@ import AdminOrdersSync from "./pages/admin/AdminOrdersSync";
 import AdminCoupons from "./pages/admin/AdminCoupons";
 import AdminUserProfile from "./pages/admin/AdminUserProfile";
 import AdminBadges from "./pages/admin/AdminBadges";
+import AdminPaymentMethods from "./pages/admin/AdminPaymentMethods";
+import AdminRefills from "./pages/admin/AdminRefills";
 
 const queryClient = new QueryClient();
 
@@ -98,9 +101,24 @@ const App = () => (
                       <ClientSettings />
                     </ProtectedRoute>
                   } />
+                  <Route path="/dashboard/api" element={
+                    <ProtectedRoute>
+                      <ClientAPI />
+                    </ProtectedRoute>
+                  } />
                   
                   {/* Admin Dashboard Routes */}
                   <Route path="/admin/auth" element={<AdminAuth />} />
+                  <Route path="/admin/payments" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminPaymentMethods />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/refills" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminRefills />
+                    </ProtectedRoute>
+                  } />
                   <Route path="/admin" element={
                     <ProtectedRoute requireAdmin>
                       <AdminDashboard />
