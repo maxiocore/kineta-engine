@@ -481,170 +481,65 @@ const ClientServices = () => {
                       
                       <CollapsibleContent>
                         <div className="border-t border-border/50">
-                          {/* Desktop Table */}
-                          <div className="hidden md:block overflow-x-auto">
-                            <Table>
-                              <TableHeader>
-                                <TableRow className="bg-muted/30 hover:bg-muted/30">
-                                  <TableHead className="text-right font-bold w-16">
-                                    <div className="flex items-center gap-1">
-                                      <Hash className="w-4 h-4" />
-                                      ID
-                                    </div>
-                                  </TableHead>
-                                  <TableHead className="text-right font-bold">الخدمة</TableHead>
-                                  <TableHead className="text-right font-bold w-32">
-                                    <div className="flex items-center gap-1">
-                                      <DollarSign className="w-4 h-4" />
-                                      السعر
-                                    </div>
-                                  </TableHead>
-                                  <TableHead className="text-right font-bold w-24">الحالة</TableHead>
-                                  <TableHead className="text-center font-bold w-40">إجراءات</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                <AnimatePresence>
-                                  {categoryServices.map((service, index) => (
-                                    <motion.tr
-                                      key={service.id}
-                                      initial={{ opacity: 0, x: -20 }}
-                                      animate={{ opacity: 1, x: 0 }}
-                                      exit={{ opacity: 0, x: 20 }}
-                                      transition={{ delay: index * 0.02 }}
-                                      className="group hover:bg-muted/20 transition-colors"
-                                    >
-                                      <TableCell className="font-mono text-sm text-muted-foreground">
-                                        {service.external_service_id || "-"}
-                                      </TableCell>
-                                      <TableCell>
-                                        <div className="max-w-md">
-                                          <p className="font-medium text-sm leading-relaxed group-hover:text-primary transition-colors">
-                                            {service.name}
-                                          </p>
-                                          {service.description && (
-                                            <TooltipProvider>
-                                              <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                  <p className="text-xs text-muted-foreground mt-1 line-clamp-1 cursor-help">
-                                                    {service.description}
-                                                  </p>
-                                                </TooltipTrigger>
-                                                <TooltipContent side="bottom" className="max-w-sm">
-                                                  <p>{service.description}</p>
-                                                </TooltipContent>
-                                              </Tooltip>
-                                            </TooltipProvider>
-                                          )}
-                                        </div>
-                                      </TableCell>
-                                      <TableCell>
-                                        <div className="flex items-baseline gap-1">
-                                          <span className="text-lg font-bold text-primary">
-                                            {service.price.toFixed(2)}
-                                          </span>
-                                          <span className="text-xs text-muted-foreground">ر.س</span>
-                                        </div>
-                                        <p className="text-[10px] text-muted-foreground">لكل 1000</p>
-                                      </TableCell>
-                                      <TableCell>
-                                        <div className="flex flex-wrap gap-1">
-                                          {service.refill_enabled && (
-                                            <Badge className="text-[10px] h-5 px-1.5 bg-success/10 text-success border-success/20">
-                                              <Shield className="w-3 h-3 ml-0.5" />
-                                              {service.refill_days || 30}d
-                                            </Badge>
-                                          )}
-                                          <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-primary/5">
-                                            <Clock className="w-3 h-3 ml-0.5" />
-                                            سريع
-                                          </Badge>
-                                        </div>
-                                      </TableCell>
-                                      <TableCell>
-                                        <div className="flex items-center justify-center gap-2">
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => toggleFavorite(service.id)}
-                                            className={cn(
-                                              "h-8 w-8 rounded-lg transition-all",
-                                              checkIsFavorite(service.id) 
-                                                ? "text-destructive bg-destructive/10 hover:bg-destructive/20" 
-                                                : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                                            )}
-                                          >
-                                            <Heart className={cn(
-                                              "w-4 h-4",
-                                              checkIsFavorite(service.id) && "fill-current"
-                                            )} />
-                                          </Button>
-                                          <Button
-                                            onClick={() => handleOrder(service)}
-                                            size="sm"
-                                            className="rounded-lg bg-gradient-to-l from-primary to-accent hover:opacity-90 text-white gap-1.5 h-8 shadow-md shadow-primary/20"
-                                          >
-                                            <ShoppingCart className="w-3.5 h-3.5" />
-                                            طلب
-                                          </Button>
-                                        </div>
-                                      </TableCell>
-                                    </motion.tr>
-                                  ))}
-                                </AnimatePresence>
-                              </TableBody>
-                            </Table>
-                          </div>
-                          
-                          {/* Mobile Cards */}
-                          <div className="md:hidden divide-y divide-border/50">
+                        {/* Services List - RTL Layout: ID Right, Name Center, Price Left */}
+                          <div className="divide-y divide-border/50">
                             {categoryServices.map((service, index) => (
                               <motion.div
                                 key={service.id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: index * 0.02 }}
-                                className="p-4 hover:bg-muted/20 transition-colors"
+                                className="group hover:bg-primary/5 transition-all duration-200 cursor-pointer"
+                                onClick={() => handleOrder(service)}
                               >
-                                <div className="flex items-start justify-between gap-3 mb-3">
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      {service.external_service_id && (
-                                        <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-mono">
-                                          #{service.external_service_id}
-                                        </Badge>
-                                      )}
+                                <div className="flex items-center gap-3 p-3 sm:p-4">
+                                  {/* ID Badge - Right */}
+                                  <div className="shrink-0 w-14 sm:w-16">
+                                    <Badge 
+                                      variant="outline" 
+                                      className="w-full justify-center font-mono text-xs sm:text-sm h-7 sm:h-8 bg-muted/50 border-border"
+                                    >
+                                      {service.external_service_id || "-"}
+                                    </Badge>
+                                  </div>
+                                  
+                                  {/* Service Name - Center (Flex Grow) */}
+                                  <div className="flex-1 min-w-0 px-2">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <p className="font-medium text-sm sm:text-base leading-relaxed group-hover:text-primary transition-colors line-clamp-2">
+                                        {service.name}
+                                      </p>
                                       {service.refill_enabled && (
-                                        <Badge className="text-[10px] h-5 px-1.5 bg-success/10 text-success border-success/20">
-                                          <Shield className="w-3 h-3" />
+                                        <Badge className="text-[10px] h-5 px-1.5 bg-success/10 text-success border-success/20 shrink-0">
+                                          <Shield className="w-3 h-3 ml-0.5" />
+                                          ضمان
                                         </Badge>
                                       )}
                                     </div>
-                                    <p className="font-medium text-sm leading-relaxed">{service.name}</p>
                                   </div>
-                                  <div className="text-left shrink-0">
-                                    <div className="flex items-baseline gap-0.5">
-                                      <span className="text-lg font-bold text-primary">{service.price.toFixed(2)}</span>
-                                      <span className="text-[10px] text-muted-foreground">ر.س</span>
+                                  
+                                  {/* Price - Left */}
+                                  <div className="shrink-0 text-left min-w-[90px] sm:min-w-[110px]">
+                                    <div className="flex items-baseline gap-1 justify-end">
+                                      <span className="text-base sm:text-lg font-bold text-primary">
+                                        ${service.price.toFixed(4)}
+                                      </span>
                                     </div>
                                   </div>
-                                </div>
-                                <div className="flex items-center gap-2">
+                                  
+                                  {/* Favorite Button - Far Left */}
                                   <Button
-                                    onClick={() => handleOrder(service)}
-                                    size="sm"
-                                    className="flex-1 rounded-lg bg-gradient-to-l from-primary to-accent hover:opacity-90 text-white gap-1.5 h-9"
-                                  >
-                                    <ShoppingCart className="w-4 h-4" />
-                                    طلب الآن
-                                  </Button>
-                                  <Button
-                                    variant="outline"
+                                    variant="ghost"
                                     size="icon"
-                                    onClick={() => toggleFavorite(service.id)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleFavorite(service.id);
+                                    }}
                                     className={cn(
-                                      "h-9 w-9 rounded-lg shrink-0",
-                                      checkIsFavorite(service.id) && "text-destructive border-destructive/30 bg-destructive/10"
+                                      "h-8 w-8 sm:h-9 sm:w-9 rounded-lg shrink-0 transition-all",
+                                      checkIsFavorite(service.id) 
+                                        ? "text-destructive bg-destructive/10 hover:bg-destructive/20" 
+                                        : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                                     )}
                                   >
                                     <Heart className={cn(
