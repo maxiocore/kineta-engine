@@ -56,6 +56,163 @@ export type Database = {
         }
         Relationships: []
       }
+      email_campaigns: {
+        Row: {
+          completed_at: string | null
+          content: string
+          created_at: string
+          created_by: string | null
+          delivered_count: number
+          failed_count: number
+          id: string
+          name: string
+          scheduled_at: string | null
+          sent_count: number
+          started_at: string | null
+          status: string
+          subject: string
+          target_audience: string
+          template_id: string | null
+          total_recipients: number
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          delivered_count?: number
+          failed_count?: number
+          id?: string
+          name: string
+          scheduled_at?: string | null
+          sent_count?: number
+          started_at?: string | null
+          status?: string
+          subject: string
+          target_audience?: string
+          template_id?: string | null
+          total_recipients?: number
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          delivered_count?: number
+          failed_count?: number
+          id?: string
+          name?: string
+          scheduled_at?: string | null
+          sent_count?: number
+          started_at?: string | null
+          status?: string
+          subject?: string
+          target_audience?: string
+          template_id?: string | null
+          total_recipients?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_campaigns_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          status: string
+          subject: string
+          type: string
+          updated_at: string
+          usage_count: number
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          status?: string
+          subject: string
+          type?: string
+          updated_at?: string
+          usage_count?: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          status?: string
+          subject?: string
+          type?: string
+          updated_at?: string
+          usage_count?: number
+        }
+        Relationships: []
+      }
+      emails: {
+        Row: {
+          content: string
+          created_at: string
+          error_message: string | null
+          id: string
+          recipient_email: string
+          recipient_name: string | null
+          sent_at: string | null
+          sent_by: string | null
+          status: string
+          subject: string
+          template_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          recipient_email: string
+          recipient_name?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          status?: string
+          subject: string
+          template_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          recipient_email?: string
+          recipient_name?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          status?: string
+          subject?: string
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emails_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_status_history: {
         Row: {
           changed_by: string
