@@ -1,17 +1,15 @@
+import { useState, useEffect, useCallback } from "react";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   FileText, 
   Search, 
-  Filter, 
   Download,
   Calendar,
   User,
   Shield,
   Settings,
   ShoppingBag,
-  LogIn,
-  LogOut,
   Edit,
   Trash2,
   Plus,
@@ -20,13 +18,23 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  Activity
+  Activity,
+  Users,
+  Ticket,
+  Package,
+  RefreshCw,
+  ChevronDown,
+  ChevronUp,
+  Filter,
+  X
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -34,92 +42,444 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { supabase } from "@/integrations/supabase/client";
+import { formatDistanceToNow, format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import { ar } from "date-fns/locale";
+import { toast } from "sonner";
 
-const logStats = [
-  { label: "إجمالي العمليات", value: "125,847", icon: Activity, color: "from-primary to-primary/70" },
-  { label: "عمليات اليوم", value: "1,234", icon: Clock, color: "from-blue-500 to-cyan-500" },
-  { label: "تنبيهات أمنية", value: "23", icon: AlertTriangle, color: "from-amber-500 to-yellow-500" },
-  { label: "أخطاء النظام", value: "5", icon: XCircle, color: "from-destructive to-red-500" },
-];
+interface AuditLog {
+  id: string;
+  table_name: string;
+  record_id: string | null;
+  action: string;
+  old_value: any;
+  new_value: any;
+  user_id: string | null;
+  created_at: string;
+}
 
-const activityLogs = [
-  { id: 1, action: "تسجيل دخول", user: "أحمد محمد", role: "عميل", ip: "192.168.1.100", status: "نجح", date: "2024-01-15 14:30:25" },
-  { id: 2, action: "إنشاء طلب جديد", user: "سارة أحمد", role: "عميل", ip: "192.168.1.101", status: "نجح", date: "2024-01-15 14:28:15" },
-  { id: 3, action: "تعديل مستخدم", user: "المدير العام", role: "أدمن", ip: "192.168.1.1", status: "نجح", date: "2024-01-15 14:25:00" },
-  { id: 4, action: "محاولة دخول فاشلة", user: "غير معروف", role: "-", ip: "45.33.32.156", status: "فشل", date: "2024-01-15 14:20:30" },
-  { id: 5, action: "حذف خدمة", user: "المدير العام", role: "أدمن", ip: "192.168.1.1", status: "نجح", date: "2024-01-15 14:15:45" },
-  { id: 6, action: "تغيير كلمة المرور", user: "عمر خالد", role: "عميل", ip: "192.168.1.102", status: "نجح", date: "2024-01-15 14:10:20" },
-  { id: 7, action: "إضافة خدمة جديدة", user: "مدير الخدمات", role: "مدير", ip: "192.168.1.2", status: "نجح", date: "2024-01-15 14:05:10" },
-  { id: 8, action: "تسجيل خروج", user: "فاطمة علي", role: "عميل", ip: "192.168.1.103", status: "نجح", date: "2024-01-15 14:00:00" },
-];
+interface LogStats {
+  total: number;
+  today: number;
+  orders: number;
+  users: number;
+  tickets: number;
+  settings: number;
+  services: number;
+}
 
-const securityLogs = [
-  { id: 1, event: "محاولة دخول متكررة", severity: "عالي", source: "45.33.32.156", details: "5 محاولات فاشلة", date: "2024-01-15 14:20:30" },
-  { id: 2, event: "تغيير صلاحيات", severity: "متوسط", source: "المدير العام", details: "ترقية مستخدم لمدير", date: "2024-01-15 13:45:00" },
-  { id: 3, event: "وصول من موقع جديد", severity: "منخفض", source: "أحمد محمد", details: "دخول من جهاز جديد", date: "2024-01-15 12:30:15" },
-  { id: 4, event: "تعديل إعدادات الأمان", severity: "عالي", source: "المدير العام", details: "تفعيل 2FA", date: "2024-01-15 11:00:00" },
-];
+const tableLabels: Record<string, { label: string; icon: any; color: string }> = {
+  orders: { label: 'الطلبات', icon: ShoppingBag, color: 'from-blue-500 to-cyan-500' },
+  profiles: { label: 'المستخدمين', icon: Users, color: 'from-green-500 to-emerald-500' },
+  support_tickets: { label: 'التذاكر', icon: Ticket, color: 'from-purple-500 to-pink-500' },
+  system_settings: { label: 'الإعدادات', icon: Settings, color: 'from-orange-500 to-amber-500' },
+  services: { label: 'الخدمات', icon: Package, color: 'from-indigo-500 to-violet-500' },
+};
 
-const systemLogs = [
-  { id: 1, type: "info", message: "تم تشغيل النظام بنجاح", component: "Server", date: "2024-01-15 08:00:00" },
-  { id: 2, type: "warning", message: "استخدام الذاكرة مرتفع (85%)", component: "Memory", date: "2024-01-15 12:30:00" },
-  { id: 3, type: "error", message: "فشل الاتصال بخادم البريد", component: "Email", date: "2024-01-15 13:15:00" },
-  { id: 4, type: "success", message: "تم إكمال النسخ الاحتياطي", component: "Backup", date: "2024-01-15 03:00:00" },
-  { id: 5, type: "info", message: "تحديث قاعدة البيانات", component: "Database", date: "2024-01-15 02:00:00" },
-];
+const actionIcons: Record<string, any> = {
+  INSERT: Plus,
+  UPDATE: Edit,
+  DELETE: Trash2,
+};
 
-const getActionIcon = (action: string) => {
-  if (action.includes("دخول")) return LogIn;
-  if (action.includes("خروج")) return LogOut;
-  if (action.includes("إنشاء") || action.includes("إضافة")) return Plus;
-  if (action.includes("تعديل") || action.includes("تغيير")) return Edit;
-  if (action.includes("حذف")) return Trash2;
-  return Activity;
+const actionColors: Record<string, string> = {
+  INSERT: 'bg-green-500/10 text-green-500 border-green-500/20',
+  UPDATE: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+  DELETE: 'bg-red-500/10 text-red-500 border-red-500/20',
+};
+
+const actionLabels: Record<string, string> = {
+  INSERT: 'إضافة',
+  UPDATE: 'تعديل',
+  DELETE: 'حذف',
+};
+
+const LogItemSkeleton = () => (
+  <div className="flex items-center gap-4 p-4 rounded-xl bg-secondary/30">
+    <Skeleton className="w-10 h-10 rounded-full" />
+    <div className="flex-1 space-y-2">
+      <Skeleton className="h-4 w-48" />
+      <Skeleton className="h-3 w-32" />
+    </div>
+    <Skeleton className="h-6 w-16 rounded-full" />
+  </div>
+);
+
+const StatsSkeleton = () => (
+  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    {[1, 2, 3, 4].map((i) => (
+      <Card key={i} className="glass border-border/50">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <Skeleton className="w-10 h-10 rounded-xl" />
+            <div className="space-y-1">
+              <Skeleton className="h-6 w-16" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
+
+interface LogItemProps {
+  log: AuditLog;
+  index: number;
+}
+
+const LogItem = ({ log, index }: LogItemProps) => {
+  const [expanded, setExpanded] = useState(false);
+  const tableInfo = tableLabels[log.table_name] || { label: log.table_name, icon: Activity, color: 'from-gray-500 to-gray-600' };
+  const ActionIcon = actionIcons[log.action] || Activity;
+  const TableIcon = tableInfo.icon;
+
+  const getDisplayValue = (value: any, key: string) => {
+    if (value === null || value === undefined) return '-';
+    if (typeof value === 'boolean') return value ? 'مُفعّل' : 'مُعطّل';
+    if (key === 'status') {
+      const statusLabels: Record<string, string> = {
+        pending: 'قيد الانتظار',
+        confirmed: 'مؤكد',
+        in_progress: 'قيد التنفيذ',
+        completed: 'مكتمل',
+        cancelled: 'ملغي',
+        refunded: 'مسترد',
+        open: 'مفتوحة',
+        resolved: 'محلولة',
+        closed: 'مغلقة',
+        active: 'نشط',
+        inactive: 'غير نشط',
+      };
+      return statusLabels[value] || value;
+    }
+    if (key === 'priority') {
+      const priorityLabels: Record<string, string> = {
+        low: 'منخفضة',
+        medium: 'متوسطة',
+        high: 'عالية',
+        urgent: 'عاجلة',
+      };
+      return priorityLabels[value] || value;
+    }
+    return String(value);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.03 }}
+    >
+      <div 
+        className="flex items-center justify-between p-4 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-all cursor-pointer border border-transparent hover:border-primary/20"
+        onClick={() => setExpanded(!expanded)}
+      >
+        <div className="flex items-center gap-4">
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br ${tableInfo.color}`}>
+            <TableIcon className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="font-medium">{tableInfo.label}</p>
+              <Badge variant="outline" className={actionColors[log.action]}>
+                <ActionIcon className="w-3 h-3 ml-1" />
+                {actionLabels[log.action]}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+              <Clock className="w-3 h-3" />
+              <span>
+                {formatDistanceToNow(new Date(log.created_at), { addSuffix: true, locale: ar })}
+              </span>
+              {log.record_id && (
+                <>
+                  <span>•</span>
+                  <span className="font-mono text-xs">{log.record_id.slice(0, 8)}...</span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground hidden md:block">
+            {format(new Date(log.created_at), 'yyyy/MM/dd HH:mm', { locale: ar })}
+          </span>
+          {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="p-4 mr-14 mt-2 rounded-lg bg-muted/30 border border-border/50 space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                {log.old_value && (
+                  <div>
+                    <p className="text-muted-foreground mb-2 font-medium">القيمة السابقة</p>
+                    <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 space-y-1">
+                      {Object.entries(log.old_value).map(([key, value]) => (
+                        <div key={key} className="flex justify-between gap-2">
+                          <span className="text-muted-foreground">{key}:</span>
+                          <span className="text-destructive font-medium">{getDisplayValue(value, key)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {log.new_value && (
+                  <div>
+                    <p className="text-muted-foreground mb-2 font-medium">القيمة الجديدة</p>
+                    <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 space-y-1">
+                      {Object.entries(log.new_value).map(([key, value]) => (
+                        <div key={key} className="flex justify-between gap-2">
+                          <span className="text-muted-foreground">{key}:</span>
+                          <span className="text-green-500 font-medium">{getDisplayValue(value, key)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t border-border/50">
+                <div className="flex items-center gap-1">
+                  <User className="w-3 h-3" />
+                  <span>{log.user_id ? log.user_id.slice(0, 8) + '...' : 'النظام'}</span>
+                </div>
+                <span>•</span>
+                <span>{format(new Date(log.created_at), 'yyyy/MM/dd HH:mm:ss', { locale: ar })}</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
 };
 
 const AdminLogs = () => {
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<LogStats>({
+    total: 0, today: 0, orders: 0, users: 0, tickets: 0, settings: 0, services: 0
+  });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTable, setSelectedTable] = useState<string>("all");
+  const [selectedAction, setSelectedAction] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
+  const [activeTab, setActiveTab] = useState("all");
+
+  const fetchLogs = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(200);
+
+      if (error) throw error;
+      setLogs(data || []);
+
+      // Calculate stats
+      const today = new Date();
+      const todayStart = startOfDay(today);
+      const todayEnd = endOfDay(today);
+
+      const todayLogs = (data || []).filter(log => 
+        isWithinInterval(new Date(log.created_at), { start: todayStart, end: todayEnd })
+      );
+
+      setStats({
+        total: data?.length || 0,
+        today: todayLogs.length,
+        orders: (data || []).filter(l => l.table_name === 'orders').length,
+        users: (data || []).filter(l => l.table_name === 'profiles').length,
+        tickets: (data || []).filter(l => l.table_name === 'support_tickets').length,
+        settings: (data || []).filter(l => l.table_name === 'system_settings').length,
+        services: (data || []).filter(l => l.table_name === 'services').length,
+      });
+    } catch (error) {
+      console.error('Error fetching logs:', error);
+      toast.error('فشل في تحميل السجلات');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchLogs();
+
+    // Real-time subscription
+    const channel = supabase
+      .channel('audit-logs-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'audit_logs'
+        },
+        (payload) => {
+          const newLog = payload.new as AuditLog;
+          setLogs(prev => [newLog, ...prev].slice(0, 200));
+          setStats(prev => ({
+            ...prev,
+            total: prev.total + 1,
+            today: prev.today + 1,
+            orders: newLog.table_name === 'orders' ? prev.orders + 1 : prev.orders,
+            users: newLog.table_name === 'profiles' ? prev.users + 1 : prev.users,
+            tickets: newLog.table_name === 'support_tickets' ? prev.tickets + 1 : prev.tickets,
+            settings: newLog.table_name === 'system_settings' ? prev.settings + 1 : prev.settings,
+            services: newLog.table_name === 'services' ? prev.services + 1 : prev.services,
+          }));
+          toast.info('سجل جديد', { description: `${tableLabels[newLog.table_name]?.label || newLog.table_name} - ${actionLabels[newLog.action]}` });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchLogs]);
+
+  const filteredLogs = logs.filter(log => {
+    // Tab filter
+    if (activeTab !== 'all' && log.table_name !== activeTab) return false;
+    
+    // Table filter
+    if (selectedTable !== 'all' && log.table_name !== selectedTable) return false;
+    
+    // Action filter
+    if (selectedAction !== 'all' && log.action !== selectedAction) return false;
+    
+    // Date filter
+    if (dateRange.from && new Date(log.created_at) < startOfDay(dateRange.from)) return false;
+    if (dateRange.to && new Date(log.created_at) > endOfDay(dateRange.to)) return false;
+    
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchTable = tableLabels[log.table_name]?.label.toLowerCase().includes(query);
+      const matchAction = actionLabels[log.action]?.toLowerCase().includes(query);
+      const matchRecord = log.record_id?.toLowerCase().includes(query);
+      const matchValues = JSON.stringify(log.old_value || log.new_value)?.toLowerCase().includes(query);
+      return matchTable || matchAction || matchRecord || matchValues;
+    }
+    
+    return true;
+  });
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSelectedTable("all");
+    setSelectedAction("all");
+    setDateRange({});
+  };
+
+  const hasActiveFilters = searchQuery || selectedTable !== 'all' || selectedAction !== 'all' || dateRange.from || dateRange.to;
+
+  const logStats = [
+    { label: "إجمالي العمليات", value: stats.total, icon: Activity, color: "from-primary to-primary/70" },
+    { label: "عمليات اليوم", value: stats.today, icon: Clock, color: "from-blue-500 to-cyan-500" },
+    { label: "عمليات الطلبات", value: stats.orders, icon: ShoppingBag, color: "from-green-500 to-emerald-500" },
+    { label: "عمليات المستخدمين", value: stats.users, icon: Users, color: "from-purple-500 to-pink-500" },
+  ];
+
+  const exportLogs = () => {
+    const csvContent = [
+      ['التاريخ', 'الجدول', 'العملية', 'معرف السجل', 'المستخدم'].join(','),
+      ...filteredLogs.map(log => [
+        format(new Date(log.created_at), 'yyyy-MM-dd HH:mm:ss'),
+        tableLabels[log.table_name]?.label || log.table_name,
+        actionLabels[log.action],
+        log.record_id || '-',
+        log.user_id || 'النظام'
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `audit-logs-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    link.click();
+    toast.success('تم تصدير السجلات بنجاح');
+  };
+
   return (
     <AdminDashboardLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-display font-bold">سجل العمليات</h1>
-            <p className="text-muted-foreground mt-1">تتبع جميع الأنشطة والعمليات في النظام</p>
+            <div className="flex items-center gap-3 mb-2">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20"
+              >
+                <FileText className="w-6 h-6 text-primary" />
+              </motion.div>
+              <h1 className="text-2xl md:text-3xl font-display font-bold">سجل العمليات</h1>
+              <Badge variant="outline" className="text-xs">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse ml-1" />
+                مباشر
+              </Badge>
+            </div>
+            <p className="text-muted-foreground">تتبع جميع الأنشطة والعمليات في النظام بشكل لحظي</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" onClick={fetchLogs} className="gap-2">
+              <RefreshCw className="w-4 h-4" />
+              تحديث
+            </Button>
+            <Button variant="outline" onClick={exportLogs} className="gap-2">
               <Download className="w-4 h-4" />
-              <span>تصدير السجل</span>
+              تصدير
             </Button>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {logStats.map((stat, index) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card className="glass border-border/50">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center`}>
-                      <stat.icon className="w-5 h-5 text-white" />
+        {loading ? (
+          <StatsSkeleton />
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {logStats.map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Card className="glass border-border/50 hover:border-primary/30 transition-colors">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center`}>
+                        <stat.icon className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-xl font-bold">{stat.value.toLocaleString('ar-SA')}</p>
+                        <p className="text-xs text-muted-foreground">{stat.label}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xl font-bold">{stat.value}</p>
-                      <p className="text-xs text-muted-foreground">{stat.label}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        )}
 
         {/* Filters */}
         <Card className="glass border-border/50">
@@ -127,230 +487,158 @@ const AdminLogs = () => {
             <div className="flex flex-wrap gap-4">
               <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input placeholder="بحث في السجلات..." className="pr-9" />
+                <Input 
+                  placeholder="بحث في السجلات..." 
+                  className="pr-9"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
-              <Select>
+              <Select value={selectedTable} onValueChange={setSelectedTable}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="نوع العملية" />
+                  <SelectValue placeholder="الجدول" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">الكل</SelectItem>
-                  <SelectItem value="login">تسجيل دخول</SelectItem>
-                  <SelectItem value="create">إنشاء</SelectItem>
-                  <SelectItem value="update">تعديل</SelectItem>
-                  <SelectItem value="delete">حذف</SelectItem>
+                  <SelectItem value="all">جميع الجداول</SelectItem>
+                  <SelectItem value="orders">الطلبات</SelectItem>
+                  <SelectItem value="profiles">المستخدمين</SelectItem>
+                  <SelectItem value="support_tickets">التذاكر</SelectItem>
+                  <SelectItem value="services">الخدمات</SelectItem>
+                  <SelectItem value="system_settings">الإعدادات</SelectItem>
                 </SelectContent>
               </Select>
-              <Select>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="الدور" />
+              <Select value={selectedAction} onValueChange={setSelectedAction}>
+                <SelectTrigger className="w-36">
+                  <SelectValue placeholder="العملية" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">الكل</SelectItem>
-                  <SelectItem value="admin">أدمن</SelectItem>
-                  <SelectItem value="manager">مدير</SelectItem>
-                  <SelectItem value="client">عميل</SelectItem>
+                  <SelectItem value="all">جميع العمليات</SelectItem>
+                  <SelectItem value="INSERT">إضافة</SelectItem>
+                  <SelectItem value="UPDATE">تعديل</SelectItem>
+                  <SelectItem value="DELETE">حذف</SelectItem>
                 </SelectContent>
               </Select>
-              <Select>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="الحالة" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">الكل</SelectItem>
-                  <SelectItem value="success">نجح</SelectItem>
-                  <SelectItem value="failed">فشل</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline" className="gap-2">
-                <Calendar className="w-4 h-4" />
-                تحديد التاريخ
-              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="gap-2">
+                    <Calendar className="w-4 h-4" />
+                    {dateRange.from ? (
+                      dateRange.to ? (
+                        `${format(dateRange.from, 'MM/dd')} - ${format(dateRange.to, 'MM/dd')}`
+                      ) : format(dateRange.from, 'yyyy/MM/dd')
+                    ) : 'تحديد التاريخ'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="range"
+                    selected={{ from: dateRange.from, to: dateRange.to }}
+                    onSelect={(range) => setDateRange({ from: range?.from, to: range?.to })}
+                    numberOfMonths={2}
+                  />
+                </PopoverContent>
+              </Popover>
+              {hasActiveFilters && (
+                <Button variant="ghost" onClick={clearFilters} className="gap-2 text-muted-foreground">
+                  <X className="w-4 h-4" />
+                  مسح الفلاتر
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
 
         {/* Tabs */}
-        <Tabs defaultValue="activity" className="space-y-4">
-          <TabsList className="grid grid-cols-3 w-full max-w-md">
-            <TabsTrigger value="activity" className="gap-2">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="grid grid-cols-6 w-full max-w-2xl">
+            <TabsTrigger value="all" className="gap-1">
               <Activity className="w-4 h-4" />
-              <span className="hidden sm:inline">الأنشطة</span>
+              <span className="hidden sm:inline">الكل</span>
             </TabsTrigger>
-            <TabsTrigger value="security" className="gap-2">
-              <Shield className="w-4 h-4" />
-              <span className="hidden sm:inline">الأمان</span>
+            <TabsTrigger value="orders" className="gap-1">
+              <ShoppingBag className="w-4 h-4" />
+              <span className="hidden sm:inline">الطلبات</span>
             </TabsTrigger>
-            <TabsTrigger value="system" className="gap-2">
+            <TabsTrigger value="profiles" className="gap-1">
+              <Users className="w-4 h-4" />
+              <span className="hidden sm:inline">المستخدمين</span>
+            </TabsTrigger>
+            <TabsTrigger value="support_tickets" className="gap-1">
+              <Ticket className="w-4 h-4" />
+              <span className="hidden sm:inline">التذاكر</span>
+            </TabsTrigger>
+            <TabsTrigger value="services" className="gap-1">
+              <Package className="w-4 h-4" />
+              <span className="hidden sm:inline">الخدمات</span>
+            </TabsTrigger>
+            <TabsTrigger value="system_settings" className="gap-1">
               <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">النظام</span>
+              <span className="hidden sm:inline">الإعدادات</span>
             </TabsTrigger>
           </TabsList>
 
-          {/* Activity Logs */}
-          <TabsContent value="activity">
-            <Card className="glass border-border/50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="w-5 h-5" />
-                  سجل الأنشطة
+          <Card className="glass border-border/50">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Activity className="w-5 h-5 text-primary" />
+                  سجل العمليات
+                  {filteredLogs.length > 0 && (
+                    <Badge variant="secondary" className="mr-2">
+                      {filteredLogs.length.toLocaleString('ar-SA')}
+                    </Badge>
+                  )}
                 </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {activityLogs.map((log, index) => {
-                    const ActionIcon = getActionIcon(log.action);
-                    return (
-                      <motion.div
-                        key={log.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="flex items-center justify-between p-4 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                            log.status === "نجح" ? "bg-emerald-500/20 text-emerald-500" : "bg-destructive/20 text-destructive"
-                          }`}>
-                            <ActionIcon className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <p className="font-medium">{log.action}</p>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <User className="w-3 h-3" />
-                              <span>{log.user}</span>
-                              <span>•</span>
-                              <span>{log.ip}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <Badge variant="outline">{log.role}</Badge>
-                          <Badge variant={log.status === "نجح" ? "default" : "destructive"}>
-                            {log.status}
-                          </Badge>
-                          <span className="text-sm text-muted-foreground hidden lg:block">{log.date}</span>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-                <div className="mt-4 flex justify-center">
-                  <Button variant="outline">تحميل المزيد</Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Security Logs */}
-          <TabsContent value="security">
-            <Card className="glass border-border/50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="w-5 h-5" />
-                  سجل الأمان
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {securityLogs.map((log, index) => (
-                    <motion.div
-                      key={log.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="flex items-center justify-between p-4 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          log.severity === "عالي" ? "bg-destructive/20 text-destructive" :
-                          log.severity === "متوسط" ? "bg-amber-500/20 text-amber-500" :
-                          "bg-blue-500/20 text-blue-500"
-                        }`}>
-                          <AlertTriangle className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{log.event}</p>
-                          <p className="text-sm text-muted-foreground">{log.details}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <Badge variant={
-                          log.severity === "عالي" ? "destructive" :
-                          log.severity === "متوسط" ? "secondary" : "outline"
-                        }>
-                          {log.severity}
-                        </Badge>
-                        <span className="text-sm text-muted-foreground hidden lg:block">{log.date}</span>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* System Logs */}
-          <TabsContent value="system">
-            <Card className="glass border-border/50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="w-5 h-5" />
-                  سجل النظام
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {systemLogs.map((log, index) => (
-                    <motion.div
-                      key={log.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="flex items-center justify-between p-4 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          log.type === "error" ? "bg-destructive/20 text-destructive" :
-                          log.type === "warning" ? "bg-amber-500/20 text-amber-500" :
-                          log.type === "success" ? "bg-emerald-500/20 text-emerald-500" :
-                          "bg-blue-500/20 text-blue-500"
-                        }`}>
-                          {log.type === "error" ? <XCircle className="w-5 h-5" /> :
-                           log.type === "warning" ? <AlertTriangle className="w-5 h-5" /> :
-                           log.type === "success" ? <CheckCircle className="w-5 h-5" /> :
-                           <Activity className="w-5 h-5" />}
-                        </div>
-                        <div>
-                          <p className="font-medium">{log.message}</p>
-                          <p className="text-sm text-muted-foreground">المكون: {log.component}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <Badge variant={
-                          log.type === "error" ? "destructive" :
-                          log.type === "warning" ? "secondary" :
-                          log.type === "success" ? "default" : "outline"
-                        }>
-                          {log.type === "error" ? "خطأ" :
-                           log.type === "warning" ? "تحذير" :
-                           log.type === "success" ? "نجاح" : "معلومات"}
-                        </Badge>
-                        <span className="text-sm text-muted-foreground hidden lg:block">{log.date}</span>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[500px] pr-4">
+                {loading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                      <LogItemSkeleton key={i} />
+                    ))}
+                  </div>
+                ) : filteredLogs.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex flex-col items-center justify-center py-16 text-center"
+                  >
+                    <div className="p-4 rounded-full bg-muted mb-4">
+                      <FileText className="w-10 h-10 text-muted-foreground" />
+                    </div>
+                    <p className="text-lg font-medium">لا توجد سجلات</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {hasActiveFilters ? 'لا توجد نتائج تطابق معايير البحث' : 'ستظهر السجلات هنا عند إجراء أي عملية'}
+                    </p>
+                    {hasActiveFilters && (
+                      <Button variant="outline" onClick={clearFilters} className="mt-4">
+                        مسح الفلاتر
+                      </Button>
+                    )}
+                  </motion.div>
+                ) : (
+                  <div className="space-y-3">
+                    {filteredLogs.map((log, index) => (
+                      <LogItem key={log.id} log={log} index={index} />
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </CardContent>
+          </Card>
         </Tabs>
+
+        {/* Footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center justify-center gap-2 py-4 text-sm text-muted-foreground"
+        >
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span>السجلات تُحدّث تلقائياً في الوقت الفعلي</span>
+        </motion.div>
       </div>
     </AdminDashboardLayout>
   );
