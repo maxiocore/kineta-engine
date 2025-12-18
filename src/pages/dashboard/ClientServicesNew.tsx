@@ -407,9 +407,9 @@ const ClientServicesNew = () => {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ repeat: Infinity, repeatType: "reverse", duration: 0.8 }}
-            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-xl"
+            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-xl shadow-primary/30"
           >
-            <Sparkles className="w-8 h-8 text-black" />
+            <Sparkles className="w-8 h-8 text-white" />
           </motion.div>
         </div>
       </ClientDashboardLayout>
@@ -475,7 +475,7 @@ const ClientServicesNew = () => {
 
           {/* Welcome Card */}
           <motion.div variants={cardVariants} className="lg:col-span-1">
-            <Card className="h-full overflow-hidden border-0 bg-gradient-to-br from-yellow-400 via-yellow-500 to-amber-500 text-black relative group">
+            <Card className="h-full overflow-hidden border-0 bg-gradient-to-br from-primary via-primary/90 to-accent text-white relative group">
               <CardContent className="p-5 relative z-10">
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
@@ -483,13 +483,13 @@ const ClientServicesNew = () => {
                   transition={{ delay: 0.3 }}
                 >
                   <h2 className="text-lg font-bold mb-1">مرحباً بك! 👋</h2>
-                  <p className="text-black/70 text-xs leading-relaxed">
+                  <p className="text-white/80 text-xs leading-relaxed">
                     نقدم حلولاً موثوقة وسريعة لجميع منصات التواصل الاجتماعي
                   </p>
                   <Button 
                     variant="outline" 
                     size="sm"
-                    className="mt-3 bg-black/10 border-black/20 hover:bg-black/20 text-black gap-2 text-xs"
+                    className="mt-3 bg-white/10 border-white/20 hover:bg-white/20 text-white gap-2 text-xs"
                     onClick={() => setShowNetworks(true)}
                   >
                     <Heart className="w-3.5 h-3.5" />
@@ -497,29 +497,29 @@ const ClientServicesNew = () => {
                   </Button>
                 </motion.div>
               </CardContent>
-              <div className="absolute bottom-0 start-0 w-32 h-32 bg-black/5 rounded-full blur-xl" />
+              <div className="absolute bottom-0 start-0 w-32 h-32 bg-white/5 rounded-full blur-xl" />
             </Card>
           </motion.div>
 
           {/* Balance Card */}
           <motion.div variants={cardVariants}>
-            <Card className="h-full border-0 bg-gradient-to-br from-yellow-400 to-amber-500 text-black overflow-hidden relative">
+            <Card className="h-full border-0 bg-gradient-to-br from-primary to-accent text-white overflow-hidden relative">
               <CardContent className="p-5 text-center relative z-10">
                 <motion.div
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.2, type: "spring" }}
                 >
-                  <div className="w-10 h-10 rounded-full bg-black/10 flex items-center justify-center mx-auto mb-2">
+                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-2">
                     <Wallet className="w-5 h-5" />
                   </div>
-                  <p className="text-xs font-medium mb-1">الرصيد الحالي</p>
+                  <p className="text-xs font-medium mb-1 text-white/80">الرصيد الحالي</p>
                   <p className="text-3xl font-black">
-                    ${(userBalance?.balance || 0).toFixed(7)}
+                    ${(userBalance?.balance || 0).toFixed(2)}
                   </p>
                 </motion.div>
               </CardContent>
-              <div className="absolute -bottom-10 -start-10 w-32 h-32 bg-black/5 rounded-full" />
+              <div className="absolute -bottom-10 -start-10 w-32 h-32 bg-white/5 rounded-full" />
             </Card>
           </motion.div>
         </motion.div>
@@ -609,7 +609,7 @@ const ClientServicesNew = () => {
         <motion.div variants={itemVariants}>
           <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
             <Button 
-              className="w-full h-14 text-base gap-3 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-black font-bold rounded-2xl shadow-lg shadow-yellow-500/20"
+              className="w-full h-14 text-base gap-3 btn-brand rounded-2xl"
             >
               <ShoppingCart className="w-5 h-5" />
               طلب جديد
@@ -886,7 +886,7 @@ const ClientServicesNew = () => {
                         whileTap={{ scale: 0.99 }}
                       >
                         <Button
-                          className="w-full h-14 text-lg gap-3 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-black font-bold shadow-xl shadow-yellow-500/20 rounded-2xl"
+                          className="w-full h-14 text-lg gap-3 btn-brand rounded-2xl"
                           onClick={handleSubmit}
                           disabled={isSubmitting || !selectedService || !link || !quantity}
                         >
@@ -1082,11 +1082,11 @@ const ClientServicesNew = () => {
                       </div>
 
                       {/* Price */}
-                      <div className="p-4 rounded-2xl bg-gradient-to-br from-yellow-400/20 to-amber-500/20 border border-yellow-500/30">
+                      <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/30">
                         <div className="flex items-center justify-between">
                           <span className="text-sm">السعر لكل 1000</span>
                           <motion.span 
-                            className="text-xl font-black text-yellow-600 dark:text-yellow-400"
+                            className="text-xl font-black text-primary"
                             initial={{ scale: 0.9 }}
                             animate={{ scale: 1 }}
                           >

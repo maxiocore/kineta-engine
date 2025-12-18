@@ -364,10 +364,10 @@ const ClientDeposit = () => {
         {/* Features */}
         <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { icon: Shield, label: 'دفع آمن', desc: '100% مشفر', color: 'text-green-500' },
-            { icon: Zap, label: 'سريع', desc: 'إضافة فورية', color: 'text-yellow-500' },
+            { icon: Shield, label: 'دفع آمن', desc: '100% مشفر', color: 'text-success' },
+            { icon: Zap, label: 'سريع', desc: 'إضافة فورية', color: 'text-primary' },
             { icon: Clock, label: 'دعم 24/7', desc: 'متاح دائماً', color: 'text-blue-500' },
-            { icon: Gift, label: 'بونص', desc: 'على الإيداعات', color: 'text-purple-500' },
+            { icon: Gift, label: 'بونص', desc: 'على الإيداعات', color: 'text-accent' },
           ].map((feature, i) => (
             <motion.div 
               key={i}
