@@ -37,6 +37,9 @@ interface Service {
   refill_enabled: boolean | null;
 }
 
+// Service type categories
+const serviceTypeCategories = ["التصميم", "التسويق", "الإعلانات", "التطوير", "الاستشارات"];
+
 const ClientServices = () => {
   const { user } = useAuth();
   const { favorites, toggleFavorite } = useFavorites();
@@ -44,6 +47,7 @@ const ClientServices = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedServiceType, setSelectedServiceType] = useState("all");
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
 
@@ -95,7 +99,7 @@ const ClientServices = () => {
     return slugMap[categoryName] || categoryName.toLowerCase().replace(/\s+/g, "-");
   };
 
-  // Count services by category
+  // Count services by category (social networks)
   const serviceCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     services.forEach(service => {
@@ -103,6 +107,14 @@ const ClientServices = () => {
       counts[slug] = (counts[slug] || 0) + 1;
     });
     return counts;
+  }, [services]);
+
+  // Count services by type categories
+  const serviceTypeCounts = useMemo(() => {
+    return serviceTypeCategories.map(cat => ({
+      category: cat,
+      count: services.filter(s => s.category === cat).length,
+    }));
   }, [services]);
 
   // Filter services
@@ -115,10 +127,11 @@ const ClientServices = () => {
       
       const categorySlug = getCategorySlug(service.category);
       const matchesCategory = selectedCategory === "all" || categorySlug === selectedCategory;
+      const matchesServiceType = selectedServiceType === "all" || service.category === selectedServiceType;
       
-      return matchesSearch && matchesCategory;
+      return matchesSearch && matchesCategory && matchesServiceType;
     });
-  }, [services, searchQuery, selectedCategory]);
+  }, [services, searchQuery, selectedCategory, selectedServiceType]);
 
   // Group services by category
   const groupedServices = useMemo(() => {
@@ -219,24 +232,84 @@ const ClientServices = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="flex flex-col sm:flex-row gap-3"
         >
-          <div className="relative flex-1">
-            <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              placeholder="بحث في الخدمات..."
-              className="pr-12 h-12 bg-card/50 backdrop-blur-sm border-border/50 rounded-xl text-base"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          
-          {/* Results count */}
-          <div className="flex items-center justify-center px-4 py-2 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50">
-            <span className="text-sm text-muted-foreground">
-              النتائج: <span className="font-bold text-foreground">{filteredServices.length}</span>
-            </span>
-          </div>
+          <Card className="glass border-border/50 overflow-hidden">
+            <CardContent className="p-4 space-y-4">
+              {/* Search Input */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    placeholder="بحث في الخدمات..."
+                    className="pr-12 h-11 bg-secondary/50 rounded-xl"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                
+                {/* Results count */}
+                <div className="flex items-center justify-center px-4 py-2 rounded-xl bg-secondary/50 border border-border/50">
+                  <span className="text-sm text-muted-foreground">
+                    النتائج: <span className="font-bold text-foreground">{filteredServices.length}</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Category Tabs */}
+              <div className="flex flex-wrap items-center gap-2">
+                {/* All Tab */}
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setSelectedServiceType("all")}
+                  className={cn(
+                    "px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2",
+                    selectedServiceType === "all"
+                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                      : "bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  الكل
+                  <span className={cn(
+                    "text-xs font-bold",
+                    selectedServiceType === "all" ? "text-primary-foreground/80" : "text-muted-foreground"
+                  )}>
+                    {services.length}
+                  </span>
+                </motion.button>
+
+                {/* Category Tabs */}
+                {serviceTypeCategories.map((category) => {
+                  const countData = serviceTypeCounts.find(c => c.category === category);
+                  const count = countData?.count || 0;
+                  const isSelected = selectedServiceType === category;
+                  
+                  return (
+                    <motion.button
+                      key={category}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setSelectedServiceType(category)}
+                      className={cn(
+                        "px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2",
+                        isSelected
+                          ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                          : "bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {category}
+                      <span className={cn(
+                        "text-xs font-bold",
+                        isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                      )}>
+                        {count}
+                      </span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Services List */}
