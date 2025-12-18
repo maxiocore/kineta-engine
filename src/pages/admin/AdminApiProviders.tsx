@@ -57,7 +57,9 @@ import {
   Scale,
   Tag,
   FileText,
-  Filter
+  Filter,
+  Wallet,
+  DollarSign
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
@@ -98,6 +100,7 @@ const AdminApiProviders = () => {
   const [showApiKey, setShowApiKey] = useState<Record<string, boolean>>({});
   const [isTestingConnection, setIsTestingConnection] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [providerBalances, setProviderBalances] = useState<Record<string, { balance: number | null; currency: string; loading: boolean; error?: string }>>({});
   const [formData, setFormData] = useState({
     name: '',
     name_ar: '',
@@ -308,6 +311,53 @@ const AdminApiProviders = () => {
     setShowApiKey(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
+  // Fetch provider balance
+  const fetchProviderBalance = async (providerId: string) => {
+    setProviderBalances(prev => ({
+      ...prev,
+      [providerId]: { balance: null, currency: 'USD', loading: true }
+    }));
+
+    try {
+      const { data, error } = await supabase.functions.invoke('provider-balance', {
+        body: { provider_id: providerId }
+      });
+
+      if (error) throw error;
+
+      setProviderBalances(prev => ({
+        ...prev,
+        [providerId]: {
+          balance: data.balance,
+          currency: data.currency || 'USD',
+          loading: false
+        }
+      }));
+
+      toast.success(`رصيد ${data.provider?.name_ar || 'المزود'}: $${data.balance?.toFixed(2) || '0.00'}`);
+    } catch (error: any) {
+      console.error('Error fetching balance:', error);
+      setProviderBalances(prev => ({
+        ...prev,
+        [providerId]: {
+          balance: null,
+          currency: 'USD',
+          loading: false,
+          error: error.message
+        }
+      }));
+      toast.error('فشل في جلب الرصيد: ' + (error.message || 'خطأ غير معروف'));
+    }
+  };
+
+  // Fetch all balances
+  const fetchAllBalances = async () => {
+    const activeProviders = providers.filter(p => p.is_active);
+    for (const provider of activeProviders) {
+      await fetchProviderBalance(provider.id);
+    }
+  };
+
   const stats = {
     total: providers.length,
     active: providers.filter(p => p.is_active).length,
@@ -335,6 +385,10 @@ const AdminApiProviders = () => {
             <p className="text-muted-foreground mt-1">إدارة مواقع SMM الخارجية واستيراد الخدمات</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button variant="outline" className="gap-2" onClick={fetchAllBalances}>
+              <Wallet className="h-4 w-4" />
+              جلب الأرصدة
+            </Button>
             <Link to="/admin/providers/reports">
               <Button variant="outline" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
@@ -551,6 +605,34 @@ const AdminApiProviders = () => {
                     <div className="flex items-center gap-1.5">
                       <Package className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground">{provider.services_count} خدمة</span>
+                    </div>
+                  </div>
+
+                  {/* Balance Display */}
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20">
+                    <div className="flex items-center gap-2">
+                      <Wallet className="h-4 w-4 text-green-500" />
+                      <span className="text-sm font-medium text-foreground">الرصيد:</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {providerBalances[provider.id]?.loading ? (
+                        <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
+                      ) : providerBalances[provider.id]?.balance !== undefined && providerBalances[provider.id]?.balance !== null ? (
+                        <span className="font-bold text-green-600 dark:text-green-400">
+                          ${providerBalances[provider.id].balance?.toFixed(2)}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">--</span>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => fetchProviderBalance(provider.id)}
+                        disabled={providerBalances[provider.id]?.loading}
+                      >
+                        <RefreshCw className={`h-3 w-3 ${providerBalances[provider.id]?.loading ? 'animate-spin' : ''}`} />
+                      </Button>
                     </div>
                   </div>
                   
