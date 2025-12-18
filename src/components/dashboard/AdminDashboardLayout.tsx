@@ -356,15 +356,15 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
       </motion.aside>
 
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-xl border-b border-border/50 z-50 flex items-center justify-between px-4">
-        <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
-          <Menu className="w-6 h-6" />
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 sm:h-16 bg-card/95 backdrop-blur-xl border-b border-border/50 z-50 flex items-center justify-between px-3 sm:px-4">
+        <Button variant="ghost" size="icon" className="w-9 h-9 sm:w-10 sm:h-10" onClick={() => setIsMobileMenuOpen(true)}>
+          <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
         </Button>
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg shadow-destructive/30">
-            <Shield className="w-5 h-5 text-primary-foreground" />
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg shadow-destructive/30">
+            <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
           </div>
-          <span className="font-bold">لوحة الأدمن</span>
+          <span className="font-bold text-sm sm:text-base">لوحة الأدمن</span>
         </div>
         <div className="flex items-center gap-1">
           <NotificationBell />
@@ -387,7 +387,7 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="absolute top-0 right-0 h-full w-80 bg-card border-l border-border/50 overflow-y-auto"
+              className="absolute top-0 right-0 h-full w-[85vw] max-w-80 bg-card border-l border-border/50 overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-4 border-b border-border/50 flex items-center justify-between">
@@ -483,11 +483,11 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
       {/* Main Content */}
       <main
         className={cn(
-          "flex-1 transition-all duration-300 pt-16 lg:pt-0",
+          "flex-1 transition-all duration-300 pt-14 sm:pt-16 lg:pt-0",
           isSidebarOpen ? "lg:mr-[280px]" : "lg:mr-[80px]"
         )}
       >
-        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">{children}</div>
+        <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">{children}</div>
       </main>
     </div>
   );

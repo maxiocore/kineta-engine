@@ -207,17 +207,23 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
       </motion.aside>
 
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-50 flex items-center justify-between px-4">
-        <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
-          <Menu className="w-6 h-6" />
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 sm:h-16 bg-card/95 backdrop-blur-xl border-b border-border z-50 flex items-center justify-between px-3 sm:px-4">
+        <Button variant="ghost" size="icon" className="w-9 h-9 sm:w-10 sm:h-10" onClick={() => setIsMobileMenuOpen(true)}>
+          <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
         </Button>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-            <Wallet className="w-4 h-4 text-primary" />
-            <span className="font-bold text-primary text-sm">${balance.toFixed(2)}</span>
+        <Link to="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-primary flex items-center justify-center">
+            <span className="font-bold text-sm sm:text-base text-primary-foreground">م</span>
           </div>
+          <span className="font-bold text-sm sm:text-base hidden xs:block">ماركت برو</span>
+        </Link>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-primary/10 border border-primary/20">
+            <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+            <span className="font-bold text-primary text-xs sm:text-sm">${balance.toFixed(2)}</span>
+          </div>
+          <ThemeToggle />
         </div>
-        <ThemeToggle />
       </div>
 
       {/* Mobile Menu */}
@@ -234,7 +240,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 20 }}
-            className="absolute top-0 right-0 h-full w-72 bg-card border-l border-border"
+            className="absolute top-0 right-0 h-full w-[85vw] max-w-72 bg-card border-l border-border"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-4 border-b border-border flex items-center justify-between">
@@ -292,11 +298,11 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
       {/* Main Content */}
       <main
         className={cn(
-          "flex-1 transition-all duration-300 pt-16 lg:pt-0",
+          "flex-1 transition-all duration-300 pt-14 sm:pt-16 lg:pt-0",
           isSidebarOpen ? "lg:mr-[280px]" : "lg:mr-[80px]"
         )}
       >
-        <div className="p-6 lg:p-8">{children}</div>
+        <div className="p-3 sm:p-4 md:p-6 lg:p-8">{children}</div>
       </main>
     </div>
   );

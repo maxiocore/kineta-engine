@@ -139,9 +139,9 @@ const HeroSection = () => {
             transition={{ duration: 0.9, delay: 0.15 }}
             className="text-center mb-8"
           >
-            <h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold leading-[1.1] tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.15] tracking-tight">
               <motion.span 
-                className="block mb-3"
+                className="block mb-2 sm:mb-3"
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
@@ -158,7 +158,7 @@ const HeroSection = () => {
                   نجاحات رقمية
                 </span>
                 <motion.div
-                  className="absolute -bottom-2 left-0 right-0 h-1.5 bg-gradient-to-l from-primary to-accent rounded-full"
+                  className="absolute -bottom-1 sm:-bottom-2 left-0 right-0 h-1 sm:h-1.5 bg-gradient-to-l from-primary to-accent rounded-full"
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
                   transition={{ duration: 0.8, delay: 0.8 }}
@@ -172,10 +172,10 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-4xl mx-auto mb-12 text-center leading-relaxed"
+            className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-4xl mx-auto mb-8 sm:mb-12 text-center leading-relaxed px-2"
           >
             نقدم لك حلول تسويقية متكاملة مدعومة بالذكاء الاصطناعي لتعزيز حضورك الرقمي
-            <br className="hidden md:block" />
+            <br className="hidden sm:block" />
             وتحقيق نمو مستدام لأعمالك في السوق السعودي والعربي
           </motion.p>
 
@@ -184,20 +184,20 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.45 }}
-            className="flex flex-col sm:flex-row gap-5 justify-center items-center mb-16"
+            className="flex flex-col sm:flex-row gap-3 sm:gap-5 justify-center items-center mb-10 sm:mb-16 px-4"
           >
-            <Link to="/auth?mode=signup">
+            <Link to="/auth?mode=signup" className="w-full sm:w-auto">
               <motion.div 
                 whileHover={{ scale: 1.03, y: -2 }} 
                 whileTap={{ scale: 0.98 }}
               >
                 <Button 
                   size="lg" 
-                  className="group relative px-10 py-7 text-lg font-semibold bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-2xl shadow-primary/40 hover:shadow-primary/60 transition-all duration-300 overflow-hidden"
+                  className="group relative w-full sm:w-auto px-6 sm:px-10 py-5 sm:py-7 text-sm sm:text-lg font-semibold bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-2xl shadow-primary/40 hover:shadow-primary/60 transition-all duration-300 overflow-hidden"
                 >
-                  <span className="relative z-10 flex items-center gap-2">
+                  <span className="relative z-10 flex items-center justify-center gap-2">
                     ابدأ رحلتك الآن
-                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1.5 transition-transform duration-300" />
+                    <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 group-hover:-translate-x-1.5 transition-transform duration-300" />
                   </span>
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-l from-accent to-primary"
@@ -208,7 +208,7 @@ const HeroSection = () => {
                 </Button>
               </motion.div>
             </Link>
-            <Link to="/services">
+            <Link to="/services" className="w-full sm:w-auto">
               <motion.div 
                 whileHover={{ scale: 1.03, y: -2 }} 
                 whileTap={{ scale: 0.98 }}
@@ -216,9 +216,9 @@ const HeroSection = () => {
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="group px-10 py-7 text-lg border-2 border-border/50 hover:border-primary/50 bg-background/50 backdrop-blur-sm hover:bg-secondary/50 transition-all duration-300"
+                  className="group w-full sm:w-auto px-6 sm:px-10 py-5 sm:py-7 text-sm sm:text-lg border-2 border-border/50 hover:border-primary/50 bg-background/50 backdrop-blur-sm hover:bg-secondary/50 transition-all duration-300"
                 >
-                  <Play className="ml-2 w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <Play className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
                   استكشف خدماتنا
                 </Button>
               </motion.div>
@@ -230,7 +230,7 @@ const HeroSection = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="flex flex-wrap justify-center gap-4 mb-20"
+            className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-12 sm:mb-20 px-2"
           >
             {features.map((feature, index) => (
               <motion.div
@@ -239,10 +239,10 @@ const HeroSection = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7 + index * 0.1 }}
                 whileHover={{ scale: 1.05, y: -2 }}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-secondary/50 border border-border/50 backdrop-blur-sm"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full bg-secondary/50 border border-border/50 backdrop-blur-sm"
               >
-                <feature.icon className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium">{feature.text}</span>
+                <feature.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+                <span className="text-xs sm:text-sm font-medium">{feature.text}</span>
               </motion.div>
             ))}
           </motion.div>
@@ -252,7 +252,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.7 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto"
+            className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 max-w-5xl mx-auto px-2"
           >
             {[
               { value: "+500", label: "عميل راضي", color: "primary" },
@@ -268,19 +268,19 @@ const HeroSection = () => {
                 whileHover={{ scale: 1.03, y: -5 }}
                 className="group relative"
               >
-                <div className="relative text-center p-6 md:p-8 rounded-2xl bg-secondary/40 border border-border/50 hover:border-primary/40 backdrop-blur-sm transition-all duration-300 overflow-hidden">
+                <div className="relative text-center p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl bg-secondary/40 border border-border/50 hover:border-primary/40 backdrop-blur-sm transition-all duration-300 overflow-hidden">
                   <motion.div
                     className={`absolute inset-0 bg-${stat.color}/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
                   />
                   <motion.p 
-                    className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-l from-primary via-accent to-primary bg-clip-text text-transparent mb-2"
+                    className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-l from-primary via-accent to-primary bg-clip-text text-transparent mb-1 sm:mb-2"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.9 + index * 0.1, type: "spring", stiffness: 200 }}
                   >
                     {stat.value}
                   </motion.p>
-                  <p className="text-sm md:text-base text-muted-foreground font-medium">{stat.label}</p>
+                  <p className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium">{stat.label}</p>
                 </div>
               </motion.div>
             ))}
