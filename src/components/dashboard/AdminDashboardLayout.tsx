@@ -56,6 +56,7 @@ const adminNavItems: NavItem[] = [
   { label: "إعادة التعبئة", href: "/admin/refills", icon: RefreshCw },
   { label: "الكوبونات", href: "/admin/coupons", icon: Ticket },
   { label: "الشارات", href: "/admin/badges", icon: Award },
+  { label: "المكافآت", href: "/admin/rewards", icon: Sparkles },
   { label: "الدعم الفني", href: "/admin/support", icon: HeadphonesIcon },
   { label: "الإشعارات", href: "/admin/notifications", icon: Bell },
   { label: "البريد", href: "/admin/emails", icon: Mail },
