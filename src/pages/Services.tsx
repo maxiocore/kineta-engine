@@ -1,31 +1,28 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { 
-  BarChart3, 
-  Megaphone, 
-  Target, 
-  Zap, 
-  LineChart, 
-  Users,
-  CheckCircle,
-  ArrowLeft,
-  Phone,
-  Mail,
-  Palette,
-  Code,
-  FileText,
-  MessageSquare,
-  Sparkles,
-  Star,
-  TrendingUp,
+  Search,
   Filter,
   ShoppingCart,
-  LogIn
+  ChevronDown,
+  ChevronUp,
+  Star,
+  Zap,
+  RefreshCcw,
+  XCircle,
+  CheckCircle2,
+  Sparkles,
+  TrendingUp,
+  Clock,
+  Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Link, useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,64 +31,26 @@ import { User } from "@supabase/supabase-js";
 import ServiceOrderDialog from "@/components/services/ServiceOrderDialog";
 import { toast } from "sonner";
 
-const categoryIcons: Record<string, React.ElementType> = {
-  "التسويق": TrendingUp,
-  "الإعلانات": Megaphone,
-  "التصميم": Palette,
-  "التطوير": Code,
-  "الاستشارات": MessageSquare,
-};
-
-const categoryGradients: Record<string, string> = {
-  "التسويق": "from-primary to-cyan-400",
-  "الإعلانات": "from-accent to-pink-400",
-  "التصميم": "from-warning to-orange-400",
-  "التطوير": "from-success to-emerald-400",
-  "الاستشارات": "from-purple-500 to-indigo-400",
-};
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: { 
-    opacity: 1, 
-    transition: { 
-      staggerChildren: 0.08,
-      delayChildren: 0.1
-    } 
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 40, scale: 0.95 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    scale: 1,
-    transition: {
-      type: "spring" as const,
-      stiffness: 100,
-      damping: 12
-    }
-  }
-};
-
-const floatingAnimation = {
-  y: [-5, 5, -5],
-  transition: {
-    duration: 4,
-    repeat: Infinity,
-    ease: "easeInOut" as const
-  }
-};
+interface Service {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string;
+  price: number;
+  status: string;
+  features: string[];
+  image_url: string | null;
+}
 
 const Services = () => {
   const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [selectedService, setSelectedService] = useState<any>(null);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
-  // Check auth state
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -113,30 +72,58 @@ const Services = () => {
         .from("services")
         .select("*")
         .eq("status", "active")
-        .order("created_at", { ascending: false });
+        .order("category", { ascending: true });
       
       if (error) throw error;
-      return data;
+      return data as Service[];
     },
   });
 
-  const categories = services 
-    ? [...new Set(services.map(s => s.category))]
-    : [];
+  const categories = useMemo(() => {
+    if (!services) return [];
+    return [...new Set(services.map(s => s.category))].sort();
+  }, [services]);
 
-  const filteredServices = selectedCategory
-    ? services?.filter(s => s.category === selectedCategory)
-    : services;
+  const groupedServices = useMemo(() => {
+    if (!services) return {};
+    
+    const filtered = services.filter(s => {
+      const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           s.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           (s.description?.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesCategory = selectedCategory === "all" || s.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
 
-  const getIcon = (category: string) => {
-    return categoryIcons[category] || BarChart3;
+    const grouped: Record<string, Service[]> = {};
+    filtered.forEach(s => {
+      if (!grouped[s.category]) grouped[s.category] = [];
+      grouped[s.category].push(s);
+    });
+    return grouped;
+  }, [services, searchQuery, selectedCategory]);
+
+  const toggleCategory = (category: string) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(category)) {
+        newSet.delete(category);
+      } else {
+        newSet.add(category);
+      }
+      return newSet;
+    });
   };
 
-  const getGradient = (category: string) => {
-    return categoryGradients[category] || "from-primary to-cyan-400";
+  const expandAll = () => {
+    setExpandedCategories(new Set(Object.keys(groupedServices)));
   };
 
-  const handleOrderService = (service: any) => {
+  const collapseAll = () => {
+    setExpandedCategories(new Set());
+  };
+
+  const handleOrderService = (service: Service) => {
     if (!user) {
       toast.info("يرجى تسجيل الدخول أولاً لطلب الخدمة");
       navigate("/auth");
@@ -146,297 +133,316 @@ const Services = () => {
     setOrderDialogOpen(true);
   };
 
+  const totalServices = services?.length || 0;
+  const totalCategories = categories.length;
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="pt-24">
+      <main className="pt-20">
         {/* Hero Section */}
-        <section className="py-20 relative overflow-hidden">
-          {/* Animated Background */}
-          <div className="absolute inset-0">
-            <motion.div 
-              className="absolute top-20 right-[10%] w-72 h-72 bg-primary/10 rounded-full blur-[100px]"
-              animate={{ 
-                scale: [1, 1.2, 1],
-                opacity: [0.3, 0.5, 0.3]
-              }}
-              transition={{ duration: 8, repeat: Infinity }}
-            />
-            <motion.div 
-              className="absolute bottom-20 left-[10%] w-96 h-96 bg-accent/10 rounded-full blur-[120px]"
-              animate={{ 
-                scale: [1.2, 1, 1.2],
-                opacity: [0.5, 0.3, 0.5]
-              }}
-              transition={{ duration: 8, repeat: Infinity }}
-            />
-            <motion.div 
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-primary/5 to-accent/5 rounded-full blur-[150px]"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-            />
-          </div>
+        <section className="py-12 relative overflow-hidden border-b border-border/50">
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
+          <motion.div 
+            className="absolute top-10 right-[20%] w-64 h-64 bg-primary/10 rounded-full blur-[100px]"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+            transition={{ duration: 6, repeat: Infinity }}
+          />
           
           <div className="container px-4 relative z-10">
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="text-center max-w-4xl mx-auto"
+              className="text-center max-w-3xl mx-auto"
             >
-              <motion.div
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-              >
-                <span className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary/10 text-primary font-medium text-sm mb-6 border border-primary/20">
-                  <Sparkles className="w-4 h-4" />
-                  خدماتنا المتميزة
+              <Badge className="mb-4 gap-2" variant="secondary">
+                <Sparkles className="w-3 h-3" />
+                خدمات SMM Panel
+              </Badge>
+              <h1 className="text-3xl md:text-4xl font-bold mb-4">
+                اختر من بين{" "}
+                <span className="bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
+                  {totalServices}+ خدمة
                 </span>
-              </motion.div>
-              
-              <motion.h1 
-                className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                حلول تسويقية{" "}
-                <span className="relative">
-                  <span className="bg-gradient-to-l from-primary via-accent to-primary bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient">
-                    متكاملة
-                  </span>
-                  <motion.span
-                    className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-l from-primary to-accent rounded-full"
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ delay: 0.8, duration: 0.6 }}
-                  />
-                </span>
-              </motion.h1>
-              
-              <motion.p 
-                className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                نقدم لك مجموعة شاملة من الخدمات التسويقية المصممة خصيصاً لتحقيق أهدافك وتعزيز نمو أعمالك
-              </motion.p>
+              </h1>
+              <p className="text-muted-foreground mb-8">
+                خدمات سوشيال ميديا احترافية بأفضل الأسعار وأعلى جودة
+              </p>
 
-              {/* Stats */}
-              <motion.div 
-                className="flex flex-wrap justify-center gap-8 mt-12"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
-              >
+              {/* Quick Stats */}
+              <div className="flex flex-wrap justify-center gap-6">
                 {[
-                  { value: "10+", label: "خدمة متخصصة" },
-                  { value: "500+", label: "عميل راضٍ" },
-                  { value: "98%", label: "نسبة الرضا" },
-                ].map((stat, i) => (
+                  { icon: Zap, label: "توصيل سريع", color: "text-warning" },
+                  { icon: RefreshCcw, label: "تعبئة تلقائية", color: "text-success" },
+                  { icon: Shield, label: "ضمان الجودة", color: "text-primary" },
+                  { icon: Clock, label: "دعم 24/7", color: "text-accent" },
+                ].map((item) => (
                   <motion.div 
-                    key={stat.label}
-                    className="text-center"
+                    key={item.label}
+                    className="flex items-center gap-2 text-sm"
                     whileHover={{ scale: 1.05 }}
                   >
-                    <div className="text-3xl md:text-4xl font-bold bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
-                      {stat.value}
-                    </div>
-                    <div className="text-sm text-muted-foreground">{stat.label}</div>
+                    <item.icon className={`w-4 h-4 ${item.color}`} />
+                    <span className="text-muted-foreground">{item.label}</span>
                   </motion.div>
                 ))}
-              </motion.div>
+              </div>
             </motion.div>
           </div>
         </section>
 
-        {/* Category Filter */}
-        <section className="py-8 sticky top-16 z-20 bg-background/80 backdrop-blur-lg border-b border-border/50">
+        {/* Search & Filters */}
+        <section className="py-6 sticky top-16 z-30 bg-background/95 backdrop-blur-lg border-b border-border/50">
           <div className="container px-4">
-            <motion.div 
-              className="flex flex-wrap items-center justify-center gap-3"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <Button
-                variant={selectedCategory === null ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(null)}
-                className="gap-2"
-              >
-                <Filter className="w-4 h-4" />
-                الكل
-              </Button>
-              {categories.map((category) => {
-                const Icon = getIcon(category);
-                return (
-                  <Button
-                    key={category}
-                    variant={selectedCategory === category ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedCategory(category)}
-                    className="gap-2"
-                  >
-                    <Icon className="w-4 h-4" />
-                    {category}
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+              <div className="relative flex-1 max-w-md w-full">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="ابحث عن خدمة..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pr-10"
+                />
+              </div>
+              
+              <div className="flex gap-3 items-center">
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="w-[180px]">
+                    <Filter className="h-4 w-4 ml-2" />
+                    <SelectValue placeholder="جميع الأقسام" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع الأقسام ({totalServices})</SelectItem>
+                    {categories.map(cat => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat} ({services?.filter(s => s.category === cat).length})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="sm" onClick={expandAll}>
+                    <ChevronDown className="h-4 w-4" />
                   </Button>
-                );
-              })}
-            </motion.div>
+                  <Button variant="ghost" size="sm" onClick={collapseAll}>
+                    <ChevronUp className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* Services Grid */}
-        <section className="py-16 bg-gradient-to-b from-secondary/20 to-background">
+        {/* Services List */}
+        <section className="py-8">
           <div className="container px-4">
             {isLoading ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="p-8 rounded-2xl bg-background border border-border/50">
-                    <Skeleton className="w-14 h-14 rounded-xl mb-6" />
-                    <Skeleton className="h-6 w-3/4 mb-3" />
-                    <Skeleton className="h-4 w-full mb-2" />
-                    <Skeleton className="h-4 w-2/3 mb-6" />
-                    <Skeleton className="h-8 w-1/3 mb-4" />
-                    <div className="space-y-2">
-                      {[...Array(5)].map((_, j) => (
-                        <Skeleton key={j} className="h-4 w-full" />
-                      ))}
-                    </div>
-                  </div>
+              <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <Card key={i}>
+                    <CardHeader>
+                      <Skeleton className="h-6 w-48" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {[...Array(3)].map((_, j) => (
+                          <Skeleton key={j} className="h-16 w-full" />
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
+            ) : Object.keys(groupedServices).length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-20"
+              >
+                <Search className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
+                <h3 className="text-xl font-semibold mb-2">لا توجد نتائج</h3>
+                <p className="text-muted-foreground">جرب البحث بكلمات مختلفة</p>
+              </motion.div>
             ) : (
-              <AnimatePresence mode="wait">
-                <motion.div 
-                  key={selectedCategory || "all"}
-                  className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit={{ opacity: 0 }}
-                >
-                  {filteredServices?.map((service, index) => {
-                    const Icon = getIcon(service.category);
-                    const gradient = getGradient(service.category);
-                    const features = Array.isArray(service.features) 
-                      ? service.features 
-                      : JSON.parse(service.features as string || "[]");
-
-                    return (
-                      <motion.div
-                        key={service.id}
-                        variants={itemVariants}
-                        whileHover={{ y: -8 }}
-                        className="group relative"
-                        layout
-                      >
-                        {/* Card Glow Effect */}
-                        <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 rounded-2xl blur-xl transition-opacity duration-500`} />
-                        
-                        <div className="relative h-full p-8 rounded-2xl bg-background border border-border/50 hover:border-primary/30 transition-all duration-500 overflow-hidden">
-                          {/* Top Gradient Line */}
-                          <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-l ${gradient} transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500`} />
-                          
-                          {/* Category Badge */}
-                          <motion.div 
-                            className="absolute top-4 left-4"
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.05 + 0.3 }}
-                          >
-                            <Badge variant="secondary" className="text-xs">
-                              {service.category}
-                            </Badge>
-                          </motion.div>
-
-                          {/* Icon */}
-                          <motion.div 
-                            className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} p-4 mb-6 shadow-lg relative`}
-                            whileHover={{ scale: 1.1, rotate: 5 }}
-                            animate={floatingAnimation}
-                          >
-                            <Icon className="w-full h-full text-primary-foreground" />
+              <div className="space-y-4">
+                <AnimatePresence>
+                  {Object.entries(groupedServices).map(([category, categoryServices], categoryIndex) => (
+                    <motion.div
+                      key={category}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: categoryIndex * 0.05 }}
+                    >
+                      <Card className="overflow-hidden border-border/50 hover:border-primary/20 transition-colors">
+                        <CardHeader 
+                          className="cursor-pointer hover:bg-muted/30 transition-colors py-4"
+                          onClick={() => toggleCategory(category)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                                <TrendingUp className="w-5 h-5 text-primary-foreground" />
+                              </div>
+                              <div>
+                                <CardTitle className="text-lg">{category}</CardTitle>
+                                <p className="text-sm text-muted-foreground">{categoryServices.length} خدمة</p>
+                              </div>
+                            </div>
                             <motion.div
-                              className="absolute inset-0 bg-white/20 rounded-2xl"
-                              animate={{ opacity: [0, 0.5, 0] }}
-                              transition={{ duration: 2, repeat: Infinity }}
-                            />
-                          </motion.div>
-
-                          {/* Title & Description */}
-                          <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
-                            {service.name}
-                          </h3>
-                          <p className="text-muted-foreground mb-6 line-clamp-2">
-                            {service.description}
-                          </p>
-
-                          {/* Price */}
-                          <div className="mb-6 flex items-baseline gap-2">
-                            <span className="text-3xl font-bold bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
-                              {service.price.toLocaleString()}
-                            </span>
-                            <span className="text-muted-foreground text-sm">ر.س / شهرياً</span>
+                              animate={{ rotate: expandedCategories.has(category) ? 180 : 0 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                            </motion.div>
                           </div>
-
-                          {/* Features */}
-                          <ul className="space-y-3 mb-8">
-                            {features.slice(0, 5).map((feature: string, i: number) => (
-                              <motion.li 
-                                key={feature} 
-                                className="flex items-center gap-3 text-sm"
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: i * 0.05 + 0.2 }}
-                              >
-                                <motion.div
-                                  whileHover={{ scale: 1.2 }}
-                                  className="shrink-0"
-                                >
-                                  <CheckCircle className="w-4 h-4 text-success" />
-                                </motion.div>
-                                <span className="text-muted-foreground">{feature}</span>
-                              </motion.li>
-                            ))}
-                            {features.length > 5 && (
-                              <li className="text-sm text-primary font-medium">
-                                +{features.length - 5} مميزات أخرى
-                              </li>
-                            )}
-                          </ul>
-
-                          {/* CTA Button */}
-                          <Button 
-                            onClick={() => handleOrderService(service)}
-                            className="w-full gap-2 group/btn overflow-hidden relative"
-                          >
-                            <span className="relative z-10 flex items-center gap-2">
-                              <ShoppingCart className="w-4 h-4" />
-                              اطلب الخدمة
-                            </span>
+                        </CardHeader>
+                        
+                        <AnimatePresence>
+                          {expandedCategories.has(category) && (
                             <motion.div
-                              className={`absolute inset-0 bg-gradient-to-l ${gradient}`}
-                              initial={{ x: "100%" }}
-                              whileHover={{ x: 0 }}
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
                               transition={{ duration: 0.3 }}
-                            />
-                          </Button>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </motion.div>
-              </AnimatePresence>
+                            >
+                              <CardContent className="pt-0 pb-4">
+                                {/* Table Header */}
+                                <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-muted/30 rounded-lg mb-2 text-sm font-medium text-muted-foreground">
+                                  <div className="col-span-1">ID</div>
+                                  <div className="col-span-5">الخدمة</div>
+                                  <div className="col-span-2 text-center">السعر</div>
+                                  <div className="col-span-2 text-center">المميزات</div>
+                                  <div className="col-span-2 text-center">طلب</div>
+                                </div>
+
+                                <div className="divide-y divide-border/50">
+                                  {categoryServices.map((service, index) => {
+                                    const features = Array.isArray(service.features) 
+                                      ? service.features 
+                                      : [];
+                                    const hasRefill = features.some((f: string) => 
+                                      f.includes('تعبئة') || f.includes('إعادة')
+                                    );
+                                    const hasDrip = features.some((f: string) => 
+                                      f.includes('تنقيط')
+                                    );
+
+                                    return (
+                                      <motion.div
+                                        key={service.id}
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: index * 0.02 }}
+                                        className="py-3 px-4 hover:bg-muted/20 rounded-lg transition-colors group"
+                                      >
+                                        {/* Desktop View */}
+                                        <div className="hidden md:grid grid-cols-12 gap-4 items-center">
+                                          <div className="col-span-1">
+                                            <span className="text-xs text-muted-foreground font-mono">
+                                              #{index + 1}
+                                            </span>
+                                          </div>
+                                          <div className="col-span-5">
+                                            <h4 className="font-medium text-sm group-hover:text-primary transition-colors line-clamp-1">
+                                              {service.name}
+                                            </h4>
+                                            {service.description && (
+                                              <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                                                {service.description}
+                                              </p>
+                                            )}
+                                          </div>
+                                          <div className="col-span-2 text-center">
+                                            <span className="font-bold text-primary">
+                                              ${service.price.toFixed(2)}
+                                            </span>
+                                          </div>
+                                          <div className="col-span-2 flex justify-center gap-1">
+                                            {hasRefill && (
+                                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                                                <RefreshCcw className="w-2.5 h-2.5 ml-1" />
+                                                تعبئة
+                                              </Badge>
+                                            )}
+                                            {hasDrip && (
+                                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                                                <Zap className="w-2.5 h-2.5 ml-1" />
+                                                تنقيط
+                                              </Badge>
+                                            )}
+                                            {!hasRefill && !hasDrip && (
+                                              <span className="text-xs text-muted-foreground">-</span>
+                                            )}
+                                          </div>
+                                          <div className="col-span-2 text-center">
+                                            <Button 
+                                              size="sm" 
+                                              onClick={() => handleOrderService(service)}
+                                              className="h-8 px-4"
+                                            >
+                                              <ShoppingCart className="w-3.5 h-3.5 ml-1" />
+                                              طلب
+                                            </Button>
+                                          </div>
+                                        </div>
+
+                                        {/* Mobile View */}
+                                        <div className="md:hidden space-y-3">
+                                          <div className="flex justify-between items-start">
+                                            <div className="flex-1">
+                                              <h4 className="font-medium text-sm">{service.name}</h4>
+                                              {service.description && (
+                                                <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                                                  {service.description}
+                                                </p>
+                                              )}
+                                            </div>
+                                            <span className="font-bold text-primary text-lg">
+                                              ${service.price.toFixed(2)}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center justify-between">
+                                            <div className="flex gap-1">
+                                              {hasRefill && (
+                                                <Badge variant="secondary" className="text-[10px]">
+                                                  تعبئة
+                                                </Badge>
+                                              )}
+                                              {hasDrip && (
+                                                <Badge variant="secondary" className="text-[10px]">
+                                                  تنقيط
+                                                </Badge>
+                                              )}
+                                            </div>
+                                            <Button 
+                                              size="sm" 
+                                              onClick={() => handleOrderService(service)}
+                                            >
+                                              <ShoppingCart className="w-3.5 h-3.5 ml-1" />
+                                              طلب
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      </motion.div>
+                                    );
+                                  })}
+                                </div>
+                              </CardContent>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
             )}
           </div>
         </section>
 
-        {/* Why Choose Us Section */}
-        <section className="py-20">
+        {/* Features Section */}
+        <section className="py-16 bg-gradient-to-b from-secondary/30 to-background">
           <div className="container px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -444,20 +450,16 @@ const Services = () => {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                لماذا تختارنا؟
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                نتميز بخبرة واسعة وفريق متخصص يعمل على تحقيق أهدافك
-              </p>
+              <h2 className="text-2xl font-bold mb-3">لماذا نحن؟</h2>
+              <p className="text-muted-foreground">نقدم لك أفضل الخدمات بأعلى جودة</p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { icon: Star, title: "جودة عالية", desc: "نلتزم بأعلى معايير الجودة في كل خدمة نقدمها" },
-                { icon: Users, title: "فريق متخصص", desc: "خبراء في مجالاتهم مع سنوات من الخبرة" },
-                { icon: Zap, title: "سرعة التنفيذ", desc: "نلتزم بالمواعيد ونسلم المشاريع في وقتها" },
-                { icon: MessageSquare, title: "دعم مستمر", desc: "فريق دعم متاح للرد على استفساراتك" },
+                { icon: Zap, title: "سرعة التنفيذ", desc: "بدء فوري للطلبات" },
+                { icon: Shield, title: "أمان عالي", desc: "حماية كاملة للحسابات" },
+                { icon: Star, title: "جودة ممتازة", desc: "أفضل النتائج المضمونة" },
+                { icon: RefreshCcw, title: "تعبئة تلقائية", desc: "استعادة في حال النقص" },
               ].map((item, i) => (
                 <motion.div
                   key={item.title}
@@ -465,82 +467,30 @@ const Services = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
-                  whileHover={{ y: -5 }}
-                  className="p-6 rounded-2xl bg-secondary/30 border border-border/50 text-center"
                 >
-                  <motion.div 
-                    className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4"
-                    whileHover={{ rotate: 10 }}
-                  >
-                    <item.icon className="w-6 h-6 text-primary" />
-                  </motion.div>
-                  <h3 className="font-bold mb-2">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  <Card className="text-center p-6 hover:border-primary/30 transition-colors h-full">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                      <item.icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="font-semibold mb-2">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  </Card>
                 </motion.div>
               ))}
             </div>
           </div>
         </section>
-
-        {/* CTA Section */}
-        <section className="py-20">
-          <div className="container px-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              className="max-w-4xl mx-auto text-center p-12 rounded-3xl bg-gradient-to-br from-primary/10 via-accent/10 to-primary/10 border border-primary/20 relative overflow-hidden"
-            >
-              {/* Animated circles */}
-              <motion.div
-                className="absolute -top-20 -right-20 w-40 h-40 bg-primary/20 rounded-full blur-3xl"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 4, repeat: Infinity }}
-              />
-              <motion.div
-                className="absolute -bottom-20 -left-20 w-40 h-40 bg-accent/20 rounded-full blur-3xl"
-                animate={{ scale: [1.2, 1, 1.2] }}
-                transition={{ duration: 4, repeat: Infinity }}
-              />
-
-              <motion.div
-                animate={floatingAnimation}
-                className="relative z-10"
-              >
-                <Sparkles className="w-12 h-12 text-primary mx-auto mb-4" />
-              </motion.div>
-              
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 relative z-10">
-                هل تحتاج خدمة مخصصة؟
-              </h2>
-              <p className="text-muted-foreground mb-8 max-w-xl mx-auto relative z-10">
-                تواصل معنا لنصمم لك باقة خدمات تناسب احتياجاتك وميزانيتك
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
-                <Link to="/contact">
-                  <Button size="lg" className="gap-2">
-                    <Mail className="w-4 h-4" />
-                    تواصل معنا
-                  </Button>
-                </Link>
-                <a href="tel:+966551234567">
-                  <Button size="lg" variant="outline" className="gap-2">
-                    <Phone className="w-4 h-4" />
-                    <span dir="ltr">+966 55 123 4567</span>
-                  </Button>
-                </a>
-              </div>
-            </motion.div>
-          </div>
-        </section>
       </main>
       <Footer />
-      
+
       {/* Order Dialog */}
       <ServiceOrderDialog
         service={selectedService}
         open={orderDialogOpen}
-        onOpenChange={setOrderDialogOpen}
+        onOpenChange={(open) => {
+          setOrderDialogOpen(open);
+          if (!open) setSelectedService(null);
+        }}
         userId={user?.id || null}
       />
     </div>

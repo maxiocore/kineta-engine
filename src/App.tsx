@@ -36,6 +36,7 @@ import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminLogs from "./pages/admin/AdminLogs";
 import AdminSupport from "./pages/admin/AdminSupport";
 import AdminAuth from "./pages/admin/AdminAuth";
+import AdminServiceImport from "./pages/admin/AdminServiceImport";
 
 const queryClient = new QueryClient();
 
@@ -100,6 +101,11 @@ const App = () => (
                   <Route path="/admin/services" element={
                     <ProtectedRoute requireAdmin>
                       <AdminServices />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/services/import" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminServiceImport />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/orders" element={
