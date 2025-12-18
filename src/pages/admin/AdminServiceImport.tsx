@@ -61,6 +61,13 @@ interface ApiProvider {
   services_count: number;
 }
 
+interface LocalCategory {
+  id: string;
+  name: string;
+  name_ar: string;
+  slug: string;
+}
+
 const AdminServiceImport = () => {
   const [searchParams] = useSearchParams();
   const preselectedProvider = searchParams.get('provider');
@@ -74,6 +81,9 @@ const AdminServiceImport = () => {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [selectedProvider, setSelectedProvider] = useState<string>(preselectedProvider || '');
   const [providerProfitMargin, setProviderProfitMargin] = useState<number>(30);
+  
+  // Category mapping: maps provider category name to local category id
+  const [categoryMapping, setCategoryMapping] = useState<Record<string, string>>({});
   
   // Profit margin settings
   const [profitMargin, setProfitMargin] = useState<number>(50);
@@ -97,7 +107,21 @@ const AdminServiceImport = () => {
     },
   });
 
-  // Set preselected provider
+  // Fetch local categories
+  const { data: localCategories = [] } = useQuery({
+    queryKey: ['categories-for-import'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name, name_ar, slug')
+        .eq('is_active', true)
+        .order('display_order');
+      
+      if (error) throw error;
+      return data as LocalCategory[];
+    },
+  });
+
   useEffect(() => {
     if (preselectedProvider && providers.length > 0) {
       const provider = providers.find(p => p.id === preselectedProvider);
@@ -299,11 +323,15 @@ const AdminServiceImport = () => {
         }
 
         const finalPrice = calculateFinalPrice(service.rate);
+        // Get the mapped local category ID
+        const mappedCategoryId = categoryMapping[service.category] || null;
+        
         const { error } = await supabase.from('services').insert({
           name: translatedName,
           description: translatedDescription,
           price: parseFloat(finalPrice.toFixed(4)),
           category: translatedCategory,
+          category_id: mappedCategoryId,
           status: 'active',
           external_service_id: service.service,
           provider_id: selectedProvider,
@@ -594,6 +622,46 @@ const AdminServiceImport = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Category Mapping */}
+        {services.length > 0 && categories.length > 0 && localCategories.length > 0 && (
+          <Card className="border-orange-500/20 bg-orange-500/5">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Filter className="h-5 w-5 text-orange-500" />
+                ربط الأقسام المحلية
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">اختر القسم المحلي لكل قسم من المزود</p>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
+                {categories.map((providerCat) => (
+                  <div key={providerCat} className="flex items-center gap-2 p-2 rounded-lg bg-background border">
+                    <span className="text-sm font-medium flex-1 truncate" title={providerCat}>
+                      {providerCat}
+                    </span>
+                    <Select
+                      value={categoryMapping[providerCat] || ''}
+                      onValueChange={(value) => setCategoryMapping(prev => ({ ...prev, [providerCat]: value }))}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue placeholder="اختر" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">بدون تحديد</SelectItem>
+                        {localCategories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.name_ar}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Filters */}
         {services.length > 0 && (
