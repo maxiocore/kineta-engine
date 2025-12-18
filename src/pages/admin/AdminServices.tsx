@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, Plus, Loader2, Sparkles, RefreshCw, Download } from "lucide-react";
+import { Package, Plus, Loader2, Sparkles, RefreshCw, Download, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
@@ -276,6 +276,12 @@ const AdminServices = () => {
               <Button variant="outline" className="gap-2">
                 <Download className="w-4 h-4" />
                 استيراد
+              </Button>
+            </Link>
+            <Link to="/admin/services/prices">
+              <Button variant="outline" className="gap-2">
+                <DollarSign className="w-4 h-4" />
+                الأسعار
               </Button>
             </Link>
             <Button 
