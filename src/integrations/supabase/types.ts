@@ -54,7 +54,9 @@ export type Database = {
         Row: {
           api_key: string
           api_url: string
+          category: string | null
           created_at: string
+          description: string | null
           id: string
           is_active: boolean
           is_default: boolean
@@ -68,7 +70,9 @@ export type Database = {
         Insert: {
           api_key: string
           api_url: string
+          category?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           is_active?: boolean
           is_default?: boolean
@@ -82,7 +86,9 @@ export type Database = {
         Update: {
           api_key?: string
           api_url?: string
+          category?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           is_active?: boolean
           is_default?: boolean

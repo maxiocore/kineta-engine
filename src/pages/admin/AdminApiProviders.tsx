@@ -9,6 +9,14 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -46,10 +54,23 @@ import {
   EyeOff,
   Download,
   BarChart3,
-  Scale
+  Scale,
+  Tag,
+  FileText,
+  Filter
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
+
+// Provider categories
+const PROVIDER_CATEGORIES = [
+  { value: 'smm', label: 'SMM Panel', labelAr: 'لوحة SMM' },
+  { value: 'reseller', label: 'Reseller', labelAr: 'موزع' },
+  { value: 'direct', label: 'Direct API', labelAr: 'API مباشر' },
+  { value: 'wholesale', label: 'Wholesale', labelAr: 'جملة' },
+  { value: 'premium', label: 'Premium', labelAr: 'مميز' },
+  { value: 'other', label: 'Other', labelAr: 'أخرى' },
+];
 
 interface ApiProvider {
   id: string;
@@ -62,6 +83,8 @@ interface ApiProvider {
   profit_margin: number;
   last_sync_at: string | null;
   services_count: number;
+  category: string | null;
+  description: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -74,6 +97,7 @@ const AdminApiProviders = () => {
   const [selectedProvider, setSelectedProvider] = useState<ApiProvider | null>(null);
   const [showApiKey, setShowApiKey] = useState<Record<string, boolean>>({});
   const [isTestingConnection, setIsTestingConnection] = useState<string | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [formData, setFormData] = useState({
     name: '',
     name_ar: '',
@@ -82,6 +106,8 @@ const AdminApiProviders = () => {
     is_active: true,
     is_default: false,
     profit_margin: 30,
+    category: 'smm',
+    description: '',
   });
 
   // Fetch providers
@@ -195,6 +221,8 @@ const AdminApiProviders = () => {
         is_active: provider.is_active,
         is_default: provider.is_default,
         profit_margin: provider.profit_margin,
+        category: provider.category || 'smm',
+        description: provider.description || '',
       });
     } else {
       setSelectedProvider(null);
@@ -206,6 +234,8 @@ const AdminApiProviders = () => {
         is_active: true,
         is_default: false,
         profit_margin: 30,
+        category: 'smm',
+        description: '',
       });
     }
     setIsDialogOpen(true);
@@ -222,6 +252,8 @@ const AdminApiProviders = () => {
       is_active: true,
       is_default: false,
       profit_margin: 30,
+      category: 'smm',
+      description: '',
     });
   };
 
@@ -281,6 +313,16 @@ const AdminApiProviders = () => {
     active: providers.filter(p => p.is_active).length,
     totalServices: providers.reduce((sum, p) => sum + p.services_count, 0),
     defaultProvider: providers.find(p => p.is_default),
+  };
+
+  // Filter providers by category
+  const filteredProviders = categoryFilter === 'all' 
+    ? providers 
+    : providers.filter(p => p.category === categoryFilter);
+
+  const getCategoryLabel = (category: string | null) => {
+    const cat = PROVIDER_CATEGORIES.find(c => c.value === category);
+    return cat?.labelAr || 'أخرى';
   };
 
   return (
@@ -373,6 +415,35 @@ const AdminApiProviders = () => {
           </Card>
         </div>
 
+        {/* Category Filter */}
+        <div className="flex items-center gap-3">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">تصفية حسب التصنيف:</span>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="جميع التصنيفات" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">جميع التصنيفات</SelectItem>
+              {PROVIDER_CATEGORIES.map((cat) => (
+                <SelectItem key={cat.value} value={cat.value}>
+                  {cat.labelAr}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {categoryFilter !== 'all' && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setCategoryFilter('all')}
+              className="text-xs"
+            >
+              مسح الفلتر
+            </Button>
+          )}
+        </div>
+
         {/* Providers Grid */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -386,12 +457,16 @@ const AdminApiProviders = () => {
               </Card>
             ))}
           </div>
-        ) : providers.length === 0 ? (
+        ) : filteredProviders.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
               <Server className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">لا يوجد مزودين</h3>
-              <p className="text-muted-foreground mb-4">ابدأ بإضافة مزود SMM لاستيراد الخدمات</p>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                {providers.length === 0 ? 'لا يوجد مزودين' : 'لا يوجد مزودين في هذا التصنيف'}
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                {providers.length === 0 ? 'ابدأ بإضافة مزود SMM لاستيراد الخدمات' : 'جرب تصنيف آخر أو أضف مزود جديد'}
+              </p>
               <Button onClick={() => handleOpenDialog()} className="gap-2">
                 <Plus className="h-4 w-4" />
                 إضافة مزود جديد
@@ -400,7 +475,7 @@ const AdminApiProviders = () => {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {providers.map((provider) => (
+            {filteredProviders.map((provider) => (
               <Card 
                 key={provider.id} 
                 className={`relative overflow-hidden transition-all hover:shadow-lg ${
@@ -424,9 +499,15 @@ const AdminApiProviders = () => {
                       </CardTitle>
                       <p className="text-sm text-muted-foreground">{provider.name}</p>
                     </div>
-                    <Badge variant={provider.is_active ? 'default' : 'secondary'}>
-                      {provider.is_active ? 'نشط' : 'غير نشط'}
-                    </Badge>
+                    <div className="flex flex-col items-end gap-1">
+                      <Badge variant={provider.is_active ? 'default' : 'secondary'}>
+                        {provider.is_active ? 'نشط' : 'غير نشط'}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs gap-1">
+                        <Tag className="h-3 w-3" />
+                        {getCategoryLabel(provider.category)}
+                      </Badge>
+                    </div>
                   </div>
                 </CardHeader>
                 
@@ -648,6 +729,44 @@ const AdminApiProviders = () => {
                   <span className="text-sm text-muted-foreground">
                     النسبة المضافة على سعر المزود
                   </span>
+                </div>
+              </div>
+              
+              {/* Category & Description */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="category" className="flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-muted-foreground" />
+                    تصنيف المزود
+                  </Label>
+                  <Select 
+                    value={formData.category} 
+                    onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر التصنيف" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PROVIDER_CATEGORIES.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.labelAr}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    ملاحظات
+                  </Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="ملاحظات إضافية عن المزود..."
+                    className="h-20 resize-none"
+                  />
                 </div>
               </div>
               
