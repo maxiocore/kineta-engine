@@ -21,6 +21,7 @@ import TrackOrder from "./pages/TrackOrder";
 // Client Dashboard
 import ClientDashboard from "./pages/dashboard/ClientDashboard";
 import ClientOrders from "./pages/dashboard/ClientOrders";
+import ClientBadges from "./pages/dashboard/ClientBadges";
 import ClientNotifications from "./pages/dashboard/ClientNotifications";
 import ClientSupport from "./pages/dashboard/ClientSupport";
 import ClientSettings from "./pages/dashboard/ClientSettings";
@@ -74,6 +75,11 @@ const App = () => (
                   <Route path="/dashboard/orders" element={
                     <ProtectedRoute>
                       <ClientOrders />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/badges" element={
+                    <ProtectedRoute>
+                      <ClientBadges />
                     </ProtectedRoute>
                   } />
                   <Route path="/dashboard/notifications" element={
