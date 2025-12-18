@@ -125,11 +125,11 @@ const AdminOrders = () => {
   const [updating, setUpdating] = useState(false);
   const [stats, setStats] = useState<OrderStats>({ pending: 0, in_progress: 0, completed: 0, total: 0, cancelled: 0 });
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<"single" | "bulk">("single");
   const [deleting, setDeleting] = useState(false);
+  const [deleteProgress, setDeleteProgress] = useState({ current: 0, total: 0 });
 
   const activeFiltersCount = [
     statusFilter !== "all",
@@ -248,10 +248,13 @@ const AdminOrders = () => {
         toast.success("تم حذف الطلب بنجاح");
         setSelectedIds(prev => prev.filter(i => i !== deletingId));
       } else if (deleteType === "bulk") {
-        await supabase.from("order_status_history").delete().in("order_id", selectedIds);
-        const { error } = await supabase.from("orders").delete().in("id", selectedIds);
-
-        if (error) throw error;
+        setDeleteProgress({ current: 0, total: selectedIds.length });
+        for (let i = 0; i < selectedIds.length; i++) {
+          await supabase.from("order_status_history").delete().eq("order_id", selectedIds[i]);
+          const { error } = await supabase.from("orders").delete().eq("id", selectedIds[i]);
+          if (error) throw error;
+          setDeleteProgress({ current: i + 1, total: selectedIds.length });
+        }
         toast.success(`تم حذف ${selectedIds.length} طلب بنجاح`);
         setSelectedIds([]);
       }
@@ -263,6 +266,7 @@ const AdminOrders = () => {
       setDeleting(false);
       setDeleteDialogOpen(false);
       setDeletingId(null);
+      setDeleteProgress({ current: 0, total: 0 });
     }
   };
 
@@ -398,6 +402,16 @@ const AdminOrders = () => {
                 {activeFiltersCount > 0 && (
                   <Button variant="ghost" size="icon" onClick={resetFilters} className="text-muted-foreground hover:text-foreground">
                     <RotateCcw className="w-4 h-4" />
+                  </Button>
+                )}
+                {filteredOrders.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={toggleSelectAll}
+                    className="gap-2"
+                  >
+                    {selectedIds.length === filteredOrders.length ? "إلغاء التحديد" : "تحديد الكل"}
                   </Button>
                 )}
                 {selectedIds.length > 0 && (
@@ -826,6 +840,7 @@ const AdminOrders = () => {
           }
           onConfirm={handleConfirmDelete}
           loading={deleting}
+          progress={deleteType === "bulk" && deleting ? deleteProgress : undefined}
         />
       </motion.div>
     </AdminDashboardLayout>

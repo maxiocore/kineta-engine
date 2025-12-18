@@ -8,6 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Progress } from "@/components/ui/progress";
 import { Loader2, Trash2, AlertTriangle } from "lucide-react";
 
 interface ConfirmDialogProps {
@@ -20,6 +21,10 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
   loading?: boolean;
   variant?: "danger" | "warning";
+  progress?: {
+    current: number;
+    total: number;
+  };
 }
 
 export function ConfirmDialog({
@@ -32,7 +37,11 @@ export function ConfirmDialog({
   onConfirm,
   loading = false,
   variant = "danger",
+  progress,
 }: ConfirmDialogProps) {
+  const isDeleting = loading && progress;
+  const progressPercent = progress ? (progress.current / progress.total) * 100 : 0;
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-md">
@@ -51,6 +60,17 @@ export function ConfirmDialog({
             {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
+        
+        {isDeleting && (
+          <div className="space-y-2 py-2">
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>جاري الحذف...</span>
+              <span>{progress.current} / {progress.total}</span>
+            </div>
+            <Progress value={progressPercent} className="h-2" />
+          </div>
+        )}
+        
         <AlertDialogFooter className="gap-2 sm:gap-0">
           <AlertDialogCancel disabled={loading}>{cancelText}</AlertDialogCancel>
           <AlertDialogAction
@@ -64,7 +84,7 @@ export function ConfirmDialog({
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin ml-2" />
-                جاري الحذف...
+                {isDeleting ? `${progress.current}/${progress.total}` : "جاري الحذف..."}
               </>
             ) : (
               confirmText

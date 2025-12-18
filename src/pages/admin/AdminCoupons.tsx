@@ -70,11 +70,11 @@ const AdminCoupons = () => {
   const [submitting, setSubmitting] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<"single" | "bulk">("single");
   const [deleting, setDeleting] = useState(false);
+  const [deleteProgress, setDeleteProgress] = useState({ current: 0, total: 0 });
   
   const [formData, setFormData] = useState({
     code: "",
@@ -209,12 +209,16 @@ const AdminCoupons = () => {
         toast.success("تم حذف الكوبون بنجاح");
         setSelectedIds(prev => prev.filter(i => i !== deletingId));
       } else if (deleteType === "bulk") {
-        const { error } = await supabase
-          .from("coupons")
-          .delete()
-          .in("id", selectedIds);
+        setDeleteProgress({ current: 0, total: selectedIds.length });
+        for (let i = 0; i < selectedIds.length; i++) {
+          const { error } = await supabase
+            .from("coupons")
+            .delete()
+            .eq("id", selectedIds[i]);
 
-        if (error) throw error;
+          if (error) throw error;
+          setDeleteProgress({ current: i + 1, total: selectedIds.length });
+        }
         toast.success(`تم حذف ${selectedIds.length} كوبون بنجاح`);
         setSelectedIds([]);
       }
@@ -226,6 +230,7 @@ const AdminCoupons = () => {
       setDeleting(false);
       setDeleteDialogOpen(false);
       setDeletingId(null);
+      setDeleteProgress({ current: 0, total: 0 });
     }
   };
 
@@ -306,22 +311,34 @@ const AdminCoupons = () => {
               className="pr-10"
             />
           </div>
-          {selectedIds.length > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                {selectedIds.length} محدد
-              </span>
+          <div className="flex items-center gap-2">
+            {filteredCoupons.length > 0 && (
               <Button
-                variant="destructive"
+                variant="outline"
                 size="sm"
-                onClick={openBulkDeleteDialog}
+                onClick={toggleSelectAll}
                 className="gap-2"
               >
-                <Trash2 className="w-4 h-4" />
-                حذف المحدد
+                {selectedIds.length === filteredCoupons.length ? "إلغاء التحديد" : "تحديد الكل"}
               </Button>
-            </div>
-          )}
+            )}
+            {selectedIds.length > 0 && (
+              <>
+                <span className="text-sm text-muted-foreground">
+                  {selectedIds.length} محدد
+                </span>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={openBulkDeleteDialog}
+                  className="gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  حذف المحدد
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -658,6 +675,7 @@ const AdminCoupons = () => {
         }
         onConfirm={handleConfirmDelete}
         loading={deleting}
+        progress={deleteType === "bulk" && deleting ? deleteProgress : undefined}
       />
     </AdminDashboardLayout>
   );
