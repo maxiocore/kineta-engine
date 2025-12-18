@@ -1463,6 +1463,39 @@ export type Database = {
           },
         ]
       }
+      user_recent_links: {
+        Row: {
+          created_at: string
+          id: string
+          label: string | null
+          last_used_at: string
+          link: string
+          service_category: string | null
+          use_count: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          last_used_at?: string
+          link: string
+          service_category?: string | null
+          use_count?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          last_used_at?: string
+          link?: string
+          service_category?: string | null
+          use_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
