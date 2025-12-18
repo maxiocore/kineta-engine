@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Plus, X, Image as ImageIcon, Sparkles } from "lucide-react";
+import { Loader2, Plus, X, Image as ImageIcon, Sparkles, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Service {
   id: string;
@@ -55,6 +56,7 @@ const ServiceFormDialog = ({
   const [submitting, setSubmitting] = useState(false);
   const [newFeature, setNewFeature] = useState("");
   const [dbCategories, setDbCategories] = useState<Category[]>([]);
+  const [categorySearch, setCategorySearch] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -170,9 +172,36 @@ const ServiceFormDialog = ({
                     <SelectValue placeholder="اختر التصنيف" />
                   </SelectTrigger>
                   <SelectContent>
-                    {dbCategories.map(cat => (
-                      <SelectItem key={cat.id} value={cat.name}>{cat.name_ar} ({cat.name})</SelectItem>
-                    ))}
+                    <div className="p-2 sticky top-0 bg-popover border-b">
+                      <div className="relative">
+                        <Search className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="ابحث عن تصنيف..."
+                          value={categorySearch}
+                          onChange={(e) => setCategorySearch(e.target.value)}
+                          className="pr-8 h-8 text-sm"
+                        />
+                      </div>
+                    </div>
+                    <ScrollArea className="max-h-[200px]">
+                      {dbCategories
+                        .filter(cat => 
+                          cat.name_ar.toLowerCase().includes(categorySearch.toLowerCase()) ||
+                          cat.name.toLowerCase().includes(categorySearch.toLowerCase())
+                        )
+                        .map(cat => (
+                          <SelectItem key={cat.id} value={cat.name}>{cat.name_ar} ({cat.name})</SelectItem>
+                        ))
+                      }
+                      {dbCategories.filter(cat => 
+                        cat.name_ar.toLowerCase().includes(categorySearch.toLowerCase()) ||
+                        cat.name.toLowerCase().includes(categorySearch.toLowerCase())
+                      ).length === 0 && (
+                        <div className="text-center py-4 text-muted-foreground text-sm">
+                          لا توجد نتائج
+                        </div>
+                      )}
+                    </ScrollArea>
                   </SelectContent>
                 </Select>
               </div>
