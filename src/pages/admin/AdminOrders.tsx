@@ -19,8 +19,10 @@ import {
   CalendarDays,
   SlidersHorizontal,
   X,
-  RotateCcw
+  RotateCcw,
+  ArrowUpDown
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -258,6 +260,12 @@ const AdminOrders = () => {
             </h1>
             <p className="text-muted-foreground">متابعة وإدارة جميع الطلبات</p>
           </div>
+          <Link to="/admin/orders/sync">
+            <Button variant="outline" className="gap-2">
+              <ArrowUpDown className="w-4 h-4" />
+              مزامنة الطلبات الخارجية
+            </Button>
+          </Link>
         </motion.div>
 
         {/* Stats */}

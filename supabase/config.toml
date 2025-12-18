@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.bulkfollows-order]
 verify_jwt = true
+
+[functions.bulkfollows-status]
+verify_jwt = true

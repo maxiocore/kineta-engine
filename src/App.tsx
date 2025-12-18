@@ -38,6 +38,7 @@ import AdminSupport from "./pages/admin/AdminSupport";
 import AdminAuth from "./pages/admin/AdminAuth";
 import AdminServiceImport from "./pages/admin/AdminServiceImport";
 import AdminPriceUpdate from "./pages/admin/AdminPriceUpdate";
+import AdminOrdersSync from "./pages/admin/AdminOrdersSync";
 
 const queryClient = new QueryClient();
 
@@ -117,6 +118,11 @@ const App = () => (
                   <Route path="/admin/orders" element={
                     <ProtectedRoute requireAdmin>
                       <AdminOrders />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/orders/sync" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminOrdersSync />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/emails" element={
