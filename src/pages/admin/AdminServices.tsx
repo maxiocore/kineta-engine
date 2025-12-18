@@ -487,7 +487,6 @@ const AdminServices = () => {
           onClose={() => setIsFormDialogOpen(false)}
           editingService={editingService}
           onSubmit={handleSubmit}
-          categories={categories}
           statusOptions={statusOptions}
         />
 
