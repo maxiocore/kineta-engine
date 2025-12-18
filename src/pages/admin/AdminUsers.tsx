@@ -12,12 +12,14 @@ import {
   UserCheck,
   UserX,
   Eye,
-  MoreVertical
+  MoreVertical,
+  Trash2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -58,6 +60,8 @@ const AdminUsers = () => {
   const [stats, setStats] = useState<UserStats>({ total: 0, verified: 0, unverified: 0, admins: 0 });
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -139,6 +143,69 @@ const AdminUsers = () => {
     }
     setUpdating(false);
     setSelectedUser(null);
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm("هل أنت متأكد من حذف هذا المستخدم؟ سيتم حذف جميع بياناته.")) return;
+
+    try {
+      // Delete user's orders first
+      await supabase.from("orders").delete().eq("user_id", userId);
+      // Delete user's notifications
+      await supabase.from("notifications").delete().eq("user_id", userId);
+      // Delete user's support tickets
+      await supabase.from("support_tickets").delete().eq("user_id", userId);
+      // Delete user's role
+      await supabase.from("user_roles").delete().eq("user_id", userId);
+      // Delete user profile
+      const { error } = await supabase.from("profiles").delete().eq("id", userId);
+
+      if (error) throw error;
+      toast.success("تم حذف المستخدم بنجاح");
+      setSelectedIds(prev => prev.filter(id => id !== userId));
+      fetchUsers();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error("فشل في حذف المستخدم");
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`هل أنت متأكد من حذف ${selectedIds.length} مستخدم؟`)) return;
+
+    setBulkDeleting(true);
+    try {
+      for (const userId of selectedIds) {
+        await supabase.from("orders").delete().eq("user_id", userId);
+        await supabase.from("notifications").delete().eq("user_id", userId);
+        await supabase.from("support_tickets").delete().eq("user_id", userId);
+        await supabase.from("user_roles").delete().eq("user_id", userId);
+        await supabase.from("profiles").delete().eq("id", userId);
+      }
+      toast.success(`تم حذف ${selectedIds.length} مستخدم بنجاح`);
+      setSelectedIds([]);
+      fetchUsers();
+    } catch (error) {
+      console.error("Error bulk deleting users:", error);
+      toast.error("فشل في حذف المستخدمين");
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredUsers.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredUsers.map(u => u.id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
   };
 
   const filteredUsers = users.filter(user => {
@@ -231,6 +298,23 @@ const AdminUsers = () => {
                   <SelectItem value="admin">مشرفين</SelectItem>
                 </SelectContent>
               </Select>
+              {selectedIds.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    {selectedIds.length} محدد
+                  </span>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleBulkDelete}
+                    disabled={bulkDeleting}
+                    className="gap-2"
+                  >
+                    {bulkDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                    حذف المحدد
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -264,6 +348,12 @@ const AdminUsers = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-border">
+                      <th className="text-right py-4 px-4 font-medium text-muted-foreground w-12">
+                        <Checkbox
+                          checked={selectedIds.length === filteredUsers.length && filteredUsers.length > 0}
+                          onCheckedChange={toggleSelectAll}
+                        />
+                      </th>
                       <th className="text-right py-4 px-4 font-medium text-muted-foreground">المستخدم</th>
                       <th className="text-right py-4 px-4 font-medium text-muted-foreground">الدور</th>
                       <th className="text-right py-4 px-4 font-medium text-muted-foreground">الحالة</th>
@@ -281,8 +371,14 @@ const AdminUsers = () => {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
                           transition={{ delay: index * 0.03 }}
-                          className="border-b border-border/50 hover:bg-secondary/30 transition-colors"
+                          className={`border-b border-border/50 hover:bg-secondary/30 transition-colors ${selectedIds.includes(user.id) ? "bg-primary/5" : ""}`}
                         >
+                          <td className="py-4 px-4">
+                            <Checkbox
+                              checked={selectedIds.includes(user.id)}
+                              onCheckedChange={() => toggleSelect(user.id)}
+                            />
+                          </td>
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-bold">
@@ -348,6 +444,13 @@ const AdminUsers = () => {
                                     توثيق الحساب
                                   </DropdownMenuItem>
                                 )}
+                                <DropdownMenuItem 
+                                  onClick={() => handleDeleteUser(user.id)}
+                                  className="text-destructive"
+                                >
+                                  <Trash2 className="w-4 h-4 ml-2" />
+                                  حذف المستخدم
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </td>
