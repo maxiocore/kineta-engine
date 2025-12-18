@@ -56,6 +56,7 @@ import AdminCategories from "./pages/admin/AdminCategories";
 import AdminApiProviders from "./pages/admin/AdminApiProviders";
 import AdminProviderReports from "./pages/admin/AdminProviderReports";
 import AdminPriceComparison from "./pages/admin/AdminPriceComparison";
+import AdminReferrals from "./pages/admin/AdminReferrals";
 
 const queryClient = new QueryClient();
 
@@ -211,6 +212,11 @@ const App = () => (
                   <Route path="/admin/orders/sync" element={
                     <ProtectedRoute requireAdmin>
                       <AdminOrdersSync />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/referrals" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminReferrals />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/coupons" element={
