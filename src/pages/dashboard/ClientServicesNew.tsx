@@ -33,7 +33,11 @@ import {
   Check,
   Clock,
   X,
-  Info
+  Info,
+  Eye,
+  ChevronDown,
+  Grid3X3,
+  LayoutList
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -96,110 +100,119 @@ const colorMap: Record<string, {
   border: string;
   glow: string;
   text: string;
+  gradient: string;
 }> = {
   instagram: { 
     bg: "bg-gradient-to-br from-pink-500 via-purple-500 to-orange-400", 
     bgLight: "bg-pink-500/10",
     icon: "text-white", 
     border: "border-pink-500/30",
-    glow: "shadow-pink-500/20",
-    text: "text-pink-500"
+    glow: "shadow-pink-500/25",
+    text: "text-pink-500",
+    gradient: "from-pink-500 via-purple-500 to-orange-400"
   },
   facebook: { 
     bg: "bg-gradient-to-br from-blue-500 to-blue-600", 
     bgLight: "bg-blue-500/10",
     icon: "text-white", 
     border: "border-blue-500/30",
-    glow: "shadow-blue-500/20",
-    text: "text-blue-500"
+    glow: "shadow-blue-500/25",
+    text: "text-blue-500",
+    gradient: "from-blue-500 to-blue-600"
   },
   youtube: { 
     bg: "bg-gradient-to-br from-red-500 to-red-600", 
     bgLight: "bg-red-500/10",
     icon: "text-white", 
     border: "border-red-500/30",
-    glow: "shadow-red-500/20",
-    text: "text-red-500"
+    glow: "shadow-red-500/25",
+    text: "text-red-500",
+    gradient: "from-red-500 to-red-600"
   },
   twitter: { 
     bg: "bg-gradient-to-br from-sky-400 to-sky-500", 
     bgLight: "bg-sky-400/10",
     icon: "text-white", 
     border: "border-sky-500/30",
-    glow: "shadow-sky-500/20",
-    text: "text-sky-500"
+    glow: "shadow-sky-500/25",
+    text: "text-sky-500",
+    gradient: "from-sky-400 to-sky-500"
   },
   tiktok: { 
     bg: "bg-gradient-to-br from-gray-900 via-gray-800 to-pink-500", 
     bgLight: "bg-gray-500/10",
     icon: "text-white", 
     border: "border-gray-500/30",
-    glow: "shadow-gray-500/20",
-    text: "text-gray-900 dark:text-gray-100"
+    glow: "shadow-gray-500/25",
+    text: "text-gray-900 dark:text-gray-100",
+    gradient: "from-gray-900 via-gray-800 to-pink-500"
   },
   telegram: { 
     bg: "bg-gradient-to-br from-blue-400 to-blue-500", 
     bgLight: "bg-blue-400/10",
     icon: "text-white", 
     border: "border-blue-400/30",
-    glow: "shadow-blue-400/20",
-    text: "text-blue-400"
+    glow: "shadow-blue-400/25",
+    text: "text-blue-400",
+    gradient: "from-blue-400 to-blue-500"
   },
   linkedin: { 
     bg: "bg-gradient-to-br from-blue-600 to-blue-700", 
     bgLight: "bg-blue-600/10",
     icon: "text-white", 
     border: "border-blue-600/30",
-    glow: "shadow-blue-600/20",
-    text: "text-blue-600"
+    glow: "shadow-blue-600/25",
+    text: "text-blue-600",
+    gradient: "from-blue-600 to-blue-700"
   },
   spotify: { 
     bg: "bg-gradient-to-br from-green-500 to-green-600", 
     bgLight: "bg-green-500/10",
     icon: "text-white", 
     border: "border-green-500/30",
-    glow: "shadow-green-500/20",
-    text: "text-green-500"
+    glow: "shadow-green-500/25",
+    text: "text-green-500",
+    gradient: "from-green-500 to-green-600"
   },
   soundcloud: { 
     bg: "bg-gradient-to-br from-orange-500 to-orange-600", 
     bgLight: "bg-orange-500/10",
     icon: "text-white", 
     border: "border-orange-500/30",
-    glow: "shadow-orange-500/20",
-    text: "text-orange-500"
+    glow: "shadow-orange-500/25",
+    text: "text-orange-500",
+    gradient: "from-orange-500 to-orange-600"
   },
   default: { 
     bg: "bg-gradient-to-br from-primary to-accent", 
     bgLight: "bg-primary/10",
     icon: "text-white", 
     border: "border-primary/30",
-    glow: "shadow-primary/20",
-    text: "text-primary"
+    glow: "shadow-primary/25",
+    text: "text-primary",
+    gradient: "from-primary to-accent"
   },
 };
 
-// Stagger animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05
+      staggerChildren: 0.04
     }
   }
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20, scale: 0.95 },
+  hidden: { opacity: 0, y: 15 },
   show: { 
     opacity: 1, 
-    y: 0, 
-    scale: 1,
+    y: 0,
     transition: {
       type: "spring" as const,
-      stiffness: 300,
-      damping: 24
+      stiffness: 400,
+      damping: 30
     }
   }
 };
@@ -215,6 +228,7 @@ const ClientServicesNew = () => {
   const [showMobileForm, setShowMobileForm] = useState(false);
   const [detailsService, setDetailsService] = useState<Service | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // Fetch categories
   const { data: categories = [] } = useQuery({
@@ -268,7 +282,6 @@ const ClientServicesNew = () => {
       }
     }
     
-    // Clear params after processing
     if (categoryParam || serviceParam) {
       setSearchParams({});
     }
@@ -303,7 +316,6 @@ const ClientServicesNew = () => {
       return matchesSearch && matchesCategory;
     });
 
-    // Sort
     switch (sortBy) {
       case "price-asc":
         result = result.sort((a, b) => a.price - b.price);
@@ -386,28 +398,14 @@ const ClientServicesNew = () => {
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
           <motion.div 
             className="relative"
-            animate={{ 
-              rotate: 360,
-            }}
-            transition={{ 
-              duration: 2, 
-              repeat: Infinity, 
-              ease: "linear" 
-            }}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
           >
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary via-accent to-primary p-[3px]">
-              <div className="w-full h-full rounded-full bg-background flex items-center justify-center">
-                <Sparkles className="w-8 h-8 text-primary" />
-              </div>
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+              <Sparkles className="w-7 h-7 text-white" />
             </div>
           </motion.div>
-          <motion.p 
-            className="text-muted-foreground"
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          >
-            جاري تحميل الخدمات...
-          </motion.p>
+          <p className="text-muted-foreground text-sm">جاري تحميل الخدمات...</p>
         </div>
       </ClientDashboardLayout>
     );
@@ -415,116 +413,44 @@ const ClientServicesNew = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-6">
-        {/* Hero Header Section */}
+      <div className="min-h-screen">
+        {/* Compact Header */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card to-muted/30 border border-border/50"
+          className="mb-6"
         >
-          {/* Animated background effects */}
-          <div className="absolute inset-0 overflow-hidden">
-            <motion.div 
-              className="absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl"
-              animate={{ 
-                scale: [1, 1.2, 1],
-                opacity: [0.3, 0.5, 0.3]
-              }}
-              transition={{ duration: 4, repeat: Infinity }}
-            />
-            <motion.div 
-              className="absolute -bottom-20 -left-20 w-64 h-64 bg-accent/10 rounded-full blur-3xl"
-              animate={{ 
-                scale: [1.2, 1, 1.2],
-                opacity: [0.3, 0.5, 0.3]
-              }}
-              transition={{ duration: 4, repeat: Infinity, delay: 2 }}
-            />
-            {/* Grid pattern */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.3)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.3)_1px,transparent_1px)] bg-[size:24px_24px]" />
-          </div>
-          
-          <div className="relative p-6 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              {/* Title & Icon */}
-              <div className="flex items-center gap-4">
-                <motion.div 
-                  className="relative"
-                  whileHover={{ scale: 1.05, rotate: 5 }}
-                  transition={{ type: "spring", stiffness: 400 }}
-                >
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent p-[2px] shadow-xl shadow-primary/30">
-                    <div className="w-full h-full rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                      <ShoppingCart className="w-8 h-8 text-white" />
-                    </div>
-                  </div>
-                  <motion.div 
-                    className="absolute -top-1 -right-1 w-5 h-5 bg-success rounded-full flex items-center justify-center"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    <Zap className="w-3 h-3 text-white" />
-                  </motion.div>
-                </motion.div>
-                <div>
-                  <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-l from-foreground to-foreground/70 bg-clip-text">
-                    طلب جديد
-                  </h1>
-                  <p className="text-muted-foreground text-sm mt-1">
-                    اختر القسم والخدمة المطلوبة
-                  </p>
-                </div>
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/25">
+                <ShoppingCart className="w-6 h-6 text-white" />
               </div>
-              
-              {/* Stats Cards */}
-              <div className="flex items-center gap-3 flex-wrap">
-                <motion.div 
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  className="group flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 cursor-default"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/20">
-                    <Flame className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{services.length}</p>
-                    <p className="text-[11px] text-muted-foreground">خدمة متاحة</p>
-                  </div>
-                </motion.div>
-                
-                <motion.div 
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  className="group flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-br from-accent/5 to-accent/10 border border-accent/20 cursor-default"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-accent/80 flex items-center justify-center shadow-lg shadow-accent/20">
-                    <Layers className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{serviceCategories.length}</p>
-                    <p className="text-[11px] text-muted-foreground">قسم</p>
-                  </div>
-                </motion.div>
-                
-                <motion.div 
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  className="group flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-br from-destructive/5 to-destructive/10 border border-destructive/20 cursor-default"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-destructive to-destructive/80 flex items-center justify-center shadow-lg shadow-destructive/20">
-                    <Heart className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{favorites.length}</p>
-                    <p className="text-[11px] text-muted-foreground">مفضلة</p>
-                  </div>
-                </motion.div>
+              <div>
+                <h1 className="text-xl font-bold">طلب جديد</h1>
+                <p className="text-xs text-muted-foreground">{services.length} خدمة في {serviceCategories.length} قسم</p>
+              </div>
+            </div>
+            
+            {/* Quick Stats */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 text-xs">
+                <Flame className="w-3.5 h-3.5 text-primary" />
+                <span className="font-medium">{services.length}</span>
+                <span className="text-muted-foreground">خدمة</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 text-xs">
+                <Heart className="w-3.5 h-3.5 text-destructive" />
+                <span className="font-medium">{favorites.length}</span>
+                <span className="text-muted-foreground">مفضلة</span>
               </div>
             </div>
           </div>
         </motion.div>
 
-        {/* Main Content - Two Column Layout */}
+        {/* Main Layout */}
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left Side - Order Form (Desktop) */}
-          <div className="hidden lg:block lg:w-[420px] shrink-0 order-2 lg:order-1">
+          <div className="hidden lg:block lg:w-[400px] shrink-0 order-2 lg:order-1">
             <div className="sticky top-4">
               <AnimatePresence mode="wait">
                 {selectedService ? (
@@ -540,43 +466,23 @@ const ClientServicesNew = () => {
                 ) : (
                   <motion.div
                     key="placeholder"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                   >
-                    <Card className="border-dashed border-2 border-border/50 bg-gradient-to-b from-muted/5 to-muted/20 overflow-hidden">
-                      <CardContent className="py-20 text-center relative">
-                        {/* Decorative circles */}
-                        <div className="absolute top-6 left-6 w-20 h-20 rounded-full bg-primary/5 blur-2xl" />
-                        <div className="absolute bottom-6 right-6 w-20 h-20 rounded-full bg-accent/5 blur-2xl" />
-                        
+                    <Card className="border-dashed border-2 border-border/50 bg-muted/5">
+                      <CardContent className="py-16 text-center">
                         <motion.div 
-                          className="relative w-28 h-28 mx-auto mb-6"
-                          animate={{ 
-                            y: [0, -10, 0],
-                          }}
-                          transition={{ 
-                            duration: 3, 
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                          }}
+                          className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-muted/50 flex items-center justify-center"
+                          animate={{ y: [0, -8, 0] }}
+                          transition={{ duration: 2, repeat: Infinity }}
                         >
-                          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-3xl blur-xl" />
-                          <div className="relative w-full h-full rounded-3xl bg-gradient-to-br from-muted/50 to-muted/80 border border-border/50 flex items-center justify-center">
-                            <Sparkles className="w-12 h-12 text-muted-foreground/40" />
-                          </div>
+                          <Sparkles className="w-8 h-8 text-muted-foreground/40" />
                         </motion.div>
-                        
-                        <h3 className="font-bold text-xl mb-3 relative">اختر خدمة للطلب</h3>
-                        <p className="text-sm text-muted-foreground max-w-[240px] mx-auto leading-relaxed relative">
-                          اختر قسم من الأقسام ثم انقر على الخدمة المطلوبة لبدء الطلب
+                        <h3 className="font-semibold mb-2">اختر خدمة للطلب</h3>
+                        <p className="text-xs text-muted-foreground max-w-[200px] mx-auto">
+                          اختر قسم ثم انقر على الخدمة المطلوبة
                         </p>
-                        
-                        <div className="flex items-center justify-center gap-2 mt-6">
-                          <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                          <span className="w-2 h-2 rounded-full bg-primary/60 animate-pulse delay-100" />
-                          <span className="w-2 h-2 rounded-full bg-primary/30 animate-pulse delay-200" />
-                        </div>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -603,14 +509,14 @@ const ClientServicesNew = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="mb-4 gap-2 hover:bg-muted"
+                      className="mb-4 gap-2"
                       onClick={() => {
                         setShowMobileForm(false);
                         setSelectedService(null);
                       }}
                     >
                       <ArrowLeft className="w-4 h-4" />
-                      العودة للخدمات
+                      العودة
                     </Button>
                     <EmbeddedOrderForm
                       service={selectedService}
@@ -631,120 +537,94 @@ const ClientServicesNew = () => {
           </AnimatePresence>
 
           {/* Right Side - Categories & Services */}
-          <div className="flex-1 min-w-0 space-y-6 order-1 lg:order-2">
-            {/* Category Selection */}
+          <div className="flex-1 min-w-0 space-y-5 order-1 lg:order-2">
+            {/* Categories */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
             >
-              <Card className="border-border/50 overflow-hidden shadow-lg shadow-foreground/5">
-                <CardContent className="p-5 md:p-6">
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-                        <Crown className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-lg">اختر القسم</h3>
-                        <p className="text-xs text-muted-foreground">{serviceCategories.length} قسم متاح</p>
-                      </div>
-                    </div>
-                    {selectedCategory && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Crown className="w-4 h-4 text-primary" />
+                  <span className="font-semibold text-sm">الأقسام</span>
+                </div>
+                {selectedCategory && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedCategory(null);
+                      setSearchQuery("");
+                      setSelectedService(null);
+                    }}
+                    className="h-7 text-xs gap-1 text-muted-foreground hover:text-destructive"
+                  >
+                    <X className="w-3 h-3" />
+                    إلغاء
+                  </Button>
+                )}
+              </div>
+              
+              <ScrollArea className="w-full pb-2">
+                <motion.div 
+                  className="flex gap-2"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="show"
+                >
+                  {serviceCategories.map((category) => {
+                    const IconComponent = getCategoryIcon(category);
+                    const colors = getCategoryColors(category);
+                    const count = categoryCounts[category] || 0;
+                    const isSelected = selectedCategory === category;
+                    
+                    return (
+                      <motion.button
+                        key={category}
+                        variants={itemVariants}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => {
-                          setSelectedCategory(null);
+                          setSelectedCategory(isSelected ? null : category);
                           setSearchQuery("");
-                          setSelectedService(null);
                         }}
-                        className="text-xs gap-1.5 hover:bg-destructive/10 hover:text-destructive"
+                        className={cn(
+                          "relative flex items-center gap-2.5 px-4 py-2.5 rounded-xl border transition-all whitespace-nowrap",
+                          isSelected 
+                            ? `${colors.border} bg-gradient-to-br ${colors.bgLight} ring-1 ring-offset-1 ring-offset-background ${colors.border.replace('border-', 'ring-')}` 
+                            : "border-border/50 bg-card hover:bg-muted/50 hover:border-border"
+                        )}
                       >
-                        <X className="w-3.5 h-3.5" />
-                        إلغاء التحديد
-                      </Button>
-                    )}
-                  </div>
-                  
-                  {/* Category Grid - Horizontal Scroll */}
-                  <div className="relative">
-                    <ScrollArea className="w-full whitespace-nowrap pb-2">
-                      <motion.div 
-                        className="flex gap-3"
-                        variants={containerVariants}
-                        initial="hidden"
-                        animate="show"
-                      >
-                        {serviceCategories.map((category, index) => {
-                          const IconComponent = getCategoryIcon(category);
-                          const colors = getCategoryColors(category);
-                          const count = categoryCounts[category] || 0;
-                          const isSelected = selectedCategory === category;
-                          
-                          return (
-                            <motion.button
-                              key={category}
-                              variants={itemVariants}
-                              whileHover={{ scale: 1.03, y: -4 }}
-                              whileTap={{ scale: 0.97 }}
-                              onClick={() => {
-                                setSelectedCategory(isSelected ? null : category);
-                                setSearchQuery("");
-                              }}
-                              className={cn(
-                                "relative flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all min-w-[120px] group",
-                                isSelected 
-                                  ? `${colors.border} bg-gradient-to-b from-background to-muted/50 ring-2 ring-offset-2 ring-offset-background ${colors.border.replace('border-', 'ring-')}` 
-                                  : "border-border/50 bg-card hover:border-primary/30 hover:shadow-lg"
-                              )}
-                            >
-                              {/* Selected indicator */}
-                              {isSelected && (
-                                <motion.div 
-                                  layoutId="selectedCategory"
-                                  className={cn("absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center", colors.bg)}
-                                  initial={{ scale: 0 }}
-                                  animate={{ scale: 1 }}
-                                  transition={{ type: "spring", stiffness: 500 }}
-                                >
-                                  <Check className="w-3.5 h-3.5 text-white" />
-                                </motion.div>
-                              )}
-                              
-                              <motion.div 
-                                className={cn(
-                                  "w-14 h-14 rounded-xl flex items-center justify-center shadow-lg transition-all",
-                                  colors.bg,
-                                  `shadow-xl ${colors.glow}`,
-                                  isSelected && "scale-110"
-                                )}
-                                whileHover={{ rotate: [0, -5, 5, 0] }}
-                                transition={{ duration: 0.5 }}
-                              >
-                                <IconComponent className={cn("w-7 h-7", colors.icon)} />
-                              </motion.div>
-                              
-                              <div className="text-center">
-                                <p className={cn(
-                                  "font-semibold text-sm truncate max-w-[100px] transition-colors",
-                                  isSelected && colors.text
-                                )}>
-                                  {category}
-                                </p>
-                                <p className="text-[11px] text-muted-foreground mt-0.5">
-                                  {count} خدمة
-                                </p>
-                              </div>
-                            </motion.button>
-                          );
-                        })}
-                      </motion.div>
-                      <ScrollBar orientation="horizontal" className="mt-2" />
-                    </ScrollArea>
-                  </div>
-                </CardContent>
-              </Card>
+                        <div className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center shadow-md transition-all",
+                          colors.bg,
+                          colors.glow
+                        )}>
+                          <IconComponent className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="text-right">
+                          <p className={cn(
+                            "font-medium text-sm transition-colors",
+                            isSelected && colors.text
+                          )}>
+                            {category}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">{count} خدمة</p>
+                        </div>
+                        {isSelected && (
+                          <motion.div 
+                            layoutId="categoryCheck"
+                            className={cn("w-5 h-5 rounded-full flex items-center justify-center mr-1", colors.bg)}
+                          >
+                            <Check className="w-3 h-3 text-white" />
+                          </motion.div>
+                        )}
+                      </motion.button>
+                    );
+                  })}
+                </motion.div>
+                <ScrollBar orientation="horizontal" className="mt-2" />
+              </ScrollArea>
             </motion.div>
 
             {/* Services Section */}
@@ -752,277 +632,320 @@ const ClientServicesNew = () => {
               {selectedCategory ? (
                 <motion.div
                   key="services"
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
+                  exit={{ opacity: 0, y: -10 }}
                   className="space-y-4"
                 >
-                  {/* Search & Filter Bar */}
-                  <Card className="border-border/50 shadow-md">
-                    <CardContent className="p-4">
-                      <div className="flex flex-col sm:flex-row gap-3">
-                        <div className="relative flex-1 group">
-                          <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
-                          <Input
-                            placeholder="بحث في الخدمات..."
-                            className="pr-11 h-12 bg-muted/30 border-border/50 focus:bg-background transition-all rounded-xl"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                          />
-                        </div>
-                        <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
-                          <SelectTrigger className="w-full sm:w-[180px] h-12 rounded-xl">
-                            <Filter className="w-4 h-4 ml-2 text-muted-foreground" />
-                            <SelectValue placeholder="ترتيب حسب" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="name">الاسم</SelectItem>
-                            <SelectItem value="price-asc">السعر: الأقل أولاً</SelectItem>
-                            <SelectItem value="price-desc">السعر: الأعلى أولاً</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Category Header with animation */}
-                  <motion.div 
-                    className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-l from-muted/30 to-transparent"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                  >
-                    {(() => {
-                      const IconComponent = getCategoryIcon(selectedCategory);
-                      const colors = getCategoryColors(selectedCategory);
-                      return (
-                        <motion.div 
-                          className={cn("w-12 h-12 rounded-xl flex items-center justify-center shadow-lg", colors.bg, colors.glow)}
-                          whileHover={{ rotate: 10, scale: 1.1 }}
-                        >
-                          <IconComponent className="w-6 h-6 text-white" />
-                        </motion.div>
-                      );
-                    })()}
-                    <div className="flex-1">
-                      <h2 className="font-bold text-xl">{selectedCategory}</h2>
-                      <p className="text-sm text-muted-foreground">{filteredServices.length} خدمة متاحة للطلب</p>
+                  {/* Search & Controls */}
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative flex-1">
+                      <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="بحث..."
+                        className="pr-10 h-10 bg-muted/30 border-border/50 rounded-lg"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
                     </div>
-                    <Badge variant="secondary" className="text-xs px-3 py-1.5 rounded-full">
-                      <TrendingUp className="w-3.5 h-3.5 ml-1" />
-                      نشط
-                    </Badge>
-                  </motion.div>
+                    <div className="flex gap-2">
+                      <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+                        <SelectTrigger className="w-[140px] h-10 rounded-lg">
+                          <SelectValue placeholder="ترتيب" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="name">الاسم</SelectItem>
+                          <SelectItem value="price-asc">السعر ↑</SelectItem>
+                          <SelectItem value="price-desc">السعر ↓</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <div className="flex border border-border/50 rounded-lg overflow-hidden">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={cn("h-10 w-10 rounded-none", viewMode === "grid" && "bg-muted")}
+                          onClick={() => setViewMode("grid")}
+                        >
+                          <Grid3X3 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={cn("h-10 w-10 rounded-none", viewMode === "list" && "bg-muted")}
+                          onClick={() => setViewMode("list")}
+                        >
+                          <LayoutList className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
 
-                  {/* Services List */}
+                  {/* Category Header */}
+                  {(() => {
+                    const IconComponent = getCategoryIcon(selectedCategory);
+                    const colors = getCategoryColors(selectedCategory);
+                    return (
+                      <div className="flex items-center gap-3 py-2">
+                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-lg", colors.bg, colors.glow)}>
+                          <IconComponent className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <h2 className="font-bold text-lg">{selectedCategory}</h2>
+                          <p className="text-xs text-muted-foreground">{filteredServices.length} خدمة</p>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Services */}
                   {filteredServices.length === 0 ? (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                    >
-                      <Card className="border-border/50">
-                        <CardContent className="py-20 text-center">
-                          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-muted/50 flex items-center justify-center">
-                            <Package className="w-10 h-10 text-muted-foreground/30" />
-                          </div>
-                          <h3 className="font-bold text-xl mb-3">لا توجد خدمات</h3>
-                          <p className="text-sm text-muted-foreground max-w-[280px] mx-auto">
-                            لا توجد نتائج مطابقة لبحثك، جرب كلمات أخرى
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ) : (
+                    <Card className="border-dashed">
+                      <CardContent className="py-12 text-center">
+                        <Package className="w-10 h-10 mx-auto mb-3 text-muted-foreground/30" />
+                        <p className="text-sm text-muted-foreground">لا توجد نتائج</p>
+                      </CardContent>
+                    </Card>
+                  ) : viewMode === "grid" ? (
                     <motion.div 
-                      className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+                      className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
                       variants={containerVariants}
                       initial="hidden"
                       animate="show"
                     >
-                      {filteredServices.map((service, index) => {
+                      {filteredServices.map((service) => {
                         const isActive = selectedService?.id === service.id;
                         const isFavorite = checkIsFavorite(service.id);
                         const colors = getCategoryColors(service.category);
                         
                         return (
-                          <motion.div
-                            key={service.id}
-                            variants={itemVariants}
-                            layout
-                          >
+                          <motion.div key={service.id} variants={itemVariants} layout>
                             <Card 
                               className={cn(
-                                "group relative overflow-hidden border-2 transition-all duration-500 cursor-pointer h-full",
+                                "group relative overflow-hidden border transition-all cursor-pointer h-full",
                                 isActive 
-                                  ? "border-primary bg-gradient-to-br from-primary/5 via-background to-accent/5 shadow-2xl shadow-primary/20 scale-[1.02]" 
-                                  : "border-border/40 bg-gradient-to-br from-card to-card/80 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1"
+                                  ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" 
+                                  : "border-border/50 hover:border-primary/30 hover:shadow-md"
                               )}
                               onClick={() => handleSelectService(service)}
                             >
-                              {/* Background decorations */}
-                              <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                                <div className={cn(
-                                  "absolute -top-20 -right-20 w-40 h-40 rounded-full blur-3xl transition-opacity duration-500",
-                                  isActive ? "bg-primary/20 opacity-100" : "bg-primary/5 opacity-0 group-hover:opacity-100"
-                                )} />
-                                <div className={cn(
-                                  "absolute -bottom-20 -left-20 w-40 h-40 rounded-full blur-3xl transition-opacity duration-500",
-                                  isActive ? "bg-accent/20 opacity-100" : "bg-accent/5 opacity-0 group-hover:opacity-100"
-                                )} />
-                                {/* Grid pattern */}
-                                <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.03)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.03)_1px,transparent_1px)] bg-[size:12px_12px]" />
-                              </div>
-
-                              {/* Favorite button - absolute positioned */}
+                              {/* Favorite Button */}
                               <motion.button
-                                whileHover={{ scale: 1.15 }}
                                 whileTap={{ scale: 0.9 }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   toggleFavorite(service.id);
                                 }}
                                 className={cn(
-                                  "absolute top-4 left-4 z-10 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300",
+                                  "absolute top-3 left-3 z-10 w-8 h-8 rounded-lg flex items-center justify-center transition-all",
                                   isFavorite 
                                     ? "bg-destructive/10 text-destructive" 
-                                    : "bg-background/80 backdrop-blur-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                    : "bg-background/80 backdrop-blur text-muted-foreground hover:text-destructive"
                                 )}
                               >
-                                <Heart className={cn(
-                                  "w-5 h-5 transition-all",
-                                  isFavorite && "fill-current scale-110"
-                                )} />
+                                <Heart className={cn("w-4 h-4", isFavorite && "fill-current")} />
                               </motion.button>
 
-                              {/* Selected indicator */}
-                              <AnimatePresence>
-                                {isActive && (
-                                  <motion.div
-                                    initial={{ scale: 0, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    exit={{ scale: 0, opacity: 0 }}
-                                    className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-gradient-to-br from-success to-emerald-500 flex items-center justify-center shadow-lg shadow-success/40"
-                                  >
-                                    <Check className="w-4 h-4 text-white" />
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-
-                              <CardContent className="relative p-5 pt-14 flex flex-col h-full">
-                                {/* Service Icon */}
-                                <motion.div 
-                                  className={cn(
-                                    "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-xl transition-all duration-300",
-                                    isActive 
-                                      ? `${colors.bg} ${colors.glow} scale-110` 
-                                      : `bg-gradient-to-br from-secondary to-muted group-hover:${colors.bg.replace('bg-', '')} ${colors.glow}`
-                                  )}
-                                  whileHover={{ rotate: [0, -5, 5, 0], scale: 1.1 }}
-                                  transition={{ duration: 0.5 }}
+                              {/* Selected Check */}
+                              {isActive && (
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  className="absolute top-3 right-3 z-10 w-6 h-6 rounded-full bg-primary flex items-center justify-center"
                                 >
+                                  <Check className="w-3.5 h-3.5 text-white" />
+                                </motion.div>
+                              )}
+
+                              <CardContent className="p-4 pt-12">
+                                {/* Service Icon */}
+                                <div className={cn(
+                                  "w-12 h-12 rounded-xl flex items-center justify-center mb-3 shadow-md transition-all",
+                                  isActive ? colors.bg : "bg-muted group-hover:bg-gradient-to-br group-hover:" + colors.gradient,
+                                  colors.glow
+                                )}>
                                   <Star className={cn(
-                                    "w-7 h-7 transition-colors duration-300",
+                                    "w-5 h-5 transition-colors",
                                     isActive ? "text-white" : "text-muted-foreground group-hover:text-white"
                                   )} />
-                                </motion.div>
+                                </div>
                                 
-                                {/* Service Info */}
-                                <div className="flex-1 space-y-3">
+                                {/* Service Name */}
+                                <h3 className={cn(
+                                  "font-semibold text-sm mb-2 line-clamp-2 min-h-[2.5rem] transition-colors",
+                                  isActive && "text-primary"
+                                )}>
+                                  {service.name}
+                                </h3>
+                                
+                                {/* Badges */}
+                                <div className="flex flex-wrap gap-1 mb-3">
+                                  {service.external_service_id && (
+                                    <Badge variant="outline" className="text-[9px] h-5 px-1.5 font-mono">
+                                      #{service.external_service_id}
+                                    </Badge>
+                                  )}
+                                  {service.refill_enabled && (
+                                    <Badge className="text-[9px] h-5 px-1.5 bg-success/10 text-success border-success/20">
+                                      <Shield className="w-2.5 h-2.5 ml-0.5" />
+                                      ضمان
+                                    </Badge>
+                                  )}
+                                </div>
+                                
+                                {/* Price & Actions */}
+                                <div className="flex items-center justify-between pt-3 border-t border-border/50">
+                                  <div>
+                                    <span className={cn(
+                                      "text-lg font-bold",
+                                      isActive ? "text-primary" : "text-foreground"
+                                    )}>
+                                      {service.price.toFixed(2)}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground mr-1">ر.س</span>
+                                  </div>
+                                  
+                                  <div className="flex gap-1.5">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 rounded-lg"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleShowDetails(service);
+                                      }}
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      className={cn(
+                                        "h-8 px-3 rounded-lg shadow-md",
+                                        isActive 
+                                          ? "bg-primary" 
+                                          : "bg-gradient-to-r from-primary to-accent"
+                                      )}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleSelectService(service);
+                                      }}
+                                    >
+                                      {isActive ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                                    </Button>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </motion.div>
+                        );
+                      })}
+                    </motion.div>
+                  ) : (
+                    <motion.div 
+                      className="space-y-2"
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="show"
+                    >
+                      {filteredServices.map((service) => {
+                        const isActive = selectedService?.id === service.id;
+                        const isFavorite = checkIsFavorite(service.id);
+                        const colors = getCategoryColors(service.category);
+                        
+                        return (
+                          <motion.div key={service.id} variants={itemVariants}>
+                            <Card 
+                              className={cn(
+                                "group overflow-hidden border transition-all cursor-pointer",
+                                isActive 
+                                  ? "border-primary bg-primary/5" 
+                                  : "border-border/50 hover:border-primary/30"
+                              )}
+                              onClick={() => handleSelectService(service)}
+                            >
+                              <CardContent className="p-3 flex items-center gap-3">
+                                {/* Icon */}
+                                <div className={cn(
+                                  "w-10 h-10 rounded-lg flex items-center justify-center shrink-0 shadow",
+                                  isActive ? colors.bg : "bg-muted group-hover:bg-gradient-to-br group-hover:" + colors.gradient,
+                                  colors.glow
+                                )}>
+                                  <Star className={cn(
+                                    "w-4 h-4",
+                                    isActive ? "text-white" : "text-muted-foreground group-hover:text-white"
+                                  )} />
+                                </div>
+                                
+                                {/* Content */}
+                                <div className="flex-1 min-w-0">
                                   <h3 className={cn(
-                                    "font-bold text-base leading-relaxed line-clamp-2 transition-colors duration-300",
-                                    isActive ? "text-primary" : "text-foreground group-hover:text-primary"
+                                    "font-medium text-sm truncate",
+                                    isActive && "text-primary"
                                   )}>
                                     {service.name}
                                   </h3>
-                                  
-                                  {/* Badges */}
-                                  <div className="flex flex-wrap gap-1.5">
+                                  <div className="flex items-center gap-2 mt-0.5">
                                     {service.external_service_id && (
-                                      <Badge variant="outline" className="text-[10px] h-6 px-2.5 bg-muted/50 font-mono border-border/50">
+                                      <span className="text-[10px] text-muted-foreground font-mono">
                                         #{service.external_service_id}
-                                      </Badge>
+                                      </span>
                                     )}
                                     {service.refill_enabled && (
-                                      <Badge className="text-[10px] h-6 px-2.5 bg-success/10 text-success border-success/20 gap-1.5">
-                                        <Shield className="w-3 h-3" />
+                                      <Badge className="text-[9px] h-4 px-1 bg-success/10 text-success border-success/20">
                                         ضمان
                                       </Badge>
                                     )}
-                                    <Badge variant="secondary" className="text-[10px] h-6 px-2.5 gap-1.5 bg-secondary/80">
-                                      <Zap className="w-3 h-3" />
-                                      سريع
-                                    </Badge>
                                   </div>
                                 </div>
                                 
-                                {/* Price & Action section */}
-                                <div className="mt-5 pt-4 border-t border-border/50 flex items-center justify-between">
-                                  <div>
-                                    <div className="flex items-baseline gap-1.5">
-                                      <motion.span 
-                                        className={cn(
-                                          "text-2xl font-black transition-colors",
-                                          isActive ? "text-primary" : "text-foreground"
-                                        )}
-                                        key={service.price}
-                                        initial={{ scale: 1.15 }}
-                                        animate={{ scale: 1 }}
-                                      >
-                                        {service.price.toFixed(2)}
-                                      </motion.span>
-                                      <span className="text-sm text-muted-foreground font-medium">ر.س</span>
-                                    </div>
-                                    <p className="text-xs text-muted-foreground mt-0.5">لكل 1000</p>
-                                  </div>
-                                  
-                                  <div className="flex items-center gap-2">
-                                    {/* Details Button */}
-                                    <motion.div 
-                                      whileHover={{ scale: 1.05 }} 
-                                      whileTap={{ scale: 0.95 }}
-                                    >
-                                      <Button
-                                        variant="outline"
-                                        className="h-12 w-12 rounded-xl transition-all duration-300 border-border/50 hover:border-primary/50 hover:bg-primary/5"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleShowDetails(service);
-                                        }}
-                                      >
-                                        <Info className="w-5 h-5" />
-                                      </Button>
-                                    </motion.div>
-                                    
-                                    {/* Order Button */}
-                                    <motion.div 
-                                      whileHover={{ scale: 1.05 }} 
-                                      whileTap={{ scale: 0.95 }}
-                                    >
-                                      <Button
-                                        className={cn(
-                                          "h-12 px-5 rounded-xl transition-all duration-300 shadow-xl gap-2 font-semibold",
-                                          isActive 
-                                            ? "bg-gradient-to-r from-success to-emerald-500 shadow-success/40 text-white" 
-                                            : "bg-gradient-to-r from-primary to-accent shadow-primary/40 text-primary-foreground hover:shadow-primary/60"
-                                        )}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleSelectService(service);
-                                        }}
-                                      >
-                                        {isActive ? (
-                                          <>
-                                            <Check className="w-5 h-5" />
-                                            <span className="hidden sm:inline">محدد</span>
-                                          </>
-                                        ) : (
-                                          <>
-                                            <Plus className="w-5 h-5" />
-                                            <span className="hidden sm:inline">اختيار</span>
-                                          </>
-                                        )}
-                                      </Button>
-                                    </motion.div>
-                                  </div>
+                                {/* Price */}
+                                <div className="text-left shrink-0">
+                                  <span className={cn("font-bold", isActive && "text-primary")}>
+                                    {service.price.toFixed(2)}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground mr-0.5">ر.س</span>
+                                </div>
+                                
+                                {/* Actions */}
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <motion.button
+                                    whileTap={{ scale: 0.9 }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleFavorite(service.id);
+                                    }}
+                                    className={cn(
+                                      "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                                      isFavorite 
+                                        ? "text-destructive" 
+                                        : "text-muted-foreground hover:text-destructive"
+                                    )}
+                                  >
+                                    <Heart className={cn("w-4 h-4", isFavorite && "fill-current")} />
+                                  </motion.button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 rounded-lg"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleShowDetails(service);
+                                    }}
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    size="icon"
+                                    className={cn(
+                                      "h-8 w-8 rounded-lg",
+                                      isActive ? "bg-primary" : "bg-gradient-to-r from-primary to-accent"
+                                    )}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleSelectService(service);
+                                    }}
+                                  >
+                                    {isActive ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                                  </Button>
                                 </div>
                               </CardContent>
                             </Card>
@@ -1034,48 +957,37 @@ const ClientServicesNew = () => {
                 </motion.div>
               ) : (
                 <motion.div
-                  key="empty-state"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className="text-center py-16"
                 >
                   <motion.div 
-                    className="w-24 h-24 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-muted/30 to-muted/50 flex items-center justify-center relative"
-                    animate={{ 
-                      y: [0, -8, 0],
-                      rotate: [0, 3, -3, 0]
-                    }}
-                    transition={{ duration: 4, repeat: Infinity }}
+                    className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted/50 flex items-center justify-center"
+                    animate={{ y: [0, -5, 0] }}
+                    transition={{ duration: 2, repeat: Infinity }}
                   >
-                    <ChevronRight className="w-12 h-12 text-muted-foreground/30" />
-                    <motion.div 
-                      className="absolute inset-0 rounded-3xl border-2 border-dashed border-muted-foreground/20"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                    />
+                    <ChevronRight className="w-8 h-8 text-muted-foreground/30" />
                   </motion.div>
-                  <h3 className="font-bold text-2xl mb-3">اختر قسماً للبدء</h3>
-                  <p className="text-sm text-muted-foreground max-w-[300px] mx-auto leading-relaxed">
-                    اختر أحد الأقسام أعلاه لعرض الخدمات المتاحة والبدء في الطلب
-                  </p>
+                  <h3 className="font-semibold mb-2">اختر قسماً</h3>
+                  <p className="text-sm text-muted-foreground">اختر أحد الأقسام لعرض الخدمات</p>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         </div>
 
-        {/* Floating Action Button - Mobile */}
+        {/* Mobile FAB */}
         {selectedCategory && !showMobileForm && (
           <motion.div
-            initial={{ opacity: 0, y: 100 }}
+            initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
             className="lg:hidden fixed bottom-20 left-4 right-4 z-40"
           >
             <Button
               size="lg"
-              className="w-full h-14 text-lg gap-3 bg-gradient-to-l from-primary via-primary to-accent hover:opacity-90 shadow-2xl shadow-primary/40 rounded-2xl border-t border-white/20"
+              className="w-full h-12 gap-2 bg-gradient-to-r from-primary to-accent shadow-xl shadow-primary/30 rounded-xl"
               onClick={() => {
                 if (selectedService) {
                   setShowMobileForm(true);
@@ -1084,14 +996,9 @@ const ClientServicesNew = () => {
                 }
               }}
             >
-              <motion.div
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 1, repeat: Infinity, repeatDelay: 2 }}
-              >
-                <ShoppingCart className="w-6 h-6" />
-              </motion.div>
+              <ShoppingCart className="w-5 h-5" />
               طلب جديد
-              <ArrowUpRight className="w-5 h-5" />
+              <ArrowUpRight className="w-4 h-4" />
             </Button>
           </motion.div>
         )}
