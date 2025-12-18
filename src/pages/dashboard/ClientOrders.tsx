@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
+import { useNavigate } from "react-router-dom";
+import {
   ShoppingBag, 
   Search, 
   Filter, 
@@ -87,6 +88,7 @@ const getStatusConfig = (status: string) => {
 };
 
 const ClientOrders = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -270,7 +272,7 @@ const ClientOrders = () => {
             </motion.h1>
             <p className="text-muted-foreground text-sm sm:text-base">إدارة ومتابعة جميع طلباتك في الوقت الفعلي</p>
           </div>
-          <Button onClick={() => setIsNewOrderOpen(true)} className="bg-gradient-primary hover:opacity-90 text-sm sm:text-base h-9 sm:h-10">
+          <Button onClick={() => navigate('/dashboard/services')} className="bg-gradient-primary hover:opacity-90 text-sm sm:text-base h-9 sm:h-10">
             <ShoppingBag className="w-4 h-4 ms-2" />
             طلب جديد
           </Button>
