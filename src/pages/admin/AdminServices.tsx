@@ -27,6 +27,7 @@ import ServiceFilters from "@/components/admin/services/ServiceFilters";
 import ServiceCard from "@/components/admin/services/ServiceCard";
 import ServiceFormDialog from "@/components/admin/services/ServiceFormDialog";
 import ServiceDetailsDialog from "@/components/admin/services/ServiceDetailsDialog";
+import SocialNetworkGrid from "@/components/services/SocialNetworkGrid";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -153,6 +154,24 @@ const AdminServices = () => {
     });
   }, [services, orderStats]);
 
+  // Get category slug from category name
+  const getCategorySlug = (categoryName: string) => {
+    const slugMap: Record<string, string> = {
+      "Instagram": "instagram",
+      "Facebook": "facebook",
+      "Youtube": "youtube",
+      "Twitter": "twitter",
+      "TikTok": "tiktok",
+      "Telegram": "telegram",
+      "LinkedIn": "linkedin",
+      "Spotify": "spotify",
+      "SoundCloud": "soundcloud",
+      "Website Traffic": "website-traffic",
+      "Other": "other",
+    };
+    return slugMap[categoryName] || categoryName.toLowerCase().replace(/\s+/g, "-");
+  };
+
   // Filter services
   const filteredServices = useMemo(() => {
     return enrichedServices.filter(service => {
@@ -161,14 +180,25 @@ const AdminServices = () => {
         service.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (service.description?.toLowerCase().includes(searchQuery.toLowerCase()));
       
-      const matchesCategory = selectedCategory === "all" || service.category === selectedCategory;
+      const categorySlug = getCategorySlug(service.category);
+      const matchesCategory = selectedCategory === "all" || categorySlug === selectedCategory || service.category === selectedCategory;
       const matchesStatus = selectedStatus === "all" || service.status === selectedStatus;
       
       return matchesSearch && matchesCategory && matchesStatus;
     });
   }, [enrichedServices, searchQuery, selectedCategory, selectedStatus]);
 
-  // Category counts
+  // Category counts for SocialNetworkGrid
+  const socialNetworkCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    services.forEach(service => {
+      const slug = getCategorySlug(service.category);
+      counts[slug] = (counts[slug] || 0) + 1;
+    });
+    return counts;
+  }, [services]);
+
+  // Category counts for ServiceFilters
   const serviceCounts = useMemo(() => {
     return categories.map(cat => ({
       category: cat,
@@ -371,6 +401,17 @@ const AdminServices = () => {
           totalRevenue={totalRevenue}
           totalOrders={totalOrders}
         />
+
+        {/* Social Network Grid */}
+        <Card className="glass border-border/50">
+          <CardContent className="p-4">
+            <SocialNetworkGrid
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              serviceCounts={socialNetworkCounts}
+            />
+          </CardContent>
+        </Card>
 
         {/* Filters */}
         <ServiceFilters
