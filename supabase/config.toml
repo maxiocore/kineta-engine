@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.bulkfollows-services]
 verify_jwt = true
+
+[functions.bulkfollows-order]
+verify_jwt = true
