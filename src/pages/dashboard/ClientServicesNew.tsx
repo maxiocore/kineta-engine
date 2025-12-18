@@ -51,7 +51,6 @@ import {
   Gamepad2,
   Camera,
   Radio,
-  ListOrdered,
   Star as StarIcon,
   Globe2,
   Tv,
@@ -606,17 +605,8 @@ const ClientServicesNew = () => {
           </Card>
         </motion.div>
 
-        {/* Action Tabs */}
-        <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3">
-          <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-            <Button 
-              variant="outline" 
-              className="w-full h-14 text-base gap-3 bg-card/60 hover:bg-muted/80 border-border/50 rounded-2xl"
-            >
-              <ListOrdered className="w-5 h-5" />
-              طلب جماعي
-            </Button>
-          </motion.div>
+        {/* Action Button */}
+        <motion.div variants={itemVariants}>
           <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
             <Button 
               className="w-full h-14 text-base gap-3 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-black font-bold rounded-2xl shadow-lg shadow-yellow-500/20"
