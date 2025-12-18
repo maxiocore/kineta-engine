@@ -2,20 +2,23 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ShoppingBag,
-  TrendingUp,
   Bell,
   Clock,
   Eye,
   Loader2,
   CheckCircle,
   Package,
+  Award,
+  ChevronLeft,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserBadges } from "@/hooks/useUserBadges";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -63,6 +66,7 @@ const getStatusColor = (status: string) => {
 
 const ClientDashboard = () => {
   const { user, profile } = useAuth();
+  const { badges, userBadges, loading: badgesLoading } = useUserBadges(user?.id);
   const [loading, setLoading] = useState(true);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
@@ -71,6 +75,9 @@ const ClientDashboard = () => {
     completedOrders: 0,
     pendingTickets: 0,
   });
+
+  const earnedBadgeIds = new Set(userBadges.map(ub => ub.badge_id));
+  const earnedBadges = badges.filter(b => earnedBadgeIds.has(b.id));
 
   useEffect(() => {
     if (user) {
@@ -218,11 +225,71 @@ const ClientDashboard = () => {
           ))}
         </div>
 
-        {/* Recent Orders */}
+        {/* User Badges */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
+        >
+          <Card className="card-elevated border-border/30">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-primary" />
+                شاراتي
+              </CardTitle>
+              <Link to="/dashboard/badges">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  عرض الكل
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+              </Link>
+            </CardHeader>
+            <CardContent>
+              {badgesLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              ) : earnedBadges.length === 0 ? (
+                <div className="text-center py-8">
+                  <Award className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
+                  <p className="text-muted-foreground text-sm">لم تحصل على شارات بعد</p>
+                  <p className="text-xs text-muted-foreground mt-1">أكمل طلباتك للحصول على شاراتك الأولى!</p>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-3">
+                  {earnedBadges.slice(0, 5).map((badge, index) => (
+                    <motion.div
+                      key={badge.id}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20"
+                    >
+                      <span className="text-lg">{badge.icon}</span>
+                      <span className="font-medium text-sm">{badge.name_ar}</span>
+                      <Badge variant="secondary" className="text-xs">
+                        {badge.tier}
+                      </Badge>
+                    </motion.div>
+                  ))}
+                  {earnedBadges.length > 5 && (
+                    <Link to="/dashboard/badges">
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary/50 border border-border hover:border-primary/30 transition-colors cursor-pointer">
+                        <span className="text-sm text-muted-foreground">+{earnedBadges.length - 5} المزيد</span>
+                      </div>
+                    </Link>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Recent Orders */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
         >
           <Card className="card-elevated border-border/30">
             <CardHeader className="flex flex-row items-center justify-between">
