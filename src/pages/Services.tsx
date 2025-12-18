@@ -40,6 +40,7 @@ interface Service {
   status: string;
   features: string[];
   image_url: string | null;
+  external_service_id: string | null;
 }
 
 const Services = () => {
