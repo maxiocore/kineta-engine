@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { 
   Search, 
@@ -43,7 +43,9 @@ import {
   CheckCircle2,
   XCircle,
   Copy,
-  ExternalLink
+  ExternalLink,
+  History,
+  Trash2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -54,12 +56,22 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+interface RecentLink {
+  id: string;
+  link: string;
+  service_category: string | null;
+  label: string | null;
+  use_count: number;
+  last_used_at: string;
+}
 
 interface Service {
   id: string;
@@ -119,6 +131,7 @@ const socialColors: Record<string, { bg: string; icon: string; border: string }>
 const ClientServicesNew = () => {
   const { user } = useAuth();
   const { favorites, toggleFavorite } = useFavorites();
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -127,6 +140,7 @@ const ClientServicesNew = () => {
   const [link, setLink] = useState("");
   const [quantity, setQuantity] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showRecentLinks, setShowRecentLinks] = useState(false);
 
   // Fetch user balance
   const { data: userBalance } = useQuery({
@@ -188,6 +202,23 @@ const ClientServicesNew = () => {
     },
   });
 
+  // Fetch recent links
+  const { data: recentLinks = [], refetch: refetchLinks } = useQuery({
+    queryKey: ["recent-links", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from("user_recent_links")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("last_used_at", { ascending: false })
+        .limit(10);
+      if (error) return [];
+      return data as RecentLink[];
+    },
+    enabled: !!user?.id,
+  });
+
   // Handle URL params
   useEffect(() => {
     if (!services.length) return;
@@ -236,6 +267,64 @@ const ClientServicesNew = () => {
     return (selectedService.price / 1000) * qty;
   }, [selectedService, quantity]);
 
+  // Save link to recent links
+  const saveRecentLink = async (linkUrl: string) => {
+    if (!user?.id || !linkUrl.trim()) return;
+    
+    try {
+      // Check if link already exists
+      const existingLink = recentLinks.find(l => l.link === linkUrl);
+      
+      if (existingLink) {
+        // Update use count and last_used_at
+        await supabase
+          .from("user_recent_links")
+          .update({
+            use_count: existingLink.use_count + 1,
+            last_used_at: new Date().toISOString(),
+            service_category: selectedCategory,
+          })
+          .eq("id", existingLink.id);
+      } else {
+        // Insert new link
+        await supabase.from("user_recent_links").insert({
+          user_id: user.id,
+          link: linkUrl,
+          service_category: selectedCategory,
+          label: null,
+        });
+      }
+      
+      refetchLinks();
+    } catch (error) {
+      console.error("Error saving recent link:", error);
+    }
+  };
+
+  // Delete recent link
+  const deleteRecentLink = async (linkId: string) => {
+    if (!user?.id) return;
+    
+    try {
+      await supabase
+        .from("user_recent_links")
+        .delete()
+        .eq("id", linkId);
+      
+      refetchLinks();
+      toast.success("تم حذف الرابط");
+    } catch (error) {
+      toast.error("حدث خطأ أثناء الحذف");
+    }
+  };
+
+  // Use recent link
+  const useRecentLink = (recentLink: RecentLink) => {
+    setLink(recentLink.link);
+    setShowRecentLinks(false);
+    toast.success("تم تحديد الرابط");
+  };
+
   const handleSubmit = async () => {
     if (!user) {
       toast.error("يجب تسجيل الدخول للطلب");
@@ -265,6 +354,9 @@ const ClientServicesNew = () => {
       });
 
       if (orderError) throw orderError;
+
+      // Save the link to recent links
+      await saveRecentLink(link);
 
       await supabase
         .from("user_balances")
@@ -631,17 +723,93 @@ const ClientServicesNew = () => {
 
                     {/* Link Input */}
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium flex items-center gap-2">
-                        <Link2 className="w-4 h-4 text-muted-foreground" />
-                        الرابط
-                      </Label>
-                      <Input
-                        placeholder="https://..."
-                        className="h-12 bg-muted/30"
-                        value={link}
-                        onChange={(e) => setLink(e.target.value)}
-                        dir="ltr"
-                      />
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium flex items-center gap-2">
+                          <Link2 className="w-4 h-4 text-muted-foreground" />
+                          الرابط
+                        </Label>
+                        {recentLinks.length > 0 && (
+                          <Popover open={showRecentLinks} onOpenChange={setShowRecentLinks}>
+                            <PopoverTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs text-muted-foreground hover:text-primary">
+                                <History className="w-3.5 h-3.5" />
+                                آخر الروابط ({recentLinks.length})
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80 p-0" align="end">
+                              <div className="p-3 border-b border-border">
+                                <h4 className="font-medium text-sm flex items-center gap-2">
+                                  <History className="w-4 h-4 text-primary" />
+                                  آخر الروابط المستخدمة
+                                </h4>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  اختر رابط من القائمة لاستخدامه
+                                </p>
+                              </div>
+                              <ScrollArea className="max-h-[250px]">
+                                <div className="p-2 space-y-1">
+                                  {recentLinks.map((recentLink) => (
+                                    <div
+                                      key={recentLink.id}
+                                      className="group flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                                      onClick={() => useRecentLink(recentLink)}
+                                    >
+                                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                        <Link2 className="w-4 h-4 text-primary" />
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-mono truncate" dir="ltr">
+                                          {recentLink.link}
+                                        </p>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                          {recentLink.service_category && (
+                                            <Badge variant="secondary" className="text-[9px] h-4">
+                                              {recentLink.service_category}
+                                            </Badge>
+                                          )}
+                                          <span className="text-[10px] text-muted-foreground">
+                                            استخدم {recentLink.use_count} مرة
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          deleteRecentLink(recentLink.id);
+                                        }}
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </ScrollArea>
+                            </PopoverContent>
+                          </Popover>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <Input
+                          placeholder="https://..."
+                          className="h-12 bg-muted/30 pl-10"
+                          value={link}
+                          onChange={(e) => setLink(e.target.value)}
+                          dir="ltr"
+                        />
+                        {link && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground"
+                            onClick={() => setLink("")}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
 
                     {/* Quantity Input */}
