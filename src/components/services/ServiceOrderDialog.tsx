@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ShoppingCart, Loader2, CheckCircle, Sparkles, Link as LinkIcon, Hash } from "lucide-react";
+import { ShoppingCart, Loader2, CheckCircle, Sparkles, Link as LinkIcon, Hash, Ticket, X, Check } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +42,18 @@ interface Service {
   features: string[];
 }
 
+interface Coupon {
+  id: string;
+  code: string;
+  discount_type: string;
+  discount_value: number;
+  min_order_amount: number;
+  max_uses: number | null;
+  used_count: number;
+  expires_at: string | null;
+  is_active: boolean;
+}
+
 interface ServiceOrderDialogProps {
   service: Service | null;
   open: boolean;
@@ -53,6 +65,9 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   const form = useForm<OrderFormData>({
     resolver: zodResolver(orderSchema),
@@ -64,7 +79,74 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
   });
 
   const quantity = form.watch("quantity");
-  const totalPrice = service ? (service.price * quantity).toFixed(2) : "0.00";
+  const basePrice = service ? service.price * quantity : 0;
+  
+  const calculateDiscount = () => {
+    if (!appliedCoupon || !service) return 0;
+    if (appliedCoupon.discount_type === "percentage") {
+      return (basePrice * appliedCoupon.discount_value) / 100;
+    }
+    return Math.min(appliedCoupon.discount_value, basePrice);
+  };
+
+  const discount = calculateDiscount();
+  const totalPrice = Math.max(0, basePrice - discount);
+
+  const validateCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast.error("يرجى إدخال كود الكوبون");
+      return;
+    }
+
+    setValidatingCoupon(true);
+    try {
+      const { data, error } = await supabase
+        .from("coupons")
+        .select("*")
+        .eq("code", couponCode.toUpperCase().trim())
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!data) {
+        toast.error("كود الكوبون غير صالح");
+        return;
+      }
+
+      // Check expiration
+      if (data.expires_at && new Date(data.expires_at) < new Date()) {
+        toast.error("كود الكوبون منتهي الصلاحية");
+        return;
+      }
+
+      // Check max uses
+      if (data.max_uses && data.used_count >= data.max_uses) {
+        toast.error("تم استنفاد عدد استخدامات الكوبون");
+        return;
+      }
+
+      // Check minimum order amount
+      if (data.min_order_amount > basePrice) {
+        toast.error(`الحد الأدنى للطلب هو $${data.min_order_amount}`);
+        return;
+      }
+
+      setAppliedCoupon(data as Coupon);
+      toast.success("تم تطبيق الكوبون بنجاح!");
+    } catch (error: any) {
+      console.error("Error validating coupon:", error);
+      toast.error("حدث خطأ أثناء التحقق من الكوبون");
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    toast.success("تم إزالة الكوبون");
+  };
 
   const onSubmit = async (data: OrderFormData) => {
     if (!service || !userId) return;
@@ -77,16 +159,28 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
         .insert({
           user_id: userId,
           service_id: service.id,
-          total_price: service.price * data.quantity,
+          total_price: totalPrice,
           notes: data.notes || null,
           link: data.link,
           quantity: data.quantity,
           order_number: "",
+          coupon_id: appliedCoupon?.id || null,
+          discount_amount: discount,
         } as any)
         .select("id, order_number")
         .single();
 
       if (error) throw error;
+
+      // Record coupon usage if applied
+      if (appliedCoupon) {
+        await supabase.from("coupon_usages").insert({
+          coupon_id: appliedCoupon.id,
+          user_id: userId,
+          order_id: orderData.id,
+          discount_applied: discount,
+        });
+      }
 
       // Send order to BulkFollows API
       const { error: apiError } = await supabase.functions.invoke('bulkfollows-order', {
@@ -100,12 +194,13 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
 
       if (apiError) {
         console.warn('BulkFollows API error:', apiError);
-        // Don't fail the order, just log the warning
       }
 
       setOrderNumber(orderData.order_number);
       setOrderSuccess(true);
       form.reset();
+      setAppliedCoupon(null);
+      setCouponCode("");
       
       toast.success("تم إنشاء الطلب بنجاح!");
     } catch (error: any) {
@@ -119,6 +214,8 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
   const handleClose = () => {
     setOrderSuccess(false);
     setOrderNumber(null);
+    setAppliedCoupon(null);
+    setCouponCode("");
     form.reset();
     onOpenChange(false);
   };
@@ -250,11 +347,73 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                     )}
                   />
 
+                  {/* Coupon Section */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <Ticket className="w-4 h-4" />
+                      كود الخصم
+                    </label>
+                    {appliedCoupon ? (
+                      <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 border border-success/20">
+                        <Check className="w-4 h-4 text-success" />
+                        <span className="text-sm flex-1">
+                          تم تطبيق الكوبون: <code className="font-mono font-bold">{appliedCoupon.code}</code>
+                          <span className="text-success mr-2">
+                            (-{appliedCoupon.discount_type === "percentage" 
+                              ? `${appliedCoupon.discount_value}%` 
+                              : `$${appliedCoupon.discount_value}`})
+                          </span>
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={removeCoupon}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="أدخل كود الخصم"
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                          dir="ltr"
+                          className="flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={validateCoupon}
+                          disabled={validatingCoupon}
+                        >
+                          {validatingCoupon ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            "تطبيق"
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Total Price */}
-                  <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
-                    <div className="flex justify-between items-center">
+                  <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">السعر الأساسي:</span>
+                      <span>${basePrice.toFixed(2)}</span>
+                    </div>
+                    {discount > 0 && (
+                      <div className="flex justify-between items-center text-sm text-success">
+                        <span>الخصم:</span>
+                        <span>-${discount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center pt-2 border-t border-border/50">
                       <span className="text-sm text-muted-foreground">الإجمالي:</span>
-                      <span className="text-2xl font-bold text-primary">${totalPrice}</span>
+                      <span className="text-2xl font-bold text-primary">${totalPrice.toFixed(2)}</span>
                     </div>
                   </div>
 
