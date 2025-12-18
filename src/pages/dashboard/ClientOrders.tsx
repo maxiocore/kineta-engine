@@ -324,7 +324,7 @@ const ClientOrders = () => {
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button 
                 onClick={() => navigate('/dashboard/services')} 
-                className="h-12 px-6 gap-3 bg-gradient-to-l from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-black font-bold rounded-xl shadow-lg shadow-yellow-500/20"
+                className="h-12 px-6 gap-3 btn-brand rounded-xl"
               >
                 <ShoppingBag className="w-5 h-5" />
                 طلب جديد
