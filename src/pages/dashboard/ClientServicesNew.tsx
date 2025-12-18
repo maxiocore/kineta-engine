@@ -13,7 +13,7 @@ import {
   TrendingUp,
   Filter,
   ChevronDown,
-  ChevronUp,
+  ChevronLeft,
   Layers,
   Instagram,
   Facebook,
@@ -23,13 +23,16 @@ import {
   Music2,
   Send,
   Globe,
-  MoreHorizontal
+  MoreHorizontal,
+  Sparkles,
+  ArrowLeft
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import EmbeddedOrderForm from "@/components/services/EmbeddedOrderForm";
 import { supabase } from "@/integrations/supabase/client";
@@ -80,10 +83,10 @@ const ClientServicesNew = () => {
   const { user } = useAuth();
   const { favorites, toggleFavorite } = useFavorites();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<"price-asc" | "price-desc" | "name">("name");
+  const [showMobileForm, setShowMobileForm] = useState(false);
 
   // Fetch categories
   const { data: categories = [] } = useQuery({
@@ -131,14 +134,15 @@ const ClientServicesNew = () => {
 
   // Filter and sort services
   const filteredServices = useMemo(() => {
+    if (!selectedCategory) return [];
+    
     let result = services.filter(service => {
       const matchesSearch = 
         service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        service.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (service.description?.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (service.external_service_id?.includes(searchQuery));
       
-      const matchesCategory = selectedCategory === "all" || service.category === selectedCategory;
+      const matchesCategory = service.category === selectedCategory;
       
       return matchesSearch && matchesCategory;
     });
@@ -159,44 +163,13 @@ const ClientServicesNew = () => {
     return result;
   }, [services, searchQuery, selectedCategory, sortBy]);
 
-  // Group services by category
-  const groupedServices = useMemo(() => {
-    const groups: Record<string, Service[]> = {};
-    filteredServices.forEach(service => {
-      if (!groups[service.category]) {
-        groups[service.category] = [];
-      }
-      groups[service.category].push(service);
-    });
-    return groups;
-  }, [filteredServices]);
-
-  // Toggle category expansion
-  const toggleCategory = (category: string) => {
-    setExpandedCategories(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(category)) {
-        newSet.delete(category);
-      } else {
-        newSet.add(category);
-      }
-      return newSet;
-    });
-  };
-
-  // Expand all categories by default
-  useEffect(() => {
-    if (Object.keys(groupedServices).length > 0 && expandedCategories.size === 0) {
-      setExpandedCategories(new Set(Object.keys(groupedServices)));
-    }
-  }, [groupedServices]);
-
   const handleSelectService = (service: Service) => {
     if (!user) {
       toast.error("يجب تسجيل الدخول للطلب");
       return;
     }
     setSelectedService(service);
+    setShowMobileForm(true);
   };
 
   const checkIsFavorite = (serviceId: string) => {
@@ -214,7 +187,6 @@ const ClientServicesNew = () => {
       return iconMap[dbCategory.icon];
     }
     
-    // Fallback based on name
     const name = categoryName.toLowerCase();
     if (name.includes('instagram')) return Instagram;
     if (name.includes('facebook')) return Facebook;
@@ -224,6 +196,15 @@ const ClientServicesNew = () => {
     if (name.includes('tiktok') || name.includes('spotify') || name.includes('music')) return Music2;
     if (name.includes('telegram')) return Send;
     return Globe;
+  };
+
+  // Get category color
+  const getCategoryColor = (categoryName: string) => {
+    const dbCategory = categories.find(c => 
+      c.name.toLowerCase() === categoryName.toLowerCase() ||
+      c.name_ar === categoryName
+    );
+    return dbCategory?.color || "from-primary to-accent";
   };
 
   if (isLoading) {
@@ -242,348 +223,347 @@ const ClientServicesNew = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-accent/5 to-transparent border border-primary/10 p-6"
+          className="relative overflow-hidden rounded-xl md:rounded-2xl bg-gradient-to-br from-primary/10 via-accent/5 to-transparent border border-primary/10 p-4 md:p-6"
         >
-          <div className="absolute top-0 left-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-24 h-24 bg-accent/10 rounded-full blur-2xl" />
+          <div className="absolute top-0 left-0 w-24 md:w-32 h-24 md:h-32 bg-primary/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-0 w-20 md:w-24 h-20 md:h-24 bg-accent/10 rounded-full blur-2xl" />
           
-          <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent p-3 shadow-lg shadow-primary/20">
+          <div className="relative flex flex-col gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-primary to-accent p-2.5 md:p-3 shadow-lg shadow-primary/20">
                 <Package className="w-full h-full text-white" />
               </div>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold">الخدمات</h1>
-                <p className="text-muted-foreground text-sm">اختر الخدمة وأكمل طلبك مباشرة</p>
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">الخدمات</h1>
+                <p className="text-muted-foreground text-xs md:text-sm">اختر القسم ثم الخدمة</p>
               </div>
             </div>
             
             {/* Quick stats */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50">
-                <Zap className="w-4 h-4 text-warning" />
-                <span className="text-sm font-medium">{services.length} خدمة</span>
+            <div className="flex items-center gap-2 md:gap-4 flex-wrap">
+              <div className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg md:rounded-xl bg-card/50 backdrop-blur-sm border border-border/50">
+                <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-warning" />
+                <span className="text-xs md:text-sm font-medium">{services.length} خدمة</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50">
-                <Heart className="w-4 h-4 text-destructive" />
-                <span className="text-sm font-medium">{favorites.length} مفضلة</span>
+              <div className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg md:rounded-xl bg-card/50 backdrop-blur-sm border border-border/50">
+                <Layers className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" />
+                <span className="text-xs md:text-sm font-medium">{serviceCategories.length} قسم</span>
+              </div>
+              <div className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg md:rounded-xl bg-card/50 backdrop-blur-sm border border-border/50">
+                <Heart className="w-3.5 h-3.5 md:w-4 md:h-4 text-destructive" />
+                <span className="text-xs md:text-sm font-medium">{favorites.length} مفضلة</span>
               </div>
             </div>
           </div>
         </motion.div>
 
-        {/* Categories Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card className="border-border/50">
-            <CardContent className="p-4">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                {/* All Button */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setSelectedCategory("all")}
-                  className={cn(
-                    "flex items-center gap-2 p-3 rounded-xl border transition-all",
-                    selectedCategory === "all"
-                      ? "bg-primary/10 border-primary/50"
-                      : "bg-card hover:bg-muted/50 border-border/50"
-                  )}
-                >
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br from-primary to-accent">
-                    <Layers className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium text-sm">الكل</p>
-                    <p className="text-[10px] text-muted-foreground">{services.length} خدمة</p>
-                  </div>
-                </motion.button>
-
-                {/* Category Buttons */}
-                {serviceCategories.map((category, index) => {
-                  const IconComponent = getCategoryIcon(category);
-                  const count = categoryCounts[category] || 0;
-                  
-                  return (
-                    <motion.button
-                      key={category}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: index * 0.03 }}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setSelectedCategory(category)}
-                      className={cn(
-                        "flex items-center gap-2 p-3 rounded-xl border transition-all",
-                        selectedCategory === category
-                          ? "bg-primary/10 border-primary/50"
-                          : "bg-card hover:bg-muted/50 border-border/50"
-                      )}
-                    >
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted">
-                        <IconComponent className="w-4 h-4 text-foreground" />
-                      </div>
-                      <div className="text-right flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{category}</p>
-                        <p className="text-[10px] text-muted-foreground">{count} خدمة</p>
-                      </div>
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Search & Filters */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="flex flex-col sm:flex-row gap-3"
-        >
-          <div className="relative flex-1">
-            <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              placeholder="بحث بالاسم، الرقم، أو الفئة..."
-              className="pr-12 h-11 bg-card/50 border-border/50 rounded-xl"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+        {/* Main Content */}
+        <div className="flex flex-col lg:flex-row-reverse gap-4 md:gap-6">
+          {/* Order Form - Right Side (Desktop) / Modal (Mobile) */}
+          <div className="hidden lg:block lg:w-[380px] xl:w-[420px] shrink-0">
+            <div className="sticky top-4">
+              <AnimatePresence mode="wait">
+                {selectedService ? (
+                  <EmbeddedOrderForm
+                    key={selectedService.id}
+                    service={selectedService}
+                    onClose={() => setSelectedService(null)}
+                    onSuccess={() => {
+                      refetch();
+                      setSelectedService(null);
+                    }}
+                  />
+                ) : (
+                  <motion.div
+                    key="placeholder"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <Card className="border-border/50 border-dashed bg-muted/20">
+                      <CardContent className="py-20 text-center">
+                        <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-muted/50 flex items-center justify-center">
+                          <Sparkles className="w-10 h-10 text-muted-foreground/30" />
+                        </div>
+                        <h3 className="font-bold text-lg mb-2">اختر خدمة للطلب</h3>
+                        <p className="text-sm text-muted-foreground max-w-[200px] mx-auto">
+                          اختر قسم من الأقسام ثم انقر على الخدمة المطلوبة
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
-          
-          <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
-            <SelectTrigger className="w-full sm:w-48 h-11 rounded-xl">
-              <Filter className="w-4 h-4 ml-2" />
-              <SelectValue placeholder="ترتيب حسب" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">الاسم</SelectItem>
-              <SelectItem value="price-asc">السعر: الأقل أولاً</SelectItem>
-              <SelectItem value="price-desc">السعر: الأعلى أولاً</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <div className="flex items-center px-4 py-2 rounded-xl bg-card/50 border border-border/50">
-            <span className="text-sm text-muted-foreground">
-              النتائج: <span className="font-bold text-foreground">{filteredServices.length}</span>
-            </span>
-          </div>
-        </motion.div>
 
-        {/* Main Content - Services & Order Form */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Services List */}
-          <div className="lg:col-span-2 space-y-4">
+          {/* Mobile Order Form Modal */}
+          <AnimatePresence>
+            {showMobileForm && selectedService && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="lg:hidden fixed inset-0 z-50 bg-background/95 backdrop-blur-sm"
+              >
+                <div className="h-full overflow-y-auto p-4 pb-20">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="mb-4 gap-2"
+                    onClick={() => {
+                      setShowMobileForm(false);
+                      setSelectedService(null);
+                    }}
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    العودة للخدمات
+                  </Button>
+                  <EmbeddedOrderForm
+                    service={selectedService}
+                    onClose={() => {
+                      setShowMobileForm(false);
+                      setSelectedService(null);
+                    }}
+                    onSuccess={() => {
+                      refetch();
+                      setShowMobileForm(false);
+                      setSelectedService(null);
+                    }}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Services & Categories - Left Side */}
+          <div className="flex-1 min-w-0 space-y-4">
+            {/* Categories Grid - Show when no category selected */}
             <AnimatePresence mode="wait">
-              {filteredServices.length === 0 ? (
+              {!selectedCategory ? (
                 <motion.div
-                  key="empty"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
+                  key="categories"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
                 >
                   <Card className="border-border/50">
-                    <CardContent className="py-16 text-center">
-                      <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-                      <h3 className="font-bold mb-2">لا توجد خدمات</h3>
-                      <p className="text-sm text-muted-foreground">
-                        جرب تغيير معايير البحث
-                      </p>
-                      <Button
-                        variant="outline"
-                        className="mt-4"
-                        onClick={() => {
-                          setSearchQuery("");
-                          setSelectedCategory("all");
-                        }}
-                      >
-                        إعادة تعيين
-                      </Button>
+                    <CardContent className="p-3 md:p-4">
+                      <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4 flex items-center gap-2">
+                        <Layers className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+                        اختر القسم
+                      </h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-3">
+                        {serviceCategories.map((category, index) => {
+                          const IconComponent = getCategoryIcon(category);
+                          const count = categoryCounts[category] || 0;
+                          const color = getCategoryColor(category);
+                          
+                          return (
+                            <motion.button
+                              key={category}
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: index * 0.03 }}
+                              whileHover={{ scale: 1.02, y: -2 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => setSelectedCategory(category)}
+                              className="group relative flex flex-col items-center gap-2 p-4 md:p-5 rounded-xl border border-border/50 bg-card hover:border-primary/50 hover:bg-primary/5 transition-all"
+                            >
+                              <div className={cn(
+                                "w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center bg-gradient-to-br shadow-lg transition-transform group-hover:scale-110",
+                                color
+                              )}>
+                                <IconComponent className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                              </div>
+                              <div className="text-center">
+                                <p className="font-semibold text-sm md:text-base truncate max-w-full">{category}</p>
+                                <p className="text-[11px] md:text-xs text-muted-foreground">{count} خدمة</p>
+                              </div>
+                              <ChevronLeft className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </motion.button>
+                          );
+                        })}
+                      </div>
                     </CardContent>
                   </Card>
                 </motion.div>
               ) : (
                 <motion.div
                   key="services"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="space-y-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-3 md:space-y-4"
                 >
-                  {Object.entries(groupedServices).map(([category, categoryServices]) => (
-                    <Card key={category} className="border-border/50 overflow-hidden">
-                      {/* Category Header */}
-                      <button
-                        onClick={() => toggleCategory(category)}
-                        className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          {(() => {
-                            const IconComponent = getCategoryIcon(category);
-                            return (
-                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                                <IconComponent className="w-5 h-5 text-primary" />
-                              </div>
-                            );
-                          })()}
-                          <div className="text-right">
-                            <h3 className="font-bold">{category}</h3>
-                            <p className="text-xs text-muted-foreground">{categoryServices.length} خدمة</p>
+                  {/* Back to Categories & Category Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedCategory(null);
+                        setSearchQuery("");
+                      }}
+                      className="gap-2 w-fit"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      جميع الأقسام
+                    </Button>
+                    
+                    <div className="flex items-center gap-3 flex-1">
+                      {(() => {
+                        const IconComponent = getCategoryIcon(selectedCategory);
+                        const color = getCategoryColor(selectedCategory);
+                        return (
+                          <div className={cn(
+                            "w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br shadow-lg",
+                            color
+                          )}>
+                            <IconComponent className="w-5 h-5 text-white" />
                           </div>
-                        </div>
-                        <motion.div
-                          animate={{ rotate: expandedCategories.has(category) ? 180 : 0 }}
-                        >
-                          <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                        </motion.div>
-                      </button>
-
-                      {/* Services */}
-                      <AnimatePresence>
-                        {expandedCategories.has(category) && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <div className="border-t border-border/50">
-                              {categoryServices.map((service, index) => (
-                                <motion.div
-                                  key={service.id}
-                                  initial={{ opacity: 0, x: -10 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: index * 0.02 }}
-                                  className={cn(
-                                    "p-4 hover:bg-muted/30 transition-all cursor-pointer border-b border-border/30 last:border-0",
-                                    selectedService?.id === service.id && "bg-primary/5 border-r-2 border-r-primary"
-                                  )}
-                                  onClick={() => handleSelectService(service)}
-                                >
-                                  <div className="flex items-center justify-between gap-4">
-                                    {/* Service Info */}
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-start gap-3">
-                                        <div className="hidden sm:flex w-8 h-8 rounded-lg bg-muted items-center justify-center shrink-0 text-xs font-bold text-muted-foreground">
-                                          {service.external_service_id || index + 1}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                          <h4 className={cn(
-                                            "font-medium text-sm leading-relaxed transition-colors",
-                                            selectedService?.id === service.id && "text-primary"
-                                          )}>
-                                            {service.name}
-                                          </h4>
-                                          {service.description && (
-                                            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
-                                              {service.description}
-                                            </p>
-                                          )}
-                                          {/* Service Features */}
-                                          <div className="flex flex-wrap gap-1.5 mt-2">
-                                            {service.features?.min && (
-                                              <Badge variant="outline" className="text-[10px] h-5 px-1.5">
-                                                أدنى: {service.features.min.toLocaleString('ar-SA')}
-                                              </Badge>
-                                            )}
-                                            {service.features?.max && (
-                                              <Badge variant="outline" className="text-[10px] h-5 px-1.5">
-                                                أقصى: {service.features.max.toLocaleString('ar-SA')}
-                                              </Badge>
-                                            )}
-                                            {service.refill_enabled && (
-                                              <Badge className="text-[10px] h-5 px-1.5 bg-success/10 text-success border-success/20">
-                                                <Shield className="w-3 h-3 ml-0.5" />
-                                                ضمان
-                                              </Badge>
-                                            )}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    
-                                    {/* Price & Actions */}
-                                    <div className="flex items-center gap-3 shrink-0">
-                                      <div className="text-left">
-                                        <p className="text-lg font-bold bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
-                                          {service.price.toFixed(2)}
-                                        </p>
-                                        <p className="text-[10px] text-muted-foreground">ر.س / 1000</p>
-                                      </div>
-                                      
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          toggleFavorite(service.id);
-                                        }}
-                                        className={cn(
-                                          "rounded-lg transition-all",
-                                          checkIsFavorite(service.id) 
-                                            ? "text-destructive bg-destructive/10" 
-                                            : "text-muted-foreground hover:text-destructive"
-                                        )}
-                                      >
-                                        <Heart className={cn(
-                                          "w-4 h-4",
-                                          checkIsFavorite(service.id) && "fill-current"
-                                        )} />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </motion.div>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </Card>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Order Form Sidebar */}
-          <div className="lg:col-span-1">
-            <AnimatePresence mode="wait">
-              {selectedService ? (
-                <EmbeddedOrderForm
-                  key={selectedService.id}
-                  service={selectedService}
-                  onClose={() => setSelectedService(null)}
-                  onSuccess={() => {
-                    refetch();
-                    setSelectedService(null);
-                  }}
-                />
-              ) : (
-                <motion.div
-                  key="placeholder"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <Card className="border-border/50 border-dashed">
-                    <CardContent className="py-16 text-center">
-                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/50 flex items-center justify-center">
-                        <Star className="w-8 h-8 text-muted-foreground/50" />
+                        );
+                      })()}
+                      <div>
+                        <h2 className="font-bold text-lg md:text-xl">{selectedCategory}</h2>
+                        <p className="text-xs text-muted-foreground">{filteredServices.length} خدمة</p>
                       </div>
-                      <h3 className="font-bold mb-2">اختر خدمة للطلب</h3>
-                      <p className="text-sm text-muted-foreground">
-                        انقر على أي خدمة من القائمة لبدء الطلب
-                      </p>
-                    </CardContent>
+                    </div>
+                  </div>
+
+                  {/* Search & Filters */}
+                  <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
+                    <div className="relative flex-1">
+                      <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="بحث في الخدمات..."
+                        className="pr-10 h-10 md:h-11 bg-card/50 border-border/50 rounded-lg md:rounded-xl text-sm"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
+                    
+                    <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+                      <SelectTrigger className="w-full sm:w-40 h-10 md:h-11 rounded-lg md:rounded-xl text-sm">
+                        <Filter className="w-4 h-4 ml-2" />
+                        <SelectValue placeholder="ترتيب" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="name">الاسم</SelectItem>
+                        <SelectItem value="price-asc">السعر: الأقل</SelectItem>
+                        <SelectItem value="price-desc">السعر: الأعلى</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Services List */}
+                  <Card className="border-border/50 overflow-hidden">
+                    {filteredServices.length === 0 ? (
+                      <CardContent className="py-12 text-center">
+                        <Package className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
+                        <p className="text-sm text-muted-foreground">لا توجد نتائج</p>
+                        {searchQuery && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="mt-2"
+                            onClick={() => setSearchQuery("")}
+                          >
+                            مسح البحث
+                          </Button>
+                        )}
+                      </CardContent>
+                    ) : (
+                      <ScrollArea className="max-h-[60vh] md:max-h-[70vh]">
+                        <div className="divide-y divide-border/50">
+                          {filteredServices.map((service, index) => (
+                            <motion.button
+                              key={service.id}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: index * 0.02 }}
+                              onClick={() => handleSelectService(service)}
+                              className={cn(
+                                "w-full text-right p-3 md:p-4 hover:bg-muted/50 transition-all",
+                                selectedService?.id === service.id && "bg-primary/5 border-r-2 border-r-primary"
+                              )}
+                            >
+                              <div className="flex items-start gap-3">
+                                {/* Service Number */}
+                                <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-muted flex items-center justify-center shrink-0 text-xs font-bold text-muted-foreground">
+                                  {service.external_service_id || index + 1}
+                                </div>
+                                
+                                {/* Service Info */}
+                                <div className="flex-1 min-w-0">
+                                  <h4 className={cn(
+                                    "font-medium text-sm leading-relaxed text-right",
+                                    selectedService?.id === service.id && "text-primary"
+                                  )}>
+                                    {service.name}
+                                  </h4>
+                                  
+                                  {/* Features Badges */}
+                                  <div className="flex flex-wrap gap-1 mt-1.5">
+                                    {service.features?.min && (
+                                      <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal">
+                                        أدنى: {service.features.min.toLocaleString('ar-SA')}
+                                      </Badge>
+                                    )}
+                                    {service.features?.max && (
+                                      <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal">
+                                        أقصى: {service.features.max.toLocaleString('ar-SA')}
+                                      </Badge>
+                                    )}
+                                    {service.refill_enabled && (
+                                      <Badge className="text-[10px] h-5 px-1.5 bg-success/10 text-success border-success/20 font-normal">
+                                        <Shield className="w-3 h-3 ml-0.5" />
+                                        ضمان
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                {/* Price & Actions */}
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <div className="text-left">
+                                    <p className="text-base md:text-lg font-bold bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
+                                      {service.price.toFixed(2)}
+                                    </p>
+                                    <p className="text-[10px] text-muted-foreground">ر.س/1000</p>
+                                  </div>
+                                  
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleFavorite(service.id);
+                                    }}
+                                    className={cn(
+                                      "w-8 h-8 rounded-lg transition-all",
+                                      checkIsFavorite(service.id) 
+                                        ? "text-destructive bg-destructive/10" 
+                                        : "text-muted-foreground hover:text-destructive"
+                                    )}
+                                  >
+                                    <Heart className={cn(
+                                      "w-4 h-4",
+                                      checkIsFavorite(service.id) && "fill-current"
+                                    )} />
+                                  </Button>
+                                </div>
+                              </div>
+                            </motion.button>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    )}
                   </Card>
                 </motion.div>
               )}
