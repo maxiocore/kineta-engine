@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useSpring, useTransform, useMotionValue } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   ShoppingCart,
   Link as LinkIcon,
@@ -34,6 +35,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import OrderProgressIndicator from "@/components/orders/OrderProgressIndicator";
 
 interface Service {
   id: string;
@@ -141,6 +143,7 @@ const QuantityChip = ({
 );
 
 export default function EmbeddedOrderForm({ service, onClose, onSuccess }: EmbeddedOrderFormProps) {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [link, setLink] = useState("");
   const [quantity, setQuantity] = useState(100);
@@ -150,6 +153,8 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showProgress, setShowProgress] = useState(false);
+  const [createdOrderNumber, setCreatedOrderNumber] = useState("");
   const formRef = useRef<HTMLDivElement>(null);
 
   // Get min/max from features
@@ -286,18 +291,40 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
         })
         .eq("user_id", user.id);
 
-      toast.success("تم إنشاء الطلب بنجاح!");
-      onSuccess?.();
-      onClose();
+      // Show progress indicator
+      setCreatedOrderNumber(orderNumber);
+      setShowProgress(true);
     } catch (error) {
       console.error("Order error:", error);
       toast.error("حدث خطأ أثناء إنشاء الطلب");
-    } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleProgressClose = () => {
+    setShowProgress(false);
+    setIsSubmitting(false);
+    onSuccess?.();
+    onClose();
+  };
+
+  const handleViewOrders = () => {
+    setShowProgress(false);
+    navigate('/dashboard/orders');
+  };
+
   if (!service) return null;
+
+  // Show progress indicator after submission
+  if (showProgress) {
+    return (
+      <OrderProgressIndicator
+        orderNumber={createdOrderNumber}
+        onClose={handleProgressClose}
+        onViewOrders={handleViewOrders}
+      />
+    );
+  }
 
   return (
     <motion.div
