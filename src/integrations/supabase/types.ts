@@ -858,6 +858,57 @@ export type Database = {
         }
         Relationships: []
       }
+      provider_balance_logs: {
+        Row: {
+          action_type: string
+          balance: number
+          created_at: string
+          currency: string | null
+          id: string
+          notes: string | null
+          order_cost: number | null
+          order_id: string | null
+          provider_id: string
+        }
+        Insert: {
+          action_type?: string
+          balance: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          notes?: string | null
+          order_cost?: number | null
+          order_id?: string | null
+          provider_id: string
+        }
+        Update: {
+          action_type?: string
+          balance?: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          notes?: string | null
+          order_cost?: number | null
+          order_id?: string | null
+          provider_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_balance_logs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "provider_balance_logs_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "api_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       refill_requests: {
         Row: {
           auto_created: boolean | null
