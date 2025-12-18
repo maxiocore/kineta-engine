@@ -20,6 +20,7 @@ import {
   Sparkles,
   Search,
   Command,
+  Ticket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -42,6 +43,7 @@ const adminNavItems: NavItem[] = [
   { label: "المستخدمين", href: "/admin/users", icon: Users },
   { label: "الخدمات", href: "/admin/services", icon: Package },
   { label: "الطلبات", href: "/admin/orders", icon: ShoppingBag },
+  { label: "الكوبونات", href: "/admin/coupons", icon: Ticket },
   { label: "الدعم الفني", href: "/admin/support", icon: HeadphonesIcon },
   { label: "الإشعارات", href: "/admin/notifications", icon: Bell },
   { label: "البريد", href: "/admin/emails", icon: Mail },
