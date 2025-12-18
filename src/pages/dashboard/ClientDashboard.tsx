@@ -24,6 +24,7 @@ import SmartNotifications from "@/components/dashboard/SmartNotifications";
 import ReferralCard from "@/components/dashboard/ReferralCard";
 import OrderCalendar from "@/components/dashboard/OrderCalendar";
 import PersonalizedTips from "@/components/dashboard/PersonalizedTips";
+import RewardPointsCard from "@/components/dashboard/RewardPointsCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserBadges } from "@/hooks/useUserBadges";
@@ -513,23 +514,25 @@ const ClientDashboard = () => {
             notifications={notifications} 
             onMarkAsRead={markNotificationAsRead}
           />
+          <RewardPointsCard />
+        </div>
+
+        {/* Two Column Layout: Referral & Calendar */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <ReferralCard 
             code={referralData.code || "INVITE123"}
             totalReferrals={referralData.totalReferrals}
             totalEarnings={referralData.totalEarnings}
           />
+          <OrderCalendar orderDates={orderDates} />
         </div>
 
-        {/* Calendar & Badges Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          <OrderCalendar orderDates={orderDates} />
-          
-          {/* User Badges */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
+        {/* User Badges */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
             <Card className="card-elevated border-border/30 h-full">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
@@ -583,7 +586,6 @@ const ClientDashboard = () => {
               </CardContent>
             </Card>
           </motion.div>
-        </div>
 
         {/* Recent Orders */}
         <motion.div

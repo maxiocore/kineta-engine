@@ -828,6 +828,47 @@ export type Database = {
         }
         Relationships: []
       }
+      points_transactions: {
+        Row: {
+          created_at: string
+          description: string | null
+          description_ar: string | null
+          id: string
+          order_id: string | null
+          points: number
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          order_id?: string | null
+          points: number
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          order_id?: string | null
+          points?: number
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "points_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1093,6 +1134,45 @@ export type Database = {
           },
         ]
       }
+      reward_tiers: {
+        Row: {
+          benefits: Json | null
+          color: string
+          created_at: string
+          icon: string
+          id: string
+          is_active: boolean
+          min_points: number
+          name: string
+          name_ar: string
+          points_multiplier: number
+        }
+        Insert: {
+          benefits?: Json | null
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          min_points?: number
+          name: string
+          name_ar: string
+          points_multiplier?: number
+        }
+        Update: {
+          benefits?: Json | null
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          min_points?: number
+          name?: string
+          name_ar?: string
+          points_multiplier?: number
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           auto_refill_enabled: boolean | null
@@ -1341,6 +1421,44 @@ export type Database = {
             columns: ["service_id"]
             isOneToOne: false
             referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_points: {
+        Row: {
+          available_points: number
+          id: string
+          redeemed_points: number
+          tier_id: string | null
+          total_points: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          available_points?: number
+          id?: string
+          redeemed_points?: number
+          tier_id?: string | null
+          total_points?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          available_points?: number
+          id?: string
+          redeemed_points?: number
+          tier_id?: string | null
+          total_points?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_points_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "reward_tiers"
             referencedColumns: ["id"]
           },
         ]

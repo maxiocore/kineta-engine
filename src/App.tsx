@@ -31,6 +31,7 @@ import ClientDeposits from "./pages/dashboard/ClientDeposits";
 import ClientFavorites from "./pages/dashboard/ClientFavorites";
 import ClientServices from "./pages/dashboard/ClientServicesNew";
 import ClientReferrals from "./pages/dashboard/ClientReferrals";
+import ClientRewards from "./pages/dashboard/ClientRewards";
 
 // Admin Dashboard
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -139,6 +140,11 @@ const App = () => (
                   <Route path="/dashboard/referrals" element={
                     <ProtectedRoute>
                       <ClientReferrals />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/rewards" element={
+                    <ProtectedRoute>
+                      <ClientRewards />
                     </ProtectedRoute>
                   } />
                   
