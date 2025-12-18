@@ -60,6 +60,37 @@ const ClientOrders = () => {
     if (user) {
       fetchOrders();
       fetchServices();
+
+      // Real-time subscription for order updates
+      const channel = supabase
+        .channel('client-orders-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'orders',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Order update received:', payload);
+            if (payload.eventType === 'UPDATE') {
+              setOrders(prev => prev.map(order => 
+                order.id === payload.new.id 
+                  ? { ...order, ...payload.new }
+                  : order
+              ));
+              toast.info("تم تحديث حالة طلبك!");
+            } else if (payload.eventType === 'INSERT') {
+              fetchOrders(); // Refresh to get service details
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
