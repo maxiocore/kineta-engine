@@ -32,7 +32,8 @@ import {
   ArrowUpRight,
   Check,
   Clock,
-  X
+  X,
+  Info
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -42,6 +43,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import EmbeddedOrderForm from "@/components/services/EmbeddedOrderForm";
+import ServiceDetailsDialog from "@/components/services/ServiceDetailsDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -211,6 +213,8 @@ const ClientServicesNew = () => {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [sortBy, setSortBy] = useState<"price-asc" | "price-desc" | "name">("name");
   const [showMobileForm, setShowMobileForm] = useState(false);
+  const [detailsService, setDetailsService] = useState<Service | null>(null);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
   // Fetch categories
   const { data: categories = [] } = useQuery({
@@ -322,6 +326,17 @@ const ClientServicesNew = () => {
     }
     setSelectedService(service);
     setShowMobileForm(true);
+  };
+
+  const handleShowDetails = (service: Service) => {
+    setDetailsService(service);
+    setShowDetailsDialog(true);
+  };
+
+  const handleOrderFromDetails = (service: Service) => {
+    setDetailsService(null);
+    setShowDetailsDialog(false);
+    handleSelectService(service);
   };
 
   const checkIsFavorite = (serviceId: string) => {
@@ -959,35 +974,55 @@ const ClientServicesNew = () => {
                                     <p className="text-xs text-muted-foreground mt-0.5">لكل 1000</p>
                                   </div>
                                   
-                                  <motion.div 
-                                    whileHover={{ scale: 1.05 }} 
-                                    whileTap={{ scale: 0.95 }}
-                                  >
-                                    <Button
-                                      className={cn(
-                                        "h-12 px-5 rounded-xl transition-all duration-300 shadow-xl gap-2 font-semibold",
-                                        isActive 
-                                          ? "bg-gradient-to-r from-success to-emerald-500 shadow-success/40 text-white" 
-                                          : "bg-gradient-to-r from-primary to-accent shadow-primary/40 text-primary-foreground hover:shadow-primary/60"
-                                      )}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleSelectService(service);
-                                      }}
+                                  <div className="flex items-center gap-2">
+                                    {/* Details Button */}
+                                    <motion.div 
+                                      whileHover={{ scale: 1.05 }} 
+                                      whileTap={{ scale: 0.95 }}
                                     >
-                                      {isActive ? (
-                                        <>
-                                          <Check className="w-5 h-5" />
-                                          <span className="hidden sm:inline">محدد</span>
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Plus className="w-5 h-5" />
-                                          <span className="hidden sm:inline">اختيار</span>
-                                        </>
-                                      )}
-                                    </Button>
-                                  </motion.div>
+                                      <Button
+                                        variant="outline"
+                                        className="h-12 w-12 rounded-xl transition-all duration-300 border-border/50 hover:border-primary/50 hover:bg-primary/5"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleShowDetails(service);
+                                        }}
+                                      >
+                                        <Info className="w-5 h-5" />
+                                      </Button>
+                                    </motion.div>
+                                    
+                                    {/* Order Button */}
+                                    <motion.div 
+                                      whileHover={{ scale: 1.05 }} 
+                                      whileTap={{ scale: 0.95 }}
+                                    >
+                                      <Button
+                                        className={cn(
+                                          "h-12 px-5 rounded-xl transition-all duration-300 shadow-xl gap-2 font-semibold",
+                                          isActive 
+                                            ? "bg-gradient-to-r from-success to-emerald-500 shadow-success/40 text-white" 
+                                            : "bg-gradient-to-r from-primary to-accent shadow-primary/40 text-primary-foreground hover:shadow-primary/60"
+                                        )}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleSelectService(service);
+                                        }}
+                                      >
+                                        {isActive ? (
+                                          <>
+                                            <Check className="w-5 h-5" />
+                                            <span className="hidden sm:inline">محدد</span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Plus className="w-5 h-5" />
+                                            <span className="hidden sm:inline">اختيار</span>
+                                          </>
+                                        )}
+                                      </Button>
+                                    </motion.div>
+                                  </div>
                                 </div>
                               </CardContent>
                             </Card>
@@ -1060,6 +1095,16 @@ const ClientServicesNew = () => {
             </Button>
           </motion.div>
         )}
+
+        {/* Service Details Dialog */}
+        <ServiceDetailsDialog
+          service={detailsService}
+          open={showDetailsDialog}
+          onOpenChange={setShowDetailsDialog}
+          onOrder={handleOrderFromDetails}
+          onToggleFavorite={toggleFavorite}
+          isFavorite={detailsService ? favorites.includes(detailsService.id) : false}
+        />
       </div>
     </ClientDashboardLayout>
   );
