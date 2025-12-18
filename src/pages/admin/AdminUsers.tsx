@@ -62,11 +62,11 @@ const AdminUsers = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [updating, setUpdating] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<"single" | "bulk">("single");
   const [deleting, setDeleting] = useState(false);
+  const [deleteProgress, setDeleteProgress] = useState({ current: 0, total: 0 });
 
   useEffect(() => {
     fetchUsers();
@@ -176,12 +176,15 @@ const AdminUsers = () => {
         toast.success("تم حذف المستخدم بنجاح");
         setSelectedIds(prev => prev.filter(id => id !== deletingId));
       } else if (deleteType === "bulk") {
-        for (const userId of selectedIds) {
+        setDeleteProgress({ current: 0, total: selectedIds.length });
+        for (let i = 0; i < selectedIds.length; i++) {
+          const userId = selectedIds[i];
           await supabase.from("orders").delete().eq("user_id", userId);
           await supabase.from("notifications").delete().eq("user_id", userId);
           await supabase.from("support_tickets").delete().eq("user_id", userId);
           await supabase.from("user_roles").delete().eq("user_id", userId);
           await supabase.from("profiles").delete().eq("id", userId);
+          setDeleteProgress({ current: i + 1, total: selectedIds.length });
         }
         toast.success(`تم حذف ${selectedIds.length} مستخدم بنجاح`);
         setSelectedIds([]);
@@ -194,6 +197,7 @@ const AdminUsers = () => {
       setDeleting(false);
       setDeleteDialogOpen(false);
       setDeletingId(null);
+      setDeleteProgress({ current: 0, total: 0 });
     }
   };
 
@@ -301,6 +305,16 @@ const AdminUsers = () => {
                   <SelectItem value="admin">مشرفين</SelectItem>
                 </SelectContent>
               </Select>
+              {filteredUsers.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleSelectAll}
+                  className="gap-2"
+                >
+                  {selectedIds.length === filteredUsers.length ? "إلغاء التحديد" : "تحديد الكل"}
+                </Button>
+              )}
               {selectedIds.length > 0 && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">
@@ -550,6 +564,7 @@ const AdminUsers = () => {
           }
           onConfirm={handleConfirmDelete}
           loading={deleting}
+          progress={deleteType === "bulk" && deleting ? deleteProgress : undefined}
         />
       </div>
     </AdminDashboardLayout>
