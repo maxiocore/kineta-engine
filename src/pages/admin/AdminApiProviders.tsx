@@ -549,100 +549,146 @@ const AdminApiProviders = () => {
 
         {/* Add/Edit Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="text-xl">
                 {selectedProvider ? 'تعديل المزود' : 'إضافة مزود جديد'}
               </DialogTitle>
             </DialogHeader>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Provider Names */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">الاسم (English)</Label>
+                  <Label htmlFor="name" className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-muted-foreground" />
+                    الاسم (English)
+                  </Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="BulkFollows"
+                    placeholder="Provider Name"
                     dir="ltr"
+                    className="text-left"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="name_ar">الاسم (عربي)</Label>
+                  <Label htmlFor="name_ar" className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-muted-foreground" />
+                    الاسم (عربي)
+                  </Label>
                   <Input
                     id="name_ar"
                     value={formData.name_ar}
                     onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
-                    placeholder="بلك فولورز"
+                    placeholder="اسم المزود"
                   />
                 </div>
               </div>
               
+              {/* API Configuration Section */}
+              <div className="space-y-4 p-4 rounded-lg bg-muted/30 border border-border/50">
+                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Server className="h-4 w-4" />
+                  إعدادات API
+                </h4>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="api_url" className="flex items-center gap-2">
+                    <Link2 className="h-4 w-4 text-muted-foreground" />
+                    رابط API
+                  </Label>
+                  <Input
+                    id="api_url"
+                    value={formData.api_url}
+                    onChange={(e) => setFormData({ ...formData, api_url: e.target.value })}
+                    placeholder="https://provider.com/api/v2"
+                    dir="ltr"
+                    className="text-left font-mono text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground">رابط API الخاص بموقع المزود</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="api_key" className="flex items-center gap-2">
+                    <Key className="h-4 w-4 text-muted-foreground" />
+                    مفتاح API
+                  </Label>
+                  <Input
+                    id="api_key"
+                    value={formData.api_key}
+                    onChange={(e) => setFormData({ ...formData, api_key: e.target.value })}
+                    placeholder="أدخل مفتاح API الخاص بك"
+                    dir="ltr"
+                    type="password"
+                    className="text-left font-mono text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground">يمكنك الحصول عليه من لوحة تحكم المزود</p>
+                </div>
+              </div>
+              
+              {/* Profit Settings */}
               <div className="space-y-2">
-                <Label htmlFor="api_url">رابط API</Label>
-                <Input
-                  id="api_url"
-                  value={formData.api_url}
-                  onChange={(e) => setFormData({ ...formData, api_url: e.target.value })}
-                  placeholder="https://example.com/api/v2"
-                  dir="ltr"
-                />
+                <Label htmlFor="profit_margin" className="flex items-center gap-2">
+                  <Percent className="h-4 w-4 text-muted-foreground" />
+                  نسبة الربح (%)
+                </Label>
+                <div className="flex items-center gap-3">
+                  <Input
+                    id="profit_margin"
+                    type="number"
+                    min="0"
+                    max="500"
+                    value={formData.profit_margin}
+                    onChange={(e) => setFormData({ ...formData, profit_margin: Number(e.target.value) })}
+                    dir="ltr"
+                    className="text-left w-24"
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    النسبة المضافة على سعر المزود
+                  </span>
+                </div>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="api_key">مفتاح API</Label>
-                <Input
-                  id="api_key"
-                  value={formData.api_key}
-                  onChange={(e) => setFormData({ ...formData, api_key: e.target.value })}
-                  placeholder="your-api-key"
-                  dir="ltr"
-                  type="password"
-                />
+              {/* Toggle Settings */}
+              <div className="space-y-3 p-4 rounded-lg bg-muted/30 border border-border/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <Label htmlFor="is_active" className="cursor-pointer">تفعيل المزود</Label>
+                  </div>
+                  <Switch
+                    id="is_active"
+                    checked={formData.is_active}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Star className="h-4 w-4 text-yellow-500" />
+                    <Label htmlFor="is_default" className="cursor-pointer">تعيين كمزود افتراضي</Label>
+                  </div>
+                  <Switch
+                    id="is_default"
+                    checked={formData.is_default}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_default: checked })}
+                  />
+                </div>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="profit_margin">نسبة الربح (%)</Label>
-                <Input
-                  id="profit_margin"
-                  type="number"
-                  min="0"
-                  max="500"
-                  value={formData.profit_margin}
-                  onChange={(e) => setFormData({ ...formData, profit_margin: Number(e.target.value) })}
-                  dir="ltr"
-                />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <Label htmlFor="is_active">تفعيل المزود</Label>
-                <Switch
-                  id="is_active"
-                  checked={formData.is_active}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-                />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <Label htmlFor="is_default">تعيين كمزود افتراضي</Label>
-                <Switch
-                  id="is_default"
-                  checked={formData.is_default}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_default: checked })}
-                />
-              </div>
-              
-              <DialogFooter>
+              <DialogFooter className="gap-2 sm:gap-0">
                 <Button type="button" variant="outline" onClick={handleCloseDialog}>
                   إلغاء
                 </Button>
                 <Button 
                   type="submit" 
                   disabled={createMutation.isPending || updateMutation.isPending}
+                  className="gap-2"
                 >
                   {createMutation.isPending || updateMutation.isPending ? (
-                    <RefreshCw className="h-4 w-4 animate-spin ml-2" />
+                    <RefreshCw className="h-4 w-4 animate-spin" />
                   ) : null}
                   {selectedProvider ? 'تحديث' : 'إضافة'}
                 </Button>
