@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import AdminDashboardLayout from '@/components/dashboard/AdminDashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -83,7 +83,10 @@ const AdminServiceImport = () => {
   // Step management
   const [currentStep, setCurrentStep] = useState<'provider' | 'categories' | 'services'>('provider');
   
-  const [services, setServices] = useState<ProviderService[]>([]);
+  // Use ref to store large services array to avoid re-render on store
+  const servicesRef = useRef<ProviderService[]>([]);
+  const [servicesLoaded, setServicesLoaded] = useState(false);
+  
   const [providerCategories, setProviderCategories] = useState<ProviderCategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingCategories, setLoadingCategories] = useState(false);
@@ -170,7 +173,8 @@ const AdminServiceImport = () => {
     }
 
     setLoadingCategories(true);
-    setServices([]);
+    servicesRef.current = [];
+    setServicesLoaded(false);
     setProviderCategories([]);
     setSelectedServices(new Set());
     setSelectedProviderCategories(new Set());
@@ -193,25 +197,26 @@ const AdminServiceImport = () => {
           categoryMap.set(service.category, count + 1);
         });
         
-        const categories: ProviderCategory[] = Array.from(categoryMap.entries())
+        const categoriesList: ProviderCategory[] = Array.from(categoryMap.entries())
           .map(([name, count]) => ({ name, count }))
           .sort((a, b) => a.name.localeCompare(b.name));
         
-        // Update categories first
-        setProviderCategories(categories);
+        // Store services in ref (no re-render)
+        servicesRef.current = fetchedServices;
         
-        // Use requestAnimationFrame to prevent UI freeze when storing large dataset
-        requestAnimationFrame(() => {
-          setServices(fetchedServices);
+        // Update state after storing in ref
+        setTimeout(() => {
+          setProviderCategories(categoriesList);
+          setServicesLoaded(true);
           setCurrentStep('categories');
           setLoadingCategories(false);
-          toast.success(`تم جلب ${categories.length} فئة (${fetchedServices.length} خدمة) من ${providerName}`);
+          toast.success(`تم جلب ${categoriesList.length} فئة (${fetchedServices.length} خدمة) من ${providerName}`);
           
           // Refresh providers list to update services_count
           queryClient.invalidateQueries({ queryKey: ['api-providers-active'] });
-        });
+        }, 50);
         
-        return; // Exit early since setLoadingCategories is handled in RAF
+        return;
       } else {
         toast.error('فشل في جلب الخدمات');
       }
@@ -225,9 +230,9 @@ const AdminServiceImport = () => {
 
   // Get services for selected categories
   const filteredServices = useMemo(() => {
-    if (selectedProviderCategories.size === 0) return [];
-    return services.filter(s => selectedProviderCategories.has(s.category));
-  }, [services, selectedProviderCategories]);
+    if (!servicesLoaded || selectedProviderCategories.size === 0) return [];
+    return servicesRef.current.filter(s => selectedProviderCategories.has(s.category));
+  }, [servicesLoaded, selectedProviderCategories]);
 
   const categories = useMemo(() => {
     const cats = new Set(filteredServices.map(s => s.category));
@@ -598,7 +603,8 @@ const AdminServiceImport = () => {
   // Reset to provider selection
   const resetToProvider = () => {
     setCurrentStep('provider');
-    setServices([]);
+    servicesRef.current = [];
+    setServicesLoaded(false);
     setProviderCategories([]);
     setSelectedServices(new Set());
     setSelectedProviderCategories(new Set());
@@ -751,7 +757,7 @@ const AdminServiceImport = () => {
                     <Server className="h-5 w-5 text-blue-500" />
                     <div>
                       <p className="font-medium">{currentProvider?.name_ar}</p>
-                      <p className="text-xs text-muted-foreground">{services.length} خدمة متاحة</p>
+                      <p className="text-xs text-muted-foreground">{servicesRef.current.length} خدمة متاحة</p>
                     </div>
                   </div>
                   <Button variant="outline" size="sm" onClick={resetToProvider}>
