@@ -498,7 +498,7 @@ const ClientServicesNew = () => {
                   </Button>
                 </motion.div>
               </CardContent>
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/5 rounded-full blur-xl" />
+              <div className="absolute bottom-0 start-0 w-32 h-32 bg-black/5 rounded-full blur-xl" />
             </Card>
           </motion.div>
 
@@ -520,7 +520,7 @@ const ClientServicesNew = () => {
                   </p>
                 </motion.div>
               </CardContent>
-              <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-black/5 rounded-full" />
+              <div className="absolute -bottom-10 -start-10 w-32 h-32 bg-black/5 rounded-full" />
             </Card>
           </motion.div>
         </motion.div>
@@ -776,7 +776,7 @@ const ClientServicesNew = () => {
                                     {recentLinks.map((recentLink) => (
                                       <motion.div
                                         key={recentLink.id}
-                                        whileHover={{ x: -4 }}
+                                        whileHover={{ x: 4 }}
                                         className="group flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
                                         onClick={() => useRecentLink(recentLink)}
                                       >
@@ -820,7 +820,7 @@ const ClientServicesNew = () => {
                         <div className="relative">
                           <Input
                             placeholder="https://..."
-                            className="h-12 bg-muted/30 border-border/50 pl-10 rounded-xl"
+                            className="h-12 bg-muted/30 border-border/50 ps-10 rounded-xl text-start"
                             value={link}
                             onChange={(e) => setLink(e.target.value)}
                             dir="ltr"
@@ -829,7 +829,7 @@ const ClientServicesNew = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground rounded-lg"
+                              className="absolute start-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground rounded-lg"
                               onClick={() => setLink("")}
                             >
                               <X className="w-4 h-4" />
@@ -964,10 +964,10 @@ const ClientServicesNew = () => {
                           .map((service, index) => (
                             <motion.div
                               key={service.id}
-                              initial={{ opacity: 0, x: -20 }}
+                              initial={{ opacity: 0, x: 20 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: index * 0.05 }}
-                              whileHover={{ x: -4 }}
+                              whileHover={{ x: 4 }}
                               className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
                               onClick={() => {
                                 setSelectedCategory(service.category);
@@ -1006,7 +1006,7 @@ const ClientServicesNew = () => {
           {/* Service Details Sidebar */}
           <motion.div 
             className="space-y-4"
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
           >
