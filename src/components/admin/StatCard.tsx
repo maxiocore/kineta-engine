@@ -55,7 +55,7 @@ const StatCard = ({
         shadowColor,
         "shadow-lg hover:shadow-xl"
       )}>
-        <CardContent className="p-5 sm:p-6 relative">
+        <CardContent className="p-3 sm:p-5 lg:p-6 relative">
           {/* Background Glow */}
           <div className={cn(
             "absolute -top-20 -right-20 w-40 h-40 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity duration-500",
@@ -63,10 +63,10 @@ const StatCard = ({
           )} />
           
           <div className="relative z-10">
-            <div className="flex items-start justify-between mb-4">
+            <div className="flex items-start justify-between mb-2 sm:mb-4">
               <motion.div 
                 className={cn(
-                  "w-14 h-14 rounded-2xl p-3.5 shadow-lg relative overflow-hidden",
+                  "w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl sm:rounded-2xl p-2 sm:p-3 lg:p-3.5 shadow-lg relative overflow-hidden",
                   `bg-gradient-to-br ${gradient}`
                 )}
                 whileHover={{ scale: 1.1, rotate: 5 }}
@@ -87,7 +87,7 @@ const StatCard = ({
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: delay + 0.3 }}
                   className={cn(
-                    "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border",
+                    "flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium border",
                     getTrendColor()
                   )}
                 >
@@ -97,8 +97,8 @@ const StatCard = ({
               )}
             </div>
 
-            <div className="space-y-1">
-              <div className="text-3xl sm:text-4xl font-bold tracking-tight">
+            <div className="space-y-0.5 sm:space-y-1">
+              <div className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold tracking-tight">
                 <AnimatedCounter 
                   value={value} 
                   prefix={prefix}
@@ -106,7 +106,7 @@ const StatCard = ({
                   duration={1.5}
                 />
               </div>
-              <p className="text-sm text-muted-foreground font-medium">{title}</p>
+              <p className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground font-medium truncate">{title}</p>
             </div>
 
             {/* Hover Line */}

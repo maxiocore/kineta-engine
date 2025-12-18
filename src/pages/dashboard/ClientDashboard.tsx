@@ -188,21 +188,21 @@ const ClientDashboard = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-4 sm:space-y-6 lg:space-y-8">
         {/* Header */}
         <div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-2xl sm:text-3xl font-bold mb-2"
+            className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2"
           >
             مرحباً، {profile?.full_name || "عزيزي العميل"}! 👋
           </motion.h1>
-          <p className="text-muted-foreground">إليك نظرة عامة على حسابك</p>
+          <p className="text-muted-foreground text-sm sm:text-base">إليك نظرة عامة على حسابك</p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           {statsData.map((stat, index) => (
             <motion.div
               key={stat.title}
@@ -211,14 +211,14 @@ const ClientDashboard = () => {
               transition={{ delay: index * 0.1 }}
             >
               <Card className="card-elevated border-border/30 hover:border-primary/30 transition-colors">
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${stat.color} p-2.5 sm:p-3 shadow-lg`}>
+                <CardContent className="p-3 sm:p-4 lg:p-6">
+                  <div className="flex items-start justify-between mb-2 sm:mb-4">
+                    <div className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br ${stat.color} p-1.5 sm:p-2.5 lg:p-3 shadow-lg`}>
                       <stat.icon className="w-full h-full text-primary-foreground" />
                     </div>
                   </div>
-                  <p className="text-2xl sm:text-3xl font-bold mb-1">{stat.value}</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">{stat.title}</p>
+                  <p className="text-lg sm:text-2xl lg:text-3xl font-bold mb-0.5 sm:mb-1">{stat.value}</p>
+                  <p className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground">{stat.title}</p>
                 </CardContent>
               </Card>
             </motion.div>

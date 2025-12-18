@@ -257,27 +257,27 @@ const ClientOrders = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div>
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="font-display text-2xl sm:text-3xl font-bold mb-2"
+              className="font-display text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2"
             >
               طلباتي
             </motion.h1>
-            <p className="text-muted-foreground">إدارة ومتابعة جميع طلباتك في الوقت الفعلي</p>
+            <p className="text-muted-foreground text-sm sm:text-base">إدارة ومتابعة جميع طلباتك في الوقت الفعلي</p>
           </div>
-          <Button onClick={() => setIsNewOrderOpen(true)} className="bg-gradient-primary hover:opacity-90">
+          <Button onClick={() => setIsNewOrderOpen(true)} className="bg-gradient-primary hover:opacity-90 text-sm sm:text-base h-9 sm:h-10">
             <ShoppingBag className="w-4 h-4 ms-2" />
             طلب جديد
           </Button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {[
             { label: "إجمالي الطلبات", value: stats.total, icon: ShoppingBag, gradient: "from-primary to-cyan-400" },
             { label: "قيد الانتظار", value: stats.pending, icon: Clock, gradient: "from-warning to-orange-400" },
@@ -291,14 +291,14 @@ const ClientOrders = () => {
               transition={{ delay: index * 0.05 }}
             >
               <Card className="border-border/30">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.gradient} p-2.5 shadow-lg`}>
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br ${stat.gradient} p-1.5 sm:p-2.5 shadow-lg shrink-0`}>
                       <stat.icon className="w-full h-full text-primary-foreground" />
                     </div>
-                    <div>
-                      <p className="text-2xl font-bold">{stat.value}</p>
-                      <p className="text-xs text-muted-foreground">{stat.label}</p>
+                    <div className="min-w-0">
+                      <p className="text-lg sm:text-2xl font-bold">{stat.value}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{stat.label}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -309,20 +309,20 @@ const ClientOrders = () => {
 
         {/* Search & Filter */}
         <Card className="glass border-border/50">
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row gap-4">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <div className="relative flex-1">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input 
                   placeholder="البحث في الطلبات..." 
-                  className="pr-10 bg-secondary/50"
+                  className="pr-10 bg-secondary/50 h-9 sm:h-10 text-sm"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <Filter className="w-4 h-4 ml-2" />
+                <SelectTrigger className="w-full sm:w-40 h-9 sm:h-10 text-sm">
+                  <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-2" />
                   <SelectValue placeholder="فلترة الحالة" />
                 </SelectTrigger>
                 <SelectContent>
@@ -334,7 +334,7 @@ const ClientOrders = () => {
                   <SelectItem value="cancelled">ملغي</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="icon" onClick={fetchOrders}>
+              <Button variant="outline" size="icon" onClick={fetchOrders} className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
                 <RefreshCw className="w-4 h-4" />
               </Button>
             </div>
@@ -361,17 +361,17 @@ const ClientOrders = () => {
                 <p>لا توجد طلبات حتى الآن</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                <table className="w-full min-w-[700px]">
                   <thead>
                     <tr className="border-b border-border">
-                      <th className="text-right py-4 px-4 font-medium text-muted-foreground">رقم الطلب</th>
-                      <th className="text-right py-4 px-4 font-medium text-muted-foreground">الخدمة</th>
-                      <th className="text-right py-4 px-4 font-medium text-muted-foreground">الكمية</th>
-                      <th className="text-right py-4 px-4 font-medium text-muted-foreground">الحالة</th>
-                      <th className="text-right py-4 px-4 font-medium text-muted-foreground">التاريخ</th>
-                      <th className="text-right py-4 px-4 font-medium text-muted-foreground">السعر</th>
-                      <th className="text-right py-4 px-4 font-medium text-muted-foreground">الإجراءات</th>
+                      <th className="text-right py-3 sm:py-4 px-2 sm:px-4 font-medium text-muted-foreground text-xs sm:text-sm">رقم الطلب</th>
+                      <th className="text-right py-3 sm:py-4 px-2 sm:px-4 font-medium text-muted-foreground text-xs sm:text-sm">الخدمة</th>
+                      <th className="text-right py-3 sm:py-4 px-2 sm:px-4 font-medium text-muted-foreground text-xs sm:text-sm">الكمية</th>
+                      <th className="text-right py-3 sm:py-4 px-2 sm:px-4 font-medium text-muted-foreground text-xs sm:text-sm">الحالة</th>
+                      <th className="text-right py-3 sm:py-4 px-2 sm:px-4 font-medium text-muted-foreground text-xs sm:text-sm hidden sm:table-cell">التاريخ</th>
+                      <th className="text-right py-3 sm:py-4 px-2 sm:px-4 font-medium text-muted-foreground text-xs sm:text-sm">السعر</th>
+                      <th className="text-right py-3 sm:py-4 px-2 sm:px-4 font-medium text-muted-foreground text-xs sm:text-sm">الإجراءات</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -387,41 +387,41 @@ const ClientOrders = () => {
                             transition={{ delay: index * 0.03 }}
                             className="border-b border-border/50 hover:bg-secondary/30 transition-colors"
                           >
-                            <td className="py-4 px-4">
-                              <code className="px-2 py-1 bg-secondary rounded text-sm font-mono">
+                            <td className="py-3 sm:py-4 px-2 sm:px-4">
+                              <code className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-secondary rounded text-xs sm:text-sm font-mono">
                                 {order.order_number}
                               </code>
                             </td>
-                            <td className="py-4 px-4">
+                            <td className="py-3 sm:py-4 px-2 sm:px-4">
                               <div>
-                                <p className="font-medium text-sm">{order.service?.name}</p>
-                                <p className="text-xs text-muted-foreground">{order.service?.category}</p>
+                                <p className="font-medium text-xs sm:text-sm line-clamp-1">{order.service?.name}</p>
+                                <p className="text-[10px] sm:text-xs text-muted-foreground">{order.service?.category}</p>
                               </div>
                             </td>
-                            <td className="py-4 px-4">
-                              <span className="font-medium">{order.quantity?.toLocaleString() || "-"}</span>
+                            <td className="py-3 sm:py-4 px-2 sm:px-4">
+                              <span className="font-medium text-xs sm:text-sm">{order.quantity?.toLocaleString() || "-"}</span>
                             </td>
-                            <td className="py-4 px-4">
-                              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${statusConfig.color}`}>
-                                <statusConfig.icon className={`w-3 h-3 ${order.status === "in_progress" ? "animate-spin" : ""}`} />
-                                {statusConfig.label}
+                            <td className="py-3 sm:py-4 px-2 sm:px-4">
+                              <span className={`inline-flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-medium border ${statusConfig.color}`}>
+                                <statusConfig.icon className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${order.status === "in_progress" ? "animate-spin" : ""}`} />
+                                <span className="hidden xs:inline">{statusConfig.label}</span>
                               </span>
                             </td>
-                            <td className="py-4 px-4 text-muted-foreground text-sm">
-                              {format(new Date(order.created_at), "d MMMM yyyy", { locale: ar })}
+                            <td className="py-3 sm:py-4 px-2 sm:px-4 text-muted-foreground text-xs sm:text-sm hidden sm:table-cell">
+                              {format(new Date(order.created_at), "d MMM", { locale: ar })}
                             </td>
-                            <td className="py-4 px-4 font-bold text-primary">
+                            <td className="py-3 sm:py-4 px-2 sm:px-4 font-bold text-primary text-xs sm:text-sm">
                               ${order.total_price.toFixed(2)}
                             </td>
-                            <td className="py-4 px-4">
+                            <td className="py-3 sm:py-4 px-2 sm:px-4">
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
                                 onClick={() => handleViewOrder(order)}
-                                className="gap-2"
+                                className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 px-2 sm:px-3"
                               >
-                                <Eye className="w-4 h-4" />
-                                التفاصيل
+                                <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                <span className="hidden sm:inline">التفاصيل</span>
                               </Button>
                             </td>
                           </motion.tr>

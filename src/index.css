@@ -148,6 +148,48 @@
     background-image: var(--gradient-card);
   }
 
+  /* Responsive table wrapper */
+  .table-responsive {
+    @apply w-full overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0;
+  }
+
+  .table-responsive table {
+    @apply min-w-[600px] sm:min-w-full;
+  }
+
+  /* Mobile-friendly cards grid */
+  .mobile-grid {
+    @apply grid gap-3 sm:gap-4;
+  }
+
+  /* Hide on mobile, show on desktop */
+  .hide-mobile {
+    @apply hidden sm:table-cell;
+  }
+
+  /* Mobile text sizes */
+  .text-responsive {
+    @apply text-sm sm:text-base;
+  }
+
+  .text-responsive-lg {
+    @apply text-lg sm:text-xl lg:text-2xl;
+  }
+
+  .text-responsive-xl {
+    @apply text-xl sm:text-2xl lg:text-3xl;
+  }
+
+  /* Mobile padding */
+  .p-responsive {
+    @apply p-3 sm:p-4 lg:p-6;
+  }
+
+  /* Responsive flex */
+  .flex-responsive {
+    @apply flex flex-col sm:flex-row;
+  }
+
   .shadow-glow {
     box-shadow: var(--shadow-glow);
   }
