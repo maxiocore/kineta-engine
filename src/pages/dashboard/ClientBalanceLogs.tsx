@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -12,12 +12,26 @@ import {
   Wallet,
   TrendingUp,
   TrendingDown,
+  BarChart3,
 } from "lucide-react";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Legend,
+} from "recharts";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -57,6 +71,22 @@ const actionTypeLabels: Record<string, { label: string; color: string; icon: Rea
   debit: { label: "خصم", color: "bg-red-500/10 text-red-500 border-red-500/20", icon: ArrowDownCircle },
   initial: { label: "رصيد أولي", color: "bg-gray-500/10 text-gray-500 border-gray-500/20", icon: Wallet },
   manual_adjustment: { label: "تعديل يدوي", color: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20", icon: RefreshCw },
+};
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
+        <p className="text-sm font-medium text-foreground mb-2">{label}</p>
+        {payload.map((entry: any, index: number) => (
+          <p key={index} className="text-sm" style={{ color: entry.color }}>
+            {entry.name}: ${entry.value?.toFixed(2)}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
 };
 
 const ClientBalanceLogs = () => {
@@ -112,6 +142,63 @@ const ClientBalanceLogs = () => {
       });
     }
   };
+
+  // Prepare chart data - balance over time
+  const balanceChartData = useMemo(() => {
+    if (logs.length === 0) return [];
+    
+    const sortedLogs = [...logs].sort((a, b) => 
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+    
+    const dailyData: Record<string, { date: string; balance: number; deposits: number; expenses: number }> = {};
+    
+    sortedLogs.forEach(log => {
+      const dateKey = format(new Date(log.created_at), "dd/MM");
+      
+      if (!dailyData[dateKey]) {
+        dailyData[dateKey] = {
+          date: dateKey,
+          balance: log.balance_after,
+          deposits: 0,
+          expenses: 0,
+        };
+      } else {
+        dailyData[dateKey].balance = log.balance_after;
+      }
+      
+      if (log.amount > 0) {
+        dailyData[dateKey].deposits += log.amount;
+      } else {
+        dailyData[dateKey].expenses += Math.abs(log.amount);
+      }
+    });
+    
+    return Object.values(dailyData);
+  }, [logs]);
+
+  // Prepare transactions summary by type
+  const transactionsSummary = useMemo(() => {
+    const summary: Record<string, { type: string; label: string; total: number; count: number }> = {};
+    
+    logs.forEach(log => {
+      const actionInfo = actionTypeLabels[log.action_type] || { label: log.action_type };
+      
+      if (!summary[log.action_type]) {
+        summary[log.action_type] = {
+          type: log.action_type,
+          label: actionInfo.label,
+          total: 0,
+          count: 0,
+        };
+      }
+      
+      summary[log.action_type].total += Math.abs(log.amount);
+      summary[log.action_type].count += 1;
+    });
+    
+    return Object.values(summary).sort((a, b) => b.total - a.total);
+  }, [logs]);
 
   const filteredLogs = logs.filter((log) => {
     const matchesSearch =
@@ -212,6 +299,173 @@ const ClientBalanceLogs = () => {
           </motion.div>
         </div>
 
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Balance Over Time Chart */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-primary" />
+                  حركة الرصيد
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <Skeleton className="h-[250px] w-full" />
+                ) : balanceChartData.length === 0 ? (
+                  <div className="h-[250px] flex items-center justify-center text-muted-foreground">
+                    <div className="text-center">
+                      <BarChart3 className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>لا توجد بيانات كافية للرسم البياني</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-[250px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={balanceChartData}>
+                        <defs>
+                          <linearGradient id="balanceGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                          axisLine={{ stroke: 'hsl(var(--border))' }}
+                        />
+                        <YAxis 
+                          tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                          axisLine={{ stroke: 'hsl(var(--border))' }}
+                          tickFormatter={(value) => `$${value}`}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Area
+                          type="monotone"
+                          dataKey="balance"
+                          name="الرصيد"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          fill="url(#balanceGradient)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Deposits vs Expenses Chart */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-primary" />
+                  الإيداعات vs المصروفات
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <Skeleton className="h-[250px] w-full" />
+                ) : balanceChartData.length === 0 ? (
+                  <div className="h-[250px] flex items-center justify-center text-muted-foreground">
+                    <div className="text-center">
+                      <BarChart3 className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>لا توجد بيانات كافية للرسم البياني</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-[250px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={balanceChartData}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                          axisLine={{ stroke: 'hsl(var(--border))' }}
+                        />
+                        <YAxis 
+                          tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                          axisLine={{ stroke: 'hsl(var(--border))' }}
+                          tickFormatter={(value) => `$${value}`}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Legend 
+                          wrapperStyle={{ paddingTop: '10px' }}
+                          formatter={(value) => <span className="text-foreground text-sm">{value}</span>}
+                        />
+                        <Bar 
+                          dataKey="deposits" 
+                          name="الإيداعات" 
+                          fill="#22c55e" 
+                          radius={[4, 4, 0, 0]}
+                        />
+                        <Bar 
+                          dataKey="expenses" 
+                          name="المصروفات" 
+                          fill="#f97316" 
+                          radius={[4, 4, 0, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Transactions Summary */}
+        {transactionsSummary.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-primary" />
+                  ملخص العمليات
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                  {transactionsSummary.map((item, index) => {
+                    const actionInfo = getActionInfo(item.type);
+                    return (
+                      <motion.div
+                        key={item.type}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.1 * index }}
+                        className="p-4 rounded-xl border bg-card/50 hover:bg-card transition-colors"
+                      >
+                        <Badge variant="outline" className={`mb-2 ${actionInfo.color}`}>
+                          {item.label}
+                        </Badge>
+                        <p className="text-xl font-bold">${item.total.toFixed(2)}</p>
+                        <p className="text-sm text-muted-foreground">{item.count} عملية</p>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Filters */}
         <Card>
           <CardContent className="p-4">
@@ -288,7 +542,7 @@ const ClientBalanceLogs = () => {
                           key={log.id}
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.05 }}
+                          transition={{ delay: index * 0.03 }}
                           className="border-b border-border hover:bg-muted/50 transition-colors"
                         >
                           <TableCell className="font-medium">
