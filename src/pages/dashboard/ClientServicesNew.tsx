@@ -752,7 +752,7 @@ const ClientServicesNew = () => {
               <TabsList className="w-full grid grid-cols-4 h-12 bg-muted/30 rounded-xl p-1">
                 <TabsTrigger value="new-order" className="gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
                   <ShoppingCart className="w-4 h-4" />
-                  طلب جديد
+                  مواقع التواصل الاجتماعي
                 </TabsTrigger>
                 <TabsTrigger value="quick-reorder" className="gap-2 rounded-lg">
                   <Repeat className="w-4 h-4" />
