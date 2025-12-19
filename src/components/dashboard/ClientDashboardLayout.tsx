@@ -43,16 +43,7 @@ interface NavItem {
 
 const clientNavItems: NavItem[] = [
   { label: "نظرة عامة", href: "/dashboard", icon: LayoutDashboard },
-  { 
-    label: "خدماتنا", 
-    href: "/dashboard/our-services", 
-    icon: Layers,
-    children: [
-      { label: "خدمات مواقع التواصل", href: "/dashboard/services", icon: Globe },
-      { label: "خدمات التصميم", href: "/dashboard/design-services", icon: Palette },
-      { label: "خدمات البرمجة والتطوير", href: "/dashboard/dev-services", icon: FileCode },
-    ]
-  },
+  { label: "خدماتنا", href: "/dashboard/our-services", icon: Layers },
   { label: "الطلبات", href: "/dashboard/orders", icon: ShoppingBag },
   { label: "المفضلة", href: "/dashboard/favorites", icon: Heart },
   { label: "الإحالات", href: "/dashboard/referrals", icon: Gift },
