@@ -162,7 +162,7 @@ const ClientServicesNew = () => {
   // New features state
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [filterGuaranteed, setFilterGuaranteed] = useState<boolean | null>(null);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [compareServices, setCompareServices] = useState<Service[]>([]);
@@ -242,6 +242,13 @@ const ClientServicesNew = () => {
     return Math.max(...services.map(s => s.price), 100);
   }, [services]);
 
+  // Update price range when services load
+  useEffect(() => {
+    if (maxServicePrice > priceRange[1]) {
+      setPriceRange([0, maxServicePrice]);
+    }
+  }, [maxServicePrice]);
+
   // Handle URL params
   useEffect(() => {
     if (!services.length) return;
@@ -279,9 +286,13 @@ const ClientServicesNew = () => {
     if (!selectedCategory) return [];
     
     let result = services.filter(service => {
-      const matchesSearch = service.name.toLowerCase().includes(searchQuery.toLowerCase()) || (service.external_service_id?.includes(searchQuery));
+      const matchesSearch = !searchQuery || 
+        service.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        (service.external_service_id?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (service.description?.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesCategory = service.category === selectedCategory;
-      const matchesPrice = service.price >= priceRange[0] && service.price <= priceRange[1];
+      // Only apply price filter if user has changed the default range
+      const matchesPrice = priceRange[1] >= maxServicePrice || (service.price >= priceRange[0] && service.price <= priceRange[1]);
       const matchesGuarantee = filterGuaranteed === null || service.refill_enabled === filterGuaranteed;
       
       return matchesSearch && matchesCategory && matchesPrice && matchesGuarantee;
@@ -1041,7 +1052,7 @@ const ClientServicesNew = () => {
                         القسم
                         <span className="text-destructive">*</span>
                       </Label>
-                      <Select value={selectedCategory || ""} onValueChange={(v) => { setSelectedCategory(v || null); setSelectedService(null); setQuantity(""); }} dir="rtl">
+                      <Select value={selectedCategory || ""} onValueChange={(v) => { setSelectedCategory(v || null); setSelectedService(null); setQuantity(""); setSearchQuery(""); }} dir="rtl">
                         <SelectTrigger className={cn(
                           "h-12 bg-muted/30 border-border/40 rounded-xl transition-all",
                           !selectedCategory && "border-muted-foreground/20"
