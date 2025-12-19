@@ -21,6 +21,9 @@ import {
   Globe,
   Bitcoin,
   ExternalLink,
+  Star,
+  TrendingUp,
+  ArrowRight,
 } from 'lucide-react';
 import ClientDashboardLayout from '@/components/dashboard/ClientDashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -90,13 +93,36 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.1 }
+    transition: { staggerChildren: 0.08 }
   }
 };
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { type: "spring" as const, stiffness: 100, damping: 15 }
+  }
+};
+
+const floatingAnimation = {
+  y: [0, -10, 0],
+  transition: { duration: 3, repeat: Infinity, ease: "easeInOut" }
+};
+
+const pulseAnimation = {
+  scale: [1, 1.05, 1],
+  transition: { duration: 2, repeat: Infinity, ease: "easeInOut" as const }
+};
+
+const glowAnimation = {
+  boxShadow: [
+    "0 0 20px rgba(16, 185, 129, 0.3)",
+    "0 0 40px rgba(16, 185, 129, 0.5)",
+    "0 0 20px rgba(16, 185, 129, 0.3)"
+  ],
+  transition: { duration: 2, repeat: Infinity, ease: "easeInOut" as const }
 };
 
 const ClientDeposit = () => {
@@ -324,42 +350,130 @@ const ClientDeposit = () => {
       >
         {/* Header Section */}
         <motion.div variants={itemVariants} className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-primary/20 via-primary/10 to-accent/20 p-6 md:p-8">
+          {/* Animated Background Elements */}
           <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-          <div className="absolute top-0 left-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-40 h-40 bg-accent/20 rounded-full blur-3xl" />
+          <motion.div 
+            className="absolute top-0 left-0 w-40 h-40 bg-primary/30 rounded-full blur-3xl"
+            animate={{ 
+              x: [0, 20, 0], 
+              y: [0, -20, 0],
+              scale: [1, 1.2, 1]
+            }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute bottom-0 right-0 w-48 h-48 bg-accent/30 rounded-full blur-3xl"
+            animate={{ 
+              x: [0, -20, 0], 
+              y: [0, 20, 0],
+              scale: [1.2, 1, 1.2]
+            }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-success/20 rounded-full blur-2xl"
+            animate={{ 
+              scale: [1, 1.5, 1],
+              opacity: [0.3, 0.6, 0.3]
+            }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          />
+          
+          {/* Floating Particles */}
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-primary/40 rounded-full"
+              style={{
+                top: `${20 + i * 12}%`,
+                left: `${10 + i * 15}%`,
+              }}
+              animate={{
+                y: [0, -30, 0],
+                opacity: [0.3, 0.8, 0.3],
+                scale: [1, 1.5, 1],
+              }}
+              transition={{
+                duration: 3 + i * 0.5,
+                repeat: Infinity,
+                delay: i * 0.3,
+                ease: "easeInOut"
+              }}
+            />
+          ))}
           
           <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <motion.div 
                 className="relative"
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
+                animate={{ 
+                  scale: [1, 1.08, 1],
+                  rotate: [0, 2, -2, 0]
+                }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               >
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/30">
+                <motion.div 
+                  className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-xl"
+                  animate={glowAnimation}
+                >
                   <Wallet className="w-8 h-8 text-primary-foreground" />
-                </div>
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-success rounded-full flex items-center justify-center">
+                </motion.div>
+                <motion.div 
+                  className="absolute -top-1 -right-1 w-6 h-6 bg-success rounded-full flex items-center justify-center"
+                  animate={{ 
+                    scale: [1, 1.2, 1],
+                    rotate: [0, 180, 360]
+                  }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                >
                   <Sparkles className="w-3 h-3 text-success-foreground" />
-                </div>
+                </motion.div>
               </motion.div>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold">إيداع رصيد</h1>
-                <p className="text-muted-foreground">أضف رصيد إلى حسابك بكل سهولة وأمان</p>
+                <motion.h1 
+                  className="text-2xl md:text-3xl font-bold bg-gradient-to-l from-primary to-primary/70 bg-clip-text text-transparent"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  إيداع رصيد
+                </motion.h1>
+                <motion.p 
+                  className="text-muted-foreground"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  أضف رصيد إلى حسابك بكل سهولة وأمان
+                </motion.p>
               </div>
             </div>
             
             <motion.div 
-              whileHover={{ scale: 1.02 }}
-              className="bg-background/80 backdrop-blur-sm rounded-xl p-4 border border-border/50 shadow-lg min-w-[200px]"
+              whileHover={{ scale: 1.03, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              className="bg-background/90 backdrop-blur-md rounded-xl p-4 border border-success/30 shadow-xl shadow-success/10 min-w-[200px] cursor-pointer group"
             >
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-success to-success/60 flex items-center justify-center">
+                <motion.div 
+                  className="w-12 h-12 rounded-xl bg-gradient-to-br from-success to-success/60 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-success/30 transition-shadow"
+                  animate={pulseAnimation}
+                >
                   <DollarSign className="w-6 h-6 text-success-foreground" />
-                </div>
+                </motion.div>
                 <div>
                   <p className="text-sm text-muted-foreground">رصيدك الحالي</p>
-                  <p className="text-2xl font-bold text-success">{currentBalance.toFixed(2)} ر.س</p>
+                  <motion.p 
+                    className="text-2xl font-bold text-success"
+                    key={currentBalance}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 200 }}
+                  >
+                    {currentBalance.toFixed(2)} ر.س
+                  </motion.p>
                 </div>
+                <TrendingUp className="w-5 h-5 text-success opacity-50 group-hover:opacity-100 transition-opacity" />
               </div>
             </motion.div>
           </div>
@@ -368,18 +482,45 @@ const ClientDeposit = () => {
         {/* Features */}
         <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { icon: Shield, label: 'دفع آمن', desc: '100% مشفر', color: 'text-success' },
-            { icon: Zap, label: 'سريع', desc: 'إضافة فورية', color: 'text-primary' },
-            { icon: Clock, label: 'دعم 24/7', desc: 'متاح دائماً', color: 'text-blue-500' },
-            { icon: Gift, label: 'بونص', desc: 'على الإيداعات', color: 'text-accent' },
+            { icon: Shield, label: 'دفع آمن', desc: '100% مشفر', color: 'text-success', bg: 'from-success/20 to-success/5' },
+            { icon: Zap, label: 'سريع', desc: 'إضافة فورية', color: 'text-yellow-500', bg: 'from-yellow-500/20 to-yellow-500/5' },
+            { icon: Clock, label: 'دعم 24/7', desc: 'متاح دائماً', color: 'text-blue-500', bg: 'from-blue-500/20 to-blue-500/5' },
+            { icon: Gift, label: 'بونص', desc: 'على الإيداعات', color: 'text-accent', bg: 'from-accent/20 to-accent/5' },
           ].map((feature, i) => (
             <motion.div 
               key={i}
-              whileHover={{ y: -2 }}
-              className="bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border/50 text-center"
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: i * 0.1, type: "spring", stiffness: 100 }}
+              whileHover={{ 
+                y: -5, 
+                scale: 1.02,
+                boxShadow: "0 10px 40px -10px rgba(0,0,0,0.2)"
+              }}
+              whileTap={{ scale: 0.98 }}
+              className={cn(
+                "relative overflow-hidden bg-gradient-to-br",
+                feature.bg,
+                "backdrop-blur-sm rounded-xl p-4 border border-border/50 text-center cursor-pointer group"
+              )}
             >
-              <feature.icon className={cn("w-6 h-6 mx-auto mb-2", feature.color)} />
-              <p className="font-medium text-sm">{feature.label}</p>
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+              />
+              <motion.div
+                animate={{ 
+                  rotate: [0, 5, -5, 0],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{ 
+                  duration: 3, 
+                  repeat: Infinity, 
+                  delay: i * 0.5 
+                }}
+              >
+                <feature.icon className={cn("w-7 h-7 mx-auto mb-2", feature.color)} />
+              </motion.div>
+              <p className="font-semibold text-sm">{feature.label}</p>
               <p className="text-xs text-muted-foreground">{feature.desc}</p>
             </motion.div>
           ))}
