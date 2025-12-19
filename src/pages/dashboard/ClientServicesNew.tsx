@@ -48,7 +48,15 @@ import {
   ChevronUp,
   Loader2,
   LayoutGrid,
-  Table2
+  Table2,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Filter,
+  SlidersHorizontal,
+  RotateCcw,
+  GitCompare,
+  Repeat
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -60,12 +68,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+interface RecentOrder {
+  id: string;
+  order_number: string;
+  link: string;
+  quantity: number;
+  total_price: number;
+  status: string;
+  created_at: string;
+  service: Service;
+}
+
+type SortField = "price" | "name" | "refill" | "min" | "max";
+type SortDirection = "asc" | "desc";
 
 interface RecentLink {
   id: string;
@@ -133,6 +158,15 @@ const ClientServicesNew = () => {
   const [showRecentLinks, setShowRecentLinks] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
+  
+  // New features state
+  const [sortField, setSortField] = useState<SortField>("name");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100]);
+  const [filterGuaranteed, setFilterGuaranteed] = useState<boolean | null>(null);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [compareServices, setCompareServices] = useState<Service[]>([]);
+  const [showCompareSheet, setShowCompareSheet] = useState(false);
 
   // Scroll handler
   useEffect(() => {
@@ -184,6 +218,30 @@ const ClientServicesNew = () => {
     enabled: !!user?.id,
   });
 
+  // Fetch recent orders for quick reorder
+  const { data: recentOrders = [] } = useQuery({
+    queryKey: ["recent-orders", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data } = await supabase
+        .from("orders")
+        .select("*, services(*)")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      return (data || []).map((order: any) => ({
+        ...order,
+        service: order.services
+      })) as RecentOrder[];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Get max price for filter
+  const maxServicePrice = useMemo(() => {
+    return Math.max(...services.map(s => s.price), 100);
+  }, [services]);
+
   // Handle URL params
   useEffect(() => {
     if (!services.length) return;
@@ -216,14 +274,44 @@ const ClientServicesNew = () => {
     return serviceCategories.filter(cat => cat.toLowerCase().includes(selectedNetwork.toLowerCase()));
   }, [serviceCategories, selectedNetwork]);
 
-  // Filter services
+  // Filter and sort services
   const filteredServices = useMemo(() => {
     if (!selectedCategory) return [];
-    return services.filter(service => {
+    
+    let result = services.filter(service => {
       const matchesSearch = service.name.toLowerCase().includes(searchQuery.toLowerCase()) || (service.external_service_id?.includes(searchQuery));
-      return matchesSearch && service.category === selectedCategory;
-    }).sort((a, b) => a.name.localeCompare(b.name, 'ar'));
-  }, [services, searchQuery, selectedCategory]);
+      const matchesCategory = service.category === selectedCategory;
+      const matchesPrice = service.price >= priceRange[0] && service.price <= priceRange[1];
+      const matchesGuarantee = filterGuaranteed === null || service.refill_enabled === filterGuaranteed;
+      
+      return matchesSearch && matchesCategory && matchesPrice && matchesGuarantee;
+    });
+
+    // Sort
+    result.sort((a, b) => {
+      let comparison = 0;
+      switch (sortField) {
+        case "price":
+          comparison = a.price - b.price;
+          break;
+        case "name":
+          comparison = a.name.localeCompare(b.name, 'ar');
+          break;
+        case "refill":
+          comparison = (a.refill_enabled ? 1 : 0) - (b.refill_enabled ? 1 : 0);
+          break;
+        case "min":
+          comparison = (a.features?.min || 10) - (b.features?.min || 10);
+          break;
+        case "max":
+          comparison = (a.features?.max || 1000000) - (b.features?.max || 1000000);
+          break;
+      }
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+    return result;
+  }, [services, searchQuery, selectedCategory, priceRange, filterGuaranteed, sortField, sortDirection]);
 
   // Calculate total price
   const totalPrice = useMemo(() => {
@@ -259,6 +347,56 @@ const ClientServicesNew = () => {
     setLink(recentLink.link);
     setShowRecentLinks(false);
     toast.success("تم تحديد الرابط");
+  };
+
+  // Quick reorder function
+  const handleQuickReorder = (order: RecentOrder) => {
+    if (order.service) {
+      setSelectedCategory(order.service.category);
+      setSelectedService(order.service);
+      setLink(order.link || "");
+      setQuantity(order.quantity?.toString() || "");
+      toast.success("تم تحميل بيانات الطلب السابق");
+    }
+  };
+
+  // Toggle sort
+  const toggleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+  // Reset filters
+  const resetFilters = () => {
+    setPriceRange([0, maxServicePrice]);
+    setFilterGuaranteed(null);
+    setSortField("name");
+    setSortDirection("asc");
+    setSearchQuery("");
+  };
+
+  // Toggle compare
+  const toggleCompare = (service: Service) => {
+    setCompareServices(prev => {
+      if (prev.find(s => s.id === service.id)) {
+        return prev.filter(s => s.id !== service.id);
+      }
+      if (prev.length >= 4) {
+        toast.error("يمكنك مقارنة 4 خدمات كحد أقصى");
+        return prev;
+      }
+      return [...prev, service];
+    });
+  };
+
+  // Get sort icon
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) return <ArrowUpDown className="w-3 h-3 opacity-50" />;
+    return sortDirection === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
   };
 
   const handleSubmit = async () => {
@@ -402,10 +540,14 @@ const ClientServicesNew = () => {
           {/* Order Form */}
           <div className="lg:col-span-2">
             <Tabs defaultValue="new-order" className="w-full">
-              <TabsList className="w-full grid grid-cols-3 h-12 bg-muted/30 rounded-xl p-1">
+              <TabsList className="w-full grid grid-cols-4 h-12 bg-muted/30 rounded-xl p-1">
                 <TabsTrigger value="new-order" className="gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
                   <ShoppingCart className="w-4 h-4" />
                   طلب جديد
+                </TabsTrigger>
+                <TabsTrigger value="quick-reorder" className="gap-2 rounded-lg">
+                  <Repeat className="w-4 h-4" />
+                  إعادة طلب
                 </TabsTrigger>
                 <TabsTrigger value="subscriptions" className="gap-2 rounded-lg">
                   <Zap className="w-4 h-4" />
@@ -417,26 +559,233 @@ const ClientServicesNew = () => {
                 </TabsTrigger>
               </TabsList>
 
-              {/* View Mode Toggle */}
-              <div className="flex items-center gap-2 mt-4">
-                <Button
-                  variant={viewMode === "cards" ? "default" : "outline"}
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => setViewMode("cards")}
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                  كروت
-                </Button>
-                <Button
-                  variant={viewMode === "table" ? "default" : "outline"}
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => setViewMode("table")}
-                >
-                  <Table2 className="w-4 h-4" />
-                  جدول
-                </Button>
+              {/* View Mode & Advanced Filters Toggle */}
+              <div className="flex flex-wrap items-center justify-between gap-2 mt-4">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={viewMode === "cards" ? "default" : "outline"}
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => setViewMode("cards")}
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                    كروت
+                  </Button>
+                  <Button
+                    variant={viewMode === "table" ? "default" : "outline"}
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => setViewMode("table")}
+                  >
+                    <Table2 className="w-4 h-4" />
+                    جدول
+                  </Button>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {/* Compare button */}
+                  {compareServices.length > 0 && (
+                    <Sheet open={showCompareSheet} onOpenChange={setShowCompareSheet}>
+                      <SheetTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-2">
+                          <GitCompare className="w-4 h-4" />
+                          مقارنة ({compareServices.length})
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent side="bottom" className="h-[80vh]">
+                        <SheetHeader>
+                          <SheetTitle className="flex items-center gap-2">
+                            <GitCompare className="w-5 h-5 text-primary" />
+                            مقارنة الخدمات
+                          </SheetTitle>
+                        </SheetHeader>
+                        <div className="mt-6 overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="text-right min-w-[150px]">الخاصية</TableHead>
+                                {compareServices.map(service => (
+                                  <TableHead key={service.id} className="text-center min-w-[200px]">
+                                    <div className="flex flex-col items-center gap-2">
+                                      <span className="line-clamp-2">{service.name}</span>
+                                      <Button variant="ghost" size="sm" className="h-6 text-destructive" onClick={() => toggleCompare(service)}>
+                                        <X className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  </TableHead>
+                                ))}
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              <TableRow>
+                                <TableCell className="font-medium">السعر لكل 1000</TableCell>
+                                {compareServices.map(s => (
+                                  <TableCell key={s.id} className="text-center font-bold text-primary">${s.price.toFixed(4)}</TableCell>
+                                ))}
+                              </TableRow>
+                              <TableRow>
+                                <TableCell className="font-medium">الحد الأدنى</TableCell>
+                                {compareServices.map(s => (
+                                  <TableCell key={s.id} className="text-center">{s.features?.min || 10}</TableCell>
+                                ))}
+                              </TableRow>
+                              <TableRow>
+                                <TableCell className="font-medium">الحد الأقصى</TableCell>
+                                {compareServices.map(s => (
+                                  <TableCell key={s.id} className="text-center">{s.features?.max || "∞"}</TableCell>
+                                ))}
+                              </TableRow>
+                              <TableRow>
+                                <TableCell className="font-medium">الضمان</TableCell>
+                                {compareServices.map(s => (
+                                  <TableCell key={s.id} className="text-center">
+                                    {s.refill_enabled ? (
+                                      <Badge className="bg-success/10 text-success border-success/20"><CheckCircle2 className="w-3 h-3 ml-1" />مضمون</Badge>
+                                    ) : (
+                                      <Badge variant="secondary"><XCircle className="w-3 h-3 ml-1" />غير مضمون</Badge>
+                                    )}
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                              <TableRow>
+                                <TableCell className="font-medium">القسم</TableCell>
+                                {compareServices.map(s => (
+                                  <TableCell key={s.id} className="text-center text-muted-foreground text-sm">{s.category}</TableCell>
+                                ))}
+                              </TableRow>
+                              <TableRow>
+                                <TableCell className="font-medium">طلب</TableCell>
+                                {compareServices.map(s => (
+                                  <TableCell key={s.id} className="text-center">
+                                    <Button size="sm" className="gap-2" onClick={() => { setSelectedCategory(s.category); setSelectedService(s); setShowCompareSheet(false); }}>
+                                      <ShoppingCart className="w-4 h-4" />
+                                      اطلب الآن
+                                    </Button>
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+                  )}
+                  
+                  {/* Advanced filters button */}
+                  <Popover open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-2">
+                        <SlidersHorizontal className="w-4 h-4" />
+                        فلترة متقدمة
+                        {(filterGuaranteed !== null || priceRange[0] > 0 || priceRange[1] < maxServicePrice) && (
+                          <Badge className="h-5 w-5 p-0 flex items-center justify-center text-[10px]">!</Badge>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80" align="end">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium flex items-center gap-2">
+                            <Filter className="w-4 h-4 text-primary" />
+                            الفلاتر المتقدمة
+                          </h4>
+                          <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={resetFilters}>
+                            <RotateCcw className="w-3 h-3" />
+                            إعادة تعيين
+                          </Button>
+                        </div>
+                        
+                        {/* Price Range */}
+                        <div className="space-y-2">
+                          <Label className="text-sm">نطاق السعر</Label>
+                          <div className="pt-2">
+                            <Slider
+                              value={priceRange}
+                              onValueChange={(value) => setPriceRange(value as [number, number])}
+                              max={maxServicePrice}
+                              min={0}
+                              step={0.1}
+                              className="w-full"
+                            />
+                          </div>
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>${priceRange[0].toFixed(2)}</span>
+                            <span>${priceRange[1].toFixed(2)}</span>
+                          </div>
+                        </div>
+                        
+                        {/* Guarantee filter */}
+                        <div className="space-y-2">
+                          <Label className="text-sm">الضمان</Label>
+                          <div className="flex gap-2">
+                            <Button
+                              variant={filterGuaranteed === null ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setFilterGuaranteed(null)}
+                            >
+                              الكل
+                            </Button>
+                            <Button
+                              variant={filterGuaranteed === true ? "default" : "outline"}
+                              size="sm"
+                              className="gap-1"
+                              onClick={() => setFilterGuaranteed(true)}
+                            >
+                              <CheckCircle2 className="w-3 h-3" />
+                              مضمون
+                            </Button>
+                            <Button
+                              variant={filterGuaranteed === false ? "default" : "outline"}
+                              size="sm"
+                              className="gap-1"
+                              onClick={() => setFilterGuaranteed(false)}
+                            >
+                              <XCircle className="w-3 h-3" />
+                              غير مضمون
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {/* Sort */}
+                        <div className="space-y-2">
+                          <Label className="text-sm">الترتيب حسب</Label>
+                          <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
+                            <SelectTrigger className="h-9">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="name">الاسم</SelectItem>
+                              <SelectItem value="price">السعر</SelectItem>
+                              <SelectItem value="refill">الضمان</SelectItem>
+                              <SelectItem value="min">الحد الأدنى</SelectItem>
+                              <SelectItem value="max">الحد الأقصى</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <div className="flex gap-2">
+                            <Button
+                              variant={sortDirection === "asc" ? "default" : "outline"}
+                              size="sm"
+                              className="flex-1 gap-1"
+                              onClick={() => setSortDirection("asc")}
+                            >
+                              <ArrowUp className="w-3 h-3" />
+                              تصاعدي
+                            </Button>
+                            <Button
+                              variant={sortDirection === "desc" ? "default" : "outline"}
+                              size="sm"
+                              className="flex-1 gap-1"
+                              onClick={() => setSortDirection("desc")}
+                            >
+                              <ArrowDown className="w-3 h-3" />
+                              تنازلي
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
 
               <TabsContent value="new-order" className="mt-4">
@@ -548,6 +897,76 @@ const ClientServicesNew = () => {
                 </Card>
               </TabsContent>
 
+              {/* Quick Reorder Tab */}
+              <TabsContent value="quick-reorder" className="mt-4">
+                <Card className="border-border/40 bg-card/80">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Repeat className="w-5 h-5 text-primary" />
+                      إعادة الطلب السريع
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    {recentOrders.length === 0 ? (
+                      <div className="py-12 text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                          <History className="w-8 h-8 text-muted-foreground/40" />
+                        </div>
+                        <p className="text-muted-foreground">لا توجد طلبات سابقة</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {recentOrders.map((order, i) => (
+                          <motion.div
+                            key={order.id}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.05 }}
+                            className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
+                          >
+                            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                              <Package className="w-6 h-6 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">{order.service?.name || "خدمة محذوفة"}</p>
+                              <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                                <span>{order.order_number}</span>
+                                <span>•</span>
+                                <span>{order.quantity} وحدة</span>
+                                <span>•</span>
+                                <span>${order.total_price.toFixed(2)}</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-1 truncate" dir="ltr">{order.link}</p>
+                            </div>
+                            <div className="flex flex-col items-end gap-2 shrink-0">
+                              <Badge variant={
+                                order.status === "completed" ? "default" :
+                                order.status === "cancelled" ? "destructive" :
+                                "secondary"
+                              } className="text-[10px]">
+                                {order.status === "completed" ? "مكتمل" :
+                                 order.status === "pending" ? "قيد الانتظار" :
+                                 order.status === "in_progress" ? "قيد التنفيذ" :
+                                 order.status === "cancelled" ? "ملغي" : order.status}
+                              </Badge>
+                              <Button
+                                size="sm"
+                                className="gap-1.5"
+                                onClick={() => handleQuickReorder(order)}
+                                disabled={!order.service}
+                              >
+                                <RefreshCw className="w-3.5 h-3.5" />
+                                إعادة الطلب
+                              </Button>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
               <TabsContent value="subscriptions" className="mt-4">
                 <Card className="border-border/40 bg-card/80"><CardContent className="py-16 text-center"><div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4"><Zap className="w-8 h-8 text-muted-foreground/40" /></div><p className="text-muted-foreground">لا توجد اشتراكات حالياً</p></CardContent></Card>
               </TabsContent>
@@ -652,24 +1071,58 @@ const ClientServicesNew = () => {
                         <Table>
                           <TableHeader className="sticky top-0 bg-card z-10">
                             <TableRow className="border-border/40 hover:bg-transparent">
+                              <TableHead className="text-center w-[50px]">
+                                <Checkbox
+                                  checked={filteredServices.length > 0 && compareServices.length === filteredServices.length}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setCompareServices(filteredServices.slice(0, 4));
+                                    } else {
+                                      setCompareServices([]);
+                                    }
+                                  }}
+                                />
+                              </TableHead>
                               <TableHead className="text-right w-[80px]">رقم</TableHead>
-                              <TableHead className="text-right">الخدمة</TableHead>
-                              <TableHead className="text-center w-[100px]">السعر/1000</TableHead>
-                              <TableHead className="text-center w-[80px]">الحد الأدنى</TableHead>
-                              <TableHead className="text-center w-[80px]">الحد الأقصى</TableHead>
-                              <TableHead className="text-center w-[100px]">الضمان</TableHead>
+                              <TableHead className="text-right">
+                                <button className="flex items-center gap-1 hover:text-primary transition-colors" onClick={() => toggleSort("name")}>
+                                  الخدمة {getSortIcon("name")}
+                                </button>
+                              </TableHead>
+                              <TableHead className="text-center w-[100px]">
+                                <button className="flex items-center gap-1 justify-center hover:text-primary transition-colors" onClick={() => toggleSort("price")}>
+                                  السعر/1000 {getSortIcon("price")}
+                                </button>
+                              </TableHead>
+                              <TableHead className="text-center w-[80px]">
+                                <button className="flex items-center gap-1 justify-center hover:text-primary transition-colors" onClick={() => toggleSort("min")}>
+                                  الحد الأدنى {getSortIcon("min")}
+                                </button>
+                              </TableHead>
+                              <TableHead className="text-center w-[80px]">
+                                <button className="flex items-center gap-1 justify-center hover:text-primary transition-colors" onClick={() => toggleSort("max")}>
+                                  الحد الأقصى {getSortIcon("max")}
+                                </button>
+                              </TableHead>
+                              <TableHead className="text-center w-[100px]">
+                                <button className="flex items-center gap-1 justify-center hover:text-primary transition-colors" onClick={() => toggleSort("refill")}>
+                                  الضمان {getSortIcon("refill")}
+                                </button>
+                              </TableHead>
                               <TableHead className="text-center w-[100px]">إجراءات</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {filteredServices.length === 0 ? (
                               <TableRow>
-                                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                                <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                                   لا توجد خدمات مطابقة للبحث
                                 </TableCell>
                               </TableRow>
                             ) : (
-                              filteredServices.map((service, i) => (
+                              filteredServices.map((service, i) => {
+                                const isInCompare = compareServices.some(s => s.id === service.id);
+                                return (
                                 <motion.tr
                                   key={service.id}
                                   initial={{ opacity: 0, y: 10 }}
@@ -677,10 +1130,17 @@ const ClientServicesNew = () => {
                                   transition={{ delay: i * 0.02 }}
                                   className={cn(
                                     "border-border/40 hover:bg-muted/30 cursor-pointer transition-colors",
-                                    selectedService?.id === service.id && "bg-primary/5 hover:bg-primary/10"
+                                    selectedService?.id === service.id && "bg-primary/5 hover:bg-primary/10",
+                                    isInCompare && "bg-amber-500/5"
                                   )}
                                   onClick={() => setSelectedService(service)}
                                 >
+                                  <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                                    <Checkbox
+                                      checked={isInCompare}
+                                      onCheckedChange={() => toggleCompare(service)}
+                                    />
+                                  </TableCell>
                                   <TableCell className="font-mono text-xs text-muted-foreground">
                                     #{service.external_service_id}
                                   </TableCell>
@@ -731,7 +1191,7 @@ const ClientServicesNew = () => {
                                     </div>
                                   </TableCell>
                                 </motion.tr>
-                              ))
+                              )})
                             )}
                           </TableBody>
                         </Table>
