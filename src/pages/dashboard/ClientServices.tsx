@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, 
@@ -17,7 +17,8 @@ import {
   DollarSign,
   Info,
   RefreshCw,
-  Eye
+  Eye,
+  ChevronUp
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -74,6 +75,8 @@ interface Category {
   color: string | null;
 }
 
+const ITEMS_PER_PAGE = 20;
+
 const ClientServices = () => {
   const { user } = useAuth();
   const { favorites, toggleFavorite } = useFavorites();
@@ -87,10 +90,28 @@ const ClientServices = () => {
   const [isDetailsSheetOpen, setIsDetailsSheetOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [visibleCategoryItems, setVisibleCategoryItems] = useState<Record<string, number>>({});
+  const [loadingMore, setLoadingMore] = useState<string | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const observerRefs = useRef<Record<string, IntersectionObserver>>({});
+  const loadMoreRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const handleViewDetails = (service: Service) => {
     setSelectedService(service);
     setIsDetailsSheetOpen(true);
+  };
+
+  // Scroll to top button visibility
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 500);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -243,6 +264,41 @@ const ClientServices = () => {
     });
     return groups;
   }, [filteredServices]);
+
+  // Initialize visible items per category
+  useEffect(() => {
+    const initialVisible: Record<string, number> = {};
+    Object.keys(groupedServices).forEach(category => {
+      if (!visibleCategoryItems[category]) {
+        initialVisible[category] = ITEMS_PER_PAGE;
+      }
+    });
+    if (Object.keys(initialVisible).length > 0) {
+      setVisibleCategoryItems(prev => ({ ...prev, ...initialVisible }));
+    }
+  }, [groupedServices]);
+
+  const loadMoreItems = useCallback((category: string) => {
+    setLoadingMore(category);
+    // Simulate slight delay for smooth UX
+    setTimeout(() => {
+      setVisibleCategoryItems(prev => ({
+        ...prev,
+        [category]: (prev[category] || ITEMS_PER_PAGE) + ITEMS_PER_PAGE
+      }));
+      setLoadingMore(null);
+    }, 300);
+  }, []);
+
+  const getVisibleServices = useCallback((category: string, allServices: Service[]) => {
+    const visibleCount = visibleCategoryItems[category] || ITEMS_PER_PAGE;
+    return allServices.slice(0, visibleCount);
+  }, [visibleCategoryItems]);
+
+  const hasMoreItems = useCallback((category: string, allServices: Service[]) => {
+    const visibleCount = visibleCategoryItems[category] || ITEMS_PER_PAGE;
+    return allServices.length > visibleCount;
+  }, [visibleCategoryItems]);
 
   const toggleCategory = (category: string) => {
     setExpandedCategories(prev => {
@@ -491,12 +547,12 @@ const ClientServices = () => {
                         <div className="border-t border-border/50">
                         {/* Services List - RTL Layout: ID Right, Name Center, Price Left */}
                           <div className="divide-y divide-border/50">
-                            {categoryServices.map((service, index) => (
+                            {getVisibleServices(category, categoryServices).map((service, index) => (
                               <motion.div
                                 key={service.id}
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: index * 0.02 }}
+                                transition={{ delay: Math.min(index * 0.01, 0.2) }}
                                 className="group hover:bg-primary/5 transition-all duration-200 cursor-pointer"
                                 onClick={() => handleViewDetails(service)}
                               >
@@ -572,6 +628,33 @@ const ClientServices = () => {
                               </motion.div>
                             ))}
                           </div>
+                          
+                          {/* Load More Button */}
+                          {hasMoreItems(category, categoryServices) && (
+                            <div className="p-4 border-t border-border/50">
+                              <Button
+                                variant="outline"
+                                className="w-full gap-2 rounded-xl"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  loadMoreItems(category);
+                                }}
+                                disabled={loadingMore === category}
+                              >
+                                {loadingMore === category ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    جاري التحميل...
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronDown className="w-4 h-4" />
+                                    تحميل المزيد ({categoryServices.length - (visibleCategoryItems[category] || ITEMS_PER_PAGE)} متبقي)
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </CollapsibleContent>
                     </Card>
@@ -605,6 +688,26 @@ const ClientServices = () => {
           }}
           userId={user?.id || null}
         />
+
+        {/* Scroll to Top Button */}
+        <AnimatePresence>
+          {showScrollTop && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="fixed bottom-6 left-6 z-50"
+            >
+              <Button
+                size="icon"
+                className="h-12 w-12 rounded-full shadow-lg bg-primary hover:bg-primary/90"
+                onClick={scrollToTop}
+              >
+                <ChevronUp className="w-5 h-5" />
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </ClientDashboardLayout>
   );
