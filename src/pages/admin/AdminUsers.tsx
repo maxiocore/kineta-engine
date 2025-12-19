@@ -670,7 +670,7 @@ const AdminUsers = () => {
                             </TableCell>
                             <TableCell>
                               <span className="font-medium text-success">
-                                ${(user.total_spent || 0).toFixed(2)}
+                                {(user.total_spent || 0).toFixed(2)} ر.س
                               </span>
                             </TableCell>
                             <TableCell className="text-muted-foreground text-sm">
@@ -858,7 +858,7 @@ const AdminUsers = () => {
                   </div>
                   <div className="p-3 rounded-xl bg-muted/50 text-center">
                     <TrendingUp className="w-5 h-5 mx-auto mb-1 text-success" />
-                    <p className="text-xl font-bold text-success">${(selectedUser.total_spent || 0).toFixed(2)}</p>
+                    <p className="text-xl font-bold text-success">{(selectedUser.total_spent || 0).toFixed(2)} ر.س</p>
                     <p className="text-xs text-muted-foreground">إجمالي المشتريات</p>
                   </div>
                   <div className="p-3 rounded-xl bg-muted/50 text-center">

@@ -379,7 +379,7 @@ const AdminPaymentMethods = () => {
                         {method.extra_fee_value > 0 ? (
                           <span>
                             {method.extra_fee_value}
-                            {method.extra_fee_type === 'percentage' ? '%' : '$'}
+                            {method.extra_fee_type === 'percentage' ? '%' : ' ر.س'}
                           </span>
                         ) : (
                           <span className="text-muted-foreground">بدون رسوم</span>
@@ -387,7 +387,7 @@ const AdminPaymentMethods = () => {
                       </TableCell>
                       <TableCell>
                         <span className="text-sm">
-                          ${method.min_amount} - {method.max_amount ? `$${method.max_amount}` : '∞'}
+                          {method.min_amount} ر.س - {method.max_amount ? `${method.max_amount} ر.س` : '∞'}
                         </span>
                       </TableCell>
                       <TableCell>
@@ -445,11 +445,11 @@ const AdminPaymentMethods = () => {
                           {method ? method.name_ar : 'جميع الطرق'}
                         </TableCell>
                         <TableCell>
-                          ${bonus.min_amount} - {bonus.max_amount ? `$${bonus.max_amount}` : '∞'}
+                          {bonus.min_amount} ر.س - {bonus.max_amount ? `${bonus.max_amount} ر.س` : '∞'}
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="bg-success/10 text-success">
-                            +{bonus.bonus_value}{bonus.bonus_type === 'percentage' ? '%' : '$'}
+                            +{bonus.bonus_value}{bonus.bonus_type === 'percentage' ? '%' : ' ر.س'}
                           </Badge>
                         </TableCell>
                         <TableCell>

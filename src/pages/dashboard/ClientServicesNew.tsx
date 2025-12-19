@@ -486,7 +486,7 @@ const ClientServicesNew = () => {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
                 >
-                  ${(userBalance?.balance || 0).toFixed(2)}
+                  {(userBalance?.balance || 0).toFixed(2)} ر.س
                 </motion.p>
               </CardContent>
             </Card>
@@ -530,7 +530,7 @@ const ClientServicesNew = () => {
                 >
                   {userPoints?.available_points || 0}
                 </motion.p>
-                <p className="text-xs text-muted-foreground mt-1">≈ ${((userPoints?.available_points || 0) * 0.01).toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground mt-1">≈ {((userPoints?.available_points || 0) * 0.01).toFixed(2)} ر.س</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -829,7 +829,7 @@ const ClientServicesNew = () => {
                               <TableRow>
                                 <TableCell className="font-medium">السعر لكل 1000</TableCell>
                                 {compareServices.map(s => (
-                                  <TableCell key={s.id} className="text-center font-bold text-primary">${s.price.toFixed(4)}</TableCell>
+                                  <TableCell key={s.id} className="text-center font-bold text-primary">{s.price.toFixed(4)} ر.س</TableCell>
                                 ))}
                               </TableRow>
                               <TableRow>
@@ -930,8 +930,8 @@ const ClientServicesNew = () => {
                             />
                           </div>
                           <div className="flex justify-between text-xs text-muted-foreground">
-                            <span>${priceRange[0].toFixed(2)}</span>
-                            <span>${priceRange[1].toFixed(2)}</span>
+                            <span>{priceRange[0].toFixed(2)} ر.س</span>
+                            <span>{priceRange[1].toFixed(2)} ر.س</span>
                           </div>
                         </div>
                         
@@ -1122,7 +1122,7 @@ const ClientServicesNew = () => {
                                   #{selectedService.external_service_id}
                                 </Badge>
                                 <span className="truncate text-sm">{selectedService.name}</span>
-                                <span className="text-primary font-bold text-xs shrink-0 mr-auto">${selectedService.price.toFixed(2)}</span>
+                                <span className="text-primary font-bold text-xs shrink-0 mr-auto">{selectedService.price.toFixed(2)} ر.س</span>
                               </div>
                             )}
                           </SelectValue>
@@ -1177,7 +1177,7 @@ const ClientServicesNew = () => {
                                       </div>
                                       {/* Price and Details Row */}
                                       <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-xs flex-row-reverse">
-                                        <span className="text-primary font-bold">${service.price.toFixed(4)}</span>
+                                        <span className="text-primary font-bold">{service.price.toFixed(4)} ر.س</span>
                                         <span className="text-muted-foreground">
                                           الحد: {service.features?.min || 10} - {service.features?.max || "∞"}
                                         </span>
@@ -1244,7 +1244,7 @@ const ClientServicesNew = () => {
                               <div className="text-right sm:text-left shrink-0 order-1 sm:order-2 flex items-center sm:flex-col gap-2 sm:gap-0 justify-between sm:justify-start border-b sm:border-0 pb-2 sm:pb-0 mb-0">
                                 <span className="text-xs text-muted-foreground sm:hidden">السعر:</span>
                                 <div>
-                                  <p className="text-lg sm:text-xl font-bold text-primary">${selectedService.price.toFixed(4)}</p>
+                                  <p className="text-lg sm:text-xl font-bold text-primary">{selectedService.price.toFixed(4)} ر.س</p>
                                   <p className="text-[10px] text-muted-foreground text-left hidden sm:block">لكل 1000</p>
                                 </div>
                               </div>
@@ -1400,7 +1400,7 @@ const ClientServicesNew = () => {
                         />
                         {selectedService && quantity && parseInt(quantity) > 0 && (
                           <div className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-muted-foreground bg-background/80 px-1 rounded">
-                            ≈ ${((selectedService.price / 1000) * parseInt(quantity || "0")).toFixed(2)}
+                            ≈ {((selectedService.price / 1000) * parseInt(quantity || "0")).toFixed(2)} ر.س
                           </div>
                         )}
                       </div>
@@ -1453,8 +1453,7 @@ const ClientServicesNew = () => {
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs sm:text-sm text-muted-foreground">المبلغ الإجمالي</span>
                         <div className="text-left">
-                          <p className="text-xl sm:text-2xl font-bold text-primary">${totalPrice.toFixed(4)}</p>
-                          <p className="text-[10px] sm:text-xs text-muted-foreground">≈ {(totalPrice * 3.75).toFixed(2)} ر.س</p>
+                          <p className="text-xl sm:text-2xl font-bold text-primary">{totalPrice.toFixed(4)} ر.س</p>
                         </div>
                       </div>
                       
@@ -1469,12 +1468,12 @@ const ClientServicesNew = () => {
                           {userBalance.balance >= totalPrice ? (
                             <>
                               <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                              <span>رصيدك كافي (${userBalance.balance.toFixed(2)})</span>
+                              <span>رصيدك كافي ({userBalance.balance.toFixed(2)} ر.س)</span>
                             </>
                           ) : (
                             <>
                               <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                              <span className="break-words">رصيدك غير كافي - تحتاج ${(totalPrice - userBalance.balance).toFixed(2)} إضافية</span>
+                              <span className="break-words">رصيدك غير كافي - تحتاج {(totalPrice - userBalance.balance).toFixed(2)} ر.س إضافية</span>
                             </>
                           )}
                         </div>
@@ -1504,7 +1503,7 @@ const ClientServicesNew = () => {
                       ) : (
                         <>
                           <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
-                          <span className="text-sm sm:text-lg">إرسال الطلب - ${totalPrice.toFixed(2)}</span>
+                          <span className="text-sm sm:text-lg">إرسال الطلب - {totalPrice.toFixed(2)} ر.س</span>
                         </>
                       )}
                     </Button>
@@ -1549,7 +1548,7 @@ const ClientServicesNew = () => {
                                 <span>•</span>
                                 <span>{order.quantity} وحدة</span>
                                 <span>•</span>
-                                <span>${order.total_price.toFixed(2)}</span>
+                                <span>{order.total_price.toFixed(2)} ر.س</span>
                               </div>
                               <p className="text-xs text-muted-foreground mt-1 truncate" dir="ltr">{order.link}</p>
                             </div>

@@ -504,7 +504,7 @@ const CategoryDetails = () => {
                             <div className="text-right">
                               <p className="text-xs text-muted-foreground">السعر لكل 1000</p>
                               <p className="text-xl font-bold text-primary">
-                                ${service.price.toFixed(2)}
+                                {service.price.toFixed(2)} ر.س
                               </p>
                             </div>
                             <Button 

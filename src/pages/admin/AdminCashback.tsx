@@ -244,21 +244,21 @@ const AdminCashback = () => {
               value: stats?.totalEarned || 0,
               icon: TrendingUp,
               color: "from-green-500 to-emerald-500",
-              suffix: "$",
+              suffix: " ر.س",
             },
             {
               title: "إجمالي المسحوب",
               value: stats?.totalWithdrawn || 0,
               icon: ArrowDownToLine,
               color: "from-purple-500 to-pink-500",
-              suffix: "$",
+              suffix: " ر.س",
             },
             {
               title: "الرصيد المتاح",
               value: stats?.totalBalance || 0,
               icon: Coins,
               color: "from-amber-500 to-orange-500",
-              suffix: "$",
+              suffix: " ر.س",
             },
           ].map((stat, i) => (
             <motion.div

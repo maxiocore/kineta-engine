@@ -556,8 +556,8 @@ const AdminReferrals = () => {
           {[
             { label: "إجمالي الإحالات", value: stats.totalReferrals, icon: Users, gradient: "from-primary to-cyan-400", change: `${stats.conversionRate.toFixed(0)}% معدل التحويل` },
             { label: "إحالات مفعّلة", value: stats.activeReferrals, icon: UserPlus, gradient: "from-success to-emerald-400", change: `+${stats.activeReferrals} هذا الشهر` },
-            { label: "عمولات معلقة", value: `$${stats.pendingCommissions.toFixed(2)}`, icon: Clock, gradient: "from-warning to-orange-400", change: `${commissions.filter(c => c.status === 'pending').length} عمولة` },
-            { label: "إجمالي العمولات", value: `$${stats.totalCommissions.toFixed(2)}`, icon: DollarSign, gradient: "from-accent to-pink-400", change: `$${stats.averageCommission.toFixed(2)} متوسط` },
+            { label: "عمولات معلقة", value: `${stats.pendingCommissions.toFixed(2)} ر.س`, icon: Clock, gradient: "from-warning to-orange-400", change: `${commissions.filter(c => c.status === 'pending').length} عمولة` },
+            { label: "إجمالي العمولات", value: `${stats.totalCommissions.toFixed(2)} ر.س`, icon: DollarSign, gradient: "from-accent to-pink-400", change: `${stats.averageCommission.toFixed(2)} ر.س متوسط` },
           ].map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -767,7 +767,7 @@ const AdminReferrals = () => {
                               <td className="py-3 px-4 text-sm">{referral.referred_email}</td>
                               <td className="py-3 px-4 text-sm">{referral.commission_rate}%</td>
                               <td className="py-3 px-4 text-sm font-bold text-success">
-                                ${referral.total_commission.toFixed(2)}
+                                {referral.total_commission.toFixed(2)} ر.س
                               </td>
                               <td className="py-3 px-4 text-sm text-muted-foreground">
                                 {format(new Date(referral.created_at), "d MMM yyyy", { locale: ar })}
@@ -835,11 +835,11 @@ const AdminReferrals = () => {
                                 </code>
                               </td>
                               <td className="py-3 px-4 text-sm font-medium">
-                                ${commission.order_amount.toFixed(2)}
+                                {commission.order_amount.toFixed(2)} ر.س
                               </td>
                               <td className="py-3 px-4 text-sm">{commission.commission_rate}%</td>
                               <td className="py-3 px-4 text-sm font-bold text-success">
-                                +${commission.commission_amount.toFixed(2)}
+                                +{commission.commission_amount.toFixed(2)} ر.س
                               </td>
                               <td className="py-3 px-4 text-sm text-muted-foreground">
                                 {format(new Date(commission.created_at), "d MMM yyyy", { locale: ar })}

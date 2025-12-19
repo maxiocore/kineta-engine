@@ -393,9 +393,8 @@ const AdminPriceComparison = () => {
                                 )}
                               </div>
                               <div className="flex items-center gap-2">
-                                <DollarSign className="w-4 h-4 text-muted-foreground" />
                                 <span className="text-xl font-bold">
-                                  ${service.price.toFixed(4)}
+                                  {service.price.toFixed(4)} ر.س
                                 </span>
                               </div>
                               {!isLowest && group.services.length > 1 && (
@@ -409,9 +408,9 @@ const AdminPriceComparison = () => {
                     </div>
                     
                     <div className="mt-4 pt-4 border-t border-border flex flex-wrap gap-4 text-sm text-muted-foreground">
-                      <span>الأقل: <span className="text-success font-medium">${group.minPrice.toFixed(4)}</span></span>
-                      <span>الأعلى: <span className="text-destructive font-medium">${group.maxPrice.toFixed(4)}</span></span>
-                      <span>المتوسط: <span className="font-medium">${group.avgPrice.toFixed(4)}</span></span>
+                      <span>الأقل: <span className="text-success font-medium">{group.minPrice.toFixed(4)} ر.س</span></span>
+                      <span>الأعلى: <span className="text-destructive font-medium">{group.maxPrice.toFixed(4)} ر.س</span></span>
+                      <span>المتوسط: <span className="font-medium">{group.avgPrice.toFixed(4)} ر.س</span></span>
                     </div>
                   </CardContent>
                 </Card>

@@ -282,7 +282,7 @@ const TrackOrder = () => {
                       <div className="p-3 rounded-lg bg-secondary/50 text-center">
                         <DollarSign className="w-5 h-5 mx-auto mb-1 text-success" />
                         <p className="text-xs text-muted-foreground">الإجمالي</p>
-                        <p className="font-medium text-sm">${orderData.totalPrice?.toFixed(2)}</p>
+                        <p className="font-medium text-sm">{orderData.totalPrice?.toFixed(2)} ر.س</p>
                       </div>
                       <div className="p-3 rounded-lg bg-secondary/50 text-center">
                         <Calendar className="w-5 h-5 mx-auto mb-1 text-warning" />

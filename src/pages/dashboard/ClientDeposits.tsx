@@ -303,7 +303,7 @@ const ClientDeposits = () => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">إجمالي المودع</p>
-                    <p className="text-xl font-bold text-primary">${stats.totalDeposited.toFixed(2)}</p>
+                    <p className="text-xl font-bold text-primary">{stats.totalDeposited.toFixed(2)} ر.س</p>
                   </div>
                 </div>
               </CardContent>
@@ -421,7 +421,7 @@ const ClientDeposits = () => {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-bold text-lg">${deposit.amount.toFixed(2)}</span>
+                              <span className="font-bold text-lg">{deposit.amount.toFixed(2)} ر.س</span>
                               <Badge variant="outline" className={status.color}>
                                 {status.label}
                               </Badge>
@@ -446,17 +446,17 @@ const ClientDeposits = () => {
                           <div className="text-left">
                             {deposit.fee_amount && deposit.fee_amount > 0 && (
                               <p className="text-xs text-destructive">
-                                - ${deposit.fee_amount.toFixed(2)} رسوم
+                                - {deposit.fee_amount.toFixed(2)} ر.س رسوم
                               </p>
                             )}
                             {deposit.bonus_amount && deposit.bonus_amount > 0 && (
                               <p className="text-xs text-success flex items-center gap-1">
                                 <Gift className="w-3 h-3" />
-                                + ${deposit.bonus_amount.toFixed(2)} بونص
+                                + {deposit.bonus_amount.toFixed(2)} ر.س بونص
                               </p>
                             )}
                             <p className="font-bold text-primary mt-1">
-                              ${deposit.total_credited.toFixed(2)} <span className="text-xs font-normal text-muted-foreground">سيضاف</span>
+                              {deposit.total_credited.toFixed(2)} ر.س <span className="text-xs font-normal text-muted-foreground">سيضاف</span>
                             </p>
                           </div>
                           {deposit.status === 'completed' && deposit.completed_at && (
