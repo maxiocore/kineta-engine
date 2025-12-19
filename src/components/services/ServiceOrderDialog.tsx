@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,13 +20,18 @@ import {
   TrendingUp,
   DollarSign,
   Minus,
-  Plus
+  Plus,
+  Shield,
+  Zap,
+  RefreshCw,
+  Info,
+  Hash,
+  Star,
+  ArrowLeft
 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +39,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
-import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Form,
@@ -51,12 +55,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import {
   Collapsible,
   CollapsibleContent,
@@ -112,6 +110,7 @@ interface ServiceOrderDialogProps {
   onOpenChange: (open: boolean) => void;
   userId: string | null;
 }
+
 // Quantity presets
 const quantityPresets = [100, 500, 1000, 5000, 10000, 50000];
 
@@ -147,6 +146,85 @@ const AnimatedNumber = ({ value, className }: { value: number; className?: strin
   );
 };
 
+// Category emoji helper
+const getCategoryEmoji = (slug: string) => {
+  const emojiMap: Record<string, string> = {
+    'instagram': '📷',
+    'facebook': '👤',
+    'youtube': '▶️',
+    'twitter': '🐦',
+    'tiktok': '🎵',
+    'telegram': '✈️',
+    'linkedin': '💼',
+    'spotify': '🎧',
+    'soundcloud': '☁️',
+    'website-traffic': '🌐',
+    'other': '⚡'
+  };
+  return emojiMap[slug] || '📦';
+};
+
+// Step indicator component
+const StepIndicator = ({ step, title, active, completed }: { step: number; title: string; active: boolean; completed: boolean }) => (
+  <motion.div 
+    className={cn(
+      "flex items-center gap-3 p-3 rounded-2xl transition-all duration-300",
+      active && "bg-primary/10 border border-primary/30",
+      completed && !active && "opacity-60"
+    )}
+    initial={false}
+    animate={{ scale: active ? 1 : 0.98 }}
+  >
+    <motion.div 
+      className={cn(
+        "w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition-all duration-300",
+        active && "bg-primary text-primary-foreground shadow-lg shadow-primary/30",
+        completed && !active && "bg-success/20 text-success",
+        !active && !completed && "bg-secondary text-muted-foreground"
+      )}
+      animate={{ 
+        scale: active ? [1, 1.1, 1] : 1,
+      }}
+      transition={{ duration: 0.3 }}
+    >
+      {completed && !active ? <Check className="w-5 h-5" /> : step}
+    </motion.div>
+    <span className={cn(
+      "text-sm font-medium transition-colors",
+      active && "text-foreground",
+      !active && "text-muted-foreground"
+    )}>
+      {title}
+    </span>
+  </motion.div>
+);
+
+// Feature badge component
+const FeatureBadge = ({ icon: Icon, label, value, variant = "default" }: { 
+  icon: React.ElementType; 
+  label: string; 
+  value: string | number; 
+  variant?: "default" | "success" | "warning" | "info";
+}) => (
+  <motion.div 
+    className={cn(
+      "flex items-center gap-2 p-3 rounded-xl border transition-all",
+      variant === "success" && "bg-success/10 border-success/30 text-success",
+      variant === "warning" && "bg-warning/10 border-warning/30 text-warning",
+      variant === "info" && "bg-primary/10 border-primary/30 text-primary",
+      variant === "default" && "bg-secondary/50 border-border/50"
+    )}
+    whileHover={{ scale: 1.02, y: -2 }}
+    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+  >
+    <Icon className="w-4 h-4 shrink-0" />
+    <div className="flex flex-col text-right">
+      <span className="text-[10px] opacity-70">{label}</span>
+      <span className="text-xs font-bold">{value}</span>
+    </div>
+  </motion.div>
+);
+
 const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrderDialogProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
@@ -154,6 +232,7 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
   
   // Category & Service selection states
   const [categories, setCategories] = useState<Category[]>([]);
@@ -173,11 +252,26 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
   });
 
   const quantity = form.watch("quantity");
+  const link = form.watch("link");
+
+  // Update current step based on selections
+  useEffect(() => {
+    if (selectedServiceId) {
+      if (link) {
+        setCurrentStep(4);
+      } else {
+        setCurrentStep(3);
+      }
+    } else if (selectedCategoryId) {
+      setCurrentStep(2);
+    } else {
+      setCurrentStep(1);
+    }
+  }, [selectedCategoryId, selectedServiceId, link]);
 
   // Fetch categories and all services
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch categories
       const { data: categoriesData } = await supabase
         .from("categories")
         .select("*")
@@ -188,7 +282,6 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
         setCategories(categoriesData);
       }
 
-      // Fetch all active services
       const { data: servicesData } = await supabase
         .from("services")
         .select("*")
@@ -348,7 +441,6 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
   const onSubmit = async (data: OrderFormData) => {
     if (!currentService || !userId) return;
 
-    // Validate quantity range
     if (data.quantity < minQuantity || data.quantity > maxQuantity) {
       toast.error(`الكمية يجب أن تكون بين ${minQuantity} و ${maxQuantity}`);
       return;
@@ -383,7 +475,6 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
         });
       }
 
-      // Send order to provider API
       const { error: apiError } = await supabase.functions.invoke('provider-order', {
         body: {
           orderId: orderData.id,
@@ -418,11 +509,11 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
     setAppliedCoupon(null);
     setCouponCode("");
     setServiceSearch("");
+    setCurrentStep(1);
     form.reset();
     onOpenChange(false);
   };
 
-  // Get service count per category
   const getServiceCount = (categoryId: string) => {
     return allServices.filter(s => s.category_id === categoryId).length;
   };
@@ -431,7 +522,10 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden p-0">
+      <DialogContent 
+        className="sm:max-w-2xl max-h-[95vh] overflow-hidden p-0 gap-0 rounded-3xl border-2 border-primary/20"
+        dir="rtl"
+      >
         <AnimatePresence mode="wait">
           {orderSuccess ? (
             <motion.div
@@ -439,32 +533,59 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="py-12 px-6 text-center"
+              className="py-16 px-8 text-center"
             >
               <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
-                className="w-24 h-24 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-6"
+                className="w-28 h-28 rounded-3xl bg-gradient-to-br from-success/30 to-success/10 flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-success/20"
               >
-                <CheckCircle className="w-12 h-12 text-success" />
+                <CheckCircle className="w-14 h-14 text-success" />
               </motion.div>
-              <h3 className="text-2xl font-bold mb-2">تم إنشاء الطلب بنجاح!</h3>
-              <p className="text-muted-foreground mb-2">
-                رقم الطلب: <span className="font-mono font-bold text-primary text-lg">{orderNumber}</span>
-              </p>
-              <p className="text-sm text-muted-foreground mb-6">
+              
+              <motion.h3 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-3xl font-bold mb-3"
+              >
+                تم إنشاء الطلب بنجاح! 🎉
+              </motion.h3>
+              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary/10 border border-primary/30 mb-6"
+              >
+                <Hash className="w-5 h-5 text-primary" />
+                <span className="text-xl font-mono font-bold text-primary">{orderNumber}</span>
+              </motion.div>
+              
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="text-muted-foreground mb-8"
+              >
                 يمكنك متابعة حالة طلبك من لوحة التحكم
-              </p>
-              <div className="flex gap-3 justify-center">
-                <Button onClick={handleClose} variant="outline">
+              </motion.p>
+              
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="flex gap-4 justify-center"
+              >
+                <Button onClick={handleClose} variant="outline" size="lg" className="rounded-xl px-8">
                   إغلاق
                 </Button>
-                <Button onClick={handleClose} className="gap-2">
-                  <Sparkles className="w-4 h-4" />
+                <Button onClick={handleClose} size="lg" className="rounded-xl px-8 gap-2 bg-gradient-to-l from-primary to-accent">
+                  <Sparkles className="w-5 h-5" />
                   متابعة الطلب
                 </Button>
-              </div>
+              </motion.div>
             </motion.div>
           ) : (
             <motion.div
@@ -474,123 +595,168 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
               exit={{ opacity: 0 }}
               className="flex flex-col h-full"
             >
-              {/* Header */}
-              <DialogHeader className="px-6 py-4 border-b border-border/50">
-                <DialogTitle className="flex items-center gap-2 text-xl">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <ShoppingCart className="w-5 h-5 text-primary" />
+              {/* Modern Header */}
+              <div className="relative px-6 py-5 border-b border-border/50 bg-gradient-to-l from-primary/5 via-transparent to-accent/5">
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-accent/10"
+                  animate={{ opacity: [0.3, 0.5, 0.3] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                />
+                <div className="relative flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <motion.div 
+                      className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-xl shadow-primary/30"
+                      whileHover={{ scale: 1.05, rotate: 5 }}
+                    >
+                      <ShoppingCart className="w-7 h-7 text-primary-foreground" />
+                    </motion.div>
+                    <div>
+                      <h2 className="text-xl font-bold">طلب جديد</h2>
+                      <p className="text-sm text-muted-foreground">اختر الخدمة وأكمل الطلب</p>
+                    </div>
                   </div>
-                  طلب جديد
-                </DialogTitle>
-              </DialogHeader>
+                  
+                  {/* Steps progress */}
+                  <div className="hidden sm:flex items-center gap-2">
+                    {[1, 2, 3, 4].map((step) => (
+                      <motion.div
+                        key={step}
+                        className={cn(
+                          "w-3 h-3 rounded-full transition-all",
+                          currentStep >= step 
+                            ? "bg-primary shadow-lg shadow-primary/30" 
+                            : "bg-secondary"
+                        )}
+                        animate={{ scale: currentStep === step ? [1, 1.2, 1] : 1 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
 
-              <ScrollArea className="flex-1 max-h-[calc(90vh-140px)]">
-                <div className="p-6 space-y-5">
+              <ScrollArea className="flex-1 max-h-[calc(95vh-180px)]">
+                <div className="p-6 space-y-6">
                   {/* Step 1: Category Selection */}
-                  <div className="space-y-3">
-                    <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
-                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">1</div>
-                      اختر القسم
-                    </label>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                  <motion.div 
+                    className="space-y-4"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                  >
+                    <StepIndicator step={1} title="اختر القسم" active={currentStep === 1} completed={currentStep > 1} />
+                    
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                       <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => setSelectedCategoryId("")}
                         className={cn(
-                          "p-3 rounded-xl border text-center transition-all",
+                          "p-4 rounded-2xl border-2 text-center transition-all relative overflow-hidden group",
                           !selectedCategoryId
-                            ? "border-primary bg-primary/10 text-primary"
+                            ? "border-primary bg-gradient-to-br from-primary/20 to-primary/5 shadow-lg shadow-primary/20"
                             : "border-border/50 hover:border-primary/50 hover:bg-secondary/50"
                         )}
                       >
-                        <Layers className="w-5 h-5 mx-auto mb-1" />
-                        <p className="text-xs font-medium">الكل</p>
-                        <p className="text-[10px] text-muted-foreground">{allServices.length}</p>
+                        <motion.div 
+                          className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+                        />
+                        <div className="relative">
+                          <div className="text-2xl mb-2">
+                            <Layers className="w-6 h-6 mx-auto" />
+                          </div>
+                          <p className="text-xs font-bold">الكل</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">{allServices.length} خدمة</p>
+                        </div>
                       </motion.button>
                       
-                      {categories.slice(0, 9).map((cat) => (
+                      {categories.slice(0, 9).map((cat, index) => (
                         <motion.button
                           key={cat.id}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.05 * index }}
+                          whileHover={{ scale: 1.05, y: -2 }}
+                          whileTap={{ scale: 0.95 }}
                           onClick={() => setSelectedCategoryId(cat.id)}
                           className={cn(
-                            "p-3 rounded-xl border text-center transition-all",
+                            "p-4 rounded-2xl border-2 text-center transition-all relative overflow-hidden group",
                             selectedCategoryId === cat.id
-                              ? "border-primary bg-primary/10 text-primary"
+                              ? "border-primary bg-gradient-to-br from-primary/20 to-primary/5 shadow-lg shadow-primary/20"
                               : "border-border/50 hover:border-primary/50 hover:bg-secondary/50"
                           )}
                         >
-                          <div className="text-lg mb-1">
-                            {cat.slug === 'instagram' && '📷'}
-                            {cat.slug === 'facebook' && '👤'}
-                            {cat.slug === 'youtube' && '▶️'}
-                            {cat.slug === 'twitter' && '🐦'}
-                            {cat.slug === 'tiktok' && '🎵'}
-                            {cat.slug === 'telegram' && '✈️'}
-                            {cat.slug === 'linkedin' && '💼'}
-                            {cat.slug === 'spotify' && '🎧'}
-                            {cat.slug === 'soundcloud' && '☁️'}
-                            {cat.slug === 'website-traffic' && '🌐'}
-                            {cat.slug === 'other' && '⚡'}
-                            {!['instagram', 'facebook', 'youtube', 'twitter', 'tiktok', 'telegram', 'linkedin', 'spotify', 'soundcloud', 'website-traffic', 'other'].includes(cat.slug) && '📦'}
+                          <motion.div 
+                            className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+                          />
+                          <div className="relative">
+                            <div className="text-2xl mb-2">{getCategoryEmoji(cat.slug)}</div>
+                            <p className="text-xs font-bold truncate">{cat.name_ar}</p>
+                            <p className="text-[10px] text-muted-foreground mt-1">{getServiceCount(cat.id)} خدمة</p>
                           </div>
-                          <p className="text-xs font-medium truncate">{cat.name_ar}</p>
-                          <p className="text-[10px] text-muted-foreground">{getServiceCount(cat.id)}</p>
                         </motion.button>
                       ))}
                     </div>
-                  </div>
+                  </motion.div>
 
                   {/* Step 2: Service Selection */}
-                  <div className="space-y-3">
-                    <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
-                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">2</div>
-                      اختر الخدمة
-                    </label>
+                  <motion.div 
+                    className="space-y-4"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <StepIndicator step={2} title="اختر الخدمة" active={currentStep === 2} completed={currentStep > 2} />
                     
                     {/* Service Search */}
                     <div className="relative">
-                      <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <Input
-                        placeholder="ابحث عن الخدمة..."
+                        placeholder="ابحث عن الخدمة بالاسم أو الرقم..."
                         value={serviceSearch}
                         onChange={(e) => setServiceSearch(e.target.value)}
-                        className="pr-10"
+                        className="h-12 pr-12 rounded-xl border-2 text-base"
                       />
                     </div>
 
                     {/* Service Select */}
                     <Select value={selectedServiceId} onValueChange={setSelectedServiceId}>
-                      <SelectTrigger className="w-full h-auto min-h-[48px] py-2">
-                        <SelectValue placeholder="اختر الخدمة...">
+                      <SelectTrigger className="w-full h-auto min-h-[60px] py-3 rounded-xl border-2">
+                        <SelectValue placeholder="اختر الخدمة المطلوبة...">
                           {currentService && (
-                            <div className="text-right">
-                              <p className="font-medium text-sm truncate">{currentService.name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                ${currentService.price.toFixed(4)}/1000 • ID: {currentService.external_service_id || 'N/A'}
-                              </p>
+                            <div className="text-right flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                                <Hash className="w-5 h-5 text-primary" />
+                              </div>
+                              <div className="flex-1 text-right">
+                                <p className="font-bold text-sm line-clamp-1">{currentService.name}</p>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                  <span className="text-primary font-bold">${currentService.price.toFixed(4)}/1000</span>
+                                  <span>•</span>
+                                  <span>#{currentService.external_service_id || 'N/A'}</span>
+                                </div>
+                              </div>
                             </div>
                           )}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent className="max-h-[300px]">
                         {filteredServices.length === 0 ? (
-                          <div className="py-4 text-center text-muted-foreground text-sm">
-                            لا توجد خدمات متاحة
+                          <div className="py-8 text-center text-muted-foreground">
+                            <Search className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                            <p className="text-sm">لا توجد خدمات متاحة</p>
                           </div>
                         ) : (
                           filteredServices.map((s) => {
                             const sFeatures = typeof s.features === 'string' ? JSON.parse(s.features || '{}') : (s.features || {});
                             return (
-                              <SelectItem key={s.id} value={s.id} className="py-2">
-                                <div className="flex flex-col gap-0.5">
-                                  <span className="font-medium text-sm">{s.name}</span>
+                              <SelectItem key={s.id} value={s.id} className="py-3">
+                                <div className="flex flex-col gap-1">
+                                  <span className="font-bold text-sm">{s.name}</span>
                                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <span>${s.price.toFixed(4)}/1000</span>
+                                    <span className="text-primary font-bold">${s.price.toFixed(4)}/1000</span>
                                     <span>•</span>
-                                    <span>{sFeatures.min || 10} - {sFeatures.max || '1M'}</span>
+                                    <span>{sFeatures.min || 10} - {(sFeatures.max || 1000000).toLocaleString()}</span>
                                     {s.external_service_id && (
                                       <>
                                         <span>•</span>
@@ -606,42 +772,55 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                       </SelectContent>
                     </Select>
 
-                    {/* Selected Service Quick Info */}
+                    {/* Selected Service Features */}
                     {currentService && (
-                      <div className="grid grid-cols-4 gap-2">
-                        <div className="p-2 rounded-lg bg-secondary/50 text-center">
-                          <p className="text-[10px] text-muted-foreground">السعر/1000</p>
-                          <p className="text-xs font-bold text-primary">${currentService.price.toFixed(4)}</p>
-                        </div>
-                        <div className="p-2 rounded-lg bg-secondary/50 text-center">
-                          <p className="text-[10px] text-muted-foreground">الأدنى</p>
-                          <p className="text-xs font-bold">{minQuantity.toLocaleString()}</p>
-                        </div>
-                        <div className="p-2 rounded-lg bg-secondary/50 text-center">
-                          <p className="text-[10px] text-muted-foreground">الأقصى</p>
-                          <p className="text-xs font-bold">{maxQuantity.toLocaleString()}</p>
-                        </div>
-                        <div className="p-2 rounded-lg bg-secondary/50 text-center">
-                          <p className="text-[10px] text-muted-foreground">ضمان</p>
-                          <p className={cn("text-xs font-bold", guaranteed ? "text-success" : "text-muted-foreground")}>
-                            {guaranteed ? "✓ نعم" : "✗ لا"}
-                          </p>
-                        </div>
-                      </div>
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="grid grid-cols-2 sm:grid-cols-4 gap-3"
+                      >
+                        <FeatureBadge 
+                          icon={DollarSign} 
+                          label="السعر/1000" 
+                          value={`$${currentService.price.toFixed(4)}`} 
+                          variant="info"
+                        />
+                        <FeatureBadge 
+                          icon={Zap} 
+                          label="الحد الأدنى" 
+                          value={minQuantity.toLocaleString()} 
+                          variant="default"
+                        />
+                        <FeatureBadge 
+                          icon={TrendingUp} 
+                          label="الحد الأقصى" 
+                          value={maxQuantity.toLocaleString()} 
+                          variant="default"
+                        />
+                        <FeatureBadge 
+                          icon={Shield} 
+                          label="ضمان التعويض" 
+                          value={guaranteed ? "✓ مضمون" : "✗ غير مضمون"} 
+                          variant={guaranteed ? "success" : "warning"}
+                        />
+                      </motion.div>
                     )}
-                  </div>
+                  </motion.div>
 
-                  <Separator />
+                  <Separator className="my-2" />
 
                   {/* Step 3: Order Details Form */}
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                       {/* Link Field */}
-                      <div className="space-y-3">
-                        <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
-                          <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">3</div>
-                          أدخل الرابط
-                        </label>
+                      <motion.div 
+                        className="space-y-4"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        <StepIndicator step={3} title="أدخل الرابط" active={currentStep === 3} completed={currentStep > 3} />
+                        
                         <FormField
                           control={form.control}
                           name="link"
@@ -649,11 +828,13 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                             <FormItem>
                               <FormControl>
                                 <div className="relative">
-                                  <LinkIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                  <div className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                                    <LinkIcon className="w-5 h-5 text-primary" />
+                                  </div>
                                   <Input
-                                    placeholder="https://..."
+                                    placeholder="https://example.com/..."
                                     dir="ltr"
-                                    className="pr-10 font-mono text-sm"
+                                    className="h-14 pr-16 pl-4 rounded-xl border-2 font-mono text-base text-left"
                                     {...field}
                                   />
                                 </div>
@@ -662,43 +843,51 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                             </FormItem>
                           )}
                         />
-                      </div>
+                        
+                        <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                          <Info className="w-4 h-4 text-blue-500 shrink-0" />
+                          <p className="text-xs text-muted-foreground">
+                            تأكد من أن الرابط صحيح وأن الحساب/المنشور عام وغير محمي
+                          </p>
+                        </div>
+                      </motion.div>
 
-                      {/* Quantity Field with Live Price */}
-                      <div className="space-y-3">
-                        <label className="text-sm font-semibold flex items-center justify-between">
-                          <span className="flex items-center gap-2 text-foreground">
-                            <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">4</div>
-                            الكمية
-                          </span>
-                          <span className="text-xs text-muted-foreground font-normal">
-                            {minQuantity.toLocaleString()} - {maxQuantity.toLocaleString()}
-                          </span>
-                        </label>
+                      {/* Quantity Field */}
+                      <motion.div 
+                        className="space-y-4"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                      >
+                        <StepIndicator step={4} title="حدد الكمية" active={currentStep === 4} completed={false} />
                         
                         {/* Live Price Preview Card */}
                         <motion.div 
-                          className="p-4 rounded-xl bg-gradient-to-br from-primary/15 via-primary/10 to-accent/10 border border-primary/30 relative overflow-hidden"
+                          className="p-5 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-accent/10 border-2 border-primary/30 relative overflow-hidden"
                           layout
                         >
                           <motion.div 
-                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
-                            animate={{ x: ['-100%', '100%'] }}
-                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                            animate={{ x: ['-200%', '200%'] }}
+                            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                           />
-                          <div className="relative flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="p-2 rounded-lg bg-primary/20">
-                                <DollarSign className="w-5 h-5 text-primary" />
-                              </div>
+                          <div className="relative flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                              <motion.div 
+                                className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg"
+                                animate={{ rotate: [0, 5, -5, 0] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                              >
+                                <DollarSign className="w-7 h-7 text-primary-foreground" />
+                              </motion.div>
                               <div>
-                                <p className="text-xs text-muted-foreground">السعر المباشر</p>
-                                <AnimatedPrice value={basePrice} className="text-2xl font-bold text-primary" />
+                                <p className="text-xs text-muted-foreground mb-1">السعر المباشر</p>
+                                <AnimatedPrice value={basePrice} className="text-3xl font-bold text-primary" />
                               </div>
                             </div>
                             <div className="text-left">
-                              <p className="text-xs text-muted-foreground">الكمية</p>
-                              <AnimatedNumber value={quantity} className="text-lg font-bold" />
+                              <p className="text-xs text-muted-foreground mb-1">الكمية</p>
+                              <AnimatedNumber value={quantity} className="text-2xl font-bold" />
                             </div>
                           </div>
                         </motion.div>
@@ -707,65 +896,79 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                           control={form.control}
                           name="quantity"
                           render={({ field }) => (
-                            <FormItem>
+                            <FormItem className="space-y-4">
                               {/* Quantity Input with +/- Buttons */}
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="icon"
-                                  className="h-12 w-12 shrink-0"
-                                  onClick={() => field.onChange(Math.max(minQuantity, field.value - 100))}
-                                  disabled={field.value <= minQuantity}
-                                >
-                                  <Minus className="w-4 h-4" />
-                                </Button>
+                              <div className="flex items-center gap-3">
+                                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-14 w-14 shrink-0 rounded-xl border-2"
+                                    onClick={() => field.onChange(Math.max(minQuantity, field.value - 100))}
+                                    disabled={field.value <= minQuantity}
+                                  >
+                                    <Minus className="w-5 h-5" />
+                                  </Button>
+                                </motion.div>
                                 <FormControl>
                                   <Input
                                     type="number"
                                     min={minQuantity}
                                     max={maxQuantity}
-                                    className="text-center text-xl font-bold h-12"
+                                    className="text-center text-2xl font-bold h-14 rounded-xl border-2"
                                     {...field}
                                     onChange={(e) => field.onChange(parseInt(e.target.value) || minQuantity)}
                                   />
                                 </FormControl>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="icon"
-                                  className="h-12 w-12 shrink-0"
-                                  onClick={() => field.onChange(Math.min(maxQuantity, field.value + 100))}
-                                  disabled={field.value >= maxQuantity}
-                                >
-                                  <Plus className="w-4 h-4" />
-                                </Button>
+                                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-14 w-14 shrink-0 rounded-xl border-2"
+                                    onClick={() => field.onChange(Math.min(maxQuantity, field.value + 100))}
+                                    disabled={field.value >= maxQuantity}
+                                  >
+                                    <Plus className="w-5 h-5" />
+                                  </Button>
+                                </motion.div>
                               </div>
 
                               {/* Slider */}
-                              <Slider
-                                value={[field.value]}
-                                min={minQuantity}
-                                max={Math.min(maxQuantity, 100000)}
-                                step={100}
-                                onValueChange={(values) => field.onChange(values[0])}
-                                className="py-2"
-                              />
+                              <div className="px-2">
+                                <Slider
+                                  value={[field.value]}
+                                  min={minQuantity}
+                                  max={Math.min(maxQuantity, 100000)}
+                                  step={100}
+                                  onValueChange={(values) => field.onChange(values[0])}
+                                  className="py-4"
+                                />
+                                <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                                  <span>{minQuantity.toLocaleString()}</span>
+                                  <span>{Math.min(maxQuantity, 100000).toLocaleString()}</span>
+                                </div>
+                              </div>
 
                               {/* Quantity Presets */}
-                              <div className="flex flex-wrap gap-2">
+                              <div className="flex flex-wrap gap-2 justify-center">
                                 {quantityPresets
                                   .filter(q => q >= minQuantity && q <= maxQuantity)
                                   .map((preset) => (
-                                    <motion.div key={preset} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                    <motion.div 
+                                      key={preset} 
+                                      whileHover={{ scale: 1.08, y: -2 }} 
+                                      whileTap={{ scale: 0.95 }}
+                                    >
                                       <Button
                                         type="button"
                                         variant={field.value === preset ? "default" : "outline"}
                                         size="sm"
                                         onClick={() => field.onChange(preset)}
                                         className={cn(
-                                          "text-xs h-8 px-4 transition-all",
-                                          field.value === preset && "shadow-lg shadow-primary/20"
+                                          "text-sm h-10 px-5 rounded-xl transition-all font-bold",
+                                          field.value === preset && "shadow-lg shadow-primary/30"
                                         )}
                                       >
                                         {preset >= 1000 ? `${preset / 1000}K` : preset}
@@ -777,29 +980,38 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                             </FormItem>
                           )}
                         />
-                      </div>
+                      </motion.div>
 
                       {/* Estimated Delivery */}
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-accent/10 border border-accent/20">
-                        <span className="flex items-center gap-2 text-sm">
-                          <Clock className="w-4 h-4 text-accent" />
-                          وقت التسليم المتوقع
+                      <motion.div 
+                        className="flex items-center justify-between p-4 rounded-2xl bg-accent/10 border-2 border-accent/30"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        <span className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
+                            <Clock className="w-5 h-5 text-accent" />
+                          </div>
+                          <span className="font-medium">وقت التسليم المتوقع</span>
                         </span>
-                        <span className="font-bold text-accent">{estimatedDeliveryTime}</span>
-                      </div>
+                        <span className="text-lg font-bold text-accent">{estimatedDeliveryTime}</span>
+                      </motion.div>
 
                       {/* Advanced Options */}
                       <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
                         <CollapsibleTrigger asChild>
-                          <Button type="button" variant="ghost" className="w-full justify-between text-sm h-9">
-                            <span className="flex items-center gap-2">
-                              <TrendingUp className="w-4 h-4" />
+                          <Button type="button" variant="ghost" className="w-full justify-between text-base h-12 rounded-xl">
+                            <span className="flex items-center gap-3">
+                              <TrendingUp className="w-5 h-5" />
                               خيارات متقدمة
                             </span>
-                            <ChevronDown className={cn("w-4 h-4 transition-transform", showAdvanced && "rotate-180")} />
+                            <motion.div animate={{ rotate: showAdvanced ? 180 : 0 }}>
+                              <ChevronDown className="w-5 h-5" />
+                            </motion.div>
                           </Button>
                         </CollapsibleTrigger>
-                        <CollapsibleContent className="space-y-4 pt-3">
+                        <CollapsibleContent className="space-y-4 pt-4">
                           {/* Notes Field */}
                           <FormField
                             control={form.control}
@@ -813,8 +1025,8 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                                 <FormControl>
                                   <Textarea
                                     placeholder="أضف أي ملاحظات أو متطلبات خاصة..."
-                                    className="resize-none"
-                                    rows={2}
+                                    className="resize-none rounded-xl border-2"
+                                    rows={3}
                                     {...field}
                                   />
                                 </FormControl>
@@ -824,17 +1036,23 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                           />
 
                           {/* Coupon Section */}
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                             <label className="text-sm font-medium flex items-center gap-2">
                               <Ticket className="w-4 h-4" />
                               كود الخصم
                             </label>
                             {appliedCoupon ? (
-                              <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 border border-success/20">
-                                <Check className="w-4 h-4 text-success" />
+                              <motion.div 
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="flex items-center gap-3 p-4 rounded-xl bg-success/10 border-2 border-success/30"
+                              >
+                                <div className="w-10 h-10 rounded-xl bg-success/20 flex items-center justify-center">
+                                  <Check className="w-5 h-5 text-success" />
+                                </div>
                                 <span className="text-sm flex-1">
-                                  <code className="font-mono font-bold">{appliedCoupon.code}</code>
-                                  <span className="text-success mr-2">
+                                  <code className="font-mono font-bold text-lg">{appliedCoupon.code}</code>
+                                  <span className="text-success font-bold mr-2">
                                     (-{appliedCoupon.discount_type === "percentage" 
                                       ? `${appliedCoupon.discount_value}%` 
                                       : `$${appliedCoupon.discount_value}`})
@@ -844,29 +1062,30 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                                   type="button"
                                   variant="ghost"
                                   size="icon"
-                                  className="h-7 w-7"
+                                  className="h-9 w-9 rounded-lg"
                                   onClick={removeCoupon}
                                 >
                                   <X className="w-4 h-4" />
                                 </Button>
-                              </div>
+                              </motion.div>
                             ) : (
-                              <div className="flex gap-2">
+                              <div className="flex gap-3">
                                 <Input
                                   placeholder="أدخل كود الخصم"
                                   value={couponCode}
                                   onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                                   dir="ltr"
-                                  className="flex-1"
+                                  className="flex-1 h-12 rounded-xl border-2 text-center font-mono text-lg"
                                 />
                                 <Button
                                   type="button"
                                   variant="outline"
                                   onClick={validateCoupon}
                                   disabled={validatingCoupon}
+                                  className="h-12 px-6 rounded-xl"
                                 >
                                   {validatingCoupon ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <Loader2 className="w-5 h-5 animate-spin" />
                                   ) : (
                                     "تطبيق"
                                   )}
@@ -877,18 +1096,19 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                         </CollapsibleContent>
                       </Collapsible>
 
-                      {/* Total Price with Animation */}
+                      {/* Total Price Summary */}
                       <motion.div 
-                        className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 space-y-2"
+                        className="p-5 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 border-2 border-primary/30 space-y-3"
                         layout
                       >
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-muted-foreground">الكمية × السعر:</span>
-                          <span className="flex items-center gap-1">
-                            <AnimatedNumber value={quantity} className="font-medium" />
+                          <span className="flex items-center gap-1 font-medium">
+                            <AnimatedNumber value={quantity} className="" />
                             <span> × ${currentService?.price.toFixed(4) || '0'}</span>
                           </span>
                         </div>
+                        
                         <AnimatePresence>
                           {discount > 0 && (
                             <motion.div 
@@ -898,20 +1118,22 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                               className="flex justify-between items-center text-sm text-success overflow-hidden"
                             >
                               <span>الخصم:</span>
-                              <span>-${discount.toFixed(4)}</span>
+                              <span className="font-bold">-${discount.toFixed(4)}</span>
                             </motion.div>
                           )}
                         </AnimatePresence>
+                        
                         <Separator />
-                        <div className="flex justify-between items-center">
-                          <span className="font-semibold">الإجمالي:</span>
-                          <div className="flex items-center gap-2">
-                            <AnimatedPrice value={totalPrice} className="text-2xl font-bold text-primary" />
+                        
+                        <div className="flex justify-between items-center pt-1">
+                          <span className="text-lg font-bold">الإجمالي:</span>
+                          <div className="flex items-center gap-3">
+                            <AnimatedPrice value={totalPrice} className="text-3xl font-bold text-primary" />
                             <motion.div
                               key={totalPrice}
                               initial={{ scale: 1.2, opacity: 0 }}
                               animate={{ scale: 1, opacity: 1 }}
-                              className="text-xs text-muted-foreground"
+                              className="px-3 py-1.5 rounded-lg bg-secondary text-xs font-medium"
                             >
                               ≈ {(totalPrice * 3.75).toFixed(2)} ر.س
                             </motion.div>
@@ -920,23 +1142,29 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                       </motion.div>
 
                       {/* Submit Button */}
-                      <Button 
-                        type="submit" 
-                        disabled={isSubmitting || !currentService} 
-                        className="w-full h-12 text-base font-semibold bg-gradient-to-l from-primary to-accent hover:opacity-90"
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                       >
-                        {isSubmitting ? (
-                          <>
-                            <Loader2 className="w-5 h-5 animate-spin ml-2" />
-                            جاري إرسال الطلب...
-                          </>
-                        ) : (
-                          <>
-                            <ShoppingCart className="w-5 h-5 ml-2" />
-                            إرسال الطلب
-                          </>
-                        )}
-                      </Button>
+                        <Button 
+                          type="submit" 
+                          disabled={isSubmitting || !currentService} 
+                          className="w-full h-14 text-lg font-bold bg-gradient-to-l from-primary to-accent hover:opacity-90 rounded-2xl shadow-xl shadow-primary/30"
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 className="w-6 h-6 animate-spin ml-3" />
+                              جاري إرسال الطلب...
+                            </>
+                          ) : (
+                            <>
+                              <ShoppingCart className="w-6 h-6 ml-3" />
+                              إرسال الطلب
+                              <ArrowLeft className="w-5 h-5 mr-3" />
+                            </>
+                          )}
+                        </Button>
+                      </motion.div>
                     </form>
                   </Form>
                 </div>
