@@ -743,17 +743,27 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                             const sFeatures = typeof s.features === 'string' ? JSON.parse(s.features || '{}') : (s.features || {});
                             const hasRefill = sFeatures.refill !== false;
                             return (
-                              <SelectItem key={s.id} value={s.id} className="py-3 cursor-pointer">
-                                <div className="flex items-center gap-3 w-full">
-                                  <Badge variant="outline" className="text-xs shrink-0">{s.external_service_id}</Badge>
-                                  <div className="flex-1 text-right">
-                                    <span className="font-medium text-sm block line-clamp-1">{s.name}</span>
-                                    <span className="text-xs text-primary font-bold">${s.price.toFixed(4)}/1000</span>
+                              <SelectItem 
+                                key={s.id} 
+                                value={s.id} 
+                                className="py-3 cursor-pointer group transition-all duration-200 hover:bg-accent/50 hover:translate-x-1"
+                              >
+                                <div className="flex items-center justify-between w-full gap-3" dir="rtl">
+                                  {/* Right Group: Star + Service Name */}
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    <Star className={cn(
+                                      "w-4 h-4 shrink-0 transition-transform group-hover:scale-110",
+                                      hasRefill ? "text-yellow-500 fill-yellow-500" : "text-muted-foreground"
+                                    )} />
+                                    <div className="flex-1 min-w-0 text-right">
+                                      <span className="font-medium text-sm block line-clamp-1">{s.name}</span>
+                                      <span className="text-xs text-primary font-bold">${s.price.toFixed(4)}/1000</span>
+                                    </div>
                                   </div>
-                                  <Star className={cn(
-                                    "w-4 h-4 shrink-0",
-                                    hasRefill ? "text-yellow-500 fill-yellow-500" : "text-muted-foreground"
-                                  )} />
+                                  {/* Left: Service ID Badge */}
+                                  <Badge variant="outline" className="text-xs shrink-0 tabular-nums">
+                                    {s.external_service_id}
+                                  </Badge>
                                 </div>
                               </SelectItem>
                             );
