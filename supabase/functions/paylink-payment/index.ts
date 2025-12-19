@@ -194,7 +194,7 @@ serve(async (req) => {
             total_credited: amount,
             transaction_id: invoice.transactionNo,
             status: "pending",
-            notes: `Paylink Order: ${orderNumber}`,
+            notes: "Paylink",
           })
           .select()
           .single();
@@ -222,22 +222,9 @@ serve(async (req) => {
 
         console.log("Verifying payment:", { orderNumber, transactionNo });
 
-        // First find the deposit by orderNumber (stored in notes)
+        // Find the deposit by transactionNo
         let deposit;
-        if (orderNumber) {
-          const { data, error } = await supabase
-            .from("deposits")
-            .select("*")
-            .ilike("notes", `%${orderNumber}%`)
-            .maybeSingle();
-          
-          if (!error && data) {
-            deposit = data;
-          }
-        }
-
-        // Or find by transactionNo
-        if (!deposit && transactionNo) {
+        if (transactionNo) {
           const { data, error } = await supabase
             .from("deposits")
             .select("*")
