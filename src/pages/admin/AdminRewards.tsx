@@ -38,6 +38,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import PointsTransactionsLog from "@/components/admin/PointsTransactionsLog";
 
 interface TierBenefits {
   discount_percentage?: number;
@@ -789,6 +790,9 @@ const AdminRewards = () => {
             </AnimatePresence>
           </div>
         )}
+
+        {/* Points Transactions Log */}
+        <PointsTransactionsLog />
 
         {/* Add/Edit Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
