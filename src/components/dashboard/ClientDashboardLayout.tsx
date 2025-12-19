@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -233,73 +233,102 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
       </div>
 
       {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="lg:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-50"
-          onClick={() => setIsMobileMenuOpen(false)}
-        >
+      <AnimatePresence>
+        {isMobileMenuOpen && (
           <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 20 }}
-            className="absolute top-0 right-0 h-full w-[85vw] max-w-72 bg-card border-l border-border"
-            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="lg:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-[60]"
+            onClick={() => setIsMobileMenuOpen(false)}
           >
-            <div className="p-4 border-b border-border flex items-center justify-between">
-              <span className="font-display font-bold">القائمة</span>
-              <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-            {/* Balance in Mobile Menu */}
-            <div className="p-4 border-b border-border">
-              <div className="rounded-xl bg-gradient-to-l from-primary/10 to-accent/10 border border-primary/20 p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
-                    <Wallet className="w-5 h-5 text-primary-foreground" />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="absolute top-0 right-0 h-full w-[280px] max-w-[85vw] bg-card border-l border-border overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-4 border-b border-border flex items-center justify-between sticky top-0 bg-card z-10">
+                <span className="font-display font-bold">القائمة</span>
+                <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+              
+              {/* Balance in Mobile Menu */}
+              <div className="p-4 border-b border-border">
+                <div className="rounded-xl bg-gradient-to-l from-primary/10 to-accent/10 border border-primary/20 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
+                      <Wallet className="w-5 h-5 text-primary-foreground" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground">رصيدك الحالي</p>
+                      <p className="text-xl font-bold text-primary">${balance.toFixed(2)}</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-xs text-muted-foreground">رصيدك الحالي</p>
-                    <p className="text-xl font-bold text-primary">${balance.toFixed(2)}</p>
+                  <Button 
+                    className="w-full mt-3 gap-2 bg-gradient-to-l from-primary to-accent hover:opacity-90"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      navigate('/dashboard/deposit');
+                    }}
+                  >
+                    <Plus className="w-4 h-4" />
+                    إيداع رصيد
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Navigation Links */}
+              <nav className="p-4 space-y-2 pb-20">
+                {clientNavItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
+                      isActive(item.href)
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-secondary"
+                    )}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                ))}
+              </nav>
+              
+              {/* User Section at Bottom */}
+              <div className="p-4 border-t border-border bg-card sticky bottom-0">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center">
+                    <User className="w-5 h-5 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">{profile?.full_name || "مستخدم"}</p>
+                    <p className="text-xs text-muted-foreground">{profile?.is_verified ? "حساب موثق" : "عميل"}</p>
                   </div>
                 </div>
                 <Button 
-                  className="w-full mt-3 gap-2 bg-gradient-to-l from-primary to-accent hover:opacity-90"
+                  variant="outline" 
+                  className="w-full gap-2"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    navigate('/dashboard/deposit');
+                    handleSignOut();
                   }}
                 >
-                  <Plus className="w-4 h-4" />
-                  إيداع رصيد
+                  <LogOut className="w-4 h-4" />
+                  <span>تسجيل الخروج</span>
                 </Button>
               </div>
-            </div>
-            <nav className="p-4 space-y-2">
-              {clientNavItems.map((item) => (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
-                    isActive(item.href)
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-secondary"
-                  )}
-                >
-                  <item.icon className="w-5 h-5" />
-                  <span className="font-medium">{item.label}</span>
-                </Link>
-              ))}
-            </nav>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* Main Content */}
       <main
