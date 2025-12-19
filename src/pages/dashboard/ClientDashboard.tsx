@@ -154,12 +154,37 @@ const ClientDashboard = () => {
     if (user) {
       fetchDashboardData();
 
+      // Realtime subscriptions for orders, balance, and cashback
       const channel = supabase
-        .channel("client-orders")
+        .channel("client-dashboard-realtime")
         .on("postgres_changes", { 
           event: "*", 
           schema: "public", 
           table: "orders",
+          filter: `user_id=eq.${user.id}`
+        }, () => {
+          fetchDashboardData();
+        })
+        .on("postgres_changes", { 
+          event: "*", 
+          schema: "public", 
+          table: "user_balances",
+          filter: `user_id=eq.${user.id}`
+        }, () => {
+          fetchDashboardData();
+        })
+        .on("postgres_changes", { 
+          event: "*", 
+          schema: "public", 
+          table: "user_cashback",
+          filter: `user_id=eq.${user.id}`
+        }, () => {
+          fetchDashboardData();
+        })
+        .on("postgres_changes", { 
+          event: "*", 
+          schema: "public", 
+          table: "deposits",
           filter: `user_id=eq.${user.id}`
         }, () => {
           fetchDashboardData();
