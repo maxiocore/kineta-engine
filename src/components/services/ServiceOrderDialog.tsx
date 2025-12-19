@@ -651,20 +651,20 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                       </div>
                     </div>
                     
-                    <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
-                      <SelectTrigger className="w-full h-12 rounded-xl border-2 text-right" dir="rtl">
-                        <SelectValue placeholder="اختر القسم...">
+                    <Select dir="rtl" value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
+                      <SelectTrigger className="w-full h-12 rounded-xl border-2 text-right flex-row-reverse">
+                        <SelectValue placeholder="اختر القسم..." className="text-right">
                           {selectedCategoryId ? (
-                            <div className="flex items-center gap-2 justify-end w-full">
-                              <span className="font-medium">
-                                {categories.find(c => c.id === selectedCategoryId)?.name_ar || 'الكل'}
-                              </span>
+                            <div className="flex items-center gap-2 justify-end w-full flex-row-reverse">
                               <span className="text-lg">
                                 {getCategoryEmoji(categories.find(c => c.id === selectedCategoryId)?.slug || '')}
                               </span>
+                              <span className="font-medium">
+                                {categories.find(c => c.id === selectedCategoryId)?.name_ar || 'الكل'}
+                              </span>
                             </div>
                           ) : (
-                            <span className="text-muted-foreground">اختر القسم...</span>
+                            <span className="text-muted-foreground text-right w-full block">اختر القسم...</span>
                           )}
                         </SelectValue>
                       </SelectTrigger>
@@ -702,18 +702,18 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                       </div>
                     </div>
                     
-                    <Select value={selectedServiceId} onValueChange={setSelectedServiceId}>
-                      <SelectTrigger className="w-full h-auto min-h-[50px] py-3 rounded-xl border-2 text-right" dir="rtl">
-                        <SelectValue placeholder={selectedCategoryId ? "اختر الخدمة..." : "اختر القسم أولاً"}>
+                    <Select dir="rtl" value={selectedServiceId} onValueChange={setSelectedServiceId}>
+                      <SelectTrigger className="w-full h-auto min-h-[50px] py-3 rounded-xl border-2 text-right flex-row-reverse">
+                        <SelectValue placeholder={selectedCategoryId ? "اختر الخدمة..." : "اختر القسم أولاً"} className="text-right">
                           {currentService && (
-                            <div className="flex items-center gap-3 justify-end w-full">
+                            <div className="flex items-center gap-3 justify-end w-full flex-row-reverse">
+                              <Star className="w-5 h-5 text-yellow-500 fill-yellow-500 shrink-0" />
                               <div className="flex-1 text-right">
                                 <p className="font-bold text-sm line-clamp-1">{currentService.name}</p>
                                 <p className="text-xs text-muted-foreground">
                                   ${currentService.price.toFixed(4)}/1000 • #{currentService.external_service_id || 'N/A'}
                                 </p>
                               </div>
-                              <Star className="w-5 h-5 text-yellow-500 fill-yellow-500 shrink-0" />
                             </div>
                           )}
                         </SelectValue>
