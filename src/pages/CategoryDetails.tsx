@@ -148,15 +148,16 @@ const CategoryDetails = () => {
     enabled: !!slug,
   });
 
-  // Fetch services for this category
+  // Fetch services for this category - search by category_id OR category name/slug
   const { data: initialServices, isLoading: servicesLoading } = useQuery({
-    queryKey: ["category-services", category?.id],
+    queryKey: ["category-services", category?.id, category?.slug, category?.name],
     queryFn: async () => {
+      // Try multiple matching strategies
       const { data, error } = await supabase
         .from("services")
         .select("*")
-        .eq("category_id", category!.id)
         .eq("status", "active")
+        .or(`category_id.eq.${category!.id},category.ilike.%${category!.name}%,category.ilike.%${category!.slug}%,category.ilike.%${category!.name_ar}%`)
         .order("price", { ascending: true });
       
       if (error) throw error;
