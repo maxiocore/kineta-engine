@@ -392,18 +392,58 @@ const ClientDeposit = () => {
             <motion.div variants={itemVariants}>
               <Card className="border-2 border-emerald-500/50 shadow-lg overflow-hidden bg-gradient-to-l from-emerald-500/5 to-transparent">
                 <CardHeader className="border-b border-emerald-500/20">
-                  <CardTitle className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
-                      <CreditCard className="w-6 h-6" />
-                    </div>
-                    <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                        <span className="text-lg">الدفع عبر البطاقات الائتمانية أو أبل باي أو مدى</span>
-                        <Badge className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30">موصى به</Badge>
+                  <CardTitle className="flex flex-col gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+                        <CreditCard className="w-6 h-6" />
                       </div>
-                      <p className="text-sm font-normal text-muted-foreground">ادفع مباشرة ببطاقتك واحصل على رصيدك فوراً</p>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-lg">الدفع الإلكتروني</span>
+                          <Badge className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30">موصى به</Badge>
+                        </div>
+                        <p className="text-sm font-normal text-muted-foreground">ادفع مباشرة واحصل على رصيدك فوراً</p>
+                      </div>
+                      <Zap className="w-6 h-6 text-emerald-500" />
                     </div>
-                    <Zap className="w-6 h-6 text-emerald-500" />
+                    {/* Payment Method Icons */}
+                    <div className="flex items-center gap-3 flex-wrap">
+                      {/* Visa */}
+                      <div className="flex items-center gap-1.5 bg-[#1A1F71]/10 dark:bg-[#1A1F71]/20 px-3 py-1.5 rounded-lg border border-[#1A1F71]/20">
+                        <svg className="w-8 h-5" viewBox="0 0 48 16" fill="none">
+                          <path d="M19.5 1L17 15H14L16.5 1H19.5Z" fill="#1A1F71"/>
+                          <path d="M12.5 1L8 15H5L2.5 3.5C2.5 3 2 2.5 1 2L1.5 1H7C8 1 8.5 1.5 8.5 2.5L9.5 10L12.5 1Z" fill="#1A1F71"/>
+                          <path d="M34 1L28.5 15H25.5L22 4C22 3.5 21.5 3 21 2.5L21.5 1H28.5C29.5 1 30 1.5 30 2.5L31.5 10.5L34 1Z" fill="#1A1F71"/>
+                          <path d="M36 15L38.5 1H44.5C46 1 47 2 47 3.5C47 7 44 8 44 8C44 8 46.5 8 46.5 11C46.5 14 44 15 42 15H36Z" fill="#1A1F71"/>
+                        </svg>
+                        <span className="text-xs font-medium text-[#1A1F71] dark:text-[#5A6FD1]">Visa</span>
+                      </div>
+                      {/* Mastercard */}
+                      <div className="flex items-center gap-1.5 bg-[#EB001B]/10 dark:bg-[#EB001B]/20 px-3 py-1.5 rounded-lg border border-[#EB001B]/20">
+                        <svg className="w-6 h-5" viewBox="0 0 24 16" fill="none">
+                          <circle cx="8" cy="8" r="7" fill="#EB001B"/>
+                          <circle cx="16" cy="8" r="7" fill="#F79E1B"/>
+                          <path d="M12 2.5C13.5 3.5 14.5 5.5 14.5 8C14.5 10.5 13.5 12.5 12 13.5C10.5 12.5 9.5 10.5 9.5 8C9.5 5.5 10.5 3.5 12 2.5Z" fill="#FF5F00"/>
+                        </svg>
+                        <span className="text-xs font-medium text-[#EB001B] dark:text-[#FF6B6B]">Mastercard</span>
+                      </div>
+                      {/* Apple Pay */}
+                      <div className="flex items-center gap-1.5 bg-foreground/5 dark:bg-foreground/10 px-3 py-1.5 rounded-lg border border-foreground/10">
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+                        </svg>
+                        <span className="text-xs font-medium">Apple Pay</span>
+                      </div>
+                      {/* Mada */}
+                      <div className="flex items-center gap-1.5 bg-[#004B87]/10 dark:bg-[#004B87]/20 px-3 py-1.5 rounded-lg border border-[#004B87]/20">
+                        <svg className="w-8 h-5" viewBox="0 0 48 16" fill="none">
+                          <rect x="0" y="2" width="12" height="12" rx="2" fill="#004B87"/>
+                          <rect x="14" y="2" width="12" height="12" rx="2" fill="#48A642"/>
+                          <text x="32" y="12" fill="#004B87" fontSize="10" fontWeight="bold">mada</text>
+                        </svg>
+                        <span className="text-xs font-medium text-[#004B87] dark:text-[#6BA3D6]">مدى</span>
+                      </div>
+                    </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
