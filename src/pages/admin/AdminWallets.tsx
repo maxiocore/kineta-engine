@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -78,6 +79,50 @@ const AdminWallets = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDeposit, setSelectedDeposit] = useState<Deposit | null>(null);
   const [isDepositDialogOpen, setIsDepositDialogOpen] = useState(false);
+
+  // Realtime subscription for deposits and balances
+  useEffect(() => {
+    const channel: RealtimeChannel = supabase
+      .channel('admin-wallets-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'deposits',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["admin-deposits"] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_balances',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["admin-user-balances"] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_cashback',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["admin-cashback-stats"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   // Fetch user balances with profiles
   const { data: userBalances = [], isLoading: balancesLoading, refetch: refetchBalances } = useQuery({
