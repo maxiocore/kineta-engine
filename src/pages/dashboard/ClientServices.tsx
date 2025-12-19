@@ -545,85 +545,113 @@ const ClientServices = () => {
                       
                       <CollapsibleContent>
                         <div className="border-t border-border/50">
-                        {/* Services List - RTL Layout: ID Right, Name Center, Price Left */}
-                          <div className="divide-y divide-border/50">
+                          {/* Services Grid - RTL Optimized */}
+                          <div className="p-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                             {getVisibleServices(category, categoryServices).map((service, index) => (
                               <motion.div
                                 key={service.id}
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: Math.min(index * 0.01, 0.2) }}
-                                className="group hover:bg-primary/5 transition-all duration-200 cursor-pointer"
-                                onClick={() => handleViewDetails(service)}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: Math.min(index * 0.02, 0.2) }}
+                                whileHover={{ y: -2, scale: 1.01 }}
+                                className="group relative"
                               >
-                                <div className="flex items-center gap-3 p-3 sm:p-4">
-                                  {/* ID Badge - Right */}
-                                  <div className="shrink-0 w-14 sm:w-16">
-                                    <Badge 
-                                      variant="outline" 
-                                      className="w-full justify-center font-mono text-xs sm:text-sm h-7 sm:h-8 bg-muted/50 border-border"
-                                    >
-                                      {service.external_service_id || "-"}
-                                    </Badge>
-                                  </div>
+                                <div 
+                                  className="relative overflow-hidden rounded-2xl border border-border/50 hover:border-primary/40 bg-gradient-to-br from-card via-card/95 to-card/90 transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-primary/10"
+                                  onClick={() => handleViewDetails(service)}
+                                >
+                                  {/* Hover Gradient Overlay */}
+                                  <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-accent/0 group-hover:from-primary/5 group-hover:to-accent/5 transition-all duration-300" />
                                   
-                                  {/* Service Name - Center (Flex Grow) */}
-                                  <div className="flex-1 min-w-0 px-2">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      <p className="font-medium text-sm sm:text-base leading-relaxed group-hover:text-primary transition-colors line-clamp-2">
-                                        {service.name}
-                                      </p>
+                                  <div className="relative p-4">
+                                    {/* Header: ID + Price */}
+                                    <div className="flex items-start justify-between gap-3 mb-3">
+                                      {/* Service ID */}
+                                      <Badge 
+                                        variant="outline" 
+                                        className="font-mono text-xs px-2.5 py-1 bg-muted/60 border-border shrink-0"
+                                      >
+                                        <Hash className="w-3 h-3 ml-1 text-primary" />
+                                        {service.external_service_id || "-"}
+                                      </Badge>
+                                      
+                                      {/* Price Badge */}
+                                      <div className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gradient-to-br from-primary/15 to-accent/15 border border-primary/20">
+                                        <DollarSign className="w-3.5 h-3.5 text-primary" />
+                                        <span className="text-base font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                                          {service.price.toFixed(4)}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {/* Service Name */}
+                                    <h4 className="font-semibold text-sm sm:text-base leading-relaxed mb-3 group-hover:text-primary transition-colors line-clamp-2">
+                                      {service.name}
+                                    </h4>
+
+                                    {/* Features Tags */}
+                                    <div className="flex flex-wrap gap-1.5 mb-4">
                                       {service.refill_enabled && (
-                                        <Badge className="text-[10px] h-5 px-1.5 bg-success/10 text-success border-success/20 shrink-0">
-                                          <Shield className="w-3 h-3 ml-0.5" />
+                                        <Badge className="text-[10px] h-5 px-2 bg-success/15 text-success border-success/30 gap-1">
+                                          <Shield className="w-2.5 h-2.5" />
                                           ضمان
                                         </Badge>
                                       )}
+                                      <Badge variant="outline" className="text-[10px] h-5 px-2 bg-accent/10 border-accent/20 gap-1">
+                                        <Zap className="w-2.5 h-2.5 text-accent" />
+                                        فوري
+                                      </Badge>
+                                    </div>
+
+                                    {/* Actions Row */}
+                                    <div className="flex items-center gap-2">
+                                      {/* Order Button */}
+                                      <motion.div className="flex-1" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                        <Button
+                                          size="sm"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleOrder(service);
+                                          }}
+                                          className="w-full h-9 rounded-xl gap-1.5 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg shadow-primary/20 font-semibold text-xs"
+                                        >
+                                          <ShoppingCart className="w-3.5 h-3.5" />
+                                          طلب
+                                        </Button>
+                                      </motion.div>
+
+                                      {/* View Details */}
+                                      <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleViewDetails(service);
+                                        }}
+                                        className="h-9 w-9 rounded-xl border-border/50 hover:border-primary/50 hover:bg-primary/10 hover:text-primary"
+                                      >
+                                        <Eye className="w-3.5 h-3.5" />
+                                      </Button>
+
+                                      {/* Favorite */}
+                                      <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleFavorite(service.id);
+                                        }}
+                                        className={cn(
+                                          "h-9 w-9 rounded-xl transition-all",
+                                          checkIsFavorite(service.id) 
+                                            ? "bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20" 
+                                            : "border-border/50 hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive"
+                                        )}
+                                      >
+                                        <Heart className={cn("w-3.5 h-3.5", checkIsFavorite(service.id) && "fill-current")} />
+                                      </Button>
                                     </div>
                                   </div>
-                                  
-                                  {/* Price - Left */}
-                                  <div className="shrink-0 text-left min-w-[90px] sm:min-w-[110px]">
-                                    <div className="flex items-baseline gap-1 justify-end">
-                                      <span className="text-base sm:text-lg font-bold text-primary">
-                                        ${service.price.toFixed(4)}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  
-                                  {/* View Details Button */}
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleViewDetails(service);
-                                    }}
-                                    className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg shrink-0 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                                  >
-                                    <Eye className="w-4 h-4" />
-                                  </Button>
-                                  
-                                  {/* Favorite Button - Far Left */}
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleFavorite(service.id);
-                                    }}
-                                    className={cn(
-                                      "h-8 w-8 sm:h-9 sm:w-9 rounded-lg shrink-0 transition-all",
-                                      checkIsFavorite(service.id) 
-                                        ? "text-destructive bg-destructive/10 hover:bg-destructive/20" 
-                                        : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                                    )}
-                                  >
-                                    <Heart className={cn(
-                                      "w-4 h-4",
-                                      checkIsFavorite(service.id) && "fill-current"
-                                    )} />
-                                  </Button>
                                 </div>
                               </motion.div>
                             ))}
@@ -634,7 +662,7 @@ const ClientServices = () => {
                             <div className="p-4 border-t border-border/50">
                               <Button
                                 variant="outline"
-                                className="w-full gap-2 rounded-xl"
+                                className="w-full gap-2 rounded-xl h-12"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   loadMoreItems(category);
