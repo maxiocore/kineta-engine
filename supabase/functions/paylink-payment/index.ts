@@ -194,7 +194,7 @@ serve(async (req) => {
             total_credited: amount,
             transaction_id: invoice.transactionNo,
             status: "pending",
-            notes: "Paylink",
+            notes: "الدفع الإلكتروني",
           })
           .select()
           .single();
