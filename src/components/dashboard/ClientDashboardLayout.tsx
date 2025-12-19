@@ -10,6 +10,7 @@ import {
   LogOut,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
   Menu,
   X,
   User,
@@ -21,6 +22,10 @@ import {
   Heart,
   Package,
   Gift,
+  Layers,
+  Palette,
+  Globe,
+  FileCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -33,11 +38,21 @@ interface NavItem {
   label: string;
   href: string;
   icon: React.ElementType;
+  children?: NavItem[];
 }
 
 const clientNavItems: NavItem[] = [
   { label: "نظرة عامة", href: "/dashboard", icon: LayoutDashboard },
-  { label: "مواقع التواصل", href: "/dashboard/services", icon: Package },
+  { 
+    label: "خدماتنا", 
+    href: "/dashboard/our-services", 
+    icon: Layers,
+    children: [
+      { label: "خدمات مواقع التواصل", href: "/dashboard/services", icon: Globe },
+      { label: "خدمات التصميم", href: "/dashboard/design-services", icon: Palette },
+      { label: "خدمات البرمجة والتطوير", href: "/dashboard/dev-services", icon: FileCode },
+    ]
+  },
   { label: "الطلبات", href: "/dashboard/orders", icon: ShoppingBag },
   { label: "المفضلة", href: "/dashboard/favorites", icon: Heart },
   { label: "الإحالات", href: "/dashboard/referrals", icon: Gift },
@@ -58,10 +73,22 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
   const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const [balance, setBalance] = useState<number>(0);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
+
+  const toggleSubmenu = (href: string) => {
+    setExpandedMenus(prev => 
+      prev.includes(href) ? prev.filter(h => h !== href) : [...prev, href]
+    );
+  };
+
+  const isSubmenuActive = (item: NavItem) => {
+    if (!item.children) return false;
+    return item.children.some(child => location.pathname.startsWith(child.href));
+  };
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -235,52 +262,131 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
               variants={navItemVariants}
               initial="hidden"
               animate="visible"
-              whileHover={{ scale: 1.02, x: -4 }}
-              whileTap={{ scale: 0.98 }}
             >
-              <Link
-                to={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 xl:px-4 xl:py-3 rounded-xl transition-all relative group overflow-hidden",
-                  isActive(item.href)
-                    ? "bg-primary text-primary-foreground shadow-glow"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                )}
-              >
-                {/* Animated background on hover */}
-                {!isActive(item.href) && (
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-l from-primary/10 to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                    initial={false}
-                  />
-                )}
-                <motion.div
-                  whileHover={{ rotate: [0, -10, 10, 0] }}
-                  transition={{ duration: 0.4 }}
-                >
-                  <item.icon className="w-5 h-5 shrink-0 relative z-10" />
-                </motion.div>
-                <AnimatePresence mode="wait">
-                  {isSidebarOpen && (
-                    <motion.span
-                      initial={{ opacity: 0, width: 0 }}
-                      animate={{ opacity: 1, width: "auto" }}
-                      exit={{ opacity: 0, width: 0 }}
-                      className="font-medium whitespace-nowrap relative z-10"
+              {item.children ? (
+                // Parent item with children
+                <div>
+                  <motion.button
+                    whileHover={{ scale: 1.02, x: -4 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => toggleSubmenu(item.href)}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2.5 xl:px-4 xl:py-3 rounded-xl transition-all relative group overflow-hidden",
+                      isSubmenuActive(item) || expandedMenus.includes(item.href)
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    )}
+                  >
+                    <motion.div
+                      whileHover={{ rotate: [0, -10, 10, 0] }}
+                      transition={{ duration: 0.4 }}
                     >
-                      {item.label}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-                {/* Active indicator */}
-                {isActive(item.href) && (
-                  <motion.div
-                    layoutId="activeIndicator"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary-foreground rounded-r-full"
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  />
-                )}
-              </Link>
+                      <item.icon className="w-5 h-5 shrink-0 relative z-10" />
+                    </motion.div>
+                    <AnimatePresence mode="wait">
+                      {isSidebarOpen && (
+                        <>
+                          <motion.span
+                            initial={{ opacity: 0, width: 0 }}
+                            animate={{ opacity: 1, width: "auto" }}
+                            exit={{ opacity: 0, width: 0 }}
+                            className="font-medium whitespace-nowrap relative z-10 flex-1 text-right"
+                          >
+                            {item.label}
+                          </motion.span>
+                          <motion.div
+                            animate={{ rotate: expandedMenus.includes(item.href) ? 180 : 0 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <ChevronDown className="w-4 h-4" />
+                          </motion.div>
+                        </>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
+                  
+                  {/* Submenu */}
+                  <AnimatePresence>
+                    {(expandedMenus.includes(item.href) || isSubmenuActive(item)) && isSidebarOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="mr-4 mt-1 space-y-1 border-r-2 border-primary/20 pr-2"
+                      >
+                        {item.children.map((child) => (
+                          <motion.div
+                            key={child.href}
+                            whileHover={{ x: -4 }}
+                          >
+                            <Link
+                              to={child.href}
+                              className={cn(
+                                "flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm",
+                                isActive(child.href)
+                                  ? "bg-primary text-primary-foreground"
+                                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                              )}
+                            >
+                              <child.icon className="w-4 h-4 shrink-0" />
+                              <span className="whitespace-nowrap">{child.label}</span>
+                            </Link>
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                // Regular item without children
+                <motion.div
+                  whileHover={{ scale: 1.02, x: -4 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Link
+                    to={item.href}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 xl:px-4 xl:py-3 rounded-xl transition-all relative group overflow-hidden",
+                      isActive(item.href)
+                        ? "bg-primary text-primary-foreground shadow-glow"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    )}
+                  >
+                    {!isActive(item.href) && (
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-l from-primary/10 to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                        initial={false}
+                      />
+                    )}
+                    <motion.div
+                      whileHover={{ rotate: [0, -10, 10, 0] }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <item.icon className="w-5 h-5 shrink-0 relative z-10" />
+                    </motion.div>
+                    <AnimatePresence mode="wait">
+                      {isSidebarOpen && (
+                        <motion.span
+                          initial={{ opacity: 0, width: 0 }}
+                          animate={{ opacity: 1, width: "auto" }}
+                          exit={{ opacity: 0, width: 0 }}
+                          className="font-medium whitespace-nowrap relative z-10"
+                        >
+                          {item.label}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                    {isActive(item.href) && (
+                      <motion.div
+                        layoutId="activeIndicator"
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary-foreground rounded-r-full"
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      />
+                    )}
+                  </Link>
+                </motion.div>
+              )}
             </motion.div>
           ))}
         </nav>
