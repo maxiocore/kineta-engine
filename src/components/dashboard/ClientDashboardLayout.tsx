@@ -42,6 +42,7 @@ const clientNavItems: NavItem[] = [
   { label: "المفضلة", href: "/dashboard/favorites", icon: Heart },
   { label: "الإحالات", href: "/dashboard/referrals", icon: Gift },
   { label: "الإيداعات", href: "/dashboard/deposits", icon: History },
+  { label: "سجل الرصيد", href: "/dashboard/balance-logs", icon: Wallet },
   { label: "الشارات", href: "/dashboard/badges", icon: Award },
   { label: "الإشعارات", href: "/dashboard/notifications", icon: Bell },
   { label: "API", href: "/dashboard/api", icon: Code },
