@@ -173,6 +173,19 @@ const AdminReferrals = () => {
 
   useEffect(() => {
     fetchData();
+
+    // Realtime subscriptions
+    const channel = supabase
+      .channel('admin-referrals-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'referrals' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'referral_codes' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'referral_commissions' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'vip_levels' }, () => fetchData())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchData = async () => {
