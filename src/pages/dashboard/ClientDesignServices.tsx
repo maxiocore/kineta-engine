@@ -260,7 +260,7 @@ const ClientDesignServices = () => {
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/20 backdrop-blur-sm"
                 >
                   <span className="text-white/80 text-sm">رصيدك:</span>
-                  <span className="font-bold text-white text-lg">${balance.toFixed(2)}</span>
+                  <span className="font-bold text-white text-lg">{balance.toFixed(2)} ر.س</span>
                 </motion.div>
               </div>
             </div>
@@ -435,7 +435,7 @@ const ClientDesignServices = () => {
                               </motion.div>
                             )}
                             <p className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-                              ${service.price.toFixed(2)}
+                              {service.price.toFixed(0)} ر.س
                             </p>
                           </div>
                         </div>
@@ -560,7 +560,7 @@ const ClientDesignServices = () => {
                 <div>
                   <DialogTitle className="text-xl">{selectedService?.name}</DialogTitle>
                   <p className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-                    ${selectedService?.price.toFixed(2)}
+                    {selectedService?.price.toFixed(0)} ر.س
                   </p>
                 </div>
               </div>
