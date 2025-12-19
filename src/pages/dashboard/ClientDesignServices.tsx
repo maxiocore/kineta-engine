@@ -376,66 +376,64 @@ const ClientDesignServices = () => {
                       <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-fuchsia-500/10 to-purple-500/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       
-                      {/* Popular Badge */}
-                      {index === 0 && (
-                        <div className="absolute top-4 left-4 z-10">
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: "spring", delay: 0.2 }}
-                          >
-                            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg gap-1.5 px-3 py-1">
-                              <Star className="w-3.5 h-3.5 fill-current" />
-                              الأكثر طلباً
-                            </Badge>
-                          </motion.div>
-                        </div>
-                      )}
-
-                      {/* New Service Badge */}
-                      {index === 1 && (
-                        <div className="absolute top-4 left-4 z-10">
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: "spring", delay: 0.2 }}
-                          >
-                            <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-lg gap-1.5 px-3 py-1">
-                              <Sparkles className="w-3.5 h-3.5" />
-                              جديد
-                            </Badge>
-                          </motion.div>
-                        </div>
-                      )}
 
                       <CardHeader className="relative z-10 pb-3">
                         <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <motion.div 
-                              whileHover={{ scale: 1.1, rotate: 5 }}
-                              className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30 flex-shrink-0"
-                            >
-                              <IconComponent className="w-7 h-7 text-white" />
-                            </motion.div>
-                            <div className="min-w-0 flex-1">
-                              <h3 className="font-bold text-lg group-hover:text-purple-500 transition-colors line-clamp-1">
-                                {service.name}
-                              </h3>
-                              <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                <div className="flex items-center gap-1 text-muted-foreground">
-                                  <Clock className="w-3.5 h-3.5" />
-                                  <span className="text-xs">تسليم 24-48 ساعة</span>
-                                </div>
-                                {service.refill_enabled && (
-                                  <Badge variant="outline" className="text-[10px] h-5 gap-1 border-green-500/30 text-green-600">
-                                    <Shield className="w-2.5 h-2.5" />
-                                    ضمان
-                                  </Badge>
-                                )}
+                          {/* Service Icon */}
+                          <motion.div 
+                            whileHover={{ scale: 1.1, rotate: 5 }}
+                            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30 flex-shrink-0"
+                          >
+                            <IconComponent className="w-7 h-7 text-white" />
+                          </motion.div>
+
+                          {/* Service Info */}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-lg group-hover:text-purple-500 transition-colors line-clamp-1">
+                              {service.name}
+                            </h3>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                              <div className="flex items-center gap-1 text-muted-foreground">
+                                <Clock className="w-3.5 h-3.5" />
+                                <span className="text-xs">تسليم 24-48 ساعة</span>
                               </div>
+                              {service.refill_enabled && (
+                                <Badge variant="outline" className="text-[10px] h-5 gap-1 border-green-500/30 text-green-600">
+                                  <Shield className="w-2.5 h-2.5" />
+                                  ضمان
+                                </Badge>
+                              )}
                             </div>
                           </div>
-                          <div className="text-left flex-shrink-0">
+
+                          {/* Price & Badge Section */}
+                          <div className="text-left flex-shrink-0 flex flex-col items-end gap-1">
+                            {/* Popular Badge - Above Price */}
+                            {index === 0 && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", delay: 0.2 }}
+                              >
+                                <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg gap-1 px-2 py-0.5 text-[10px]">
+                                  <Star className="w-3 h-3 fill-current" />
+                                  الأكثر طلباً
+                                </Badge>
+                              </motion.div>
+                            )}
+                            {/* New Badge - Above Price */}
+                            {index === 1 && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", delay: 0.2 }}
+                              >
+                                <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-lg gap-1 px-2 py-0.5 text-[10px]">
+                                  <Sparkles className="w-3 h-3" />
+                                  جديد
+                                </Badge>
+                              </motion.div>
+                            )}
                             <p className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
                               ${service.price.toFixed(2)}
                             </p>
