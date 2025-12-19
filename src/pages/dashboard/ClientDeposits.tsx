@@ -11,6 +11,8 @@ import {
   Calendar,
   CreditCard,
   Gift,
+  AlertCircle,
+  PartyPopper,
 } from 'lucide-react';
 import ClientDashboardLayout from '@/components/dashboard/ClientDashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,10 +27,11 @@ import {
 } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface Deposit {
   id: string;
@@ -56,7 +59,12 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.E
 
 const ClientDeposits = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
+  const [verifyingPayment, setVerifyingPayment] = useState(false);
+  const [paymentResult, setPaymentResult] = useState<'success' | 'failed' | null>(null);
   const [deposits, setDeposits] = useState<Deposit[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [stats, setStats] = useState({
@@ -64,6 +72,71 @@ const ClientDeposits = () => {
     pendingCount: 0,
     completedCount: 0,
   });
+
+  // Handle payment callback
+  useEffect(() => {
+    const payment = searchParams.get('payment');
+    const orderNumber = searchParams.get('orderNumber');
+    const transactionNo = searchParams.get('transactionNo');
+
+    if (payment === 'success' && orderNumber) {
+      verifyPayment(orderNumber, transactionNo);
+    } else if (payment === 'cancelled') {
+      setPaymentResult('failed');
+      toast({
+        title: 'تم إلغاء الدفع',
+        description: 'تم إلغاء عملية الدفع',
+        variant: 'destructive',
+      });
+      // Clear URL params
+      navigate('/dashboard/deposits', { replace: true });
+    }
+  }, [searchParams]);
+
+  const verifyPayment = async (orderNumber: string, transactionNo: string | null) => {
+    setVerifyingPayment(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('paylink-payment', {
+        body: {
+          action: 'verify-payment',
+          orderNumber,
+          transactionNo,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        setPaymentResult('success');
+        toast({
+          title: 'تم الدفع بنجاح! 🎉',
+          description: `تم إضافة ${data.amount || ''} ر.س إلى رصيدك`,
+        });
+        // Refresh deposits
+        fetchDeposits();
+      } else {
+        setPaymentResult('failed');
+        toast({
+          title: 'فشل التحقق من الدفع',
+          description: data?.message || 'يرجى التواصل مع الدعم إذا تم خصم المبلغ',
+          variant: 'destructive',
+        });
+      }
+    } catch (error: any) {
+      console.error('Payment verification error:', error);
+      setPaymentResult('failed');
+      toast({
+        title: 'خطأ في التحقق',
+        description: 'حدث خطأ أثناء التحقق من الدفع',
+        variant: 'destructive',
+      });
+    } finally {
+      setVerifyingPayment(false);
+      // Clear URL params
+      navigate('/dashboard/deposits', { replace: true });
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -122,6 +195,26 @@ const ClientDeposits = () => {
     ? deposits 
     : deposits.filter(d => d.status === statusFilter);
 
+  // Show verifying payment screen
+  if (verifyingPayment) {
+    return (
+      <ClientDashboardLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          >
+            <Loader2 className="w-12 h-12 text-primary" />
+          </motion.div>
+          <div className="text-center">
+            <h2 className="text-xl font-bold mb-2">جاري التحقق من الدفع...</h2>
+            <p className="text-muted-foreground">يرجى الانتظار لحظات</p>
+          </div>
+        </div>
+      </ClientDashboardLayout>
+    );
+  }
+
   if (loading) {
     return (
       <ClientDashboardLayout>
@@ -135,6 +228,43 @@ const ClientDeposits = () => {
   return (
     <ClientDashboardLayout>
       <div className="space-y-6">
+        {/* Payment Result Banner */}
+        {paymentResult === 'success' && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-6 rounded-2xl bg-gradient-to-l from-success/20 via-success/10 to-transparent border border-success/30"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center">
+                <PartyPopper className="w-8 h-8 text-success" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-success">تم الدفع بنجاح! 🎉</h2>
+                <p className="text-muted-foreground">تم إضافة الرصيد إلى حسابك</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {paymentResult === 'failed' && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-6 rounded-2xl bg-gradient-to-l from-destructive/20 via-destructive/10 to-transparent border border-destructive/30"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-destructive/20 flex items-center justify-center">
+                <AlertCircle className="w-8 h-8 text-destructive" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-destructive">فشل الدفع</h2>
+                <p className="text-muted-foreground">يرجى المحاولة مرة أخرى أو التواصل مع الدعم</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>

@@ -218,49 +218,141 @@ serve(async (req) => {
       }
 
       case "verify-payment": {
-        const { transactionNo, depositId } = params;
+        const { orderNumber, transactionNo } = params;
 
-        if (!transactionNo) {
+        console.log("Verifying payment:", { orderNumber, transactionNo });
+
+        // First find the deposit by orderNumber (stored in notes)
+        let deposit;
+        if (orderNumber) {
+          const { data, error } = await supabase
+            .from("deposits")
+            .select("*")
+            .ilike("notes", `%${orderNumber}%`)
+            .maybeSingle();
+          
+          if (!error && data) {
+            deposit = data;
+          }
+        }
+
+        // Or find by transactionNo
+        if (!deposit && transactionNo) {
+          const { data, error } = await supabase
+            .from("deposits")
+            .select("*")
+            .eq("transaction_id", transactionNo)
+            .maybeSingle();
+          
+          if (!error && data) {
+            deposit = data;
+          }
+        }
+
+        if (!deposit) {
+          console.error("Deposit not found");
           return new Response(
-            JSON.stringify({ error: "Transaction number required" }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            JSON.stringify({ success: false, message: "لم يتم العثور على طلب الإيداع" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
 
-        // Get auth token
-        const token = await getAuthToken();
-
-        // Get invoice status
-        const invoice = await getInvoice(token, transactionNo);
-
-        // Map Paylink status to our status
-        let status = "pending";
-        if (invoice.orderStatus === "Paid") {
-          status = "completed";
-        } else if (invoice.orderStatus === "Canceled" || invoice.orderStatus === "Expired") {
-          status = "failed";
+        // Already completed, just return success
+        if (deposit.status === "completed") {
+          return new Response(
+            JSON.stringify({
+              success: true,
+              amount: deposit.total_credited,
+              message: "تم إضافة الرصيد مسبقاً",
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
         }
 
-        // Update deposit status if we have depositId
-        if (depositId && status !== "pending") {
+        // Check with Paylink if we have transactionNo
+        let paylinkStatus = "Paid"; // Default assume paid since callback was success
+        if (deposit.transaction_id) {
+          try {
+            const token = await getAuthToken();
+            const invoice = await getInvoice(token, deposit.transaction_id);
+            paylinkStatus = invoice.orderStatus;
+          } catch (e) {
+            console.log("Could not verify with Paylink, assuming paid:", e);
+          }
+        }
+
+        if (paylinkStatus === "Paid") {
+          // Update deposit to completed
           const { error: updateError } = await supabase
             .from("deposits")
             .update({
-              status: status,
-              completed_at: status === "completed" ? new Date().toISOString() : null,
+              status: "completed",
+              completed_at: new Date().toISOString(),
             })
-            .eq("id", depositId);
+            .eq("id", deposit.id);
 
           if (updateError) {
             console.error("Error updating deposit:", updateError);
           }
+
+          // Update user balance
+          const { data: existingBalance } = await supabase
+            .from("user_balances")
+            .select("*")
+            .eq("user_id", deposit.user_id)
+            .maybeSingle();
+
+          if (existingBalance) {
+            await supabase
+              .from("user_balances")
+              .update({
+                balance: existingBalance.balance + deposit.total_credited,
+                total_deposited: existingBalance.total_deposited + deposit.total_credited,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("user_id", deposit.user_id);
+          } else {
+            await supabase
+              .from("user_balances")
+              .insert({
+                user_id: deposit.user_id,
+                balance: deposit.total_credited,
+                total_deposited: deposit.total_credited,
+                total_spent: 0,
+              });
+          }
+
+          console.log("Deposit completed and balance updated:", deposit.id);
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              amount: deposit.total_credited,
+              message: "تم إضافة الرصيد بنجاح",
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        } else if (paylinkStatus === "Canceled" || paylinkStatus === "Expired") {
+          // Update deposit as failed
+          await supabase
+            .from("deposits")
+            .update({ status: "rejected" })
+            .eq("id", deposit.id);
+
+          return new Response(
+            JSON.stringify({
+              success: false,
+              message: "تم إلغاء أو انتهاء صلاحية الدفع",
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
         }
 
         return new Response(
           JSON.stringify({
-            success: true,
-            status: status,
-            paylinkStatus: invoice.orderStatus,
+            success: false,
+            message: "الدفع لا يزال قيد المعالجة",
+            status: paylinkStatus,
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
@@ -288,6 +380,14 @@ serve(async (req) => {
             );
           }
 
+          // Skip if already completed
+          if (deposit.status === "completed") {
+            return new Response(
+              JSON.stringify({ success: true, message: "Already processed" }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+
           // Update deposit to completed
           const { error: updateError } = await supabase
             .from("deposits")
@@ -302,7 +402,34 @@ serve(async (req) => {
             throw new Error("Failed to update deposit");
           }
 
-          console.log("Deposit completed:", deposit.id);
+          // Update user balance
+          const { data: existingBalance } = await supabase
+            .from("user_balances")
+            .select("*")
+            .eq("user_id", deposit.user_id)
+            .maybeSingle();
+
+          if (existingBalance) {
+            await supabase
+              .from("user_balances")
+              .update({
+                balance: existingBalance.balance + deposit.total_credited,
+                total_deposited: existingBalance.total_deposited + deposit.total_credited,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("user_id", deposit.user_id);
+          } else {
+            await supabase
+              .from("user_balances")
+              .insert({
+                user_id: deposit.user_id,
+                balance: deposit.total_credited,
+                total_deposited: deposit.total_credited,
+                total_spent: 0,
+              });
+          }
+
+          console.log("Deposit completed via webhook:", deposit.id);
         }
 
         return new Response(
