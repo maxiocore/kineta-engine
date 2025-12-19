@@ -815,6 +815,202 @@ const ClientDeposit = () => {
               </Card>
             </motion.div>
 
+            {/* Coming Soon Payment Methods */}
+            <motion.div variants={itemVariants}>
+              <Card className="border-border/50 shadow-lg overflow-hidden bg-gradient-to-l from-amber-500/5 to-transparent">
+                <CardHeader className="border-b border-amber-500/20">
+                  <CardTitle className="flex items-center gap-3">
+                    <motion.div 
+                      animate={{ rotate: [0, 10, -10, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-amber-500/30"
+                    >
+                      <Star className="w-5 h-5" />
+                    </motion.div>
+                    <div>
+                      <span className="text-lg">طرق دفع قادمة قريباً</span>
+                      <p className="text-sm font-normal text-muted-foreground">نعمل على إضافة المزيد من الخيارات</p>
+                    </div>
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                      className="mr-auto"
+                    >
+                      <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30">
+                        <Sparkles className="w-3 h-3 ml-1" />
+                        قريباً
+                      </Badge>
+                    </motion.div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                    {/* Bank Transfer */}
+                    <motion.div
+                      whileHover={{ scale: 1.05, y: -5 }}
+                      className="relative group"
+                    >
+                      <div className="p-4 rounded-xl border-2 border-dashed border-green-500/30 bg-gradient-to-br from-green-500/5 to-green-600/10 text-center transition-all group-hover:border-green-500/50 group-hover:shadow-lg group-hover:shadow-green-500/10">
+                        <motion.div
+                          animate={{ y: [0, -5, 0] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0 }}
+                          className="w-14 h-14 mx-auto mb-3 rounded-xl bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center shadow-lg shadow-green-500/30"
+                        >
+                          <Banknote className="w-7 h-7 text-white" />
+                        </motion.div>
+                        <p className="font-bold text-sm mb-1">التحويل البنكي</p>
+                        <Badge variant="outline" className="text-[10px] bg-green-500/10 border-green-500/30 text-green-600">
+                          Bank Transfer
+                        </Badge>
+                      </div>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        whileHover={{ opacity: 1 }}
+                        className="absolute inset-0 bg-gradient-to-t from-green-500/20 to-transparent rounded-xl pointer-events-none"
+                      />
+                    </motion.div>
+
+                    {/* Binance */}
+                    <motion.div
+                      whileHover={{ scale: 1.05, y: -5 }}
+                      className="relative group"
+                    >
+                      <div className="p-4 rounded-xl border-2 border-dashed border-yellow-500/30 bg-gradient-to-br from-yellow-500/5 to-yellow-600/10 text-center transition-all group-hover:border-yellow-500/50 group-hover:shadow-lg group-hover:shadow-yellow-500/10">
+                        <motion.div
+                          animate={{ y: [0, -5, 0] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+                          className="w-14 h-14 mx-auto mb-3 rounded-xl bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center shadow-lg shadow-yellow-500/30"
+                        >
+                          <svg className="w-8 h-8 text-black" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2L6.5 7.5 8.4 9.4 12 5.8l3.6 3.6 1.9-1.9L12 2zM2 12l5.5-5.5 1.9 1.9L5.8 12l3.6 3.6-1.9 1.9L2 12zm20 0l-5.5 5.5-1.9-1.9 3.6-3.6-3.6-3.6 1.9-1.9L22 12zM12 22l5.5-5.5-1.9-1.9-3.6 3.6-3.6-3.6-1.9 1.9L12 22zm0-7l2.5-2.5L12 10l-2.5 2.5L12 15z"/>
+                          </svg>
+                        </motion.div>
+                        <p className="font-bold text-sm mb-1">بينانس</p>
+                        <Badge variant="outline" className="text-[10px] bg-yellow-500/10 border-yellow-500/30 text-yellow-600">
+                          Binance
+                        </Badge>
+                      </div>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        whileHover={{ opacity: 1 }}
+                        className="absolute inset-0 bg-gradient-to-t from-yellow-500/20 to-transparent rounded-xl pointer-events-none"
+                      />
+                    </motion.div>
+
+                    {/* PayPal */}
+                    <motion.div
+                      whileHover={{ scale: 1.05, y: -5 }}
+                      className="relative group"
+                    >
+                      <div className="p-4 rounded-xl border-2 border-dashed border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-blue-600/10 text-center transition-all group-hover:border-blue-500/50 group-hover:shadow-lg group-hover:shadow-blue-500/10">
+                        <motion.div
+                          animate={{ y: [0, -5, 0] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+                          className="w-14 h-14 mx-auto mb-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/30"
+                        >
+                          <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7.144 19.532l1.049-5.751c.085-.394.318-.773.721-.929.382-.148.754-.178 1.128-.178h1.236c2.508 0 4.471-.939 5.059-3.604.046-.195.078-.392.094-.586.049-.582-.018-1.127-.294-1.579-.313-.513-.863-.879-1.608-1.118-1.046-.346-2.364-.44-3.762-.44H5.964c-.339 0-.643.227-.724.553L3.006 18.95c-.06.271.144.531.419.531h2.966c.298 0 .566-.207.624-.5l.129-.449z"/>
+                            <path d="M8.62 5.91c.256-1.402 1.453-2.41 2.883-2.41h3.722c1.35 0 2.411.302 3.153.911.75.615 1.007 1.482.758 2.635-.298 1.362-.958 2.463-1.913 3.223-1.01.804-2.311 1.231-3.791 1.231H11.33c-.461 0-.865.316-.966.764l-.833 4.569c-.067.367-.385.636-.758.636H6.5"/>
+                          </svg>
+                        </motion.div>
+                        <p className="font-bold text-sm mb-1">باي بال</p>
+                        <Badge variant="outline" className="text-[10px] bg-blue-500/10 border-blue-500/30 text-blue-600">
+                          PayPal
+                        </Badge>
+                      </div>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        whileHover={{ opacity: 1 }}
+                        className="absolute inset-0 bg-gradient-to-t from-blue-500/20 to-transparent rounded-xl pointer-events-none"
+                      />
+                    </motion.div>
+
+                    {/* Tamara */}
+                    <motion.div
+                      whileHover={{ scale: 1.05, y: -5 }}
+                      className="relative group"
+                    >
+                      <div className="p-4 rounded-xl border-2 border-dashed border-pink-500/30 bg-gradient-to-br from-pink-500/5 to-pink-600/10 text-center transition-all group-hover:border-pink-500/50 group-hover:shadow-lg group-hover:shadow-pink-500/10">
+                        <motion.div
+                          animate={{ y: [0, -5, 0] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+                          className="w-14 h-14 mx-auto mb-3 rounded-xl bg-gradient-to-br from-pink-500 to-pink-700 flex items-center justify-center shadow-lg shadow-pink-500/30"
+                        >
+                          <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                          </svg>
+                        </motion.div>
+                        <p className="font-bold text-sm mb-1">تمارا</p>
+                        <Badge variant="outline" className="text-[10px] bg-pink-500/10 border-pink-500/30 text-pink-600">
+                          Tamara
+                        </Badge>
+                      </div>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        whileHover={{ opacity: 1 }}
+                        className="absolute inset-0 bg-gradient-to-t from-pink-500/20 to-transparent rounded-xl pointer-events-none"
+                      />
+                    </motion.div>
+
+                    {/* STC Bank */}
+                    <motion.div
+                      whileHover={{ scale: 1.05, y: -5 }}
+                      className="relative group col-span-2 sm:col-span-1"
+                    >
+                      <div className="p-4 rounded-xl border-2 border-dashed border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-purple-600/10 text-center transition-all group-hover:border-purple-500/50 group-hover:shadow-lg group-hover:shadow-purple-500/10">
+                        <motion.div
+                          animate={{ y: [0, -5, 0] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
+                          className="w-14 h-14 mx-auto mb-3 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shadow-lg shadow-purple-500/30"
+                        >
+                          <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                          </svg>
+                        </motion.div>
+                        <p className="font-bold text-sm mb-1">STC Pay</p>
+                        <Badge variant="outline" className="text-[10px] bg-purple-500/10 border-purple-500/30 text-purple-600">
+                          STC Bank
+                        </Badge>
+                      </div>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        whileHover={{ opacity: 1 }}
+                        className="absolute inset-0 bg-gradient-to-t from-purple-500/20 to-transparent rounded-xl pointer-events-none"
+                      />
+                    </motion.div>
+                  </div>
+
+                  {/* Coming Soon Notice */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="mt-6 p-4 rounded-xl bg-gradient-to-l from-amber-500/10 to-orange-500/10 border border-amber-500/20"
+                  >
+                    <div className="flex items-center gap-3">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                        className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center"
+                      >
+                        <TrendingUp className="w-5 h-5 text-white" />
+                      </motion.div>
+                      <div>
+                        <p className="font-semibold text-sm">نعمل على إضافة المزيد!</p>
+                        <p className="text-xs text-muted-foreground">تابعنا للحصول على آخر التحديثات</p>
+                      </div>
+                      <motion.div 
+                        animate={{ x: [0, 5, 0] }}
+                        transition={{ duration: 1, repeat: Infinity }}
+                        className="mr-auto"
+                      >
+                        <ArrowRight className="w-5 h-5 text-amber-500" />
+                      </motion.div>
+                    </div>
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
             {/* Amount Selection for other methods */}
             <AnimatePresence mode="wait">
               {selectedMethod && (
@@ -993,40 +1189,87 @@ const ClientDeposit = () => {
             </AnimatePresence>
           </div>
 
-          {/* Summary Sidebar */}
+          {/* Smart Wallet Sidebar */}
           <div className="lg:col-span-1">
-            <motion.div variants={itemVariants} className="sticky top-6">
-              <Card className="border-border/50 shadow-xl overflow-hidden">
-                <CardHeader className="bg-gradient-to-l from-primary/10 to-transparent border-b border-border/50">
-                  <CardTitle className="flex items-center gap-2">
-                    <Wallet className="w-5 h-5 text-primary" />
-                    ملخص الإيداع
+            <motion.div variants={itemVariants} className="sticky top-6 space-y-4">
+              {/* Smart Wallet Card */}
+              <Card className="border-border/50 shadow-xl overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5">
+                <CardHeader className="bg-gradient-to-l from-primary/10 to-transparent border-b border-border/50 pb-4">
+                  <CardTitle className="flex items-center gap-3">
+                    <motion.div
+                      animate={{ 
+                        rotate: [0, 10, -10, 0],
+                        scale: [1, 1.1, 1]
+                      }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                      className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/30"
+                    >
+                      <Wallet className="w-5 h-5 text-primary-foreground" />
+                    </motion.div>
+                    <div>
+                      <span className="text-lg">المحفظة الذكية</span>
+                      <p className="text-xs font-normal text-muted-foreground">ملخص الإيداع</p>
+                    </div>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6 space-y-6">
+                <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+                  {/* Current Balance Mini */}
+                  <motion.div 
+                    whileHover={{ scale: 1.02 }}
+                    className="p-3 sm:p-4 rounded-xl bg-gradient-to-l from-success/20 to-success/5 border border-success/20"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <motion.div
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-success to-success/60 flex items-center justify-center"
+                        >
+                          <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                        </motion.div>
+                        <div>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground">رصيدك الحالي</p>
+                          <motion.p 
+                            key={currentBalance}
+                            initial={{ scale: 0.8 }}
+                            animate={{ scale: 1 }}
+                            className="text-lg sm:text-xl font-bold text-success"
+                          >
+                            {currentBalance.toFixed(2)} ر.س
+                          </motion.p>
+                        </div>
+                      </div>
+                      <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
+                    </div>
+                  </motion.div>
+
                   {/* Selected Method */}
                   {(selectedMethod || usePaylinkDirect) && (
-                    <div className="p-4 rounded-xl bg-secondary/50 border border-border/50">
-                      <p className="text-xs text-muted-foreground mb-2">طريقة الدفع</p>
-                      <div className="flex items-center gap-3">
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-3 sm:p-4 rounded-xl bg-secondary/50 border border-border/50"
+                    >
+                      <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">طريقة الدفع</p>
+                      <div className="flex items-center gap-2 sm:gap-3">
                         <div className={cn(
-                          "w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br",
+                          "w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center bg-gradient-to-br",
                           usePaylinkDirect ? "from-emerald-500 to-teal-600" : (selectedMethod ? getPaymentIcon(selectedMethod.type, selectedMethod.name).gradient : "")
                         )}>
-                          <CreditCard className="w-5 h-5 text-white" />
+                          <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                         </div>
-                        <span className="font-semibold">
+                        <span className="font-semibold text-sm sm:text-base">
                           {usePaylinkDirect ? 'الدفع الالكتروني' : selectedMethod?.name_ar}
                         </span>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
 
                   {/* Amount Breakdown */}
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <div className="flex justify-between items-center py-2">
-                      <span className="text-muted-foreground">المبلغ</span>
-                      <span className="font-semibold text-lg">{numericAmount.toFixed(2)} ر.س</span>
+                      <span className="text-sm text-muted-foreground">المبلغ</span>
+                      <span className="font-semibold text-base sm:text-lg">{numericAmount.toFixed(2)} ر.س</span>
                     </div>
                     
                     <AnimatePresence>
@@ -1037,8 +1280,8 @@ const ClientDeposit = () => {
                           exit={{ opacity: 0, height: 0 }}
                           className="flex justify-between items-center py-2 text-destructive"
                         >
-                          <span>رسوم الدفع</span>
-                          <span className="font-semibold">-{fee.toFixed(2)} ر.س</span>
+                          <span className="text-sm">رسوم الدفع</span>
+                          <span className="font-semibold text-sm sm:text-base">-{fee.toFixed(2)} ر.س</span>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -1051,34 +1294,44 @@ const ClientDeposit = () => {
                           exit={{ opacity: 0, height: 0 }}
                           className="flex justify-between items-center py-2"
                         >
-                          <span className="flex items-center gap-2 text-success">
+                          <span className="flex items-center gap-2 text-success text-sm">
                             <Gift className="w-4 h-4" />
                             بونص
                           </span>
-                          <span className="font-semibold text-success">+{bonus.toFixed(2)} ر.س</span>
+                          <span className="font-semibold text-success text-sm sm:text-base">+{bonus.toFixed(2)} ر.س</span>
                         </motion.div>
                       )}
                     </AnimatePresence>
 
-                    <div className="border-t border-border pt-4">
+                    <motion.div 
+                      className="border-t border-border pt-4 rounded-xl bg-gradient-to-l from-primary/10 to-transparent p-3 sm:p-4 -mx-2 sm:-mx-4"
+                      animate={{ 
+                        boxShadow: numericAmount > 0 ? [
+                          "0 0 0 rgba(var(--primary), 0)",
+                          "0 0 20px rgba(var(--primary), 0.2)",
+                          "0 0 0 rgba(var(--primary), 0)"
+                        ] : "none"
+                      }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
                       <div className="flex justify-between items-center">
-                        <span className="font-semibold">سيضاف لرصيدك</span>
+                        <span className="font-semibold text-sm sm:text-base">سيضاف لرصيدك</span>
                         <motion.span 
                           key={totalCredited}
                           initial={{ scale: 0.8 }}
                           animate={{ scale: 1 }}
-                          className="text-2xl font-bold text-primary"
+                          className="text-xl sm:text-2xl font-bold text-primary"
                         >
                           {totalCredited.toFixed(2)} ر.س
                         </motion.span>
                       </div>
-                    </div>
+                    </motion.div>
                   </div>
 
                   {/* Submit Button for manual methods */}
                   {selectedMethod && !usePaylinkDirect && (
                     <Button
-                      className="w-full h-14 text-lg gap-3 shadow-lg shadow-primary/30"
+                      className="w-full h-12 sm:h-14 text-base sm:text-lg gap-2 sm:gap-3 shadow-lg shadow-primary/30"
                       size="lg"
                       disabled={numericAmount <= 0 || submitting}
                       onClick={handleSubmit}
@@ -1088,24 +1341,33 @@ const ClientDeposit = () => {
                           animate={{ rotate: 360 }}
                           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                         >
-                          <Loader2 className="w-5 h-5" />
+                          <Loader2 className="w-4 h-4 sm:w-5 sm:h-5" />
                         </motion.div>
                       ) : (
                         <>
-                          <Send className="w-5 h-5" />
+                          <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                           إرسال طلب الإيداع
                         </>
                       )}
                     </Button>
                   )}
 
-                  <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                    <Shield className="w-4 h-4 text-success" />
+                  {/* Security Badge */}
+                  <motion.div 
+                    whileHover={{ scale: 1.02 }}
+                    className="flex items-center justify-center gap-2 text-xs text-muted-foreground p-3 rounded-lg bg-success/5 border border-success/20"
+                  >
+                    <motion.div
+                      animate={{ rotate: [0, 360] }}
+                      transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Shield className="w-4 h-4 text-success" />
+                    </motion.div>
                     <span>دفع آمن ومشفر 100%</span>
-                  </div>
+                  </motion.div>
 
                   {selectedMethod && !usePaylinkDirect && (
-                    <p className="text-xs text-center text-muted-foreground bg-secondary/50 p-3 rounded-lg">
+                    <p className="text-[10px] sm:text-xs text-center text-muted-foreground bg-secondary/50 p-2 sm:p-3 rounded-lg">
                       سيتم مراجعة طلبك وإضافة الرصيد خلال 24 ساعة كحد أقصى
                     </p>
                   )}
