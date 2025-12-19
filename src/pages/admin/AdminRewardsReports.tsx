@@ -52,6 +52,9 @@ import {
   BarChart,
   Bar,
   Legend,
+  Area,
+  AreaChart,
+  ComposedChart,
 } from "recharts";
 
 const COLORS = ["#6366f1", "#8b5cf6", "#f59e0b", "#10b981", "#ef4444", "#ec4899"];
@@ -127,6 +130,47 @@ const AdminRewardsReports = () => {
           date: format(new Date(d.date), "MM/dd"),
         }));
 
+      // Calculate monthly data for the last 12 months
+      const monthlyData: Record<string, { month: string; earned: number; redeemed: number; bonus: number; net: number }> = {};
+      const last12Months = Array.from({ length: 12 }, (_, i) => {
+        const date = subMonths(new Date(), 11 - i);
+        return format(date, "yyyy-MM");
+      });
+      
+      // Initialize all months
+      last12Months.forEach(month => {
+        monthlyData[month] = { 
+          month: format(new Date(month + "-01"), "MMM yyyy", { locale: ar }), 
+          earned: 0, 
+          redeemed: 0,
+          bonus: 0,
+          net: 0
+        };
+      });
+
+      // Get all transactions for the last 12 months
+      const yearAgo = subMonths(new Date(), 12).toISOString();
+      const { data: yearlyTransactions } = await supabase
+        .from("points_transactions")
+        .select("*")
+        .gte("created_at", yearAgo);
+
+      yearlyTransactions?.forEach(t => {
+        const month = format(new Date(t.created_at), "yyyy-MM");
+        if (monthlyData[month]) {
+          if (t.type === "earned") {
+            monthlyData[month].earned += t.points;
+          } else if (t.type === "redeemed") {
+            monthlyData[month].redeemed += Math.abs(t.points);
+          } else if (t.type === "bonus") {
+            monthlyData[month].bonus += t.points;
+          }
+          monthlyData[month].net = monthlyData[month].earned + monthlyData[month].bonus - monthlyData[month].redeemed;
+        }
+      });
+
+      const monthlyChartData = Object.values(monthlyData);
+
       // Top users by points
       const topUsers = userPoints
         ?.sort((a, b) => b.total_points - a.total_points)
@@ -146,6 +190,7 @@ const AdminRewardsReports = () => {
         redeemedInRange,
         tierDistribution: tierDistribution.filter(t => t.value > 0),
         chartData,
+        monthlyChartData,
         topUsers,
         recentTransactions: transactions?.slice(0, 20) || [],
         tiers: tiers || [],
@@ -418,6 +463,124 @@ const AdminRewardsReports = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Monthly Trends Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-primary" />
+              اتجاهات النقاط الشهرية (آخر 12 شهر)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {statsLoading ? (
+              <Skeleton className="h-80 w-full" />
+            ) : (
+              <ResponsiveContainer width="100%" height={320}>
+                <ComposedChart data={stats?.monthlyChartData || []}>
+                  <defs>
+                    <linearGradient id="earnedGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="redeemedGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis 
+                    dataKey="month" 
+                    className="text-xs"
+                    tick={{ fontSize: 11 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis className="text-xs" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                      direction: 'rtl'
+                    }}
+                    formatter={(value: number, name: string) => [
+                      value.toLocaleString(),
+                      name
+                    ]}
+                  />
+                  <Legend 
+                    wrapperStyle={{ paddingTop: '20px' }}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="earned" 
+                    name="مكتسبة" 
+                    fill="url(#earnedGradient)" 
+                    stroke="#10b981"
+                    strokeWidth={2}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="redeemed" 
+                    name="مستبدلة" 
+                    fill="url(#redeemedGradient)" 
+                    stroke="#f59e0b"
+                    strokeWidth={2}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="bonus" 
+                    name="مكافآت" 
+                    stroke="#8b5cf6" 
+                    strokeWidth={2}
+                    dot={{ fill: '#8b5cf6', strokeWidth: 2 }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="net" 
+                    name="صافي" 
+                    stroke="#6366f1" 
+                    strokeWidth={3}
+                    strokeDasharray="5 5"
+                    dot={false}
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            )}
+            
+            {/* Monthly Summary */}
+            {!statsLoading && stats?.monthlyChartData && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-4 border-t">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">إجمالي المكتسبة</p>
+                  <p className="text-lg font-bold text-success">
+                    {stats.monthlyChartData.reduce((sum, m) => sum + m.earned, 0).toLocaleString()}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">إجمالي المستبدلة</p>
+                  <p className="text-lg font-bold text-amber-500">
+                    {stats.monthlyChartData.reduce((sum, m) => sum + m.redeemed, 0).toLocaleString()}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">إجمالي المكافآت</p>
+                  <p className="text-lg font-bold text-purple-500">
+                    {stats.monthlyChartData.reduce((sum, m) => sum + m.bonus, 0).toLocaleString()}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground">صافي النمو</p>
+                  <p className={`text-lg font-bold ${stats.monthlyChartData.reduce((sum, m) => sum + m.net, 0) >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                    {stats.monthlyChartData.reduce((sum, m) => sum + m.net, 0).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Tables Row */}
         <div className="grid lg:grid-cols-2 gap-6">
