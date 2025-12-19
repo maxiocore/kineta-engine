@@ -436,64 +436,186 @@ const ClientServicesNew = () => {
   return (
     <ClientDashboardLayout>
       <div className="space-y-6">
-        {/* Hero Stats */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Hero Stats with Animations */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Balance */}
-          <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-primary via-primary/90 to-primary/70 text-primary-foreground">
-            <div className="absolute inset-0 opacity-50" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='30' height='30' viewBox='0 0 30 30' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.22676 0C1.91374 0 2.45351 0.539773 2.45351 1.22676C2.45351 1.91374 1.91374 2.45351 1.22676 2.45351C0.539773 2.45351 0 1.91374 0 1.22676C0 0.539773 0.539773 0 1.22676 0Z' fill='rgba(255,255,255,0.07)'%3E%3C/path%3E%3C/svg%3E\")" }} />
-            <CardContent className="p-5 relative">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Wallet className="w-5 h-5" />
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0, type: "spring", stiffness: 100 }}
+            whileHover={{ 
+              scale: 1.03, 
+              y: -5,
+              transition: { duration: 0.2 }
+            }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-primary via-primary/90 to-primary/70 text-primary-foreground cursor-pointer group h-full">
+              <motion.div 
+                className="absolute inset-0 bg-white/10"
+                initial={{ x: "-100%", opacity: 0 }}
+                whileHover={{ x: "100%", opacity: 1 }}
+                transition={{ duration: 0.6 }}
+              />
+              <div className="absolute inset-0 opacity-50" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='30' height='30' viewBox='0 0 30 30' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.22676 0C1.91374 0 2.45351 0.539773 2.45351 1.22676C2.45351 1.91374 1.91374 2.45351 1.22676 2.45351C0.539773 2.45351 0 1.91374 0 1.22676C0 0.539773 0.539773 0 1.22676 0Z' fill='rgba(255,255,255,0.07)'%3E%3C/path%3E%3C/svg%3E\")" }} />
+              <CardContent className="p-5 relative">
+                <div className="flex items-center gap-3 mb-3">
+                  <motion.div 
+                    className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center"
+                    whileHover={{ rotate: [0, -10, 10, 0] }}
+                    transition={{ duration: 0.4 }}
+                  >
+                    <Wallet className="w-5 h-5" />
+                  </motion.div>
+                  <span className="text-sm opacity-80">الرصيد</span>
                 </div>
-                <span className="text-sm opacity-80">الرصيد</span>
-              </div>
-              <p className="text-3xl font-black">${(userBalance?.balance || 0).toFixed(2)}</p>
-            </CardContent>
-          </Card>
+                <motion.p 
+                  className="text-3xl font-black"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  ${(userBalance?.balance || 0).toFixed(2)}
+                </motion.p>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Points */}
-          <Card className="border-border/40 bg-card/80 backdrop-blur-sm">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-amber-500" />
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.1, type: "spring", stiffness: 100 }}
+            whileHover={{ 
+              scale: 1.03, 
+              y: -5,
+              transition: { duration: 0.2 }
+            }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Card className="border-border/40 bg-card/80 backdrop-blur-sm cursor-pointer group h-full overflow-hidden relative">
+              <motion.div 
+                className="absolute inset-0 bg-amber-500/5"
+                initial={{ scale: 0, opacity: 0 }}
+                whileHover={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              />
+              <CardContent className="p-5 relative">
+                <div className="flex items-center gap-3 mb-3">
+                  <motion.div 
+                    className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center"
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <TrendingUp className="w-5 h-5 text-amber-500" />
+                  </motion.div>
+                  <span className="text-sm text-muted-foreground">النقاط</span>
                 </div>
-                <span className="text-sm text-muted-foreground">النقاط</span>
-              </div>
-              <p className="text-2xl font-bold">{userPoints?.available_points || 0}</p>
-              <p className="text-xs text-muted-foreground mt-1">≈ ${((userPoints?.available_points || 0) * 0.01).toFixed(2)}</p>
-            </CardContent>
-          </Card>
+                <motion.p 
+                  className="text-2xl font-bold"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  {userPoints?.available_points || 0}
+                </motion.p>
+                <p className="text-xs text-muted-foreground mt-1">≈ ${((userPoints?.available_points || 0) * 0.01).toFixed(2)}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Tier */}
-          <Card className="border-border/40 bg-card/80 backdrop-blur-sm">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                  <Award className="w-5 h-5 text-purple-500" />
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2, type: "spring", stiffness: 100 }}
+            whileHover={{ 
+              scale: 1.03, 
+              y: -5,
+              transition: { duration: 0.2 }
+            }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Card className="border-border/40 bg-card/80 backdrop-blur-sm cursor-pointer group h-full overflow-hidden relative">
+              <motion.div 
+                className="absolute inset-0 bg-purple-500/5"
+                initial={{ scale: 0, opacity: 0 }}
+                whileHover={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              />
+              <CardContent className="p-5 relative">
+                <div className="flex items-center gap-3 mb-3">
+                  <motion.div 
+                    className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center"
+                    whileHover={{ scale: 1.1, rotate: -5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <Award className="w-5 h-5 text-purple-500" />
+                  </motion.div>
+                  <span className="text-sm text-muted-foreground">المستوى</span>
                 </div>
-                <span className="text-sm text-muted-foreground">المستوى</span>
-              </div>
-              <p className="text-lg font-bold">{(userPoints?.reward_tiers as any)?.name_ar || "مبتدئ"}</p>
-              <Badge variant="secondary" className="mt-1 text-xs">{((userPoints?.reward_tiers as any)?.benefits?.discount || 2)}% خصم</Badge>
-            </CardContent>
-          </Card>
+                <motion.p 
+                  className="text-lg font-bold"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  {(userPoints?.reward_tiers as any)?.name_ar || "مبتدئ"}
+                </motion.p>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  <Badge variant="secondary" className="mt-1 text-xs">{((userPoints?.reward_tiers as any)?.benefits?.discount || 2)}% خصم</Badge>
+                </motion.div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           {/* Services Count */}
-          <Card className="border-border/40 bg-card/80 backdrop-blur-sm">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                  <Package className="w-5 h-5 text-emerald-500" />
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.3, type: "spring", stiffness: 100 }}
+            whileHover={{ 
+              scale: 1.03, 
+              y: -5,
+              transition: { duration: 0.2 }
+            }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Card className="border-border/40 bg-card/80 backdrop-blur-sm cursor-pointer group h-full overflow-hidden relative">
+              <motion.div 
+                className="absolute inset-0 bg-emerald-500/5"
+                initial={{ scale: 0, opacity: 0 }}
+                whileHover={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              />
+              <CardContent className="p-5 relative">
+                <div className="flex items-center gap-3 mb-3">
+                  <motion.div 
+                    className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center"
+                    whileHover={{ scale: 1.1, rotate: 10 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <Package className="w-5 h-5 text-emerald-500" />
+                  </motion.div>
+                  <span className="text-sm text-muted-foreground">الخدمات</span>
                 </div>
-                <span className="text-sm text-muted-foreground">الخدمات</span>
-              </div>
-              <p className="text-2xl font-bold">{services.length}</p>
-              <p className="text-xs text-muted-foreground mt-1">خدمة متاحة</p>
-            </CardContent>
-          </Card>
-        </motion.div>
+                <motion.p 
+                  className="text-2xl font-bold"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.6, type: "spring" }}
+                >
+                  {services.length}
+                </motion.p>
+                <p className="text-xs text-muted-foreground mt-1">خدمة متاحة</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
 
         {/* Networks */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
