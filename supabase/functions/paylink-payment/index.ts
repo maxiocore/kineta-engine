@@ -269,16 +269,36 @@ serve(async (req) => {
           );
         }
 
-        // Check with Paylink if we have transactionNo
-        let paylinkStatus = "Paid"; // Default assume paid since callback was success
-        if (deposit.transaction_id) {
-          try {
-            const token = await getAuthToken();
-            const invoice = await getInvoice(token, deposit.transaction_id);
-            paylinkStatus = invoice.orderStatus;
-          } catch (e) {
-            console.log("Could not verify with Paylink, assuming paid:", e);
-          }
+        // CRITICAL: We MUST verify with Paylink before crediting any balance
+        // Never assume payment is successful without verification
+        if (!deposit.transaction_id) {
+          console.error("No transaction ID found for deposit");
+          return new Response(
+            JSON.stringify({
+              success: false,
+              message: "لا يمكن التحقق من الدفع - معرف المعاملة غير موجود",
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Verify payment status with Paylink API
+        let paylinkStatus: string;
+        try {
+          const token = await getAuthToken();
+          const invoice = await getInvoice(token, deposit.transaction_id);
+          paylinkStatus = invoice.orderStatus;
+          console.log("Paylink verification result:", paylinkStatus);
+        } catch (e) {
+          // CRITICAL: If we cannot verify with Paylink, we should NOT credit the balance
+          console.error("Failed to verify payment with Paylink:", e);
+          return new Response(
+            JSON.stringify({
+              success: false,
+              message: "فشل التحقق من حالة الدفع، يرجى المحاولة لاحقاً أو التواصل مع الدعم",
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
         }
 
         if (paylinkStatus === "Paid") {
@@ -332,7 +352,7 @@ serve(async (req) => {
             }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
-        } else if (paylinkStatus === "Canceled" || paylinkStatus === "Expired") {
+        } else if (paylinkStatus === "Canceled" || paylinkStatus === "Cancelled" || paylinkStatus === "Expired") {
           // Update deposit as failed
           await supabase
             .from("deposits")
@@ -346,12 +366,22 @@ serve(async (req) => {
             }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
+        } else if (paylinkStatus === "Pending") {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              message: "الدفع لا يزال قيد الانتظار، يرجى إكمال عملية الدفع",
+              status: paylinkStatus,
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
         }
 
+        // Any other status - don't credit, ask user to wait or contact support
         return new Response(
           JSON.stringify({
             success: false,
-            message: "الدفع لا يزال قيد المعالجة",
+            message: `حالة الدفع: ${paylinkStatus}. يرجى التواصل مع الدعم إذا استمرت المشكلة`,
             status: paylinkStatus,
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
