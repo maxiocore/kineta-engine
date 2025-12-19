@@ -12,7 +12,12 @@ import {
   Users,
   Sparkles,
   BarChart3,
+  Send,
+  Search,
+  User,
+  Loader2,
 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,6 +76,13 @@ const AdminRewards = () => {
   const [editingTier, setEditingTier] = useState<RewardTier | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [tierToDelete, setTierToDelete] = useState<string | null>(null);
+  const [grantDialogOpen, setGrantDialogOpen] = useState(false);
+  const [userSearch, setUserSearch] = useState("");
+  const [selectedUser, setSelectedUser] = useState<{ id: string; email: string; full_name: string | null } | null>(null);
+  const [pointsToGrant, setPointsToGrant] = useState("");
+  const [grantReason, setGrantReason] = useState("");
+  const [searchingUsers, setSearchingUsers] = useState(false);
+  const [userResults, setUserResults] = useState<{ id: string; email: string; full_name: string | null }[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     name_ar: "",
@@ -218,6 +230,122 @@ const AdminRewards = () => {
     },
   });
 
+  // Grant points mutation
+  const grantPointsMutation = useMutation({
+    mutationFn: async ({ userId, points, reason }: { userId: string; points: number; reason: string }) => {
+      // Insert transaction
+      const { error: transactionError } = await supabase
+        .from("points_transactions")
+        .insert({
+          user_id: userId,
+          points: points,
+          type: "bonus",
+          description: `Admin granted: ${reason}`,
+          description_ar: `منحة من الإدارة: ${reason}`
+        });
+
+      if (transactionError) throw transactionError;
+
+      // Update user points
+      const { data: existingPoints } = await supabase
+        .from("user_points")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (existingPoints) {
+        const { error: updateError } = await supabase
+          .from("user_points")
+          .update({
+            total_points: existingPoints.total_points + points,
+            available_points: existingPoints.available_points + points,
+            updated_at: new Date().toISOString()
+          })
+          .eq("user_id", userId);
+
+        if (updateError) throw updateError;
+      } else {
+        const { error: insertError } = await supabase
+          .from("user_points")
+          .insert({
+            user_id: userId,
+            total_points: points,
+            available_points: points
+          });
+
+        if (insertError) throw insertError;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rewards-stats"] });
+      toast({
+        title: "تم منح النقاط",
+        description: `تم منح ${pointsToGrant} نقطة بنجاح`,
+      });
+      handleCloseGrantDialog();
+    },
+    onError: (error) => {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء منح النقاط",
+        variant: "destructive",
+      });
+      console.error(error);
+    },
+  });
+
+  // Search users
+  const handleSearchUsers = async (search: string) => {
+    setUserSearch(search);
+    if (search.length < 2) {
+      setUserResults([]);
+      return;
+    }
+
+    setSearchingUsers(true);
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, email, full_name")
+        .or(`email.ilike.%${search}%,full_name.ilike.%${search}%`)
+        .limit(10);
+
+      if (!error && data) {
+        setUserResults(data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSearchingUsers(false);
+    }
+  };
+
+  const handleCloseGrantDialog = () => {
+    setGrantDialogOpen(false);
+    setSelectedUser(null);
+    setPointsToGrant("");
+    setGrantReason("");
+    setUserSearch("");
+    setUserResults([]);
+  };
+
+  const handleGrantPoints = () => {
+    const points = parseInt(pointsToGrant);
+    if (!selectedUser || isNaN(points) || points <= 0) {
+      toast({
+        title: "خطأ",
+        description: "يرجى اختيار مستخدم وإدخال عدد نقاط صحيح",
+        variant: "destructive",
+      });
+      return;
+    }
+    grantPointsMutation.mutate({
+      userId: selectedUser.id,
+      points,
+      reason: grantReason || "منحة إدارية"
+    });
+  };
+
   const handleOpenDialog = (tier?: RewardTier) => {
     if (tier) {
       setEditingTier(tier);
@@ -336,7 +464,15 @@ const AdminRewards = () => {
             </p>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
+            <Button
+              variant="outline"
+              onClick={() => setGrantDialogOpen(true)}
+              className="gap-2"
+            >
+              <Send className="w-4 h-4" />
+              منح نقاط
+            </Button>
             <Button
               variant="outline"
               onClick={() => navigate("/admin/rewards/reports")}
@@ -817,6 +953,161 @@ const AdminRewards = () => {
           variant="danger"
           onConfirm={() => tierToDelete && deleteMutation.mutate(tierToDelete)}
         />
+
+        {/* Grant Points Dialog */}
+        <Dialog open={grantDialogOpen} onOpenChange={setGrantDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Send className="w-5 h-5 text-primary" />
+                منح نقاط لمستخدم
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              {/* User Search */}
+              <div className="space-y-2">
+                <Label>البحث عن مستخدم</Label>
+                <div className="relative">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    value={userSearch}
+                    onChange={(e) => handleSearchUsers(e.target.value)}
+                    placeholder="ابحث بالبريد الإلكتروني أو الاسم..."
+                    className="pr-10"
+                  />
+                </div>
+
+                {/* Search Results */}
+                {userSearch.length >= 2 && (
+                  <div className="border rounded-lg overflow-hidden">
+                    {searchingUsers ? (
+                      <div className="p-4 text-center">
+                        <Loader2 className="w-5 h-5 animate-spin mx-auto text-muted-foreground" />
+                      </div>
+                    ) : userResults.length > 0 ? (
+                      <ScrollArea className="max-h-48">
+                        {userResults.map((u) => (
+                          <button
+                            key={u.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedUser(u);
+                              setUserSearch("");
+                              setUserResults([]);
+                            }}
+                            className="w-full p-3 text-right hover:bg-muted/50 transition-colors flex items-center gap-3 border-b last:border-0"
+                          >
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                              <User className="w-4 h-4 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">{u.full_name || "بدون اسم"}</p>
+                              <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </ScrollArea>
+                    ) : (
+                      <p className="p-4 text-center text-sm text-muted-foreground">
+                        لم يتم العثور على نتائج
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Selected User */}
+              {selectedUser && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-3 rounded-lg bg-primary/5 border border-primary/20 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <User className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{selectedUser.full_name || "بدون اسم"}</p>
+                      <p className="text-xs text-muted-foreground">{selectedUser.email}</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedUser(null)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    إزالة
+                  </Button>
+                </motion.div>
+              )}
+
+              {/* Points Amount */}
+              <div className="space-y-2">
+                <Label>عدد النقاط</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={pointsToGrant}
+                  onChange={(e) => setPointsToGrant(e.target.value)}
+                  placeholder="مثال: 500"
+                />
+              </div>
+
+              {/* Reason */}
+              <div className="space-y-2">
+                <Label>السبب (اختياري)</Label>
+                <Input
+                  value={grantReason}
+                  onChange={(e) => setGrantReason(e.target.value)}
+                  placeholder="مثال: مكافأة ولاء العميل"
+                />
+              </div>
+
+              {/* Preview */}
+              {selectedUser && pointsToGrant && parseInt(pointsToGrant) > 0 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="p-3 rounded-lg bg-success/10 border border-success/20 text-center"
+                >
+                  <p className="text-sm text-muted-foreground">سيتم منح</p>
+                  <p className="text-2xl font-bold text-success">
+                    {parseInt(pointsToGrant).toLocaleString()} نقطة
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    = {(parseInt(pointsToGrant) / 100).toFixed(2)} ر.س
+                  </p>
+                </motion.div>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={handleCloseGrantDialog}>
+                إلغاء
+              </Button>
+              <Button
+                onClick={handleGrantPoints}
+                disabled={!selectedUser || !pointsToGrant || grantPointsMutation.isPending}
+                className="bg-gradient-to-r from-primary to-accent gap-2"
+              >
+                {grantPointsMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    جاري المنح...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    منح النقاط
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </motion.div>
     </AdminDashboardLayout>
   );
