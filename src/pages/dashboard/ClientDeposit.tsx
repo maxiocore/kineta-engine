@@ -624,7 +624,7 @@ const ClientDeposit = () => {
                             }}
                             className={cn(
                               "px-5 py-3 rounded-xl font-semibold transition-all border-2",
-                              usePaylinkDirect && amount === preset.toString()
+                              usePaylinkDirect && amount === preset.toString() && !isNaN(Number(amount)) && [50, 100, 200, 500, 1000].includes(Number(amount))
                                 ? "bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/30"
                                 : "bg-secondary/50 border-border hover:border-emerald-500/50 hover:bg-emerald-500/10"
                             )}
@@ -632,15 +632,43 @@ const ClientDeposit = () => {
                             {preset} ر.س
                           </motion.button>
                         ))}
+                        {/* Custom Amount Button */}
+                        <motion.button
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.25 }}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => {
+                            setAmount('');
+                            setUsePaylinkDirect(true);
+                            setSelectedMethod(null);
+                            // Focus on the custom amount input
+                            setTimeout(() => {
+                              const input = document.getElementById('paylink-custom-amount');
+                              if (input) input.focus();
+                            }, 100);
+                          }}
+                          className={cn(
+                            "px-5 py-3 rounded-xl font-semibold transition-all border-2 gap-2 flex items-center",
+                            usePaylinkDirect && amount !== '' && !isNaN(Number(amount)) && ![50, 100, 200, 500, 1000].includes(Number(amount))
+                              ? "bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/30"
+                              : "bg-secondary/50 border-border hover:border-emerald-500/50 hover:bg-emerald-500/10"
+                          )}
+                        >
+                          <DollarSign className="w-4 h-4" />
+                          مبلغ مخصص
+                        </motion.button>
                       </div>
                     </div>
 
-                    {/* Custom Amount */}
+                    {/* Custom Amount Input */}
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label className="text-sm text-muted-foreground">مبلغ مخصص</Label>
                         <div className="relative">
                           <Input
+                            id="paylink-custom-amount"
                             type="number"
                             placeholder="أدخل المبلغ"
                             value={usePaylinkDirect ? amount : ''}
@@ -1034,7 +1062,7 @@ const ClientDeposit = () => {
                     </CardHeader>
                     <CardContent className="p-6 space-y-6">
                       <div>
-                        <Label className="text-sm text-muted-foreground mb-3 block">اختر مبلغ سريع</Label>
+                        <Label className="text-sm text-muted-foreground mb-3 block">اختر المبلغ (ريال سعودي)</Label>
                         <div className="flex flex-wrap gap-3">
                           {presetAmounts.map((preset, i) => (
                             <motion.button
@@ -1047,30 +1075,55 @@ const ClientDeposit = () => {
                               onClick={() => setAmount(preset.toString())}
                               className={cn(
                                 "px-5 py-3 rounded-xl font-semibold transition-all border-2",
-                                amount === preset.toString()
+                                amount === preset.toString() && presetAmounts.includes(Number(amount))
                                   ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/30"
                                   : "bg-secondary/50 border-border hover:border-primary/50 hover:bg-secondary"
                               )}
                             >
-                              ${preset}
+                              {preset} ر.س
                             </motion.button>
                           ))}
+                          {/* Custom Amount Button */}
+                          <motion.button
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: presetAmounts.length * 0.05 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => {
+                              setAmount('');
+                              setTimeout(() => {
+                                const input = document.getElementById('other-custom-amount');
+                                if (input) input.focus();
+                              }, 100);
+                            }}
+                            className={cn(
+                              "px-5 py-3 rounded-xl font-semibold transition-all border-2 gap-2 flex items-center",
+                              amount !== '' && !isNaN(Number(amount)) && !presetAmounts.includes(Number(amount))
+                                ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/30"
+                                : "bg-secondary/50 border-border hover:border-primary/50 hover:bg-secondary"
+                            )}
+                          >
+                            <DollarSign className="w-4 h-4" />
+                            مبلغ مخصص
+                          </motion.button>
                         </div>
                       </div>
 
                       <div className="space-y-2">
                         <Label className="text-sm text-muted-foreground">أو أدخل مبلغ مخصص</Label>
                         <div className="relative">
-                          <DollarSign className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                           <Input
+                            id="other-custom-amount"
                             type="number"
                             placeholder="أدخل المبلغ"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             min={selectedMethod.min_amount || 1}
                             max={selectedMethod.max_amount || undefined}
-                            className="h-14 text-xl font-bold pr-12 text-center border-2 focus:border-primary"
+                            className="h-14 text-xl font-bold pr-4 text-center border-2 focus:border-primary"
                           />
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">ر.س</span>
                         </div>
                       </div>
 
