@@ -36,6 +36,7 @@ import ReferralCard from "@/components/dashboard/ReferralCard";
 import OrderCalendar from "@/components/dashboard/OrderCalendar";
 import PersonalizedTips from "@/components/dashboard/PersonalizedTips";
 import RewardPointsCard from "@/components/dashboard/RewardPointsCard";
+import MonthlyGoalCelebration from "@/components/dashboard/MonthlyGoalCelebration";
 import { supabase } from "@/integrations/supabase/client";
 import OrderStatusChart from "@/components/dashboard/OrderStatusChart";
 import { useAuth } from "@/hooks/useAuth";
@@ -210,7 +211,9 @@ const ClientDashboard = () => {
   });
   const [orderDates, setOrderDates] = useState<OrderDate[]>([]);
   const [tips, setTips] = useState<Tip[]>([]);
+  const [showCelebration, setShowCelebration] = useState(false);
   const lowBalanceNotifiedRef = useRef(false);
+  const goalCelebratedRef = useRef(false);
   const LOW_BALANCE_THRESHOLD = 50; // الحد الأدنى للرصيد
 
   const earnedBadgeIds = new Set(userBadges.map(ub => ub.badge_id));
@@ -230,6 +233,29 @@ const ClientDashboard = () => {
       });
     }
   }, [loading, balanceData.balance]);
+
+  // إشعار احتفالي عند تحقيق الهدف الشهري
+  useEffect(() => {
+    if (
+      !loading &&
+      stats.completedThisMonth >= stats.monthlyGoal &&
+      stats.monthlyGoal > 0 &&
+      !goalCelebratedRef.current
+    ) {
+      goalCelebratedRef.current = true;
+      
+      // Show celebration after a short delay for better UX
+      const timer = setTimeout(() => {
+        setShowCelebration(true);
+        toast.success("🎉 تهانينا! حققت هدفك الشهري", {
+          description: `أكملت ${stats.completedThisMonth} طلب هذا الشهر!`,
+          duration: 5000,
+        });
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [loading, stats.completedThisMonth, stats.monthlyGoal]);
 
   useEffect(() => {
     if (user) {
@@ -684,6 +710,14 @@ const ClientDashboard = () => {
 
   return (
     <ClientDashboardLayout>
+      {/* Monthly Goal Celebration Modal */}
+      <MonthlyGoalCelebration
+        isOpen={showCelebration}
+        onClose={() => setShowCelebration(false)}
+        completedOrders={stats.completedThisMonth}
+        monthlyGoal={stats.monthlyGoal}
+      />
+
       <div className="space-y-4 sm:space-y-6">
         {/* Header with Refresh */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
