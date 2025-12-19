@@ -108,10 +108,41 @@ const AdminDashboard = () => {
       })
       .subscribe();
 
+    // Additional realtime subscriptions for comprehensive dashboard updates
+    const depositsChannel = supabase
+      .channel("dashboard-deposits-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "deposits" }, (payload) => {
+        if (payload.eventType === "INSERT" || (payload.eventType === "UPDATE" && (payload.new as any).status === "completed")) {
+          toast({
+            title: "💰 إيداع جديد!",
+            description: `تم ${(payload.new as any).status === "completed" ? "اكتمال" : "استلام"} إيداع بقيمة ${(payload.new as any).amount} ر.س`,
+          });
+        }
+        fetchDashboardData();
+      })
+      .subscribe();
+
+    const servicesChannel = supabase
+      .channel("dashboard-services-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "services" }, () => {
+        fetchDashboardData();
+      })
+      .subscribe();
+
+    const balancesChannel = supabase
+      .channel("dashboard-balances-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_balances" }, () => {
+        fetchDashboardData();
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(ordersChannel);
       supabase.removeChannel(profilesChannel);
       supabase.removeChannel(ticketsChannel);
+      supabase.removeChannel(depositsChannel);
+      supabase.removeChannel(servicesChannel);
+      supabase.removeChannel(balancesChannel);
     };
   }, []);
 
