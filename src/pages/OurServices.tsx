@@ -475,7 +475,7 @@ const OurServices = () => {
                         transition={{ delay: index * 0.03 }}
                         whileHover={{ y: -4, scale: 1.02 }}
                       >
-                        <Link to={`/services?category=${category.slug}`}>
+                        <Link to={`/category/${category.slug}`}>
                           <Card className="h-full group cursor-pointer overflow-hidden border-border/50 hover:border-primary/30 hover:shadow-lg transition-all">
                             <CardContent className="p-4 flex flex-col items-center text-center">
                               <motion.div 
