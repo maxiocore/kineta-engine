@@ -323,7 +323,7 @@ const ClientOrders = () => {
             
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button 
-                onClick={() => navigate('/dashboard/services')} 
+                onClick={() => navigate('/dashboard/our-services')} 
                 className="h-12 px-6 gap-3 btn-brand rounded-xl"
               >
                 <ShoppingBag className="w-5 h-5" />
@@ -450,7 +450,7 @@ const ClientOrders = () => {
                   </div>
                   <p className="text-lg font-medium text-muted-foreground mb-2">لا توجد طلبات</p>
                   <p className="text-sm text-muted-foreground/70 mb-4">ابدأ بإنشاء طلبك الأول</p>
-                  <Button onClick={() => navigate('/dashboard/services')} className="gap-2">
+                  <Button onClick={() => navigate('/dashboard/our-services')} className="gap-2">
                     <ShoppingBag className="w-4 h-4" />
                     طلب جديد
                   </Button>
