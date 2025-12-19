@@ -1649,6 +1649,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          created_at: string
+          id: string
+          language: string
+          notification_email: boolean
+          notification_orders: boolean
+          notification_promotions: boolean
+          notification_push: boolean
+          theme: string
+          two_factor_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          language?: string
+          notification_email?: boolean
+          notification_orders?: boolean
+          notification_promotions?: boolean
+          notification_push?: boolean
+          theme?: string
+          two_factor_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          language?: string
+          notification_email?: boolean
+          notification_orders?: boolean
+          notification_promotions?: boolean
+          notification_push?: boolean
+          theme?: string
+          two_factor_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       vip_levels: {
         Row: {
           benefits: Json | null
