@@ -852,6 +852,18 @@ const ClientServicesNew = () => {
                                 ))}
                               </TableRow>
                               <TableRow>
+                                <TableCell className="font-medium">الوصف</TableCell>
+                                {compareServices.map(s => (
+                                  <TableCell key={s.id} className="text-center text-muted-foreground text-sm">
+                                    {s.description ? (
+                                      <span className="line-clamp-3">{s.description}</span>
+                                    ) : (
+                                      <span className="text-muted-foreground/50">لا يوجد وصف</span>
+                                    )}
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                              <TableRow>
                                 <TableCell className="font-medium">طلب</TableCell>
                                 {compareServices.map(s => (
                                   <TableCell key={s.id} className="text-center">
@@ -1178,9 +1190,15 @@ const ClientServicesNew = () => {
                       <div className="space-y-2">
                         {services.filter(s => favorites.includes(s.id)).map((service, i) => (
                           <motion.div key={service.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }} className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 cursor-pointer" onClick={() => { setSelectedCategory(service.category); setSelectedService(service); }}>
-                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"><Star className="w-5 h-5 text-primary" /></div>
-                            <div className="flex-1 min-w-0"><p className="font-medium truncate">{service.name}</p><p className="text-xs text-muted-foreground">{service.category}</p></div>
-                            <p className="font-bold text-primary">${service.price.toFixed(2)}</p>
+                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0"><Star className="w-5 h-5 text-primary" /></div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">{service.name}</p>
+                              {service.description && (
+                                <p className="text-xs text-muted-foreground line-clamp-1">{service.description}</p>
+                              )}
+                              <p className="text-xs text-muted-foreground/70">{service.category}</p>
+                            </div>
+                            <p className="font-bold text-primary shrink-0">${service.price.toFixed(2)}</p>
                             <Button variant="ghost" size="icon" className="shrink-0 text-destructive" onClick={(e) => { e.stopPropagation(); toggleFavorite(service.id); }}><Heart className="w-4 h-4 fill-current" /></Button>
                           </motion.div>
                         ))}
@@ -1343,8 +1361,11 @@ const ClientServicesNew = () => {
                                     #{service.external_service_id}
                                   </TableCell>
                                   <TableCell>
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-medium text-sm line-clamp-2">{service.name}</span>
+                                    <div className="flex flex-col gap-0.5">
+                                      <span className="font-medium text-sm line-clamp-1">{service.name}</span>
+                                      {service.description && (
+                                        <span className="text-xs text-muted-foreground line-clamp-2">{service.description}</span>
+                                      )}
                                     </div>
                                   </TableCell>
                                   <TableCell className="text-center">
