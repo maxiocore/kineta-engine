@@ -271,6 +271,69 @@ export type Database = {
         }
         Relationships: []
       }
+      cashback_settings: {
+        Row: {
+          cashback_percentage: number
+          created_at: string
+          id: string
+          is_active: boolean
+          max_cashback_amount: number | null
+          min_deposit_amount: number
+          updated_at: string
+        }
+        Insert: {
+          cashback_percentage?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_cashback_amount?: number | null
+          min_deposit_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          cashback_percentage?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_cashback_amount?: number | null
+          min_deposit_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cashback_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          description_ar: string | null
+          id: string
+          reference_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          reference_id?: string | null
+          type?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          reference_id?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           color: string | null
@@ -1438,6 +1501,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_cashback: {
+        Row: {
+          cashback_balance: number
+          created_at: string
+          id: string
+          total_earned: number
+          total_withdrawn: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cashback_balance?: number
+          created_at?: string
+          id?: string
+          total_earned?: number
+          total_withdrawn?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cashback_balance?: number
+          created_at?: string
+          id?: string
+          total_earned?: number
+          total_withdrawn?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_favorites: {
         Row: {
           created_at: string
@@ -1612,6 +1705,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      withdraw_cashback: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: Json
       }
     }
     Enums: {

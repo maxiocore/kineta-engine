@@ -39,6 +39,7 @@ import ClientDesignServices from "./pages/dashboard/ClientDesignServices";
 import ClientDevServices from "./pages/dashboard/ClientDevServices";
 import ClientServicesHome from "./pages/dashboard/ClientServicesHome";
 import DesignServiceOrder from "./pages/dashboard/DesignServiceOrder";
+import ClientCashback from "./pages/dashboard/ClientCashback";
 
 // Admin Dashboard
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -182,6 +183,11 @@ const App = () => (
                   <Route path="/dashboard/design-services/order" element={
                     <ProtectedRoute>
                       <DesignServiceOrder />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/cashback" element={
+                    <ProtectedRoute>
+                      <ClientCashback />
                     </ProtectedRoute>
                   } />
                   
