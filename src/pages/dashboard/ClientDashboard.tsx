@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import {
   ShoppingBag,
   Bell,
@@ -183,9 +184,26 @@ const ClientDashboard = () => {
   });
   const [orderDates, setOrderDates] = useState<OrderDate[]>([]);
   const [tips, setTips] = useState<Tip[]>([]);
+  const lowBalanceNotifiedRef = useRef(false);
+  const LOW_BALANCE_THRESHOLD = 50; // الحد الأدنى للرصيد
 
   const earnedBadgeIds = new Set(userBadges.map(ub => ub.badge_id));
   const earnedBadges = badges.filter(b => earnedBadgeIds.has(b.id));
+
+  // إشعار انخفاض الرصيد
+  useEffect(() => {
+    if (!loading && balanceData.balance > 0 && balanceData.balance < LOW_BALANCE_THRESHOLD && !lowBalanceNotifiedRef.current) {
+      lowBalanceNotifiedRef.current = true;
+      toast.warning("رصيدك منخفض! 💳", {
+        description: `رصيدك الحالي ${balanceData.balance.toFixed(2)} ر.س. اشحن رصيدك الآن للاستمرار في استخدام خدماتنا.`,
+        duration: 8000,
+        action: {
+          label: "شحن الرصيد",
+          onClick: () => window.location.href = "/dashboard/deposit",
+        },
+      });
+    }
+  }, [loading, balanceData.balance]);
 
   useEffect(() => {
     if (user) {
