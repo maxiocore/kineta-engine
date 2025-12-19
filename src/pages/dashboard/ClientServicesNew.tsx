@@ -1033,15 +1033,53 @@ const ClientServicesNew = () => {
                           </div>
                           {filteredServices.map((service) => (
                             <SelectItem key={service.id} value={service.id}>
-                              <div className="flex items-center gap-2 w-full">
-                                <Badge variant="outline" className="text-[9px] font-mono shrink-0">#{service.external_service_id}</Badge>
-                                <span className="truncate flex-1 text-sm">{service.name}</span>
-                                <span className="text-primary font-bold shrink-0 text-sm">${service.price.toFixed(2)}</span>
+                              <div className="flex flex-col gap-0.5 w-full py-1">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className="text-[9px] font-mono shrink-0">#{service.external_service_id}</Badge>
+                                  <span className="truncate flex-1 text-sm font-medium">{service.name}</span>
+                                  <span className="text-primary font-bold shrink-0 text-sm">${service.price.toFixed(2)}</span>
+                                </div>
+                                {service.description && (
+                                  <p className="text-xs text-muted-foreground line-clamp-1 pr-12">{service.description}</p>
+                                )}
                               </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
+                      
+                      {/* Selected Service Info */}
+                      {selectedService && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="p-3 rounded-xl bg-primary/5 border border-primary/20 space-y-2"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm">{selectedService.name}</p>
+                              {selectedService.description && (
+                                <p className="text-xs text-muted-foreground mt-1">{selectedService.description}</p>
+                              )}
+                            </div>
+                            <Badge variant="secondary" className="shrink-0">${selectedService.price.toFixed(2)}/1000</Badge>
+                          </div>
+                          <div className="flex flex-wrap gap-2 text-xs">
+                            <span className="px-2 py-1 rounded-md bg-muted/50">
+                              الحد الأدنى: {selectedService.features?.min || 10}
+                            </span>
+                            <span className="px-2 py-1 rounded-md bg-muted/50">
+                              الحد الأقصى: {selectedService.features?.max || "∞"}
+                            </span>
+                            {selectedService.refill_enabled && (
+                              <span className="px-2 py-1 rounded-md bg-success/10 text-success flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3" />
+                                مضمون
+                              </span>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
                     </div>
 
                     {/* Link */}
