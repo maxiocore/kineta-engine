@@ -8,7 +8,6 @@ import {
   Loader2,
   Gift,
   Sparkles,
-  ArrowUpRight,
   Shield,
   Clock,
   Zap,
@@ -21,6 +20,7 @@ import {
   Smartphone,
   Globe,
   Bitcoin,
+  ExternalLink,
 } from 'lucide-react';
 import ClientDashboardLayout from '@/components/dashboard/ClientDashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -58,7 +58,6 @@ interface PaymentBonus {
   is_active: boolean;
 }
 
-// أيقونات طرق الدفع
 const paymentIcons: Record<string, { icon: typeof CreditCard; gradient: string; color: string }> = {
   'visa': { icon: CreditCard, gradient: 'from-blue-500 to-blue-600', color: 'text-blue-500' },
   'mastercard': { icon: CreditCard, gradient: 'from-red-500 to-orange-500', color: 'text-red-500' },
@@ -69,6 +68,7 @@ const paymentIcons: Record<string, { icon: typeof CreditCard; gradient: string; 
   'vodafone': { icon: Smartphone, gradient: 'from-red-500 to-red-600', color: 'text-red-500' },
   'instapay': { icon: Zap, gradient: 'from-purple-500 to-pink-500', color: 'text-purple-500' },
   'usdt': { icon: DollarSign, gradient: 'from-green-400 to-teal-500', color: 'text-green-400' },
+  'paylink': { icon: CreditCard, gradient: 'from-emerald-500 to-teal-600', color: 'text-emerald-500' },
   'default': { icon: CreditCard, gradient: 'from-primary to-primary/80', color: 'text-primary' },
 };
 
@@ -100,7 +100,7 @@ const itemVariants = {
 };
 
 const ClientDeposit = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -113,6 +113,9 @@ const ClientDeposit = () => {
   const [currentBalance, setCurrentBalance] = useState(0);
   const [copied, setCopied] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [usePaylinkDirect, setUsePaylinkDirect] = useState(false);
+  const [paylinkLoading, setPaylinkLoading] = useState(false);
+  const [clientMobile, setClientMobile] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -175,7 +178,7 @@ const ClientDeposit = () => {
   };
 
   const numericAmount = parseFloat(amount) || 0;
-  const fee = calculateFee(numericAmount);
+  const fee = usePaylinkDirect ? 0 : calculateFee(numericAmount);
   const bonus = calculateBonus(numericAmount);
   const totalCredited = numericAmount - fee + bonus;
 
@@ -187,6 +190,55 @@ const ClientDeposit = () => {
       title: 'تم النسخ',
       description: 'تم نسخ النص إلى الحافظة',
     });
+  };
+
+  const handlePaylinkPayment = async () => {
+    if (!user || numericAmount <= 0 || !clientMobile) {
+      toast({
+        title: 'خطأ',
+        description: 'يرجى إدخال المبلغ ورقم الجوال',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setPaylinkLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('paylink-payment', {
+        body: {
+          action: 'create-payment',
+          userId: user.id,
+          amount: numericAmount,
+          clientName: profile?.full_name || user.email?.split('@')[0] || 'عميل',
+          clientEmail: user.email || '',
+          clientMobile: clientMobile,
+          callbackUrl: `${window.location.origin}/dashboard/deposits?payment=success`,
+          cancelUrl: `${window.location.origin}/dashboard/deposit?payment=cancelled`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.paymentUrl) {
+        toast({
+          title: 'جاري التحويل لصفحة الدفع',
+          description: 'سيتم تحويلك إلى بوابة الدفع الآمنة',
+        });
+        window.location.href = data.paymentUrl;
+      } else {
+        throw new Error('لم يتم الحصول على رابط الدفع');
+      }
+    } catch (error: any) {
+      console.error('Paylink error:', error);
+      toast({
+        title: 'خطأ',
+        description: error.message || 'حدث خطأ أثناء إنشاء طلب الدفع',
+        variant: 'destructive',
+      });
+    } finally {
+      setPaylinkLoading(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -306,58 +358,10 @@ const ClientDeposit = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">رصيدك الحالي</p>
-                  <p className="text-2xl font-bold text-success">${currentBalance.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-success">{currentBalance.toFixed(2)} ر.س</p>
                 </div>
               </div>
             </motion.div>
-          </div>
-
-          {/* Progress Steps */}
-          <div className="relative mt-8">
-            <div className="flex items-center justify-between">
-              {[
-                { step: 1, label: 'طريقة الدفع', icon: CreditCard },
-                { step: 2, label: 'المبلغ', icon: DollarSign },
-                { step: 3, label: 'التأكيد', icon: Send },
-              ].map(({ step, label, icon: Icon }, index) => (
-                <div key={step} className="flex items-center flex-1">
-                  <motion.div 
-                    className="flex flex-col items-center gap-2"
-                    animate={{ 
-                      scale: currentStep >= step ? 1 : 0.9,
-                      opacity: currentStep >= step ? 1 : 0.5 
-                    }}
-                  >
-                    <div className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300",
-                      currentStep >= step 
-                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30" 
-                        : "bg-muted text-muted-foreground"
-                    )}>
-                      {currentStep > step ? (
-                        <CheckCircle2 className="w-5 h-5" />
-                      ) : (
-                        <Icon className="w-5 h-5" />
-                      )}
-                    </div>
-                    <span className={cn(
-                      "text-xs font-medium hidden sm:block",
-                      currentStep >= step ? "text-primary" : "text-muted-foreground"
-                    )}>
-                      {label}
-                    </span>
-                  </motion.div>
-                  {index < 2 && (
-                    <div className="flex-1 mx-4">
-                      <div className={cn(
-                        "h-1 rounded-full transition-all duration-500",
-                        currentStep > step ? "bg-primary" : "bg-muted"
-                      )} />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
           </div>
         </motion.div>
 
@@ -384,7 +388,138 @@ const ClientDeposit = () => {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Payment Methods */}
+            {/* Paylink Direct Payment - Featured */}
+            <motion.div variants={itemVariants}>
+              <Card className="border-2 border-emerald-500/50 shadow-lg overflow-hidden bg-gradient-to-l from-emerald-500/5 to-transparent">
+                <CardHeader className="border-b border-emerald-500/20">
+                  <CardTitle className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+                      <CreditCard className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">الدفع الفوري عبر Paylink</span>
+                        <Badge className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30">موصى به</Badge>
+                      </div>
+                      <p className="text-sm font-normal text-muted-foreground">ادفع مباشرة ببطاقتك واحصل على رصيدك فوراً</p>
+                    </div>
+                    <Zap className="w-6 h-6 text-emerald-500" />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 space-y-6">
+                  <div className="grid gap-4">
+                    {/* Amount Selection for Paylink */}
+                    <div>
+                      <Label className="text-sm text-muted-foreground mb-3 block">اختر المبلغ (ريال سعودي)</Label>
+                      <div className="flex flex-wrap gap-3">
+                        {[50, 100, 200, 500, 1000].map((preset, i) => (
+                          <motion.button
+                            key={preset}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: i * 0.05 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => {
+                              setAmount(preset.toString());
+                              setUsePaylinkDirect(true);
+                              setSelectedMethod(null);
+                            }}
+                            className={cn(
+                              "px-5 py-3 rounded-xl font-semibold transition-all border-2",
+                              usePaylinkDirect && amount === preset.toString()
+                                ? "bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/30"
+                                : "bg-secondary/50 border-border hover:border-emerald-500/50 hover:bg-emerald-500/10"
+                            )}
+                          >
+                            {preset} ر.س
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Custom Amount */}
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm text-muted-foreground">مبلغ مخصص</Label>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            placeholder="أدخل المبلغ"
+                            value={usePaylinkDirect ? amount : ''}
+                            onChange={(e) => {
+                              setAmount(e.target.value);
+                              setUsePaylinkDirect(true);
+                              setSelectedMethod(null);
+                            }}
+                            min={10}
+                            className="h-12 pr-4 text-center border-2 focus:border-emerald-500"
+                          />
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">ر.س</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-sm text-muted-foreground">رقم الجوال <span className="text-destructive">*</span></Label>
+                        <Input
+                          type="tel"
+                          placeholder="05xxxxxxxx"
+                          value={clientMobile}
+                          onChange={(e) => setClientMobile(e.target.value)}
+                          className="h-12 border-2 focus:border-emerald-500"
+                          dir="ltr"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Paylink Benefits */}
+                    <div className="grid sm:grid-cols-3 gap-3">
+                      {[
+                        { icon: Zap, label: 'إضافة فورية', color: 'text-yellow-500' },
+                        { icon: Shield, label: 'دفع آمن', color: 'text-emerald-500' },
+                        { icon: CreditCard, label: 'مدى/فيزا/ماستركارد', color: 'text-blue-500' },
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-center gap-2 p-3 rounded-lg bg-secondary/30">
+                          <item.icon className={cn("w-5 h-5", item.color)} />
+                          <span className="text-sm font-medium">{item.label}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Pay Button */}
+                    <Button
+                      className="w-full h-14 text-lg gap-3 bg-gradient-to-l from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-lg shadow-emerald-500/30"
+                      size="lg"
+                      disabled={!usePaylinkDirect || numericAmount < 10 || !clientMobile || paylinkLoading}
+                      onClick={handlePaylinkPayment}
+                    >
+                      {paylinkLoading ? (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        >
+                          <Loader2 className="w-5 h-5" />
+                        </motion.div>
+                      ) : (
+                        <>
+                          <ExternalLink className="w-5 h-5" />
+                          ادفع الآن {numericAmount > 0 && `(${numericAmount} ر.س)`}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Separator */}
+            <div className="flex items-center gap-4">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-sm text-muted-foreground px-2">أو اختر طريقة دفع أخرى</span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+
+            {/* Other Payment Methods */}
             <motion.div variants={itemVariants}>
               <Card className="border-border/50 shadow-lg overflow-hidden">
                 <CardHeader className="bg-gradient-to-l from-primary/5 to-transparent border-b border-border/50">
@@ -393,8 +528,8 @@ const ClientDeposit = () => {
                       1
                     </div>
                     <div>
-                      <span className="text-lg">اختر طريقة الدفع</span>
-                      <p className="text-sm font-normal text-muted-foreground">حدد الطريقة المناسبة لك</p>
+                      <span className="text-lg">طرق الدفع الأخرى</span>
+                      <p className="text-sm font-normal text-muted-foreground">تحتاج مراجعة يدوية</p>
                     </div>
                   </CardTitle>
                 </CardHeader>
@@ -418,7 +553,10 @@ const ClientDeposit = () => {
                             transition={{ delay: index * 0.1 }}
                             whileHover={{ scale: 1.02, y: -2 }}
                             whileTap={{ scale: 0.98 }}
-                            onClick={() => setSelectedMethod(method)}
+                            onClick={() => {
+                              setSelectedMethod(method);
+                              setUsePaylinkDirect(false);
+                            }}
                             className={cn(
                               "relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 group overflow-hidden",
                               selectedMethod?.id === method.id
@@ -426,7 +564,6 @@ const ClientDeposit = () => {
                                 : "border-border hover:border-primary/50 hover:bg-accent/30"
                             )}
                           >
-                            {/* Background Gradient */}
                             <div className={cn(
                               "absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity",
                               `bg-gradient-to-br ${iconData.gradient}`
@@ -437,7 +574,7 @@ const ClientDeposit = () => {
                                 "w-14 h-14 rounded-xl flex items-center justify-center transition-all shadow-lg",
                                 selectedMethod?.id === method.id
                                   ? `bg-gradient-to-br ${iconData.gradient} text-white`
-                                  : "bg-secondary group-hover:bg-gradient-to-br group-hover:" + iconData.gradient
+                                  : "bg-secondary"
                               )}>
                                 <IconComponent className={cn(
                                   "w-7 h-7 transition-colors",
@@ -481,7 +618,7 @@ const ClientDeposit = () => {
               </Card>
             </motion.div>
 
-            {/* Amount Selection */}
+            {/* Amount Selection for other methods */}
             <AnimatePresence mode="wait">
               {selectedMethod && (
                 <motion.div
@@ -503,7 +640,6 @@ const ClientDeposit = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-6 space-y-6">
-                      {/* Preset Amounts */}
                       <div>
                         <Label className="text-sm text-muted-foreground mb-3 block">اختر مبلغ سريع</Label>
                         <div className="flex flex-wrap gap-3">
@@ -529,7 +665,6 @@ const ClientDeposit = () => {
                         </div>
                       </div>
 
-                      {/* Custom Amount */}
                       <div className="space-y-2">
                         <Label className="text-sm text-muted-foreground">أو أدخل مبلغ مخصص</Label>
                         <div className="relative">
@@ -544,16 +679,8 @@ const ClientDeposit = () => {
                             className="h-14 text-xl font-bold pr-12 text-center border-2 focus:border-primary"
                           />
                         </div>
-                        {(selectedMethod.min_amount || selectedMethod.max_amount) && (
-                          <p className="text-xs text-muted-foreground text-center">
-                            {selectedMethod.min_amount && `الحد الأدنى: $${selectedMethod.min_amount}`}
-                            {selectedMethod.min_amount && selectedMethod.max_amount && ' • '}
-                            {selectedMethod.max_amount && `الحد الأقصى: $${selectedMethod.max_amount}`}
-                          </p>
-                        )}
                       </div>
 
-                      {/* Bonuses Display */}
                       {bonuses.filter(b => !b.payment_method_id || b.payment_method_id === selectedMethod.id).length > 0 && (
                         <motion.div 
                           initial={{ opacity: 0, y: 10 }}
@@ -611,7 +738,6 @@ const ClientDeposit = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-6 space-y-6">
-                      {/* Instructions */}
                       {selectedMethod.instructions_ar && (
                         <motion.div 
                           initial={{ opacity: 0 }}
@@ -682,20 +808,19 @@ const ClientDeposit = () => {
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
                   {/* Selected Method */}
-                  {selectedMethod && (
+                  {(selectedMethod || usePaylinkDirect) && (
                     <div className="p-4 rounded-xl bg-secondary/50 border border-border/50">
                       <p className="text-xs text-muted-foreground mb-2">طريقة الدفع</p>
                       <div className="flex items-center gap-3">
                         <div className={cn(
                           "w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br",
-                          getPaymentIcon(selectedMethod.type, selectedMethod.name).gradient
+                          usePaylinkDirect ? "from-emerald-500 to-teal-600" : (selectedMethod ? getPaymentIcon(selectedMethod.type, selectedMethod.name).gradient : "")
                         )}>
-                          {(() => {
-                            const Icon = getPaymentIcon(selectedMethod.type, selectedMethod.name).icon;
-                            return <Icon className="w-5 h-5 text-white" />;
-                          })()}
+                          <CreditCard className="w-5 h-5 text-white" />
                         </div>
-                        <span className="font-semibold">{selectedMethod.name_ar}</span>
+                        <span className="font-semibold">
+                          {usePaylinkDirect ? 'Paylink - دفع فوري' : selectedMethod?.name_ar}
+                        </span>
                       </div>
                     </div>
                   )}
@@ -704,7 +829,7 @@ const ClientDeposit = () => {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center py-2">
                       <span className="text-muted-foreground">المبلغ</span>
-                      <span className="font-semibold text-lg">${numericAmount.toFixed(2)}</span>
+                      <span className="font-semibold text-lg">{numericAmount.toFixed(2)} ر.س</span>
                     </div>
                     
                     <AnimatePresence>
@@ -716,7 +841,7 @@ const ClientDeposit = () => {
                           className="flex justify-between items-center py-2 text-destructive"
                         >
                           <span>رسوم الدفع</span>
-                          <span className="font-semibold">-${fee.toFixed(2)}</span>
+                          <span className="font-semibold">-{fee.toFixed(2)} ر.س</span>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -733,7 +858,7 @@ const ClientDeposit = () => {
                             <Gift className="w-4 h-4" />
                             بونص
                           </span>
-                          <span className="font-semibold text-success">+${bonus.toFixed(2)}</span>
+                          <span className="font-semibold text-success">+{bonus.toFixed(2)} ر.س</span>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -747,42 +872,46 @@ const ClientDeposit = () => {
                           animate={{ scale: 1 }}
                           className="text-2xl font-bold text-primary"
                         >
-                          ${totalCredited.toFixed(2)}
+                          {totalCredited.toFixed(2)} ر.س
                         </motion.span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Submit Button */}
-                  <Button
-                    className="w-full h-14 text-lg gap-3 shadow-lg shadow-primary/30"
-                    size="lg"
-                    disabled={!selectedMethod || numericAmount <= 0 || submitting}
-                    onClick={handleSubmit}
-                  >
-                    {submitting ? (
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      >
-                        <Loader2 className="w-5 h-5" />
-                      </motion.div>
-                    ) : (
-                      <>
-                        <Send className="w-5 h-5" />
-                        إرسال طلب الإيداع
-                      </>
-                    )}
-                  </Button>
+                  {/* Submit Button for manual methods */}
+                  {selectedMethod && !usePaylinkDirect && (
+                    <Button
+                      className="w-full h-14 text-lg gap-3 shadow-lg shadow-primary/30"
+                      size="lg"
+                      disabled={numericAmount <= 0 || submitting}
+                      onClick={handleSubmit}
+                    >
+                      {submitting ? (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        >
+                          <Loader2 className="w-5 h-5" />
+                        </motion.div>
+                      ) : (
+                        <>
+                          <Send className="w-5 h-5" />
+                          إرسال طلب الإيداع
+                        </>
+                      )}
+                    </Button>
+                  )}
 
                   <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
                     <Shield className="w-4 h-4 text-success" />
                     <span>دفع آمن ومشفر 100%</span>
                   </div>
 
-                  <p className="text-xs text-center text-muted-foreground bg-secondary/50 p-3 rounded-lg">
-                    سيتم مراجعة طلبك وإضافة الرصيد خلال 24 ساعة كحد أقصى
-                  </p>
+                  {selectedMethod && !usePaylinkDirect && (
+                    <p className="text-xs text-center text-muted-foreground bg-secondary/50 p-3 rounded-lg">
+                      سيتم مراجعة طلبك وإضافة الرصيد خلال 24 ساعة كحد أقصى
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
