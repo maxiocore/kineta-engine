@@ -60,6 +60,7 @@ import AdminPriceComparison from "./pages/admin/AdminPriceComparison";
 import AdminReferrals from "./pages/admin/AdminReferrals";
 import AdminRewards from "./pages/admin/AdminRewards";
 import AdminRewardsReports from "./pages/admin/AdminRewardsReports";
+import AdminWallets from "./pages/admin/AdminWallets";
 
 const queryClient = new QueryClient();
 
@@ -152,6 +153,11 @@ const App = () => (
                   
                   {/* Admin Dashboard Routes */}
                   <Route path="/admin/auth" element={<AdminAuth />} />
+                  <Route path="/admin/wallets" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminWallets />
+                    </ProtectedRoute>
+                  } />
                   <Route path="/admin/payments" element={
                     <ProtectedRoute requireAdmin>
                       <AdminPaymentMethods />
