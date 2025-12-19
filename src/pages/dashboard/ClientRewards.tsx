@@ -56,7 +56,7 @@ const ClientRewards = () => {
     setRedeeming(true);
 
     try {
-      const balanceToAdd = points / 100;
+      const balanceToAdd = points / 100; // 100 نقطة = 1 ريال سعودي
 
       // Insert redemption transaction
       const { error: transactionError } = await supabase
@@ -65,8 +65,8 @@ const ClientRewards = () => {
           user_id: user?.id,
           points: -points,
           type: "redeemed",
-          description: `Redeemed ${points} points for $${balanceToAdd}`,
-          description_ar: `تم استبدال ${points} نقطة مقابل $${balanceToAdd}`
+          description: `Redeemed ${points} points for ${balanceToAdd} SAR`,
+          description_ar: `تم استبدال ${points} نقطة مقابل ${balanceToAdd} ر.س`
         });
 
       if (transactionError) throw transactionError;
@@ -251,7 +251,7 @@ const ClientRewards = () => {
                   استبدال النقاط برصيد
                 </Button>
                 <p className="text-xs text-center text-muted-foreground mt-2">
-                  الحد الأدنى 100 نقطة = 1$
+                  الحد الأدنى 100 نقطة = 1 ر.س
                 </p>
               </CardContent>
             </Card>
