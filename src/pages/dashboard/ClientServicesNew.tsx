@@ -46,7 +46,9 @@ import {
   Tv,
   RefreshCw,
   ChevronUp,
-  Loader2
+  Loader2,
+  LayoutGrid,
+  Table2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -56,6 +58,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -129,6 +132,7 @@ const ClientServicesNew = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showRecentLinks, setShowRecentLinks] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
   // Scroll handler
   useEffect(() => {
@@ -413,6 +417,28 @@ const ClientServicesNew = () => {
                 </TabsTrigger>
               </TabsList>
 
+              {/* View Mode Toggle */}
+              <div className="flex items-center gap-2 mt-4">
+                <Button
+                  variant={viewMode === "cards" ? "default" : "outline"}
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setViewMode("cards")}
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                  كروت
+                </Button>
+                <Button
+                  variant={viewMode === "table" ? "default" : "outline"}
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setViewMode("table")}
+                >
+                  <Table2 className="w-4 h-4" />
+                  جدول
+                </Button>
+              </div>
+
               <TabsContent value="new-order" className="mt-4">
                 <Card className="border-border/40 bg-card/80 backdrop-blur-sm">
                   <CardContent className="p-6 space-y-5">
@@ -531,7 +557,7 @@ const ClientServicesNew = () => {
                   <CardContent className="p-6">
                     {favorites.length === 0 ? (
                       <div className="py-12 text-center"><div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4"><Heart className="w-8 h-8 text-muted-foreground/40" /></div><p className="text-muted-foreground">لا توجد خدمات مفضلة</p></div>
-                    ) : (
+                    ) : viewMode === "cards" ? (
                       <div className="space-y-2">
                         {services.filter(s => favorites.includes(s.id)).map((service, i) => (
                           <motion.div key={service.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }} className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 cursor-pointer" onClick={() => { setSelectedCategory(service.category); setSelectedService(service); }}>
@@ -542,10 +568,178 @@ const ClientServicesNew = () => {
                           </motion.div>
                         ))}
                       </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="border-border/40 hover:bg-transparent">
+                              <TableHead className="text-right">الخدمة</TableHead>
+                              <TableHead className="text-right">القسم</TableHead>
+                              <TableHead className="text-center">السعر/1000</TableHead>
+                              <TableHead className="text-center">الضمان</TableHead>
+                              <TableHead className="text-center">إجراءات</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {services.filter(s => favorites.includes(s.id)).map((service, i) => (
+                              <motion.tr
+                                key={service.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.03 }}
+                                className="border-border/40 hover:bg-muted/30 cursor-pointer"
+                                onClick={() => { setSelectedCategory(service.category); setSelectedService(service); }}
+                              >
+                                <TableCell className="font-medium">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className="text-[9px] font-mono shrink-0">#{service.external_service_id}</Badge>
+                                    <span className="truncate max-w-[200px]">{service.name}</span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-muted-foreground text-sm">{service.category}</TableCell>
+                                <TableCell className="text-center font-bold text-primary">${service.price.toFixed(4)}</TableCell>
+                                <TableCell className="text-center">
+                                  {service.refill_enabled ? (
+                                    <Badge className="bg-success/10 text-success border-success/20"><CheckCircle2 className="w-3 h-3 ml-1" />مضمون</Badge>
+                                  ) : (
+                                    <Badge variant="secondary" className="bg-muted text-muted-foreground"><XCircle className="w-3 h-3 ml-1" />غير مضمون</Badge>
+                                  )}
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <div className="flex items-center justify-center gap-1">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={(e) => { e.stopPropagation(); toggleFavorite(service.id); }}><Heart className="w-4 h-4 fill-current" /></Button>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setSelectedCategory(service.category); setSelectedService(service); }}><ShoppingCart className="w-4 h-4" /></Button>
+                                  </div>
+                                </TableCell>
+                              </motion.tr>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
               </TabsContent>
+
+              {/* Services Table View */}
+              {selectedCategory && viewMode === "table" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4"
+                >
+                  <Card className="border-border/40 bg-card/80 backdrop-blur-sm">
+                    <CardHeader className="pb-3 border-b border-border/40">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Table2 className="w-5 h-5 text-primary" />
+                          جدول الخدمات - {selectedCategory}
+                        </CardTitle>
+                        <Badge variant="secondary">{filteredServices.length} خدمة</Badge>
+                      </div>
+                      <div className="mt-3 relative">
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          placeholder="بحث في الخدمات..."
+                          className="pr-9 h-10 bg-muted/30 border-0"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <ScrollArea className="max-h-[500px]">
+                        <Table>
+                          <TableHeader className="sticky top-0 bg-card z-10">
+                            <TableRow className="border-border/40 hover:bg-transparent">
+                              <TableHead className="text-right w-[80px]">رقم</TableHead>
+                              <TableHead className="text-right">الخدمة</TableHead>
+                              <TableHead className="text-center w-[100px]">السعر/1000</TableHead>
+                              <TableHead className="text-center w-[80px]">الحد الأدنى</TableHead>
+                              <TableHead className="text-center w-[80px]">الحد الأقصى</TableHead>
+                              <TableHead className="text-center w-[100px]">الضمان</TableHead>
+                              <TableHead className="text-center w-[100px]">إجراءات</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {filteredServices.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                                  لا توجد خدمات مطابقة للبحث
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              filteredServices.map((service, i) => (
+                                <motion.tr
+                                  key={service.id}
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: i * 0.02 }}
+                                  className={cn(
+                                    "border-border/40 hover:bg-muted/30 cursor-pointer transition-colors",
+                                    selectedService?.id === service.id && "bg-primary/5 hover:bg-primary/10"
+                                  )}
+                                  onClick={() => setSelectedService(service)}
+                                >
+                                  <TableCell className="font-mono text-xs text-muted-foreground">
+                                    #{service.external_service_id}
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium text-sm line-clamp-2">{service.name}</span>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    <span className="font-bold text-primary">${service.price.toFixed(4)}</span>
+                                  </TableCell>
+                                  <TableCell className="text-center text-sm text-muted-foreground">
+                                    {service.features?.min || 10}
+                                  </TableCell>
+                                  <TableCell className="text-center text-sm text-muted-foreground">
+                                    {service.features?.max || "∞"}
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    {service.refill_enabled ? (
+                                      <Badge className="bg-success/10 text-success border-success/20 text-[10px]">
+                                        <CheckCircle2 className="w-3 h-3 ml-1" />مضمون
+                                      </Badge>
+                                    ) : (
+                                      <Badge variant="secondary" className="bg-muted text-muted-foreground text-[10px]">
+                                        <XCircle className="w-3 h-3 ml-1" />لا
+                                      </Badge>
+                                    )}
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    <div className="flex items-center justify-center gap-1">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={(e) => { e.stopPropagation(); toggleFavorite(service.id); }}
+                                      >
+                                        <Heart className={cn("w-4 h-4", favorites.includes(service.id) && "fill-destructive text-destructive")} />
+                                      </Button>
+                                      <Button
+                                        variant="default"
+                                        size="sm"
+                                        className="h-8 gap-1.5"
+                                        onClick={(e) => { e.stopPropagation(); setSelectedService(service); }}
+                                      >
+                                        <ShoppingCart className="w-3.5 h-3.5" />
+                                        طلب
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </motion.tr>
+                              ))
+                            )}
+                          </TableBody>
+                        </Table>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
             </Tabs>
           </div>
 
