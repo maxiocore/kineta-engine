@@ -646,54 +646,42 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                   >
                     <StepIndicator step={1} title="اختر القسم" active={currentStep === 1} completed={currentStep > 1} />
                     
-                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                    <div className="flex flex-wrap gap-3 justify-end">
                       <motion.button
                         whileHover={{ scale: 1.05, y: -2 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setSelectedCategoryId("")}
                         className={cn(
-                          "p-4 rounded-2xl border-2 text-center transition-all relative overflow-hidden group",
+                          "flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all relative overflow-hidden group",
                           !selectedCategoryId
-                            ? "border-primary bg-gradient-to-br from-primary/20 to-primary/5 shadow-lg shadow-primary/20"
+                            ? "border-primary bg-gradient-to-l from-primary/20 to-primary/5 shadow-lg shadow-primary/20"
                             : "border-border/50 hover:border-primary/50 hover:bg-secondary/50"
                         )}
                       >
-                        <motion.div 
-                          className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
-                        />
-                        <div className="relative">
-                          <div className="text-2xl mb-2">
-                            <Layers className="w-6 h-6 mx-auto" />
-                          </div>
-                          <p className="text-xs font-bold">الكل</p>
-                          <p className="text-[10px] text-muted-foreground mt-1">{allServices.length} خدمة</p>
-                        </div>
+                        <Badge variant="secondary" className="text-xs">{allServices.length}</Badge>
+                        <span className="text-sm font-bold">الكل</span>
+                        <Layers className="w-5 h-5 text-primary" />
                       </motion.button>
                       
                       {categories.slice(0, 9).map((cat, index) => (
                         <motion.button
                           key={cat.id}
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.05 * index }}
                           whileHover={{ scale: 1.05, y: -2 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => setSelectedCategoryId(cat.id)}
                           className={cn(
-                            "p-4 rounded-2xl border-2 text-center transition-all relative overflow-hidden group",
+                            "flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all relative overflow-hidden group",
                             selectedCategoryId === cat.id
-                              ? "border-primary bg-gradient-to-br from-primary/20 to-primary/5 shadow-lg shadow-primary/20"
+                              ? "border-primary bg-gradient-to-l from-primary/20 to-primary/5 shadow-lg shadow-primary/20"
                               : "border-border/50 hover:border-primary/50 hover:bg-secondary/50"
                           )}
                         >
-                          <motion.div 
-                            className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
-                          />
-                          <div className="relative">
-                            <div className="text-2xl mb-2">{getCategoryEmoji(cat.slug)}</div>
-                            <p className="text-xs font-bold truncate">{cat.name_ar}</p>
-                            <p className="text-[10px] text-muted-foreground mt-1">{getServiceCount(cat.id)} خدمة</p>
-                          </div>
+                          <Badge variant="secondary" className="text-xs">{getServiceCount(cat.id)}</Badge>
+                          <span className="text-sm font-bold truncate max-w-[100px]">{cat.name_ar}</span>
+                          <span className="text-lg">{getCategoryEmoji(cat.slug)}</span>
                         </motion.button>
                       ))}
                     </div>
@@ -749,20 +737,24 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                         ) : (
                           filteredServices.map((s) => {
                             const sFeatures = typeof s.features === 'string' ? JSON.parse(s.features || '{}') : (s.features || {});
+                            const hasRefill = sFeatures.refill !== false;
                             return (
-                              <SelectItem key={s.id} value={s.id} className="py-3">
-                                <div className="flex flex-col gap-1">
-                                  <span className="font-bold text-sm">{s.name}</span>
-                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <span className="text-primary font-bold">${s.price.toFixed(4)}/1000</span>
-                                    <span>•</span>
-                                    <span>{sFeatures.min || 10} - {(sFeatures.max || 1000000).toLocaleString()}</span>
-                                    {s.external_service_id && (
-                                      <>
-                                        <span>•</span>
-                                        <span>#{s.external_service_id}</span>
-                                      </>
-                                    )}
+                              <SelectItem key={s.id} value={s.id} className="py-3" dir="rtl">
+                                <div className="flex items-center gap-3 w-full">
+                                  <Star className={cn("w-4 h-4 shrink-0", hasRefill ? "text-yellow-500 fill-yellow-500" : "text-muted-foreground")} />
+                                  <div className="flex-1 text-right">
+                                    <span className="font-bold text-sm block">{s.name}</span>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground justify-end">
+                                      {s.external_service_id && (
+                                        <>
+                                          <span>#{s.external_service_id}</span>
+                                          <span>•</span>
+                                        </>
+                                      )}
+                                      <span>{sFeatures.min || 10} - {(sFeatures.max || 1000000).toLocaleString()}</span>
+                                      <span>•</span>
+                                      <span className="text-primary font-bold">${s.price.toFixed(4)}/1000</span>
+                                    </div>
                                   </div>
                                 </div>
                               </SelectItem>
