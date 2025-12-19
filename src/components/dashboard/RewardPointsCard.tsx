@@ -135,7 +135,7 @@ export const RewardPointsCard = () => {
             استبدال النقاط
           </Button>
           <p className="text-[10px] text-center text-muted-foreground">
-            100 نقطة = 1$ رصيد
+            100 نقطة = 1 ر.س رصيد
           </p>
         </CardContent>
       </Card>

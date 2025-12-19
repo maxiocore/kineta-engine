@@ -311,7 +311,7 @@ ${formData.additionalNotes || "لا توجد"}
                 </div>
                 <div>
                   <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">طلب خدمة التصميم</h1>
-                  <p className="text-white/80 text-sm mt-1">"{service.name}" - ${service.price.toFixed(2)}</p>
+                  <p className="text-white/80 text-sm mt-1">"{service.name}" - {service.price.toFixed(2)} ر.س</p>
                 </div>
               </div>
 
@@ -328,7 +328,7 @@ ${formData.additionalNotes || "لا توجد"}
                 <div>
                   <p className={`text-xs ${insufficientBalance ? "text-red-300" : "text-white/60"}`}>رصيدك الحالي</p>
                   <p className={`font-bold text-lg ${insufficientBalance ? "text-red-300" : "text-white"}`}>
-                    ${balance.toFixed(2)}
+                    {balance.toFixed(2)} ر.س
                   </p>
                 </div>
               </motion.div>
@@ -597,7 +597,7 @@ ${formData.additionalNotes || "لا توجد"}
                         </div>
                       </div>
                       <p className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-                        ${service.price.toFixed(2)}
+                        {service.price.toFixed(2)} ر.س
                       </p>
                     </div>
                   </div>

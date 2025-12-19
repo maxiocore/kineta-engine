@@ -273,7 +273,7 @@ const ClientDeposit = () => {
     if (selectedMethod.min_amount && numericAmount < selectedMethod.min_amount) {
       toast({
         title: 'خطأ',
-        description: `الحد الأدنى للإيداع هو $${selectedMethod.min_amount}`,
+        description: `الحد الأدنى للإيداع هو ${selectedMethod.min_amount} ر.س`,
         variant: 'destructive',
       });
       return;
@@ -282,7 +282,7 @@ const ClientDeposit = () => {
     if (selectedMethod.max_amount && numericAmount > selectedMethod.max_amount) {
       toast({
         title: 'خطأ',
-        description: `الحد الأقصى للإيداع هو $${selectedMethod.max_amount}`,
+        description: `الحد الأقصى للإيداع هو ${selectedMethod.max_amount} ر.س`,
         variant: 'destructive',
       });
       return;

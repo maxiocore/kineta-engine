@@ -137,7 +137,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         {payload.map((entry: any, index: number) => (
           <p key={index} className="text-sm flex items-center gap-2" style={{ color: entry.color }}>
             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-            {entry.name}: ${entry.value?.toFixed(2)}
+            {entry.name}: {entry.value?.toFixed(2)} ر.س
           </p>
         ))}
       </motion.div>
@@ -244,9 +244,9 @@ const ClientBalanceLogs = () => {
           const actionInfo = actionTypeLabels[newLog.action_type] || { label: newLog.action_type };
           const isPositive = newLog.amount > 0;
           toast.success(
-            `${actionInfo.label}: ${isPositive ? '+' : ''}$${newLog.amount.toFixed(2)}`,
+            `${actionInfo.label}: ${isPositive ? '+' : ''}${newLog.amount.toFixed(2)} ر.س`,
             {
-              description: `الرصيد الجديد: $${newLog.balance_after.toFixed(2)}`,
+              description: `الرصيد الجديد: ${newLog.balance_after.toFixed(2)} ر.س`,
               icon: isPositive ? <ArrowUpCircle className="w-5 h-5 text-emerald-500" /> : <ArrowDownCircle className="w-5 h-5 text-orange-500" />,
             }
           );
@@ -455,7 +455,7 @@ const ClientBalanceLogs = () => {
                       animate={{ scale: 1, color: 'hsl(var(--primary))' }}
                       className="text-3xl font-bold"
                     >
-                      ${stats.currentBalance.toFixed(2)}
+                      {stats.currentBalance.toFixed(2)} ر.س
                     </motion.p>
                   </div>
                 </div>
@@ -492,7 +492,7 @@ const ClientBalanceLogs = () => {
                       animate={{ scale: 1 }}
                       className="text-3xl font-bold text-emerald-500"
                     >
-                      ${stats.totalDeposits.toFixed(2)}
+                      {stats.totalDeposits.toFixed(2)} ر.س
                     </motion.p>
                   </div>
                 </div>
@@ -529,7 +529,7 @@ const ClientBalanceLogs = () => {
                       animate={{ scale: 1 }}
                       className="text-3xl font-bold text-orange-500"
                     >
-                      ${stats.totalSpent.toFixed(2)}
+                      {stats.totalSpent.toFixed(2)} ر.س
                     </motion.p>
                   </div>
                 </div>
