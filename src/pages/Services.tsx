@@ -339,7 +339,7 @@ const Services = () => {
                         <div className="flex items-center justify-between mt-auto pt-3 border-t border-border/50">
                           <div>
                             <p className="text-xs text-muted-foreground">السعر</p>
-                            <p className="font-bold text-primary">${service.price.toFixed(2)}</p>
+                            <p className="font-bold text-primary">{service.price.toFixed(2)} ر.س</p>
                           </div>
                           <Button size="sm" onClick={() => handleOrderService(service)} className="gap-1">
                             <ShoppingCart className="w-3.5 h-3.5" />
@@ -611,7 +611,7 @@ const Services = () => {
                                           </div>
                                           <div className="col-span-2 text-center">
                                             <span className="font-bold text-primary">
-                                              ${service.price.toFixed(2)}
+                                              {service.price.toFixed(2)} ر.س
                                             </span>
                                           </div>
                                           <div className="col-span-2 flex justify-center gap-1">

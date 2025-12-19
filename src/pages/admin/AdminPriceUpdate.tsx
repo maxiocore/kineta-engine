@@ -318,15 +318,15 @@ const AdminPriceUpdate = () => {
                   <div className={`p-3 rounded-lg border ${summary.difference >= 0 ? 'bg-success/10 border-success/20' : 'bg-destructive/10 border-destructive/20'}`}>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">الإجمالي القديم:</span>
-                      <span>${summary.totalOld.toFixed(2)}</span>
+                      <span>{summary.totalOld.toFixed(2)} ر.س</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">الإجمالي الجديد:</span>
-                      <span>${summary.totalNew.toFixed(2)}</span>
+                      <span>{summary.totalNew.toFixed(2)} ر.س</span>
                     </div>
                     <div className={`flex justify-between font-bold border-t pt-2 mt-2 ${summary.difference >= 0 ? 'text-success border-success/20' : 'text-destructive border-destructive/20'}`}>
                       <span>الفرق:</span>
-                      <span>{summary.difference >= 0 ? '+' : ''}{summary.difference.toFixed(2)}$</span>
+                      <span>{summary.difference >= 0 ? '+' : ''}{summary.difference.toFixed(2)} ر.س</span>
                     </div>
                   </div>
                 </div>

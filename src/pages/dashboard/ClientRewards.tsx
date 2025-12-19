@@ -100,7 +100,7 @@ const ClientRewards = () => {
           updated_at: new Date().toISOString()
         });
 
-      toast.success(`تم إضافة $${balanceToAdd.toFixed(2)} إلى رصيدك!`);
+      toast.success(`تم إضافة ${balanceToAdd.toFixed(2)} ر.س إلى رصيدك!`);
       setRedeemDialogOpen(false);
       setPointsToRedeem("");
       refetch();
@@ -492,7 +492,7 @@ const ClientRewards = () => {
                 <div className="p-4 bg-success/10 border border-success/20 rounded-xl text-center">
                   <p className="text-sm text-muted-foreground mb-1">ستحصل على</p>
                   <p className="text-2xl font-bold text-success">
-                    ${(parseInt(pointsToRedeem) / 100).toFixed(2)}
+                    {(parseInt(pointsToRedeem) / 100).toFixed(2)} ر.س
                   </p>
                   <p className="text-xs text-muted-foreground">رصيد في حسابك</p>
                 </div>
