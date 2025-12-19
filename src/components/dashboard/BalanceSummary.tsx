@@ -43,8 +43,13 @@ const BalanceSummary = ({ balance, totalDeposited, totalSpent }: BalanceSummaryP
               </div>
             </div>
             <Button 
-              onClick={handleDeposit}
-              className="bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-lg gap-2 w-full sm:w-auto"
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                navigate("/dashboard/deposit");
+              }}
+              className="bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-lg gap-2 w-full sm:w-auto cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               شحن الرصيد
