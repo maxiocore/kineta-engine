@@ -7,7 +7,8 @@ import ThemeToggle from "@/components/ThemeToggle";
 
 const navItems = [
   { label: "الرئيسية", href: "/" },
-  { label: "خدماتنا", href: "/services" },
+  { label: "خدماتنا", href: "/our-services" },
+  { label: "SMM Panel", href: "/services" },
   { label: "من نحن", href: "/about" },
   { label: "الأسعار", href: "/pricing" },
   { label: "تواصل معنا", href: "/contact" },
