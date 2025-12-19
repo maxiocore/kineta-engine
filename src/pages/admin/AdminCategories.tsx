@@ -42,6 +42,23 @@ import {
   ArrowUpDown,
   ChevronDown,
   FolderTree,
+  Palette,
+  Code,
+  PenTool,
+  Figma,
+  FileCode,
+  Database,
+  Server,
+  Brush,
+  Image,
+  Video,
+  Monitor,
+  Smartphone,
+  Box,
+  ShoppingBag,
+  Gamepad2,
+  Camera,
+  Headphones,
 } from "lucide-react";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -87,16 +104,37 @@ interface Category {
 }
 
 const iconOptions = [
+  // Social Media
   { value: "Instagram", label: "Instagram", icon: Instagram },
   { value: "Facebook", label: "Facebook", icon: Facebook },
   { value: "Youtube", label: "Youtube", icon: Youtube },
   { value: "Twitter", label: "Twitter", icon: Twitter },
   { value: "Linkedin", label: "LinkedIn", icon: Linkedin },
-  { value: "Music2", label: "Music", icon: Music2 },
-  { value: "Send", label: "Send", icon: Send },
-  { value: "Globe", label: "Globe", icon: Globe },
-  { value: "Layers", label: "Layers", icon: Layers },
-  { value: "MoreHorizontal", label: "More", icon: MoreHorizontal },
+  { value: "Music2", label: "TikTok/Music", icon: Music2 },
+  { value: "Send", label: "Telegram", icon: Send },
+  { value: "Camera", label: "Snapchat/Camera", icon: Camera },
+  // Design
+  { value: "Palette", label: "تصميم/Palette", icon: Palette },
+  { value: "PenTool", label: "قلم التصميم", icon: PenTool },
+  { value: "Figma", label: "Figma", icon: Figma },
+  { value: "Brush", label: "فرشاة", icon: Brush },
+  { value: "Image", label: "صورة", icon: Image },
+  { value: "Video", label: "فيديو", icon: Video },
+  // Programming
+  { value: "Code", label: "برمجة/Code", icon: Code },
+  { value: "FileCode", label: "ملف كود", icon: FileCode },
+  { value: "Database", label: "قاعدة بيانات", icon: Database },
+  { value: "Server", label: "سيرفر", icon: Server },
+  { value: "Monitor", label: "شاشة/ويب", icon: Monitor },
+  { value: "Smartphone", label: "تطبيقات", icon: Smartphone },
+  // General
+  { value: "Globe", label: "عام/Globe", icon: Globe },
+  { value: "Layers", label: "طبقات", icon: Layers },
+  { value: "Box", label: "صندوق", icon: Box },
+  { value: "ShoppingBag", label: "تسوق", icon: ShoppingBag },
+  { value: "Gamepad2", label: "ألعاب", icon: Gamepad2 },
+  { value: "Headphones", label: "صوتيات", icon: Headphones },
+  { value: "MoreHorizontal", label: "أخرى", icon: MoreHorizontal },
 ];
 
 const colorOptions = [
@@ -109,6 +147,10 @@ const colorOptions = [
   { value: "from-blue-700 to-blue-600", label: "Dark Blue" },
   { value: "from-orange-500 to-orange-400", label: "Orange" },
   { value: "from-emerald-500 to-teal-500", label: "Emerald → Teal" },
+  { value: "from-amber-500 to-yellow-500", label: "Amber → Yellow" },
+  { value: "from-cyan-500 to-blue-500", label: "Cyan → Blue" },
+  { value: "from-violet-500 to-purple-500", label: "Violet → Purple" },
+  { value: "from-rose-500 to-pink-500", label: "Rose → Pink" },
   { value: "from-gray-500 to-gray-400", label: "Gray" },
   { value: "from-primary to-accent", label: "Primary → Accent" },
 ];
@@ -124,6 +166,23 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   Globe,
   Layers,
   MoreHorizontal,
+  Palette,
+  Code,
+  PenTool,
+  Figma,
+  FileCode,
+  Database,
+  Server,
+  Brush,
+  Image,
+  Video,
+  Monitor,
+  Smartphone,
+  Box,
+  ShoppingBag,
+  Gamepad2,
+  Camera,
+  Headphones,
 };
 
 // Sortable Category Card Component
