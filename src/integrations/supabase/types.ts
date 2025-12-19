@@ -687,6 +687,48 @@ export type Database = {
           },
         ]
       }
+      monthly_achievements: {
+        Row: {
+          achieved_at: string | null
+          bonus_points_awarded: number | null
+          completed_orders: number
+          created_at: string
+          exceeded_by: number | null
+          goal_achieved: boolean
+          id: string
+          month: string
+          monthly_goal: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          achieved_at?: string | null
+          bonus_points_awarded?: number | null
+          completed_orders?: number
+          created_at?: string
+          exceeded_by?: number | null
+          goal_achieved?: boolean
+          id?: string
+          month: string
+          monthly_goal?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          achieved_at?: string | null
+          bonus_points_awarded?: number | null
+          completed_orders?: number
+          created_at?: string
+          exceeded_by?: number | null
+          goal_achieved?: boolean
+          id?: string
+          month?: string
+          monthly_goal?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string

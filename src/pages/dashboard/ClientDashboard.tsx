@@ -37,10 +37,12 @@ import OrderCalendar from "@/components/dashboard/OrderCalendar";
 import PersonalizedTips from "@/components/dashboard/PersonalizedTips";
 import RewardPointsCard from "@/components/dashboard/RewardPointsCard";
 import MonthlyGoalCelebration from "@/components/dashboard/MonthlyGoalCelebration";
+import AchievementsHistory from "@/components/dashboard/AchievementsHistory";
 import { supabase } from "@/integrations/supabase/client";
 import OrderStatusChart from "@/components/dashboard/OrderStatusChart";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserBadges } from "@/hooks/useUserBadges";
+import { useMonthlyAchievements } from "@/hooks/useMonthlyAchievements";
 import { format, subMonths, startOfMonth, isSameDay, formatDistanceToNow, endOfMonth, isWithinInterval } from "date-fns";
 import { ar } from "date-fns/locale";
 import { Progress } from "@/components/ui/progress";
@@ -166,6 +168,13 @@ const getStatusColor = (status: string) => {
 const ClientDashboard = () => {
   const { user, profile } = useAuth();
   const { badges, userBadges, loading: badgesLoading } = useUserBadges(user?.id);
+  const { 
+    achievements, 
+    loading: achievementsLoading, 
+    updateAchievement, 
+    markGoalAchieved,
+    currentAchievement 
+  } = useMonthlyAchievements(user?.id);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
@@ -240,9 +249,17 @@ const ClientDashboard = () => {
       !loading &&
       stats.completedThisMonth >= stats.monthlyGoal &&
       stats.monthlyGoal > 0 &&
-      !goalCelebratedRef.current
+      !goalCelebratedRef.current &&
+      (!currentAchievement || !currentAchievement.goal_achieved)
     ) {
       goalCelebratedRef.current = true;
+      
+      // Calculate bonus points
+      const exceededBy = stats.completedThisMonth - stats.monthlyGoal;
+      const bonusPoints = 50 + (exceededBy >= 5 ? 25 : 0);
+      
+      // Save achievement to database
+      markGoalAchieved(bonusPoints, exceededBy);
       
       // Show celebration after a short delay for better UX
       const timer = setTimeout(() => {
@@ -255,7 +272,14 @@ const ClientDashboard = () => {
       
       return () => clearTimeout(timer);
     }
-  }, [loading, stats.completedThisMonth, stats.monthlyGoal]);
+  }, [loading, stats.completedThisMonth, stats.monthlyGoal, currentAchievement, markGoalAchieved]);
+
+  // Update achievement data when stats change
+  useEffect(() => {
+    if (!loading && user && stats.totalOrders > 0) {
+      updateAchievement(stats.completedThisMonth, stats.monthlyGoal);
+    }
+  }, [loading, user, stats.completedThisMonth, stats.monthlyGoal, stats.totalOrders, updateAchievement]);
 
   useEffect(() => {
     if (user) {
@@ -906,6 +930,12 @@ const ClientDashboard = () => {
           />
           <OrderCalendar orderDates={orderDates} />
         </div>
+
+        {/* Achievements History */}
+        <AchievementsHistory 
+          achievements={achievements} 
+          loading={achievementsLoading} 
+        />
 
         {/* User Badges */}
         <motion.div
