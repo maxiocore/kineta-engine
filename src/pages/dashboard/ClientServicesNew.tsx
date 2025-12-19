@@ -1131,14 +1131,14 @@ const ClientServicesNew = () => {
                           className="max-h-[60vh] sm:max-h-[350px] w-[calc(100vw-2rem)] sm:w-[var(--radix-select-trigger-width)] bg-popover border-border shadow-xl z-[100]"
                           position="popper"
                           sideOffset={5}
-                          align="start"
+                          align="end"
                         >
-                          <div className="p-2 sticky top-0 bg-popover z-20 border-b border-border">
+                          <div className="p-2 sticky top-0 bg-popover z-20 border-b border-border" dir="rtl">
                             <div className="relative">
                               <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                               <Input 
                                 placeholder="بحث بالاسم أو الرقم أو الوصف..." 
-                                className="pr-9 h-10 bg-muted/30 border-border/40 rounded-lg text-sm w-full" 
+                                className="pr-9 h-10 bg-muted/30 border-border/40 rounded-lg text-sm w-full text-right" 
                                 value={searchQuery} 
                                 onChange={(e) => setSearchQuery(e.target.value)} 
                                 onClick={(e) => e.stopPropagation()}
@@ -1146,6 +1146,7 @@ const ClientServicesNew = () => {
                                 autoCorrect="off"
                                 autoCapitalize="off"
                                 spellCheck={false}
+                                dir="rtl"
                               />
                             </div>
                           </div>
@@ -1156,25 +1157,26 @@ const ClientServicesNew = () => {
                                 <p>لا توجد خدمات مطابقة للبحث</p>
                               </div>
                             ) : (
-                              <div className="p-1">
+                              <div className="p-1" dir="rtl">
                                 {filteredServices.map((service) => (
                                   <SelectItem 
                                     key={service.id} 
                                     value={service.id} 
-                                    className="py-3 px-3 rounded-lg cursor-pointer focus:bg-accent/50 data-[highlighted]:bg-accent/50 mb-1"
+                                    className="py-3 px-3 rounded-lg cursor-pointer focus:bg-accent/50 data-[highlighted]:bg-accent/50 mb-1 text-right"
+                                    dir="rtl"
                                   >
-                                    <div className="flex flex-col gap-1.5 w-full min-w-0">
+                                    <div className="flex flex-col gap-1.5 w-full min-w-0 text-right" dir="rtl">
                                       {/* Service ID and Name */}
-                                      <div className="flex items-start gap-2 min-w-0">
+                                      <div className="flex items-start gap-2 min-w-0 flex-row-reverse justify-end">
+                                        <span className="text-sm font-medium leading-tight break-words flex-1 min-w-0 text-right">
+                                          {service.name}
+                                        </span>
                                         <Badge variant="outline" className="text-[9px] font-mono shrink-0 mt-0.5">
                                           #{service.external_service_id}
                                         </Badge>
-                                        <span className="text-sm font-medium leading-tight break-words flex-1 min-w-0">
-                                          {service.name}
-                                        </span>
                                       </div>
                                       {/* Price and Details Row */}
-                                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                                      <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-xs flex-row-reverse">
                                         <span className="text-primary font-bold">${service.price.toFixed(4)}</span>
                                         <span className="text-muted-foreground">
                                           الحد: {service.features?.min || 10} - {service.features?.max || "∞"}
@@ -1188,7 +1190,7 @@ const ClientServicesNew = () => {
                                       </div>
                                       {/* Description */}
                                       {service.description && (
-                                        <p className="text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed">
+                                        <p className="text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed text-right">
                                           {service.description}
                                         </p>
                                       )}
