@@ -9,6 +9,7 @@ import {
   Clock,
   TrendingUp,
   Sparkles,
+  BarChart3,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
@@ -16,12 +17,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, subDays } from "date-fns";
 import { ar } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import StatCard from "@/components/admin/StatCard";
 import ActivityTimeline, { Activity } from "@/components/admin/ActivityTimeline";
 import TopServicesWidget, { TopService } from "@/components/admin/TopServicesWidget";
 import QuickActions from "@/components/admin/QuickActions";
 import DashboardSkeleton from "@/components/admin/DashboardSkeleton";
+import AdvancedDashboardCharts from "@/components/admin/AdvancedDashboardCharts";
 
 interface DashboardStats {
   totalUsers: number;
@@ -36,6 +39,12 @@ interface DashboardStats {
   revenueTrend: number;
 }
 
+interface ChartData {
+  orders: any[];
+  deposits: any[];
+  users: any[];
+}
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
@@ -48,6 +57,7 @@ const itemVariants = {
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("overview");
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     verifiedUsers: 0,
@@ -59,6 +69,11 @@ const AdminDashboard = () => {
     usersTrend: 0,
     ordersTrend: 0,
     revenueTrend: 0,
+  });
+  const [chartData, setChartData] = useState<ChartData>({
+    orders: [],
+    deposits: [],
+    users: [],
   });
   const [activities, setActivities] = useState<Activity[]>([]);
   const [topServices, setTopServices] = useState<TopService[]>([]);
@@ -302,6 +317,18 @@ const AdminDashboard = () => {
       serviceStats.sort((a, b) => b.revenue - a.revenue);
       setTopServices(serviceStats.slice(0, 5));
 
+      // Fetch deposits for charts
+      const { data: depositsData } = await supabase
+        .from("deposits")
+        .select("id, amount, status, created_at");
+
+      // Set chart data
+      setChartData({
+        orders: orders || [],
+        deposits: depositsData || [],
+        users: profiles?.map(p => ({ id: p.id, created_at: p.created_at || '', is_verified: p.is_verified || false })) || [],
+      });
+
       setLoading(false);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -390,43 +417,67 @@ const AdminDashboard = () => {
           </motion.div>
         </motion.div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-          {statsData.map((stat, index) => (
-            <StatCard
-              key={stat.title}
-              title={stat.title}
-              value={stat.value}
-              icon={stat.icon}
-              gradient={stat.gradient}
-              shadowColor={stat.shadowColor}
-              trend={stat.trend}
-              suffix={stat.suffix}
-              delay={index * 0.1}
-              onClick={stat.onClick}
+        {/* Tabs for Overview and Analytics */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              نظرة عامة
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              الإحصائيات التفصيلية
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-4 sm:space-y-6">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+              {statsData.map((stat, index) => (
+                <StatCard
+                  key={stat.title}
+                  title={stat.title}
+                  value={stat.value}
+                  icon={stat.icon}
+                  gradient={stat.gradient}
+                  shadowColor={stat.shadowColor}
+                  trend={stat.trend}
+                  suffix={stat.suffix}
+                  delay={index * 0.1}
+                  onClick={stat.onClick}
+                />
+              ))}
+            </div>
+
+            {/* Two Column Layout */}
+            <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
+              <motion.div variants={itemVariants}>
+                <ActivityTimeline 
+                  activities={activities}
+                  maxItems={6}
+                  onViewAll={() => navigate("/admin/logs")}
+                />
+              </motion.div>
+
+              <motion.div variants={itemVariants}>
+                <TopServicesWidget services={topServices} />
+              </motion.div>
+            </div>
+
+            {/* Quick Actions */}
+            <motion.div variants={itemVariants}>
+              <QuickActions />
+            </motion.div>
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <AdvancedDashboardCharts 
+              orders={chartData.orders}
+              deposits={chartData.deposits}
+              users={chartData.users}
             />
-          ))}
-        </div>
-
-        {/* Two Column Layout */}
-        <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
-          <motion.div variants={itemVariants}>
-            <ActivityTimeline 
-              activities={activities}
-              maxItems={6}
-              onViewAll={() => navigate("/admin/logs")}
-            />
-          </motion.div>
-
-          <motion.div variants={itemVariants}>
-            <TopServicesWidget services={topServices} />
-          </motion.div>
-        </div>
-
-        {/* Quick Actions */}
-        <motion.div variants={itemVariants}>
-          <QuickActions />
-        </motion.div>
+          </TabsContent>
+        </Tabs>
       </motion.div>
     </AdminDashboardLayout>
   );
