@@ -39,8 +39,9 @@ import RewardPointsCard from "@/components/dashboard/RewardPointsCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserBadges } from "@/hooks/useUserBadges";
-import { format, subMonths, startOfMonth, isSameDay, formatDistanceToNow } from "date-fns";
+import { format, subMonths, startOfMonth, isSameDay, formatDistanceToNow, endOfMonth, isWithinInterval } from "date-fns";
 import { ar } from "date-fns/locale";
+import { Progress } from "@/components/ui/progress";
 
 interface Order {
   id: string;
@@ -55,6 +56,8 @@ interface DashboardStats {
   activeOrders: number;
   inProgressOrders: number;
   completedOrders: number;
+  completedThisMonth: number;
+  monthlyGoal: number;
   pendingTickets: number;
   totalOrders: number;
 }
@@ -158,6 +161,8 @@ const ClientDashboard = () => {
     activeOrders: 0,
     inProgressOrders: 0,
     completedOrders: 0,
+    completedThisMonth: 0,
+    monthlyGoal: 10,
     pendingTickets: 0,
     totalOrders: 0,
   });
@@ -335,10 +340,30 @@ const ClientDashboard = () => {
       ).length;
       const completedOrders = ordersData.filter(o => o.status === "completed").length;
 
+      // Calculate completed orders this month
+      const currentDate = new Date();
+      const monthStart = startOfMonth(currentDate);
+      const monthEnd = endOfMonth(currentDate);
+      const completedThisMonth = ordersData.filter(o => 
+        o.status === "completed" && 
+        isWithinInterval(new Date(o.created_at), { start: monthStart, end: monthEnd })
+      ).length;
+
+      // Dynamic monthly goal based on previous month performance
+      const lastMonthStart = startOfMonth(subMonths(currentDate, 1));
+      const lastMonthEnd = endOfMonth(subMonths(currentDate, 1));
+      const completedLastMonth = ordersData.filter(o => 
+        o.status === "completed" && 
+        isWithinInterval(new Date(o.created_at), { start: lastMonthStart, end: lastMonthEnd })
+      ).length;
+      const monthlyGoal = Math.max(10, Math.ceil(completedLastMonth * 1.2)); // Goal is 20% more than last month, minimum 10
+
       setStats({
         activeOrders,
         inProgressOrders,
         completedOrders,
+        completedThisMonth,
+        monthlyGoal,
         pendingTickets: ticketsResult.count || 0,
         totalOrders: ordersData.length,
       });
@@ -686,7 +711,55 @@ const ClientDashboard = () => {
           ))}
         </motion.div>
 
-        {/* Personalized Tips */}
+        {/* Monthly Progress Bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <Card className="card-elevated border-border/30 overflow-hidden">
+            <CardContent className="p-4 sm:p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-success to-emerald-400 flex items-center justify-center shadow-lg">
+                    <TrendingUp className="w-5 h-5 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm sm:text-base">تقدم الطلبات هذا الشهر</h3>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(), "MMMM yyyy", { locale: ar })}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-left">
+                  <p className="text-xl sm:text-2xl font-bold text-success">
+                    {stats.completedThisMonth}
+                    <span className="text-sm text-muted-foreground font-normal">/{stats.monthlyGoal}</span>
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">طلب مكتمل</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Progress 
+                  value={Math.min((stats.completedThisMonth / stats.monthlyGoal) * 100, 100)} 
+                  className="h-3 bg-muted/50"
+                />
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>
+                    {stats.completedThisMonth >= stats.monthlyGoal 
+                      ? "🎉 تهانينا! حققت هدف الشهر"
+                      : `باقي ${stats.monthlyGoal - stats.completedThisMonth} طلب للوصول للهدف`
+                    }
+                  </span>
+                  <span className="font-medium text-success">
+                    {Math.round((stats.completedThisMonth / stats.monthlyGoal) * 100)}%
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
         <AnimatePresence>
           {tips.length > 0 && (
             <PersonalizedTips tips={tips} onDismiss={dismissTip} />
