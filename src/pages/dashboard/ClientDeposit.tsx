@@ -1016,7 +1016,7 @@ const ClientDeposit = () => {
                           <CreditCard className="w-5 h-5 text-white" />
                         </div>
                         <span className="font-semibold">
-                          {usePaylinkDirect ? 'Paylink - دفع فوري' : selectedMethod?.name_ar}
+                          {usePaylinkDirect ? 'الدفع الالكتروني' : selectedMethod?.name_ar}
                         </span>
                       </div>
                     </div>
