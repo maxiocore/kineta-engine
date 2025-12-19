@@ -16,6 +16,7 @@ import {
   Search,
   User,
   Loader2,
+  Minus,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
@@ -77,10 +78,13 @@ const AdminRewards = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [tierToDelete, setTierToDelete] = useState<string | null>(null);
   const [grantDialogOpen, setGrantDialogOpen] = useState(false);
+  const [deductDialogOpen, setDeductDialogOpen] = useState(false);
   const [userSearch, setUserSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<{ id: string; email: string; full_name: string | null } | null>(null);
   const [pointsToGrant, setPointsToGrant] = useState("");
+  const [pointsToDeduct, setPointsToDeduct] = useState("");
   const [grantReason, setGrantReason] = useState("");
+  const [deductReason, setDeductReason] = useState("");
   const [searchingUsers, setSearchingUsers] = useState(false);
   const [userResults, setUserResults] = useState<{ id: string; email: string; full_name: string | null }[]>([]);
   const [formData, setFormData] = useState({
@@ -329,6 +333,71 @@ const AdminRewards = () => {
     setUserResults([]);
   };
 
+  const handleCloseDeductDialog = () => {
+    setDeductDialogOpen(false);
+    setSelectedUser(null);
+    setPointsToDeduct("");
+    setDeductReason("");
+    setUserSearch("");
+    setUserResults([]);
+  };
+
+  // Deduct points mutation
+  const deductPointsMutation = useMutation({
+    mutationFn: async ({ userId, points, reason }: { userId: string; points: number; reason: string }) => {
+      // Check if user has enough points
+      const { data: existingPoints } = await supabase
+        .from("user_points")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (!existingPoints || existingPoints.available_points < points) {
+        throw new Error("المستخدم ليس لديه نقاط كافية للخصم");
+      }
+
+      // Insert transaction (negative points)
+      const { error: transactionError } = await supabase
+        .from("points_transactions")
+        .insert({
+          user_id: userId,
+          points: -points,
+          type: "deducted",
+          description: `Admin deducted: ${reason}`,
+          description_ar: `خصم من الإدارة: ${reason}`
+        });
+
+      if (transactionError) throw transactionError;
+
+      // Update user points
+      const { error: updateError } = await supabase
+        .from("user_points")
+        .update({
+          available_points: existingPoints.available_points - points,
+          updated_at: new Date().toISOString()
+        })
+        .eq("user_id", userId);
+
+      if (updateError) throw updateError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rewards-stats"] });
+      toast({
+        title: "تم خصم النقاط",
+        description: `تم خصم ${pointsToDeduct} نقطة بنجاح`,
+      });
+      handleCloseDeductDialog();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ",
+        description: error.message || "حدث خطأ أثناء خصم النقاط",
+        variant: "destructive",
+      });
+      console.error(error);
+    },
+  });
+
   const handleGrantPoints = () => {
     const points = parseInt(pointsToGrant);
     if (!selectedUser || isNaN(points) || points <= 0) {
@@ -343,6 +412,23 @@ const AdminRewards = () => {
       userId: selectedUser.id,
       points,
       reason: grantReason || "منحة إدارية"
+    });
+  };
+
+  const handleDeductPoints = () => {
+    const points = parseInt(pointsToDeduct);
+    if (!selectedUser || isNaN(points) || points <= 0) {
+      toast({
+        title: "خطأ",
+        description: "يرجى اختيار مستخدم وإدخال عدد نقاط صحيح",
+        variant: "destructive",
+      });
+      return;
+    }
+    deductPointsMutation.mutate({
+      userId: selectedUser.id,
+      points,
+      reason: deductReason || "خصم إداري"
     });
   };
 
@@ -472,6 +558,14 @@ const AdminRewards = () => {
             >
               <Send className="w-4 h-4" />
               منح نقاط
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setDeductDialogOpen(true)}
+              className="gap-2 text-destructive hover:text-destructive"
+            >
+              <Minus className="w-4 h-4" />
+              خصم نقاط
             </Button>
             <Button
               variant="outline"
@@ -1102,6 +1196,162 @@ const AdminRewards = () => {
                   <>
                     <Send className="w-4 h-4" />
                     منح النقاط
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Deduct Points Dialog */}
+        <Dialog open={deductDialogOpen} onOpenChange={setDeductDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Minus className="w-5 h-5 text-destructive" />
+                خصم نقاط من مستخدم
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              {/* User Search */}
+              <div className="space-y-2">
+                <Label>البحث عن مستخدم</Label>
+                <div className="relative">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    value={userSearch}
+                    onChange={(e) => handleSearchUsers(e.target.value)}
+                    placeholder="ابحث بالبريد الإلكتروني أو الاسم..."
+                    className="pr-10"
+                  />
+                </div>
+
+                {/* Search Results */}
+                {userSearch.length >= 2 && (
+                  <div className="border rounded-lg overflow-hidden">
+                    {searchingUsers ? (
+                      <div className="p-4 text-center">
+                        <Loader2 className="w-5 h-5 animate-spin mx-auto text-muted-foreground" />
+                      </div>
+                    ) : userResults.length > 0 ? (
+                      <ScrollArea className="max-h-48">
+                        {userResults.map((u) => (
+                          <button
+                            key={u.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedUser(u);
+                              setUserSearch("");
+                              setUserResults([]);
+                            }}
+                            className="w-full p-3 text-right hover:bg-muted/50 transition-colors flex items-center gap-3 border-b last:border-0"
+                          >
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                              <User className="w-4 h-4 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">{u.full_name || "بدون اسم"}</p>
+                              <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </ScrollArea>
+                    ) : (
+                      <p className="p-4 text-center text-sm text-muted-foreground">
+                        لم يتم العثور على نتائج
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Selected User */}
+              {selectedUser && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-3 rounded-lg bg-destructive/5 border border-destructive/20 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center">
+                      <User className="w-5 h-5 text-destructive" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{selectedUser.full_name || "بدون اسم"}</p>
+                      <p className="text-xs text-muted-foreground">{selectedUser.email}</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedUser(null)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    إزالة
+                  </Button>
+                </motion.div>
+              )}
+
+              {/* Points Amount */}
+              <div className="space-y-2">
+                <Label>عدد النقاط للخصم</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={pointsToDeduct}
+                  onChange={(e) => setPointsToDeduct(e.target.value)}
+                  placeholder="مثال: 100"
+                />
+              </div>
+
+              {/* Reason */}
+              <div className="space-y-2">
+                <Label>السبب</Label>
+                <Input
+                  value={deductReason}
+                  onChange={(e) => setDeductReason(e.target.value)}
+                  placeholder="مثال: إلغاء طلب، استرداد..."
+                />
+              </div>
+
+              {/* Preview */}
+              {selectedUser && pointsToDeduct && parseInt(pointsToDeduct) > 0 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-center"
+                >
+                  <p className="text-sm text-muted-foreground">سيتم خصم</p>
+                  <p className="text-2xl font-bold text-destructive">
+                    -{parseInt(pointsToDeduct).toLocaleString()} نقطة
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    = {(parseInt(pointsToDeduct) / 100).toFixed(2)} ر.س
+                  </p>
+                </motion.div>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={handleCloseDeductDialog}>
+                إلغاء
+              </Button>
+              <Button
+                onClick={handleDeductPoints}
+                disabled={!selectedUser || !pointsToDeduct || deductPointsMutation.isPending}
+                variant="destructive"
+                className="gap-2"
+              >
+                {deductPointsMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    جاري الخصم...
+                  </>
+                ) : (
+                  <>
+                    <Minus className="w-4 h-4" />
+                    خصم النقاط
                   </>
                 )}
               </Button>
