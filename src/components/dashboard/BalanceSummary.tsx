@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Wallet, Plus, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface BalanceSummaryProps {
   balance: number;
@@ -11,6 +11,12 @@ interface BalanceSummaryProps {
 }
 
 const BalanceSummary = ({ balance, totalDeposited, totalSpent }: BalanceSummaryProps) => {
+  const navigate = useNavigate();
+
+  const handleDeposit = () => {
+    navigate("/dashboard/deposit");
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -36,12 +42,13 @@ const BalanceSummary = ({ balance, totalDeposited, totalSpent }: BalanceSummaryP
                 </motion.p>
               </div>
             </div>
-            <Link to="/dashboard/deposit">
-              <Button className="bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-lg gap-2 w-full sm:w-auto">
-                <Plus className="w-4 h-4" />
-                شحن الرصيد
-              </Button>
-            </Link>
+            <Button 
+              onClick={handleDeposit}
+              className="bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-lg gap-2 w-full sm:w-auto"
+            >
+              <Plus className="w-4 h-4" />
+              شحن الرصيد
+            </Button>
           </div>
           
           <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-border/30">
