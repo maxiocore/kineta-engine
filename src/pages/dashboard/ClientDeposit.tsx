@@ -409,7 +409,11 @@ const ClientDeposit = () => {
                     {/* Payment Method Icons */}
                     <div className="flex items-center gap-3 flex-wrap">
                       {/* Visa */}
-                      <div className="flex items-center gap-1.5 bg-[#1A1F71]/10 dark:bg-[#1A1F71]/20 px-3 py-1.5 rounded-lg border border-[#1A1F71]/20">
+                      <motion.div 
+                        whileHover={{ scale: 1.08, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex items-center gap-1.5 bg-[#1A1F71]/10 dark:bg-[#1A1F71]/20 px-3 py-1.5 rounded-lg border border-[#1A1F71]/20 cursor-pointer transition-shadow hover:shadow-md hover:shadow-[#1A1F71]/20"
+                      >
                         <svg className="w-8 h-5" viewBox="0 0 48 16" fill="none">
                           <path d="M19.5 1L17 15H14L16.5 1H19.5Z" fill="#1A1F71"/>
                           <path d="M12.5 1L8 15H5L2.5 3.5C2.5 3 2 2.5 1 2L1.5 1H7C8 1 8.5 1.5 8.5 2.5L9.5 10L12.5 1Z" fill="#1A1F71"/>
@@ -417,32 +421,44 @@ const ClientDeposit = () => {
                           <path d="M36 15L38.5 1H44.5C46 1 47 2 47 3.5C47 7 44 8 44 8C44 8 46.5 8 46.5 11C46.5 14 44 15 42 15H36Z" fill="#1A1F71"/>
                         </svg>
                         <span className="text-xs font-medium text-[#1A1F71] dark:text-[#5A6FD1]">Visa</span>
-                      </div>
+                      </motion.div>
                       {/* Mastercard */}
-                      <div className="flex items-center gap-1.5 bg-[#EB001B]/10 dark:bg-[#EB001B]/20 px-3 py-1.5 rounded-lg border border-[#EB001B]/20">
+                      <motion.div 
+                        whileHover={{ scale: 1.08, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex items-center gap-1.5 bg-[#EB001B]/10 dark:bg-[#EB001B]/20 px-3 py-1.5 rounded-lg border border-[#EB001B]/20 cursor-pointer transition-shadow hover:shadow-md hover:shadow-[#EB001B]/20"
+                      >
                         <svg className="w-6 h-5" viewBox="0 0 24 16" fill="none">
                           <circle cx="8" cy="8" r="7" fill="#EB001B"/>
                           <circle cx="16" cy="8" r="7" fill="#F79E1B"/>
                           <path d="M12 2.5C13.5 3.5 14.5 5.5 14.5 8C14.5 10.5 13.5 12.5 12 13.5C10.5 12.5 9.5 10.5 9.5 8C9.5 5.5 10.5 3.5 12 2.5Z" fill="#FF5F00"/>
                         </svg>
                         <span className="text-xs font-medium text-[#EB001B] dark:text-[#FF6B6B]">Mastercard</span>
-                      </div>
+                      </motion.div>
                       {/* Apple Pay */}
-                      <div className="flex items-center gap-1.5 bg-foreground/5 dark:bg-foreground/10 px-3 py-1.5 rounded-lg border border-foreground/10">
+                      <motion.div 
+                        whileHover={{ scale: 1.08, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex items-center gap-1.5 bg-foreground/5 dark:bg-foreground/10 px-3 py-1.5 rounded-lg border border-foreground/10 cursor-pointer transition-shadow hover:shadow-md hover:shadow-foreground/10"
+                      >
                         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
                         </svg>
                         <span className="text-xs font-medium">Apple Pay</span>
-                      </div>
+                      </motion.div>
                       {/* Mada */}
-                      <div className="flex items-center gap-1.5 bg-[#004B87]/10 dark:bg-[#004B87]/20 px-3 py-1.5 rounded-lg border border-[#004B87]/20">
+                      <motion.div 
+                        whileHover={{ scale: 1.08, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex items-center gap-1.5 bg-[#004B87]/10 dark:bg-[#004B87]/20 px-3 py-1.5 rounded-lg border border-[#004B87]/20 cursor-pointer transition-shadow hover:shadow-md hover:shadow-[#004B87]/20"
+                      >
                         <svg className="w-8 h-5" viewBox="0 0 48 16" fill="none">
                           <rect x="0" y="2" width="12" height="12" rx="2" fill="#004B87"/>
                           <rect x="14" y="2" width="12" height="12" rx="2" fill="#48A642"/>
                           <text x="32" y="12" fill="#004B87" fontSize="10" fontWeight="bold">mada</text>
                         </svg>
                         <span className="text-xs font-medium text-[#004B87] dark:text-[#6BA3D6]">مدى</span>
-                      </div>
+                      </motion.div>
                     </div>
                   </CardTitle>
                 </CardHeader>
