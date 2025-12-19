@@ -37,6 +37,7 @@ import OrderCalendar from "@/components/dashboard/OrderCalendar";
 import PersonalizedTips from "@/components/dashboard/PersonalizedTips";
 import RewardPointsCard from "@/components/dashboard/RewardPointsCard";
 import { supabase } from "@/integrations/supabase/client";
+import OrderStatusChart from "@/components/dashboard/OrderStatusChart";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserBadges } from "@/hooks/useUserBadges";
 import { format, subMonths, startOfMonth, isSameDay, formatDistanceToNow, endOfMonth, isWithinInterval } from "date-fns";
@@ -52,6 +53,16 @@ interface Order {
   service: { name: string; category: string } | null;
 }
 
+interface OrderStatusData {
+  pending: number;
+  confirmed: number;
+  inProgress: number;
+  completed: number;
+  cancelled: number;
+  refunded: number;
+  partial: number;
+}
+
 interface DashboardStats {
   activeOrders: number;
   inProgressOrders: number;
@@ -60,6 +71,7 @@ interface DashboardStats {
   monthlyGoal: number;
   pendingTickets: number;
   totalOrders: number;
+  statusData: OrderStatusData;
 }
 
 interface BalanceData {
@@ -165,6 +177,15 @@ const ClientDashboard = () => {
     monthlyGoal: 10,
     pendingTickets: 0,
     totalOrders: 0,
+    statusData: {
+      pending: 0,
+      confirmed: 0,
+      inProgress: 0,
+      completed: 0,
+      cancelled: 0,
+      refunded: 0,
+      partial: 0,
+    },
   });
   const [balanceData, setBalanceData] = useState<BalanceData>({
     balance: 0,
@@ -358,6 +379,17 @@ const ClientDashboard = () => {
       ).length;
       const monthlyGoal = Math.max(10, Math.ceil(completedLastMonth * 1.2)); // Goal is 20% more than last month, minimum 10
 
+      // Calculate status distribution
+      const statusData: OrderStatusData = {
+        pending: ordersData.filter(o => o.status === "pending").length,
+        confirmed: ordersData.filter(o => o.status === "confirmed").length,
+        inProgress: ordersData.filter(o => ["in_progress", "processing"].includes(o.status)).length,
+        completed: completedOrders,
+        cancelled: ordersData.filter(o => o.status === "cancelled").length,
+        refunded: ordersData.filter(o => o.status === "refunded").length,
+        partial: ordersData.filter(o => o.status === "partial").length,
+      };
+
       setStats({
         activeOrders,
         inProgressOrders,
@@ -366,6 +398,7 @@ const ClientDashboard = () => {
         monthlyGoal,
         pendingTickets: ticketsResult.count || 0,
         totalOrders: ordersData.length,
+        statusData,
       });
 
       // Balance data
@@ -807,15 +840,18 @@ const ClientDashboard = () => {
           ))}
         </div>
 
-        {/* Two Column Layout: Spending Chart & Order Tracker */}
+        {/* Two Column Layout: Spending Chart & Order Status Chart */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           <SpendingChart 
             data={spendingData}
             totalSpent={thisMonthSpent}
             percentageChange={percentageChange}
           />
-          <LatestOrderTracker order={latestOrderForTracker} />
+          <OrderStatusChart statusData={stats.statusData} />
         </div>
+
+        {/* Latest Order Tracker */}
+        <LatestOrderTracker order={latestOrderForTracker} />
 
         {/* Three Column Layout: Favorites, Notifications, Rewards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
