@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { BarChart3, TrendingUp, DollarSign, ShoppingBag, Download, Calendar, Clock, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { BarChart3, TrendingUp, DollarSign, ShoppingBag, Download, Calendar, Clock, CheckCircle, XCircle, Loader2, Gift, Wallet, ArrowDownCircle, ArrowUpCircle, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -32,6 +32,15 @@ interface ServiceStats {
   revenue: number;
 }
 
+interface CashbackStats {
+  totalEarned: number;
+  totalWithdrawn: number;
+  currentBalance: number;
+  usersWithCashback: number;
+  transactionCount: number;
+  monthlyData: { month: string; earned: number; withdrawn: number }[];
+}
+
 const AdminReports = () => {
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState("6");
@@ -48,9 +57,18 @@ const AdminReports = () => {
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
   const [topServices, setTopServices] = useState<ServiceStats[]>([]);
   const [statusDistribution, setStatusDistribution] = useState<{status: string; count: number; percentage: number}[]>([]);
+  const [cashbackStats, setCashbackStats] = useState<CashbackStats>({
+    totalEarned: 0,
+    totalWithdrawn: 0,
+    currentBalance: 0,
+    usersWithCashback: 0,
+    transactionCount: 0,
+    monthlyData: []
+  });
 
   useEffect(() => {
     fetchAnalytics();
+    fetchCashbackAnalytics();
   }, [dateRange]);
 
   const fetchAnalytics = async () => {
@@ -168,6 +186,68 @@ const AdminReports = () => {
     setStatusDistribution(distribution);
 
     setLoading(false);
+  };
+
+  const fetchCashbackAnalytics = async () => {
+    const months = parseInt(dateRange);
+    const startDate = startOfMonth(subMonths(new Date(), months - 1));
+
+    // Fetch user cashback balances
+    const { data: cashbackBalances } = await supabase
+      .from('user_cashback')
+      .select('*');
+
+    // Fetch cashback transactions
+    const { data: transactions } = await supabase
+      .from('cashback_transactions')
+      .select('*')
+      .gte('created_at', startDate.toISOString());
+
+    if (cashbackBalances && transactions) {
+      const totalEarned = cashbackBalances.reduce((sum, cb) => sum + Number(cb.total_earned), 0);
+      const totalWithdrawn = cashbackBalances.reduce((sum, cb) => sum + Number(cb.total_withdrawn), 0);
+      const currentBalance = cashbackBalances.reduce((sum, cb) => sum + Number(cb.cashback_balance), 0);
+      const usersWithCashback = cashbackBalances.filter(cb => Number(cb.cashback_balance) > 0).length;
+
+      // Calculate monthly cashback data
+      const monthlyMap = new Map<string, { earned: number; withdrawn: number }>();
+      for (let i = 0; i < months; i++) {
+        const monthDate = subMonths(new Date(), months - 1 - i);
+        const monthKey = format(monthDate, 'yyyy-MM');
+        monthlyMap.set(monthKey, { earned: 0, withdrawn: 0 });
+      }
+
+      transactions.forEach(tx => {
+        const monthKey = format(new Date(tx.created_at), 'yyyy-MM');
+        if (monthlyMap.has(monthKey)) {
+          const current = monthlyMap.get(monthKey)!;
+          if (tx.type === 'earned') {
+            current.earned += Number(tx.amount);
+          } else if (tx.type === 'withdrawn') {
+            current.withdrawn += Math.abs(Number(tx.amount));
+          }
+        }
+      });
+
+      const monthlyDataArr: { month: string; earned: number; withdrawn: number }[] = [];
+      monthlyMap.forEach((value, key) => {
+        const monthDate = new Date(key + '-01');
+        monthlyDataArr.push({
+          month: format(monthDate, 'MMMM', { locale: ar }),
+          earned: value.earned,
+          withdrawn: value.withdrawn
+        });
+      });
+
+      setCashbackStats({
+        totalEarned,
+        totalWithdrawn,
+        currentBalance,
+        usersWithCashback,
+        transactionCount: transactions.length,
+        monthlyData: monthlyDataArr
+      });
+    }
   };
 
   const maxRevenue = Math.max(...monthlyData.map(d => d.revenue), 1);
@@ -424,6 +504,179 @@ const AdminReports = () => {
                         <p className="text-xs">{item.label}</p>
                       </div>
                     ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Cashback Report Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+              className="space-y-6"
+            >
+              <h2 className="text-2xl font-bold font-display flex items-center gap-2">
+                <Gift className="w-6 h-6 text-accent" />
+                تقرير الكاش باك
+              </h2>
+
+              {/* Cashback Summary Stats */}
+              <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                {[
+                  { 
+                    title: "إجمالي الكاش باك المكتسب", 
+                    value: `${cashbackStats.totalEarned.toLocaleString('ar-SA')} ر.س`, 
+                    icon: ArrowDownCircle, 
+                    color: "from-success to-emerald-400" 
+                  },
+                  { 
+                    title: "إجمالي المسحوب", 
+                    value: `${cashbackStats.totalWithdrawn.toLocaleString('ar-SA')} ر.س`, 
+                    icon: ArrowUpCircle, 
+                    color: "from-destructive to-orange-400" 
+                  },
+                  { 
+                    title: "الرصيد الحالي", 
+                    value: `${cashbackStats.currentBalance.toLocaleString('ar-SA')} ر.س`, 
+                    icon: Wallet, 
+                    color: "from-primary to-cyan-400" 
+                  },
+                  { 
+                    title: "مستخدمين لديهم رصيد", 
+                    value: cashbackStats.usersWithCashback.toString(), 
+                    icon: Users, 
+                    color: "from-accent to-pink-400" 
+                  },
+                  { 
+                    title: "عدد المعاملات", 
+                    value: cashbackStats.transactionCount.toString(), 
+                    icon: Gift, 
+                    color: "from-warning to-orange-400" 
+                  },
+                ].map((stat, index) => (
+                  <Card key={stat.title} className="glass border-border/50">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.color} p-2.5`}>
+                          <stat.icon className="w-full h-full text-primary-foreground" />
+                        </div>
+                        <p className="text-lg font-bold font-display">{stat.value}</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{stat.title}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Monthly Cashback Chart */}
+              <div className="grid lg:grid-cols-2 gap-6">
+                <Card className="glass border-border/50">
+                  <CardHeader>
+                    <CardTitle className="font-display flex items-center gap-2 text-lg">
+                      <ArrowDownCircle className="w-5 h-5 text-success" />
+                      الكاش باك المكتسب شهرياً
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {cashbackStats.monthlyData.length === 0 ? (
+                      <p className="text-center text-muted-foreground py-8">لا توجد بيانات للفترة المحددة</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {cashbackStats.monthlyData.map((data, index) => {
+                          const maxEarned = Math.max(...cashbackStats.monthlyData.map(d => d.earned), 1);
+                          return (
+                            <div key={data.month} className="space-y-1">
+                              <div className="flex justify-between text-sm">
+                                <span className="font-medium">{data.month}</span>
+                                <span className="text-success font-medium">{data.earned.toLocaleString('ar-SA')} ر.س</span>
+                              </div>
+                              <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                                <motion.div
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${(data.earned / maxEarned) * 100}%` }}
+                                  transition={{ delay: 0.9 + index * 0.1, duration: 0.5 }}
+                                  className="h-full bg-gradient-to-l from-success to-emerald-400 rounded-full"
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card className="glass border-border/50">
+                  <CardHeader>
+                    <CardTitle className="font-display flex items-center gap-2 text-lg">
+                      <ArrowUpCircle className="w-5 h-5 text-destructive" />
+                      السحوبات شهرياً
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {cashbackStats.monthlyData.length === 0 ? (
+                      <p className="text-center text-muted-foreground py-8">لا توجد بيانات للفترة المحددة</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {cashbackStats.monthlyData.map((data, index) => {
+                          const maxWithdrawn = Math.max(...cashbackStats.monthlyData.map(d => d.withdrawn), 1);
+                          return (
+                            <div key={data.month} className="space-y-1">
+                              <div className="flex justify-between text-sm">
+                                <span className="font-medium">{data.month}</span>
+                                <span className="text-destructive font-medium">{data.withdrawn.toLocaleString('ar-SA')} ر.س</span>
+                              </div>
+                              <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                                <motion.div
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${(data.withdrawn / maxWithdrawn) * 100}%` }}
+                                  transition={{ delay: 0.9 + index * 0.1, duration: 0.5 }}
+                                  className="h-full bg-gradient-to-l from-destructive to-orange-400 rounded-full"
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Cashback Summary Card */}
+              <Card className="glass border-border/50">
+                <CardHeader>
+                  <CardTitle className="font-display">ملخص الكاش باك</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="p-4 rounded-xl border bg-success/10 text-success border-success/20 text-center">
+                      <p className="text-2xl font-bold font-display mb-1">
+                        {cashbackStats.totalEarned.toLocaleString('ar-SA')}
+                      </p>
+                      <p className="text-xs">ر.س مكتسب</p>
+                    </div>
+                    <div className="p-4 rounded-xl border bg-destructive/10 text-destructive border-destructive/20 text-center">
+                      <p className="text-2xl font-bold font-display mb-1">
+                        {cashbackStats.totalWithdrawn.toLocaleString('ar-SA')}
+                      </p>
+                      <p className="text-xs">ر.س مسحوب</p>
+                    </div>
+                    <div className="p-4 rounded-xl border bg-primary/10 text-primary border-primary/20 text-center">
+                      <p className="text-2xl font-bold font-display mb-1">
+                        {cashbackStats.currentBalance.toLocaleString('ar-SA')}
+                      </p>
+                      <p className="text-xs">ر.س رصيد حالي</p>
+                    </div>
+                    <div className="p-4 rounded-xl border bg-accent/10 text-accent border-accent/20 text-center">
+                      <p className="text-2xl font-bold font-display mb-1">
+                        {cashbackStats.totalEarned > 0 
+                          ? Math.round((cashbackStats.totalWithdrawn / cashbackStats.totalEarned) * 100) 
+                          : 0}%
+                      </p>
+                      <p className="text-xs">نسبة السحب</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
