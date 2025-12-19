@@ -18,6 +18,7 @@ import Contact from "./pages/Contact";
 import Pricing from "./pages/Pricing";
 import TrackOrder from "./pages/TrackOrder";
 import OurServices from "./pages/OurServices";
+import CategoryDetails from "./pages/CategoryDetails";
 
 // Client Dashboard
 import ClientDashboard from "./pages/dashboard/ClientDashboard";
@@ -80,6 +81,7 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/our-services" element={<OurServices />} />
+                  <Route path="/category/:slug" element={<CategoryDetails />} />
                   <Route path="/services" element={<Services />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/contact" element={<Contact />} />
