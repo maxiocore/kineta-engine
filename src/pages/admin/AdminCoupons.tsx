@@ -106,6 +106,17 @@ const AdminCoupons = () => {
 
   useEffect(() => {
     fetchCoupons();
+
+    // Realtime subscription
+    const channel = supabase
+      .channel('admin-coupons-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'coupons' }, () => fetchCoupons())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'coupon_usages' }, () => fetchCoupons())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleOpenDialog = (coupon?: Coupon) => {
