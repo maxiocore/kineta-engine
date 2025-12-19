@@ -35,6 +35,8 @@ import ClientServices from "./pages/dashboard/ClientServicesNew";
 import ClientReferrals from "./pages/dashboard/ClientReferrals";
 import ClientRewards from "./pages/dashboard/ClientRewards";
 import ClientBalanceLogs from "./pages/dashboard/ClientBalanceLogs";
+import ClientDesignServices from "./pages/dashboard/ClientDesignServices";
+import ClientDevServices from "./pages/dashboard/ClientDevServices";
 
 // Admin Dashboard
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -158,6 +160,16 @@ const App = () => (
                   <Route path="/dashboard/balance-logs" element={
                     <ProtectedRoute>
                       <ClientBalanceLogs />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/design-services" element={
+                    <ProtectedRoute>
+                      <ClientDesignServices />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/dev-services" element={
+                    <ProtectedRoute>
+                      <ClientDevServices />
                     </ProtectedRoute>
                   } />
                   
