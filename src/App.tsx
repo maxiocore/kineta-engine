@@ -69,6 +69,7 @@ import AdminReferrals from "./pages/admin/AdminReferrals";
 import AdminRewards from "./pages/admin/AdminRewards";
 import AdminRewardsReports from "./pages/admin/AdminRewardsReports";
 import AdminWallets from "./pages/admin/AdminWallets";
+import AdminCashback from "./pages/admin/AdminCashback";
 
 const queryClient = new QueryClient();
 
@@ -196,6 +197,11 @@ const App = () => (
                   <Route path="/admin/wallets" element={
                     <ProtectedRoute requireAdmin>
                       <AdminWallets />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/cashback" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminCashback />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/payments" element={
