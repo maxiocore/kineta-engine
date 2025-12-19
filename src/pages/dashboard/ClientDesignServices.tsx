@@ -15,12 +15,7 @@ import {
   Clock,
   ArrowLeft,
   Eye,
-  FileCheck,
   Sparkles,
-  Briefcase,
-  Lightbulb,
-  Target,
-  Building2,
   Zap,
   Award,
   Layers,
@@ -32,6 +27,7 @@ import {
   Users,
   MessageSquare,
   CheckCircle2,
+  Target,
 } from "lucide-react";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -39,10 +35,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -60,53 +52,6 @@ interface Service {
   refill_enabled: boolean | null;
   external_service_id: string | null;
 }
-
-interface OrderFormData {
-  projectName: string;
-  projectActivity: string;
-  ideaType: string;
-  ideaDescription: string;
-  targetAudience: string;
-  preferredColors: string;
-  referenceLinks: string;
-  additionalNotes: string;
-  contactMethod: string;
-}
-
-const projectActivities = [
-  { value: "restaurant", label: "مطعم / كافيه", icon: "🍽️" },
-  { value: "tech", label: "تقنية / برمجة", icon: "💻" },
-  { value: "fashion", label: "أزياء / موضة", icon: "👗" },
-  { value: "health", label: "صحة / طب", icon: "🏥" },
-  { value: "education", label: "تعليم / تدريب", icon: "📚" },
-  { value: "sports", label: "رياضة / لياقة", icon: "⚽" },
-  { value: "real-estate", label: "عقارات", icon: "🏠" },
-  { value: "ecommerce", label: "تجارة إلكترونية", icon: "🛒" },
-  { value: "beauty", label: "جمال / عناية", icon: "💄" },
-  { value: "finance", label: "مالية / استثمار", icon: "💰" },
-  { value: "travel", label: "سفر / سياحة", icon: "✈️" },
-  { value: "entertainment", label: "ترفيه / فنون", icon: "🎭" },
-  { value: "other", label: "أخرى", icon: "📌" },
-];
-
-const ideaTypes = [
-  { value: "modern", label: "عصري وحديث", description: "تصميم بسيط وأنيق" },
-  { value: "classic", label: "كلاسيكي فخم", description: "تصميم راقي وتقليدي" },
-  { value: "playful", label: "مرح وإبداعي", description: "ألوان زاهية وأشكال مميزة" },
-  { value: "minimal", label: "بسيط ونظيف", description: "الأقل هو الأفضل" },
-  { value: "bold", label: "جريء ومؤثر", description: "تصميم قوي يلفت الانتباه" },
-  { value: "elegant", label: "أنيق وراقي", description: "فخامة وجاذبية" },
-];
-
-const targetAudiences = [
-  { value: "youth", label: "الشباب (18-30)" },
-  { value: "adults", label: "البالغين (30-50)" },
-  { value: "seniors", label: "كبار السن (50+)" },
-  { value: "children", label: "الأطفال" },
-  { value: "families", label: "العائلات" },
-  { value: "professionals", label: "المحترفين والأعمال" },
-  { value: "all", label: "جميع الفئات" },
-];
 
 const LiveIndicator = () => (
   <motion.div 
@@ -137,22 +82,7 @@ const ClientDesignServices = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
-  const [orderDialogOpen, setOrderDialogOpen] = useState(false);
-  const [orderStep, setOrderStep] = useState(1);
-  const [submitting, setSubmitting] = useState(false);
   const [balance, setBalance] = useState(0);
-  
-  const [formData, setFormData] = useState<OrderFormData>({
-    projectName: "",
-    projectActivity: "",
-    ideaType: "",
-    ideaDescription: "",
-    targetAudience: "",
-    preferredColors: "",
-    referenceLinks: "",
-    additionalNotes: "",
-    contactMethod: "email",
-  });
 
   // Keywords for design services
   const designKeywords = ["design", "graphic", "logo", "brand", "تصميم", "شعار", "هوية", "جرافيك", "بوستر", "فوتوشوب", "illustrator"];
@@ -251,111 +181,18 @@ const ClientDesignServices = () => {
     );
   });
 
-  const resetForm = () => {
-    setFormData({
-      projectName: "",
-      projectActivity: "",
-      ideaType: "",
-      ideaDescription: "",
-      targetAudience: "",
-      preferredColors: "",
-      referenceLinks: "",
-      additionalNotes: "",
-      contactMethod: "email",
-    });
-    setOrderStep(1);
-  };
-
-  const handleOrder = async () => {
-    if (!user || !selectedService) return;
-    
-    if (balance < selectedService.price) {
-      toast.error("رصيدك غير كافي", {
-        description: "يرجى شحن رصيدك أولاً"
-      });
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const orderNumber = `ORD-${Date.now()}`;
-      
-      // Build detailed notes from form data
-      const detailedNotes = `
-📋 تفاصيل المشروع:
-━━━━━━━━━━━━━━━━━━━━━
-🏷️ اسم المشروع: ${formData.projectName || "غير محدد"}
-📌 نشاط المشروع: ${projectActivities.find(a => a.value === formData.projectActivity)?.label || "غير محدد"}
-🎨 نوع التصميم المطلوب: ${ideaTypes.find(t => t.value === formData.ideaType)?.label || "غير محدد"}
-👥 الفئة المستهدفة: ${targetAudiences.find(t => t.value === formData.targetAudience)?.label || "غير محدد"}
-
-💡 فكرة التصميم:
-${formData.ideaDescription || "لم يتم تحديد وصف"}
-
-🎨 الألوان المفضلة: ${formData.preferredColors || "غير محدد"}
-
-🔗 روابط مرجعية:
-${formData.referenceLinks || "لا توجد"}
-
-📝 ملاحظات إضافية:
-${formData.additionalNotes || "لا توجد"}
-
-📞 طريقة التواصل المفضلة: ${formData.contactMethod === "email" ? "البريد الإلكتروني" : formData.contactMethod === "whatsapp" ? "واتساب" : "الهاتف"}
-`.trim();
-
-      const { error: orderError } = await supabase
-        .from('orders')
-        .insert([{
-          user_id: user.id,
-          service_id: selectedService.id,
-          total_price: selectedService.price,
-          quantity: 1,
-          link: formData.referenceLinks || null,
-          notes: detailedNotes,
-          status: 'pending' as const,
-          order_number: orderNumber
-        }]);
-
-      if (orderError) throw orderError;
-
-      const { error: balanceError } = await supabase
-        .from('user_balances')
-        .update({ 
-          balance: balance - selectedService.price,
-          total_spent: balance + selectedService.price
-        })
-        .eq('user_id', user.id);
-
-      if (balanceError) throw balanceError;
-
-      toast.success("تم إرسال الطلب بنجاح! 🎉", {
-        description: "سيتم التواصل معك قريباً لمناقشة التفاصيل"
-      });
-      
-      setOrderDialogOpen(false);
-      resetForm();
-      setSelectedService(null);
-      fetchBalance();
-    } catch (error) {
-      toast.error("حدث خطأ", {
-        description: "يرجى المحاولة مرة أخرى"
-      });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const getFeatures = (service: Service): string[] => {
     if (Array.isArray(service.features)) return service.features;
     return [];
   };
 
-  const canProceedToStep2 = formData.projectName && formData.projectActivity;
-  const canProceedToStep3 = formData.ideaType && formData.ideaDescription;
-
   const getServiceIcon = (index: number) => {
     const icons = [PenTool, Palette, Image, Layers, Globe];
     return icons[index % icons.length];
+  };
+
+  const handleOrderClick = (service: Service) => {
+    navigate(`/dashboard/design-services/order?serviceId=${service.id}`);
   };
 
   return (
@@ -665,11 +502,7 @@ ${formData.additionalNotes || "لا توجد"}
                             التفاصيل
                           </Button>
                           <Button
-                            onClick={() => {
-                              setSelectedService(service);
-                              resetForm();
-                              setOrderDialogOpen(true);
-                            }}
+                            onClick={() => handleOrderClick(service)}
                             className="flex-1 gap-2 h-11 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 hover:from-purple-600 hover:via-fuchsia-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/30"
                           >
                             <ShoppingCart className="w-4 h-4" />
@@ -739,7 +572,7 @@ ${formData.additionalNotes || "لا توجد"}
               {selectedService?.description && (
                 <div className="p-4 rounded-xl bg-muted/50">
                   <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
-                    <Lightbulb className="w-4 h-4 text-amber-500" />
+                    <Sparkles className="w-4 h-4 text-amber-500" />
                     وصف الخدمة
                   </h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">
@@ -797,406 +630,15 @@ ${formData.additionalNotes || "لا توجد"}
               <Button
                 onClick={() => {
                   setDetailsDialogOpen(false);
-                  resetForm();
-                  setOrderDialogOpen(true);
+                  if (selectedService) {
+                    handleOrderClick(selectedService);
+                  }
                 }}
                 className="gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
               >
                 <ShoppingCart className="w-4 h-4" />
                 اطلب الآن
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Advanced Order Dialog */}
-        <Dialog open={orderDialogOpen} onOpenChange={(open) => {
-          setOrderDialogOpen(open);
-          if (!open) resetForm();
-        }}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-3 text-xl">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                  <ShoppingCart className="w-5 h-5 text-white" />
-                </div>
-                طلب خدمة التصميم
-              </DialogTitle>
-              <DialogDescription className="text-base">
-                "{selectedService?.name}" - ${selectedService?.price.toFixed(2)}
-              </DialogDescription>
-            </DialogHeader>
-
-            {/* Progress Steps */}
-            <div className="flex items-center justify-center gap-2 py-4">
-              {[1, 2, 3].map((step) => (
-                <div key={step} className="flex items-center gap-2">
-                  <motion.div
-                    animate={{
-                      scale: orderStep === step ? 1.1 : 1,
-                      backgroundColor: orderStep >= step ? "hsl(var(--primary))" : "hsl(var(--muted))"
-                    }}
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold ${
-                      orderStep >= step ? "text-primary-foreground" : "text-muted-foreground"
-                    }`}
-                  >
-                    {orderStep > step ? <Check className="w-5 h-5" /> : step}
-                  </motion.div>
-                  {step < 3 && (
-                    <div className={`w-12 h-1 rounded-full ${orderStep > step ? "bg-primary" : "bg-muted"}`} />
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-center gap-8 text-xs text-muted-foreground mb-4">
-              <span className={orderStep >= 1 ? "text-primary font-medium" : ""}>معلومات المشروع</span>
-              <span className={orderStep >= 2 ? "text-primary font-medium" : ""}>فكرة التصميم</span>
-              <span className={orderStep >= 3 ? "text-primary font-medium" : ""}>تأكيد الطلب</span>
-            </div>
-            
-            <AnimatePresence mode="wait">
-              {/* Step 1: Project Info */}
-              {orderStep === 1 && (
-                <motion.div
-                  key="step1"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-5"
-                >
-                  <div className="p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
-                    <h3 className="font-bold mb-1 flex items-center gap-2">
-                      <Briefcase className="w-4 h-4 text-purple-500" />
-                      معلومات المشروع الأساسية
-                    </h3>
-                    <p className="text-sm text-muted-foreground">ساعدنا نفهم مشروعك أكثر</p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="projectName" className="text-base font-medium">
-                        اسم المشروع / العلامة التجارية <span className="text-destructive">*</span>
-                      </Label>
-                      <Input
-                        id="projectName"
-                        value={formData.projectName}
-                        onChange={(e) => setFormData(prev => ({ ...prev, projectName: e.target.value }))}
-                        placeholder="مثال: مطعم الأصالة، متجر نور، ..."
-                        className="mt-2 h-12 rounded-xl"
-                      />
-                    </div>
-
-                    <div>
-                      <Label className="text-base font-medium">
-                        نشاط المشروع <span className="text-destructive">*</span>
-                      </Label>
-                      <p className="text-sm text-muted-foreground mb-3">اختر المجال الأقرب لمشروعك</p>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        {projectActivities.map((activity) => (
-                          <motion.button
-                            key={activity.value}
-                            type="button"
-                            onClick={() => setFormData(prev => ({ ...prev, projectActivity: activity.value }))}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className={`p-3 rounded-xl border text-right transition-all ${
-                              formData.projectActivity === activity.value
-                                ? "border-purple-500 bg-purple-500/10 shadow-md"
-                                : "border-border hover:border-purple-500/50 hover:bg-muted/50"
-                            }`}
-                          >
-                            <span className="text-xl mb-1 block">{activity.icon}</span>
-                            <span className="text-sm font-medium">{activity.label}</span>
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label className="text-base font-medium">الفئة المستهدفة</Label>
-                      <Select
-                        value={formData.targetAudience}
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, targetAudience: value }))}
-                      >
-                        <SelectTrigger className="mt-2 h-12 rounded-xl">
-                          <SelectValue placeholder="اختر الفئة المستهدفة" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {targetAudiences.map((audience) => (
-                            <SelectItem key={audience.value} value={audience.value}>
-                              {audience.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Step 2: Design Idea */}
-              {orderStep === 2 && (
-                <motion.div
-                  key="step2"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-5"
-                >
-                  <div className="p-4 rounded-xl bg-gradient-to-r from-fuchsia-500/10 to-pink-500/10 border border-fuchsia-500/20">
-                    <h3 className="font-bold mb-1 flex items-center gap-2">
-                      <Lightbulb className="w-4 h-4 text-fuchsia-500" />
-                      فكرة التصميم
-                    </h3>
-                    <p className="text-sm text-muted-foreground">شاركنا رؤيتك للتصميم</p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="text-base font-medium">
-                        نوع التصميم المطلوب <span className="text-destructive">*</span>
-                      </Label>
-                      <p className="text-sm text-muted-foreground mb-3">اختر الأسلوب الذي يناسب علامتك</p>
-                      <div className="grid grid-cols-2 gap-3">
-                        {ideaTypes.map((type) => (
-                          <motion.button
-                            key={type.value}
-                            type="button"
-                            onClick={() => setFormData(prev => ({ ...prev, ideaType: type.value }))}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className={`p-4 rounded-xl border text-right transition-all ${
-                              formData.ideaType === type.value
-                                ? "border-fuchsia-500 bg-fuchsia-500/10 shadow-md"
-                                : "border-border hover:border-fuchsia-500/50 hover:bg-muted/50"
-                            }`}
-                          >
-                            <span className="font-bold block">{type.label}</span>
-                            <span className="text-xs text-muted-foreground">{type.description}</span>
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="ideaDescription" className="text-base font-medium">
-                        وصف فكرة التصميم <span className="text-destructive">*</span>
-                      </Label>
-                      <Textarea
-                        id="ideaDescription"
-                        value={formData.ideaDescription}
-                        onChange={(e) => setFormData(prev => ({ ...prev, ideaDescription: e.target.value }))}
-                        placeholder="صف لنا فكرتك بالتفصيل... ما الرسالة التي تريد إيصالها؟ ما العناصر التي تريد تضمينها؟"
-                        className="mt-2 min-h-[120px] rounded-xl"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="preferredColors" className="text-base font-medium">
-                        الألوان المفضلة
-                      </Label>
-                      <Input
-                        id="preferredColors"
-                        value={formData.preferredColors}
-                        onChange={(e) => setFormData(prev => ({ ...prev, preferredColors: e.target.value }))}
-                        placeholder="مثال: أزرق داكن، ذهبي، أبيض..."
-                        className="mt-2 h-12 rounded-xl"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="referenceLinks" className="text-base font-medium">
-                        روابط مرجعية أو تصاميم تعجبك
-                      </Label>
-                      <Textarea
-                        id="referenceLinks"
-                        value={formData.referenceLinks}
-                        onChange={(e) => setFormData(prev => ({ ...prev, referenceLinks: e.target.value }))}
-                        placeholder="أضف روابط لتصاميم أو مواقع تعجبك لنفهم ذوقك أكثر..."
-                        className="mt-2 min-h-[80px] rounded-xl"
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Step 3: Confirmation */}
-              {orderStep === 3 && (
-                <motion.div
-                  key="step3"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-5"
-                >
-                  <div className="p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20">
-                    <h3 className="font-bold mb-1 flex items-center gap-2">
-                      <FileCheck className="w-4 h-4 text-green-500" />
-                      مراجعة وتأكيد الطلب
-                    </h3>
-                    <p className="text-sm text-muted-foreground">راجع بياناتك قبل إرسال الطلب</p>
-                  </div>
-
-                  {/* Order Summary */}
-                  <div className="p-5 rounded-xl bg-card border border-border space-y-4">
-                    <div className="flex justify-between items-center pb-3 border-b border-border">
-                      <span className="text-muted-foreground">الخدمة</span>
-                      <span className="font-bold">{selectedService?.name}</span>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div className="p-3 rounded-lg bg-muted/50">
-                        <p className="text-muted-foreground text-xs mb-1">اسم المشروع</p>
-                        <p className="font-medium">{formData.projectName || "-"}</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted/50">
-                        <p className="text-muted-foreground text-xs mb-1">نشاط المشروع</p>
-                        <p className="font-medium">
-                          {projectActivities.find(a => a.value === formData.projectActivity)?.label || "-"}
-                        </p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted/50">
-                        <p className="text-muted-foreground text-xs mb-1">نوع التصميم</p>
-                        <p className="font-medium">
-                          {ideaTypes.find(t => t.value === formData.ideaType)?.label || "-"}
-                        </p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted/50">
-                        <p className="text-muted-foreground text-xs mb-1">الفئة المستهدفة</p>
-                        <p className="font-medium">
-                          {targetAudiences.find(t => t.value === formData.targetAudience)?.label || "-"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {formData.ideaDescription && (
-                      <div className="p-3 rounded-lg bg-muted/50">
-                        <p className="text-muted-foreground text-xs mb-1">وصف الفكرة</p>
-                        <p className="text-sm">{formData.ideaDescription}</p>
-                      </div>
-                    )}
-
-                    <div className="flex justify-between items-center pt-3 border-t border-border">
-                      <span className="font-bold">المبلغ الإجمالي</span>
-                      <span className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-                        ${selectedService?.price.toFixed(2)}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30">
-                      <span className="text-muted-foreground">رصيدك الحالي</span>
-                      <span className={`font-bold text-lg ${balance >= (selectedService?.price || 0) ? 'text-green-500' : 'text-destructive'}`}>
-                        ${balance.toFixed(2)}
-                      </span>
-                    </div>
-
-                    {balance < (selectedService?.price || 0) && (
-                      <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-center gap-2">
-                        <Shield className="w-5 h-5" />
-                        <span>رصيدك غير كافي. يرجى شحن رصيدك أولاً.</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Contact Method */}
-                  <div>
-                    <Label className="text-base font-medium">طريقة التواصل المفضلة</Label>
-                    <RadioGroup
-                      value={formData.contactMethod}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, contactMethod: value }))}
-                      className="mt-3 grid grid-cols-3 gap-3"
-                    >
-                      {[
-                        { value: "email", label: "البريد الإلكتروني" },
-                        { value: "whatsapp", label: "واتساب" },
-                        { value: "phone", label: "الهاتف" },
-                      ].map((method) => (
-                        <div key={method.value} className="relative">
-                          <RadioGroupItem
-                            value={method.value}
-                            id={method.value}
-                            className="sr-only"
-                          />
-                          <Label
-                            htmlFor={method.value}
-                            className={`flex items-center justify-center p-3 rounded-xl border cursor-pointer transition-all ${
-                              formData.contactMethod === method.value
-                                ? "border-purple-500 bg-purple-500/10"
-                                : "border-border hover:border-purple-500/50"
-                            }`}
-                          >
-                            {method.label}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
-
-                  {/* Additional Notes */}
-                  <div>
-                    <Label htmlFor="additionalNotes" className="text-base font-medium">ملاحظات إضافية (اختياري)</Label>
-                    <Textarea
-                      id="additionalNotes"
-                      value={formData.additionalNotes}
-                      onChange={(e) => setFormData(prev => ({ ...prev, additionalNotes: e.target.value }))}
-                      placeholder="أي شيء آخر تود إضافته..."
-                      className="mt-2 min-h-[80px] rounded-xl"
-                    />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <DialogFooter className="gap-2 sm:gap-0 mt-6 flex-col sm:flex-row">
-              <div className="flex gap-2 w-full sm:w-auto">
-                {orderStep > 1 && (
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setOrderStep(prev => prev - 1)}
-                    disabled={submitting}
-                    className="flex-1 sm:flex-none rounded-xl"
-                  >
-                    السابق
-                  </Button>
-                )}
-                <Button 
-                  variant="outline" 
-                  onClick={() => setOrderDialogOpen(false)} 
-                  disabled={submitting}
-                  className="flex-1 sm:flex-none rounded-xl"
-                >
-                  إلغاء
-                </Button>
-              </div>
-              
-              {orderStep < 3 ? (
-                <Button
-                  onClick={() => setOrderStep(prev => prev + 1)}
-                  disabled={orderStep === 1 ? !canProceedToStep2 : !canProceedToStep3}
-                  className="gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 w-full sm:w-auto"
-                >
-                  التالي
-                  <ArrowLeft className="w-4 h-4 rotate-180" />
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleOrder}
-                  disabled={submitting || balance < (selectedService?.price || 0)}
-                  className="gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 w-full sm:w-auto"
-                >
-                  {submitting ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      جاري الطلب...
-                    </>
-                  ) : (
-                    <>
-                      <FileCheck className="w-4 h-4" />
-                      تأكيد الطلب
-                    </>
-                  )}
-                </Button>
-              )}
             </DialogFooter>
           </DialogContent>
         </Dialog>
