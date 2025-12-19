@@ -70,6 +70,7 @@ import AdminRewards from "./pages/admin/AdminRewards";
 import AdminRewardsReports from "./pages/admin/AdminRewardsReports";
 import AdminWallets from "./pages/admin/AdminWallets";
 import AdminCashback from "./pages/admin/AdminCashback";
+import AdminUserSettings from "./pages/admin/AdminUserSettings";
 
 const queryClient = new QueryClient();
 
@@ -327,6 +328,11 @@ const App = () => (
                   <Route path="/admin/settings" element={
                     <ProtectedRoute requireAdmin>
                       <AdminSettings />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/user-settings" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminUserSettings />
                     </ProtectedRoute>
                   } />
                   
