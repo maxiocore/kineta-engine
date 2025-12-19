@@ -1013,31 +1013,31 @@ const ClientServicesNew = () => {
                 <Card className="border-border/40 bg-card/80 backdrop-blur-sm">
                   <CardContent className="p-4 sm:p-6 space-y-5">
                     {/* Progress Steps */}
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-center sm:justify-between gap-1 sm:gap-0 mb-4 overflow-x-auto py-2">
                       {[
                         { step: 1, label: "القسم", done: !!selectedCategory },
                         { step: 2, label: "الخدمة", done: !!selectedService },
                         { step: 3, label: "الرابط", done: !!link },
                         { step: 4, label: "الكمية", done: !!quantity },
                       ].map((item, index) => (
-                        <div key={item.step} className="flex items-center">
+                        <div key={item.step} className="flex items-center shrink-0">
                           <div className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all",
+                            "w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold transition-all",
                             item.done 
-                              ? "bg-primary text-primary-foreground" 
+                              ? "bg-primary text-primary-foreground shadow-md" 
                               : "bg-muted text-muted-foreground"
                           )}>
-                            {item.done ? <CheckCircle2 className="w-4 h-4" /> : item.step}
+                            {item.done ? <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : item.step}
                           </div>
                           <span className={cn(
-                            "text-xs mr-1.5 hidden sm:block transition-colors",
+                            "text-[10px] sm:text-xs mr-1 sm:mr-1.5 hidden xs:block transition-colors whitespace-nowrap",
                             item.done ? "text-primary font-medium" : "text-muted-foreground"
                           )}>
                             {item.label}
                           </span>
                           {index < 3 && (
                             <div className={cn(
-                              "w-6 sm:w-10 h-0.5 mx-1 sm:mx-2 transition-colors",
+                              "w-4 sm:w-8 md:w-10 h-0.5 mx-0.5 sm:mx-2 transition-colors shrink-0",
                               item.done ? "bg-primary" : "bg-muted"
                             )} />
                           )}
@@ -1054,29 +1054,40 @@ const ClientServicesNew = () => {
                       </Label>
                       <Select value={selectedCategory || ""} onValueChange={(v) => { setSelectedCategory(v || null); setSelectedService(null); setQuantity(""); setSearchQuery(""); }} dir="rtl">
                         <SelectTrigger className={cn(
-                          "h-12 bg-muted/30 border-border/40 rounded-xl transition-all",
+                          "h-12 bg-muted/30 border-border/40 rounded-xl transition-all w-full",
                           !selectedCategory && "border-muted-foreground/20"
                         )}>
-                          <SelectValue placeholder="اختر القسم..." />
-                        </SelectTrigger>
-                        <SelectContent className="bg-popover border-border max-h-[300px]">
-                          <div className="p-2 sticky top-0 bg-popover z-10 border-b border-border">
-                            <div className="relative">
-                              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                              <Input 
-                                placeholder="بحث في الأقسام..." 
-                                className="pr-9 h-9 bg-muted/30 border-0" 
-                              />
-                            </div>
-                          </div>
-                          {filteredByNetwork.map((category) => (
-                            <SelectItem key={category} value={category}>
-                              <div className="flex items-center justify-between gap-2 w-full">
-                                <span className="truncate">{category}</span>
-                                <Badge variant="secondary" className="text-[10px] shrink-0">{categoryCounts[category]} خدمة</Badge>
+                          <SelectValue placeholder="اختر القسم...">
+                            {selectedCategory && (
+                              <div className="flex items-center justify-between gap-2 w-full min-w-0">
+                                <span className="truncate">{selectedCategory}</span>
+                                <Badge variant="secondary" className="text-[10px] shrink-0">{categoryCounts[selectedCategory]} خدمة</Badge>
                               </div>
-                            </SelectItem>
-                          ))}
+                            )}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent 
+                          className="max-h-[60vh] sm:max-h-[300px] w-[calc(100vw-2rem)] sm:w-[var(--radix-select-trigger-width)] bg-popover border-border shadow-xl z-[100]"
+                          position="popper"
+                          sideOffset={5}
+                          align="start"
+                        >
+                          <ScrollArea className="max-h-[calc(60vh-10px)] sm:max-h-[290px]">
+                            <div className="p-1">
+                              {filteredByNetwork.map((category) => (
+                                <SelectItem 
+                                  key={category} 
+                                  value={category}
+                                  className="py-3 px-3 rounded-lg cursor-pointer focus:bg-accent/50 data-[highlighted]:bg-accent/50 mb-1"
+                                >
+                                  <div className="flex items-center justify-between gap-3 w-full min-w-0">
+                                    <span className="truncate text-sm font-medium">{category}</span>
+                                    <Badge variant="secondary" className="text-[10px] shrink-0">{categoryCounts[category]} خدمة</Badge>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </div>
+                          </ScrollArea>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1101,50 +1112,98 @@ const ClientServicesNew = () => {
                         dir="rtl"
                       >
                         <SelectTrigger className={cn(
-                          "h-12 bg-muted/30 border-border/40 rounded-xl transition-all",
+                          "h-12 bg-muted/30 border-border/40 rounded-xl transition-all w-full",
                           !selectedCategory && "opacity-50 cursor-not-allowed"
                         )}>
-                          <SelectValue placeholder={selectedCategory ? "اختر الخدمة..." : "اختر القسم أولاً"} />
+                          <SelectValue placeholder={selectedCategory ? "اختر الخدمة..." : "اختر القسم أولاً"}>
+                            {selectedService && (
+                              <div className="flex items-center gap-2 min-w-0 w-full">
+                                <Badge variant="outline" className="text-[9px] font-mono shrink-0 hidden sm:inline-flex">
+                                  #{selectedService.external_service_id}
+                                </Badge>
+                                <span className="truncate text-sm">{selectedService.name}</span>
+                                <span className="text-primary font-bold text-xs shrink-0 mr-auto">${selectedService.price.toFixed(2)}</span>
+                              </div>
+                            )}
+                          </SelectValue>
                         </SelectTrigger>
-                        <SelectContent className="max-h-[350px] bg-popover border-border">
-                          <div className="p-2 sticky top-0 bg-popover z-10 border-b border-border">
+                        <SelectContent 
+                          className="max-h-[60vh] sm:max-h-[350px] w-[calc(100vw-2rem)] sm:w-[var(--radix-select-trigger-width)] bg-popover border-border shadow-xl z-[100]"
+                          position="popper"
+                          sideOffset={5}
+                          align="start"
+                        >
+                          <div className="p-2 sticky top-0 bg-popover z-20 border-b border-border">
                             <div className="relative">
-                              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                               <Input 
-                                placeholder="بحث بالاسم أو الرقم..." 
-                                className="pr-9 h-9 bg-muted/30 border-0" 
+                                placeholder="بحث بالاسم أو الرقم أو الوصف..." 
+                                className="pr-9 h-10 bg-muted/30 border-border/40 rounded-lg text-sm w-full" 
                                 value={searchQuery} 
                                 onChange={(e) => setSearchQuery(e.target.value)} 
+                                onClick={(e) => e.stopPropagation()}
+                                autoComplete="off"
+                                autoCorrect="off"
+                                autoCapitalize="off"
+                                spellCheck={false}
                               />
                             </div>
                           </div>
-                          {filteredServices.length === 0 ? (
-                            <div className="p-4 text-center text-muted-foreground text-sm">
-                              لا توجد خدمات مطابقة للبحث
-                            </div>
-                          ) : (
-                            filteredServices.map((service) => (
-                              <SelectItem key={service.id} value={service.id} className="py-3">
-                                <div className="flex flex-col gap-1 w-full">
-                                  <div className="flex items-center gap-2">
-                                    <Badge variant="outline" className="text-[9px] font-mono shrink-0">#{service.external_service_id}</Badge>
-                                    <span className="truncate flex-1 text-sm font-medium">{service.name}</span>
-                                  </div>
-                                  <div className="flex items-center justify-between gap-2">
-                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                      <span>الحد: {service.features?.min || 10} - {service.features?.max || "∞"}</span>
-                                      {service.refill_enabled && (
-                                        <Badge className="bg-success/10 text-success border-0 text-[10px] h-4">مضمون</Badge>
+                          <ScrollArea className="max-h-[calc(60vh-60px)] sm:max-h-[280px]">
+                            {filteredServices.length === 0 ? (
+                              <div className="p-6 text-center text-muted-foreground text-sm">
+                                <Search className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                                <p>لا توجد خدمات مطابقة للبحث</p>
+                              </div>
+                            ) : (
+                              <div className="p-1">
+                                {filteredServices.map((service) => (
+                                  <SelectItem 
+                                    key={service.id} 
+                                    value={service.id} 
+                                    className="py-3 px-3 rounded-lg cursor-pointer focus:bg-accent/50 data-[highlighted]:bg-accent/50 mb-1"
+                                  >
+                                    <div className="flex flex-col gap-1.5 w-full min-w-0">
+                                      {/* Service ID and Name */}
+                                      <div className="flex items-start gap-2 min-w-0">
+                                        <Badge variant="outline" className="text-[9px] font-mono shrink-0 mt-0.5">
+                                          #{service.external_service_id}
+                                        </Badge>
+                                        <span className="text-sm font-medium leading-tight break-words flex-1 min-w-0">
+                                          {service.name}
+                                        </span>
+                                      </div>
+                                      {/* Price and Details Row */}
+                                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                                        <span className="text-primary font-bold">${service.price.toFixed(4)}</span>
+                                        <span className="text-muted-foreground">
+                                          الحد: {service.features?.min || 10} - {service.features?.max || "∞"}
+                                        </span>
+                                        {service.refill_enabled && (
+                                          <Badge className="bg-success/10 text-success border-0 text-[10px] h-5 px-1.5">
+                                            <Shield className="w-3 h-3 ml-0.5" />
+                                            مضمون
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      {/* Description */}
+                                      {service.description && (
+                                        <p className="text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed">
+                                          {service.description}
+                                        </p>
                                       )}
                                     </div>
-                                    <span className="text-primary font-bold text-sm">${service.price.toFixed(2)}</span>
-                                  </div>
-                                  {service.description && (
-                                    <p className="text-xs text-muted-foreground/70 line-clamp-1">{service.description}</p>
-                                  )}
-                                </div>
-                              </SelectItem>
-                            ))
+                                  </SelectItem>
+                                ))}
+                              </div>
+                            )}
+                          </ScrollArea>
+                          {filteredServices.length > 0 && (
+                            <div className="p-2 border-t border-border bg-muted/30 text-center">
+                              <span className="text-[10px] text-muted-foreground">
+                                {filteredServices.length} خدمة متاحة
+                              </span>
+                            </div>
                           )}
                         </SelectContent>
                       </Select>
@@ -1157,48 +1216,55 @@ const ClientServicesNew = () => {
                           exit={{ opacity: 0, height: 0 }}
                           className="overflow-hidden"
                         >
-                          <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20 space-y-3">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <Badge variant="outline" className="text-[10px] font-mono">#{selectedService.external_service_id}</Badge>
+                          <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20 space-y-3">
+                            <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                              <div className="flex-1 min-w-0 order-2 sm:order-1">
+                                <div className="flex items-center flex-wrap gap-2 mb-1.5">
+                                  <Badge variant="outline" className="text-[10px] font-mono shrink-0">
+                                    #{selectedService.external_service_id}
+                                  </Badge>
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-6 w-6"
+                                    className="h-6 w-6 shrink-0"
                                     onClick={() => toggleFavorite(selectedService.id)}
                                   >
                                     <Heart className={cn("w-4 h-4", favorites.includes(selectedService.id) && "fill-red-500 text-red-500")} />
                                   </Button>
                                 </div>
-                                <h4 className="font-semibold text-sm leading-tight">{selectedService.name}</h4>
+                                <h4 className="font-semibold text-sm leading-tight break-words">{selectedService.name}</h4>
                                 {selectedService.description && (
-                                  <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{selectedService.description}</p>
+                                  <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed line-clamp-3 sm:line-clamp-none">
+                                    {selectedService.description}
+                                  </p>
                                 )}
                               </div>
-                              <div className="text-left shrink-0">
-                                <p className="text-lg font-bold text-primary">${selectedService.price.toFixed(2)}</p>
-                                <p className="text-[10px] text-muted-foreground">لكل 1000</p>
+                              <div className="text-right sm:text-left shrink-0 order-1 sm:order-2 flex items-center sm:flex-col gap-2 sm:gap-0 justify-between sm:justify-start border-b sm:border-0 pb-2 sm:pb-0 mb-0">
+                                <span className="text-xs text-muted-foreground sm:hidden">السعر:</span>
+                                <div>
+                                  <p className="text-lg sm:text-xl font-bold text-primary">${selectedService.price.toFixed(4)}</p>
+                                  <p className="text-[10px] text-muted-foreground text-left hidden sm:block">لكل 1000</p>
+                                </div>
                               </div>
                             </div>
-                            <div className="flex flex-wrap gap-2">
-                              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-background/60 text-xs">
-                                <Gauge className="w-3.5 h-3.5 text-blue-500" />
-                                <span>الحد الأدنى: <strong>{selectedService.features?.min || 10}</strong></span>
+                            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                              <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-background/60 text-[11px] sm:text-xs">
+                                <Gauge className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-500 shrink-0" />
+                                <span className="whitespace-nowrap">الأدنى: <strong>{selectedService.features?.min || 10}</strong></span>
                               </div>
-                              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-background/60 text-xs">
-                                <TrendingUp className="w-3.5 h-3.5 text-green-500" />
-                                <span>الحد الأقصى: <strong>{selectedService.features?.max || "∞"}</strong></span>
+                              <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-background/60 text-[11px] sm:text-xs">
+                                <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-500 shrink-0" />
+                                <span className="whitespace-nowrap">الأقصى: <strong>{selectedService.features?.max || "∞"}</strong></span>
                               </div>
                               {selectedService.refill_enabled ? (
-                                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-success/10 text-xs text-success">
-                                  <Shield className="w-3.5 h-3.5" />
-                                  <span>ضمان إعادة التعبئة</span>
+                                <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-success/10 text-[11px] sm:text-xs text-success">
+                                  <Shield className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                                  <span className="whitespace-nowrap">مضمون</span>
                                 </div>
                               ) : (
-                                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted text-xs text-muted-foreground">
-                                  <Info className="w-3.5 h-3.5" />
-                                  <span>بدون ضمان</span>
+                                <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-muted text-[11px] sm:text-xs text-muted-foreground">
+                                  <Info className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                                  <span className="whitespace-nowrap">بدون ضمان</span>
                                 </div>
                               )}
                             </div>
@@ -1270,12 +1336,16 @@ const ClientServicesNew = () => {
                         <Input 
                           placeholder="https://instagram.com/username" 
                           className={cn(
-                            "h-12 bg-muted/30 border-border/40 rounded-xl pr-4 pl-10 transition-all",
+                            "h-12 bg-muted/30 border-border/40 rounded-xl pr-4 pl-10 transition-all text-sm",
                             link && !link.startsWith("http") && "border-destructive/50 focus:border-destructive"
                           )}
                           value={link} 
                           onChange={(e) => setLink(e.target.value)} 
-                          dir="ltr" 
+                          dir="ltr"
+                          autoComplete="url"
+                          autoCorrect="off"
+                          autoCapitalize="off"
+                          spellCheck={false}
                         />
                         {link ? (
                           <Button 
@@ -1287,7 +1357,7 @@ const ClientServicesNew = () => {
                             <X className="w-4 h-4" />
                           </Button>
                         ) : (
-                          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                         )}
                       </div>
                       {link && !link.startsWith("http") && (
@@ -1308,10 +1378,12 @@ const ClientServicesNew = () => {
                       <div className="relative">
                         <Input 
                           type="number" 
-                          placeholder={selectedService ? `أدخل الكمية (${selectedService.features?.min || 10} - ${selectedService.features?.max || "∞"})` : "اختر الخدمة أولاً"} 
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          placeholder={selectedService ? `${selectedService.features?.min || 10} - ${selectedService.features?.max || "∞"}` : "اختر الخدمة أولاً"} 
                           className={cn(
-                            "h-12 bg-muted/30 border-border/40 rounded-xl transition-all",
-                            !selectedService && "opacity-50",
+                            "h-12 bg-muted/30 border-border/40 rounded-xl transition-all text-base",
+                            !selectedService && "opacity-50 cursor-not-allowed",
                             quantity && selectedService && (
                               parseInt(quantity) < (selectedService.features?.min || 10) ||
                               (selectedService.features?.max && parseInt(quantity) > selectedService.features.max)
@@ -1322,9 +1394,10 @@ const ClientServicesNew = () => {
                           min={selectedService?.features?.min || 10} 
                           max={selectedService?.features?.max || 1000000}
                           disabled={!selectedService}
+                          autoComplete="off"
                         />
-                        {selectedService && quantity && (
-                          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                        {selectedService && quantity && parseInt(quantity) > 0 && (
+                          <div className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-muted-foreground bg-background/80 px-1 rounded">
                             ≈ ${((selectedService.price / 1000) * parseInt(quantity || "0")).toFixed(2)}
                           </div>
                         )}
@@ -1347,7 +1420,7 @@ const ClientServicesNew = () => {
                       )}
                       {/* Quick quantity buttons */}
                       {selectedService && (
-                        <div className="flex flex-wrap gap-1.5">
+                        <div className="flex flex-wrap gap-1 sm:gap-1.5">
                           {[
                             selectedService.features?.min || 100,
                             500,
@@ -1363,7 +1436,7 @@ const ClientServicesNew = () => {
                               type="button"
                               variant={parseInt(quantity) === q ? "default" : "outline"}
                               size="sm"
-                              className="h-7 text-xs"
+                              className="h-6 sm:h-7 text-[10px] sm:text-xs px-2 sm:px-3"
                               onClick={() => setQuantity(q.toString())}
                             >
                               {q.toLocaleString()}
@@ -1374,32 +1447,32 @@ const ClientServicesNew = () => {
                     </div>
 
                     {/* Total Summary */}
-                    <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">المبلغ الإجمالي</span>
+                    <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 space-y-2 sm:space-y-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs sm:text-sm text-muted-foreground">المبلغ الإجمالي</span>
                         <div className="text-left">
-                          <p className="text-2xl font-bold text-primary">${totalPrice.toFixed(4)}</p>
-                          <p className="text-xs text-muted-foreground">≈ {(totalPrice * 3.75).toFixed(2)} ر.س</p>
+                          <p className="text-xl sm:text-2xl font-bold text-primary">${totalPrice.toFixed(4)}</p>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground">≈ {(totalPrice * 3.75).toFixed(2)} ر.س</p>
                         </div>
                       </div>
                       
                       {/* Balance check */}
                       {userBalance && totalPrice > 0 && (
                         <div className={cn(
-                          "flex items-center gap-2 p-2 rounded-lg text-xs",
+                          "flex items-center gap-1.5 sm:gap-2 p-2 rounded-lg text-[11px] sm:text-xs",
                           userBalance.balance >= totalPrice 
                             ? "bg-success/10 text-success" 
                             : "bg-destructive/10 text-destructive"
                         )}>
                           {userBalance.balance >= totalPrice ? (
                             <>
-                              <CheckCircle2 className="w-4 h-4" />
+                              <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                               <span>رصيدك كافي (${userBalance.balance.toFixed(2)})</span>
                             </>
                           ) : (
                             <>
-                              <XCircle className="w-4 h-4" />
-                              <span>رصيدك غير كافي - تحتاج ${(totalPrice - userBalance.balance).toFixed(2)} إضافية</span>
+                              <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                              <span className="break-words">رصيدك غير كافي - تحتاج ${(totalPrice - userBalance.balance).toFixed(2)} إضافية</span>
                             </>
                           )}
                         </div>
@@ -1408,7 +1481,7 @@ const ClientServicesNew = () => {
 
                     {/* Submit */}
                     <Button 
-                      className="w-full h-14 text-lg font-bold rounded-xl gap-3 transition-all" 
+                      className="w-full h-12 sm:h-14 text-base sm:text-lg font-bold rounded-xl gap-2 sm:gap-3 transition-all" 
                       onClick={handleSubmit} 
                       disabled={
                         isSubmitting || 
@@ -1423,13 +1496,13 @@ const ClientServicesNew = () => {
                     >
                       {isSubmitting ? (
                         <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          جاري إرسال الطلب...
+                          <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                          <span className="text-sm sm:text-lg">جاري إرسال الطلب...</span>
                         </>
                       ) : (
                         <>
-                          <ShoppingCart className="w-5 h-5" />
-                          إرسال الطلب - ${totalPrice.toFixed(2)}
+                          <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
+                          <span className="text-sm sm:text-lg">إرسال الطلب - ${totalPrice.toFixed(2)}</span>
                         </>
                       )}
                     </Button>
