@@ -617,14 +617,29 @@ const ClientServicesNew = () => {
           </motion.div>
         </div>
 
-        {/* Networks */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <Card className="border-border/40 bg-card/80 backdrop-blur-sm">
+        {/* Networks with Enhanced Animations */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.4 }}
+        >
+          <Card className="border-border/40 bg-card/80 backdrop-blur-sm overflow-hidden">
             <CardHeader className="pb-4">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Layers className="w-5 h-5 text-primary" />
-                اختر المنصة
-              </CardTitle>
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <CardTitle className="text-base flex items-center gap-2">
+                  <motion.div
+                    animate={{ rotate: [0, 10, -10, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                  >
+                    <Layers className="w-5 h-5 text-primary" />
+                  </motion.div>
+                  اختر المنصة
+                </CardTitle>
+              </motion.div>
             </CardHeader>
             <CardContent className="pb-5">
               <div className="grid grid-cols-5 sm:grid-cols-8 lg:grid-cols-10 xl:grid-cols-15 gap-2">
@@ -634,21 +649,82 @@ const ClientServicesNew = () => {
                   return (
                     <motion.button
                       key={network.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: index * 0.02 }}
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
+                      initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ 
+                        delay: 0.5 + index * 0.03,
+                        type: "spring",
+                        stiffness: 200,
+                        damping: 15
+                      }}
+                      whileHover={{ 
+                        scale: 1.1, 
+                        y: -8,
+                        transition: { type: "spring", stiffness: 400, damping: 10 }
+                      }}
+                      whileTap={{ scale: 0.9 }}
                       onClick={() => { setSelectedNetwork(network.id); setSelectedCategory(null); setSelectedService(null); }}
                       className={cn(
-                        "flex flex-col items-center gap-1.5 p-2.5 rounded-xl transition-all duration-200",
+                        "flex flex-col items-center gap-1.5 p-2.5 rounded-xl transition-all duration-200 relative group",
                         isSelected ? "bg-primary/10 ring-2 ring-primary shadow-lg" : "bg-muted/40 hover:bg-muted/60"
                       )}
                     >
-                      <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center text-white", network.color)}>
-                        <Icon className="w-5 h-5" />
-                      </div>
-                      <span className="text-[10px] font-medium truncate w-full text-center">{network.name}</span>
+                      {/* Glow effect on hover */}
+                      <motion.div
+                        className={cn("absolute inset-0 rounded-xl bg-gradient-to-br opacity-0 blur-xl -z-10", network.color)}
+                        whileHover={{ opacity: 0.3 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                      
+                      {/* Ripple effect on selected */}
+                      {isSelected && (
+                        <motion.div
+                          className="absolute inset-0 rounded-xl bg-primary/20"
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                        />
+                      )}
+                      
+                      {/* Icon container with animations */}
+                      <motion.div 
+                        className={cn(
+                          "w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center text-white relative overflow-hidden",
+                          network.color
+                        )}
+                        whileHover={{ 
+                          rotate: [0, -5, 5, 0],
+                          transition: { duration: 0.4 }
+                        }}
+                      >
+                        {/* Shine effect */}
+                        <motion.div
+                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                          initial={{ x: "-100%" }}
+                          whileHover={{ x: "100%" }}
+                          transition={{ duration: 0.5 }}
+                        />
+                        <Icon className="w-5 h-5 relative z-10" />
+                      </motion.div>
+                      
+                      {/* Label with slide-up effect */}
+                      <motion.span 
+                        className="text-[10px] font-medium truncate w-full text-center"
+                        initial={{ opacity: 0.8 }}
+                        whileHover={{ opacity: 1 }}
+                      >
+                        {network.name}
+                      </motion.span>
+                      
+                      {/* Selection indicator */}
+                      {isSelected && (
+                        <motion.div
+                          className="absolute -bottom-1 left-1/2 w-2 h-2 rounded-full bg-primary"
+                          initial={{ scale: 0, x: "-50%" }}
+                          animate={{ scale: 1, x: "-50%" }}
+                          transition={{ type: "spring", stiffness: 500 }}
+                        />
+                      )}
                     </motion.button>
                   );
                 })}
