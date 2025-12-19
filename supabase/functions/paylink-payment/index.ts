@@ -302,34 +302,8 @@ serve(async (req) => {
             console.error("Error updating deposit:", updateError);
           }
 
-          // Update user balance
-          const { data: existingBalance } = await supabase
-            .from("user_balances")
-            .select("*")
-            .eq("user_id", deposit.user_id)
-            .maybeSingle();
-
-          if (existingBalance) {
-            await supabase
-              .from("user_balances")
-              .update({
-                balance: existingBalance.balance + deposit.total_credited,
-                total_deposited: existingBalance.total_deposited + deposit.total_credited,
-                updated_at: new Date().toISOString(),
-              })
-              .eq("user_id", deposit.user_id);
-          } else {
-            await supabase
-              .from("user_balances")
-              .insert({
-                user_id: deposit.user_id,
-                balance: deposit.total_credited,
-                total_deposited: deposit.total_credited,
-                total_spent: 0,
-              });
-          }
-
-          console.log("Deposit completed and balance updated:", deposit.id);
+          // Note: Balance is updated automatically by the database trigger (update_balance_on_deposit)
+          console.log("Deposit completed:", deposit.id);
 
           return new Response(
             JSON.stringify({
@@ -419,33 +393,7 @@ serve(async (req) => {
             throw new Error("Failed to update deposit");
           }
 
-          // Update user balance
-          const { data: existingBalance } = await supabase
-            .from("user_balances")
-            .select("*")
-            .eq("user_id", deposit.user_id)
-            .maybeSingle();
-
-          if (existingBalance) {
-            await supabase
-              .from("user_balances")
-              .update({
-                balance: existingBalance.balance + deposit.total_credited,
-                total_deposited: existingBalance.total_deposited + deposit.total_credited,
-                updated_at: new Date().toISOString(),
-              })
-              .eq("user_id", deposit.user_id);
-          } else {
-            await supabase
-              .from("user_balances")
-              .insert({
-                user_id: deposit.user_id,
-                balance: deposit.total_credited,
-                total_deposited: deposit.total_credited,
-                total_spent: 0,
-              });
-          }
-
+          // Note: Balance is updated automatically by the database trigger (update_balance_on_deposit)
           console.log("Deposit completed via webhook:", deposit.id);
         }
 
