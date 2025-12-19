@@ -73,30 +73,14 @@ const ClientDeposits = () => {
     completedCount: 0,
   });
 
-  // Handle payment callback
-  useEffect(() => {
-    const payment = searchParams.get('payment');
-    const orderNumber = searchParams.get('orderNumber');
-    const transactionNo = searchParams.get('transactionNo');
-
-    if (payment === 'success' && orderNumber) {
-      verifyPayment(orderNumber, transactionNo);
-    } else if (payment === 'cancelled') {
-      setPaymentResult('failed');
-      toast({
-        title: 'تم إلغاء الدفع',
-        description: 'تم إلغاء عملية الدفع',
-        variant: 'destructive',
-      });
-      // Clear URL params
-      navigate('/dashboard/deposits', { replace: true });
-    }
-  }, [searchParams]);
-
+  // Verify payment function
   const verifyPayment = async (orderNumber: string, transactionNo: string | null) => {
+    console.log('Starting payment verification...', { orderNumber, transactionNo });
     setVerifyingPayment(true);
+    setLoading(false); // Stop loading to show verification UI
     
     try {
+      console.log('Invoking paylink-payment edge function...');
       const { data, error } = await supabase.functions.invoke('paylink-payment', {
         body: {
           action: 'verify-payment',
@@ -105,7 +89,12 @@ const ClientDeposits = () => {
         },
       });
 
-      if (error) throw error;
+      console.log('Edge function response:', { data, error });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
 
       if (data?.success) {
         setPaymentResult('success');
@@ -113,9 +102,8 @@ const ClientDeposits = () => {
           title: 'تم الدفع بنجاح! 🎉',
           description: `تم إضافة ${data.amount || ''} ر.س إلى رصيدك`,
         });
-        // Refresh deposits
-        fetchDeposits();
       } else {
+        console.log('Verification failed:', data);
         setPaymentResult('failed');
         toast({
           title: 'فشل التحقق من الدفع',
@@ -128,18 +116,40 @@ const ClientDeposits = () => {
       setPaymentResult('failed');
       toast({
         title: 'خطأ في التحقق',
-        description: 'حدث خطأ أثناء التحقق من الدفع',
+        description: error.message || 'حدث خطأ أثناء التحقق من الدفع',
         variant: 'destructive',
       });
     } finally {
       setVerifyingPayment(false);
-      // Clear URL params
+      // Clear URL params and refresh
       navigate('/dashboard/deposits', { replace: true });
     }
   };
 
+  // Handle payment callback - check params on initial load
   useEffect(() => {
-    if (user) {
+    const payment = searchParams.get('payment');
+    const orderNumber = searchParams.get('orderNumber');
+    const transactionNo = searchParams.get('transactionNo');
+
+    console.log('Checking payment params:', { payment, orderNumber, transactionNo });
+
+    if (payment === 'success' && orderNumber && !verifyingPayment && paymentResult === null) {
+      verifyPayment(orderNumber, transactionNo);
+    } else if (payment === 'cancelled') {
+      setPaymentResult('failed');
+      toast({
+        title: 'تم إلغاء الدفع',
+        description: 'تم إلغاء عملية الدفع',
+        variant: 'destructive',
+      });
+      navigate('/dashboard/deposits', { replace: true });
+    }
+  }, []);
+
+  // Fetch deposits
+  useEffect(() => {
+    if (user && !verifyingPayment) {
       fetchDeposits();
 
       // Real-time subscription
@@ -159,7 +169,7 @@ const ClientDeposits = () => {
         supabase.removeChannel(channel);
       };
     }
-  }, [user]);
+  }, [user, verifyingPayment]);
 
   const fetchDeposits = async () => {
     if (!user) return;
