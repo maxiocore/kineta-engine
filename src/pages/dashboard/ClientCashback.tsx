@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { RealtimeChannel } from "@supabase/supabase-js";
 import {
   Wallet,
   ArrowDownToLine,
@@ -64,6 +65,54 @@ const ClientCashback = () => {
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [showAllTransactions, setShowAllTransactions] = useState(false);
+
+  // Realtime subscription for cashback updates
+  useEffect(() => {
+    if (!user) return;
+
+    const channel: RealtimeChannel = supabase
+      .channel('client-cashback-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_cashback',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["user-cashback", user.id] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'cashback_transactions',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["cashback-transactions", user.id] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'cashback_settings',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["cashback-settings"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
 
   // Fetch cashback data
   const { data: cashbackData, isLoading: cashbackLoading } = useQuery({

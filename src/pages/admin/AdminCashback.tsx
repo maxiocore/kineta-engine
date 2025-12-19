@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { RealtimeChannel } from "@supabase/supabase-js";
 import {
   Coins,
   Settings,
@@ -63,6 +64,50 @@ interface CashbackTransaction {
 const AdminCashback = () => {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<Partial<CashbackSettings>>({});
+
+  // Realtime subscription for cashback updates
+  useEffect(() => {
+    const channel: RealtimeChannel = supabase
+      .channel('admin-cashback-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_cashback',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["admin-cashback-stats"] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'cashback_transactions',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["admin-cashback-transactions"] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'cashback_settings',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["admin-cashback-settings"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   // Fetch settings
   const { data: settings, isLoading: settingsLoading } = useQuery({
