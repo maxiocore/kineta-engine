@@ -295,7 +295,7 @@ const ClientCashback = () => {
                   <Skeleton className="h-10 w-32 bg-white/20" />
                 ) : (
                   <p className="text-3xl lg:text-4xl font-bold">
-                    ${(cashbackData?.cashback_balance || 0).toFixed(2)}
+                    {(cashbackData?.cashback_balance || 0).toFixed(2)} ر.س
                   </p>
                 )}
                 <p className="text-white/80 text-sm mt-2">رصيد الكاش باك الحالي</p>
@@ -320,7 +320,7 @@ const ClientCashback = () => {
                   <Skeleton className="h-10 w-32" />
                 ) : (
                   <p className="text-3xl lg:text-4xl font-bold text-foreground">
-                    ${(cashbackData?.total_earned || 0).toFixed(2)}
+                    {(cashbackData?.total_earned || 0).toFixed(2)} ر.س
                   </p>
                 )}
                 <p className="text-muted-foreground text-sm mt-2">إجمالي الكاش باك المكتسب</p>
@@ -345,7 +345,7 @@ const ClientCashback = () => {
                   <Skeleton className="h-10 w-32" />
                 ) : (
                   <p className="text-3xl lg:text-4xl font-bold text-foreground">
-                    ${(cashbackData?.total_withdrawn || 0).toFixed(2)}
+                    {(cashbackData?.total_withdrawn || 0).toFixed(2)} ر.س
                   </p>
                 )}
                 <p className="text-muted-foreground text-sm mt-2">إجمالي المسحوب</p>
@@ -377,7 +377,7 @@ const ClientCashback = () => {
                     <Gift className="w-5 h-5 text-emerald-500" />
                     <span className="text-sm">الرصيد المتاح للسحب:</span>
                     <span className="font-bold text-emerald-500">
-                      ${(cashbackData?.cashback_balance || 0).toFixed(2)}
+                      {(cashbackData?.cashback_balance || 0).toFixed(2)} ر.س
                     </span>
                   </div>
                 </div>

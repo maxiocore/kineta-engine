@@ -340,7 +340,7 @@ const ClientOrders = () => {
             { label: "قيد الانتظار", value: stats.pending, icon: Clock, gradient: "from-warning to-orange-400", bg: "bg-warning/10" },
             { label: "قيد التنفيذ", value: stats.in_progress, icon: Loader2, gradient: "from-accent to-pink-400", bg: "bg-accent/10", spin: true },
             { label: "مكتملة", value: stats.completed, icon: CheckCircle, gradient: "from-success to-emerald-400", bg: "bg-success/10" },
-            { label: "إجمالي الإنفاق", value: `$${totalSpent.toFixed(2)}`, icon: TrendingUp, gradient: "from-purple-500 to-violet-400", bg: "bg-purple-500/10", isPrice: true },
+            { label: "إجمالي الإنفاق", value: `${totalSpent.toFixed(2)} ر.س`, icon: TrendingUp, gradient: "from-purple-500 to-violet-400", bg: "bg-purple-500/10", isPrice: true },
           ].map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -509,7 +509,7 @@ const ClientOrders = () => {
 
                               <div className="text-left shrink-0">
                                 <p className="text-sm text-muted-foreground hidden sm:block">السعر</p>
-                                <p className="font-bold text-primary text-lg">${order.total_price.toFixed(2)}</p>
+                                <p className="font-bold text-primary text-lg">{order.total_price.toFixed(2)} ر.س</p>
                               </div>
 
                               {/* Date */}
@@ -732,21 +732,21 @@ const ClientOrders = () => {
                       animate={{ opacity: 1 }}
                       className="p-4 rounded-xl bg-gradient-to-l from-primary/10 to-primary/5 border border-primary/20"
                     >
-                      <div className="space-y-2">
+                        <div className="space-y-2">
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-muted-foreground">السعر الأساسي:</span>
-                          <span>${(selectedOrder.total_price + (selectedOrder.discount_amount || 0)).toFixed(2)}</span>
+                          <span>{(selectedOrder.total_price + (selectedOrder.discount_amount || 0)).toFixed(2)} ر.س</span>
                         </div>
                         {selectedOrder.discount_amount && selectedOrder.discount_amount > 0 && (
                           <div className="flex justify-between items-center text-sm text-success">
                             <span>الخصم:</span>
-                            <span>-${selectedOrder.discount_amount.toFixed(2)}</span>
+                            <span>-{selectedOrder.discount_amount.toFixed(2)} ر.س</span>
                           </div>
                         )}
                         <Separator />
                         <div className="flex justify-between items-center">
                           <span className="text-muted-foreground">الإجمالي:</span>
-                          <span className="text-2xl font-bold text-primary">${selectedOrder.total_price.toFixed(2)}</span>
+                          <span className="text-2xl font-bold text-primary">{selectedOrder.total_price.toFixed(2)} ر.س</span>
                         </div>
                       </div>
                     </motion.div>
