@@ -16,7 +16,8 @@ import {
   Hash,
   DollarSign,
   Info,
-  RefreshCw
+  RefreshCw,
+  Eye
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -44,6 +45,7 @@ import {
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import SocialNetworkGrid from "@/components/services/SocialNetworkGrid";
 import ServiceOrderDialog from "@/components/services/ServiceOrderDialog";
+import ServiceDetailsSheet from "@/components/services/ServiceDetailsSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -82,8 +84,14 @@ const ClientServices = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
+  const [isDetailsSheetOpen, setIsDetailsSheetOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleViewDetails = (service: Service) => {
+    setSelectedService(service);
+    setIsDetailsSheetOpen(true);
+  };
 
   useEffect(() => {
     fetchServices();
@@ -490,7 +498,7 @@ const ClientServices = () => {
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: index * 0.02 }}
                                 className="group hover:bg-primary/5 transition-all duration-200 cursor-pointer"
-                                onClick={() => handleOrder(service)}
+                                onClick={() => handleViewDetails(service)}
                               >
                                 <div className="flex items-center gap-3 p-3 sm:p-4">
                                   {/* ID Badge - Right */}
@@ -527,6 +535,19 @@ const ClientServices = () => {
                                     </div>
                                   </div>
                                   
+                                  {/* View Details Button */}
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleViewDetails(service);
+                                    }}
+                                    className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg shrink-0 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                  
                                   {/* Favorite Button - Far Left */}
                                   <Button
                                     variant="ghost"
@@ -560,6 +581,19 @@ const ClientServices = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Service Details Sheet */}
+        <ServiceDetailsSheet
+          service={selectedService}
+          isOpen={isDetailsSheetOpen}
+          onClose={() => {
+            setIsDetailsSheetOpen(false);
+            setSelectedService(null);
+          }}
+          onOrder={handleOrder}
+          isFavorite={selectedService ? checkIsFavorite(selectedService.id) : false}
+          onToggleFavorite={toggleFavorite}
+        />
 
         {/* Order Dialog */}
         <ServiceOrderDialog
