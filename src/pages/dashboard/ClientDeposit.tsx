@@ -397,8 +397,8 @@ const ClientDeposit = () => {
                       <CreditCard className="w-6 h-6" />
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">الدفع الفوري عبر Paylink</span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-lg">الدفع عبر البطاقات الائتمانية أو أبل باي أو مدى</span>
                         <Badge className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30">موصى به</Badge>
                       </div>
                       <p className="text-sm font-normal text-muted-foreground">ادفع مباشرة ببطاقتك واحصل على رصيدك فوراً</p>
