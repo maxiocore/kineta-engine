@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Globe, 
@@ -27,11 +27,13 @@ import {
   Smartphone
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 
 const ClientServicesHome = () => {
+  const navigate = useNavigate();
   const [servicesCount, setServicesCount] = useState({
     social: 0,
     design: 0,
@@ -156,6 +158,16 @@ const ClientServicesHome = () => {
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => navigate('/dashboard/orders')}
+                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl border-border/50"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+              </motion.div>
               <motion.div 
                 whileHover={{ scale: 1.05, rotate: 3 }}
                 className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-xl shadow-primary/30"
