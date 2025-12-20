@@ -250,14 +250,7 @@ const AdminNotifications = () => {
     <AdminDashboardLayout>
       <div className="space-y-4 sm:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row-reverse sm:items-center justify-between gap-3 sm:gap-4">
-          <Dialog open={notificationDialogOpen} onOpenChange={setNotificationDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2 w-full sm:w-auto" size="sm">
-                <Plus className="w-4 h-4" />
-                <span>إرسال إشعار</span>
-              </Button>
-            </DialogTrigger>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div className="flex-1">
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2 sm:gap-3">
               <Bell className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
@@ -265,6 +258,13 @@ const AdminNotifications = () => {
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">متابعة الطلبات والتذاكر في الوقت الحقيقي</p>
           </div>
+          <Dialog open={notificationDialogOpen} onOpenChange={setNotificationDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2 w-full sm:w-auto" size="sm">
+                <Plus className="w-4 h-4" />
+                <span>إرسال إشعار</span>
+              </Button>
+            </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>إرسال إشعار جديد</DialogTitle>
