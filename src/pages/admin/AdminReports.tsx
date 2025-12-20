@@ -265,8 +265,18 @@ const AdminReports = () => {
   return (
     <AdminDashboardLayout>
       <div className="space-y-4 md:space-y-6 lg:space-y-8" dir="rtl">
-        <div className="flex flex-col sm:flex-row-reverse sm:items-center justify-between gap-3">
-          <div className="flex gap-2 order-1 sm:order-none">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="font-display text-xl sm:text-2xl lg:text-3xl font-bold mb-1"
+            >
+              التقارير والإحصائيات
+            </motion.h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">تحليل شامل لأداء المنصة</p>
+          </div>
+          <div className="flex gap-2">
             <Select value={dateRange} onValueChange={setDateRange}>
               <SelectTrigger className="w-28 sm:w-40 text-xs sm:text-sm">
                 <Calendar className="w-3.5 h-3.5 ml-1.5" />
@@ -282,16 +292,6 @@ const AdminReports = () => {
               <Download className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">تصدير</span>
             </Button>
-          </div>
-          <div>
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="font-display text-xl sm:text-2xl lg:text-3xl font-bold mb-1"
-            >
-              التقارير والإحصائيات
-            </motion.h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">تحليل شامل لأداء المنصة</p>
           </div>
         </div>
 

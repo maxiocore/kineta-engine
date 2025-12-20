@@ -407,12 +407,12 @@ const AdminUsers = () => {
     <AdminDashboardLayout>
       <div className="space-y-3 sm:space-y-4 lg:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row-reverse sm:items-center justify-between gap-3">
-          <div className="text-right">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
             <motion.h1
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-lg sm:text-xl lg:text-2xl font-bold mb-1 flex flex-row-reverse items-center gap-2"
+              className="text-lg sm:text-xl lg:text-2xl font-bold mb-1 flex items-center gap-2"
             >
               <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10">
                 <Users className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
@@ -421,13 +421,13 @@ const AdminUsers = () => {
             </motion.h1>
             <p className="text-muted-foreground text-xs sm:text-sm">عرض وإدارة جميع المستخدمين</p>
           </div>
-          <div className="flex flex-row-reverse gap-2">
+          <div className="flex gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => fetchUsers(true)}
               disabled={refreshing}
-              className="gap-1.5 h-8 text-xs flex flex-row-reverse"
+              className="gap-1.5 h-8 text-xs"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
               <span className="hidden sm:inline">تحديث</span>
@@ -436,7 +436,7 @@ const AdminUsers = () => {
               variant="outline"
               size="sm"
               onClick={exportUsers}
-              className="gap-1.5 h-8 text-xs flex flex-row-reverse"
+              className="gap-1.5 h-8 text-xs"
             >
               <Download className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">تصدير</span>
@@ -455,11 +455,11 @@ const AdminUsers = () => {
             >
               <Card className={`relative overflow-hidden border-border/30 bg-gradient-to-br ${stat.gradient}`}>
                 <CardContent className="p-2.5 sm:p-3 lg:p-4">
-                  <div className="flex flex-row-reverse items-center gap-2 sm:gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <div className={`p-1.5 sm:p-2 rounded-lg ${stat.iconBg}`}>
                       <stat.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${stat.iconColor}`} />
                     </div>
-                    <div className="text-right flex-1 min-w-0">
+                    <div className="flex-1 min-w-0">
                       <p className="text-base sm:text-lg lg:text-xl font-bold">{stat.value.toLocaleString("ar-SA")}</p>
                       <p className="text-[9px] sm:text-[10px] lg:text-xs text-muted-foreground truncate">{stat.label}</p>
                     </div>
@@ -473,12 +473,12 @@ const AdminUsers = () => {
         {/* Filters */}
         <Card className="border-border/30">
           <CardContent className="p-2.5 sm:p-3 lg:p-4">
-            <div className="flex flex-col lg:flex-row-reverse gap-2 sm:gap-3">
+            <div className="flex flex-col lg:flex-row gap-2 sm:gap-3">
               <div className="relative flex-1">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input 
                   placeholder="البحث بالاسم أو البريد..." 
-                  className="pr-9 bg-background h-9 text-sm text-right"
+                  className="pr-9 bg-background h-9 text-sm"
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
@@ -486,7 +486,7 @@ const AdminUsers = () => {
                   }}
                 />
               </div>
-              <div className="flex flex-row-reverse flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
                   <SelectTrigger className="w-28 sm:w-36 bg-background h-9 text-xs sm:text-sm">
                     <SelectValue placeholder="حالة التوثيق" />
@@ -512,7 +512,7 @@ const AdminUsers = () => {
                     variant="destructive"
                     size="sm"
                     onClick={openBulkDeleteDialog}
-                    className="gap-1.5 h-9 text-xs flex flex-row-reverse"
+                    className="gap-1.5 h-9 text-xs"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     حذف ({selectedIds.length})
@@ -526,8 +526,8 @@ const AdminUsers = () => {
         {/* Users Table */}
         <Card className="border-border/30">
           <CardHeader className="p-3 sm:p-4 pb-2">
-            <div className="flex flex-row-reverse items-center justify-between">
-              <CardTitle className="flex flex-row-reverse items-center gap-2 text-sm sm:text-base lg:text-lg">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base lg:text-lg">
                 قائمة المستخدمين
                 <Badge variant="secondary" className="text-[10px] sm:text-xs">{filteredUsers.length}</Badge>
               </CardTitle>

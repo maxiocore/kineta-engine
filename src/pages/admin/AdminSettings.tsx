@@ -34,23 +34,7 @@ const AdminSettings = () => {
     <AdminDashboardLayout>
       <div className="space-y-4 sm:space-y-6 lg:space-y-8" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row-reverse sm:items-center sm:justify-between gap-3 sm:gap-4">
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Button 
-              variant="outline" 
-              onClick={refetch}
-              className="gap-2 w-full sm:w-auto"
-              size="sm"
-            >
-              <RefreshCw className="w-4 h-4" />
-              <span className="sm:inline">تحديث</span>
-            </Button>
-          </motion.div>
-
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -72,6 +56,22 @@ const AdminSettings = () => {
               </Badge>
             </div>
             <p className="text-xs sm:text-sm text-muted-foreground">تكوين وإدارة إعدادات المنصة</p>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Button 
+              variant="outline" 
+              onClick={refetch}
+              className="gap-2 w-full sm:w-auto"
+              size="sm"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span className="sm:inline">تحديث</span>
+            </Button>
           </motion.div>
         </div>
 

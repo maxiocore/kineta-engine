@@ -810,7 +810,7 @@ const AdminOrders = () => {
             {/* Orders List */}
             <motion.div variants={itemVariants}>
               <Card className="border-border/30">
-                <CardHeader className="pb-3 flex flex-row-reverse items-center justify-between">
+                <CardHeader className="pb-3 flex flex-row items-center justify-between">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <Package className="w-5 h-5 text-primary" />
                     قائمة الطلبات
