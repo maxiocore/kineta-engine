@@ -380,26 +380,26 @@ export const AdvancedDashboardCharts = ({ orders, deposits, users }: AdvancedDas
       </motion.div>
 
       {/* Charts Row */}
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+      <div className="grid gap-3 sm:gap-4 lg:gap-6 lg:grid-cols-2">
         {/* Order Status Distribution */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <Card className="border-border/50 bg-card/50 backdrop-blur-sm h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <PieChartIcon className="h-5 w-5 text-primary" />
+            <CardHeader className="p-3 sm:p-4 pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                <PieChartIcon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 توزيع حالات الطلبات
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="flex flex-col md:flex-row items-center gap-4">
-                <ResponsiveContainer width="100%" height={200}>
+            <CardContent className="p-3 sm:p-4 pt-0">
+              <div className="flex flex-col items-center gap-3 sm:gap-4">
+                <ResponsiveContainer width="100%" height={160} className="sm:!h-[200px]">
                   <PieChart>
                     <Pie
                       data={statusData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={50}
-                      outerRadius={80}
+                      innerRadius={35}
+                      outerRadius={60}
                       paddingAngle={2}
                       dataKey="value"
                     >
@@ -410,16 +410,16 @@ export const AdvancedDashboardCharts = ({ orders, deposits, users }: AdvancedDas
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="flex flex-wrap gap-2 justify-center">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center">
                   {statusData.map((status, index) => (
                     <Badge 
                       key={index} 
                       variant="outline" 
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-1 sm:gap-2 text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5"
                       style={{ borderColor: status.color }}
                     >
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: status.color }} />
-                      {status.name}: {status.value} ({status.percentage}%)
+                      <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0" style={{ backgroundColor: status.color }} />
+                      <span className="truncate">{status.name}: {status.value}</span>
                     </Badge>
                   ))}
                 </div>
@@ -431,23 +431,23 @@ export const AdvancedDashboardCharts = ({ orders, deposits, users }: AdvancedDas
         {/* User Growth */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
           <Card className="border-border/50 bg-card/50 backdrop-blur-sm h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Users className="h-5 w-5 text-primary" />
+            <CardHeader className="p-3 sm:p-4 pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 نمو المستخدمين
               </CardTitle>
-              <CardDescription>إجمالي {users.length} مستخدم</CardDescription>
+              <CardDescription className="text-xs sm:text-sm">إجمالي {users.length} مستخدم</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="flex flex-col md:flex-row items-center gap-4">
-                <ResponsiveContainer width="100%" height={200}>
+            <CardContent className="p-3 sm:p-4 pt-0">
+              <div className="flex flex-col items-center gap-3 sm:gap-4">
+                <ResponsiveContainer width="100%" height={160} className="sm:!h-[200px]">
                   <PieChart>
                     <Pie
                       data={userGrowth}
                       cx="50%"
                       cy="50%"
-                      innerRadius={50}
-                      outerRadius={80}
+                      innerRadius={35}
+                      outerRadius={60}
                       paddingAngle={2}
                       dataKey="value"
                     >
@@ -458,16 +458,16 @@ export const AdvancedDashboardCharts = ({ orders, deposits, users }: AdvancedDas
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="space-y-3 w-full md:w-auto">
+                <div className="space-y-2 sm:space-y-3 w-full">
                   {userGrowth.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                        <span className="text-sm">{item.name}</span>
+                    <div key={index} className="flex items-center justify-between gap-2 sm:gap-4">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                        <span className="text-xs sm:text-sm">{item.name}</span>
                       </div>
                       <div className="text-right">
-                        <span className="font-semibold">{item.value}</span>
-                        <span className="text-xs text-muted-foreground mr-1">
+                        <span className="font-semibold text-sm sm:text-base">{item.value}</span>
+                        <span className="text-[10px] sm:text-xs text-muted-foreground mr-1">
                           ({users.length > 0 ? ((item.value / users.length) * 100).toFixed(1) : 0}%)
                         </span>
                       </div>
@@ -483,18 +483,18 @@ export const AdvancedDashboardCharts = ({ orders, deposits, users }: AdvancedDas
       {/* Revenue by Status */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
         <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <DollarSign className="h-5 w-5 text-primary" />
+          <CardHeader className="p-3 sm:p-4 pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+              <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               الإيرادات حسب حالة الطلب
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={revenueByStatus} layout="vertical">
+          <CardContent className="p-2 sm:p-4 pt-0">
+            <ResponsiveContainer width="100%" height={200} className="sm:!h-[250px]">
+              <BarChart data={revenueByStatus} layout="vertical" margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
-                <XAxis type="number" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-                <YAxis type="category" dataKey="name" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} width={80} />
+                <XAxis type="number" className="text-[10px] sm:text-xs" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} />
+                <YAxis type="category" dataKey="name" className="text-[10px] sm:text-xs" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} width={60} />
                 <Tooltip 
                   formatter={(value: number) => [`${value.toLocaleString()} ر.س`, 'الإيرادات']}
                   contentStyle={{ 
