@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import ServiceDetailsSheet from "@/components/services/ServiceDetailsSheet";
 import EnhancedServiceCard from "@/components/services/EnhancedServiceCard";
 import ServicesPageSkeleton from "@/components/dashboard/ServicesPageSkeleton";
+import PullToRefresh from "@/components/ui/pull-to-refresh";
 
 interface Service {
   id: string;
@@ -65,7 +66,7 @@ const ClientDevServices = () => {
   const devKeywords = ["programming", "code", "web", "app", "برمجة", "موقع", "تطبيق", "development", "developer", "website", "application", "api", "backend", "frontend"];
 
   // Fetch dev services
-  const { data: initialServices, isLoading } = useQuery({
+  const { data: initialServices, isLoading, refetch } = useQuery({
     queryKey: ["dev-services"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -83,6 +84,11 @@ const ClientDevServices = () => {
       });
     },
   });
+
+  const handleRefresh = async () => {
+    await refetch();
+    toast.success("تم تحديث الخدمات");
+  };
 
   useEffect(() => {
     if (initialServices) {
@@ -162,7 +168,8 @@ const ClientDevServices = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-6">
+      <PullToRefresh onRefresh={handleRefresh} className="h-full">
+        <div className="space-y-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -299,6 +306,7 @@ const ClientDevServices = () => {
         isFavorite={false}
         onToggleFavorite={() => {}}
       />
+      </PullToRefresh>
     </ClientDashboardLayout>
   );
 };

@@ -33,6 +33,8 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import ServicesHomeSkeleton from "@/components/dashboard/ServicesHomeSkeleton";
+import PullToRefresh from "@/components/ui/pull-to-refresh";
+import { toast } from "sonner";
 
 // Animation variants
 const containerVariants = {
@@ -96,40 +98,45 @@ const ClientServicesHome = () => {
   const [hoveredSection, setHoveredSection] = useState<string | null>(null);
   const [activeFeature, setActiveFeature] = useState(0);
 
+  const fetchCounts = async () => {
+    setIsLoading(true);
+    try {
+      const { count: socialCount } = await supabase
+        .from('services')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active')
+        .or('category.ilike.%instagram%,category.ilike.%facebook%,category.ilike.%twitter%,category.ilike.%youtube%,category.ilike.%tiktok%,category.ilike.%social%,category.ilike.%telegram%,name.ilike.%متابع%,name.ilike.%لايك%');
+
+      const { count: designCount } = await supabase
+        .from('services')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active')
+        .or('category.ilike.%design%,category.ilike.%تصميم%,name.ilike.%تصميم%,name.ilike.%شعار%,name.ilike.%لوجو%');
+
+      const { count: devCount } = await supabase
+        .from('services')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active')
+        .or('category.ilike.%dev%,category.ilike.%برمجة%,category.ilike.%تطوير%,name.ilike.%موقع%,name.ilike.%تطبيق%,name.ilike.%برمجة%');
+
+      setServicesCount({
+        social: socialCount || 0,
+        design: designCount || 0,
+        dev: devCount || 0
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchCounts = async () => {
-      setIsLoading(true);
-      try {
-        const { count: socialCount } = await supabase
-          .from('services')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'active')
-          .or('category.ilike.%instagram%,category.ilike.%facebook%,category.ilike.%twitter%,category.ilike.%youtube%,category.ilike.%tiktok%,category.ilike.%social%,category.ilike.%telegram%,name.ilike.%متابع%,name.ilike.%لايك%');
-
-        const { count: designCount } = await supabase
-          .from('services')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'active')
-          .or('category.ilike.%design%,category.ilike.%تصميم%,name.ilike.%تصميم%,name.ilike.%شعار%,name.ilike.%لوجو%');
-
-        const { count: devCount } = await supabase
-          .from('services')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'active')
-          .or('category.ilike.%dev%,category.ilike.%برمجة%,category.ilike.%تطوير%,name.ilike.%موقع%,name.ilike.%تطبيق%,name.ilike.%برمجة%');
-
-        setServicesCount({
-          social: socialCount || 0,
-          design: designCount || 0,
-          dev: devCount || 0
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchCounts();
   }, []);
+
+  const handleRefresh = async () => {
+    await fetchCounts();
+    toast.success("تم تحديث الخدمات");
+  };
 
   // Auto-rotate features
   useEffect(() => {
@@ -223,7 +230,8 @@ const ClientServicesHome = () => {
 
   return (
     <ClientDashboardLayout>
-      <div ref={containerRef} className="space-y-8 lg:space-y-12 relative" dir="rtl">
+      <PullToRefresh onRefresh={handleRefresh} className="h-full">
+        <div ref={containerRef} className="space-y-8 lg:space-y-12 relative" dir="rtl">
         {/* Animated Background Elements */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
           <motion.div
@@ -609,7 +617,8 @@ const ClientServicesHome = () => {
             </div>
           </div>
         </motion.div>
-      </div>
+        </div>
+      </PullToRefresh>
     </ClientDashboardLayout>
   );
 };

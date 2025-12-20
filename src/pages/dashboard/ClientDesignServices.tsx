@@ -36,6 +36,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import EnhancedServiceCard from "@/components/services/EnhancedServiceCard";
 import ServicesPageSkeleton from "@/components/dashboard/ServicesPageSkeleton";
+import PullToRefresh from "@/components/ui/pull-to-refresh";
 
 interface Service {
   id: string;
@@ -85,7 +86,7 @@ const ClientDesignServices = () => {
   const designKeywords = ["design", "graphic", "logo", "brand", "تصميم", "شعار", "هوية", "جرافيك", "بوستر", "فوتوشوب", "illustrator"];
 
   // Fetch design services
-  const { data: initialServices, isLoading } = useQuery({
+  const { data: initialServices, isLoading, refetch } = useQuery({
     queryKey: ["design-services"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -102,6 +103,11 @@ const ClientDesignServices = () => {
       });
     },
   });
+
+  const handleRefresh = async () => {
+    await refetch();
+    toast.success("تم تحديث الخدمات");
+  };
 
   useEffect(() => {
     if (initialServices) {
@@ -202,7 +208,8 @@ const ClientDesignServices = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-6 lg:space-y-8" dir="rtl">
+      <PullToRefresh onRefresh={handleRefresh} className="h-full">
+        <div className="space-y-6 lg:space-y-8" dir="rtl">
         {/* Hero Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -514,7 +521,8 @@ const ClientDesignServices = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+        </div>
+      </PullToRefresh>
     </ClientDashboardLayout>
   );
 };
