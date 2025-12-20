@@ -386,7 +386,7 @@ const AdminDashboard = () => {
   return (
     <AdminDashboardLayout>
       <motion.div 
-        className="space-y-3 sm:space-y-4 lg:space-y-6"
+        className="space-y-3 sm:space-y-4 lg:space-y-6 px-1 sm:px-0"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -395,39 +395,41 @@ const AdminDashboard = () => {
         {/* Header */}
         <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
           <div>
-            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold mb-1 flex items-center gap-2">
+            <h1 className="text-base sm:text-lg lg:text-xl font-bold mb-0.5 sm:mb-1 flex items-center gap-1.5 sm:gap-2">
               <motion.div
-                className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center"
+                className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 rounded-md sm:rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center"
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
-                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-primary-foreground" />
+                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 text-primary-foreground" />
               </motion.div>
               لوحة التحكم
             </h1>
-            <p className="text-muted-foreground text-xs sm:text-sm">نظرة شاملة على أداء المنصة</p>
+            <p className="text-muted-foreground text-[10px] sm:text-xs lg:text-sm">نظرة شاملة على أداء المنصة</p>
           </div>
           
           <motion.div 
-            className="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-success/10 border border-success/20 self-start sm:self-auto"
+            className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-success/10 border border-success/20 self-start sm:self-auto"
             animate={{ opacity: [1, 0.7, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-success animate-pulse" />
-            <span className="text-[10px] sm:text-xs text-success font-medium">مباشر</span>
+            <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-success animate-pulse" />
+            <span className="text-[9px] sm:text-[10px] text-success font-medium">مباشر</span>
           </motion.div>
         </motion.div>
 
         {/* Tabs for Overview and Analytics */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full max-w-xs sm:max-w-sm grid-cols-2 mb-3 sm:mb-4 h-9 sm:h-10">
-            <TabsTrigger value="overview" className="flex items-center gap-1.5 text-xs sm:text-sm">
-              <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
-              نظرة عامة
+          <TabsList className="grid w-full max-w-[200px] sm:max-w-xs grid-cols-2 mb-2 sm:mb-3 h-8 sm:h-9">
+            <TabsTrigger value="overview" className="flex items-center gap-1 text-[10px] sm:text-xs">
+              <Sparkles className="h-3 w-3" />
+              <span className="hidden xs:inline">نظرة عامة</span>
+              <span className="xs:hidden">عامة</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-1.5 text-xs sm:text-sm">
-              <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
-              الإحصائيات
+            <TabsTrigger value="analytics" className="flex items-center gap-1 text-[10px] sm:text-xs">
+              <BarChart3 className="h-3 w-3" />
+              <span className="hidden xs:inline">الإحصائيات</span>
+              <span className="xs:hidden">إحصاء</span>
             </TabsTrigger>
           </TabsList>
 

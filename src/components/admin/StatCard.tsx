@@ -56,18 +56,18 @@ const StatCard = ({
         shadowColor,
         "shadow-md hover:shadow-lg"
       )}>
-        <CardContent className="p-3 sm:p-4 lg:p-5 relative">
+        <CardContent className="p-2 sm:p-3 lg:p-4 relative">
           {/* Background Glow */}
           <div className={cn(
-            "absolute -top-16 -left-16 w-32 h-32 rounded-full blur-3xl opacity-15 group-hover:opacity-30 transition-opacity duration-500",
+            "absolute -top-12 -left-12 w-24 h-24 rounded-full blur-2xl opacity-10 group-hover:opacity-20 transition-opacity duration-500",
             `bg-gradient-to-br ${gradient}`
           )} />
           
           <div className="relative z-10">
-            <div className="flex flex-row-reverse items-start justify-between mb-2 sm:mb-3">
+            <div className="flex flex-row-reverse items-start justify-between mb-1 sm:mb-2">
               <motion.div 
                 className={cn(
-                  "w-9 h-9 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg sm:rounded-xl p-2 sm:p-2.5 shadow-md relative overflow-hidden",
+                  "w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-md sm:rounded-lg p-1.5 sm:p-2 shadow-sm relative overflow-hidden",
                   `bg-gradient-to-br ${gradient}`
                 )}
                 whileHover={{ scale: 1.05, rotate: 5 }}
@@ -82,7 +82,7 @@ const StatCard = ({
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: delay + 0.2 }}
                   className={cn(
-                    "flex flex-row-reverse items-center gap-0.5 px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-medium border",
+                    "flex flex-row-reverse items-center gap-0.5 px-1 sm:px-1.5 py-0.5 rounded-full text-[8px] sm:text-[9px] font-medium border",
                     getTrendColor()
                   )}
                 >
@@ -92,8 +92,8 @@ const StatCard = ({
               )}
             </div>
 
-            <div className="space-y-0.5 text-right">
-              <div className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold tracking-tight">
+            <div className="space-y-0 text-right">
+              <div className="text-sm sm:text-base lg:text-xl xl:text-2xl font-bold tracking-tight">
                 <AnimatedCounter 
                   value={value} 
                   prefix={prefix}
@@ -101,7 +101,7 @@ const StatCard = ({
                   duration={1.2}
                 />
               </div>
-              <p className="text-[9px] sm:text-[10px] lg:text-xs text-muted-foreground font-medium truncate">{title}</p>
+              <p className="text-[8px] sm:text-[9px] lg:text-[10px] text-muted-foreground font-medium truncate">{title}</p>
             </div>
 
             {/* Hover Line */}
