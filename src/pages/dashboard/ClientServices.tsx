@@ -546,17 +546,8 @@ const ClientServices = () => {
     return slugMap[categoryName] || categoryName.toLowerCase().replace(/\s+/g, "-");
   };
 
-  const serviceCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    services.forEach(service => {
-      const slug = getCategorySlug(service.category);
-      counts[slug] = (counts[slug] || 0) + 1;
-    });
-    return counts;
-  }, [services]);
-
   // Filter out design and development services from social media section
-  const isDesignOrDevService = (service: Service) => {
+  const isDesignOrDevService = useCallback((service: Service) => {
     const name = service.name.toLowerCase();
     const category = service.category.toLowerCase();
     const designKeywords = ['تصميم', 'شعار', 'لوجو', 'design', 'logo', 'بنر', 'banner', 'هوية'];
@@ -564,15 +555,24 @@ const ClientServices = () => {
     
     return designKeywords.some(k => name.includes(k) || category.includes(k)) ||
            devKeywords.some(k => name.includes(k) || category.includes(k));
-  };
+  }, []);
+
+  // Only count social media services (exclude design and dev)
+  const socialMediaServices = useMemo(() => {
+    return services.filter(service => !isDesignOrDevService(service));
+  }, [services, isDesignOrDevService]);
+
+  const serviceCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    socialMediaServices.forEach(service => {
+      const slug = getCategorySlug(service.category);
+      counts[slug] = (counts[slug] || 0) + 1;
+    });
+    return counts;
+  }, [socialMediaServices]);
 
   const filteredServices = useMemo(() => {
-    return services.filter(service => {
-      // Exclude design and development services from social media section
-      if (isDesignOrDevService(service)) {
-        return false;
-      }
-
+    return socialMediaServices.filter(service => {
       const matchesSearch = 
         service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         service.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -584,7 +584,7 @@ const ClientServices = () => {
       
       return matchesSearch && matchesCategory;
     });
-  }, [services, searchQuery, selectedCategory]);
+  }, [socialMediaServices, searchQuery, selectedCategory]);
 
   const groupedServices = useMemo(() => {
     const groups: Record<string, Service[]> = {};
