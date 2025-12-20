@@ -24,12 +24,16 @@ import {
   Layers,
   Grid3X3,
   LayoutList,
-  Check
+  Check,
+  Globe,
+  RotateCcw,
+  CreditCard
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Collapsible,
   CollapsibleContent,
@@ -72,6 +76,14 @@ interface Category {
   icon: string | null;
   color: string | null;
 }
+
+// Main section tabs
+const MAIN_SECTIONS = [
+  { id: 'social', label: 'مواقع التواصل الاجتماعي', icon: Globe },
+  { id: 'reorder', label: 'إعادة طلب', icon: RotateCcw },
+  { id: 'subscriptions', label: 'الاشتراكات', icon: CreditCard },
+  { id: 'favorites', label: 'المفضلة', icon: Heart },
+];
 
 const ITEMS_PER_PAGE = 20;
 
@@ -392,6 +404,7 @@ const ClientServices = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
+  const [activeMainSection, setActiveMainSection] = useState("social");
   const [isDetailsSheetOpen, setIsDetailsSheetOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -665,225 +678,244 @@ const ClientServices = () => {
   return (
     <ClientDashboardLayout>
       <div className="space-y-6">
-        {/* Hero Header */}
+        {/* Main Section Tabs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/5 via-background to-accent/5 border border-border/40 p-6 sm:p-8"
         >
-          {/* Background Elements */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/5 rounded-full blur-2xl" />
-          
-          {/* Floating Orbs */}
-          <motion.div
-            animate={{ 
-              y: [0, -10, 0],
-              opacity: [0.3, 0.5, 0.3]
-            }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-12 left-12 w-3 h-3 rounded-full bg-primary/40"
-          />
-          <motion.div
-            animate={{ 
-              y: [0, 10, 0],
-              opacity: [0.2, 0.4, 0.2]
-            }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-            className="absolute bottom-12 right-24 w-2 h-2 rounded-full bg-accent/40"
-          />
-          
-          <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div className="flex items-start sm:items-center gap-5">
-              <motion.div 
-                whileHover={{ scale: 1.05, rotate: 5 }}
-                className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-4 shadow-xl shadow-primary/20 flex items-center justify-center shrink-0"
-              >
-                <Package className="w-full h-full text-primary-foreground" />
-              </motion.div>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold mb-2">قائمة الخدمات</h1>
-                <p className="text-muted-foreground text-sm sm:text-base flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-xs">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    متصل
-                  </span>
-                  <span>•</span>
-                  <span>{services.length} خدمة متاحة</span>
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3 flex-wrap">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="rounded-xl gap-2 h-10"
-              >
-                <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-                تحديث
-              </Button>
-              
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-card border border-border/50">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium">{services.length}</span>
-                <span className="text-xs text-muted-foreground">خدمة</span>
-              </div>
-            </div>
-          </div>
+          <Tabs value={activeMainSection} onValueChange={setActiveMainSection} className="w-full">
+            <TabsList className="w-full h-auto p-1.5 bg-card/80 backdrop-blur-sm border border-border/40 rounded-2xl flex flex-wrap justify-start gap-1">
+              {MAIN_SECTIONS.map((section) => (
+                <TabsTrigger
+                  key={section.id}
+                  value={section.id}
+                  className={cn(
+                    "flex-1 min-w-[140px] h-12 rounded-xl gap-2 text-sm font-medium transition-all duration-300",
+                    "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg"
+                  )}
+                >
+                  <section.icon className="w-4 h-4" />
+                  {section.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
         </motion.div>
 
-        {/* Categories Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card className="border-border/40 bg-card/50 backdrop-blur-sm overflow-hidden">
-            <CardContent className="p-4 sm:p-6">
-              <SocialNetworkGrid
-                selectedCategory={selectedCategory}
-                onCategoryChange={setSelectedCategory}
-                serviceCounts={serviceCounts}
-              />
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Search & Controls */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="flex flex-col sm:flex-row gap-4"
-        >
-          <div className="relative flex-1">
-            <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              placeholder="ابحث عن خدمة بالاسم أو الرقم..."
-              className="pr-12 h-12 bg-card/50 backdrop-blur-sm border-border/40 rounded-xl text-base"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={expandAllCategories}
-                    className="h-12 w-12 rounded-xl"
-                  >
-                    <Layers className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>فتح الكل</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={collapseAllCategories}
-                    className="h-12 w-12 rounded-xl"
-                  >
-                    <Grid3X3 className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>إغلاق الكل</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            
-            <div className="h-12 px-4 flex items-center justify-center rounded-xl bg-card border border-border/40">
-              <span className="text-sm">
-                <span className="font-bold text-primary">{filteredServices.length}</span>
-                <span className="text-muted-foreground mr-1">نتيجة</span>
-              </span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Services List */}
+        {/* Conditional Content Based on Active Section */}
         <AnimatePresence mode="wait">
-          {filteredServices.length === 0 ? (
+          {activeMainSection === 'favorites' ? (
             <motion.div
-              key="empty"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              key="favorites"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
             >
               <Card className="border-border/40 bg-card/50">
-                <CardContent className="py-20 text-center">
-                  <motion.div
-                    animate={{ 
-                      y: [0, -5, 0],
-                      opacity: [0.5, 1, 0.5]
-                    }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                    className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-muted/50 flex items-center justify-center"
-                  >
-                    <Package className="w-10 h-10 text-muted-foreground/50" />
-                  </motion.div>
-                  <h3 className="text-xl font-bold mb-2">لا توجد خدمات</h3>
-                  <p className="text-muted-foreground max-w-sm mx-auto mb-6">
-                    {searchQuery || selectedCategory !== "all"
-                      ? "لا توجد نتائج مطابقة لبحثك"
-                      : "لا توجد خدمات متاحة حالياً"}
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-rose-500/10 flex items-center justify-center">
+                    <Heart className="w-8 h-8 text-rose-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">المفضلة</h3>
+                  <p className="text-muted-foreground mb-4">
+                    {favorites.length > 0 
+                      ? `لديك ${favorites.length} خدمة في المفضلة`
+                      : "لم تقم بإضافة أي خدمات للمفضلة بعد"}
                   </p>
-                  {(searchQuery || selectedCategory !== "all") && (
+                  {favorites.length === 0 && (
                     <Button
                       variant="outline"
                       className="rounded-xl"
-                      onClick={() => {
-                        setSearchQuery("");
-                        setSelectedCategory("all");
-                      }}
+                      onClick={() => setActiveMainSection('social')}
                     >
-                      إعادة تعيين البحث
+                      تصفح الخدمات
                     </Button>
                   )}
+                  {favorites.length > 0 && (
+                    <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      {services
+                        .filter(s => favorites.includes(s.id))
+                        .map((service, index) => (
+                          <ServiceCard
+                            key={service.id}
+                            service={service}
+                            index={index}
+                            onOrder={() => handleOrder(service)}
+                            onViewDetails={() => handleViewDetails(service)}
+                            isFavorite={true}
+                            onToggleFavorite={() => toggleFavorite(service.id)}
+                          />
+                        ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          ) : activeMainSection === 'reorder' ? (
+            <motion.div
+              key="reorder"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <Card className="border-border/40 bg-card/50">
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-blue-500/10 flex items-center justify-center">
+                    <RotateCcw className="w-8 h-8 text-blue-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">إعادة طلب</h3>
+                  <p className="text-muted-foreground">
+                    يمكنك إعادة طلب خدماتك السابقة من هنا
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ) : activeMainSection === 'subscriptions' ? (
+            <motion.div
+              key="subscriptions"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <Card className="border-border/40 bg-card/50">
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-violet-500/10 flex items-center justify-center">
+                    <CreditCard className="w-8 h-8 text-violet-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">الاشتراكات</h3>
+                  <p className="text-muted-foreground">
+                    خدمات الاشتراكات الشهرية والسنوية
+                  </p>
                 </CardContent>
               </Card>
             </motion.div>
           ) : (
             <motion.div
-              key="services"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="space-y-4"
+              key="social"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
             >
-              {Object.entries(groupedServices).map(([category, categoryServices], categoryIndex) => (
-                <motion.div
-                  key={category}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: categoryIndex * 0.05 }}
-                >
-                  <CategorySection
-                    category={category}
-                    services={categoryServices}
-                    isExpanded={expandedCategories.has(category)}
-                    onToggle={() => toggleCategory(category)}
-                    onOrder={handleOrder}
-                    onViewDetails={handleViewDetails}
-                    favorites={favorites}
-                    onToggleFavorite={toggleFavorite}
-                    visibleCount={visibleCategoryItems[category] || ITEMS_PER_PAGE}
-                    onLoadMore={() => loadMoreItems(category)}
-                    isLoadingMore={loadingMore === category}
-                    hasMore={categoryServices.length > (visibleCategoryItems[category] || ITEMS_PER_PAGE)}
+              {/* Categories Grid */}
+              <Card className="border-border/40 bg-card/50 backdrop-blur-sm overflow-hidden">
+                <CardContent className="p-4 sm:p-6">
+                  <SocialNetworkGrid
+                    selectedCategory={selectedCategory}
+                    onCategoryChange={setSelectedCategory}
+                    serviceCounts={serviceCounts}
                   />
-                </motion.div>
-              ))}
+                </CardContent>
+              </Card>
+
+              {/* Search & Controls */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    placeholder="ابحث عن خدمة بالاسم أو الرقم..."
+                    className="pr-12 h-12 bg-card/50 backdrop-blur-sm border-border/40 rounded-xl text-base"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={expandAllCategories}
+                          className="h-12 w-12 rounded-xl"
+                        >
+                          <Layers className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>فتح الكل</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={collapseAllCategories}
+                          className="h-12 w-12 rounded-xl"
+                        >
+                          <Grid3X3 className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>إغلاق الكل</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  <div className="h-12 px-4 flex items-center justify-center rounded-xl bg-card border border-border/40">
+                    <span className="text-sm">
+                      <span className="font-bold text-primary">{filteredServices.length}</span>
+                      <span className="text-muted-foreground mr-1">نتيجة</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Services List */}
+              {filteredServices.length === 0 ? (
+                <Card className="border-border/40 bg-card/50">
+                  <CardContent className="py-20 text-center">
+                    <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-muted/50 flex items-center justify-center">
+                      <Package className="w-10 h-10 text-muted-foreground/50" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">لا توجد خدمات</h3>
+                    <p className="text-muted-foreground max-w-sm mx-auto mb-6">
+                      {searchQuery || selectedCategory !== "all"
+                        ? "لا توجد نتائج مطابقة لبحثك"
+                        : "لا توجد خدمات متاحة حالياً"}
+                    </p>
+                    {(searchQuery || selectedCategory !== "all") && (
+                      <Button
+                        variant="outline"
+                        className="rounded-xl"
+                        onClick={() => {
+                          setSearchQuery("");
+                          setSelectedCategory("all");
+                        }}
+                      >
+                        إعادة تعيين البحث
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {Object.entries(groupedServices).map(([category, categoryServices], categoryIndex) => (
+                    <motion.div
+                      key={category}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: categoryIndex * 0.05 }}
+                    >
+                      <CategorySection
+                        category={category}
+                        services={categoryServices}
+                        isExpanded={expandedCategories.has(category)}
+                        onToggle={() => toggleCategory(category)}
+                        onOrder={handleOrder}
+                        onViewDetails={handleViewDetails}
+                        favorites={favorites}
+                        onToggleFavorite={toggleFavorite}
+                        visibleCount={visibleCategoryItems[category] || ITEMS_PER_PAGE}
+                        onLoadMore={() => loadMoreItems(category)}
+                        isLoadingMore={loadingMore === category}
+                        hasMore={categoryServices.length > (visibleCategoryItems[category] || ITEMS_PER_PAGE)}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
