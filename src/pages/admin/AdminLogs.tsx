@@ -421,17 +421,7 @@ const AdminLogs = () => {
     <AdminDashboardLayout>
       <div className="space-y-4 md:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row-reverse sm:items-center justify-between gap-3">
-          <div className="flex gap-2 order-1 sm:order-none">
-            <Button variant="outline" onClick={fetchLogs} size="sm" className="gap-1.5 text-xs sm:text-sm">
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">تحديث</span>
-            </Button>
-            <Button variant="outline" onClick={exportLogs} size="sm" className="gap-1.5 text-xs sm:text-sm">
-              <Download className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">تصدير</span>
-            </Button>
-          </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <div className="flex items-center gap-2 sm:gap-3 mb-1">
               <motion.div
@@ -448,6 +438,16 @@ const AdminLogs = () => {
               </Badge>
             </div>
             <p className="text-xs sm:text-sm text-muted-foreground">تتبع جميع الأنشطة والعمليات في النظام</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={fetchLogs} size="sm" className="gap-1.5 text-xs sm:text-sm">
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">تحديث</span>
+            </Button>
+            <Button variant="outline" onClick={exportLogs} size="sm" className="gap-1.5 text-xs sm:text-sm">
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">تصدير</span>
+            </Button>
           </div>
         </div>
 
