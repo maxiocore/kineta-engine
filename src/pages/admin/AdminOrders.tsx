@@ -522,7 +522,7 @@ const AdminOrders = () => {
             animate="visible"
           >
             {/* Header */}
-            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row-reverse sm:items-center sm:justify-between gap-3">
+            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <h1 className="text-xl lg:text-2xl font-bold mb-1 flex items-center gap-2">
                   <motion.div
@@ -540,32 +540,32 @@ const AdminOrders = () => {
                 </h1>
                 <p className="text-muted-foreground text-sm">متابعة وإدارة جميع الطلبات في الوقت الفعلي</p>
               </div>
-              <div className="flex flex-row-reverse flex-wrap gap-2">
-                <Link to="/admin/orders/sync">
-                  <Button variant="outline" size="sm" className="gap-1.5 flex-row-reverse">
-                    <span className="hidden sm:inline">مزامنة متقدمة</span>
-                    <ArrowUpDown className="w-4 h-4" />
-                  </Button>
-                </Link>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={exportOrders}
-                  className="gap-1.5 flex-row-reverse"
-                >
-                  <span className="hidden sm:inline">تصدير</span>
-                  <Download className="w-4 h-4" />
-                </Button>
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleSyncOrdersStatus}
                   disabled={syncing}
-                  className="gap-1.5 flex-row-reverse"
+                  className="gap-1.5"
                 >
-                  <span className="hidden sm:inline">{syncing ? "مزامنة..." : "تحديث الحالات"}</span>
                   <RefreshCw className={cn("w-4 h-4", syncing && "animate-spin")} />
+                  <span className="hidden sm:inline">{syncing ? "مزامنة..." : "تحديث الحالات"}</span>
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportOrders}
+                  className="gap-1.5"
+                >
+                  <Download className="w-4 h-4" />
+                  <span className="hidden sm:inline">تصدير</span>
+                </Button>
+                <Link to="/admin/orders/sync">
+                  <Button variant="outline" size="sm" className="gap-1.5">
+                    <ArrowUpDown className="w-4 h-4" />
+                    <span className="hidden sm:inline">مزامنة متقدمة</span>
+                  </Button>
+                </Link>
               </div>
             </motion.div>
 
