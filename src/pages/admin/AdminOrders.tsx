@@ -142,15 +142,36 @@ const AdminOrders = () => {
   ].filter(Boolean).length;
 
   useEffect(() => {
+    // Check current user session
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log("Current session:", session);
+      console.log("Current user:", session?.user?.id);
+      
+      if (session?.user) {
+        // Check if user is admin
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .single();
+        console.log("User role:", roleData);
+      }
+    };
+    
+    checkSession();
     fetchOrders();
     fetchServices();
 
     const channel = supabase
       .channel("orders-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload) => {
+        console.log("Realtime order change:", payload);
         fetchOrders();
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log("Realtime subscription status:", status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
