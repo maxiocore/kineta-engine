@@ -378,67 +378,84 @@ const ClientDesignServices = () => {
                       
 
                       <CardHeader className="relative z-10 pb-3">
-                        <div className="flex items-start justify-between gap-3">
+                        {/* Price and Badges Row */}
+                        <div className="flex items-center justify-between mb-4">
+                          <motion.p 
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent"
+                          >
+                            {service.price.toFixed(0)} ر.س
+                          </motion.p>
+                          
                           {/* Service Icon */}
                           <motion.div 
                             whileHover={{ scale: 1.1, rotate: 5 }}
-                            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30 flex-shrink-0"
+                            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30"
                           >
                             <IconComponent className="w-7 h-7 text-white" />
                           </motion.div>
-
-                          {/* Service Info */}
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-lg group-hover:text-purple-500 transition-colors line-clamp-1">
-                              {service.name}
-                            </h3>
-                            <div className="flex items-center gap-2 mt-1 flex-wrap">
-                              <div className="flex items-center gap-1 text-muted-foreground">
-                                <Clock className="w-3.5 h-3.5" />
-                                <span className="text-xs">تسليم 24-48 ساعة</span>
-                              </div>
-                              {service.refill_enabled && (
-                                <Badge variant="outline" className="text-[10px] h-5 gap-1 border-green-500/30 text-green-600">
-                                  <Shield className="w-2.5 h-2.5" />
-                                  ضمان
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Price & Badge Section */}
-                          <div className="text-left flex-shrink-0 flex flex-col items-end gap-1">
-                            {/* Popular Badge - Above Price */}
-                            {index === 0 && (
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ type: "spring", delay: 0.2 }}
-                              >
-                                <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg gap-1 px-2 py-0.5 text-[10px]">
-                                  <Star className="w-3 h-3 fill-current" />
-                                  الأكثر طلباً
-                                </Badge>
-                              </motion.div>
-                            )}
-                            {/* New Badge - Above Price */}
-                            {index === 1 && (
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ type: "spring", delay: 0.2 }}
-                              >
-                                <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-lg gap-1 px-2 py-0.5 text-[10px]">
-                                  <Sparkles className="w-3 h-3" />
-                                  جديد
-                                </Badge>
-                              </motion.div>
-                            )}
-                            <p className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-                              {service.price.toFixed(0)} ر.س
-                            </p>
-                          </div>
                         </div>
+
+                        {/* Service Name - Full Width with Animation */}
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.1 }}
+                          className="mb-3"
+                        >
+                          <motion.h3 
+                            className="font-bold text-xl leading-tight group-hover:text-purple-500 transition-colors"
+                            whileHover={{ x: 5 }}
+                          >
+                            {service.name}
+                          </motion.h3>
+                        </motion.div>
+
+                        {/* Badges Row */}
+                        <div className="flex items-center gap-2 flex-wrap mb-2">
+                          {index === 0 && (
+                            <motion.div
+                              initial={{ scale: 0, rotate: -10 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              transition={{ type: "spring", delay: 0.2 }}
+                            >
+                              <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg gap-1 px-2.5 py-1 text-xs">
+                                <Star className="w-3.5 h-3.5 fill-current" />
+                                الأكثر طلباً
+                              </Badge>
+                            </motion.div>
+                          )}
+                          {index === 1 && (
+                            <motion.div
+                              initial={{ scale: 0, rotate: 10 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              transition={{ type: "spring", delay: 0.2 }}
+                            >
+                              <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-lg gap-1 px-2.5 py-1 text-xs">
+                                <Sparkles className="w-3.5 h-3.5" />
+                                جديد
+                              </Badge>
+                            </motion.div>
+                          )}
+                          {service.refill_enabled && (
+                            <Badge variant="outline" className="text-xs h-6 gap-1 border-green-500/30 text-green-600">
+                              <Shield className="w-3 h-3" />
+                              ضمان
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Delivery Time */}
+                        <motion.div 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.15 }}
+                          className="flex items-center gap-1.5 text-muted-foreground"
+                        >
+                          <Clock className="w-4 h-4" />
+                          <span className="text-sm">تسليم 24-48 ساعة</span>
+                        </motion.div>
                       </CardHeader>
 
                       <CardContent className="relative z-10 pt-0 space-y-4">
