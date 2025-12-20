@@ -386,53 +386,54 @@ const AdminDashboard = () => {
   return (
     <AdminDashboardLayout>
       <motion.div 
-        className="space-y-4 sm:space-y-6 lg:space-y-8"
+        className="space-y-3 sm:space-y-4 lg:space-y-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
+        dir="rtl"
       >
         {/* Header */}
-        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
+        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row-reverse sm:items-center justify-between gap-2 sm:gap-4">
+          <div className="text-right">
+            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold mb-1 flex flex-row-reverse items-center gap-2">
               <motion.div
-                className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center"
+                className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center"
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
-                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-primary-foreground" />
               </motion.div>
               لوحة التحكم
             </h1>
-            <p className="text-muted-foreground text-sm sm:text-base">نظرة شاملة على أداء المنصة في الوقت الفعلي</p>
+            <p className="text-muted-foreground text-xs sm:text-sm">نظرة شاملة على أداء المنصة</p>
           </div>
           
           <motion.div 
-            className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-success/10 border border-success/20 self-start sm:self-auto"
+            className="flex flex-row-reverse items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-success/10 border border-success/20 self-end sm:self-auto"
             animate={{ opacity: [1, 0.7, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-            <span className="text-xs sm:text-sm text-success font-medium">مباشر</span>
+            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-success animate-pulse" />
+            <span className="text-[10px] sm:text-xs text-success font-medium">مباشر</span>
           </motion.div>
         </motion.div>
 
         {/* Tabs for Overview and Analytics */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4" />
+          <TabsList className="grid w-full max-w-xs sm:max-w-sm grid-cols-2 mb-3 sm:mb-4 h-9 sm:h-10">
+            <TabsTrigger value="overview" className="flex flex-row-reverse items-center gap-1.5 text-xs sm:text-sm">
+              <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
               نظرة عامة
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              الإحصائيات التفصيلية
+            <TabsTrigger value="analytics" className="flex flex-row-reverse items-center gap-1.5 text-xs sm:text-sm">
+              <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+              الإحصائيات
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-4 sm:space-y-6">
+          <TabsContent value="overview" className="space-y-3 sm:space-y-4 lg:space-y-6">
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
               {statsData.map((stat, index) => (
                 <StatCard
                   key={stat.title}
@@ -443,18 +444,18 @@ const AdminDashboard = () => {
                   shadowColor={stat.shadowColor}
                   trend={stat.trend}
                   suffix={stat.suffix}
-                  delay={index * 0.1}
+                  delay={index * 0.08}
                   onClick={stat.onClick}
                 />
               ))}
             </div>
 
             {/* Two Column Layout */}
-            <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
+            <div className="grid lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
               <motion.div variants={itemVariants}>
                 <ActivityTimeline 
                   activities={activities}
-                  maxItems={6}
+                  maxItems={5}
                   onViewAll={() => navigate("/admin/logs")}
                 />
               </motion.div>
