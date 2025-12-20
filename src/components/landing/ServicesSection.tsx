@@ -66,7 +66,7 @@ const services = [
 
 const ServicesSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+  const isInView = useInView(containerRef, { once: true, amount: 0.1 });
 
   return (
     <section ref={containerRef} className="py-32 relative overflow-hidden">
