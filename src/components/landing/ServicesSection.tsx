@@ -1,21 +1,25 @@
 import { motion, useInView } from "framer-motion";
-import { 
-  BarChart3, 
-  Megaphone, 
-  Target, 
-  Zap, 
-  LineChart, 
-  Users,
-  ArrowLeft,
-  Sparkles
-} from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useRef } from "react";
+import LazyIcon from "@/components/ui/lazy-icon";
+import type dynamicIconImports from 'lucide-react/dynamicIconImports';
 
-const services = [
+type IconName = keyof typeof dynamicIconImports;
+
+interface Service {
+  iconName: IconName;
+  title: string;
+  description: string;
+  gradient: string;
+  bgGlow: string;
+  features: string[];
+}
+
+const services: Service[] = [
   {
-    icon: BarChart3,
+    iconName: "chart-bar",
     title: "التحليلات الذكية",
     description: "تحليلات متقدمة مدعومة بالذكاء الاصطناعي لفهم سلوك عملائك واتخاذ قرارات مدروسة.",
     gradient: "from-blue-500 via-cyan-500 to-teal-500",
@@ -23,7 +27,7 @@ const services = [
     features: ["تقارير تفصيلية", "لوحات تحكم مخصصة", "تنبيهات ذكية"]
   },
   {
-    icon: Megaphone,
+    iconName: "megaphone",
     title: "إدارة الحملات",
     description: "إدارة وتحسين حملاتك الإعلانية عبر جميع المنصات من مكان واحد.",
     gradient: "from-purple-500 via-pink-500 to-rose-500",
@@ -31,7 +35,7 @@ const services = [
     features: ["حملات متعددة القنوات", "تحسين تلقائي", "تتبع الأداء"]
   },
   {
-    icon: Target,
+    iconName: "target",
     title: "استهداف دقيق",
     description: "الوصول للجمهور المناسب بالرسالة المناسبة في الوقت المناسب.",
     gradient: "from-emerald-500 via-green-500 to-lime-500",
@@ -39,7 +43,7 @@ const services = [
     features: ["شرائح مخصصة", "إعادة الاستهداف", "تحليل الجمهور"]
   },
   {
-    icon: Zap,
+    iconName: "zap",
     title: "الأتمتة الذكية",
     description: "أتمتة المهام التسويقية المتكررة وتوفير الوقت للتركيز على الاستراتيجية.",
     gradient: "from-amber-500 via-orange-500 to-red-500",
@@ -47,7 +51,7 @@ const services = [
     features: ["سير عمل آلي", "رسائل مجدولة", "تكامل شامل"]
   },
   {
-    icon: LineChart,
+    iconName: "chart-line",
     title: "تحسين محركات البحث",
     description: "تحسين ظهور موقعك في نتائج البحث وزيادة الزيارات العضوية.",
     gradient: "from-indigo-500 via-blue-500 to-sky-500",
@@ -55,7 +59,7 @@ const services = [
     features: ["تحليل الكلمات", "بناء الروابط", "تحسين المحتوى"]
   },
   {
-    icon: Users,
+    iconName: "users",
     title: "إدارة وسائل التواصل",
     description: "إدارة حساباتك على وسائل التواصل الاجتماعي بشكل احترافي.",
     gradient: "from-violet-500 via-purple-500 to-fuchsia-500",
@@ -157,7 +161,7 @@ const ServicesSection = () => {
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   transition={{ type: "spring", stiffness: 300 }}
                 >
-                  <service.icon className="w-full h-full text-white" />
+                  <LazyIcon name={service.iconName} className="w-full h-full text-white" fallbackSize={32} />
                   <motion.div
                     className="absolute inset-0 rounded-2xl bg-white/20"
                     initial={{ opacity: 0 }}
