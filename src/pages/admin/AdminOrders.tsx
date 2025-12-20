@@ -514,178 +514,178 @@ const AdminOrders = () => {
   return (
     <AdminDashboardLayout>
       <TooltipProvider>
-        <motion.div 
-          className="space-y-4 lg:space-y-6"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          dir="rtl"
-        >
-          {/* Header */}
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row-reverse sm:items-center justify-between gap-3">
-            <div className="text-right">
-              <h1 className="text-xl lg:text-2xl font-bold mb-1 flex flex-row-reverse items-center gap-2">
-                <motion.div
-                  animate={{ rotate: [0, 10, -10, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+        <div className="space-y-4 lg:space-y-6" dir="rtl">
+          <motion.div 
+            className="space-y-4 lg:space-y-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {/* Header */}
+            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h1 className="text-xl lg:text-2xl font-bold mb-1 flex items-center gap-2">
+                  <motion.div
+                    animate={{ rotate: [0, 10, -10, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                  >
+                    <ShoppingBag className="w-6 h-6 text-primary" />
+                  </motion.div>
+                  إدارة الطلبات
+                  {newOrdersCount > 0 && (
+                    <Badge className="bg-destructive text-destructive-foreground animate-pulse">
+                      {newOrdersCount} جديد
+                    </Badge>
+                  )}
+                </h1>
+                <p className="text-muted-foreground text-sm">متابعة وإدارة جميع الطلبات في الوقت الفعلي</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSyncOrdersStatus}
+                  disabled={syncing}
+                  className="gap-1.5"
                 >
-                  <ShoppingBag className="w-6 h-6 text-primary" />
-                </motion.div>
-                إدارة الطلبات
-                {newOrdersCount > 0 && (
-                  <Badge className="bg-destructive text-destructive-foreground animate-pulse">
-                    {newOrdersCount} جديد
-                  </Badge>
-                )}
-              </h1>
-              <p className="text-muted-foreground text-sm">متابعة وإدارة جميع الطلبات في الوقت الفعلي</p>
-            </div>
-            <div className="flex flex-row-reverse flex-wrap gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSyncOrdersStatus}
-                disabled={syncing}
-                className="gap-1.5"
-              >
-                <RefreshCw className={cn("w-4 h-4", syncing && "animate-spin")} />
-                <span className="hidden sm:inline">{syncing ? "مزامنة..." : "تحديث الحالات"}</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={exportOrders}
-                className="gap-1.5"
-              >
-                <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">تصدير</span>
-              </Button>
-              <Link to="/admin/orders/sync">
-                <Button variant="outline" size="sm" className="gap-1.5">
-                  <ArrowUpDown className="w-4 h-4" />
-                  <span className="hidden sm:inline">مزامنة متقدمة</span>
+                  <RefreshCw className={cn("w-4 h-4", syncing && "animate-spin")} />
+                  <span className="hidden sm:inline">{syncing ? "مزامنة..." : "تحديث الحالات"}</span>
                 </Button>
-              </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportOrders}
+                  className="gap-1.5"
+                >
+                  <Download className="w-4 h-4" />
+                  <span className="hidden sm:inline">تصدير</span>
+                </Button>
+                <Link to="/admin/orders/sync">
+                  <Button variant="outline" size="sm" className="gap-1.5">
+                    <ArrowUpDown className="w-4 h-4" />
+                    <span className="hidden sm:inline">مزامنة متقدمة</span>
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              {statsCards.map((stat, index) => (
+                <motion.div
+                  key={stat.label}
+                  variants={itemVariants}
+                  whileHover={{ y: -3, transition: { duration: 0.2 } }}
+                  onClick={() => stat.clickTab && setActiveTab(stat.clickTab)}
+                  className={stat.clickTab ? "cursor-pointer" : ""}
+                >
+                  <Card className="border-border/30 overflow-hidden relative group">
+                    <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-5 group-hover:opacity-10 transition-opacity`} />
+                    <CardContent className="p-3 lg:p-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.gradient} p-2 shadow-lg`}>
+                          <stat.icon className="w-full h-full text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <motion.p 
+                            className="text-lg lg:text-xl font-bold truncate"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: index * 0.1 }}
+                          >
+                            {stat.value}
+                          </motion.p>
+                          <p className="text-[10px] lg:text-xs text-muted-foreground truncate">{stat.label}</p>
+                          {stat.subtitle && (
+                            <p className="text-[9px] lg:text-[10px] text-muted-foreground/70">{stat.subtitle}</p>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
             </div>
-          </motion.div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            {statsCards.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                variants={itemVariants}
-                whileHover={{ y: -3, transition: { duration: 0.2 } }}
-                onClick={() => stat.clickTab && setActiveTab(stat.clickTab)}
-                className={stat.clickTab ? "cursor-pointer" : ""}
-              >
-                <Card className="border-border/30 overflow-hidden relative group">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-5 group-hover:opacity-10 transition-opacity`} />
-                  <CardContent className="p-3 lg:p-4">
-                    <div className="flex flex-row-reverse items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.gradient} p-2 shadow-lg`}>
-                        <stat.icon className="w-full h-full text-white" />
-                      </div>
-                      <div className="text-right flex-1 min-w-0">
-                        <motion.p 
-                          className="text-lg lg:text-xl font-bold truncate"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: index * 0.1 }}
-                        >
-                          {stat.value}
-                        </motion.p>
-                        <p className="text-[10px] lg:text-xs text-muted-foreground truncate">{stat.label}</p>
-                        {stat.subtitle && (
-                          <p className="text-[9px] lg:text-[10px] text-muted-foreground/70">{stat.subtitle}</p>
-                        )}
-                      </div>
+            {/* Tabs & Filters */}
+            <motion.div variants={itemVariants}>
+              <Card className="border-border/30">
+                <CardContent className="p-3 lg:p-4 space-y-3">
+                  {/* Quick Tabs */}
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="w-full justify-start bg-secondary/30 p-1 h-auto flex-wrap">
+                      <TabsTrigger value="all" className="text-xs data-[state=active]:bg-background">
+                        الكل ({stats.total})
+                      </TabsTrigger>
+                      <TabsTrigger value="pending" className="text-xs data-[state=active]:bg-background gap-1">
+                        <Clock className="w-3 h-3" />
+                        انتظار ({stats.pending})
+                      </TabsTrigger>
+                      <TabsTrigger value="in_progress" className="text-xs data-[state=active]:bg-background gap-1">
+                        <Loader2 className="w-3 h-3" />
+                        تنفيذ ({stats.in_progress})
+                      </TabsTrigger>
+                      <TabsTrigger value="completed" className="text-xs data-[state=active]:bg-background gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        مكتمل ({stats.completed})
+                      </TabsTrigger>
+                      <TabsTrigger value="cancelled" className="text-xs data-[state=active]:bg-background gap-1">
+                        <XCircle className="w-3 h-3" />
+                        ملغي ({stats.cancelled})
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+
+                  {/* Search & Filters Row */}
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input 
+                        placeholder="البحث برقم الطلب، العميل، الخدمة..." 
+                        className="pr-9 bg-secondary/30 border-border/50 h-10"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
                     </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Tabs & Filters */}
-          <motion.div variants={itemVariants}>
-            <Card className="border-border/30">
-              <CardContent className="p-3 lg:p-4 space-y-3">
-                {/* Quick Tabs */}
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="w-full justify-start bg-secondary/30 p-1 h-auto flex-wrap">
-                    <TabsTrigger value="all" className="text-xs data-[state=active]:bg-background">
-                      الكل ({stats.total})
-                    </TabsTrigger>
-                    <TabsTrigger value="pending" className="text-xs data-[state=active]:bg-background">
-                      <Clock className="w-3 h-3 ml-1" />
-                      انتظار ({stats.pending})
-                    </TabsTrigger>
-                    <TabsTrigger value="in_progress" className="text-xs data-[state=active]:bg-background">
-                      <Loader2 className="w-3 h-3 ml-1" />
-                      تنفيذ ({stats.in_progress})
-                    </TabsTrigger>
-                    <TabsTrigger value="completed" className="text-xs data-[state=active]:bg-background">
-                      <CheckCircle className="w-3 h-3 ml-1" />
-                      مكتمل ({stats.completed})
-                    </TabsTrigger>
-                    <TabsTrigger value="cancelled" className="text-xs data-[state=active]:bg-background">
-                      <XCircle className="w-3 h-3 ml-1" />
-                      ملغي ({stats.cancelled})
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-
-                {/* Search & Filters Row */}
-                <div className="flex flex-col sm:flex-row-reverse gap-2">
-                  <div className="relative flex-1">
-                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input 
-                      placeholder="البحث برقم الطلب، العميل، الخدمة..." 
-                      className="pr-9 bg-secondary/30 border-border/50 h-10"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                  <div className="flex flex-row-reverse gap-2">
-                    <Button
-                      variant={showAdvancedFilters ? "default" : "outline"}
-                      onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                      size="sm"
-                      className="gap-1.5 h-10"
-                    >
-                      <Filter className="w-4 h-4" />
-                      فلاتر
-                      {activeFiltersCount > 0 && (
-                        <Badge variant="secondary" className="bg-primary/20 text-primary text-[10px] h-5 w-5 p-0 flex items-center justify-center rounded-full">
-                          {activeFiltersCount}
-                        </Badge>
-                      )}
-                    </Button>
-                    
-                    <Select value={`${sortBy}-${sortOrder}`} onValueChange={(v) => {
-                      const [by, order] = v.split("-");
-                      setSortBy(by as "date" | "price");
-                      setSortOrder(order as "asc" | "desc");
-                    }}>
-                      <SelectTrigger className="w-[140px] h-10 bg-secondary/30">
-                        <SelectValue placeholder="ترتيب" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="date-desc">الأحدث أولاً</SelectItem>
-                        <SelectItem value="date-asc">الأقدم أولاً</SelectItem>
-                        <SelectItem value="price-desc">الأعلى سعراً</SelectItem>
-                        <SelectItem value="price-asc">الأقل سعراً</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    {activeFiltersCount > 0 && (
-                      <Button variant="ghost" size="icon" onClick={resetFilters} className="h-10 w-10">
-                        <RotateCcw className="w-4 h-4" />
+                    <div className="flex gap-2">
+                      <Button
+                        variant={showAdvancedFilters ? "default" : "outline"}
+                        onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                        size="sm"
+                        className="gap-1.5 h-10"
+                      >
+                        <Filter className="w-4 h-4" />
+                        فلاتر
+                        {activeFiltersCount > 0 && (
+                          <Badge variant="secondary" className="bg-primary/20 text-primary text-[10px] h-5 w-5 p-0 flex items-center justify-center rounded-full">
+                            {activeFiltersCount}
+                          </Badge>
+                        )}
                       </Button>
-                    )}
+                      
+                      <Select value={`${sortBy}-${sortOrder}`} onValueChange={(v) => {
+                        const [by, order] = v.split("-");
+                        setSortBy(by as "date" | "price");
+                        setSortOrder(order as "asc" | "desc");
+                      }}>
+                        <SelectTrigger className="w-[140px] h-10 bg-secondary/30">
+                          <SelectValue placeholder="ترتيب" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="date-desc">الأحدث أولاً</SelectItem>
+                          <SelectItem value="date-asc">الأقدم أولاً</SelectItem>
+                          <SelectItem value="price-desc">الأعلى سعراً</SelectItem>
+                          <SelectItem value="price-asc">الأقل سعراً</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      {activeFiltersCount > 0 && (
+                        <Button variant="ghost" size="icon" onClick={resetFilters} className="h-10 w-10">
+                          <RotateCcw className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                </div>
 
                 {/* Advanced Filters */}
                 <AnimatePresence>
@@ -734,33 +734,33 @@ const AdminOrders = () => {
                           </Select>
                         </div>
 
-                        <div className="space-y-1.5">
-                          <Label className="text-xs text-muted-foreground">من تاريخ</Label>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="outline" className={cn("w-full justify-start h-9 bg-secondary/30", !dateFrom && "text-muted-foreground")}>
-                                <CalendarDays className="ml-2 h-4 w-4" />
-                                {dateFrom ? format(dateFrom, "d MMM", { locale: ar }) : "اختر"}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <CalendarComponent mode="single" selected={dateFrom} onSelect={setDateFrom} />
-                            </PopoverContent>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">من تاريخ</Label>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="outline" className={cn("w-full justify-start h-9 bg-secondary/30 gap-2", !dateFrom && "text-muted-foreground")}>
+                                  <CalendarDays className="h-4 w-4" />
+                                  {dateFrom ? format(dateFrom, "d MMM", { locale: ar }) : "اختر"}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <CalendarComponent mode="single" selected={dateFrom} onSelect={setDateFrom} />
+                              </PopoverContent>
                           </Popover>
                         </div>
 
-                        <div className="space-y-1.5">
-                          <Label className="text-xs text-muted-foreground">إلى تاريخ</Label>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="outline" className={cn("w-full justify-start h-9 bg-secondary/30", !dateTo && "text-muted-foreground")}>
-                                <CalendarDays className="ml-2 h-4 w-4" />
-                                {dateTo ? format(dateTo, "d MMM", { locale: ar }) : "اختر"}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <CalendarComponent mode="single" selected={dateTo} onSelect={setDateTo} />
-                            </PopoverContent>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">إلى تاريخ</Label>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="outline" className={cn("w-full justify-start h-9 bg-secondary/30 gap-2", !dateTo && "text-muted-foreground")}>
+                                  <CalendarDays className="h-4 w-4" />
+                                  {dateTo ? format(dateTo, "d MMM", { locale: ar }) : "اختر"}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <CalendarComponent mode="single" selected={dateTo} onSelect={setDateTo} />
+                              </PopoverContent>
                           </Popover>
                         </div>
                       </div>
@@ -786,20 +786,20 @@ const AdminOrders = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        {statusOptions.map(opt => (
-                          <DropdownMenuItem key={opt.value} onClick={() => handleBulkStatusUpdate(opt.value)}>
-                            <opt.icon className="w-4 h-4 ml-2" />
-                            {opt.label}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <Button size="sm" variant="destructive" onClick={openBulkDeleteDialog} className="gap-1.5">
-                      <Trash2 className="w-4 h-4" />
-                      حذف
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>
-                      إلغاء
+                            {statusOptions.map(opt => (
+                              <DropdownMenuItem key={opt.value} onClick={() => handleBulkStatusUpdate(opt.value)} className="gap-2">
+                                <opt.icon className="w-4 h-4" />
+                                {opt.label}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <Button size="sm" variant="destructive" onClick={openBulkDeleteDialog} className="gap-1.5">
+                          <Trash2 className="w-4 h-4" />
+                          حذف
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>
+                          إلغاء
                     </Button>
                   </motion.div>
                 )}
@@ -807,25 +807,25 @@ const AdminOrders = () => {
             </Card>
           </motion.div>
 
-          {/* Orders List */}
-          <motion.div variants={itemVariants}>
-            <Card className="border-border/30">
-              <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Package className="w-5 h-5 text-primary" />
-                  قائمة الطلبات
-                  <Badge variant="secondary">{filteredOrders.length}</Badge>
-                </CardTitle>
-                {filteredOrders.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      checked={selectedIds.length === filteredOrders.length && filteredOrders.length > 0}
-                      onCheckedChange={toggleSelectAll}
-                    />
-                    <span className="text-xs text-muted-foreground">تحديد الكل</span>
-                  </div>
-                )}
-              </CardHeader>
+            {/* Orders List */}
+            <motion.div variants={itemVariants}>
+              <Card className="border-border/30">
+                <CardHeader className="pb-3 flex flex-row-reverse items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Package className="w-5 h-5 text-primary" />
+                    قائمة الطلبات
+                    <Badge variant="secondary">{filteredOrders.length}</Badge>
+                  </CardTitle>
+                  {filteredOrders.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">تحديد الكل</span>
+                      <Checkbox
+                        checked={selectedIds.length === filteredOrders.length && filteredOrders.length > 0}
+                        onCheckedChange={toggleSelectAll}
+                      />
+                    </div>
+                  )}
+                </CardHeader>
               <CardContent className="p-0">
                 {loading ? (
                   <div className="flex items-center justify-center py-20">
@@ -858,9 +858,9 @@ const AdminOrders = () => {
                           return (
                             <motion.div
                               key={order.id}
-                              initial={{ opacity: 0, x: -20 }}
+                              initial={{ opacity: 0, x: 20 }}
                               animate={{ opacity: 1, x: 0 }}
-                              exit={{ opacity: 0, x: 20 }}
+                              exit={{ opacity: 0, x: -20 }}
                               transition={{ delay: index * 0.02 }}
                               className={cn(
                                 "p-4 hover:bg-secondary/30 transition-colors group",
@@ -868,12 +868,45 @@ const AdminOrders = () => {
                               )}
                             >
                               <div className="flex items-start gap-3">
-                                <Checkbox
-                                  checked={isSelected}
-                                  onCheckedChange={() => toggleSelect(order.id)}
-                                  className="mt-1"
-                                />
-                                
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openOrderDetails(order)}>
+                                        <Eye className="w-4 h-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>عرض التفاصيل</TooltipContent>
+                                  </Tooltip>
+                                  
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <MoreVertical className="w-4 h-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="start">
+                                      <DropdownMenuItem onClick={() => copyToClipboard(order.order_number)} className="gap-2">
+                                        <Copy className="w-4 h-4" />
+                                        نسخ رقم الطلب
+                                      </DropdownMenuItem>
+                                      {order.link && (
+                                        <DropdownMenuItem onClick={() => window.open(order.link!, "_blank")} className="gap-2">
+                                          <ExternalLink className="w-4 h-4" />
+                                          فتح الرابط
+                                        </DropdownMenuItem>
+                                      )}
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem 
+                                        className="text-destructive focus:text-destructive gap-2"
+                                        onClick={() => openDeleteDialog(order.id)}
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                        حذف الطلب
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+
                                 <div 
                                   className="flex-1 min-w-0 cursor-pointer" 
                                   onClick={() => openOrderDetails(order)}
@@ -896,11 +929,11 @@ const AdminOrders = () => {
                                         </Tooltip>
                                       )}
                                     </div>
-                                    <div className="flex items-center gap-3 text-left">
-                                      <span className="font-bold text-success">{order.total_price.toFixed(2)} ر.س</span>
+                                    <div className="flex items-center gap-3">
                                       <span className="text-xs text-muted-foreground">
                                         {formatDistanceToNow(new Date(order.created_at), { addSuffix: true, locale: ar })}
                                       </span>
+                                      <span className="font-bold text-success">{order.total_price.toFixed(2)} ر.س</span>
                                     </div>
                                   </div>
                                   
@@ -934,44 +967,11 @@ const AdminOrders = () => {
                                   )}
                                 </div>
 
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openOrderDetails(order)}>
-                                        <Eye className="w-4 h-4" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>عرض التفاصيل</TooltipContent>
-                                  </Tooltip>
-                                  
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                                        <MoreVertical className="w-4 h-4" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                      <DropdownMenuItem onClick={() => copyToClipboard(order.order_number)}>
-                                        <Copy className="w-4 h-4 ml-2" />
-                                        نسخ رقم الطلب
-                                      </DropdownMenuItem>
-                                      {order.link && (
-                                        <DropdownMenuItem onClick={() => window.open(order.link!, "_blank")}>
-                                          <ExternalLink className="w-4 h-4 ml-2" />
-                                          فتح الرابط
-                                        </DropdownMenuItem>
-                                      )}
-                                      <DropdownMenuSeparator />
-                                      <DropdownMenuItem 
-                                        className="text-destructive focus:text-destructive"
-                                        onClick={() => openDeleteDialog(order.id)}
-                                      >
-                                        <Trash2 className="w-4 h-4 ml-2" />
-                                        حذف الطلب
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                </div>
+                                <Checkbox
+                                  checked={isSelected}
+                                  onCheckedChange={() => toggleSelect(order.id)}
+                                  className="mt-1"
+                                />
                               </div>
                             </motion.div>
                           );
@@ -1136,7 +1136,8 @@ const AdminOrders = () => {
             loading={deleting}
             progress={deleteType === "bulk" && deleting ? deleteProgress : undefined}
           />
-        </motion.div>
+          </motion.div>
+        </div>
       </TooltipProvider>
     </AdminDashboardLayout>
   );
