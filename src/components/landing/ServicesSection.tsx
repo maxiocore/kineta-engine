@@ -76,36 +76,27 @@ const services: Service[] = [
 
 const ServicesSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, amount: 0.1 });
+  const isInView = useInView(containerRef, { once: true, amount: 0.05 });
 
   return (
     <section ref={containerRef} className="py-32 relative overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/20 to-background" />
       <div className="absolute inset-0">
-        <motion.div
-          className="absolute top-0 left-[20%] w-[500px] h-[500px] rounded-full"
+        <div
+          className="absolute top-0 left-[20%] w-[500px] h-[500px] rounded-full animate-pulse"
           style={{
-            background: "radial-gradient(circle, hsl(var(--primary) / 0.08) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%)",
             filter: "blur(80px)",
           }}
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.5, 0.8, 0.5]
-          }}
-          transition={{ duration: 10, repeat: Infinity }}
         />
-        <motion.div
-          className="absolute bottom-0 right-[20%] w-[600px] h-[600px] rounded-full"
+        <div
+          className="absolute bottom-0 right-[20%] w-[600px] h-[600px] rounded-full animate-pulse"
           style={{
-            background: "radial-gradient(circle, hsl(var(--accent) / 0.08) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(168, 85, 247, 0.08) 0%, transparent 70%)",
             filter: "blur(100px)",
+            animationDelay: "1s"
           }}
-          animate={{ 
-            scale: [1.2, 1, 1.2],
-            opacity: [0.5, 0.8, 0.5]
-          }}
-          transition={{ duration: 12, repeat: Infinity }}
         />
       </div>
       
