@@ -497,7 +497,7 @@ const AdminReferrals = () => {
   });
 
   const filteredCommissions = commissions.filter(commission => {
-    const matchesSearch = commission.referral_code?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = commission.referral_code?.toLowerCase().includes(searchQuery.toLowerCase()) || true;
     const matchesStatus = statusFilter === 'all' || commission.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -526,28 +526,28 @@ const AdminReferrals = () => {
 
   return (
     <AdminDashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row-reverse sm:items-center justify-between gap-3">
+          <div className="flex gap-2 order-1 sm:order-none">
+            <Button variant="outline" onClick={fetchData} size="sm" className="gap-1.5 text-xs sm:text-sm">
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">تحديث</span>
+            </Button>
+            <Button size="sm" className="gap-1.5 text-xs sm:text-sm bg-gradient-to-l from-destructive to-orange-500">
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">تصدير</span>
+            </Button>
+          </div>
           <div>
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="font-display text-2xl lg:text-3xl font-bold mb-2"
+              className="font-display text-xl sm:text-2xl lg:text-3xl font-bold mb-1"
             >
               إدارة الإحالات
             </motion.h1>
-            <p className="text-muted-foreground">متابعة وإدارة نظام الإحالات والعمولات</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={fetchData} className="gap-2">
-              <RefreshCw className="w-4 h-4" />
-              تحديث
-            </Button>
-            <Button className="gap-2 bg-gradient-to-l from-destructive to-orange-500">
-              <Download className="w-4 h-4" />
-              تصدير
-            </Button>
+            <p className="text-xs sm:text-sm text-muted-foreground">متابعة وإدارة نظام الإحالات والعمولات</p>
           </div>
         </div>
 
