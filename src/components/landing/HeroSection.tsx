@@ -29,43 +29,28 @@ const HeroSection = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-secondary/30" />
         
         {/* Animated Orbs */}
-        <motion.div
-          className="absolute top-[10%] right-[5%] w-[500px] h-[500px] rounded-full"
+        <div
+          className="absolute top-[10%] right-[5%] w-[500px] h-[500px] rounded-full animate-pulse"
           style={{
-            background: "radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%)",
             filter: "blur(60px)",
           }}
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 30, 0],
-            y: [0, -20, 0],
-          }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
         />
-        <motion.div
-          className="absolute bottom-[10%] left-[10%] w-[600px] h-[600px] rounded-full"
+        <div
+          className="absolute bottom-[10%] left-[10%] w-[600px] h-[600px] rounded-full animate-pulse"
           style={{
-            background: "radial-gradient(circle, hsl(var(--accent) / 0.12) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, transparent 70%)",
             filter: "blur(80px)",
+            animationDelay: "1s"
           }}
-          animate={{
-            scale: [1.2, 1, 1.2],
-            x: [0, -40, 0],
-            y: [0, 30, 0],
-          }}
-          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
         />
-        <motion.div
-          className="absolute top-[40%] left-[30%] w-[400px] h-[400px] rounded-full"
+        <div
+          className="absolute top-[40%] left-[30%] w-[400px] h-[400px] rounded-full animate-pulse"
           style={{
-            background: "radial-gradient(circle, hsl(var(--success) / 0.08) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(34, 197, 94, 0.08) 0%, transparent 70%)",
             filter: "blur(70px)",
+            animationDelay: "2s"
           }}
-          animate={{
-            scale: [1, 1.3, 1],
-            rotate: [0, 180, 360],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
         />
         
         {/* Grid Pattern */}
