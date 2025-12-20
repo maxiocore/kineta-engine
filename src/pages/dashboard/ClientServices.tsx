@@ -693,25 +693,25 @@ const ClientServices = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 px-1 sm:px-0" dir="rtl">
         {/* Main Section Tabs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
           <Tabs value={activeMainSection} onValueChange={setActiveMainSection} className="w-full">
-            <TabsList className="w-full h-auto p-1.5 bg-card/80 backdrop-blur-sm border border-border/40 rounded-2xl flex flex-wrap justify-start gap-1">
+            <TabsList className="w-full h-auto p-1 sm:p-1.5 bg-card/80 backdrop-blur-sm border border-border/40 rounded-xl sm:rounded-2xl flex flex-wrap justify-start gap-1">
               {MAIN_SECTIONS.map((section) => (
                 <TabsTrigger
                   key={section.id}
                   value={section.id}
                   className={cn(
-                    "flex-1 min-w-[140px] h-12 rounded-xl gap-2 text-sm font-medium transition-all duration-300",
+                    "flex-1 min-w-[80px] sm:min-w-[140px] h-9 sm:h-12 rounded-lg sm:rounded-xl gap-1 sm:gap-2 text-[10px] sm:text-sm font-medium transition-all duration-300",
                     "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg"
                   )}
                 >
-                  <section.icon className="w-4 h-4" />
-                  {section.label}
+                  <section.icon className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden xs:inline sm:inline">{section.label}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -728,12 +728,12 @@ const ClientServices = () => {
               exit={{ opacity: 0, y: -20 }}
             >
               <Card className="border-border/40 bg-card/50">
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-rose-500/10 flex items-center justify-center">
-                    <Heart className="w-8 h-8 text-rose-500" />
+                <CardContent className="p-4 sm:p-8 text-center">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-xl sm:rounded-2xl bg-rose-500/10 flex items-center justify-center">
+                    <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-rose-500" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2">المفضلة</h3>
-                  <p className="text-muted-foreground mb-4">
+                  <h3 className="text-lg sm:text-xl font-bold mb-2">المفضلة</h3>
+                  <p className="text-muted-foreground mb-4 text-sm sm:text-base">
                     {favorites.length > 0 
                       ? `لديك ${favorites.length} خدمة في المفضلة`
                       : "لم تقم بإضافة أي خدمات للمفضلة بعد"}
@@ -741,14 +741,14 @@ const ClientServices = () => {
                   {favorites.length === 0 && (
                     <Button
                       variant="outline"
-                      className="rounded-xl"
+                      className="rounded-xl text-sm"
                       onClick={() => setActiveMainSection('social')}
                     >
                       تصفح الخدمات
                     </Button>
                   )}
                   {favorites.length > 0 && (
-                    <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <div className="mt-4 sm:mt-6 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                       {services
                         .filter(s => favorites.includes(s.id))
                         .map((service, index) => (
@@ -775,12 +775,12 @@ const ClientServices = () => {
               exit={{ opacity: 0, y: -20 }}
             >
               <Card className="border-border/40 bg-card/50">
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-blue-500/10 flex items-center justify-center">
-                    <RotateCcw className="w-8 h-8 text-blue-500" />
+                <CardContent className="p-4 sm:p-8 text-center">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-xl sm:rounded-2xl bg-blue-500/10 flex items-center justify-center">
+                    <RotateCcw className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2">إعادة طلب</h3>
-                  <p className="text-muted-foreground">
+                  <h3 className="text-lg sm:text-xl font-bold mb-2">إعادة طلب</h3>
+                  <p className="text-muted-foreground text-sm sm:text-base">
                     يمكنك إعادة طلب خدماتك السابقة من هنا
                   </p>
                 </CardContent>
@@ -794,12 +794,12 @@ const ClientServices = () => {
               exit={{ opacity: 0, y: -20 }}
             >
               <Card className="border-border/40 bg-card/50">
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-violet-500/10 flex items-center justify-center">
-                    <CreditCard className="w-8 h-8 text-violet-500" />
+                <CardContent className="p-4 sm:p-8 text-center">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-xl sm:rounded-2xl bg-violet-500/10 flex items-center justify-center">
+                    <CreditCard className="w-6 h-6 sm:w-8 sm:h-8 text-violet-500" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2">الاشتراكات</h3>
-                  <p className="text-muted-foreground">
+                  <h3 className="text-lg sm:text-xl font-bold mb-2">الاشتراكات</h3>
+                  <p className="text-muted-foreground text-sm sm:text-base">
                     خدمات الاشتراكات الشهرية والسنوية
                   </p>
                 </CardContent>
@@ -811,11 +811,11 @@ const ClientServices = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="space-y-6"
+              className="space-y-4 sm:space-y-6"
             >
               {/* Categories Grid */}
               <Card className="border-border/40 bg-card/50 backdrop-blur-sm overflow-hidden">
-                <CardContent className="p-4 sm:p-6">
+                <CardContent className="p-3 sm:p-4 lg:p-6">
                   <SocialNetworkGrid
                     selectedCategory={selectedCategory}
                     onCategoryChange={setSelectedCategory}
@@ -825,18 +825,18 @@ const ClientServices = () => {
               </Card>
 
               {/* Search & Controls */}
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                 <div className="relative flex-1">
-                  <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Search className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                   <Input
-                    placeholder="ابحث عن خدمة بالاسم أو الرقم..."
-                    className="pr-12 h-12 bg-card/50 backdrop-blur-sm border-border/40 rounded-xl text-base"
+                    placeholder="ابحث عن خدمة..."
+                    className="pr-10 sm:pr-12 h-10 sm:h-12 bg-card/50 backdrop-blur-sm border-border/40 rounded-lg sm:rounded-xl text-sm sm:text-base"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2 justify-end">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -844,7 +844,7 @@ const ClientServices = () => {
                           variant="outline"
                           size="icon"
                           onClick={expandAllCategories}
-                          className="h-12 w-12 rounded-xl"
+                          className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl"
                         >
                           <Layers className="w-4 h-4" />
                         </Button>
