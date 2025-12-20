@@ -43,51 +43,46 @@ const StatCard = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.5, type: "spring", stiffness: 100 }}
-      whileHover={{ y: -8, transition: { duration: 0.3 } }}
+      transition={{ delay, duration: 0.4, type: "spring", stiffness: 120 }}
+      whileHover={{ y: -4, transition: { duration: 0.2 } }}
       onClick={onClick}
       className={onClick ? "cursor-pointer" : ""}
+      dir="rtl"
     >
       <Card className={cn(
-        "card-elevated border-border/30 hover:border-primary/30 transition-all duration-500 group overflow-hidden",
+        "border-border/30 hover:border-primary/30 transition-all duration-300 group overflow-hidden",
         shadowColor,
-        "shadow-lg hover:shadow-xl"
+        "shadow-md hover:shadow-lg"
       )}>
-        <CardContent className="p-3 sm:p-5 lg:p-6 relative">
+        <CardContent className="p-3 sm:p-4 lg:p-5 relative">
           {/* Background Glow */}
           <div className={cn(
-            "absolute -top-20 -right-20 w-40 h-40 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity duration-500",
+            "absolute -top-16 -left-16 w-32 h-32 rounded-full blur-3xl opacity-15 group-hover:opacity-30 transition-opacity duration-500",
             `bg-gradient-to-br ${gradient}`
           )} />
           
           <div className="relative z-10">
-            <div className="flex items-start justify-between mb-2 sm:mb-4">
+            <div className="flex flex-row-reverse items-start justify-between mb-2 sm:mb-3">
               <motion.div 
                 className={cn(
-                  "w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl sm:rounded-2xl p-2 sm:p-3 lg:p-3.5 shadow-lg relative overflow-hidden",
+                  "w-9 h-9 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg sm:rounded-xl p-2 sm:p-2.5 shadow-md relative overflow-hidden",
                   `bg-gradient-to-br ${gradient}`
                 )}
-                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileHover={{ scale: 1.05, rotate: 5 }}
                 transition={{ type: "spring", stiffness: 400 }}
               >
                 <Icon className="w-full h-full text-primary-foreground relative z-10" />
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"
-                  initial={{ y: "100%" }}
-                  whileHover={{ y: 0 }}
-                  transition={{ duration: 0.3 }}
-                />
               </motion.div>
 
               {trend !== undefined && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: delay + 0.3 }}
+                  transition={{ delay: delay + 0.2 }}
                   className={cn(
-                    "flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium border",
+                    "flex flex-row-reverse items-center gap-0.5 px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-medium border",
                     getTrendColor()
                   )}
                 >
@@ -97,21 +92,21 @@ const StatCard = ({
               )}
             </div>
 
-            <div className="space-y-0.5 sm:space-y-1">
-              <div className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold tracking-tight">
+            <div className="space-y-0.5 text-right">
+              <div className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold tracking-tight">
                 <AnimatedCounter 
                   value={value} 
                   prefix={prefix}
                   suffix={suffix}
-                  duration={1.5}
+                  duration={1.2}
                 />
               </div>
-              <p className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground font-medium truncate">{title}</p>
+              <p className="text-[9px] sm:text-[10px] lg:text-xs text-muted-foreground font-medium truncate">{title}</p>
             </div>
 
             {/* Hover Line */}
             <motion.div
-              className={cn("absolute bottom-0 left-0 h-1 bg-gradient-to-r", gradient)}
+              className={cn("absolute bottom-0 right-0 h-0.5 bg-gradient-to-l", gradient)}
               initial={{ width: 0 }}
               whileHover={{ width: "100%" }}
               transition={{ duration: 0.3 }}
