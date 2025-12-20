@@ -95,11 +95,23 @@ export const OrderDetailsDialog = ({ order, orderHistory, loadingHistory, onClos
 
   return (
     <Dialog open={!!order} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden p-0">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden p-0" dir="rtl">
         {/* Header */}
         <DialogHeader className="p-6 pb-4 bg-gradient-to-l from-primary/5 to-transparent">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-3">
+          <div className="flex items-center justify-between flex-row-reverse">
+            <div className="flex gap-2">
+              <Button variant="outline" size="icon" className="rounded-xl" onClick={shareOrder}>
+                <Share2 className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            <DialogTitle className="flex items-center gap-3 flex-row-reverse">
+              <div className="text-right">
+                <span className="text-lg">تفاصيل الطلب</span>
+                <p className="text-sm font-normal text-muted-foreground font-mono">
+                  {order.order_number}
+                </p>
+              </div>
               <motion.div 
                 className={cn(
                   "w-12 h-12 rounded-xl flex items-center justify-center shadow-lg",
@@ -113,36 +125,24 @@ export const OrderDetailsDialog = ({ order, orderHistory, loadingHistory, onClos
                   (order.status === "in_progress" || order.status === "processing") && "animate-spin"
                 )} />
               </motion.div>
-              <div>
-                <span className="text-lg">تفاصيل الطلب</span>
-                <p className="text-sm font-normal text-muted-foreground font-mono">
-                  {order.order_number}
-                </p>
-              </div>
             </DialogTitle>
-            
-            <div className="flex gap-2">
-              <Button variant="outline" size="icon" className="rounded-xl" onClick={shareOrder}>
-                <Share2 className="w-4 h-4" />
-              </Button>
-            </div>
           </div>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1">
           <div className="px-6">
             <TabsList className="w-full grid grid-cols-3 h-12 bg-muted/30 rounded-xl p-1">
-              <TabsTrigger value="details" className="gap-2 rounded-lg data-[state=active]:shadow-md">
-                <FileText className="w-4 h-4" />
+              <TabsTrigger value="details" className="gap-2 rounded-lg data-[state=active]:shadow-md flex-row-reverse">
                 التفاصيل
+                <FileText className="w-4 h-4" />
               </TabsTrigger>
-              <TabsTrigger value="progress" className="gap-2 rounded-lg data-[state=active]:shadow-md">
-                <Package className="w-4 h-4" />
+              <TabsTrigger value="progress" className="gap-2 rounded-lg data-[state=active]:shadow-md flex-row-reverse">
                 التقدم
+                <Package className="w-4 h-4" />
               </TabsTrigger>
-              <TabsTrigger value="history" className="gap-2 rounded-lg data-[state=active]:shadow-md">
-                <Clock className="w-4 h-4" />
+              <TabsTrigger value="history" className="gap-2 rounded-lg data-[state=active]:shadow-md flex-row-reverse">
                 السجل
+                <Clock className="w-4 h-4" />
                 {orderHistory.length > 0 && (
                   <Badge variant="secondary" className="h-5 w-5 p-0 text-xs">
                     {orderHistory.length}
@@ -165,18 +165,18 @@ export const OrderDetailsDialog = ({ order, orderHistory, loadingHistory, onClos
                   statusConfig.color.split(" ")[2]
                 )}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm text-muted-foreground">حالة الطلب</span>
+                <div className="flex items-center justify-between mb-3 flex-row-reverse">
                   <span className={cn(
-                    "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border",
+                    "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border flex-row-reverse",
                     statusConfig.color
                   )}>
+                    {statusConfig.label}
                     <StatusIcon className={cn(
                       "w-4 h-4", 
                       (order.status === "in_progress" || order.status === "processing") && "animate-spin"
                     )} />
-                    {statusConfig.label}
                   </span>
+                  <span className="text-sm text-muted-foreground">حالة الطلب</span>
                 </div>
                 <Progress value={statusConfig.progress} className="h-2" />
                 <p className="text-xs text-muted-foreground mt-2 text-center">
@@ -197,13 +197,13 @@ export const OrderDetailsDialog = ({ order, orderHistory, loadingHistory, onClos
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
-                    className="p-4 rounded-xl bg-card border border-border/50 hover:border-primary/30 transition-colors"
+                    className="p-4 rounded-xl bg-card border border-border/50 hover:border-primary/30 transition-colors text-right"
                   >
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-2 flex-row-reverse justify-end">
+                      <span className="text-sm text-muted-foreground">{item.label}</span>
                       <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                         <item.icon className="w-4 h-4 text-primary" />
                       </div>
-                      <span className="text-sm text-muted-foreground">{item.label}</span>
                     </div>
                     <p className={cn("font-medium", item.mono && "font-mono")}>{item.value}</p>
                     {item.sub && <p className="text-xs text-muted-foreground">{item.sub}</p>}
@@ -218,13 +218,7 @@ export const OrderDetailsDialog = ({ order, orderHistory, loadingHistory, onClos
                   animate={{ opacity: 1 }}
                   className="p-4 rounded-xl bg-card border border-border/50"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <LinkIcon className="w-4 h-4 text-primary" />
-                      </div>
-                      <span className="text-sm text-muted-foreground">الرابط</span>
-                    </div>
+                  <div className="flex items-center justify-between mb-2 flex-row-reverse">
                     <div className="flex gap-2">
                       <Button
                         variant="ghost"
@@ -244,6 +238,12 @@ export const OrderDetailsDialog = ({ order, orderHistory, loadingHistory, onClos
                           <ExternalLink className="w-4 h-4" />
                         </a>
                       </Button>
+                    </div>
+                    <div className="flex items-center gap-2 flex-row-reverse">
+                      <span className="text-sm text-muted-foreground">الرابط</span>
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <LinkIcon className="w-4 h-4 text-primary" />
+                      </div>
                     </div>
                   </div>
                   <p className="font-mono text-sm break-all bg-secondary/50 p-3 rounded-lg" dir="ltr">
@@ -285,21 +285,20 @@ export const OrderDetailsDialog = ({ order, orderHistory, loadingHistory, onClos
                 className="p-4 rounded-xl bg-gradient-to-l from-primary/10 via-primary/5 to-transparent border border-primary/20"
               >
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">السعر الأساسي:</span>
+                  <div className="flex justify-between items-center text-sm flex-row-reverse">
                     <span>{(order.total_price + (order.discount_amount || 0)).toFixed(2)} ر.س</span>
+                    <span className="text-muted-foreground">السعر الأساسي:</span>
                   </div>
                   {order.discount_amount && order.discount_amount > 0 && (
-                    <div className="flex justify-between items-center text-sm text-success">
-                      <span className="flex items-center gap-1">
+                    <div className="flex justify-between items-center text-sm text-success flex-row-reverse">
+                      <span>-{order.discount_amount.toFixed(2)} ر.س</span>
+                      <span className="flex items-center gap-1 flex-row-reverse">
                         <Badge variant="secondary" className="text-success bg-success/10">خصم</Badge>
                       </span>
-                      <span>-{order.discount_amount.toFixed(2)} ر.س</span>
                     </div>
                   )}
                   <Separator />
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground font-medium">الإجمالي:</span>
+                  <div className="flex justify-between items-center flex-row-reverse">
                     <motion.span 
                       className="text-2xl font-bold text-primary"
                       animate={{ scale: [1, 1.02, 1] }}
@@ -307,25 +306,26 @@ export const OrderDetailsDialog = ({ order, orderHistory, loadingHistory, onClos
                     >
                       {order.total_price.toFixed(2)} ر.س
                     </motion.span>
+                    <span className="text-muted-foreground font-medium">الإجمالي:</span>
                   </div>
                 </div>
               </motion.div>
 
               {/* Notes */}
               {order.notes && (
-                <div className="p-4 rounded-xl bg-card border border-border/50">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MessageCircle className="w-4 h-4 text-muted-foreground" />
+                <div className="p-4 rounded-xl bg-card border border-border/50 text-right">
+                  <div className="flex items-center gap-2 mb-2 flex-row-reverse justify-end">
                     <p className="text-sm text-muted-foreground">ملاحظاتك:</p>
+                    <MessageCircle className="w-4 h-4 text-muted-foreground" />
                   </div>
                   <p className="text-sm bg-secondary/30 p-3 rounded-lg">{order.notes}</p>
                 </div>
               )}
               {order.admin_notes && (
-                <div className="p-4 rounded-xl bg-warning/10 border border-warning/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertCircle className="w-4 h-4 text-warning" />
+                <div className="p-4 rounded-xl bg-warning/10 border border-warning/20 text-right">
+                  <div className="flex items-center gap-2 mb-2 flex-row-reverse justify-end">
                     <p className="text-sm font-medium text-warning">ملاحظات الإدارة:</p>
+                    <AlertCircle className="w-4 h-4 text-warning" />
                   </div>
                   <p className="text-sm">{order.admin_notes}</p>
                 </div>
@@ -346,11 +346,11 @@ export const OrderDetailsDialog = ({ order, orderHistory, loadingHistory, onClos
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-6 p-4 rounded-xl bg-secondary/30 border border-border/50"
+                  className="mt-6 p-4 rounded-xl bg-secondary/30 border border-border/50 text-right"
                 >
-                  <div className="flex items-center gap-2 mb-2">
-                    <Package className="w-4 h-4 text-primary" />
+                  <div className="flex items-center gap-2 mb-2 flex-row-reverse justify-end">
                     <span className="text-sm font-medium">معلومات المزود الخارجي</span>
+                    <Package className="w-4 h-4 text-primary" />
                   </div>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
@@ -394,10 +394,10 @@ export const OrderDetailsDialog = ({ order, orderHistory, loadingHistory, onClos
                     return (
                       <motion.div
                         key={item.id}
-                        initial={{ opacity: 0, x: 20 }}
+                        initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="flex gap-4"
+                        className="flex gap-4 flex-row-reverse"
                       >
                         <div className="flex flex-col items-center">
                           <motion.div 
@@ -417,8 +417,8 @@ export const OrderDetailsDialog = ({ order, orderHistory, loadingHistory, onClos
                             <div className="w-px flex-1 bg-border mt-2" />
                           )}
                         </div>
-                        <div className="flex-1 pb-4">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <div className="flex-1 pb-4 text-right">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap justify-end flex-row-reverse">
                             <span className={cn(
                               "px-2.5 py-1 rounded-lg text-xs font-medium border",
                               historyStatus.color
