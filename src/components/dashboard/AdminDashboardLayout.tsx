@@ -169,7 +169,7 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex" dir="rtl">
       {/* Desktop Sidebar */}
       <motion.aside
         initial={false}
@@ -366,38 +366,54 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
         </div>
       </motion.aside>
 
-      {/* Mobile Header - Enhanced */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-gradient-to-b from-card via-card to-card/95 backdrop-blur-xl border-b border-border/40 z-50 shadow-sm">
-        <div className="h-full flex items-center justify-between px-3 safe-area-inset">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="w-10 h-10 rounded-xl hover:bg-secondary/80" 
-            onClick={() => setIsMobileMenuOpen(true)}
-          >
-            <Menu className="w-5 h-5" />
-          </Button>
+      {/* Mobile Header - Enhanced RTL */}
+      <motion.div 
+        className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-gradient-to-b from-card via-card to-card/95 backdrop-blur-xl border-b border-border/40 z-50 shadow-lg"
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
+        <div className="h-full flex items-center justify-between px-4 safe-area-inset">
+          {/* Right side - Menu button */}
+          <motion.div whileTap={{ scale: 0.9 }}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="w-11 h-11 rounded-xl bg-secondary/50 hover:bg-secondary" 
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu className="w-5 h-5" />
+            </Button>
+          </motion.div>
           
+          {/* Center - Logo */}
           <motion.div 
             className="flex items-center gap-2"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
           >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg shadow-destructive/30">
-              <Shield className="w-4 h-4 text-primary-foreground" />
-            </div>
+            <motion.div 
+              className="w-9 h-9 rounded-xl bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg shadow-destructive/30"
+              whileHover={{ rotate: 5 }}
+            >
+              <Shield className="w-5 h-5 text-primary-foreground" />
+            </motion.div>
             <div className="flex flex-col">
               <span className="font-bold text-sm leading-tight">لوحة الأدمن</span>
-              <span className="text-[10px] text-muted-foreground leading-tight">ماركت برو</span>
+              <span className="text-[10px] text-muted-foreground leading-tight flex items-center gap-1">
+                <Sparkles className="w-2.5 h-2.5" />
+                ماركت برو
+              </span>
             </div>
           </motion.div>
           
-          <div className="flex items-center gap-0.5">
+          {/* Left side - Actions */}
+          <div className="flex items-center gap-1">
             <NotificationBell />
             <ThemeToggle />
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Mobile Menu - Enhanced */}
       <AnimatePresence>
@@ -413,47 +429,63 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="absolute top-0 right-0 h-full w-[88vw] max-w-[320px] bg-gradient-to-b from-card via-card to-background border-l border-border/40 flex flex-col shadow-2xl"
+              transition={{ type: "spring", damping: 28, stiffness: 280 }}
+              className="absolute top-0 right-0 h-full w-[85vw] max-w-[340px] bg-gradient-to-b from-card via-card to-background border-l border-border/40 flex flex-col shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
               <div className="p-4 border-b border-border/40 flex items-center justify-between bg-gradient-to-b from-secondary/20 to-transparent">
                 <div className="flex items-center gap-3">
                   <motion.div 
-                    className="w-10 h-10 rounded-xl bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg"
-                    whileHover={{ scale: 1.05, rotate: 5 }}
+                    className="w-11 h-11 rounded-xl bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg"
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", delay: 0.1 }}
                   >
                     <Shield className="w-5 h-5 text-primary-foreground" />
                   </motion.div>
-                  <div>
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.15 }}
+                  >
                     <span className="font-bold block">لوحة التحكم</span>
-                    <span className="text-xs text-muted-foreground">ماركت برو</span>
-                  </div>
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      ماركت برو
+                    </span>
+                  </motion.div>
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="rounded-xl hover:bg-secondary"
-                >
-                  <X className="w-5 h-5" />
-                </Button>
+                <motion.div whileTap={{ scale: 0.9, rotate: 90 }}>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="rounded-xl hover:bg-secondary w-10 h-10"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </motion.div>
               </div>
 
               {/* Mobile Search */}
-              <div className="p-3 border-b border-border/30">
+              <motion.div 
+                className="p-4 border-b border-border/30"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
                 <div className="relative">
                   <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input 
                     placeholder="بحث سريع..."
-                    className="pr-10 h-11 bg-secondary/50 border-border/40 rounded-xl text-sm"
+                    className="pr-10 h-12 bg-secondary/50 border-border/40 rounded-xl text-sm"
                   />
                 </div>
-              </div>
+              </motion.div>
 
               {/* Navigation - Scrollable */}
-              <nav className="flex-1 overflow-y-auto p-3 space-y-0.5 overscroll-contain">
+              <nav className="flex-1 overflow-y-auto p-3 space-y-1 overscroll-contain">
                 {adminNavItems.map((item, index) => {
                   const badge = navBadges[item.href];
                   const active = isActive(item.href);
@@ -461,15 +493,15 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                   return (
                     <motion.div
                       key={item.href}
-                      initial={{ opacity: 0, x: 20 }}
+                      initial={{ opacity: 0, x: 30 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.02 }}
+                      transition={{ delay: index * 0.025 }}
                     >
                       <Link
                         to={item.href}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
-                          "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 relative group",
+                          "flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 relative group",
                           active
                             ? "bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground shadow-lg shadow-destructive/20"
                             : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground active:scale-[0.98]"
@@ -479,25 +511,30 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                         {active && (
                           <motion.div
                             layoutId="mobileActiveNav"
-                            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"
+                            className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-white rounded-r-full"
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
                           />
                         )}
                         
-                        <div className={cn(
-                          "w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors",
-                          active ? "bg-white/20" : "bg-secondary/50 group-hover:bg-secondary"
-                        )}>
-                          <item.icon className="w-4 h-4" />
-                        </div>
+                        <motion.div 
+                          className={cn(
+                            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors",
+                            active ? "bg-white/20" : "bg-secondary/50 group-hover:bg-secondary"
+                          )}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <item.icon className="w-5 h-5" />
+                        </motion.div>
                         
-                        <span className="font-medium flex-1 text-sm">{item.label}</span>
+                        <span className="font-medium flex-1">{item.label}</span>
                         
                         {badge && badge > 0 && (
                           <motion.span
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             className={cn(
-                              "min-w-6 h-6 px-2 flex items-center justify-center text-xs font-bold rounded-full",
+                              "min-w-7 h-7 px-2 flex items-center justify-center text-xs font-bold rounded-full",
                               active
                                 ? "bg-white/20 text-white"
                                 : "bg-destructive text-destructive-foreground"
@@ -513,41 +550,62 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
               </nav>
 
               {/* Mobile Admin Info - Fixed Bottom */}
-              <div className="p-4 border-t border-border/40 bg-gradient-to-t from-secondary/30 to-transparent">
-                <div className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-secondary/30">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg">
+              <motion.div 
+                className="p-4 border-t border-border/40 bg-gradient-to-t from-secondary/30 to-transparent"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <div className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-secondary/40 border border-border/30">
+                  <motion.div 
+                    className="w-12 h-12 rounded-full bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg"
+                    whileHover={{ scale: 1.05 }}
+                  >
                     <Shield className="w-6 h-6 text-primary-foreground" />
-                  </div>
+                  </motion.div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold truncate">{profile?.full_name || "المدير"}</p>
                     <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                      <motion.span 
+                        className="w-2 h-2 rounded-full bg-success"
+                        animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
                       Super Admin • متصل
                     </p>
                   </div>
                 </div>
-                <Button 
-                  variant="outline" 
-                  className="w-full h-11 gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 font-medium"
-                  onClick={handleSignOut}
-                >
-                  <LogOut className="w-4 h-4" />
-                  تسجيل الخروج
-                </Button>
-              </div>
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-12 gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 font-medium text-base"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="w-5 h-5" />
+                    تسجيل الخروج
+                  </Button>
+                </motion.div>
+              </motion.div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Main Content - Enhanced for mobile */}
+      {/* Main Content - Enhanced for mobile RTL */}
       <main
         className={cn(
-          "flex-1 transition-all duration-300 pt-14 lg:pt-0 min-h-screen",
+          "flex-1 transition-all duration-300 pt-16 lg:pt-0 min-h-screen",
           isSidebarOpen ? "lg:mr-[280px]" : "lg:mr-[80px]"
         )}
       >
-        <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto pb-20 lg:pb-8">{children}</div>
+        <motion.div 
+          className="p-4 sm:p-5 md:p-6 lg:p-8 max-w-7xl mx-auto pb-24 lg:pb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          {children}
+        </motion.div>
       </main>
     </div>
   );
