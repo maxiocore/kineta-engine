@@ -343,13 +343,14 @@ const ClientDeposit = () => {
   return (
     <ClientDashboardLayout>
       <motion.div 
-        className="space-y-6 pb-8"
+        className="space-y-4 md:space-y-6 pb-8 px-1"
+        dir="rtl"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {/* Header Section */}
-        <motion.div variants={itemVariants} className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-primary/20 via-primary/10 to-accent/20 p-6 md:p-8">
+        {/* Header Section - Mobile Optimized */}
+        <motion.div variants={itemVariants} className="relative overflow-hidden rounded-xl md:rounded-2xl bg-gradient-to-l from-primary/20 via-primary/10 to-accent/20 p-4 md:p-8">
           {/* Animated Background Elements */}
           <div className="absolute inset-0 bg-grid-pattern opacity-5" />
           <motion.div 

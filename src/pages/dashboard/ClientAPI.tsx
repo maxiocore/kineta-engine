@@ -168,23 +168,23 @@ const ClientAPI = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="space-y-4 md:space-y-6 px-1" dir="rtl">
+        {/* Header - Mobile Optimized */}
+        <div className="flex flex-col gap-3 md:flex-row justify-between items-start md:items-center">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
-              <Key className="w-8 h-8 text-primary" />
+            <h1 className="text-xl md:text-3xl font-bold flex items-center gap-2 md:gap-3">
+              <Key className="w-6 h-6 md:w-8 md:h-8 text-primary" />
               واجهة البرمجة (API)
             </h1>
-            <p className="text-muted-foreground mt-1">
-              إدارة مفاتيح API والوصول البرمجي للنظام
+            <p className="text-xs md:text-base text-muted-foreground mt-1">
+              إدارة مفاتيح API والوصول البرمجي
             </p>
           </div>
           <Button onClick={() => {
             setNewKeyName('');
             setNewKeyValue(null);
             setIsCreateDialogOpen(true);
-          }} className="gap-2">
+          }} className="gap-2 w-full md:w-auto h-9 md:h-10 text-sm">
             <Plus className="w-4 h-4" />
             إنشاء مفتاح جديد
           </Button>

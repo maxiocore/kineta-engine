@@ -214,12 +214,12 @@ const ClientCashback = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-6 lg:space-y-8" dir="rtl">
+      <div className="space-y-4 md:space-y-8 px-1" dir="rtl">
         {/* Hero Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-2xl lg:rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 p-6 sm:p-8 lg:p-10"
+          className="relative overflow-hidden rounded-xl md:rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 p-4 md:p-10"
         >
           {/* Decorative Elements */}
           <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
@@ -246,14 +246,14 @@ const ClientCashback = () => {
               <div className="flex items-start gap-4">
                 <motion.div 
                   whileHover={{ scale: 1.1, rotate: 5 }}
-                  className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center"
+                  className="w-12 h-12 md:w-20 md:h-20 rounded-xl md:rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center"
                 >
-                  <Wallet className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
+                  <Wallet className="w-6 h-6 md:w-10 md:h-10 text-white" />
                 </motion.div>
                 <div className="flex-1">
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">محفظة الكاش باك</h1>
-                  <p className="text-white/80 text-sm sm:text-base max-w-xl">
-                    احصل على {settings?.cashback_percentage || 5}% كاش باك تلقائي عند كل عملية شحن رصيد
+                  <h1 className="text-xl md:text-4xl font-bold text-white mb-1 md:mb-2">محفظة الكاش باك</h1>
+                  <p className="text-white/80 text-xs md:text-base max-w-xl">
+                    احصل على {settings?.cashback_percentage || 5}% كاش باك تلقائي
                   </p>
                 </div>
               </div>

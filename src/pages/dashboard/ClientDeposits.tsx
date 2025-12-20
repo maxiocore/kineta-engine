@@ -237,21 +237,21 @@ const ClientDeposits = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6 px-1" dir="rtl">
         {/* Payment Result Banner */}
         {paymentResult === 'success' && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-6 rounded-2xl bg-gradient-to-l from-success/20 via-success/10 to-transparent border border-success/30"
+            className="p-4 md:p-6 rounded-xl md:rounded-2xl bg-gradient-to-l from-success/20 via-success/10 to-transparent border border-success/30"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center">
-                <PartyPopper className="w-8 h-8 text-success" />
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-success/20 flex items-center justify-center">
+                <PartyPopper className="w-6 h-6 md:w-8 md:h-8 text-success" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-success">تم الدفع بنجاح! 🎉</h2>
-                <p className="text-muted-foreground">تم إضافة الرصيد إلى حسابك</p>
+                <h2 className="text-lg md:text-xl font-bold text-success">تم الدفع بنجاح! 🎉</h2>
+                <p className="text-xs md:text-base text-muted-foreground">تم إضافة الرصيد إلى حسابك</p>
               </div>
             </div>
           </motion.div>
@@ -261,49 +261,49 @@ const ClientDeposits = () => {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-6 rounded-2xl bg-gradient-to-l from-destructive/20 via-destructive/10 to-transparent border border-destructive/30"
+            className="p-4 md:p-6 rounded-xl md:rounded-2xl bg-gradient-to-l from-destructive/20 via-destructive/10 to-transparent border border-destructive/30"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-destructive/20 flex items-center justify-center">
-                <AlertCircle className="w-8 h-8 text-destructive" />
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-destructive/20 flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 md:w-8 md:h-8 text-destructive" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-destructive">فشل الدفع</h2>
-                <p className="text-muted-foreground">يرجى المحاولة مرة أخرى أو التواصل مع الدعم</p>
+                <h2 className="text-lg md:text-xl font-bold text-destructive">فشل الدفع</h2>
+                <p className="text-xs md:text-base text-muted-foreground">يرجى المحاولة مرة أخرى</p>
               </div>
             </div>
           </motion.div>
         )}
 
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Header - Mobile Optimized */}
+        <div className="flex flex-col gap-3 md:flex-row md:items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">سجل الإيداعات</h1>
-            <p className="text-muted-foreground">عرض جميع طلبات الإيداع السابقة</p>
+            <h1 className="text-xl md:text-2xl font-bold">سجل الإيداعات</h1>
+            <p className="text-xs md:text-base text-muted-foreground">عرض جميع طلبات الإيداع السابقة</p>
           </div>
           <Link to="/dashboard/deposit">
-            <Button className="gap-2">
+            <Button className="gap-2 w-full md:w-auto h-9 md:h-10 text-sm">
               <Plus className="w-4 h-4" />
               إيداع جديد
             </Button>
           </Link>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Stats - Mobile Optimized */}
+        <div className="grid grid-cols-3 gap-2 md:gap-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
             <Card className="border-primary/20 bg-gradient-to-l from-primary/5 to-transparent">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Wallet className="w-5 h-5 text-primary" />
+              <CardContent className="p-3 md:p-4">
+                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-3">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Wallet className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">إجمالي المودع</p>
-                    <p className="text-xl font-bold text-primary">{stats.totalDeposited.toFixed(2)} ر.س</p>
+                  <div className="text-center md:text-right">
+                    <p className="text-[10px] md:text-sm text-muted-foreground">المودع</p>
+                    <p className="text-sm md:text-xl font-bold text-primary">{stats.totalDeposited.toFixed(2)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -316,14 +316,14 @@ const ClientDeposits = () => {
             transition={{ delay: 0.1 }}
           >
             <Card className="border-warning/20 bg-gradient-to-l from-warning/5 to-transparent">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-warning" />
+              <CardContent className="p-3 md:p-4">
+                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-3">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-warning/10 flex items-center justify-center">
+                    <Clock className="w-4 h-4 md:w-5 md:h-5 text-warning" />
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">قيد المراجعة</p>
-                    <p className="text-xl font-bold">{stats.pendingCount}</p>
+                  <div className="text-center md:text-right">
+                    <p className="text-[10px] md:text-sm text-muted-foreground">المراجعة</p>
+                    <p className="text-sm md:text-xl font-bold">{stats.pendingCount}</p>
                   </div>
                 </div>
               </CardContent>
@@ -336,14 +336,14 @@ const ClientDeposits = () => {
             transition={{ delay: 0.2 }}
           >
             <Card className="border-success/20 bg-gradient-to-l from-success/5 to-transparent">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
-                    <CheckCircle className="w-5 h-5 text-success" />
+              <CardContent className="p-3 md:p-4">
+                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-3">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-success/10 flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-success" />
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">مكتملة</p>
-                    <p className="text-xl font-bold">{stats.completedCount}</p>
+                  <div className="text-center md:text-right">
+                    <p className="text-[10px] md:text-sm text-muted-foreground">مكتملة</p>
+                    <p className="text-sm md:text-xl font-bold">{stats.completedCount}</p>
                   </div>
                 </div>
               </CardContent>
