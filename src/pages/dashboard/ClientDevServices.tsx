@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ServiceDetailsSheet from "@/components/services/ServiceDetailsSheet";
 import EnhancedServiceCard from "@/components/services/EnhancedServiceCard";
+import ServicesPageSkeleton from "@/components/dashboard/ServicesPageSkeleton";
 
 interface Service {
   id: string;
@@ -150,6 +151,14 @@ const ClientDevServices = () => {
   const handleOrder = (service: Service) => {
     navigate(`/dashboard/services?service=${service.id}`);
   };
+
+  if (isLoading) {
+    return (
+      <ClientDashboardLayout>
+        <ServicesPageSkeleton title="خدمات البرمجة" color="emerald" />
+      </ClientDashboardLayout>
+    );
+  }
 
   return (
     <ClientDashboardLayout>
