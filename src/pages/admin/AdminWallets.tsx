@@ -331,80 +331,80 @@ const AdminWallets = () => {
 
   return (
     <AdminDashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Wallet className="h-7 w-7 text-primary" />
-              إدارة المحافظ
-            </h1>
-            <p className="text-muted-foreground mt-1">إدارة أرصدة المستخدمين والإيداعات</p>
-          </div>
-          <Button onClick={() => { refetchBalances(); refetchDeposits(); }} variant="outline" className="gap-2">
+        <div className="flex flex-col sm:flex-row-reverse justify-between items-start sm:items-center gap-3 sm:gap-4">
+          <Button onClick={() => { refetchBalances(); refetchDeposits(); }} variant="outline" className="gap-2 w-full sm:w-auto" size="sm">
             <RefreshCw className="h-4 w-4" />
             تحديث
           </Button>
+          <div className="flex-1">
+            <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+              <Wallet className="h-5 w-5 sm:h-7 sm:w-7 text-primary" />
+              إدارة المحافظ
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">إدارة أرصدة المستخدمين والإيداعات</p>
+          </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4">
           <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">إجمالي الأرصدة</p>
-                  <p className="text-2xl font-bold text-primary">{stats.totalBalance.toFixed(2)} ر.س</p>
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">إجمالي الأرصدة</p>
+                  <p className="text-sm sm:text-xl lg:text-2xl font-bold text-primary truncate">{stats.totalBalance.toFixed(0)} ر.س</p>
                 </div>
-                <DollarSign className="h-8 w-8 text-primary/50" />
+                <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-primary/50 flex-shrink-0 hidden sm:block" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">إجمالي الإيداعات</p>
-                  <p className="text-2xl font-bold text-green-500">{stats.totalDeposited.toFixed(2)} ر.س</p>
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">الإيداعات</p>
+                  <p className="text-sm sm:text-xl lg:text-2xl font-bold text-green-500 truncate">{stats.totalDeposited.toFixed(0)} ر.س</p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-green-500/50" />
+                <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-green-500/50 flex-shrink-0 hidden sm:block" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-orange-500/20">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">إجمالي المصروفات</p>
-                  <p className="text-2xl font-bold text-orange-500">{stats.totalSpent.toFixed(2)} ر.س</p>
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">المصروفات</p>
+                  <p className="text-sm sm:text-xl lg:text-2xl font-bold text-orange-500 truncate">{stats.totalSpent.toFixed(0)} ر.س</p>
                 </div>
-                <TrendingDown className="h-8 w-8 text-orange-500/50" />
+                <TrendingDown className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500/50 flex-shrink-0 hidden sm:block" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">إيداعات معلقة</p>
-                  <p className="text-2xl font-bold text-yellow-500">{stats.pendingDeposits}</p>
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">معلقة</p>
+                  <p className="text-sm sm:text-xl lg:text-2xl font-bold text-yellow-500">{stats.pendingDeposits}</p>
                 </div>
-                <Clock className="h-8 w-8 text-yellow-500/50" />
+                <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-500/50 flex-shrink-0 hidden sm:block" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">عدد المستخدمين</p>
-                  <p className="text-2xl font-bold text-blue-500">{stats.totalUsers}</p>
+          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20 col-span-2 lg:col-span-1">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">المستخدمين</p>
+                  <p className="text-sm sm:text-xl lg:text-2xl font-bold text-blue-500">{stats.totalUsers}</p>
                 </div>
-                <Users className="h-8 w-8 text-blue-500/50" />
+                <Users className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500/50 flex-shrink-0 hidden sm:block" />
               </div>
             </CardContent>
           </Card>

@@ -293,59 +293,59 @@ const AdminCoupons = () => {
 
   return (
     <AdminDashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Ticket className="w-6 h-6 text-primary" />
-              إدارة الكوبونات
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              إنشاء وإدارة كوبونات الخصم
-            </p>
-          </div>
-          <Button onClick={() => handleOpenDialog()} className="gap-2">
+        <div className="flex flex-col sm:flex-row-reverse justify-between items-start sm:items-center gap-3 sm:gap-4">
+          <Button onClick={() => handleOpenDialog()} className="gap-2 w-full sm:w-auto" size="sm">
             <Plus className="w-4 h-4" />
             إضافة كوبون
           </Button>
+          <div className="flex-1">
+            <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+              <Ticket className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+              إدارة الكوبونات
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
+              إنشاء وإدارة كوبونات الخصم
+            </p>
+          </div>
         </div>
 
         {/* Search & Bulk Actions */}
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="relative max-w-md flex-1">
+        <div className="flex flex-col gap-3 sm:gap-4">
+          <div className="relative w-full">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="بحث بكود الكوبون..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pr-10"
+              className="pr-10 h-9 sm:h-10 text-sm"
             />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {filteredCoupons.length > 0 && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={toggleSelectAll}
-                className="gap-2"
+                className="gap-1 text-xs sm:text-sm h-8 sm:h-9"
               >
                 {selectedIds.length === filteredCoupons.length ? "إلغاء التحديد" : "تحديد الكل"}
               </Button>
             )}
             {selectedIds.length > 0 && (
               <>
-                <span className="text-sm text-muted-foreground">
+                <span className="text-xs sm:text-sm text-muted-foreground">
                   {selectedIds.length} محدد
                 </span>
                 <Button
                   variant="destructive"
                   size="sm"
                   onClick={openBulkDeleteDialog}
-                  className="gap-2"
+                  className="gap-1 text-xs sm:text-sm h-8 sm:h-9"
                 >
-                  <Trash2 className="w-4 h-4" />
-                  حذف المحدد
+                  <Trash2 className="w-3.5 h-3.5" />
+                  حذف
                 </Button>
               </>
             )}
@@ -353,19 +353,19 @@ const AdminCoupons = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-4 rounded-xl bg-card border border-border"
+            className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-card border border-border"
           >
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Ticket className="w-5 h-5 text-primary" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                <Ticket className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">إجمالي الكوبونات</p>
-                <p className="text-xl font-bold">{coupons.length}</p>
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-sm text-muted-foreground truncate">إجمالي الكوبونات</p>
+                <p className="text-lg sm:text-xl font-bold">{coupons.length}</p>
               </div>
             </div>
           </motion.div>
@@ -374,15 +374,15 @@ const AdminCoupons = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="p-4 rounded-xl bg-card border border-border"
+            className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-card border border-border"
           >
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-success/10">
-                <Check className="w-5 h-5 text-success" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-success/10 flex-shrink-0">
+                <Check className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">كوبونات نشطة</p>
-                <p className="text-xl font-bold">{coupons.filter(c => c.is_active).length}</p>
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-sm text-muted-foreground truncate">كوبونات نشطة</p>
+                <p className="text-lg sm:text-xl font-bold">{coupons.filter(c => c.is_active).length}</p>
               </div>
             </div>
           </motion.div>
@@ -391,15 +391,15 @@ const AdminCoupons = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="p-4 rounded-xl bg-card border border-border"
+            className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-card border border-border"
           >
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-warning/10">
-                <Users className="w-5 h-5 text-warning" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-warning/10 flex-shrink-0">
+                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-warning" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">إجمالي الاستخدامات</p>
-                <p className="text-xl font-bold">{coupons.reduce((acc, c) => acc + c.used_count, 0)}</p>
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-sm text-muted-foreground truncate">الاستخدامات</p>
+                <p className="text-lg sm:text-xl font-bold">{coupons.reduce((acc, c) => acc + c.used_count, 0)}</p>
               </div>
             </div>
           </motion.div>
@@ -408,15 +408,15 @@ const AdminCoupons = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="p-4 rounded-xl bg-card border border-border"
+            className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-card border border-border"
           >
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-destructive/10">
-                <Calendar className="w-5 h-5 text-destructive" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-destructive/10 flex-shrink-0">
+                <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-destructive" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">منتهية الصلاحية</p>
-                <p className="text-xl font-bold">{coupons.filter(c => isExpired(c.expires_at)).length}</p>
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-sm text-muted-foreground truncate">منتهية</p>
+                <p className="text-lg sm:text-xl font-bold">{coupons.filter(c => isExpired(c.expires_at)).length}</p>
               </div>
             </div>
           </motion.div>

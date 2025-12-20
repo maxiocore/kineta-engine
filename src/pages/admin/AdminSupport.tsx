@@ -311,27 +311,28 @@ const AdminSupport = () => {
   return (
     <AdminDashboardLayout>
       <motion.div 
-        className="space-y-6"
+        className="space-y-4 sm:space-y-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
+        dir="rtl"
       >
         {/* Header */}
         <motion.div variants={itemVariants}>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
             <motion.div
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
             >
-              <HeadphonesIcon className="w-8 h-8 text-primary" />
+              <HeadphonesIcon className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             </motion.div>
             إدارة الدعم الفني
           </h1>
-          <p className="text-muted-foreground">إدارة تذاكر الدعم والرد على العملاء</p>
+          <p className="text-xs sm:text-sm text-muted-foreground">إدارة تذاكر الدعم والرد على العملاء</p>
         </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           {statsData.map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -339,24 +340,24 @@ const AdminSupport = () => {
               whileHover={{ y: -2, transition: { duration: 0.2 } }}
             >
               <Card className={`card-elevated border-border/30 ${stat.shadowColor} shadow-md`}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
+                <CardContent className="p-2.5 sm:p-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <motion.div 
-                      className={`w-11 h-11 rounded-xl bg-gradient-to-br ${stat.gradient} p-2.5 shadow-lg`}
+                      className={`w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-gradient-to-br ${stat.gradient} p-2 sm:p-2.5 shadow-lg flex-shrink-0`}
                       whileHover={{ scale: 1.1, rotate: 5 }}
                     >
                       <stat.icon className="w-full h-full text-primary-foreground" />
                     </motion.div>
-                    <div>
+                    <div className="min-w-0">
                       <motion.p 
-                        className="text-2xl font-bold"
+                        className="text-lg sm:text-2xl font-bold"
                         initial={{ opacity: 0, scale: 0.5 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: index * 0.1 }}
                       >
                         {stat.value}
                       </motion.p>
-                      <p className="text-xs text-muted-foreground">{stat.label}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{stat.label}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -368,19 +369,19 @@ const AdminSupport = () => {
         {/* Filters */}
         <motion.div variants={itemVariants}>
           <Card className="card-elevated border-border/30">
-            <CardContent className="p-4">
-              <div className="flex flex-col sm:flex-row gap-4">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                 <div className="relative flex-1">
                   <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input 
                     placeholder="بحث في التذاكر..." 
-                    className="pr-10 bg-secondary/50 border-border/50"
+                    className="pr-10 bg-secondary/50 border-border/50 h-9 sm:h-10 text-sm"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-44 bg-secondary/50 border-border/50">
+                  <SelectTrigger className="w-full sm:w-40 bg-secondary/50 border-border/50 h-9 sm:h-10 text-sm">
                     <SelectValue placeholder="الحالة" />
                   </SelectTrigger>
                   <SelectContent>

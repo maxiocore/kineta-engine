@@ -377,90 +377,92 @@ const AdminApiProviders = () => {
 
   return (
     <AdminDashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">إعدادات المزودين</h1>
-            <p className="text-muted-foreground mt-1">إدارة مواقع SMM الخارجية واستيراد الخدمات</p>
+        <div className="flex flex-col gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row-reverse justify-between items-start sm:items-center gap-3">
+            <Button onClick={() => handleOpenDialog()} className="gap-2 w-full sm:w-auto" size="sm">
+              <Plus className="h-4 w-4" />
+              إضافة مزود
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">إعدادات المزودين</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">إدارة مواقع SMM الخارجية</p>
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" className="gap-2" onClick={fetchAllBalances}>
-              <Wallet className="h-4 w-4" />
-              جلب الأرصدة
+            <Button variant="outline" className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9" size="sm" onClick={fetchAllBalances}>
+              <Wallet className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">جلب</span> الأرصدة
             </Button>
             <Link to="/admin/providers/reports">
-              <Button variant="outline" className="gap-2">
-                <BarChart3 className="h-4 w-4" />
-                تقارير المزودين
+              <Button variant="outline" className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9" size="sm">
+                <BarChart3 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                التقارير
               </Button>
             </Link>
             <Link to="/admin/providers/compare">
-              <Button variant="outline" className="gap-2">
-                <Scale className="h-4 w-4" />
-                مقارنة الأسعار
+              <Button variant="outline" className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9" size="sm">
+                <Scale className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                المقارنة
               </Button>
             </Link>
-            <Button onClick={() => handleOpenDialog()} className="gap-2">
-              <Plus className="h-4 w-4" />
-              إضافة مزود جديد
-            </Button>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/20 rounded-lg">
-                  <Server className="h-5 w-5 text-primary" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-primary/20 rounded-lg flex-shrink-0">
+                  <Server className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">إجمالي المزودين</p>
-                  <p className="text-2xl font-bold text-foreground">{stats.total}</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">المزودين</p>
+                  <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.total}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-500/20 rounded-lg">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-green-500/20 rounded-lg flex-shrink-0">
+                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">المزودين النشطين</p>
-                  <p className="text-2xl font-bold text-foreground">{stats.active}</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">النشطين</p>
+                  <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.active}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <Package className="h-5 w-5 text-blue-500" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg flex-shrink-0">
+                  <Package className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">إجمالي الخدمات</p>
-                  <p className="text-2xl font-bold text-foreground">{stats.totalServices}</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">الخدمات</p>
+                  <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.totalServices}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border-yellow-500/20">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-yellow-500/20 rounded-lg">
-                  <Star className="h-5 w-5 text-yellow-500" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-yellow-500/20 rounded-lg flex-shrink-0">
+                  <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">المزود الافتراضي</p>
-                  <p className="text-sm font-medium text-foreground truncate">
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">الافتراضي</p>
+                  <p className="text-xs sm:text-sm font-medium text-foreground truncate">
                     {stats.defaultProvider?.name_ar || 'غير محدد'}
                   </p>
                 </div>
