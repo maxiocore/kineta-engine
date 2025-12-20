@@ -54,10 +54,10 @@ const ActivityTimeline = ({ activities, maxItems = 5, onViewAll }: ActivityTimel
     .slice(0, maxItems);
 
   return (
-    <Card className="card-elevated border-border/30 h-full">
-      <CardHeader className="p-4 sm:pb-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+    <Card className="border-border/30 h-full" dir="rtl">
+      <CardHeader className="p-3 sm:p-4 sm:pb-2">
+        <div className="flex flex-row-reverse items-center justify-between gap-2">
+          <CardTitle className="flex flex-row-reverse items-center gap-2 text-sm sm:text-base lg:text-lg">
             <motion.div
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
@@ -66,7 +66,7 @@ const ActivityTimeline = ({ activities, maxItems = 5, onViewAll }: ActivityTimel
             </motion.div>
             النشاط الأخير
             {activities.some(a => a.isNew) && (
-              <Badge variant="secondary" className="bg-success/20 text-success text-[10px] sm:text-xs px-1.5 py-0.5">
+              <Badge variant="secondary" className="bg-success/20 text-success text-[9px] sm:text-[10px] px-1.5 py-0.5">
                 جديد
               </Badge>
             )}
@@ -74,7 +74,7 @@ const ActivityTimeline = ({ activities, maxItems = 5, onViewAll }: ActivityTimel
         </div>
         
         {/* Filters - Scrollable on mobile */}
-        <div className="flex gap-1 mt-3 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+        <div className="flex flex-row-reverse gap-1 mt-2 overflow-x-auto pb-1 scrollbar-hide">
           {filters.map((f) => (
             <Button
               key={f.id}
@@ -82,7 +82,7 @@ const ActivityTimeline = ({ activities, maxItems = 5, onViewAll }: ActivityTimel
               size="sm"
               onClick={() => setFilter(f.id)}
               className={cn(
-                "text-xs h-8 px-3 rounded-lg shrink-0",
+                "text-[10px] sm:text-xs h-7 sm:h-8 px-2 sm:px-3 rounded-lg shrink-0",
                 filter === f.id && "bg-primary/10 text-primary hover:bg-primary/20"
               )}
             >
@@ -92,22 +92,22 @@ const ActivityTimeline = ({ activities, maxItems = 5, onViewAll }: ActivityTimel
         </div>
       </CardHeader>
 
-      <CardContent className="p-4 pt-0 space-y-0">
+      <CardContent className="p-3 sm:p-4 pt-0 space-y-0">
         <AnimatePresence mode="popLayout">
           {filteredActivities.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="text-center py-12 text-muted-foreground"
+              className="text-center py-8 text-muted-foreground"
             >
-              <Clock className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>لا يوجد نشاط حديث</p>
+              <Clock className="w-10 h-10 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">لا يوجد نشاط حديث</p>
             </motion.div>
           ) : (
             <div className="relative">
               {/* Timeline Line */}
-              <div className="absolute right-[18px] sm:right-5 top-2 bottom-2 w-px bg-gradient-to-b from-primary/50 via-border to-transparent" />
+              <div className="absolute right-[14px] sm:right-[18px] top-2 bottom-2 w-px bg-gradient-to-b from-primary/50 via-border to-transparent" />
               
               {filteredActivities.map((activity, index) => {
                 const config = activityConfig[activity.type];
@@ -117,40 +117,40 @@ const ActivityTimeline = ({ activities, maxItems = 5, onViewAll }: ActivityTimel
                   <motion.div
                     key={activity.id}
                     layout
-                    initial={{ opacity: 0, x: 20 }}
+                    initial={{ opacity: 0, x: 15 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="relative flex gap-3 sm:gap-4 py-2.5 sm:py-3 group"
+                    exit={{ opacity: 0, x: -15 }}
+                    transition={{ delay: index * 0.04 }}
+                    className="relative flex flex-row-reverse gap-2 sm:gap-3 py-2 group"
                   >
                     {/* Timeline Dot */}
                     <motion.div 
                       className={cn(
-                        "relative z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0",
+                        "relative z-10 w-7 h-7 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center shrink-0",
                         config.bgColor,
                         config.color,
                         "group-hover:scale-105 transition-transform"
                       )}
                       whileHover={{ rotate: 5 }}
                     >
-                      <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <Icon className="w-3 h-3 sm:w-4 sm:h-4" />
                       {activity.isNew && (
-                        <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-success rounded-full animate-pulse ring-2 ring-card" />
+                        <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-success rounded-full animate-pulse ring-2 ring-card" />
                       )}
                     </motion.div>
 
                     {/* Content */}
-                    <div className="flex-1 min-w-0 pt-0.5 sm:pt-1">
-                      <p className="text-xs sm:text-sm font-medium line-clamp-1 group-hover:text-primary transition-colors">
+                    <div className="flex-1 min-w-0 pt-0.5 text-right">
+                      <p className="text-[11px] sm:text-xs lg:text-sm font-medium line-clamp-1 group-hover:text-primary transition-colors">
                         {activity.message}
                       </p>
                       {activity.details && (
-                        <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                        <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
                           {activity.details}
                         </p>
                       )}
-                      <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                        <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                      <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 flex flex-row-reverse items-center gap-1">
+                        <Clock className="w-2.5 h-2.5" />
                         {activity.time}
                       </p>
                     </div>

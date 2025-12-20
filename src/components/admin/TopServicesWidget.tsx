@@ -36,25 +36,25 @@ const TopServicesWidget = ({ services, maxRevenue }: TopServicesWidgetProps) => 
   };
 
   return (
-    <Card className="card-elevated border-border/30 h-full">
-      <CardHeader className="flex flex-row items-center justify-between pb-4">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Star className="w-5 h-5 text-warning" />
+    <Card className="border-border/30 h-full" dir="rtl">
+      <CardHeader className="flex flex-row-reverse items-center justify-between p-3 sm:p-4 pb-2 sm:pb-3">
+        <CardTitle className="text-sm sm:text-base lg:text-lg flex flex-row-reverse items-center gap-2">
+          <Star className="w-4 h-4 sm:w-5 sm:h-5 text-warning" />
           أفضل الخدمات
         </CardTitle>
         <Link to="/admin/services">
-          <Button variant="ghost" size="sm" className="gap-2 text-xs">
+          <Button variant="ghost" size="sm" className="gap-1.5 text-[10px] sm:text-xs h-7 sm:h-8 flex flex-row-reverse">
             عرض الكل
-            <Eye className="w-4 h-4" />
+            <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
           </Button>
         </Link>
       </CardHeader>
       
-      <CardContent className="space-y-4">
+      <CardContent className="p-3 sm:p-4 pt-0 space-y-2 sm:space-y-3">
         {services.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p>لا توجد خدمات بعد</p>
+          <div className="text-center py-6 text-muted-foreground">
+            <Package className="w-10 h-10 mx-auto mb-2 opacity-30" />
+            <p className="text-sm">لا توجد خدمات بعد</p>
           </div>
         ) : (
           services.map((service, index) => {
@@ -63,68 +63,66 @@ const TopServicesWidget = ({ services, maxRevenue }: TopServicesWidgetProps) => 
             return (
               <motion.div
                 key={service.id}
-                initial={{ opacity: 0, x: 20 }}
+                initial={{ opacity: 0, x: 15 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.08 }}
                 className="group"
               >
-                <div className="flex items-center gap-3 mb-2">
+                <div className="flex flex-row-reverse items-center gap-2 sm:gap-3 mb-1.5">
                   <motion.span 
                     className={cn(
-                      "w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shadow-lg",
+                      "w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold shadow-md",
                       index < 3 
                         ? `bg-gradient-to-br ${getRankStyle(index)} text-primary-foreground`
                         : "bg-secondary text-muted-foreground"
                     )}
-                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    whileHover={{ scale: 1.05, rotate: 5 }}
                   >
                     {index + 1}
                   </motion.span>
                   
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium text-sm truncate group-hover:text-primary transition-colors">
+                  <div className="flex-1 min-w-0 text-right">
+                    <div className="flex flex-row-reverse items-center justify-between gap-1">
+                      <p className="font-medium text-[11px] sm:text-xs lg:text-sm truncate group-hover:text-primary transition-colors">
                         {service.name}
                       </p>
-                      <div className="flex items-center gap-2 shrink-0 mr-2">
-                        {service.trend && service.trend > 0 && (
-                          <span className="flex items-center text-xs text-success">
-                            <TrendingUp className="w-3 h-3 ml-0.5" />
-                            {service.trend}%
-                          </span>
-                        )}
-                      </div>
+                      {service.trend && service.trend > 0 && (
+                        <span className="flex flex-row-reverse items-center text-[9px] sm:text-[10px] text-success shrink-0">
+                          <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3 ml-0.5" />
+                          {service.trend}%
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs text-muted-foreground">{service.orders} طلب</p>
+                    <p className="text-[9px] sm:text-[10px] text-muted-foreground">{service.orders} طلب</p>
                   </div>
                   
                   <div className="text-left shrink-0">
-                    <span className="font-bold text-sm text-success">
+                    <span className="font-bold text-[10px] sm:text-xs lg:text-sm text-success">
                       {service.revenue.toLocaleString("ar-SA")}
                     </span>
-                    <span className="text-xs text-muted-foreground mr-1">ر.س</span>
+                    <span className="text-[8px] sm:text-[10px] text-muted-foreground mr-0.5">ر.س</span>
                   </div>
                 </div>
                 
                 {/* Progress Bar */}
-                <div className="mr-[52px]">
+                <div className="mr-9 sm:mr-10 lg:mr-11">
                   <motion.div
-                    className="h-1.5 rounded-full bg-secondary overflow-hidden"
+                    className="h-1 sm:h-1.5 rounded-full bg-secondary overflow-hidden"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: index * 0.1 + 0.2 }}
+                    transition={{ delay: index * 0.08 + 0.15 }}
                   >
                     <motion.div
                       className={cn(
                         "h-full rounded-full",
-                        index === 0 ? "bg-gradient-to-r from-yellow-500 to-amber-500" :
-                        index === 1 ? "bg-gradient-to-r from-slate-400 to-slate-500" :
-                        index === 2 ? "bg-gradient-to-r from-amber-600 to-orange-600" :
+                        index === 0 ? "bg-gradient-to-l from-yellow-500 to-amber-500" :
+                        index === 1 ? "bg-gradient-to-l from-slate-400 to-slate-500" :
+                        index === 2 ? "bg-gradient-to-l from-amber-600 to-orange-600" :
                         "bg-primary"
                       )}
                       initial={{ width: 0 }}
                       animate={{ width: `${percentage}%` }}
-                      transition={{ delay: index * 0.1 + 0.3, duration: 0.8, ease: "easeOut" }}
+                      transition={{ delay: index * 0.08 + 0.2, duration: 0.6, ease: "easeOut" }}
                     />
                   </motion.div>
                 </div>

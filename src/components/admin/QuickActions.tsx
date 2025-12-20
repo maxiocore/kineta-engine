@@ -70,33 +70,33 @@ const quickActions: QuickAction[] = [
 
 const QuickActions = () => {
   return (
-    <Card className="card-elevated border-border/30 overflow-hidden">
-      <CardContent className="p-6">
-        <div className="flex items-center gap-2 mb-6">
+    <Card className="border-border/30 overflow-hidden" dir="rtl">
+      <CardContent className="p-3 sm:p-4 lg:p-5">
+        <div className="flex flex-row-reverse items-center gap-2 mb-4">
           <motion.div
             animate={{ rotate: [0, 360] }}
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           >
-            <Settings className="w-5 h-5 text-primary" />
+            <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           </motion.div>
-          <h3 className="text-lg font-bold">إجراءات سريعة</h3>
+          <h3 className="text-sm sm:text-base lg:text-lg font-bold">إجراءات سريعة</h3>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
           {quickActions.map((action, index) => (
             <motion.div
               key={action.href}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
+              transition={{ delay: index * 0.04 }}
             >
               <Link to={action.href}>
                 <motion.div
-                  whileHover={{ y: -4, scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ y: -2, scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
                   className="group"
                 >
-                  <div className="relative p-4 rounded-2xl bg-secondary/50 hover:bg-secondary transition-all duration-300 text-center overflow-hidden">
+                  <div className="relative p-2 sm:p-3 lg:p-4 rounded-lg sm:rounded-xl bg-secondary/50 hover:bg-secondary transition-all duration-300 text-center overflow-hidden">
                     {/* Background Gradient on Hover */}
                     <div className={cn(
                       "absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300",
@@ -105,17 +105,17 @@ const QuickActions = () => {
                     
                     <motion.div
                       className={cn(
-                        "w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center shadow-lg",
+                        "w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg mx-auto mb-1.5 sm:mb-2 flex items-center justify-center shadow-md",
                         `bg-gradient-to-br ${action.color}`
                       )}
-                      whileHover={{ rotate: 10 }}
+                      whileHover={{ rotate: 5 }}
                       transition={{ type: "spring", stiffness: 300 }}
                     >
-                      <action.icon className="w-6 h-6 text-primary-foreground" />
+                      <action.icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-primary-foreground" />
                     </motion.div>
                     
-                    <p className="font-medium text-sm mb-0.5">{action.label}</p>
-                    <p className="text-xs text-muted-foreground">{action.description}</p>
+                    <p className="font-medium text-[10px] sm:text-xs lg:text-sm mb-0.5 truncate">{action.label}</p>
+                    <p className="text-[8px] sm:text-[10px] lg:text-xs text-muted-foreground hidden sm:block">{action.description}</p>
                   </div>
                 </motion.div>
               </Link>
