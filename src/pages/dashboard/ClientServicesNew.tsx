@@ -265,15 +265,30 @@ const ClientServicesNew = () => {
     if (categoryParam || serviceParam) setSearchParams({});
   }, [services, searchParams]);
 
-  // Get unique categories
-  const serviceCategories = useMemo(() => [...new Set(services.map(s => s.category))].sort(), [services]);
+  // Keywords to exclude design and development categories
+  const designDevKeywords = useMemo(() => ['تصميم', 'شعار', 'لوجو', 'design', 'logo', 'بنر', 'banner', 'هوية', 
+    'برمجة', 'تطوير', 'موقع', 'تطبيق', 'dev', 'development', 'website', 'app'], []);
 
-  // Count services per category
+  const isDesignOrDevCategory = (category: string) => {
+    const lowerCat = category.toLowerCase();
+    return designDevKeywords.some(k => lowerCat.includes(k));
+  };
+
+  // Get unique categories (excluding design and development)
+  const serviceCategories = useMemo(() => 
+    [...new Set(services.map(s => s.category))]
+      .filter(cat => !isDesignOrDevCategory(cat))
+      .sort()
+  , [services, designDevKeywords]);
+
+  // Count services per category (only social media)
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    services.forEach(service => { counts[service.category] = (counts[service.category] || 0) + 1; });
+    services
+      .filter(service => !isDesignOrDevCategory(service.category))
+      .forEach(service => { counts[service.category] = (counts[service.category] || 0) + 1; });
     return counts;
-  }, [services]);
+  }, [services, designDevKeywords]);
 
   // Filter services by network
   const filteredByNetwork = useMemo(() => {
