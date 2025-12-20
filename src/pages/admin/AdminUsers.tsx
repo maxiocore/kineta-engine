@@ -405,63 +405,63 @@ const AdminUsers = () => {
 
   return (
     <AdminDashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-3 sm:space-y-4 lg:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
+        <div className="flex flex-col sm:flex-row-reverse sm:items-center justify-between gap-3">
+          <div className="text-right">
             <motion.h1
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-3"
+              className="text-lg sm:text-xl lg:text-2xl font-bold mb-1 flex flex-row-reverse items-center gap-2"
             >
-              <div className="p-2 rounded-xl bg-primary/10">
-                <Users className="w-7 h-7 text-primary" />
+              <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10">
+                <Users className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
               </div>
               إدارة المستخدمين
             </motion.h1>
-            <p className="text-muted-foreground">عرض وإدارة جميع المستخدمين المسجلين</p>
+            <p className="text-muted-foreground text-xs sm:text-sm">عرض وإدارة جميع المستخدمين</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-row-reverse gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => fetchUsers(true)}
               disabled={refreshing}
-              className="gap-2"
+              className="gap-1.5 h-8 text-xs flex flex-row-reverse"
             >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
-              تحديث
+              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
+              <span className="hidden sm:inline">تحديث</span>
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={exportUsers}
-              className="gap-2"
+              className="gap-1.5 h-8 text-xs flex flex-row-reverse"
             >
-              <Download className="w-4 h-4" />
-              تصدير
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">تصدير</span>
             </Button>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
           {statsData.map((stat, index) => (
             <motion.div
               key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
+              transition={{ delay: index * 0.04 }}
             >
               <Card className={`relative overflow-hidden border-border/30 bg-gradient-to-br ${stat.gradient}`}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2.5 rounded-xl ${stat.iconBg}`}>
-                      <stat.icon className={`w-5 h-5 ${stat.iconColor}`} />
+                <CardContent className="p-2.5 sm:p-3 lg:p-4">
+                  <div className="flex flex-row-reverse items-center gap-2 sm:gap-3">
+                    <div className={`p-1.5 sm:p-2 rounded-lg ${stat.iconBg}`}>
+                      <stat.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${stat.iconColor}`} />
                     </div>
-                    <div>
-                      <p className="text-2xl font-bold">{stat.value.toLocaleString("ar-SA")}</p>
-                      <p className="text-xs text-muted-foreground">{stat.label}</p>
+                    <div className="text-right flex-1 min-w-0">
+                      <p className="text-base sm:text-lg lg:text-xl font-bold">{stat.value.toLocaleString("ar-SA")}</p>
+                      <p className="text-[9px] sm:text-[10px] lg:text-xs text-muted-foreground truncate">{stat.label}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -472,13 +472,13 @@ const AdminUsers = () => {
 
         {/* Filters */}
         <Card className="border-border/30">
-          <CardContent className="p-4">
-            <div className="flex flex-col lg:flex-row gap-4">
+          <CardContent className="p-2.5 sm:p-3 lg:p-4">
+            <div className="flex flex-col lg:flex-row-reverse gap-2 sm:gap-3">
               <div className="relative flex-1">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input 
-                  placeholder="البحث بالاسم أو البريد الإلكتروني..." 
-                  className="pr-10 bg-background"
+                  placeholder="البحث بالاسم أو البريد..." 
+                  className="pr-9 bg-background h-9 text-sm text-right"
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
@@ -486,9 +486,9 @@ const AdminUsers = () => {
                   }}
                 />
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-row-reverse flex-wrap gap-2">
                 <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger className="w-40 bg-background">
+                  <SelectTrigger className="w-28 sm:w-36 bg-background h-9 text-xs sm:text-sm">
                     <SelectValue placeholder="حالة التوثيق" />
                   </SelectTrigger>
                   <SelectContent>
@@ -498,7 +498,7 @@ const AdminUsers = () => {
                   </SelectContent>
                 </Select>
                 <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger className="w-36 bg-background">
+                  <SelectTrigger className="w-24 sm:w-32 bg-background h-9 text-xs sm:text-sm">
                     <SelectValue placeholder="الدور" />
                   </SelectTrigger>
                   <SelectContent>
@@ -512,9 +512,9 @@ const AdminUsers = () => {
                     variant="destructive"
                     size="sm"
                     onClick={openBulkDeleteDialog}
-                    className="gap-2"
+                    className="gap-1.5 h-9 text-xs flex flex-row-reverse"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                     حذف ({selectedIds.length})
                   </Button>
                 )}
@@ -525,27 +525,27 @@ const AdminUsers = () => {
 
         {/* Users Table */}
         <Card className="border-border/30">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-lg">
+          <CardHeader className="p-3 sm:p-4 pb-2">
+            <div className="flex flex-row-reverse items-center justify-between">
+              <CardTitle className="flex flex-row-reverse items-center gap-2 text-sm sm:text-base lg:text-lg">
                 قائمة المستخدمين
-                <Badge variant="secondary" className="mr-2">{filteredUsers.length}</Badge>
+                <Badge variant="secondary" className="text-[10px] sm:text-xs">{filteredUsers.length}</Badge>
               </CardTitle>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-[10px] sm:text-xs text-muted-foreground">
                 صفحة {currentPage} من {totalPages || 1}
               </div>
             </div>
           </CardHeader>
           <CardContent className="p-0">
             {loading ? (
-              <div className="flex items-center justify-center py-20">
-                <Loader2 className="w-8 h-8 text-primary animate-spin" />
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 text-primary animate-spin" />
               </div>
             ) : filteredUsers.length === 0 ? (
-              <div className="text-center py-20">
-                <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
-                <p className="text-muted-foreground text-lg mb-2">لا يوجد مستخدمين</p>
-                <p className="text-sm text-muted-foreground/70">جرب تغيير معايير البحث</p>
+              <div className="text-center py-12">
+                <Users className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
+                <p className="text-muted-foreground text-sm mb-1">لا يوجد مستخدمين</p>
+                <p className="text-xs text-muted-foreground/70">جرب تغيير معايير البحث</p>
               </div>
             ) : (
               <>
@@ -553,51 +553,51 @@ const AdminUsers = () => {
                   <Table>
                     <TableHeader>
                       <TableRow className="hover:bg-transparent">
-                        <TableHead className="w-12 text-right">
+                        <TableHead className="w-10 text-right">
                           <Checkbox
                             checked={selectedIds.length === paginatedUsers.length && paginatedUsers.length > 0}
                             onCheckedChange={toggleSelectAll}
                           />
                         </TableHead>
-                        <TableHead className="text-right">
+                        <TableHead className="text-right text-xs sm:text-sm">
                           <Button 
                             variant="ghost" 
                             size="sm" 
                             onClick={() => handleSort("full_name")}
-                            className="gap-1 -mr-3 hover:bg-transparent"
+                            className="gap-1 -mr-2 hover:bg-transparent text-xs sm:text-sm h-8"
                           >
                             المستخدم
-                            <ArrowUpDown className="w-3.5 h-3.5" />
+                            <ArrowUpDown className="w-3 h-3" />
                           </Button>
                         </TableHead>
-                        <TableHead className="text-right">الدور</TableHead>
-                        <TableHead className="text-right">الحالة</TableHead>
-                        <TableHead className="text-right">
+                        <TableHead className="text-right text-xs sm:text-sm hidden sm:table-cell">الدور</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">الحالة</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm hidden md:table-cell">
                           <Button 
                             variant="ghost" 
                             size="sm" 
                             onClick={() => handleSort("orders_count")}
-                            className="gap-1 -mr-3 hover:bg-transparent"
+                            className="gap-1 -mr-2 hover:bg-transparent text-xs sm:text-sm h-8"
                           >
                             الطلبات
-                            <ArrowUpDown className="w-3.5 h-3.5" />
+                            <ArrowUpDown className="w-3 h-3" />
                           </Button>
                         </TableHead>
-                        <TableHead className="text-right">
+                        <TableHead className="text-right text-xs sm:text-sm hidden lg:table-cell">
                           <Button 
                             variant="ghost" 
                             size="sm" 
                             onClick={() => handleSort("total_spent")}
-                            className="gap-1 -mr-3 hover:bg-transparent"
+                            className="gap-1 -mr-2 hover:bg-transparent text-xs sm:text-sm h-8"
                           >
                             المشتريات
-                            <ArrowUpDown className="w-3.5 h-3.5" />
+                            <ArrowUpDown className="w-3 h-3" />
                           </Button>
                         </TableHead>
-                        <TableHead className="text-right">
+                        <TableHead className="text-right text-xs sm:text-sm hidden lg:table-cell">
                           <Button 
                             variant="ghost" 
-                            size="sm" 
+                            size="sm"
                             onClick={() => handleSort("created_at")}
                             className="gap-1 -mr-3 hover:bg-transparent"
                           >

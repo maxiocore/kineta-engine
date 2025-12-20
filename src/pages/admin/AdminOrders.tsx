@@ -335,71 +335,73 @@ const AdminOrders = () => {
   return (
     <AdminDashboardLayout>
       <motion.div 
-        className="space-y-6"
+        className="space-y-3 sm:space-y-4 lg:space-y-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
+        dir="rtl"
       >
         {/* Header */}
-        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-3">
+        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row-reverse sm:items-center justify-between gap-3">
+          <div className="text-right">
+            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold mb-1 flex flex-row-reverse items-center gap-2">
               <motion.div
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
               >
-                <ShoppingBag className="w-8 h-8 text-primary" />
+                <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
               </motion.div>
               إدارة الطلبات
             </h1>
-            <p className="text-muted-foreground">متابعة وإدارة جميع الطلبات</p>
+            <p className="text-muted-foreground text-xs sm:text-sm">متابعة وإدارة جميع الطلبات</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-row-reverse gap-2">
             <Button
               variant="outline"
+              size="sm"
               onClick={handleSyncOrdersStatus}
               disabled={syncing}
-              className="gap-2"
+              className="gap-1.5 h-8 text-xs flex flex-row-reverse"
             >
-              <RefreshCw className={cn("w-4 h-4", syncing && "animate-spin")} />
-              {syncing ? "جاري المزامنة..." : "تحديث الحالات"}
+              <RefreshCw className={cn("w-3.5 h-3.5", syncing && "animate-spin")} />
+              <span className="hidden sm:inline">{syncing ? "مزامنة..." : "تحديث"}</span>
             </Button>
             <Link to="/admin/orders/sync">
-              <Button variant="outline" className="gap-2">
-                <ArrowUpDown className="w-4 h-4" />
-                مزامنة الطلبات الخارجية
+              <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs flex flex-row-reverse">
+                <ArrowUpDown className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">مزامنة</span>
               </Button>
             </Link>
           </div>
         </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
           {statsData.map((stat, index) => (
             <motion.div
               key={stat.label}
               variants={itemVariants}
               whileHover={{ y: -2, transition: { duration: 0.2 } }}
             >
-              <Card className={`card-elevated border-border/30 ${stat.shadowColor} shadow-md`}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
+              <Card className={`border-border/30 ${stat.shadowColor} shadow-md`}>
+                <CardContent className="p-2.5 sm:p-3 lg:p-4">
+                  <div className="flex flex-row-reverse items-center gap-2 sm:gap-3">
                     <motion.div 
-                      className={`w-11 h-11 rounded-xl bg-gradient-to-br ${stat.gradient} p-2.5 shadow-lg`}
-                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br ${stat.gradient} p-1.5 sm:p-2 shadow-md`}
+                      whileHover={{ scale: 1.05, rotate: 5 }}
                     >
                       <stat.icon className="w-full h-full text-primary-foreground" />
                     </motion.div>
-                    <div>
+                    <div className="text-right flex-1">
                       <motion.p 
-                        className="text-2xl font-bold"
+                        className="text-base sm:text-lg lg:text-xl font-bold"
                         initial={{ opacity: 0, scale: 0.5 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: index * 0.1 }}
+                        transition={{ delay: index * 0.08 }}
                       >
                         {stat.value}
                       </motion.p>
-                      <p className="text-xs text-muted-foreground">{stat.label}</p>
+                      <p className="text-[9px] sm:text-[10px] lg:text-xs text-muted-foreground">{stat.label}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -410,63 +412,61 @@ const AdminOrders = () => {
 
         {/* Filters */}
         <motion.div variants={itemVariants}>
-          <Card className="card-elevated border-border/30">
-            <CardContent className="p-4 space-y-4">
+          <Card className="border-border/30">
+            <CardContent className="p-2.5 sm:p-3 lg:p-4 space-y-2 sm:space-y-3">
               {/* Main Filters Row */}
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col sm:flex-row-reverse gap-2 sm:gap-3">
                 <div className="relative flex-1">
                   <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input 
                     placeholder="البحث في الطلبات..." 
-                    className="pr-10 bg-secondary/50 border-border/50"
+                    className="pr-9 bg-secondary/50 border-border/50 h-9 text-sm text-right"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <Button
-                  variant={showAdvancedFilters ? "default" : "outline"}
-                  onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                  className="gap-2"
-                >
-                  <SlidersHorizontal className="w-4 h-4" />
-                  فلترة متقدمة
-                  {activeFiltersCount > 0 && (
-                    <Badge variant="secondary" className="mr-1 bg-primary/20 text-primary">
-                      {activeFiltersCount}
-                    </Badge>
-                  )}
-                </Button>
-                {activeFiltersCount > 0 && (
-                  <Button variant="ghost" size="icon" onClick={resetFilters} className="text-muted-foreground hover:text-foreground">
-                    <RotateCcw className="w-4 h-4" />
-                  </Button>
-                )}
-                {filteredOrders.length > 0 && (
+                <div className="flex flex-row-reverse flex-wrap gap-2">
                   <Button
-                    variant="outline"
+                    variant={showAdvancedFilters ? "default" : "outline"}
+                    onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                     size="sm"
-                    onClick={toggleSelectAll}
-                    className="gap-2"
+                    className="gap-1.5 h-9 text-xs flex flex-row-reverse"
                   >
-                    {selectedIds.length === filteredOrders.length ? "إلغاء التحديد" : "تحديد الكل"}
+                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">فلترة</span>
+                    {activeFiltersCount > 0 && (
+                      <Badge variant="secondary" className="bg-primary/20 text-primary text-[10px]">
+                        {activeFiltersCount}
+                      </Badge>
+                    )}
                   </Button>
-                )}
-                {selectedIds.length > 0 && (
-                  <div className="flex items-center gap-2 mr-auto">
-                    <span className="text-sm text-muted-foreground">
-                      {selectedIds.length} محدد
-                    </span>
+                  {activeFiltersCount > 0 && (
+                    <Button variant="ghost" size="icon" onClick={resetFilters} className="text-muted-foreground hover:text-foreground h-9 w-9">
+                      <RotateCcw className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
+                  {filteredOrders.length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={toggleSelectAll}
+                      className="h-9 text-xs"
+                    >
+                      {selectedIds.length === filteredOrders.length ? "إلغاء" : "تحديد الكل"}
+                    </Button>
+                  )}
+                  {selectedIds.length > 0 && (
                     <Button
                       variant="destructive"
                       size="sm"
                       onClick={openBulkDeleteDialog}
-                      className="gap-2"
+                      className="gap-1.5 h-9 text-xs flex flex-row-reverse"
                     >
-                      <Trash2 className="w-4 h-4" />
-                      حذف المحدد
+                      <Trash2 className="w-3.5 h-3.5" />
+                      حذف ({selectedIds.length})
                     </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               {/* Advanced Filters */}
