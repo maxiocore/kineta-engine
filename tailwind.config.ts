@@ -138,6 +138,10 @@ export default {
           "from": { transform: "rotate(0deg)" },
           "to": { transform: "rotate(360deg)" },
         },
+        "shimmer": {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -154,6 +158,7 @@ export default {
         "bounce-soft": "bounce-soft 2s ease-in-out infinite",
         "wiggle": "wiggle 1s ease-in-out infinite",
         "spin-slow": "spin-slow 8s linear infinite",
+        "shimmer": "shimmer 2s ease-in-out infinite",
       },
     },
   },

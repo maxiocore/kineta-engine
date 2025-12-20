@@ -32,6 +32,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
+import ServicesHomeSkeleton from "@/components/dashboard/ServicesHomeSkeleton";
 
 // Animation variants
 const containerVariants = {
@@ -91,34 +92,40 @@ const ClientServicesHome = () => {
     design: 0,
     dev: 0
   });
+  const [isLoading, setIsLoading] = useState(true);
   const [hoveredSection, setHoveredSection] = useState<string | null>(null);
   const [activeFeature, setActiveFeature] = useState(0);
 
   useEffect(() => {
     const fetchCounts = async () => {
-      const { count: socialCount } = await supabase
-        .from('services')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active')
-        .or('category.ilike.%instagram%,category.ilike.%facebook%,category.ilike.%twitter%,category.ilike.%youtube%,category.ilike.%tiktok%,category.ilike.%social%,category.ilike.%telegram%,name.ilike.%متابع%,name.ilike.%لايك%');
+      setIsLoading(true);
+      try {
+        const { count: socialCount } = await supabase
+          .from('services')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active')
+          .or('category.ilike.%instagram%,category.ilike.%facebook%,category.ilike.%twitter%,category.ilike.%youtube%,category.ilike.%tiktok%,category.ilike.%social%,category.ilike.%telegram%,name.ilike.%متابع%,name.ilike.%لايك%');
 
-      const { count: designCount } = await supabase
-        .from('services')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active')
-        .or('category.ilike.%design%,category.ilike.%تصميم%,name.ilike.%تصميم%,name.ilike.%شعار%,name.ilike.%لوجو%');
+        const { count: designCount } = await supabase
+          .from('services')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active')
+          .or('category.ilike.%design%,category.ilike.%تصميم%,name.ilike.%تصميم%,name.ilike.%شعار%,name.ilike.%لوجو%');
 
-      const { count: devCount } = await supabase
-        .from('services')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active')
-        .or('category.ilike.%dev%,category.ilike.%برمجة%,category.ilike.%تطوير%,name.ilike.%موقع%,name.ilike.%تطبيق%,name.ilike.%برمجة%');
+        const { count: devCount } = await supabase
+          .from('services')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active')
+          .or('category.ilike.%dev%,category.ilike.%برمجة%,category.ilike.%تطوير%,name.ilike.%موقع%,name.ilike.%تطبيق%,name.ilike.%برمجة%');
 
-      setServicesCount({
-        social: socialCount || 0,
-        design: designCount || 0,
-        dev: devCount || 0
-      });
+        setServicesCount({
+          social: socialCount || 0,
+          design: designCount || 0,
+          dev: devCount || 0
+        });
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchCounts();
@@ -205,6 +212,14 @@ const ClientServicesHome = () => {
   ];
 
   const totalServices = servicesCount.social + servicesCount.design + servicesCount.dev;
+
+  if (isLoading) {
+    return (
+      <ClientDashboardLayout>
+        <ServicesHomeSkeleton />
+      </ClientDashboardLayout>
+    );
+  }
 
   return (
     <ClientDashboardLayout>
