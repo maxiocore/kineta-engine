@@ -166,6 +166,7 @@ const AdminOrders = () => {
   };
 
   const fetchOrders = async () => {
+    console.log("Fetching orders...");
     const { data, error } = await supabase
       .from("orders")
       .select(`
@@ -175,10 +176,14 @@ const AdminOrders = () => {
       `)
       .order("created_at", { ascending: false });
 
+    console.log("Orders fetch result:", { data, error });
+
     if (error) {
-      toast.error("خطأ في جلب الطلبات");
+      console.error("Error fetching orders:", error);
+      toast.error("خطأ في جلب الطلبات: " + error.message);
     } else {
       const ordersData = data as unknown as Order[];
+      console.log("Orders data:", ordersData);
       setOrders(ordersData);
       
       setStats({
