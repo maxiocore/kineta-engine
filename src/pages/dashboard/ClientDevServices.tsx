@@ -7,11 +7,7 @@ import {
   Search,
   Grid3X3,
   List,
-  ShoppingCart,
-  Shield,
   Activity,
-  TrendingUp,
-  Sparkles,
   FileCode,
   Database,
   Server,
@@ -19,7 +15,6 @@ import {
   Smartphone,
 } from "lucide-react";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -27,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ServiceDetailsSheet from "@/components/services/ServiceDetailsSheet";
+import EnhancedServiceCard from "@/components/services/EnhancedServiceCard";
 
 interface Service {
   id: string;
@@ -253,70 +249,30 @@ const ClientDevServices = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className={`grid gap-6 ${viewMode === "grid" ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"}`}
+              className={`grid gap-4 sm:gap-5 lg:gap-6 ${
+                viewMode === "grid" 
+                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" 
+                  : "grid-cols-1"
+              }`}
             >
-              {filteredServices.map((service, index) => (
-                <motion.div
-                  key={service.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.05 * index }}
-                  whileHover={{ y: -5 }}
-                  className="group"
-                >
-                  <Card 
-                    className="h-full cursor-pointer border-border/50 hover:border-emerald-500/30 transition-all duration-300"
-                    onClick={() => handleServiceClick(service)}
-                  >
-                    <CardContent className="p-5">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h3 className="font-bold text-base group-hover:text-emerald-500 transition-colors line-clamp-2">
-                            {service.name}
-                          </h3>
-                          {service.external_service_id && (
-                            <span className="text-xs text-muted-foreground">
-                              #{service.external_service_id}
-                            </span>
-                          )}
-                        </div>
-                        {service.refill_enabled && (
-                          <Badge variant="secondary" className="text-xs shrink-0">
-                            <Shield className="w-3 h-3 ml-1" />
-                            ضمان
-                          </Badge>
-                        )}
-                      </div>
-
-                      {service.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                          {service.description}
-                        </p>
-                      )}
-
-                      <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                        <div className="text-right">
-                          <p className="text-xs text-muted-foreground">السعر</p>
-                          <p className="text-xl font-bold text-emerald-500">
-                            ${service.price.toFixed(2)}
-                          </p>
-                        </div>
-                        <Button 
-                          size="sm" 
-                          className="gap-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOrder(service);
-                          }}
-                        >
-                          <ShoppingCart className="w-4 h-4" />
-                          اطلب الآن
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
+              {filteredServices.map((service, index) => {
+                const icons = [Code, FileCode, Database, Server, Monitor, Smartphone];
+                const IconComponent = icons[index % icons.length];
+                return (
+                  <EnhancedServiceCard
+                    key={service.id}
+                    service={service}
+                    index={index}
+                    icon={IconComponent}
+                    gradientFrom="emerald-500"
+                    gradientTo="teal-500"
+                    onOrder={handleOrder}
+                    onViewDetails={handleServiceClick}
+                    showBestSeller={true}
+                    viewMode={viewMode}
+                  />
+                );
+              })}
             </motion.div>
           </AnimatePresence>
         )}
