@@ -54,14 +54,14 @@ const OrderStatusChart = ({ statusData }: OrderStatusChartProps) => {
 
   const CustomLegend = ({ payload }: any) => {
     return (
-      <div className="flex flex-wrap justify-center gap-2 mt-2">
+      <div className="flex flex-wrap justify-center gap-1 sm:gap-1.5 md:gap-2 mt-1 sm:mt-2">
         {payload?.map((entry: any, index: number) => (
           <div
             key={index}
-            className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md bg-muted/50"
+            className="flex items-center gap-1 sm:gap-1.5 text-[9px] sm:text-[10px] md:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md bg-muted/50"
           >
             <div
-              className="w-2.5 h-2.5 rounded-full"
+              className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full"
               style={{ backgroundColor: entry.color }}
             />
             <span className="text-muted-foreground">{entry.value}</span>
@@ -73,18 +73,18 @@ const OrderStatusChart = ({ statusData }: OrderStatusChartProps) => {
 
   if (totalOrders === 0) {
     return (
-      <Card className="card-elevated border-border/30">
-        <CardHeader className="py-3 sm:py-4">
-          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <PieChartIcon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+      <Card className="card-elevated border-border/30 h-full" dir="rtl">
+        <CardHeader className="py-2 sm:py-3 md:py-4 px-3 sm:px-4 md:px-6">
+          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base md:text-lg">
+            <PieChartIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-primary" />
             توزيع الطلبات حسب الحالة
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <PieChartIcon className="w-12 h-12 text-muted-foreground/30 mb-3" />
-            <p className="text-muted-foreground text-sm">لا توجد بيانات لعرضها</p>
-            <p className="text-xs text-muted-foreground mt-1">
+        <CardContent className="pt-0 px-3 sm:px-4 md:px-6 pb-3 sm:pb-4">
+          <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-center">
+            <PieChartIcon className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground/30 mb-2 sm:mb-3" />
+            <p className="text-muted-foreground text-xs sm:text-sm">لا توجد بيانات لعرضها</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">
               ابدأ بطلب خدماتنا لرؤية الإحصائيات
             </p>
           </div>
@@ -95,27 +95,28 @@ const OrderStatusChart = ({ statusData }: OrderStatusChartProps) => {
 
   return (
     <motion.div
+      dir="rtl"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
     >
-      <Card className="card-elevated border-border/30">
-        <CardHeader className="py-3 sm:py-4">
-          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <PieChartIcon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+      <Card className="card-elevated border-border/30 h-full">
+        <CardHeader className="py-2 sm:py-3 md:py-4 px-3 sm:px-4 md:px-6">
+          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base md:text-lg">
+            <PieChartIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-primary" />
             توزيع الطلبات حسب الحالة
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
-          <div className="h-[250px] sm:h-[280px]">
+        <CardContent className="pt-0 px-3 sm:px-4 md:px-6 pb-3 sm:pb-4">
+          <div className="h-[180px] sm:h-[220px] md:h-[250px] lg:h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={chartData}
                   cx="50%"
                   cy="45%"
-                  innerRadius={50}
-                  outerRadius={80}
+                  innerRadius={35}
+                  outerRadius={55}
                   paddingAngle={3}
                   dataKey="value"
                   animationBegin={0}
@@ -136,9 +137,9 @@ const OrderStatusChart = ({ statusData }: OrderStatusChartProps) => {
           </div>
           
           {/* Center Stats */}
-          <div className="text-center -mt-4">
-            <p className="text-2xl sm:text-3xl font-bold">{totalOrders}</p>
-            <p className="text-xs text-muted-foreground">إجمالي الطلبات</p>
+          <div className="text-center -mt-2 sm:-mt-3 md:-mt-4">
+            <p className="text-xl sm:text-2xl md:text-3xl font-bold">{totalOrders}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">إجمالي الطلبات</p>
           </div>
         </CardContent>
       </Card>
