@@ -102,29 +102,30 @@ const ClientFavorites = () => {
   return (
     <ClientDashboardLayout>
       <motion.div 
-        className="space-y-6"
+        className="space-y-4 md:space-y-6 px-1"
+        dir="rtl"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {/* Header */}
+        {/* Header - Mobile Optimized */}
         <motion.div variants={itemVariants}>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-3">
-            <Heart className="w-8 h-8 text-destructive fill-destructive" />
+          <h1 className="text-xl md:text-3xl font-bold mb-1 md:mb-2 flex items-center gap-2 md:gap-3">
+            <Heart className="w-6 h-6 md:w-8 md:h-8 text-destructive fill-destructive" />
             خدماتي المفضلة
           </h1>
-          <p className="text-muted-foreground">الخدمات التي قمت بإضافتها للمفضلة</p>
+          <p className="text-xs md:text-base text-muted-foreground">الخدمات التي قمت بإضافتها للمفضلة</p>
         </motion.div>
 
         {/* Search */}
         <motion.div variants={itemVariants}>
           <div className="relative">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-muted-foreground" />
             <Input
               placeholder="البحث في المفضلة..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pr-10"
+              className="pr-10 h-10 md:h-11 text-sm md:text-base"
             />
           </div>
         </motion.div>

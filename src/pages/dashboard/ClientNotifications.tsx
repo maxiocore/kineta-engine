@@ -156,24 +156,24 @@ const ClientNotifications = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="space-y-4 md:space-y-6 px-1" dir="rtl">
+        {/* Header - Mobile Optimized */}
+        <div className="flex flex-col gap-3 md:flex-row md:items-center justify-between">
           <div>
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-3"
+              className="text-xl md:text-3xl font-bold mb-1 md:mb-2 flex items-center gap-2 md:gap-3"
             >
-              <Bell className="w-8 h-8 text-primary" />
+              <Bell className="w-6 h-6 md:w-8 md:h-8 text-primary" />
               الإشعارات
               {unreadCount > 0 && (
-                <span className="bg-destructive text-destructive-foreground text-sm px-2.5 py-0.5 rounded-full">
+                <span className="bg-destructive text-destructive-foreground text-xs md:text-sm px-2 md:px-2.5 py-0.5 rounded-full">
                   {unreadCount}
                 </span>
               )}
             </motion.h1>
-            <p className="text-muted-foreground">تابع جميع التحديثات على طلباتك</p>
+            <p className="text-xs md:text-base text-muted-foreground">تابع جميع التحديثات على طلباتك</p>
           </div>
 
           {unreadCount > 0 && (
@@ -181,12 +181,13 @@ const ClientNotifications = () => {
               variant="outline"
               onClick={markAllAsRead}
               disabled={markingAll}
-              className="gap-2"
+              className="gap-2 h-9 md:h-10 text-sm w-full md:w-auto"
+              size="sm"
             >
               {markingAll ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 md:w-4 md:h-4 animate-spin" />
               ) : (
-                <CheckCheck className="w-4 h-4" />
+                <CheckCheck className="w-3.5 h-3.5 md:w-4 md:h-4" />
               )}
               تعليم الكل كمقروء
             </Button>

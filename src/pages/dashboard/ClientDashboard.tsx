@@ -166,6 +166,7 @@ const getStatusColor = (status: string) => {
 };
 
 const ClientDashboard = () => {
+  // Mobile responsive and RTL optimized
   const { user, profile } = useAuth();
   const { badges, userBadges, loading: badgesLoading } = useUserBadges(user?.id);
   const { 

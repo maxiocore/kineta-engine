@@ -139,21 +139,21 @@ const ClientSettings = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="space-y-4 md:space-y-8 px-1" dir="rtl">
+        {/* Header - Mobile Optimized */}
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="font-display text-3xl font-bold">الإعدادات</h1>
-              <Badge variant="outline" className="text-xs">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse ml-1" />
+            <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
+              <h1 className="font-display text-xl md:text-3xl font-bold">الإعدادات</h1>
+              <Badge variant="outline" className="text-[10px] md:text-xs">
+                <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-green-500 animate-pulse ml-1" />
                 متصل
               </Badge>
             </div>
-            <p className="text-muted-foreground">إدارة حسابك وتفضيلاتك - التغييرات تُحفظ تلقائياً</p>
+            <p className="text-xs md:text-base text-muted-foreground">إدارة حسابك وتفضيلاتك</p>
           </motion.div>
 
           <motion.div
@@ -164,15 +164,16 @@ const ClientSettings = () => {
             <Button 
               variant="outline" 
               onClick={refetch}
-              className="gap-2"
+              className="gap-2 h-9 md:h-10 text-sm"
+              size="sm"
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="w-3.5 h-3.5 md:w-4 md:h-4" />
               تحديث
             </Button>
           </motion.div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-3 gap-4 md:gap-8">
           {/* Profile Settings */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}

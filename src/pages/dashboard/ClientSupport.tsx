@@ -265,20 +265,20 @@ const ClientSupport = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="space-y-4 md:space-y-8 px-1" dir="rtl">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center justify-between">
           <div>
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="font-display text-3xl font-bold mb-2"
+              className="font-display text-xl md:text-3xl font-bold mb-1 md:mb-2"
             >
               الدعم الفني
             </motion.h1>
-            <p className="text-muted-foreground">تواصل معنا وسنكون سعداء بمساعدتك</p>
+            <p className="text-xs md:text-base text-muted-foreground">تواصل معنا وسنكون سعداء بمساعدتك</p>
           </div>
           <Button 
-            className="bg-gradient-primary hover:opacity-90"
+            className="bg-gradient-primary hover:opacity-90 h-9 md:h-10 text-sm md:text-base w-full md:w-auto"
             onClick={() => setShowNewTicket(!showNewTicket)}
           >
             <Plus className="w-4 h-4 ms-2" />
@@ -353,12 +353,12 @@ const ClientSupport = () => {
           </motion.div>
         )}
 
-        {/* Stats */}
-        <div className="grid sm:grid-cols-3 gap-4">
+        {/* Stats - Mobile Optimized */}
+        <div className="grid grid-cols-3 gap-2 md:gap-4">
           {[
-            { label: "التذاكر المفتوحة", value: openCount.toString(), icon: MessageCircle, color: "from-primary to-cyan-400" },
-            { label: "قيد المعالجة", value: inProgressCount.toString(), icon: Clock, color: "from-warning to-orange-400" },
-            { label: "تم الحل", value: resolvedCount.toString(), icon: CheckCircle, color: "from-success to-emerald-400" },
+            { label: "المفتوحة", fullLabel: "التذاكر المفتوحة", value: openCount.toString(), icon: MessageCircle, color: "from-primary to-cyan-400" },
+            { label: "قيد المعالجة", fullLabel: "قيد المعالجة", value: inProgressCount.toString(), icon: Clock, color: "from-warning to-orange-400" },
+            { label: "تم الحل", fullLabel: "تم الحل", value: resolvedCount.toString(), icon: CheckCircle, color: "from-success to-emerald-400" },
           ].map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -367,13 +367,14 @@ const ClientSupport = () => {
               transition={{ delay: index * 0.1 }}
             >
               <Card className="glass border-border/50">
-                <CardContent className="p-6 flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} p-3`}>
+                <CardContent className="p-3 md:p-6 flex flex-col md:flex-row items-center gap-2 md:gap-4">
+                  <div className={`w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-gradient-to-br ${stat.color} p-2 md:p-3`}>
                     <stat.icon className="w-full h-full text-primary-foreground" />
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold font-display">{stat.value}</p>
-                    <p className="text-sm text-muted-foreground">{stat.label}</p>
+                  <div className="text-center md:text-right">
+                    <p className="text-lg md:text-2xl font-bold font-display">{stat.value}</p>
+                    <p className="text-[10px] md:text-sm text-muted-foreground hidden md:block">{stat.fullLabel}</p>
+                    <p className="text-[10px] text-muted-foreground md:hidden">{stat.label}</p>
                   </div>
                 </CardContent>
               </Card>

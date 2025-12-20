@@ -97,28 +97,28 @@ const ClientReferrals = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="space-y-4 md:space-y-6 px-1" dir="rtl">
+        {/* Header - Mobile Optimized */}
+        <div className="flex flex-col gap-2">
           <div>
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="font-display text-2xl lg:text-3xl font-bold mb-2"
+              className="font-display text-xl md:text-3xl font-bold mb-1"
             >
               نظام الإحالة
             </motion.h1>
-            <p className="text-muted-foreground">ادعُ أصدقاءك واكسب عمولة على كل طلب يقومون به</p>
+            <p className="text-xs md:text-base text-muted-foreground">ادعُ أصدقاءك واكسب عمولة على كل طلب</p>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Stats Cards - Mobile Optimized */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
           {[
-            { label: "إجمالي الإحالات", value: stats.totalReferrals, icon: Users, gradient: "from-primary to-cyan-400" },
-            { label: "إحالات مفعّلة", value: stats.convertedReferrals, icon: UserPlus, gradient: "from-success to-emerald-400" },
-            { label: "أرباح معلقة", value: `$${stats.pendingEarnings.toFixed(2)}`, icon: Clock, gradient: "from-warning to-orange-400" },
-            { label: "إجمالي الأرباح", value: `$${stats.totalEarnings.toFixed(2)}`, icon: DollarSign, gradient: "from-accent to-pink-400" },
+            { label: "الإحالات", fullLabel: "إجمالي الإحالات", value: stats.totalReferrals, icon: Users, gradient: "from-primary to-cyan-400" },
+            { label: "مفعّلة", fullLabel: "إحالات مفعّلة", value: stats.convertedReferrals, icon: UserPlus, gradient: "from-success to-emerald-400" },
+            { label: "معلقة", fullLabel: "أرباح معلقة", value: `$${stats.pendingEarnings.toFixed(2)}`, icon: Clock, gradient: "from-warning to-orange-400" },
+            { label: "الأرباح", fullLabel: "إجمالي الأرباح", value: `$${stats.totalEarnings.toFixed(2)}`, icon: DollarSign, gradient: "from-accent to-pink-400" },
           ].map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -127,14 +127,15 @@ const ClientReferrals = () => {
               transition={{ delay: index * 0.05 }}
             >
               <Card className="border-border/30">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.gradient} p-2.5 shadow-lg shrink-0`}>
+                <CardContent className="p-3 md:p-4">
+                  <div className="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-3">
+                    <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-gradient-to-br ${stat.gradient} p-2 md:p-2.5 shadow-lg shrink-0`}>
                       <stat.icon className="w-full h-full text-primary-foreground" />
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-xl font-bold">{stat.value}</p>
-                      <p className="text-xs text-muted-foreground truncate">{stat.label}</p>
+                    <div className="min-w-0 text-center md:text-right">
+                      <p className="text-lg md:text-xl font-bold">{stat.value}</p>
+                      <p className="text-[10px] md:text-xs text-muted-foreground truncate hidden md:block">{stat.fullLabel}</p>
+                      <p className="text-[10px] text-muted-foreground truncate md:hidden">{stat.label}</p>
                     </div>
                   </div>
                 </CardContent>

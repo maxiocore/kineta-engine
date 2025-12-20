@@ -158,35 +158,35 @@ const ClientOrders = () => {
   return (
     <ClientDashboardLayout>
       <motion.div 
-        className="space-y-6 pb-8" 
+        className="space-y-4 md:space-y-6 pb-8 px-1" 
         dir="rtl"
         variants={containerVariants} 
         initial="hidden" 
         animate="visible"
       >
-        {/* Header */}
-        <motion.div variants={itemVariants} className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-primary/20 via-primary/10 to-accent/20 p-6 md:p-8">
+        {/* Header - Mobile Optimized */}
+        <motion.div variants={itemVariants} className="relative overflow-hidden rounded-xl md:rounded-2xl bg-gradient-to-l from-primary/20 via-primary/10 to-accent/20 p-4 md:p-8">
           <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-          <div className="absolute top-0 left-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-40 h-40 bg-accent/20 rounded-full blur-3xl" />
-          <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
+          <div className="absolute top-0 left-0 w-20 md:w-32 h-20 md:h-32 bg-primary/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-0 w-24 md:w-40 h-24 md:h-40 bg-accent/20 rounded-full blur-3xl" />
+          <div className="relative flex flex-col gap-4 md:gap-6">
+            <div className="flex items-center gap-3 md:gap-4">
               <motion.div className="relative" animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity }}>
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/30">
-                  <ShoppingBag className="w-8 h-8 text-primary-foreground" />
+                <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/30">
+                  <ShoppingBag className="w-6 h-6 md:w-8 md:h-8 text-primary-foreground" />
                 </div>
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-success rounded-full flex items-center justify-center">
-                  <Sparkles className="w-3 h-3 text-success-foreground" />
+                <div className="absolute -top-1 -right-1 w-4 h-4 md:w-5 md:h-5 bg-success rounded-full flex items-center justify-center">
+                  <Sparkles className="w-2 h-2 md:w-3 md:h-3 text-success-foreground" />
                 </div>
               </motion.div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold">طلباتي</h1>
-                <p className="text-muted-foreground">إدارة ومتابعة جميع طلباتك في الوقت الفعلي</p>
+              <div className="flex-1">
+                <h1 className="text-xl md:text-3xl font-bold">طلباتي</h1>
+                <p className="text-xs md:text-base text-muted-foreground">إدارة ومتابعة جميع طلباتك</p>
               </div>
             </div>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button onClick={() => navigate('/dashboard/our-services')} className="h-12 px-6 gap-3 btn-brand rounded-xl">
-                <ShoppingBag className="w-5 h-5" />
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full md:w-auto">
+              <Button onClick={() => navigate('/dashboard/our-services')} className="w-full md:w-auto h-10 md:h-12 px-4 md:px-6 gap-2 md:gap-3 btn-brand rounded-xl text-sm md:text-base">
+                <ShoppingBag className="w-4 h-4 md:w-5 md:h-5" />
                 طلب جديد
               </Button>
             </motion.div>

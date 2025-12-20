@@ -142,20 +142,20 @@ const ClientRewards = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
+      <div className="space-y-4 md:space-y-6 px-1" dir="rtl">
+        {/* Header - Mobile Optimized */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="font-display text-2xl sm:text-3xl font-bold mb-2">
+          <h1 className="font-display text-xl md:text-3xl font-bold mb-1 md:mb-2">
             نقاط المكافآت
           </h1>
-          <p className="text-muted-foreground">اكسب نقاط مع كل طلب واستبدلها برصيد</p>
+          <p className="text-xs md:text-base text-muted-foreground">اكسب نقاط مع كل طلب واستبدلها برصيد</p>
         </motion.div>
 
         {/* Points Summary */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
           {/* Main Points Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
