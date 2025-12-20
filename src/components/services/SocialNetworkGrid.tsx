@@ -92,6 +92,19 @@ const SocialNetworkGrid = ({
     fetchCategories();
   }, []);
 
+  // Keywords to exclude design and development categories
+  const designDevKeywords = ['تصميم', 'شعار', 'لوجو', 'design', 'logo', 'بنر', 'banner', 'هوية', 
+    'برمجة', 'تطوير', 'موقع', 'تطبيق', 'dev', 'development', 'website', 'app'];
+
+  const isDesignOrDevCategory = (category: Category) => {
+    const name = category.name.toLowerCase();
+    const nameAr = category.name_ar.toLowerCase();
+    const slug = category.slug.toLowerCase();
+    return designDevKeywords.some(k => 
+      name.includes(k) || nameAr.includes(k) || slug.includes(k)
+    );
+  };
+
   const fetchCategories = async () => {
     const { data, error } = await supabase
       .from("categories")
@@ -100,7 +113,9 @@ const SocialNetworkGrid = ({
       .order("display_order", { ascending: true });
 
     if (!error && data) {
-      setCategories(data);
+      // Filter out design and development categories
+      const socialMediaCategories = data.filter(cat => !isDesignOrDevCategory(cat));
+      setCategories(socialMediaCategories);
     }
     setLoading(false);
   };
