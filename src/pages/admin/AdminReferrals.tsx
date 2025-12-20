@@ -528,17 +528,7 @@ const AdminReferrals = () => {
     <AdminDashboardLayout>
       <div className="space-y-4 md:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row-reverse sm:items-center justify-between gap-3">
-          <div className="flex gap-2 order-1 sm:order-none">
-            <Button variant="outline" onClick={fetchData} size="sm" className="gap-1.5 text-xs sm:text-sm">
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">تحديث</span>
-            </Button>
-            <Button size="sm" className="gap-1.5 text-xs sm:text-sm bg-gradient-to-l from-destructive to-orange-500">
-              <Download className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">تصدير</span>
-            </Button>
-          </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
@@ -548,6 +538,16 @@ const AdminReferrals = () => {
               إدارة الإحالات
             </motion.h1>
             <p className="text-xs sm:text-sm text-muted-foreground">متابعة وإدارة نظام الإحالات والعمولات</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={fetchData} size="sm" className="gap-1.5 text-xs sm:text-sm">
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">تحديث</span>
+            </Button>
+            <Button size="sm" className="gap-1.5 text-xs sm:text-sm bg-gradient-to-l from-destructive to-orange-500">
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">تصدير</span>
+            </Button>
           </div>
         </div>
 
