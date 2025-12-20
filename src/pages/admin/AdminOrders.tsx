@@ -188,33 +188,51 @@ const AdminOrders = () => {
 
   const fetchOrders = async () => {
     console.log("Fetching orders...");
-    const { data, error } = await supabase
+    
+    // First fetch orders with services
+    const { data: ordersData, error: ordersError } = await supabase
       .from("orders")
       .select(`
         id, order_number, status, total_price, notes, admin_notes, created_at, user_id,
-        service:services(id, name, category),
-        profile:profiles(full_name, email)
+        service:services(id, name, category)
       `)
       .order("created_at", { ascending: false });
 
-    console.log("Orders fetch result:", { data, error });
+    console.log("Orders fetch result:", { ordersData, ordersError });
 
-    if (error) {
-      console.error("Error fetching orders:", error);
-      toast.error("خطأ في جلب الطلبات: " + error.message);
-    } else {
-      const ordersData = data as unknown as Order[];
-      console.log("Orders data:", ordersData);
-      setOrders(ordersData);
-      
-      setStats({
-        pending: ordersData.filter(o => o.status === "pending").length,
-        in_progress: ordersData.filter(o => o.status === "in_progress").length,
-        completed: ordersData.filter(o => o.status === "completed").length,
-        cancelled: ordersData.filter(o => o.status === "cancelled").length,
-        total: ordersData.length
-      });
+    if (ordersError) {
+      console.error("Error fetching orders:", ordersError);
+      toast.error("خطأ في جلب الطلبات: " + ordersError.message);
+      setLoading(false);
+      return;
     }
+
+    // Fetch profiles for all users
+    const userIds = [...new Set(ordersData?.map(o => o.user_id) || [])];
+    const { data: profilesData } = await supabase
+      .from("profiles")
+      .select("id, full_name, email")
+      .in("id", userIds);
+
+    // Map profiles to orders
+    const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+    
+    const enrichedOrders = ordersData?.map(order => ({
+      ...order,
+      profile: profilesMap.get(order.user_id) || { full_name: null, email: null }
+    })) as Order[];
+
+    console.log("Enriched orders:", enrichedOrders);
+    setOrders(enrichedOrders);
+    
+    setStats({
+      pending: enrichedOrders.filter(o => o.status === "pending").length,
+      in_progress: enrichedOrders.filter(o => o.status === "in_progress").length,
+      completed: enrichedOrders.filter(o => o.status === "completed").length,
+      cancelled: enrichedOrders.filter(o => o.status === "cancelled").length,
+      total: enrichedOrders.length
+    });
+    
     setLoading(false);
   };
 
