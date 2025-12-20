@@ -1,3 +1,4 @@
+import React, { memo, useMemo } from "react";
 import { motion } from "framer-motion";
 import { 
   Hash, 
@@ -6,10 +7,8 @@ import {
   Eye, 
   Heart, 
   ShoppingCart,
-  Sparkles,
   Zap,
-  Clock,
-  TrendingUp
+  Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,7 +36,7 @@ interface ServiceCardProps {
   onToggleFavorite: (serviceId: string) => void;
 }
 
-const ServiceCard = ({
+const ServiceCard = memo(({
   service,
   index,
   isFavorite,
@@ -45,8 +44,7 @@ const ServiceCard = ({
   onOrder,
   onToggleFavorite,
 }: ServiceCardProps) => {
-  // Parse features
-  const features = (() => {
+  const features = useMemo(() => {
     try {
       if (typeof service.features === 'string') {
         return JSON.parse(service.features);
@@ -55,7 +53,7 @@ const ServiceCard = ({
     } catch {
       return {};
     }
-  })();
+  }, [service.features]);
 
   const minQuantity = features.min || 10;
   const maxQuantity = features.max || 1000000;
@@ -78,22 +76,15 @@ const ServiceCard = ({
         )}
         onClick={() => onViewDetails(service)}
       >
-        {/* Gradient Overlay on Hover */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-accent/0 group-hover:from-primary/5 group-hover:via-primary/3 group-hover:to-accent/5 transition-all duration-500" />
         
-        {/* Animated Border Glow */}
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
           <div className="absolute inset-[-1px] rounded-2xl bg-gradient-to-r from-primary/50 via-accent/50 to-primary/50 blur-sm" />
         </div>
 
         <div className="relative p-4 sm:p-5">
-          {/* Header Row: ID + Price */}
           <div className="flex items-start justify-between gap-3 mb-4">
-            {/* Service ID Badge */}
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="shrink-0"
-            >
+            <motion.div whileHover={{ scale: 1.05 }} className="shrink-0">
               <Badge 
                 variant="outline" 
                 className="font-mono text-xs sm:text-sm px-3 py-1.5 bg-muted/80 border-border hover:bg-primary/10 hover:border-primary/30 transition-colors"
@@ -103,7 +94,6 @@ const ServiceCard = ({
               </Badge>
             </motion.div>
 
-            {/* Price */}
             <div className="flex items-center gap-2">
               <div className="text-left">
                 <motion.div
@@ -120,7 +110,6 @@ const ServiceCard = ({
             </div>
           </div>
 
-          {/* Service Name */}
           <div className="mb-4">
             <h3 className="font-bold text-base sm:text-lg leading-relaxed group-hover:text-primary transition-colors duration-300 line-clamp-2">
               {service.name}
@@ -132,7 +121,6 @@ const ServiceCard = ({
             )}
           </div>
 
-          {/* Features Row */}
           <div className="flex flex-wrap gap-2 mb-4">
             {service.refill_enabled && (
               <motion.div
@@ -158,9 +146,7 @@ const ServiceCard = ({
             </Badge>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex items-center gap-2">
-            {/* Order Button - Primary */}
             <motion.div className="flex-1" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button
                 size="sm"
@@ -175,7 +161,6 @@ const ServiceCard = ({
               </Button>
             </motion.div>
 
-            {/* View Details */}
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
               <Button
                 variant="outline"
@@ -190,7 +175,6 @@ const ServiceCard = ({
               </Button>
             </motion.div>
 
-            {/* Favorite */}
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
               <Button
                 variant="outline"
@@ -214,6 +198,8 @@ const ServiceCard = ({
       </div>
     </motion.div>
   );
-};
+});
+
+ServiceCard.displayName = 'ServiceCard';
 
 export default ServiceCard;

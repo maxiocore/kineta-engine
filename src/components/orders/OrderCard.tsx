@@ -1,3 +1,4 @@
+import React, { memo, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Clock, CheckCircle, AlertCircle, XCircle, Loader2, ChevronLeft, Copy, Check, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,6 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import { useState } from "react";
 import { toast } from "sonner";
 
 interface OrderCardProps {
@@ -39,18 +39,18 @@ const getStatusConfig = (status: string) => {
   }
 };
 
-export const OrderCard = ({ order, index, onClick }: OrderCardProps) => {
+export const OrderCard = memo(({ order, index, onClick }: OrderCardProps) => {
   const [copied, setCopied] = useState(false);
   const statusConfig = getStatusConfig(order.status);
   const StatusIcon = statusConfig.icon;
 
-  const copyOrderNumber = (e: React.MouseEvent) => {
+  const copyOrderNumber = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     navigator.clipboard.writeText(order.order_number);
     setCopied(true);
     toast.success("تم نسخ رقم الطلب");
     setTimeout(() => setCopied(false), 2000);
-  };
+  }, [order.order_number]);
 
   const isAnimating = order.status === "in_progress" || order.status === "processing";
 
@@ -215,6 +215,8 @@ export const OrderCard = ({ order, index, onClick }: OrderCardProps) => {
       </div>
     </motion.div>
   );
-};
+});
+
+OrderCard.displayName = 'OrderCard';
 
 export default OrderCard;
