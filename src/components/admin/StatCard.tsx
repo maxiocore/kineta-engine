@@ -52,11 +52,11 @@ const StatCard = ({
       dir="rtl"
     >
       <Card className={cn(
-        "border-border/30 hover:border-primary/30 transition-all duration-300 group overflow-hidden",
+        "border-border/30 hover:border-primary/30 transition-all duration-300 group overflow-hidden w-full min-w-0",
         shadowColor,
         "shadow-md hover:shadow-lg"
       )}>
-        <CardContent className="p-2 sm:p-3 lg:p-4 relative">
+        <CardContent className="p-1.5 sm:p-3 lg:p-4 relative">
           {/* Background Glow */}
           <div className={cn(
             "absolute -top-12 -left-12 w-24 h-24 rounded-full blur-2xl opacity-10 group-hover:opacity-20 transition-opacity duration-500",
@@ -67,7 +67,7 @@ const StatCard = ({
             <div className="flex flex-row-reverse items-start justify-between mb-1 sm:mb-2">
               <motion.div 
                 className={cn(
-                  "w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-md sm:rounded-lg p-1.5 sm:p-2 shadow-sm relative overflow-hidden",
+                  "w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-md sm:rounded-lg p-1 sm:p-2 shadow-sm relative overflow-hidden flex-shrink-0",
                   `bg-gradient-to-br ${gradient}`
                 )}
                 whileHover={{ scale: 1.05, rotate: 5 }}
@@ -92,8 +92,8 @@ const StatCard = ({
               )}
             </div>
 
-            <div className="space-y-0 text-right">
-              <div className="text-sm sm:text-base lg:text-xl xl:text-2xl font-bold tracking-tight">
+            <div className="space-y-0 text-right min-w-0">
+              <div className="text-xs sm:text-base lg:text-xl xl:text-2xl font-bold tracking-tight truncate">
                 <AnimatedCounter 
                   value={value} 
                   prefix={prefix}
@@ -101,7 +101,7 @@ const StatCard = ({
                   duration={1.2}
                 />
               </div>
-              <p className="text-[8px] sm:text-[9px] lg:text-[10px] text-muted-foreground font-medium truncate">{title}</p>
+              <p className="text-[7px] sm:text-[9px] lg:text-[10px] text-muted-foreground font-medium truncate">{title}</p>
             </div>
 
             {/* Hover Line */}
