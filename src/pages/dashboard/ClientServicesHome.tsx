@@ -15,8 +15,6 @@ import {
   Twitter,
   MessageCircle,
   Send,
-  Music,
-  Linkedin,
   Globe2,
   Layers,
   Zap,
@@ -134,16 +132,6 @@ const ClientServicesHome = () => {
     { icon: Clock, title: 'متابعة لحظية', color: 'from-purple-500 to-pink-400' },
   ];
 
-  const quickPlatforms = [
-    { icon: Instagram, name: 'انستغرام', gradient: 'from-pink-500 via-purple-500 to-orange-400' },
-    { icon: Facebook, name: 'فيسبوك', gradient: 'from-blue-600 to-blue-500' },
-    { icon: Youtube, name: 'يوتيوب', gradient: 'from-red-600 to-red-500' },
-    { icon: Twitter, name: 'تويتر', gradient: 'from-sky-500 to-sky-400' },
-    { icon: MessageCircle, name: 'تيك توك', gradient: 'from-gray-800 to-gray-700' },
-    { icon: Send, name: 'تيليجرام', gradient: 'from-blue-500 to-blue-400' },
-    { icon: Music, name: 'سبوتيفاي', gradient: 'from-green-600 to-green-500' },
-    { icon: Linkedin, name: 'لينكدان', gradient: 'from-blue-700 to-blue-600' },
-  ];
 
   const totalServices = servicesCount.social + servicesCount.design + servicesCount.dev;
 
@@ -307,42 +295,6 @@ const ClientServicesHome = () => {
               <span className="text-sm font-medium text-foreground">{feature.title}</span>
             </motion.div>
           ))}
-        </motion.div>
-
-        {/* Quick Access Platforms */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <h2 className="text-base sm:text-lg font-bold text-foreground">وصول سريع</h2>
-          </div>
-          
-          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 sm:gap-3">
-            {quickPlatforms.map((platform, index) => (
-              <motion.div
-                key={platform.name}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.6 + index * 0.03 }}
-                whileHover={{ scale: 1.08, y: -3 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Link to="/dashboard/services">
-                  <div className="flex flex-col items-center gap-2 p-3 sm:p-4 rounded-xl bg-card/50 border border-border/30 hover:border-primary/30 hover:bg-card transition-all cursor-pointer group">
-                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${platform.gradient} flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow`}>
-                      <platform.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                    </div>
-                    <span className="text-[10px] sm:text-xs text-muted-foreground group-hover:text-foreground transition-colors font-medium text-center">
-                      {platform.name}
-                    </span>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
         </motion.div>
 
         {/* CTA Banner */}
