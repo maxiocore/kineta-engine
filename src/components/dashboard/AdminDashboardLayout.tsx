@@ -563,7 +563,7 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
           isSidebarOpen ? "lg:mr-[280px]" : "lg:mr-[80px]"
         )}
       >
-        <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto pb-20 lg:pb-8">
+        <div className="p-2 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto pb-20 lg:pb-8 overflow-x-hidden">
           {children}
         </div>
       </main>

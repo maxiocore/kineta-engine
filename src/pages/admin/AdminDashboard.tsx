@@ -386,7 +386,7 @@ const AdminDashboard = () => {
   return (
     <AdminDashboardLayout>
       <motion.div 
-        className="space-y-3 sm:space-y-4 lg:space-y-6 px-1 sm:px-0"
+        className="space-y-3 sm:space-y-4 lg:space-y-6 w-full max-w-full overflow-x-hidden"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -435,7 +435,7 @@ const AdminDashboard = () => {
 
           <TabsContent value="overview" className="space-y-3 sm:space-y-4 lg:space-y-6">
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-3 lg:gap-4 w-full">
               {statsData.map((stat, index) => (
                 <StatCard
                   key={stat.title}
