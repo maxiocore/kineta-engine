@@ -318,17 +318,19 @@ const AdminSupport = () => {
         dir="rtl"
       >
         {/* Header */}
-        <motion.div variants={itemVariants}>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
-            <motion.div
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-            >
-              <HeadphonesIcon className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-            </motion.div>
-            إدارة الدعم الفني
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground">إدارة تذاكر الدعم والرد على العملاء</p>
+        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+              >
+                <HeadphonesIcon className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+              </motion.div>
+              إدارة الدعم الفني
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">إدارة تذاكر الدعم والرد على العملاء</p>
+          </div>
         </motion.div>
 
         {/* Stats */}
