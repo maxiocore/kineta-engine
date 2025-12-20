@@ -555,8 +555,24 @@ const ClientServices = () => {
     return counts;
   }, [services]);
 
+  // Filter out design and development services from social media section
+  const isDesignOrDevService = (service: Service) => {
+    const name = service.name.toLowerCase();
+    const category = service.category.toLowerCase();
+    const designKeywords = ['تصميم', 'شعار', 'لوجو', 'design', 'logo', 'بنر', 'banner', 'هوية'];
+    const devKeywords = ['برمجة', 'تطوير', 'موقع', 'تطبيق', 'dev', 'development', 'website', 'app'];
+    
+    return designKeywords.some(k => name.includes(k) || category.includes(k)) ||
+           devKeywords.some(k => name.includes(k) || category.includes(k));
+  };
+
   const filteredServices = useMemo(() => {
     return services.filter(service => {
+      // Exclude design and development services from social media section
+      if (isDesignOrDevService(service)) {
+        return false;
+      }
+
       const matchesSearch = 
         service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         service.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
