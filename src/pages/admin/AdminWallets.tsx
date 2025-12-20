@@ -333,11 +333,7 @@ const AdminWallets = () => {
     <AdminDashboardLayout>
       <div className="space-y-4 sm:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row-reverse justify-between items-start sm:items-center gap-3 sm:gap-4">
-          <Button onClick={() => { refetchBalances(); refetchDeposits(); }} variant="outline" className="gap-2 w-full sm:w-auto" size="sm">
-            <RefreshCw className="h-4 w-4" />
-            تحديث
-          </Button>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div className="flex-1">
             <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
               <Wallet className="h-5 w-5 sm:h-7 sm:w-7 text-primary" />
@@ -345,6 +341,10 @@ const AdminWallets = () => {
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">إدارة أرصدة المستخدمين والإيداعات</p>
           </div>
+          <Button onClick={() => { refetchBalances(); refetchDeposits(); }} variant="outline" className="gap-2 w-full sm:w-auto" size="sm">
+            <RefreshCw className="h-4 w-4" />
+            تحديث
+          </Button>
         </div>
 
         {/* Stats Cards */}

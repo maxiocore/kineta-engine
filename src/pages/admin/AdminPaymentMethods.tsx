@@ -255,17 +255,7 @@ const AdminPaymentMethods = () => {
     <AdminDashboardLayout>
       <div className="space-y-4 md:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row-reverse justify-between items-start sm:items-center gap-3">
-          <div className="flex gap-2 order-1 sm:order-none">
-            <Button onClick={() => openBonusDialog()} variant="outline" size="sm" className="gap-1.5 text-xs sm:text-sm">
-              <Gift className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">إضافة بونص</span>
-            </Button>
-            <Button onClick={() => openMethodDialog()} size="sm" className="gap-1.5 text-xs sm:text-sm">
-              <Plus className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">إضافة طريقة</span>
-            </Button>
-          </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2 sm:gap-3">
               <CreditCard className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
@@ -274,6 +264,16 @@ const AdminPaymentMethods = () => {
             <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               إدارة طرق الدفع والبونصات
             </p>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => openBonusDialog()} variant="outline" size="sm" className="gap-1.5 text-xs sm:text-sm">
+              <Gift className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">إضافة بونص</span>
+            </Button>
+            <Button onClick={() => openMethodDialog()} size="sm" className="gap-1.5 text-xs sm:text-sm">
+              <Plus className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">إضافة طريقة</span>
+            </Button>
           </div>
         </div>
 
