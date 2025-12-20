@@ -1,3 +1,4 @@
+import React, { memo, useMemo } from "react";
 import { motion } from "framer-motion";
 import { 
   Star, 
@@ -42,7 +43,7 @@ interface EnhancedServiceCardProps {
 
 const featureIcons = [CheckCircle2, Star, Zap, Award, Shield];
 
-const EnhancedServiceCard = ({
+const EnhancedServiceCard = memo(({
   service,
   index,
   icon: IconComponent,
@@ -54,15 +55,16 @@ const EnhancedServiceCard = ({
   showBestSeller = false,
   viewMode = "grid"
 }: EnhancedServiceCardProps) => {
-  const getFeatures = (): string[] => {
+  const features = useMemo((): string[] => {
     if (Array.isArray(service.features)) return service.features.slice(0, 3);
     return [];
-  };
+  }, [service.features]);
 
-  const features = getFeatures();
-  const gradientClass = gradientVia 
-    ? `from-${gradientFrom} via-${gradientVia} to-${gradientTo}`
-    : `from-${gradientFrom} to-${gradientTo}`;
+  const gradientClass = useMemo(() => {
+    return gradientVia 
+      ? `from-${gradientFrom} via-${gradientVia} to-${gradientTo}`
+      : `from-${gradientFrom} to-${gradientTo}`;
+  }, [gradientFrom, gradientVia, gradientTo]);
 
   if (viewMode === "list") {
     return (
@@ -315,6 +317,8 @@ const EnhancedServiceCard = ({
       </Card>
     </motion.div>
   );
-};
+});
+
+EnhancedServiceCard.displayName = 'EnhancedServiceCard';
 
 export default EnhancedServiceCard;
