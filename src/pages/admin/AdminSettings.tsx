@@ -32,31 +32,9 @@ const AdminSettings = () => {
 
   return (
     <AdminDashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-4 sm:space-y-6 lg:space-y-8" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: "spring" }}
-                className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20"
-              >
-                <Settings className="w-6 h-6 text-primary" />
-              </motion.div>
-              <h1 className="font-display text-3xl font-bold">إعدادات النظام</h1>
-              <Badge variant="outline" className="text-xs">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse ml-1" />
-                متصل
-              </Badge>
-            </div>
-            <p className="text-muted-foreground">تكوين وإدارة إعدادات المنصة - التغييرات تُحفظ تلقائياً</p>
-          </motion.div>
-
+        <div className="flex flex-col sm:flex-row-reverse sm:items-center sm:justify-between gap-3 sm:gap-4">
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -65,16 +43,40 @@ const AdminSettings = () => {
             <Button 
               variant="outline" 
               onClick={refetch}
-              className="gap-2"
+              className="gap-2 w-full sm:w-auto"
+              size="sm"
             >
               <RefreshCw className="w-4 h-4" />
-              تحديث
+              <span className="sm:inline">تحديث</span>
             </Button>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex-1"
+          >
+            <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2 flex-wrap">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring" }}
+                className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20"
+              >
+                <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+              </motion.div>
+              <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold">إعدادات النظام</h1>
+              <Badge variant="outline" className="text-[10px] sm:text-xs">
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500 animate-pulse ml-1" />
+                متصل
+              </Badge>
+            </div>
+            <p className="text-xs sm:text-sm text-muted-foreground">تكوين وإدارة إعدادات المنصة</p>
           </motion.div>
         </div>
 
         {/* Settings Grid */}
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
           <GeneralSettings 
             settings={settings} 
             saving={saving} 
@@ -113,10 +115,10 @@ const AdminSettings = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="flex items-center justify-center gap-2 py-4 text-sm text-muted-foreground"
+          className="flex items-center justify-center gap-2 py-3 sm:py-4 text-xs sm:text-sm text-muted-foreground"
         >
-          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span>جميع الإعدادات محفوظة ومتزامنة في الوقت الفعلي</span>
+          <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500 animate-pulse" />
+          <span className="text-center">جميع الإعدادات محفوظة ومتزامنة</span>
         </motion.div>
       </div>
     </AdminDashboardLayout>

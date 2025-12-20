@@ -248,23 +248,23 @@ const AdminNotifications = () => {
 
   return (
     <AdminDashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-3">
-              <Bell className="w-8 h-8 text-primary" />
-              مركز الإشعارات
-            </h1>
-            <p className="text-muted-foreground mt-1">متابعة الطلبات والتذاكر في الوقت الحقيقي</p>
-          </div>
+        <div className="flex flex-col sm:flex-row-reverse sm:items-center justify-between gap-3 sm:gap-4">
           <Dialog open={notificationDialogOpen} onOpenChange={setNotificationDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
+              <Button className="gap-2 w-full sm:w-auto" size="sm">
                 <Plus className="w-4 h-4" />
                 <span>إرسال إشعار</span>
               </Button>
             </DialogTrigger>
+          <div className="flex-1">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2 sm:gap-3">
+              <Bell className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+              مركز الإشعارات
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">متابعة الطلبات والتذاكر في الوقت الحقيقي</p>
+          </div>
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>إرسال إشعار جديد</DialogTitle>
@@ -348,7 +348,7 @@ const AdminNotifications = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           {statsData.map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -357,14 +357,14 @@ const AdminNotifications = () => {
               transition={{ delay: index * 0.1 }}
             >
               <Card className="card-elevated border-border/30">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${stat.color} p-2.5 shadow-lg`}>
+                <CardContent className="p-2.5 sm:p-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-gradient-to-br ${stat.color} p-2 sm:p-2.5 shadow-lg flex-shrink-0`}>
                       <stat.icon className="w-full h-full text-primary-foreground" />
                     </div>
-                    <div>
-                      <p className="text-2xl font-bold">{stat.value.toLocaleString("ar-SA")}</p>
-                      <p className="text-xs text-muted-foreground">{stat.label}</p>
+                    <div className="min-w-0">
+                      <p className="text-lg sm:text-2xl font-bold">{stat.value.toLocaleString("ar-SA")}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{stat.label}</p>
                     </div>
                   </div>
                 </CardContent>
