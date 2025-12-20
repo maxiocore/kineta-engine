@@ -14,7 +14,6 @@ import {
   Star,
   Clock,
   ArrowLeft,
-  Eye,
   Sparkles,
   Zap,
   Award,
@@ -23,22 +22,19 @@ import {
   Image,
   Globe,
   Rocket,
-  Heart,
   Users,
   MessageSquare,
-  CheckCircle2,
   Target,
 } from "lucide-react";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import EnhancedServiceCard from "@/components/services/EnhancedServiceCard";
 
 interface Service {
   id: string;
@@ -69,7 +65,7 @@ const LiveIndicator = () => (
 );
 
 const ServiceFeatureIcon = ({ index }: { index: number }) => {
-  const icons = [CheckCircle2, Star, Zap, Award, Shield];
+  const icons = [Check, Star, Zap, Award, Shield];
   const Icon = icons[index % icons.length];
   return <Icon className="w-3.5 h-3.5 text-green-500" />;
 };
@@ -354,179 +350,31 @@ const ClientDesignServices = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className={`grid gap-5 lg:gap-6 ${
+              className={`grid gap-4 sm:gap-5 lg:gap-6 ${
                 viewMode === "grid" 
-                  ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3" 
+                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" 
                   : "grid-cols-1"
               }`}
             >
               {filteredServices.map((service, index) => {
                 const IconComponent = getServiceIcon(index);
                 return (
-                  <motion.div
+                  <EnhancedServiceCard
                     key={service.id}
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.05 * index }}
-                    whileHover={{ y: -6, scale: 1.02 }}
-                    className="group"
-                  >
-                    <Card className="h-full relative overflow-hidden border-0 bg-gradient-to-br from-card via-card to-card/80 shadow-xl hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 rounded-2xl">
-                      {/* Background Decorations */}
-                      <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-fuchsia-500/10 to-purple-500/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      
-
-                      <CardHeader className="relative z-10 pb-3">
-                        {/* Price and Badges Row */}
-                        <div className="flex items-center justify-between mb-4">
-                          <motion.p 
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent"
-                          >
-                            {service.price.toFixed(0)} ر.س
-                          </motion.p>
-                          
-                          {/* Service Icon */}
-                          <motion.div 
-                            whileHover={{ scale: 1.1, rotate: 5 }}
-                            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30"
-                          >
-                            <IconComponent className="w-7 h-7 text-white" />
-                          </motion.div>
-                        </div>
-
-                        {/* Service Name - Full Width with Animation */}
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.1 }}
-                          className="mb-3"
-                        >
-                          <motion.h3 
-                            className="font-bold text-xl leading-tight group-hover:text-purple-500 transition-colors"
-                            whileHover={{ x: 5 }}
-                          >
-                            {service.name}
-                          </motion.h3>
-                        </motion.div>
-
-                        {/* Badges Row */}
-                        <div className="flex items-center gap-2 flex-wrap mb-2">
-                          {index === 0 && (
-                            <motion.div
-                              initial={{ scale: 0, rotate: -10 }}
-                              animate={{ scale: 1, rotate: 0 }}
-                              transition={{ type: "spring", delay: 0.2 }}
-                            >
-                              <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg gap-1 px-2.5 py-1 text-xs">
-                                <Star className="w-3.5 h-3.5 fill-current" />
-                                الأكثر طلباً
-                              </Badge>
-                            </motion.div>
-                          )}
-                          {index === 1 && (
-                            <motion.div
-                              initial={{ scale: 0, rotate: 10 }}
-                              animate={{ scale: 1, rotate: 0 }}
-                              transition={{ type: "spring", delay: 0.2 }}
-                            >
-                              <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-lg gap-1 px-2.5 py-1 text-xs">
-                                <Sparkles className="w-3.5 h-3.5" />
-                                جديد
-                              </Badge>
-                            </motion.div>
-                          )}
-                          {service.refill_enabled && (
-                            <Badge variant="outline" className="text-xs h-6 gap-1 border-green-500/30 text-green-600">
-                              <Shield className="w-3 h-3" />
-                              ضمان
-                            </Badge>
-                          )}
-                        </div>
-
-                        {/* Delivery Time */}
-                        <motion.div 
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: 0.15 }}
-                          className="flex items-center gap-1.5 text-muted-foreground"
-                        >
-                          <Clock className="w-4 h-4" />
-                          <span className="text-sm">تسليم 24-48 ساعة</span>
-                        </motion.div>
-                      </CardHeader>
-
-                      <CardContent className="relative z-10 pt-0 space-y-4">
-                        {service.description && (
-                          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
-                            {service.description}
-                          </p>
-                        )}
-
-                        {/* Features */}
-                        {getFeatures(service).length > 0 && (
-                          <div className="space-y-2.5 p-3 rounded-xl bg-muted/30 border border-border/30">
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">مميزات الخدمة</p>
-                            {getFeatures(service).slice(0, 4).map((feature, idx) => (
-                              <motion.div
-                                key={idx}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.2 + idx * 0.05 }}
-                                className="flex items-center gap-2.5"
-                              >
-                                <div className="w-5 h-5 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                                  <ServiceFeatureIcon index={idx} />
-                                </div>
-                                <span className="text-sm text-foreground/80">{feature}</span>
-                              </motion.div>
-                            ))}
-                            {getFeatures(service).length > 4 && (
-                              <p className="text-xs text-purple-500 font-medium mr-7">
-                                +{getFeatures(service).length - 4} مميزات أخرى
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Service Highlights */}
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Badge variant="secondary" className="gap-1 text-xs">
-                            <Heart className="w-3 h-3 text-pink-500" />
-                            تصميم مخصص
-                          </Badge>
-                          <Badge variant="secondary" className="gap-1 text-xs">
-                            <MessageSquare className="w-3 h-3 text-blue-500" />
-                            تعديلات مجانية
-                          </Badge>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex gap-3 pt-4 border-t border-border/30">
-                          <Button
-                            onClick={() => {
-                              setSelectedService(service);
-                              setDetailsDialogOpen(true);
-                            }}
-                            variant="outline"
-                            className="flex-1 gap-2 h-11 rounded-xl hover:bg-purple-500/10 hover:border-purple-500/50"
-                          >
-                            <Eye className="w-4 h-4" />
-                            التفاصيل
-                          </Button>
-                          <Button
-                            onClick={() => handleOrderClick(service)}
-                            className="flex-1 gap-2 h-11 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 hover:from-purple-600 hover:via-fuchsia-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/30"
-                          >
-                            <ShoppingCart className="w-4 h-4" />
-                            اطلب الآن
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
+                    service={service}
+                    index={index}
+                    icon={IconComponent}
+                    gradientFrom="purple-500"
+                    gradientVia="fuchsia-500"
+                    gradientTo="pink-500"
+                    onOrder={handleOrderClick}
+                    onViewDetails={() => {
+                      setSelectedService(service);
+                      setDetailsDialogOpen(true);
+                    }}
+                    showBestSeller={true}
+                    viewMode={viewMode}
+                  />
                 );
               })}
             </motion.div>
