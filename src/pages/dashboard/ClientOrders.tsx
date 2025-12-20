@@ -157,7 +157,13 @@ const ClientOrders = () => {
 
   return (
     <ClientDashboardLayout>
-      <motion.div className="space-y-6 pb-8" variants={containerVariants} initial="hidden" animate="visible">
+      <motion.div 
+        className="space-y-6 pb-8" 
+        dir="rtl"
+        variants={containerVariants} 
+        initial="hidden" 
+        animate="visible"
+      >
         {/* Header */}
         <motion.div variants={itemVariants} className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-primary/20 via-primary/10 to-accent/20 p-6 md:p-8">
           <div className="absolute inset-0 bg-grid-pattern opacity-5" />

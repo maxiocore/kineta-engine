@@ -61,227 +61,307 @@ export const OrdersAdvancedFilters = ({
   ];
 
   return (
-    <Card className="border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden">
-      <CardContent className="p-4 space-y-4">
-        {/* Main Filter Row */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          {/* Search Input */}
-          <div className="relative flex-1 group">
-            <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
-            <Input 
-              placeholder="البحث برقم الطلب أو اسم الخدمة..." 
-              className="h-12 pr-12 bg-muted/30 border-border/50 rounded-xl transition-all focus:bg-background focus:ring-2 focus:ring-primary/20"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8"
-                onClick={() => setSearchQuery("")}
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-
-          {/* Status Filter */}
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-52 h-12 rounded-xl bg-muted/30 border-border/50">
-              <Filter className="w-4 h-4 ml-2" />
-              <SelectValue placeholder="فلترة الحالة" />
-            </SelectTrigger>
-            <SelectContent>
-              {statusOptions.map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  <div className="flex items-center gap-2">
-                    <div className={cn("w-2 h-2 rounded-full", option.color)} />
-                    {option.label}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Date Range Filter */}
-          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-            <PopoverTrigger asChild>
-              <Button 
-                variant="outline" 
-                className={cn(
-                  "h-12 px-4 rounded-xl border-border/50 bg-muted/30",
-                  (dateRange.from || dateRange.to) && "border-primary/50"
-                )}
-              >
-                <Calendar className="w-4 h-4 ml-2" />
-                {dateRange.from ? (
-                  dateRange.to ? (
-                    <span className="text-sm">
-                      {format(dateRange.from, "d MMM", { locale: ar })} - {format(dateRange.to, "d MMM", { locale: ar })}
-                    </span>
-                  ) : (
-                    format(dateRange.from, "d MMM yyyy", { locale: ar })
-                  )
-                ) : (
-                  "نطاق التاريخ"
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <CalendarComponent
-                mode="range"
-                selected={{ from: dateRange.from, to: dateRange.to }}
-                onSelect={(range) => {
-                  setDateRange({ from: range?.from, to: range?.to });
-                  if (range?.to) setCalendarOpen(false);
-                }}
-                numberOfMonths={1}
-                locale={ar}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <Card className="border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden" dir="rtl">
+        <CardContent className="p-4 space-y-4">
+          {/* Main Filter Row */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Search Input */}
+            <motion.div 
+              className="relative flex-1 group"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
+              <Input 
+                placeholder="البحث برقم الطلب أو اسم الخدمة..." 
+                className="h-12 pr-12 pl-10 bg-muted/30 border-border/50 rounded-xl transition-all focus:bg-background focus:ring-2 focus:ring-primary/20 text-right"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
-              {(dateRange.from || dateRange.to) && (
-                <div className="p-3 border-t">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="w-full"
-                    onClick={() => {
-                      setDateRange({ from: undefined, to: undefined });
-                      setCalendarOpen(false);
-                    }}
+              {searchQuery && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8"
+                    onClick={() => setSearchQuery("")}
                   >
-                    مسح التاريخ
+                    <X className="w-4 h-4" />
                   </Button>
-                </div>
+                </motion.div>
               )}
-            </PopoverContent>
-          </Popover>
+            </motion.div>
 
-          {/* Advanced Filters Toggle */}
-          <Button
-            variant="outline"
-            className={cn(
-              "h-12 px-4 rounded-xl border-border/50",
-              showAdvanced && "bg-primary/10 border-primary/50"
-            )}
-            onClick={() => setShowAdvanced(!showAdvanced)}
-          >
-            <SlidersHorizontal className="w-4 h-4 ml-2" />
-            متقدم
-            <ChevronDown className={cn(
-              "w-4 h-4 mr-2 transition-transform",
-              showAdvanced && "rotate-180"
-            )} />
-          </Button>
+            {/* Status Filter */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15 }}
+            >
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-52 h-12 rounded-xl bg-muted/30 border-border/50 flex-row-reverse">
+                  <SelectValue placeholder="فلترة الحالة" />
+                  <Filter className="w-4 h-4 mr-2" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      <div className="flex items-center gap-2 flex-row-reverse">
+                        {option.label}
+                        <div className={cn("w-2 h-2 rounded-full", option.color)} />
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </motion.div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                onClick={onRefresh} 
-                disabled={isRefreshing}
-                className="h-12 w-12 rounded-xl border-border/50"
+            {/* Date Range Filter */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className={cn(
+                      "h-12 px-4 rounded-xl border-border/50 bg-muted/30 flex-row-reverse gap-2",
+                      (dateRange.from || dateRange.to) && "border-primary/50 bg-primary/5"
+                    )}
+                  >
+                    {dateRange.from ? (
+                      dateRange.to ? (
+                        <span className="text-sm">
+                          {format(dateRange.from, "d MMM", { locale: ar })} - {format(dateRange.to, "d MMM", { locale: ar })}
+                        </span>
+                      ) : (
+                        format(dateRange.from, "d MMM yyyy", { locale: ar })
+                      )
+                    ) : (
+                      "نطاق التاريخ"
+                    )}
+                    <Calendar className="w-4 h-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <CalendarComponent
+                    mode="range"
+                    selected={{ from: dateRange.from, to: dateRange.to }}
+                    onSelect={(range) => {
+                      setDateRange({ from: range?.from, to: range?.to });
+                      if (range?.to) setCalendarOpen(false);
+                    }}
+                    numberOfMonths={1}
+                    locale={ar}
+                  />
+                  {(dateRange.from || dateRange.to) && (
+                    <div className="p-3 border-t">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => {
+                          setDateRange({ from: undefined, to: undefined });
+                          setCalendarOpen(false);
+                        }}
+                      >
+                        مسح التاريخ
+                      </Button>
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
+            </motion.div>
+
+            {/* Advanced Filters Toggle */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.25 }}
+            >
+              <Button
+                variant="outline"
+                className={cn(
+                  "h-12 px-4 rounded-xl border-border/50 flex-row-reverse gap-2 transition-all duration-300",
+                  showAdvanced && "bg-primary/10 border-primary/50"
+                )}
+                onClick={() => setShowAdvanced(!showAdvanced)}
               >
-                <RefreshCw className={cn("w-5 h-5", isRefreshing && "animate-spin")} />
+                <motion.div
+                  animate={{ rotate: showAdvanced ? 180 : 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </motion.div>
+                متقدم
+                <SlidersHorizontal className="w-4 h-4" />
               </Button>
             </motion.div>
-            
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                onClick={onExport}
-                className="h-12 w-12 rounded-xl border-border/50 hover:bg-success/10 hover:border-success/50 hover:text-success"
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 flex-row-reverse">
+              <motion.div 
+                whileHover={{ scale: 1.08, rotate: 5 }} 
+                whileTap={{ scale: 0.92 }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
               >
-                <Download className="w-5 h-5" />
-              </Button>
-            </motion.div>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={onRefresh} 
+                  disabled={isRefreshing}
+                  className="h-12 w-12 rounded-xl border-border/50 hover:bg-primary/10 hover:border-primary/50"
+                >
+                  <RefreshCw className={cn("w-5 h-5", isRefreshing && "animate-spin")} />
+                </Button>
+              </motion.div>
+              
+              <motion.div 
+                whileHover={{ scale: 1.08, rotate: -5 }} 
+                whileTap={{ scale: 0.92 }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.35 }}
+              >
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={onExport}
+                  className="h-12 w-12 rounded-xl border-border/50 hover:bg-success/10 hover:border-success/50 hover:text-success"
+                >
+                  <Download className="w-5 h-5" />
+                </Button>
+              </motion.div>
+            </div>
           </div>
-        </div>
 
-        {/* Active Filters & Results Count */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 flex-wrap">
+          {/* Active Filters & Results Count */}
+          <AnimatePresence>
             {hasActiveFilters && (
-              <>
-                <Badge variant="secondary" className="gap-1">
-                  {filteredCount} من {totalCount} طلب
-                </Badge>
+              <motion.div 
+                className="flex items-center justify-start gap-2 flex-wrap"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <Badge variant="secondary" className="gap-1 text-sm px-3 py-1">
+                    {filteredCount} من {totalCount} طلب
+                  </Badge>
+                </motion.div>
                 
                 {statusFilter !== "all" && (
-                  <Badge variant="outline" className="gap-1">
-                    {statusOptions.find(s => s.value === statusFilter)?.label}
-                    <button onClick={() => setStatusFilter("all")}>
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
+                  <motion.div
+                    initial={{ scale: 0, x: 20 }}
+                    animate={{ scale: 1, x: 0 }}
+                    exit={{ scale: 0, x: 20 }}
+                  >
+                    <Badge variant="outline" className="gap-1.5 flex-row-reverse px-3 py-1">
+                      <button onClick={() => setStatusFilter("all")} className="hover:text-destructive transition-colors">
+                        <X className="w-3 h-3" />
+                      </button>
+                      {statusOptions.find(s => s.value === statusFilter)?.label}
+                    </Badge>
+                  </motion.div>
                 )}
                 
                 {(dateRange.from || dateRange.to) && (
-                  <Badge variant="outline" className="gap-1">
-                    <Calendar className="w-3 h-3" />
-                    {dateRange.from && format(dateRange.from, "d/M", { locale: ar })}
-                    {dateRange.to && ` - ${format(dateRange.to, "d/M", { locale: ar })}`}
-                    <button onClick={() => setDateRange({ from: undefined, to: undefined })}>
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
+                  <motion.div
+                    initial={{ scale: 0, x: 20 }}
+                    animate={{ scale: 1, x: 0 }}
+                    exit={{ scale: 0, x: 20 }}
+                  >
+                    <Badge variant="outline" className="gap-1.5 flex-row-reverse px-3 py-1">
+                      <button onClick={() => setDateRange({ from: undefined, to: undefined })} className="hover:text-destructive transition-colors">
+                        <X className="w-3 h-3" />
+                      </button>
+                      {dateRange.from && format(dateRange.from, "d/M", { locale: ar })}
+                      {dateRange.to && ` - ${format(dateRange.to, "d/M", { locale: ar })}`}
+                      <Calendar className="w-3 h-3" />
+                    </Badge>
+                  </motion.div>
                 )}
                 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearAllFilters}
-                  className="text-destructive hover:text-destructive h-6 px-2"
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  مسح الكل
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Advanced Filters Panel */}
-        <AnimatePresence>
-          {showAdvanced && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <div className="pt-4 border-t border-border/50 grid grid-cols-2 md:grid-cols-4 gap-4">
-                {/* Quick date filters */}
-                {[
-                  { label: "اليوم", days: 0 },
-                  { label: "آخر 7 أيام", days: 7 },
-                  { label: "آخر 30 يوم", days: 30 },
-                  { label: "آخر 3 أشهر", days: 90 },
-                ].map(filter => (
                   <Button
-                    key={filter.days}
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    className="rounded-lg"
-                    onClick={() => {
-                      const now = new Date();
-                      const from = new Date();
-                      from.setDate(now.getDate() - filter.days);
-                      setDateRange({ from: filter.days === 0 ? now : from, to: now });
-                    }}
+                    onClick={clearAllFilters}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-3 rounded-lg"
                   >
-                    {filter.label}
+                    مسح الكل
                   </Button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </CardContent>
-    </Card>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Advanced Filters Panel */}
+          <AnimatePresence>
+            {showAdvanced && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <div className="pt-4 border-t border-border/50 grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {/* Quick date filters */}
+                  {[
+                    { label: "اليوم", days: 0 },
+                    { label: "آخر 7 أيام", days: 7 },
+                    { label: "آخر 30 يوم", days: 30 },
+                    { label: "آخر 3 أشهر", days: 90 },
+                  ].map((filter, index) => (
+                    <motion.div
+                      key={filter.days}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-lg w-full hover:bg-primary/10 hover:border-primary/50 transition-all"
+                        onClick={() => {
+                          const now = new Date();
+                          const from = new Date();
+                          from.setDate(now.getDate() - filter.days);
+                          setDateRange({ from: filter.days === 0 ? now : from, to: now });
+                        }}
+                      >
+                        {filter.label}
+                      </Button>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 

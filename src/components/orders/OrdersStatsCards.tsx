@@ -71,44 +71,59 @@ export const OrdersStatsCards = ({ stats, totalSpent, previousMonthSpent = 0 }: 
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4" dir="rtl">
       {statCards.map((stat, index) => (
         <motion.div
           key={stat.label}
           variants={cardVariants}
           initial="hidden"
           animate="visible"
-          whileHover={{ y: -4, scale: 1.02 }}
-          transition={{ delay: index * 0.05, type: "spring", stiffness: 300 }}
+          whileHover={{ y: -6, scale: 1.03 }}
+          whileTap={{ scale: 0.98 }}
+          transition={{ delay: index * 0.06, type: "spring", stiffness: 280, damping: 20 }}
           className={cn(
             "lg:col-span-1",
             index === 4 && "col-span-2 lg:col-span-1"
           )}
         >
           <Card className={cn(
-            "border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden group hover:shadow-xl transition-all duration-500",
+            "border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden group hover:shadow-2xl transition-all duration-500",
             stat.glow && `hover:${stat.glow}`
           )}>
             <CardContent className="p-4 relative">
-              {/* Animated background gradient */}
-              <div className={cn(
-                "absolute -top-8 -left-8 w-24 h-24 rounded-full blur-2xl transition-all duration-500 opacity-50 group-hover:opacity-80 group-hover:w-32 group-hover:h-32",
-                stat.bg
-              )} />
+              {/* Animated background gradient - RTL position */}
+              <motion.div 
+                className={cn(
+                  "absolute -top-8 -right-8 w-24 h-24 rounded-full blur-2xl transition-all duration-500 opacity-50",
+                  stat.bg
+                )}
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  opacity: [0.5, 0.7, 0.5]
+                }}
+                transition={{ duration: 4, repeat: Infinity, delay: index * 0.3 }}
+              />
               
-              {/* Shimmer effect on hover */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+              {/* Shimmer effect on hover - RTL direction */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 overflow-hidden">
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-l from-transparent via-white/10 to-transparent"
+                  initial={{ x: "100%" }}
+                  whileHover={{ x: "-100%" }}
+                  transition={{ duration: 0.8 }}
+                />
               </div>
               
-              <div className="relative flex items-center gap-3">
+              <div className="relative flex items-center gap-3 flex-row-reverse">
                 <motion.div 
                   className={cn(
                     "w-12 h-12 rounded-xl bg-gradient-to-br p-2.5 shadow-lg shrink-0 relative overflow-hidden",
                     stat.gradient
                   )}
-                  whileHover={{ rotate: [0, -5, 5, 0] }}
-                  transition={{ duration: 0.5 }}
+                  initial={{ scale: 0, rotate: -20 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ delay: index * 0.08, type: "spring", stiffness: 200 }}
+                  whileHover={{ rotate: [0, -8, 8, 0] }}
                 >
                   <stat.icon className={cn(
                     "w-full h-full text-white relative z-10",
@@ -118,8 +133,8 @@ export const OrdersStatsCards = ({ stats, totalSpent, previousMonthSpent = 0 }: 
                   <div className="absolute inset-0 bg-white/20 blur-md" />
                 </motion.div>
                 
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
+                <div className="min-w-0 flex-1 text-right">
+                  <div className="flex items-center gap-2 justify-end flex-row-reverse">
                     <motion.p 
                       className={cn("font-bold", stat.isPrice ? "text-lg" : "text-2xl")}
                       initial={{ opacity: 0, y: 10 }}
@@ -135,18 +150,18 @@ export const OrdersStatsCards = ({ stats, totalSpent, previousMonthSpent = 0 }: 
                         initial={{ opacity: 0, scale: 0 }}
                         animate={{ opacity: 1, scale: 1 }}
                         className={cn(
-                          "flex items-center text-xs font-medium px-1.5 py-0.5 rounded-full",
+                          "flex items-center text-xs font-medium px-1.5 py-0.5 rounded-full flex-row-reverse",
                           stat.change > 0 
                             ? "bg-success/20 text-success" 
                             : "bg-destructive/20 text-destructive"
                         )}
                       >
-                        {stat.change > 0 ? (
-                          <ArrowUpRight className="w-3 h-3" />
-                        ) : (
-                          <ArrowDownRight className="w-3 h-3" />
-                        )}
                         {Math.abs(stat.change).toFixed(0)}%
+                        {stat.change > 0 ? (
+                          <ArrowUpRight className="w-3 h-3 mr-0.5" />
+                        ) : (
+                          <ArrowDownRight className="w-3 h-3 mr-0.5" />
+                        )}
                       </motion.span>
                     )}
                   </div>
