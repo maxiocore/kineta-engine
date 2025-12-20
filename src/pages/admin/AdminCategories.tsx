@@ -225,80 +225,80 @@ const SortableCategoryCard = ({
   const IconComponent = iconMap[category.icon] || Layers;
 
   return (
-    <div ref={setNodeRef} style={style} className={isSubCategory ? "mr-8" : ""}>
+    <div ref={setNodeRef} style={style} className={isSubCategory ? "mr-4 sm:mr-8" : ""}>
       <Card
         className={`group hover:shadow-lg transition-all ${
           !category.is_active && "opacity-60"
         } ${isDragging && "shadow-2xl ring-2 ring-primary scale-105"} ${isSubCategory && "border-r-4 border-r-primary/50"}`}
       >
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex items-center gap-3">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex items-start justify-between mb-2 sm:mb-3 gap-2">
+            <div className="flex items-center gap-2 sm:gap-3">
               {/* Drag Handle */}
               <button
                 {...attributes}
                 {...listeners}
                 className="cursor-grab active:cursor-grabbing p-1 -m-1 rounded hover:bg-muted/50 touch-none"
               >
-                <GripVertical className="w-5 h-5 text-muted-foreground" />
+                <GripVertical className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
               </button>
               <div
-                className={`w-12 h-12 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center shadow-lg`}
+                className={`w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center shadow-lg shrink-0`}
               >
-                <IconComponent className="w-6 h-6 text-white" />
+                <IconComponent className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold">{category.name_ar}</h3>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                  <h3 className="font-semibold text-sm sm:text-base truncate">{category.name_ar}</h3>
                   {isSubCategory && (
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-[10px] sm:text-xs">
                       فرعي
                     </Badge>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground">{category.name}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">{category.name}</p>
                 {parentCategory && (
-                  <p className="text-xs text-muted-foreground/70 flex items-center gap-1 mt-0.5">
-                    <FolderTree className="w-3 h-3" />
+                  <p className="text-[10px] sm:text-xs text-muted-foreground/70 flex items-center gap-1 mt-0.5">
+                    <FolderTree className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                     تابع لـ: {parentCategory.name_ar}
                   </p>
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-0.5 sm:gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8"
+                className="h-7 w-7 sm:h-8 sm:w-8"
                 onClick={() => onEdit(category)}
               >
-                <Pencil className="w-4 h-4" />
+                <Pencil className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-destructive hover:text-destructive"
+                className="h-7 w-7 sm:h-8 sm:w-8 text-destructive hover:text-destructive"
                 onClick={() => onDelete(category)}
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </Button>
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs">
+          <div className="flex items-center justify-between text-xs sm:text-sm flex-wrap gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Badge variant="secondary" className="text-[10px] sm:text-xs">
                 {serviceCount} خدمة
               </Badge>
               {subCategoriesCount > 0 && (
-                <Badge variant="outline" className="text-xs">
-                  {subCategoriesCount} قسم فرعي
+                <Badge variant="outline" className="text-[10px] sm:text-xs">
+                  {subCategoriesCount} فرعي
                 </Badge>
               )}
-              <span className="text-muted-foreground">#{category.display_order}</span>
+              <span className="text-muted-foreground hidden sm:inline">#{category.display_order}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">
+              <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline">
                 {category.is_active ? "نشط" : "غير نشط"}
               </span>
               <Switch
@@ -308,7 +308,7 @@ const SortableCategoryCard = ({
             </div>
           </div>
 
-          <div className="mt-2 text-xs text-muted-foreground">/{category.slug}</div>
+          <div className="mt-1.5 sm:mt-2 text-[10px] sm:text-xs text-muted-foreground">/{category.slug}</div>
         </CardContent>
       </Card>
     </div>

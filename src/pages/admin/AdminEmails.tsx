@@ -474,26 +474,22 @@ const AdminEmails = () => {
 
   return (
     <AdminDashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-display font-bold">إدارة البريد الإلكتروني</h1>
-            <p className="text-muted-foreground mt-1">إدارة الرسائل والقوالب والحملات البريدية</p>
-          </div>
+        <div className="flex flex-col sm:flex-row-reverse sm:items-center justify-between gap-3">
           <Dialog open={newEmailDialogOpen} onOpenChange={setNewEmailDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="w-4 h-4" />
-                <span>إنشاء رسالة جديدة</span>
+              <Button size="sm" className="gap-1.5 text-xs sm:text-sm order-1 sm:order-none">
+                <Plus className="w-3.5 h-3.5" />
+                <span>إنشاء رسالة</span>
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>إنشاء رسالة بريد جديدة</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 mt-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">نوع الرسالة</label>
                     <Select value={newEmail.type} onValueChange={(value) => setNewEmail(prev => ({ ...prev, type: value }))}>
@@ -557,10 +553,14 @@ const AdminEmails = () => {
               </div>
             </DialogContent>
           </Dialog>
+          <div>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold">إدارة البريد الإلكتروني</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">إدارة الرسائل والقوالب والحملات</p>
+          </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {emailStats.map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -569,14 +569,14 @@ const AdminEmails = () => {
               transition={{ delay: index * 0.1 }}
             >
               <Card className="glass border-border/50">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center`}>
-                      <stat.icon className="w-5 h-5 text-white" />
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center shrink-0`}>
+                      <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
-                    <div>
-                      <p className="text-xl font-bold">{stat.value}</p>
-                      <p className="text-xs text-muted-foreground">{stat.label}</p>
+                    <div className="min-w-0">
+                      <p className="text-lg sm:text-xl font-bold">{stat.value}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{stat.label}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -587,21 +587,21 @@ const AdminEmails = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="sent" className="space-y-4">
-          <TabsList className="grid grid-cols-4 w-full max-w-md">
-            <TabsTrigger value="sent" className="gap-2">
-              <Send className="w-4 h-4" />
+          <TabsList className="grid grid-cols-4 w-full max-w-md text-xs sm:text-sm">
+            <TabsTrigger value="sent" className="gap-1 sm:gap-2 px-2">
+              <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">المرسلة</span>
             </TabsTrigger>
-            <TabsTrigger value="templates" className="gap-2">
-              <FileText className="w-4 h-4" />
+            <TabsTrigger value="templates" className="gap-1 sm:gap-2 px-2">
+              <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">القوالب</span>
             </TabsTrigger>
-            <TabsTrigger value="campaigns" className="gap-2">
-              <Users className="w-4 h-4" />
+            <TabsTrigger value="campaigns" className="gap-1 sm:gap-2 px-2">
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">الحملات</span>
             </TabsTrigger>
-            <TabsTrigger value="inbox" className="gap-2">
-              <Inbox className="w-4 h-4" />
+            <TabsTrigger value="inbox" className="gap-1 sm:gap-2 px-2">
+              <Inbox className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">الواردة</span>
             </TabsTrigger>
           </TabsList>

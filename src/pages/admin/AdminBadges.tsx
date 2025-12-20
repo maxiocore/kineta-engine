@@ -329,74 +329,74 @@ const AdminBadges = () => {
 
   return (
     <AdminDashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row-reverse justify-between items-start sm:items-center gap-3">
+          <Button onClick={() => handleOpenForm()} size="sm" className="gap-1.5 text-xs sm:text-sm">
+            <Plus className="w-3.5 h-3.5" />
+            إضافة شارة
+          </Button>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
-              <Award className="w-8 h-8 text-primary" />
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2 sm:gap-3">
+              <Award className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               إدارة الشارات
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               إنشاء وتعديل شارات المكافآت للمستخدمين
             </p>
           </div>
-          <Button onClick={() => handleOpenForm()} className="gap-2">
-            <Plus className="w-4 h-4" />
-            إضافة شارة
-          </Button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card className="border-primary/20">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Award className="w-5 h-5 text-primary" />
+            <CardContent className="p-3 sm:pt-6">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <Award className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{totalStats.totalBadges}</p>
-                  <p className="text-sm text-muted-foreground">إجمالي الشارات</p>
+                <div className="min-w-0">
+                  <p className="text-lg sm:text-2xl font-bold">{totalStats.totalBadges}</p>
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">إجمالي الشارات</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card className="border-success/20">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
-                  <Trophy className="w-5 h-5 text-success" />
+            <CardContent className="p-3 sm:pt-6">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-success/10 flex items-center justify-center shrink-0">
+                  <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{totalStats.activeBadges}</p>
-                  <p className="text-sm text-muted-foreground">شارات مفعّلة</p>
+                <div className="min-w-0">
+                  <p className="text-lg sm:text-2xl font-bold">{totalStats.activeBadges}</p>
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">شارات مفعّلة</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card className="border-accent/20">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-accent" />
+            <CardContent className="p-3 sm:pt-6">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{totalStats.totalAwarded}</p>
-                  <p className="text-sm text-muted-foreground">شارات ممنوحة</p>
+                <div className="min-w-0">
+                  <p className="text-lg sm:text-2xl font-bold">{totalStats.totalAwarded}</p>
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">شارات ممنوحة</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card className="border-warning/20">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-warning" />
+            <CardContent className="p-3 sm:pt-6">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-warning/10 flex items-center justify-center shrink-0">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-warning" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{totalStats.uniqueUsers}</p>
-                  <p className="text-sm text-muted-foreground">مستخدم حاصل على شارات</p>
+                <div className="min-w-0">
+                  <p className="text-lg sm:text-2xl font-bold">{totalStats.uniqueUsers}</p>
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">حاصل على شارات</p>
                 </div>
               </div>
             </CardContent>

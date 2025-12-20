@@ -253,80 +253,80 @@ const AdminPaymentMethods = () => {
 
   return (
     <AdminDashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row-reverse justify-between items-start sm:items-center gap-3">
+          <div className="flex gap-2 order-1 sm:order-none">
+            <Button onClick={() => openBonusDialog()} variant="outline" size="sm" className="gap-1.5 text-xs sm:text-sm">
+              <Gift className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">إضافة بونص</span>
+            </Button>
+            <Button onClick={() => openMethodDialog()} size="sm" className="gap-1.5 text-xs sm:text-sm">
+              <Plus className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">إضافة طريقة</span>
+            </Button>
+          </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
-              <CreditCard className="w-8 h-8 text-primary" />
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2 sm:gap-3">
+              <CreditCard className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               طرق الدفع
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               إدارة طرق الدفع والبونصات
             </p>
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={() => openBonusDialog()} variant="outline" className="gap-2">
-              <Gift className="w-4 h-4" />
-              إضافة بونص
-            </Button>
-            <Button onClick={() => openMethodDialog()} className="gap-2">
-              <Plus className="w-4 h-4" />
-              إضافة طريقة دفع
-            </Button>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <CreditCard className="w-5 h-5 text-primary" />
+            <CardContent className="p-3 sm:pt-6">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{methods.length}</p>
-                  <p className="text-sm text-muted-foreground">طرق الدفع</p>
+                <div className="min-w-0">
+                  <p className="text-lg sm:text-2xl font-bold">{methods.length}</p>
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">طرق الدفع</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
-                  <DollarSign className="w-5 h-5 text-success" />
+            <CardContent className="p-3 sm:pt-6">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-success/10 flex items-center justify-center shrink-0">
+                  <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{methods.filter(m => m.is_active).length}</p>
-                  <p className="text-sm text-muted-foreground">مفعّلة</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
-                  <Gift className="w-5 h-5 text-warning" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{bonuses.length}</p>
-                  <p className="text-sm text-muted-foreground">البونصات</p>
+                <div className="min-w-0">
+                  <p className="text-lg sm:text-2xl font-bold">{methods.filter(m => m.is_active).length}</p>
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">مفعّلة</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-                  <Percent className="w-5 h-5 text-accent" />
+            <CardContent className="p-3 sm:pt-6">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-warning/10 flex items-center justify-center shrink-0">
+                  <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-warning" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{bonuses.filter(b => b.is_active).length}</p>
-                  <p className="text-sm text-muted-foreground">بونصات مفعّلة</p>
+                <div className="min-w-0">
+                  <p className="text-lg sm:text-2xl font-bold">{bonuses.length}</p>
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">البونصات</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-3 sm:pt-6">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+                  <Percent className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-lg sm:text-2xl font-bold">{bonuses.filter(b => b.is_active).length}</p>
+                  <p className="text-[10px] sm:text-sm text-muted-foreground truncate">بونصات مفعّلة</p>
                 </div>
               </div>
             </CardContent>

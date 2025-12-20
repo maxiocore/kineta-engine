@@ -419,35 +419,35 @@ const AdminLogs = () => {
 
   return (
     <AdminDashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row-reverse sm:items-center justify-between gap-3">
+          <div className="flex gap-2 order-1 sm:order-none">
+            <Button variant="outline" onClick={fetchLogs} size="sm" className="gap-1.5 text-xs sm:text-sm">
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">تحديث</span>
+            </Button>
+            <Button variant="outline" onClick={exportLogs} size="sm" className="gap-1.5 text-xs sm:text-sm">
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">تصدير</span>
+            </Button>
+          </div>
           <div>
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-2 sm:gap-3 mb-1">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20"
+                className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20"
               >
-                <FileText className="w-6 h-6 text-primary" />
+                <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
               </motion.div>
-              <h1 className="text-2xl md:text-3xl font-display font-bold">سجل العمليات</h1>
-              <Badge variant="outline" className="text-xs">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse ml-1" />
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold">سجل العمليات</h1>
+              <Badge variant="outline" className="text-[10px] sm:text-xs">
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500 animate-pulse ml-1" />
                 مباشر
               </Badge>
             </div>
-            <p className="text-muted-foreground">تتبع جميع الأنشطة والعمليات في النظام بشكل لحظي</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={fetchLogs} className="gap-2">
-              <RefreshCw className="w-4 h-4" />
-              تحديث
-            </Button>
-            <Button variant="outline" onClick={exportLogs} className="gap-2">
-              <Download className="w-4 h-4" />
-              تصدير
-            </Button>
+            <p className="text-xs sm:text-sm text-muted-foreground">تتبع جميع الأنشطة والعمليات في النظام</p>
           </div>
         </div>
 

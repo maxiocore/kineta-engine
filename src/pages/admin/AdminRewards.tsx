@@ -533,56 +533,60 @@ const AdminRewards = () => {
   return (
     <AdminDashboardLayout>
       <motion.div
-        className="space-y-6"
+        className="space-y-4 md:space-y-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        dir="rtl"
       >
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-bold flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-                <Award className="w-5 h-5 text-white" />
-              </div>
-              نظام المكافآت
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              إدارة مستويات المكافآت والنقاط
-            </p>
-          </div>
-
-          <div className="flex gap-3 flex-wrap">
+        <div className="flex flex-col sm:flex-row-reverse sm:items-center justify-between gap-3">
+          <div className="flex gap-2 flex-wrap order-1 sm:order-none">
             <Button
               variant="outline"
               onClick={() => setGrantDialogOpen(true)}
-              className="gap-2"
+              size="sm"
+              className="gap-1.5 text-xs sm:text-sm"
             >
-              <Send className="w-4 h-4" />
-              منح نقاط
+              <Send className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">منح نقاط</span>
             </Button>
             <Button
               variant="outline"
               onClick={() => setDeductDialogOpen(true)}
-              className="gap-2 text-destructive hover:text-destructive"
+              size="sm"
+              className="gap-1.5 text-xs sm:text-sm text-destructive hover:text-destructive"
             >
-              <Minus className="w-4 h-4" />
-              خصم نقاط
+              <Minus className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">خصم نقاط</span>
             </Button>
             <Button
               variant="outline"
               onClick={() => navigate("/admin/rewards/reports")}
-              className="gap-2"
+              size="sm"
+              className="gap-1.5 text-xs sm:text-sm"
             >
-              <BarChart3 className="w-4 h-4" />
-              التقارير
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">التقارير</span>
             </Button>
             <Button
               onClick={() => handleOpenDialog()}
-              className="gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+              size="sm"
+              className="gap-1.5 text-xs sm:text-sm bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
             >
-              <Plus className="w-4 h-4" />
-              إضافة مستوى
+              <Plus className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">إضافة مستوى</span>
             </Button>
+          </div>
+          <div>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+                <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              </div>
+              نظام المكافآت
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+              إدارة مستويات المكافآت والنقاط
+            </p>
           </div>
         </div>
 

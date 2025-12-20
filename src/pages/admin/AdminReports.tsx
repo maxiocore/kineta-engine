@@ -264,22 +264,12 @@ const AdminReports = () => {
 
   return (
     <AdminDashboardLayout>
-      <div className="space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="font-display text-3xl font-bold mb-2"
-            >
-              التقارير والإحصائيات
-            </motion.h1>
-            <p className="text-muted-foreground">تحليل شامل لأداء المنصة</p>
-          </div>
-          <div className="flex gap-2">
+      <div className="space-y-4 md:space-y-6 lg:space-y-8" dir="rtl">
+        <div className="flex flex-col sm:flex-row-reverse sm:items-center justify-between gap-3">
+          <div className="flex gap-2 order-1 sm:order-none">
             <Select value={dateRange} onValueChange={setDateRange}>
-              <SelectTrigger className="w-40">
-                <Calendar className="w-4 h-4 ml-2" />
+              <SelectTrigger className="w-28 sm:w-40 text-xs sm:text-sm">
+                <Calendar className="w-3.5 h-3.5 ml-1.5" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -288,10 +278,20 @@ const AdminReports = () => {
                 <SelectItem value="12">آخر سنة</SelectItem>
               </SelectContent>
             </Select>
-            <Button className="bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground gap-2">
-              <Download className="w-4 h-4" />
-              تصدير
+            <Button size="sm" className="bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground gap-1.5 text-xs sm:text-sm">
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">تصدير</span>
             </Button>
+          </div>
+          <div>
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="font-display text-xl sm:text-2xl lg:text-3xl font-bold mb-1"
+            >
+              التقارير والإحصائيات
+            </motion.h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">تحليل شامل لأداء المنصة</p>
           </div>
         </div>
 
