@@ -337,59 +337,62 @@ const AdminServices = () => {
 
   return (
     <AdminDashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-3 sm:space-y-4 lg:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
+        <div className="flex flex-col sm:flex-row-reverse sm:items-center justify-between gap-3">
+          <div className="text-right">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-3 mb-2"
+              className="flex flex-row-reverse items-center gap-2 mb-1"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-400 p-2.5">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br from-primary to-cyan-400 p-1.5 sm:p-2">
                 <Package className="w-full h-full text-primary-foreground" />
               </div>
-              <h1 className="text-2xl md:text-3xl font-bold">إدارة الخدمات</h1>
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">إدارة الخدمات</h1>
             </motion.div>
-            <p className="text-muted-foreground">إضافة وتعديل وإدارة الخدمات المقدمة</p>
+            <p className="text-muted-foreground text-xs sm:text-sm">إضافة وتعديل وإدارة الخدمات المقدمة</p>
           </div>
           
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-row-reverse flex-wrap gap-2">
             <Button 
               variant="outline" 
               size="icon"
               onClick={handleRefresh}
               disabled={refreshing}
+              className="h-8 w-8"
             >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
             </Button>
             <Link to="/admin/services/import">
-              <Button variant="outline" className="gap-2">
-                <Download className="w-4 h-4" />
-                استيراد
+              <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs flex flex-row-reverse">
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">استيراد</span>
               </Button>
             </Link>
             <Link to="/admin/services/prices">
-              <Button variant="outline" className="gap-2">
-                <DollarSign className="w-4 h-4" />
-                الأسعار
+              <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs flex flex-row-reverse">
+                <DollarSign className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">الأسعار</span>
               </Button>
             </Link>
             <Button 
               variant="outline" 
-              className="gap-2 text-destructive border-destructive/50 hover:bg-destructive/10"
+              size="sm"
+              className="gap-1.5 h-8 text-xs text-destructive border-destructive/50 hover:bg-destructive/10 flex flex-row-reverse"
               onClick={() => setIsBulkDeleteOpen(true)}
               disabled={services.length === 0}
             >
-              <Trash2 className="w-4 h-4" />
-              حذف جماعي
+              <Trash2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">حذف</span>
             </Button>
             <Button 
               onClick={openNewDialog} 
-              className="bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground gap-2"
+              size="sm"
+              className="bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground gap-1.5 h-8 text-xs flex flex-row-reverse"
             >
-              <Plus className="w-4 h-4" />
-              إضافة خدمة
+              <Plus className="w-3.5 h-3.5" />
+              إضافة
             </Button>
           </div>
         </div>
@@ -403,8 +406,8 @@ const AdminServices = () => {
         />
 
         {/* Social Network Grid */}
-        <Card className="glass border-border/50">
-          <CardContent className="p-4">
+        <Card className="border-border/50">
+          <CardContent className="p-2.5 sm:p-3 lg:p-4">
             <SocialNetworkGrid
               selectedCategory={selectedCategory}
               onCategoryChange={setSelectedCategory}
@@ -431,30 +434,30 @@ const AdminServices = () => {
 
         {/* Services List */}
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
         ) : filteredServices.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <Card className="glass border-border/50">
-              <CardContent className="py-16 text-center">
+            <Card className="border-border/50">
+              <CardContent className="py-10 text-center">
                 <motion.div
-                  animate={{ y: [0, -10, 0] }}
+                  animate={{ y: [0, -8, 0] }}
                   transition={{ repeat: Infinity, duration: 2 }}
                 >
-                  <Sparkles className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+                  <Sparkles className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
                 </motion.div>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground text-sm">
                   {searchQuery || selectedCategory !== "all" || selectedStatus !== "all"
                     ? "لا توجد نتائج مطابقة للبحث"
                     : "لا توجد خدمات. ابدأ بإضافة خدمة جديدة."}
                 </p>
                 {!searchQuery && selectedCategory === "all" && selectedStatus === "all" && (
-                  <Button onClick={openNewDialog} className="mt-4" variant="outline">
-                    <Plus className="w-4 h-4 ms-2" />
+                  <Button onClick={openNewDialog} className="mt-3" variant="outline" size="sm">
+                    <Plus className="w-3.5 h-3.5 ml-1.5" />
                     إضافة أول خدمة
                   </Button>
                 )}
@@ -464,7 +467,7 @@ const AdminServices = () => {
         ) : (
           <AnimatePresence mode="popLayout">
             <div className={viewMode === "grid" 
-              ? "grid sm:grid-cols-2 lg:grid-cols-3 gap-6" 
+              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5"
               : "space-y-3"
             }>
               {filteredServices.map((service, index) => (
