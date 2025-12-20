@@ -380,15 +380,15 @@ const AdminApiProviders = () => {
       <div className="space-y-4 sm:space-y-6" dir="rtl">
         {/* Header */}
         <div className="flex flex-col gap-3 sm:gap-4">
-          <div className="flex flex-col sm:flex-row-reverse justify-between items-start sm:items-center gap-3">
-            <Button onClick={() => handleOpenDialog()} className="gap-2 w-full sm:w-auto" size="sm">
-              <Plus className="h-4 w-4" />
-              إضافة مزود
-            </Button>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex-1">
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">إعدادات المزودين</h1>
               <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">إدارة مواقع SMM الخارجية</p>
             </div>
+            <Button onClick={() => handleOpenDialog()} className="gap-2 w-full sm:w-auto" size="sm">
+              <Plus className="h-4 w-4" />
+              إضافة مزود
+            </Button>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9" size="sm" onClick={fetchAllBalances}>
