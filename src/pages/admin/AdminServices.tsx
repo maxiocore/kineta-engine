@@ -339,12 +339,12 @@ const AdminServices = () => {
     <AdminDashboardLayout>
       <div className="space-y-3 sm:space-y-4 lg:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row-reverse sm:items-center justify-between gap-3">
-          <div className="text-right">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex flex-row-reverse items-center gap-2 mb-1"
+              className="flex items-center gap-2 mb-1"
             >
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br from-primary to-cyan-400 p-1.5 sm:p-2">
                 <Package className="w-full h-full text-primary-foreground" />
@@ -354,7 +354,7 @@ const AdminServices = () => {
             <p className="text-muted-foreground text-xs sm:text-sm">إضافة وتعديل وإدارة الخدمات المقدمة</p>
           </div>
           
-          <div className="flex flex-row-reverse flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button 
               variant="outline" 
               size="icon"
@@ -365,13 +365,13 @@ const AdminServices = () => {
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
             </Button>
             <Link to="/admin/services/import">
-              <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs flex flex-row-reverse">
+              <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs">
                 <Download className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">استيراد</span>
               </Button>
             </Link>
             <Link to="/admin/services/prices">
-              <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs flex flex-row-reverse">
+              <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs">
                 <DollarSign className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">الأسعار</span>
               </Button>
@@ -379,7 +379,7 @@ const AdminServices = () => {
             <Button 
               variant="outline" 
               size="sm"
-              className="gap-1.5 h-8 text-xs text-destructive border-destructive/50 hover:bg-destructive/10 flex flex-row-reverse"
+              className="gap-1.5 h-8 text-xs text-destructive border-destructive/50 hover:bg-destructive/10"
               onClick={() => setIsBulkDeleteOpen(true)}
               disabled={services.length === 0}
             >
@@ -389,7 +389,7 @@ const AdminServices = () => {
             <Button 
               onClick={openNewDialog} 
               size="sm"
-              className="bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground gap-1.5 h-8 text-xs flex flex-row-reverse"
+              className="bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground gap-1.5 h-8 text-xs"
             >
               <Plus className="w-3.5 h-3.5" />
               إضافة

@@ -393,9 +393,9 @@ const AdminDashboard = () => {
         dir="rtl"
       >
         {/* Header */}
-        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row-reverse sm:items-center justify-between gap-2 sm:gap-4">
-          <div className="text-right">
-            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold mb-1 flex flex-row-reverse items-center gap-2">
+        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+          <div>
+            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold mb-1 flex items-center gap-2">
               <motion.div
                 className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center"
                 animate={{ rotate: [0, 10, -10, 0] }}
@@ -409,7 +409,7 @@ const AdminDashboard = () => {
           </div>
           
           <motion.div 
-            className="flex flex-row-reverse items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-success/10 border border-success/20 self-end sm:self-auto"
+            className="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-success/10 border border-success/20 self-start sm:self-auto"
             animate={{ opacity: [1, 0.7, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
@@ -421,11 +421,11 @@ const AdminDashboard = () => {
         {/* Tabs for Overview and Analytics */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full max-w-xs sm:max-w-sm grid-cols-2 mb-3 sm:mb-4 h-9 sm:h-10">
-            <TabsTrigger value="overview" className="flex flex-row-reverse items-center gap-1.5 text-xs sm:text-sm">
+            <TabsTrigger value="overview" className="flex items-center gap-1.5 text-xs sm:text-sm">
               <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
               نظرة عامة
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex flex-row-reverse items-center gap-1.5 text-xs sm:text-sm">
+            <TabsTrigger value="analytics" className="flex items-center gap-1.5 text-xs sm:text-sm">
               <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
               الإحصائيات
             </TabsTrigger>
