@@ -366,96 +366,145 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
         </div>
       </motion.aside>
 
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 sm:h-16 bg-card/95 backdrop-blur-xl border-b border-border/50 z-50 flex items-center justify-between px-3 sm:px-4">
-        <Button variant="ghost" size="icon" className="w-9 h-9 sm:w-10 sm:h-10" onClick={() => setIsMobileMenuOpen(true)}>
-          <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
-        </Button>
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg shadow-destructive/30">
-            <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
+      {/* Mobile Header - Enhanced */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-gradient-to-b from-card via-card to-card/95 backdrop-blur-xl border-b border-border/40 z-50 shadow-sm">
+        <div className="h-full flex items-center justify-between px-3 safe-area-inset">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="w-10 h-10 rounded-xl hover:bg-secondary/80" 
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+          
+          <motion.div 
+            className="flex items-center gap-2"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg shadow-destructive/30">
+              <Shield className="w-4 h-4 text-primary-foreground" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-sm leading-tight">لوحة الأدمن</span>
+              <span className="text-[10px] text-muted-foreground leading-tight">ماركت برو</span>
+            </div>
+          </motion.div>
+          
+          <div className="flex items-center gap-0.5">
+            <NotificationBell />
+            <ThemeToggle />
           </div>
-          <span className="font-bold text-sm sm:text-base">لوحة الأدمن</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <NotificationBell />
-          <ThemeToggle />
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - Enhanced */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="lg:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-50"
+            className="lg:hidden fixed inset-0 bg-background/60 backdrop-blur-md z-50"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="absolute top-0 right-0 h-full w-[85vw] max-w-80 bg-card border-l border-border/50 overflow-y-auto"
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="absolute top-0 right-0 h-full w-[88vw] max-w-[320px] bg-gradient-to-b from-card via-card to-background border-l border-border/40 flex flex-col shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-4 border-b border-border/50 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center">
+              {/* Header */}
+              <div className="p-4 border-b border-border/40 flex items-center justify-between bg-gradient-to-b from-secondary/20 to-transparent">
+                <div className="flex items-center gap-3">
+                  <motion.div 
+                    className="w-10 h-10 rounded-xl bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg"
+                    whileHover={{ scale: 1.05, rotate: 5 }}
+                  >
                     <Shield className="w-5 h-5 text-primary-foreground" />
+                  </motion.div>
+                  <div>
+                    <span className="font-bold block">لوحة التحكم</span>
+                    <span className="text-xs text-muted-foreground">ماركت برو</span>
                   </div>
-                  <span className="font-bold">القائمة</span>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="rounded-xl hover:bg-secondary"
+                >
                   <X className="w-5 h-5" />
                 </Button>
               </div>
 
               {/* Mobile Search */}
-              <div className="p-4 border-b border-border/30">
+              <div className="p-3 border-b border-border/30">
                 <div className="relative">
                   <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input 
-                    placeholder="بحث..."
-                    className="pr-9 bg-secondary/50 border-border/50"
+                    placeholder="بحث سريع..."
+                    className="pr-10 h-11 bg-secondary/50 border-border/40 rounded-xl text-sm"
                   />
                 </div>
               </div>
 
-              <nav className="p-4 space-y-1">
+              {/* Navigation - Scrollable */}
+              <nav className="flex-1 overflow-y-auto p-3 space-y-0.5 overscroll-contain">
                 {adminNavItems.map((item, index) => {
                   const badge = navBadges[item.href];
+                  const active = isActive(item.href);
                   
                   return (
                     <motion.div
                       key={item.href}
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.03 }}
+                      transition={{ delay: index * 0.02 }}
                     >
                       <Link
                         to={item.href}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
-                          "flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
-                          isActive(item.href)
-                            ? "bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground"
-                            : "text-muted-foreground hover:bg-secondary"
+                          "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 relative group",
+                          active
+                            ? "bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground shadow-lg shadow-destructive/20"
+                            : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground active:scale-[0.98]"
                         )}
                       >
-                        <item.icon className="w-5 h-5" />
-                        <span className="font-medium flex-1">{item.label}</span>
+                        {/* Active indicator */}
+                        {active && (
+                          <motion.div
+                            layoutId="mobileActiveNav"
+                            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"
+                          />
+                        )}
+                        
+                        <div className={cn(
+                          "w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors",
+                          active ? "bg-white/20" : "bg-secondary/50 group-hover:bg-secondary"
+                        )}>
+                          <item.icon className="w-4 h-4" />
+                        </div>
+                        
+                        <span className="font-medium flex-1 text-sm">{item.label}</span>
+                        
                         {badge && badge > 0 && (
-                          <span className={cn(
-                            "px-2 py-0.5 text-xs font-bold rounded-full",
-                            isActive(item.href)
-                              ? "bg-primary-foreground/20 text-primary-foreground"
-                              : "bg-destructive/10 text-destructive"
-                          )}>
+                          <motion.span
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className={cn(
+                              "min-w-6 h-6 px-2 flex items-center justify-center text-xs font-bold rounded-full",
+                              active
+                                ? "bg-white/20 text-white"
+                                : "bg-destructive text-destructive-foreground"
+                            )}
+                          >
                             {badge}
-                          </span>
+                          </motion.span>
                         )}
                       </Link>
                     </motion.div>
@@ -463,23 +512,23 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                 })}
               </nav>
 
-              {/* Mobile Admin Info */}
-              <div className="p-4 border-t border-border/50 mt-auto">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center">
-                    <Shield className="w-5 h-5 text-primary-foreground" />
+              {/* Mobile Admin Info - Fixed Bottom */}
+              <div className="p-4 border-t border-border/40 bg-gradient-to-t from-secondary/30 to-transparent">
+                <div className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-secondary/30">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg">
+                    <Shield className="w-6 h-6 text-primary-foreground" />
                   </div>
-                  <div>
-                    <p className="font-medium">{profile?.full_name || "المدير"}</p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold truncate">{profile?.full_name || "المدير"}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                      Super Admin
+                      Super Admin • متصل
                     </p>
                   </div>
                 </div>
                 <Button 
                   variant="outline" 
-                  className="w-full gap-2 border-destructive/30 text-destructive"
+                  className="w-full h-11 gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 font-medium"
                   onClick={handleSignOut}
                 >
                   <LogOut className="w-4 h-4" />
@@ -491,14 +540,14 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
         )}
       </AnimatePresence>
 
-      {/* Main Content */}
+      {/* Main Content - Enhanced for mobile */}
       <main
         className={cn(
-          "flex-1 transition-all duration-300 pt-14 sm:pt-16 lg:pt-0",
+          "flex-1 transition-all duration-300 pt-14 lg:pt-0 min-h-screen",
           isSidebarOpen ? "lg:mr-[280px]" : "lg:mr-[80px]"
         )}
       >
-        <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">{children}</div>
+        <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto pb-20 lg:pb-8">{children}</div>
       </main>
     </div>
   );

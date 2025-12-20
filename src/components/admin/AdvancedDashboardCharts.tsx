@@ -220,20 +220,20 @@ export const AdvancedDashboardCharts = ({ orders, deposits, users }: AdvancedDas
   };
 
   return (
-    <div className="space-y-6">
-      {/* Key Metrics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Key Metrics Cards - Optimized for mobile */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <Card className="border-border/50 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-            <CardContent className="p-4 relative">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-primary/20">
-                  <DollarSign className="h-5 w-5 text-primary" />
+            <div className="absolute top-0 right-0 w-16 sm:w-20 h-16 sm:h-20 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <CardContent className="p-3 sm:p-4 relative">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-primary/20">
+                  <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-xs text-muted-foreground">إجمالي الإيرادات</p>
-                  <p className="text-xl font-bold">{totalRevenue.toLocaleString()} ر.س</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate">إجمالي الإيرادات</p>
+                  <p className="text-base sm:text-xl font-bold truncate">{totalRevenue.toLocaleString()} <span className="text-xs font-normal">ر.س</span></p>
                 </div>
               </div>
             </CardContent>
@@ -242,15 +242,15 @@ export const AdvancedDashboardCharts = ({ orders, deposits, users }: AdvancedDas
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
           <Card className="border-border/50 bg-gradient-to-br from-green-500/10 to-green-500/5 overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-            <CardContent className="p-4 relative">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-green-500/20">
-                  <TrendingUp className="h-5 w-5 text-green-500" />
+            <div className="absolute top-0 right-0 w-16 sm:w-20 h-16 sm:h-20 bg-green-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <CardContent className="p-3 sm:p-4 relative">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-green-500/20">
+                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-xs text-muted-foreground">إجمالي الإيداعات</p>
-                  <p className="text-xl font-bold">{totalDeposits.toLocaleString()} ر.س</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate">إجمالي الإيداعات</p>
+                  <p className="text-base sm:text-xl font-bold truncate">{totalDeposits.toLocaleString()} <span className="text-xs font-normal">ر.س</span></p>
                 </div>
               </div>
             </CardContent>
@@ -259,15 +259,15 @@ export const AdvancedDashboardCharts = ({ orders, deposits, users }: AdvancedDas
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <Card className="border-border/50 bg-gradient-to-br from-blue-500/10 to-blue-500/5 overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-            <CardContent className="p-4 relative">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-blue-500/20">
-                  <ShoppingBag className="h-5 w-5 text-blue-500" />
+            <div className="absolute top-0 right-0 w-16 sm:w-20 h-16 sm:h-20 bg-blue-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <CardContent className="p-3 sm:p-4 relative">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-blue-500/20">
+                  <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-xs text-muted-foreground">متوسط قيمة الطلب</p>
-                  <p className="text-xl font-bold">{avgOrderValue.toFixed(2)} ر.س</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate">متوسط قيمة الطلب</p>
+                  <p className="text-base sm:text-xl font-bold truncate">{avgOrderValue.toFixed(2)} <span className="text-xs font-normal">ر.س</span></p>
                 </div>
               </div>
             </CardContent>
@@ -276,15 +276,15 @@ export const AdvancedDashboardCharts = ({ orders, deposits, users }: AdvancedDas
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
           <Card className="border-border/50 bg-gradient-to-br from-purple-500/10 to-purple-500/5 overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-purple-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-            <CardContent className="p-4 relative">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-purple-500/20">
-                  <Percent className="h-5 w-5 text-purple-500" />
+            <div className="absolute top-0 right-0 w-16 sm:w-20 h-16 sm:h-20 bg-purple-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <CardContent className="p-3 sm:p-4 relative">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-purple-500/20">
+                  <Percent className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-xs text-muted-foreground">نسبة الإكمال</p>
-                  <p className="text-xl font-bold">{completionRate.toFixed(1)}%</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate">نسبة الإكمال</p>
+                  <p className="text-base sm:text-xl font-bold">{completionRate.toFixed(1)}%</p>
                 </div>
               </div>
             </CardContent>
@@ -295,30 +295,30 @@ export const AdvancedDashboardCharts = ({ orders, deposits, users }: AdvancedDas
       {/* Revenue & Orders Trend Chart */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
         <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-          <CardHeader className="pb-2">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <CardHeader className="p-4 sm:pb-2">
+            <div className="flex flex-col gap-2">
               <div>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Activity className="h-5 w-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                  <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   تحليل الإيرادات والطلبات
                 </CardTitle>
-                <CardDescription>آخر 6 أشهر</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">آخر 6 أشهر</CardDescription>
               </div>
-              <div className="flex gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-primary" />
+              <div className="flex gap-3 sm:gap-4 text-xs sm:text-sm">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-primary" />
                   <span className="text-muted-foreground">الإيرادات</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-green-500" />
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-500" />
                   <span className="text-muted-foreground">الطلبات</span>
                 </div>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <ComposedChart data={monthlyTrend}>
+          <CardContent className="p-2 sm:p-4 pt-0">
+            <ResponsiveContainer width="100%" height={220} className="sm:!h-[300px]">
+              <ComposedChart data={monthlyTrend} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
@@ -326,9 +326,9 @@ export const AdvancedDashboardCharts = ({ orders, deposits, users }: AdvancedDas
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
-                <XAxis dataKey="month" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-                <YAxis yAxisId="left" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-                <YAxis yAxisId="right" orientation="right" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                <XAxis dataKey="month" className="text-[10px] sm:text-xs" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} />
+                <YAxis yAxisId="left" className="text-[10px] sm:text-xs" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} width={40} />
+                <YAxis yAxisId="right" orientation="right" className="text-[10px] sm:text-xs" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} width={30} />
                 <Tooltip content={<CustomTooltip />} />
                 <Area
                   yAxisId="left"
@@ -347,7 +347,7 @@ export const AdvancedDashboardCharts = ({ orders, deposits, users }: AdvancedDas
                   name="الطلبات"
                   stroke="#22c55e"
                   strokeWidth={2}
-                  dot={{ fill: '#22c55e', strokeWidth: 2 }}
+                  dot={{ fill: '#22c55e', strokeWidth: 2, r: 3 }}
                 />
               </ComposedChart>
             </ResponsiveContainer>
@@ -358,19 +358,19 @@ export const AdvancedDashboardCharts = ({ orders, deposits, users }: AdvancedDas
       {/* Daily Trend */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
         <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <BarChart3 className="h-5 w-5 text-primary" />
+          <CardHeader className="p-4 sm:pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+              <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               نشاط آخر 14 يوم
             </CardTitle>
-            <CardDescription>الطلبات والإيرادات اليومية</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">الطلبات والإيرادات اليومية</CardDescription>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={dailyTrend}>
+          <CardContent className="p-2 sm:p-4 pt-0">
+            <ResponsiveContainer width="100%" height={180} className="sm:!h-[250px]">
+              <BarChart data={dailyTrend} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
-                <XAxis dataKey="day" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-                <YAxis className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                <XAxis dataKey="day" className="text-[10px] sm:text-xs" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} />
+                <YAxis className="text-[10px] sm:text-xs" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} width={30} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="orders" name="الطلبات" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -380,7 +380,7 @@ export const AdvancedDashboardCharts = ({ orders, deposits, users }: AdvancedDas
       </motion.div>
 
       {/* Charts Row */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Order Status Distribution */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <Card className="border-border/50 bg-card/50 backdrop-blur-sm h-full">
