@@ -295,11 +295,7 @@ const AdminCoupons = () => {
     <AdminDashboardLayout>
       <div className="space-y-4 sm:space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row-reverse justify-between items-start sm:items-center gap-3 sm:gap-4">
-          <Button onClick={() => handleOpenDialog()} className="gap-2 w-full sm:w-auto" size="sm">
-            <Plus className="w-4 h-4" />
-            إضافة كوبون
-          </Button>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div className="flex-1">
             <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
               <Ticket className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
@@ -309,6 +305,10 @@ const AdminCoupons = () => {
               إنشاء وإدارة كوبونات الخصم
             </p>
           </div>
+          <Button onClick={() => handleOpenDialog()} className="gap-2 w-full sm:w-auto" size="sm">
+            <Plus className="w-4 h-4" />
+            إضافة كوبون
+          </Button>
         </div>
 
         {/* Search & Bulk Actions */}
