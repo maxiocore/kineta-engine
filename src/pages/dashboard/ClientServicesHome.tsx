@@ -154,16 +154,17 @@ const ClientServicesHome = () => {
       description: 'زيادة المتابعين والتفاعل على جميع منصات التواصل الاجتماعي',
       icon: Globe,
       path: '/dashboard/services',
-      gradient: 'from-blue-500 via-cyan-500 to-blue-600',
-      glowColor: 'rgba(59, 130, 246, 0.4)',
-      bgGlow: 'bg-blue-500/20',
+      gradient: 'from-blue-600/80 to-cyan-600/80',
+      iconGradient: 'from-blue-500 to-cyan-500',
+      glowColor: 'rgba(59, 130, 246, 0.15)',
+      bgGlow: 'bg-blue-500/10',
       count: servicesCount.social,
       platforms: [
-        { icon: Instagram, color: 'text-pink-500', bg: 'bg-pink-500/10' },
-        { icon: Facebook, color: 'text-blue-600', bg: 'bg-blue-600/10' },
-        { icon: Youtube, color: 'text-red-500', bg: 'bg-red-500/10' },
-        { icon: Twitter, color: 'text-sky-500', bg: 'bg-sky-500/10' },
-        { icon: MessageCircle, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+        { icon: Instagram, color: 'text-pink-400', bg: 'bg-pink-500/10' },
+        { icon: Facebook, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+        { icon: Youtube, color: 'text-red-400', bg: 'bg-red-500/10' },
+        { icon: Twitter, color: 'text-sky-400', bg: 'bg-sky-500/10' },
+        { icon: MessageCircle, color: 'text-purple-400', bg: 'bg-purple-500/10' },
         { icon: Send, color: 'text-blue-400', bg: 'bg-blue-400/10' },
       ]
     },
@@ -174,15 +175,16 @@ const ClientServicesHome = () => {
       description: 'تصاميم احترافية للشعارات والهويات البصرية',
       icon: Palette,
       path: '/dashboard/design-services',
-      gradient: 'from-purple-500 via-pink-500 to-purple-600',
-      glowColor: 'rgba(168, 85, 247, 0.4)',
-      bgGlow: 'bg-purple-500/20',
+      gradient: 'from-violet-600/80 to-purple-600/80',
+      iconGradient: 'from-violet-500 to-purple-500',
+      glowColor: 'rgba(139, 92, 246, 0.15)',
+      bgGlow: 'bg-violet-500/10',
       count: servicesCount.design,
       platforms: [
-        { icon: Sparkles, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-        { icon: Layers, color: 'text-pink-500', bg: 'bg-pink-500/10' },
-        { icon: Star, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
-        { icon: Globe2, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
+        { icon: Sparkles, color: 'text-violet-400', bg: 'bg-violet-500/10' },
+        { icon: Layers, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+        { icon: Star, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+        { icon: Globe2, color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
       ]
     },
     {
@@ -192,30 +194,31 @@ const ClientServicesHome = () => {
       description: 'تطوير المواقع والتطبيقات بأحدث التقنيات',
       icon: Code,
       path: '/dashboard/dev-services',
-      gradient: 'from-emerald-500 via-teal-500 to-emerald-600',
-      glowColor: 'rgba(16, 185, 129, 0.4)',
-      bgGlow: 'bg-emerald-500/20',
+      gradient: 'from-emerald-600/80 to-teal-600/80',
+      iconGradient: 'from-emerald-500 to-teal-500',
+      glowColor: 'rgba(16, 185, 129, 0.15)',
+      bgGlow: 'bg-emerald-500/10',
       count: servicesCount.dev,
       platforms: [
-        { icon: Globe2, color: 'text-green-500', bg: 'bg-green-500/10' },
-        { icon: Code, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-        { icon: Smartphone, color: 'text-teal-500', bg: 'bg-teal-500/10' },
-        { icon: TrendingUp, color: 'text-lime-500', bg: 'bg-lime-500/10' },
+        { icon: Globe2, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+        { icon: Code, color: 'text-teal-400', bg: 'bg-teal-500/10' },
+        { icon: Smartphone, color: 'text-green-400', bg: 'bg-green-500/10' },
+        { icon: TrendingUp, color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
       ]
     }
   ];
 
   const features = [
-    { icon: Zap, title: 'تنفيذ سريع', description: 'بدء الخدمة خلال دقائق', gradient: 'from-yellow-500 to-orange-500' },
-    { icon: Shield, title: 'جودة مضمونة', description: 'ضمان استرداد 100%', gradient: 'from-green-500 to-emerald-500' },
-    { icon: Users, title: 'دعم 24/7', description: 'فريق دعم متخصص', gradient: 'from-blue-500 to-cyan-500' },
-    { icon: Clock, title: 'متابعة لحظية', description: 'تتبع طلباتك مباشرة', gradient: 'from-purple-500 to-pink-500' },
+    { icon: Zap, title: 'تنفيذ سريع', description: 'بدء الخدمة خلال دقائق', gradient: 'from-amber-500/80 to-orange-500/80' },
+    { icon: Shield, title: 'جودة مضمونة', description: 'ضمان استرداد 100%', gradient: 'from-emerald-500/80 to-green-500/80' },
+    { icon: Users, title: 'دعم 24/7', description: 'فريق دعم متخصص', gradient: 'from-blue-500/80 to-cyan-500/80' },
+    { icon: Clock, title: 'متابعة لحظية', description: 'تتبع طلباتك مباشرة', gradient: 'from-violet-500/80 to-purple-500/80' },
   ];
 
   const stats = [
-    { value: servicesCount.social, label: 'تواصل', gradient: 'from-blue-500 to-cyan-500' },
-    { value: servicesCount.design, label: 'تصميم', gradient: 'from-purple-500 to-pink-500' },
-    { value: servicesCount.dev, label: 'برمجة', gradient: 'from-emerald-500 to-teal-500' },
+    { value: servicesCount.social, label: 'تواصل', gradient: 'from-blue-500/80 to-cyan-500/80' },
+    { value: servicesCount.design, label: 'تصميم', gradient: 'from-violet-500/80 to-purple-500/80' },
+    { value: servicesCount.dev, label: 'برمجة', gradient: 'from-emerald-500/80 to-teal-500/80' },
   ];
 
   const totalServices = servicesCount.social + servicesCount.design + servicesCount.dev;
@@ -368,49 +371,27 @@ const ClientServicesHome = () => {
               className="group"
             >
               <Link to={section.path} className="block h-full">
-                <Card className="h-full relative overflow-hidden border-0 bg-gradient-to-br from-card via-card/95 to-card/90 backdrop-blur-xl transition-all duration-500 hover:shadow-2xl">
-                  {/* Animated Background Gradient */}
-                  <motion.div
-                    animate={{ 
-                      opacity: hoveredSection === section.id ? 0.15 : 0.05,
-                      scale: hoveredSection === section.id ? 1.2 : 1
-                    }}
-                    transition={{ duration: 0.5 }}
-                    className={`absolute inset-0 bg-gradient-to-br ${section.gradient}`}
+                <Card className="h-full relative overflow-hidden border border-border/50 bg-card/80 backdrop-blur-xl transition-all duration-500 hover:shadow-xl hover:border-border">
+                  {/* Subtle Background Gradient */}
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br ${section.gradient} opacity-[0.03] transition-opacity duration-500 group-hover:opacity-[0.08]`}
                   />
                   
-                  {/* Floating Glow Orb */}
-                  <motion.div
-                    animate={{ 
-                      x: hoveredSection === section.id ? [0, 20, 0] : 0,
-                      y: hoveredSection === section.id ? [0, -10, 0] : 0,
-                      opacity: hoveredSection === section.id ? 0.4 : 0.1
-                    }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                    className={`absolute -top-20 -right-20 w-40 h-40 ${section.bgGlow} rounded-full blur-3xl`}
-                  />
-                  
-                  {/* Border Glow Effect */}
-                  <motion.div
-                    animate={{ opacity: hoveredSection === section.id ? 1 : 0 }}
-                    className={`absolute inset-0 rounded-xl bg-gradient-to-r ${section.gradient} opacity-20`}
-                    style={{ padding: '1px' }}
+                  {/* Subtle Glow Orb */}
+                  <div
+                    className={`absolute -top-20 -right-20 w-40 h-40 ${section.bgGlow} rounded-full blur-3xl opacity-30 group-hover:opacity-50 transition-opacity duration-500`}
                   />
 
                   <CardContent className="relative z-10 p-6 sm:p-7 flex flex-col h-full min-h-[280px]">
                     {/* Header */}
                     <div className="flex items-start justify-between mb-5">
                       <motion.div 
-                        whileHover={{ scale: 1.1, rotate: 10 }}
+                        whileHover={{ scale: 1.05, rotate: 5 }}
                         whileTap={{ scale: 0.95 }}
                         className="relative"
                       >
-                        <motion.div
-                          animate={{ scale: hoveredSection === section.id ? [1, 1.2, 1] : 1 }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
-                          className={`absolute inset-0 bg-gradient-to-br ${section.gradient} rounded-2xl blur-xl opacity-50`}
-                        />
-                        <div className={`relative p-4 rounded-2xl bg-gradient-to-br ${section.gradient} shadow-xl`}>
+                        <div className={`absolute inset-0 bg-gradient-to-br ${section.iconGradient || section.gradient} rounded-2xl blur-lg opacity-40`} />
+                        <div className={`relative p-4 rounded-2xl bg-gradient-to-br ${section.iconGradient || section.gradient} shadow-lg`}>
                           <section.icon className="w-7 h-7 text-white" />
                         </div>
                       </motion.div>
@@ -437,7 +418,7 @@ const ClientServicesHome = () => {
                           {section.title}
                         </motion.h3>
                         <Badge 
-                          className={`bg-gradient-to-r ${section.gradient} text-white border-0 shadow-lg px-3 py-1 text-xs font-bold`}
+                          className={`bg-gradient-to-r ${section.iconGradient || section.gradient} text-white border-0 shadow-md px-3 py-1 text-xs font-bold`}
                         >
                           {section.count}
                         </Badge>
@@ -506,9 +487,9 @@ const ClientServicesHome = () => {
                 onMouseEnter={() => setActiveFeature(index)}
                 className="group relative"
               >
-                <div className={`absolute inset-0 bg-gradient-to-r ${feature.gradient} rounded-2xl blur-xl transition-opacity duration-500 ${activeFeature === index ? 'opacity-20' : 'opacity-0'}`} />
+                <div className={`absolute inset-0 bg-gradient-to-r ${feature.gradient} rounded-2xl blur-xl transition-opacity duration-500 ${activeFeature === index ? 'opacity-10' : 'opacity-0'}`} />
                 
-                <div className={`relative flex flex-col items-center gap-3 p-5 sm:p-6 rounded-2xl bg-card/80 backdrop-blur-sm border transition-all duration-500 ${activeFeature === index ? 'border-primary/30 shadow-xl' : 'border-border/30'}`}>
+                <div className={`relative flex flex-col items-center gap-3 p-5 sm:p-6 rounded-2xl bg-card/90 backdrop-blur-sm border transition-all duration-500 ${activeFeature === index ? 'border-primary/20 shadow-lg' : 'border-border/30'}`}>
                   <motion.div 
                     animate={{ 
                       scale: activeFeature === index ? [1, 1.1, 1] : 1,
