@@ -216,7 +216,7 @@ const ServiceCard = ({
   );
 };
 
-// Category Section Component
+// Category Section Component with Infinite Scroll
 const CategorySection = ({
   category,
   services,
@@ -228,7 +228,8 @@ const CategorySection = ({
   onToggleFavorite,
   visibleCount,
   onLoadMore,
-  isLoadingMore
+  isLoadingMore,
+  hasMore
 }: {
   category: string;
   services: Service[];
@@ -241,10 +242,37 @@ const CategorySection = ({
   visibleCount: number;
   onLoadMore: () => void;
   isLoadingMore: boolean;
+  hasMore: boolean;
 }) => {
   const visibleServices = services.slice(0, visibleCount);
-  const hasMore = services.length > visibleCount;
-  const remainingCount = services.length - visibleCount;
+  const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!isExpanded || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && !isLoadingMore && hasMore) {
+          onLoadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: '200px' }
+    );
+
+    const element = loadMoreTriggerRef.current;
+    if (element) {
+      observer.observe(element);
+    }
+
+    return () => {
+      if (element) {
+        observer.unobserve(element);
+      }
+      observer.disconnect();
+    };
+  }, [isExpanded, hasMore, isLoadingMore, onLoadMore]);
 
   return (
     <motion.div
@@ -301,33 +329,49 @@ const CategorySection = ({
                 ))}
               </div>
               
+              {/* Infinite Scroll Trigger */}
               {hasMore && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="mt-6"
+                <div 
+                  ref={loadMoreTriggerRef}
+                  className="flex items-center justify-center py-8"
                 >
-                  <Button
-                    variant="outline"
-                    className="w-full h-12 rounded-xl gap-2 border-dashed"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onLoadMore();
-                    }}
-                    disabled={isLoadingMore}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex flex-col items-center gap-3"
                   >
-                    {isLoadingMore ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        جاري التحميل...
-                      </>
-                    ) : (
-                      <>
-                        <ChevronDown className="w-4 h-4" />
-                        عرض المزيد ({remainingCount} خدمة)
-                      </>
-                    )}
-                  </Button>
+                    <motion.div
+                      animate={{ 
+                        scale: [1, 1.1, 1],
+                        opacity: [0.5, 1, 0.5]
+                      }}
+                      transition={{ 
+                        duration: 1.5, 
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                      className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"
+                    >
+                      <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                    </motion.div>
+                    <span className="text-sm text-muted-foreground">
+                      جاري تحميل المزيد...
+                    </span>
+                  </motion.div>
+                </div>
+              )}
+              
+              {/* End of list indicator */}
+              {!hasMore && visibleServices.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center justify-center py-6 mt-4 border-t border-border/30"
+                >
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span className="text-sm">تم عرض جميع الخدمات ({services.length})</span>
+                  </div>
                 </motion.div>
               )}
             </div>
@@ -836,6 +880,7 @@ const ClientServices = () => {
                     visibleCount={visibleCategoryItems[category] || ITEMS_PER_PAGE}
                     onLoadMore={() => loadMoreItems(category)}
                     isLoadingMore={loadingMore === category}
+                    hasMore={categoryServices.length > (visibleCategoryItems[category] || ITEMS_PER_PAGE)}
                   />
                 </motion.div>
               ))}
