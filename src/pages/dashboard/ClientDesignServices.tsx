@@ -35,6 +35,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import EnhancedServiceCard from "@/components/services/EnhancedServiceCard";
+import ServicesPageSkeleton from "@/components/dashboard/ServicesPageSkeleton";
 
 interface Service {
   id: string;
@@ -190,6 +191,14 @@ const ClientDesignServices = () => {
   const handleOrderClick = (service: Service) => {
     navigate(`/dashboard/design-services/order?serviceId=${service.id}`);
   };
+
+  if (isLoading) {
+    return (
+      <ClientDashboardLayout>
+        <ServicesPageSkeleton title="خدمات التصميم" color="purple" />
+      </ClientDashboardLayout>
+    );
+  }
 
   return (
     <ClientDashboardLayout>
