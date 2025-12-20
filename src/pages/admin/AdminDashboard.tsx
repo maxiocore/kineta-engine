@@ -2,12 +2,9 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Users,
-  ShoppingBag,
   DollarSign,
   CheckCircle,
-  AlertCircle,
   Clock,
-  TrendingUp,
   Sparkles,
   BarChart3,
 } from "lucide-react";
@@ -18,11 +15,16 @@ import { format, subDays } from "date-fns";
 import { ar } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import StatCard from "@/components/admin/StatCard";
+import MobileStatCard from "@/components/admin/MobileStatCard";
 import ActivityTimeline, { Activity } from "@/components/admin/ActivityTimeline";
+import MobileActivityList from "@/components/admin/MobileActivityList";
 import TopServicesWidget, { TopService } from "@/components/admin/TopServicesWidget";
+import MobileTopServices from "@/components/admin/MobileTopServices";
 import QuickActions from "@/components/admin/QuickActions";
+import MobileQuickActions from "@/components/admin/MobileQuickActions";
 import DashboardSkeleton from "@/components/admin/DashboardSkeleton";
 import AdvancedDashboardCharts from "@/components/admin/AdvancedDashboardCharts";
 
@@ -44,16 +46,6 @@ interface ChartData {
   deposits: any[];
   users: any[];
 }
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -79,11 +71,11 @@ const AdminDashboard = () => {
   const [topServices, setTopServices] = useState<TopService[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchDashboardData();
 
-    // Real-time subscriptions with notifications
     const ordersChannel = supabase
       .channel("dashboard-orders-live")
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload) => {
@@ -123,7 +115,6 @@ const AdminDashboard = () => {
       })
       .subscribe();
 
-    // Additional realtime subscriptions for comprehensive dashboard updates
     const depositsChannel = supabase
       .channel("dashboard-deposits-live")
       .on("postgres_changes", { event: "*", schema: "public", table: "deposits" }, (payload) => {
@@ -163,7 +154,6 @@ const AdminDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch users stats
       const { data: profiles } = await supabase
         .from("profiles")
         .select("id, is_verified, created_at");
@@ -171,12 +161,10 @@ const AdminDashboard = () => {
       const totalUsers = profiles?.length || 0;
       const verifiedUsers = profiles?.filter(p => p.is_verified)?.length || 0;
 
-      // Calculate users trend (last 7 days)
       const weekAgo = subDays(new Date(), 7);
       const newUsersThisWeek = profiles?.filter(p => new Date(p.created_at!) > weekAgo).length || 0;
       const usersTrend = totalUsers > 0 ? Math.round((newUsersThisWeek / totalUsers) * 100) : 0;
 
-      // Fetch orders stats
       const { data: orders } = await supabase
         .from("orders")
         .select("id, status, total_price, created_at, service_id");
@@ -186,7 +174,6 @@ const AdminDashboard = () => {
       const completedOrders = orders?.filter(o => o.status === "completed")?.length || 0;
       const totalRevenue = orders?.reduce((sum, o) => sum + Number(o.total_price), 0) || 0;
 
-      // Monthly revenue (current month)
       const currentMonth = new Date().getMonth();
       const currentYear = new Date().getFullYear();
       const monthlyRevenue = orders?.filter(o => {
@@ -194,11 +181,9 @@ const AdminDashboard = () => {
         return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
       }).reduce((sum, o) => sum + Number(o.total_price), 0) || 0;
 
-      // Calculate orders trend
       const newOrdersThisWeek = orders?.filter(o => new Date(o.created_at) > weekAgo).length || 0;
       const ordersTrend = totalOrders > 0 ? Math.round((newOrdersThisWeek / totalOrders) * 100) : 0;
 
-      // Calculate revenue trend
       const lastMonthRevenue = orders?.filter(o => {
         const orderDate = new Date(o.created_at);
         return orderDate.getMonth() === (currentMonth - 1) && orderDate.getFullYear() === currentYear;
@@ -220,10 +205,8 @@ const AdminDashboard = () => {
         revenueTrend,
       });
 
-      // Fetch recent activities
       const activitiesList: Activity[] = [];
 
-      // Recent orders
       const { data: recentOrders } = await supabase
         .from("orders")
         .select(`
@@ -246,7 +229,6 @@ const AdminDashboard = () => {
         });
       });
 
-      // Recent users
       const { data: recentUsers } = await supabase
         .from("profiles")
         .select("id, full_name, email, created_at")
@@ -265,7 +247,6 @@ const AdminDashboard = () => {
         });
       });
 
-      // Recent tickets
       const { data: recentTickets } = await supabase
         .from("support_tickets")
         .select("id, subject, created_at, priority")
@@ -284,11 +265,9 @@ const AdminDashboard = () => {
         });
       });
 
-      // Sort by timestamp
       activitiesList.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
       setActivities(activitiesList.slice(0, 8));
 
-      // Fetch top services
       const { data: services } = await supabase
         .from("services")
         .select("id, name")
@@ -299,7 +278,6 @@ const AdminDashboard = () => {
         const serviceOrders = orders?.filter(o => o.service_id === service.id) || [];
         const revenue = serviceOrders.reduce((sum, o) => sum + Number(o.total_price), 0);
         
-        // Calculate trend for this service
         const recentServiceOrders = serviceOrders.filter(o => new Date(o.created_at) > weekAgo);
         const trend = serviceOrders.length > 0 
           ? Math.round((recentServiceOrders.length / serviceOrders.length) * 100) 
@@ -317,12 +295,10 @@ const AdminDashboard = () => {
       serviceStats.sort((a, b) => b.revenue - a.revenue);
       setTopServices(serviceStats.slice(0, 5));
 
-      // Fetch deposits for charts
       const { data: depositsData } = await supabase
         .from("deposits")
         .select("id, amount, status, created_at");
 
-      // Set chart data
       setChartData({
         orders: orders || [],
         deposits: depositsData || [],
@@ -383,59 +359,145 @@ const AdminDashboard = () => {
     );
   }
 
+  // Mobile Layout
+  if (isMobile) {
+    return (
+      <AdminDashboardLayout>
+        <div className="space-y-4 w-full" dir="rtl">
+          {/* Mobile Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-bold flex items-center gap-2">
+                <motion.div
+                  className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center"
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                >
+                  <Sparkles className="w-4 h-4 text-white" />
+                </motion.div>
+                لوحة التحكم
+              </h1>
+              <p className="text-xs text-muted-foreground">نظرة شاملة على أداء المنصة</p>
+            </div>
+            
+            <motion.div 
+              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-success/10 border border-success/20"
+              animate={{ opacity: [1, 0.7, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+              <span className="text-[10px] text-success font-medium">مباشر</span>
+            </motion.div>
+          </div>
+
+          {/* Mobile Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 h-10">
+              <TabsTrigger value="overview" className="text-xs gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" />
+                نظرة عامة
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="text-xs gap-1.5">
+                <BarChart3 className="w-3.5 h-3.5" />
+                الإحصائيات
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview" className="space-y-4 mt-4">
+              {/* Mobile Stats Grid - 2x2 */}
+              <div className="grid grid-cols-2 gap-3">
+                {statsData.map((stat, index) => (
+                  <MobileStatCard
+                    key={stat.title}
+                    title={stat.title}
+                    value={stat.value}
+                    icon={stat.icon}
+                    gradient={stat.gradient}
+                    trend={stat.trend}
+                    suffix={stat.suffix}
+                    delay={index * 0.1}
+                    onClick={stat.onClick}
+                  />
+                ))}
+              </div>
+
+              {/* Mobile Quick Actions */}
+              <MobileQuickActions />
+
+              {/* Mobile Activity List */}
+              <MobileActivityList 
+                activities={activities}
+                onViewAll={() => navigate("/admin/logs")}
+              />
+
+              {/* Mobile Top Services */}
+              <MobileTopServices services={topServices} />
+            </TabsContent>
+
+            <TabsContent value="analytics" className="mt-4">
+              <AdvancedDashboardCharts 
+                orders={chartData.orders}
+                deposits={chartData.deposits}
+                users={chartData.users}
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
+      </AdminDashboardLayout>
+    );
+  }
+
+  // Desktop Layout
   return (
     <AdminDashboardLayout>
       <motion.div 
-        className="space-y-3 sm:space-y-4 lg:space-y-6 w-full max-w-full overflow-x-hidden"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
+        className="space-y-6 w-full"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         dir="rtl"
       >
         {/* Header */}
-        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-base sm:text-lg lg:text-xl font-bold mb-0.5 sm:mb-1 flex items-center gap-1.5 sm:gap-2">
+            <h1 className="text-xl font-bold mb-1 flex items-center gap-2">
               <motion.div
-                className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 rounded-md sm:rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center"
+                className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center"
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
-                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 text-primary-foreground" />
+                <Sparkles className="w-4 h-4 text-primary-foreground" />
               </motion.div>
               لوحة التحكم
             </h1>
-            <p className="text-muted-foreground text-[10px] sm:text-xs lg:text-sm">نظرة شاملة على أداء المنصة</p>
+            <p className="text-muted-foreground text-sm">نظرة شاملة على أداء المنصة</p>
           </div>
           
           <motion.div 
-            className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-success/10 border border-success/20 self-start sm:self-auto"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-success/10 border border-success/20"
             animate={{ opacity: [1, 0.7, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-success animate-pulse" />
-            <span className="text-[9px] sm:text-[10px] text-success font-medium">مباشر</span>
+            <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+            <span className="text-xs text-success font-medium">مباشر</span>
           </motion.div>
-        </motion.div>
+        </div>
 
-        {/* Tabs for Overview and Analytics */}
+        {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full max-w-[200px] sm:max-w-xs grid-cols-2 mb-2 sm:mb-3 h-8 sm:h-9">
-            <TabsTrigger value="overview" className="flex items-center gap-1 text-[10px] sm:text-xs">
-              <Sparkles className="h-3 w-3" />
-              <span className="hidden xs:inline">نظرة عامة</span>
-              <span className="xs:hidden">عامة</span>
+          <TabsList className="grid w-full max-w-xs grid-cols-2 mb-4">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              نظرة عامة
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-1 text-[10px] sm:text-xs">
-              <BarChart3 className="h-3 w-3" />
-              <span className="hidden xs:inline">الإحصائيات</span>
-              <span className="xs:hidden">إحصاء</span>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              الإحصائيات
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-3 sm:space-y-4 lg:space-y-6">
+          <TabsContent value="overview" className="space-y-6">
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-3 lg:gap-4 w-full">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {statsData.map((stat, index) => (
                 <StatCard
                   key={stat.title}
@@ -453,24 +515,17 @@ const AdminDashboard = () => {
             </div>
 
             {/* Two Column Layout */}
-            <div className="grid lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
-              <motion.div variants={itemVariants}>
-                <ActivityTimeline 
-                  activities={activities}
-                  maxItems={5}
-                  onViewAll={() => navigate("/admin/logs")}
-                />
-              </motion.div>
-
-              <motion.div variants={itemVariants}>
-                <TopServicesWidget services={topServices} />
-              </motion.div>
+            <div className="grid lg:grid-cols-2 gap-6">
+              <ActivityTimeline 
+                activities={activities}
+                maxItems={5}
+                onViewAll={() => navigate("/admin/logs")}
+              />
+              <TopServicesWidget services={topServices} />
             </div>
 
             {/* Quick Actions */}
-            <motion.div variants={itemVariants}>
-              <QuickActions />
-            </motion.div>
+            <QuickActions />
           </TabsContent>
 
           <TabsContent value="analytics">
