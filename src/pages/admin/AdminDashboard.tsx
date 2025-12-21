@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   Users,
@@ -11,6 +11,7 @@ import {
   Eye,
   TrendingUp,
 } from "lucide-react";
+import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { useNavigate } from "react-router-dom";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -312,6 +313,10 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleRefresh = useCallback(async () => {
+    await fetchDashboardData();
+  }, []);
+
   const statsData = [
     { 
       title: "إجمالي المستخدمين", 
@@ -381,9 +386,8 @@ const AdminDashboard = () => {
     );
   }
 
-  return (
-    <AdminDashboardLayout>
-      <div className="space-y-4 sm:space-y-6" dir="rtl">
+  const dashboardContent = (
+    <div className="space-y-4 sm:space-y-6" dir="rtl">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -591,6 +595,17 @@ const AdminDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+  );
+
+  return (
+    <AdminDashboardLayout>
+      {isMobile ? (
+        <PullToRefresh onRefresh={handleRefresh} className="h-full">
+          {dashboardContent}
+        </PullToRefresh>
+      ) : (
+        dashboardContent
+      )}
     </AdminDashboardLayout>
   );
 };
