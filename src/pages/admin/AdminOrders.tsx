@@ -672,7 +672,7 @@ const AdminOrders = () => {
           </motion.div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-4">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
             {statsCards.map((stat, index) => (
               <motion.div
                 key={stat.label}
@@ -681,30 +681,33 @@ const AdminOrders = () => {
                 transition={{ delay: index * 0.05 }}
                 whileHover={{ y: -4, transition: { duration: 0.2 } }}
                 onClick={() => stat.clickTab && setActiveTab(stat.clickTab)}
-                className={stat.clickTab ? "cursor-pointer" : ""}
+                className={cn(
+                  stat.clickTab ? "cursor-pointer" : "",
+                  index === statsCards.length - 1 && statsCards.length % 2 !== 0 ? "col-span-2 sm:col-span-1" : ""
+                )}
               >
-                <Card className="border-border/40 overflow-hidden relative group hover:shadow-lg transition-all duration-300">
+                <Card className="border-border/40 overflow-hidden relative group hover:shadow-lg transition-all duration-300 h-full">
                   <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-5 transition-opacity`} />
-                  <CardContent className="p-4 lg:p-5">
-                    <div className="flex items-center gap-3">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center gap-2 sm:gap-3">
                       <motion.div 
-                        className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.gradient} p-2.5 shadow-lg`}
+                        className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br ${stat.gradient} p-2 sm:p-2.5 shadow-lg shrink-0`}
                         whileHover={{ scale: 1.05, rotate: 5 }}
                       >
                         <stat.icon className="w-full h-full text-white" />
                       </motion.div>
                       <div className="flex-1 min-w-0">
                         <motion.p 
-                          className="text-xl lg:text-2xl font-bold truncate"
+                          className="text-lg sm:text-xl lg:text-2xl font-bold truncate"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: index * 0.1 }}
                         >
                           {stat.value}
                         </motion.p>
-                        <p className="text-xs text-muted-foreground truncate">{stat.label}</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{stat.label}</p>
                         {stat.subtitle && (
-                          <p className="text-[10px] text-muted-foreground/70 mt-0.5">{stat.subtitle}</p>
+                          <p className="text-[9px] sm:text-[10px] text-muted-foreground/70 mt-0.5 truncate">{stat.subtitle}</p>
                         )}
                       </div>
                     </div>
@@ -827,30 +830,32 @@ const AdminOrders = () => {
 
           {/* Tabs & Filters */}
           <Card className="border-border/40">
-            <CardContent className="p-4 space-y-4">
+            <CardContent className="p-3 sm:p-4 space-y-3 sm:space-y-4">
               {/* Quick Tabs */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="w-full justify-start bg-secondary/40 p-1.5 h-auto flex-wrap gap-1 rounded-xl">
-                  <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-lg px-4">
-                    الكل ({stats.total})
-                  </TabsTrigger>
-                  <TabsTrigger value="pending" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-lg px-4 gap-1.5">
-                    <Clock className="w-3.5 h-3.5" />
-                    انتظار ({stats.pending})
-                  </TabsTrigger>
-                  <TabsTrigger value="in_progress" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-lg px-4 gap-1.5">
-                    <Activity className="w-3.5 h-3.5" />
-                    تنفيذ ({stats.in_progress})
-                  </TabsTrigger>
-                  <TabsTrigger value="completed" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-lg px-4 gap-1.5">
-                    <CheckCircle className="w-3.5 h-3.5" />
-                    مكتمل ({stats.completed})
-                  </TabsTrigger>
-                  <TabsTrigger value="cancelled" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-lg px-4 gap-1.5">
-                    <XCircle className="w-3.5 h-3.5" />
-                    ملغي ({stats.cancelled})
-                  </TabsTrigger>
-                </TabsList>
+                <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
+                  <TabsList className="w-max sm:w-full justify-start bg-secondary/40 p-1 sm:p-1.5 h-auto flex gap-1 rounded-lg sm:rounded-xl">
+                    <TabsTrigger value="all" className="text-[11px] sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md sm:rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap">
+                      الكل
+                    </TabsTrigger>
+                    <TabsTrigger value="pending" className="text-[11px] sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md sm:rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 gap-1 whitespace-nowrap">
+                      <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      انتظار ({stats.pending})
+                    </TabsTrigger>
+                    <TabsTrigger value="in_progress" className="text-[11px] sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md sm:rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 gap-1 whitespace-nowrap">
+                      <Activity className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      تنفيذ ({stats.in_progress})
+                    </TabsTrigger>
+                    <TabsTrigger value="completed" className="text-[11px] sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md sm:rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 gap-1 whitespace-nowrap">
+                      <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      مكتمل
+                    </TabsTrigger>
+                    <TabsTrigger value="cancelled" className="text-[11px] sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md sm:rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 gap-1 whitespace-nowrap">
+                      <XCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      ملغي ({stats.cancelled})
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
               </Tabs>
 
               {/* Search & Filters Row */}
