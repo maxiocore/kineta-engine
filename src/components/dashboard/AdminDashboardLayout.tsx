@@ -401,9 +401,59 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
         )}
       </AnimatePresence>
 
+      {/* Mobile Bottom Navigation */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-xl border-t border-border/50 z-50 safe-area-inset-bottom">
+        <div className="h-full grid grid-cols-5 items-center" dir="rtl">
+          {[
+            { href: "/admin", icon: LayoutDashboard, label: "الرئيسية" },
+            { href: "/admin/orders", icon: ShoppingBag, label: "الطلبات", badge: navBadges["/admin/orders"] },
+            { href: "/admin/users", icon: Users, label: "المستخدمين" },
+            { href: "/admin/services", icon: Package, label: "الخدمات" },
+            { href: "/admin/settings", icon: Settings, label: "الإعدادات" },
+          ].map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.href}
+                to={item.href}
+                className={cn(
+                  "flex flex-col items-center justify-center gap-0.5 h-full relative transition-colors",
+                  active ? "text-destructive" : "text-muted-foreground"
+                )}
+              >
+                <div className="relative">
+                  <item.icon className={cn(
+                    "w-5 h-5 transition-all",
+                    active && "scale-110"
+                  )} />
+                  {item.badge && item.badge > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 flex items-center justify-center text-[9px] font-bold rounded-full bg-destructive text-white">
+                      {item.badge > 99 ? "99+" : item.badge}
+                    </span>
+                  )}
+                </div>
+                <span className={cn(
+                  "text-[10px] font-medium",
+                  active && "text-destructive"
+                )}>
+                  {item.label}
+                </span>
+                {active && (
+                  <motion.div
+                    layoutId="bottomNavIndicator"
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-destructive"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+
       {/* Main Content */}
-      <main className="flex-1 lg:mr-[260px] min-h-screen pt-14 lg:pt-0">
-        <div className="p-2.5 sm:p-4 lg:p-6 max-w-7xl mx-auto pb-20 lg:pb-8">
+      <main className="flex-1 lg:mr-[260px] min-h-screen pt-14 lg:pt-0 pb-16 lg:pb-0">
+        <div className="p-2.5 sm:p-4 lg:p-6 max-w-7xl mx-auto pb-4 lg:pb-8">
           {children}
         </div>
       </main>
