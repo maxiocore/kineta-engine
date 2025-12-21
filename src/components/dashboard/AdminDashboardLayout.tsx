@@ -403,7 +403,7 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
 
       {/* Main Content */}
       <main className="flex-1 lg:mr-[260px] min-h-screen pt-14 lg:pt-0">
-        <div className="p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto pb-20 lg:pb-8 overflow-x-hidden">
+        <div className="p-2.5 sm:p-4 lg:p-6 max-w-7xl mx-auto pb-20 lg:pb-8">
           {children}
         </div>
       </main>
