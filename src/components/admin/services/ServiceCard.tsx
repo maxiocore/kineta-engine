@@ -36,13 +36,13 @@ const ServiceCard = ({ service, index, viewMode, onEdit, onDelete, onView }: Ser
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "active":
-        return <Badge className="bg-success/20 text-success border-success/30 text-[10px] px-1.5 py-0.5">نشط</Badge>;
+        return <Badge className="bg-success/20 text-success border-success/30 text-[9px] px-1 py-0">نشط</Badge>;
       case "inactive":
-        return <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">غير نشط</Badge>;
+        return <Badge variant="secondary" className="text-[9px] px-1 py-0">غير نشط</Badge>;
       case "archived":
-        return <Badge variant="outline" className="text-muted-foreground text-[10px] px-1.5 py-0.5">مؤرشف</Badge>;
+        return <Badge variant="outline" className="text-muted-foreground text-[9px] px-1 py-0">مؤرشف</Badge>;
       default:
-        return <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">{status}</Badge>;
+        return <Badge variant="secondary" className="text-[9px] px-1 py-0">{status}</Badge>;
     }
   };
 
@@ -57,49 +57,46 @@ const ServiceCard = ({ service, index, viewMode, onEdit, onDelete, onView }: Ser
     return gradients[category] || "from-primary to-cyan-400";
   };
 
-  // Mobile-optimized compact card for list view
+  // List view - compact
   if (viewMode === "list") {
     return (
       <motion.div
-        initial={{ opacity: 0, x: -20 }}
+        initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: index * 0.03 }}
+        transition={{ delay: index * 0.02 }}
       >
-        <Card className="glass border-border/50 hover:border-primary/30 transition-all">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${getCategoryGradient(service.category)} p-2 shrink-0`}>
+        <Card className="glass border-border/50">
+          <CardContent className="p-2">
+            <div className="flex items-center gap-2">
+              <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${getCategoryGradient(service.category)} p-1.5 shrink-0`}>
                 <Package className="w-full h-full text-primary-foreground" />
               </div>
               
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <h3 className="font-bold text-sm truncate">{service.name}</h3>
+                <h3 className="font-bold text-xs truncate">{service.name}</h3>
+                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                  <span className="text-primary font-semibold">{service.price.toLocaleString()} ر.س</span>
                   {getStatusBadge(service.status)}
-                </div>
-                <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                  <span>{service.category}</span>
-                  <span className="text-primary font-bold">{service.price.toLocaleString()} ر.س</span>
                 </div>
               </div>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                    <MoreVertical className="w-4 h-4" />
+                  <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
+                    <MoreVertical className="w-3.5 h-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-popover border-border">
                   <DropdownMenuItem onClick={() => onView(service)}>
-                    <Eye className="w-4 h-4 ms-2" />
-                    عرض التفاصيل
+                    <Eye className="w-3.5 h-3.5 ms-2" />
+                    عرض
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => onEdit(service)}>
-                    <Edit className="w-4 h-4 ms-2" />
+                    <Edit className="w-3.5 h-3.5 ms-2" />
                     تعديل
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => onDelete(service.id)} className="text-destructive">
-                    <Trash2 className="w-4 h-4 ms-2" />
+                    <Trash2 className="w-3.5 h-3.5 ms-2" />
                     حذف
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -114,28 +111,23 @@ const ServiceCard = ({ service, index, viewMode, onEdit, onDelete, onView }: Ser
   // Grid view - Mobile optimized
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay: index * 0.03, type: "spring", stiffness: 120 }}
-      className="group"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.02 }}
     >
-      <Card className="glass border-border/50 hover:border-primary/30 transition-all h-full overflow-hidden">
-        {/* Top Gradient Bar */}
+      <Card className="glass border-border/50 h-full overflow-hidden">
         <div className={`h-1 bg-gradient-to-l ${getCategoryGradient(service.category)}`} />
         
-        <CardContent className="p-3">
-          {/* Header: Icon, Name, Status */}
-          <div className="flex items-start gap-2.5 mb-3">
-            <motion.div 
-              className={`w-10 h-10 rounded-lg bg-gradient-to-br ${getCategoryGradient(service.category)} p-2 shadow-md shrink-0`}
-              whileHover={{ scale: 1.05 }}
-            >
+        <CardContent className="p-2.5">
+          {/* Header */}
+          <div className="flex items-start gap-2 mb-2">
+            <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${getCategoryGradient(service.category)} p-1.5 shrink-0`}>
               <Package className="w-full h-full text-primary-foreground" />
-            </motion.div>
+            </div>
             
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-sm leading-tight line-clamp-2 mb-1">{service.name}</h3>
-              <div className="flex items-center gap-2">
+              <h3 className="font-bold text-xs leading-tight line-clamp-2 mb-0.5">{service.name}</h3>
+              <div className="flex items-center gap-1.5">
                 <span className="text-[10px] text-muted-foreground">{service.category}</span>
                 {getStatusBadge(service.status)}
               </div>
@@ -143,54 +135,53 @@ const ServiceCard = ({ service, index, viewMode, onEdit, onDelete, onView }: Ser
           </div>
 
           {/* Price */}
-          <div className="text-lg font-bold bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent mb-2">
-            {service.price.toLocaleString()} ر.س
+          <div className="text-base font-bold text-primary mb-1.5">
+            {service.price.toLocaleString()} <span className="text-xs">ر.س</span>
           </div>
 
-          {/* Stats Row */}
-          <div className="flex items-center gap-3 mb-3 text-[10px] text-muted-foreground">
-            <div className="flex items-center gap-1">
+          {/* Stats */}
+          <div className="flex items-center gap-3 mb-2 text-[10px] text-muted-foreground">
+            <span className="flex items-center gap-0.5">
               <ShoppingCart className="w-3 h-3" />
-              <span>{service.orderCount || 0} طلب</span>
-            </div>
-            <div className="flex items-center gap-1 text-success">
+              {service.orderCount || 0} طلب
+            </span>
+            <span className="flex items-center gap-0.5 text-success">
               <TrendingUp className="w-3 h-3" />
-              <span>{(service.revenue || 0).toLocaleString()} ر.س</span>
-            </div>
+              {(service.revenue || 0).toLocaleString()} ر.س
+            </span>
           </div>
 
-          {/* Action Buttons - Two rows on mobile */}
-          <div className="space-y-1.5">
-            <div className="grid grid-cols-2 gap-1.5">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-8 text-[11px] gap-1" 
-                onClick={() => onView(service)}
-              >
-                <Eye className="w-3.5 h-3.5" />
-                عرض
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-8 text-[11px] gap-1" 
-                onClick={() => onEdit(service)}
-              >
-                <Edit className="w-3.5 h-3.5" />
-                تعديل
-              </Button>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full h-8 text-[11px] gap-1 text-destructive border-destructive/30 hover:bg-destructive/10"
-              onClick={() => onDelete(service.id)}
+          {/* Actions - Simple 2 column grid */}
+          <div className="grid grid-cols-2 gap-1.5">
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              className="h-7 text-[10px] px-2" 
+              onClick={() => onView(service)}
             >
-              <Trash2 className="w-3.5 h-3.5" />
-              حذف
+              <Eye className="w-3 h-3 ml-1" />
+              عرض
+            </Button>
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              className="h-7 text-[10px] px-2" 
+              onClick={() => onEdit(service)}
+            >
+              <Edit className="w-3 h-3 ml-1" />
+              تعديل
             </Button>
           </div>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full h-7 text-[10px] mt-1.5 text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={() => onDelete(service.id)}
+          >
+            <Trash2 className="w-3 h-3 ml-1" />
+            حذف
+          </Button>
         </CardContent>
       </Card>
     </motion.div>
