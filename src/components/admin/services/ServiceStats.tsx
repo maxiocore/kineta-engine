@@ -42,7 +42,7 @@ const ServiceStats = ({ totalServices, activeServices, totalRevenue, totalOrders
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
       {stats.map((stat, index) => (
         <motion.div
           key={stat.title}
@@ -50,15 +50,15 @@ const ServiceStats = ({ totalServices, activeServices, totalRevenue, totalOrders
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
         >
-          <Card className={`glass border-border/50 ${stat.glow} hover:scale-[1.02] transition-transform`}>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.gradient} p-2.5`}>
+          <Card className={`glass border-border/50 ${stat.glow} hover:scale-[1.02] transition-transform h-full`}>
+            <CardContent className="p-2.5 sm:p-3 lg:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br ${stat.gradient} p-1.5 sm:p-2.5 shrink-0`}>
                   <stat.icon className="w-full h-full text-primary-foreground" />
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{stat.title}</p>
-                  <p className="text-lg font-bold">{stat.value}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{stat.title}</p>
+                  <p className="text-sm sm:text-lg font-bold truncate">{stat.value}</p>
                 </div>
               </div>
             </CardContent>

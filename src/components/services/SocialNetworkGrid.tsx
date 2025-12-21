@@ -151,17 +151,17 @@ const SocialNetworkGrid = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-primary" />
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center shrink-0">
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           </div>
-          <div>
-            <h3 className="text-lg font-bold">اختر منصة التواصل</h3>
-            <p className="text-xs text-muted-foreground">
-              {totalServices} خدمة متاحة في {categories.length} منصة
+          <div className="min-w-0">
+            <h3 className="text-sm sm:text-lg font-bold truncate">اختر منصة التواصل</h3>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
+              {totalServices} خدمة في {categories.length} منصة
             </p>
           </div>
         </div>
@@ -169,17 +169,17 @@ const SocialNetworkGrid = ({
           variant="ghost"
           size="sm"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="gap-2 text-muted-foreground hover:text-foreground"
+          className="gap-1 text-muted-foreground hover:text-foreground h-8 px-2 sm:px-3 shrink-0"
         >
           {isExpanded ? (
             <>
               <ChevronUp className="w-4 h-4" />
-              <span className="hidden sm:inline">إخفاء</span>
+              <span className="hidden sm:inline text-xs">إخفاء</span>
             </>
           ) : (
             <>
               <ChevronDown className="w-4 h-4" />
-              <span className="hidden sm:inline">إظهار</span>
+              <span className="hidden sm:inline text-xs">إظهار</span>
             </>
           )}
         </Button>
@@ -193,7 +193,7 @@ const SocialNetworkGrid = ({
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3"
+            className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1.5 sm:gap-2 lg:gap-3"
           >
             {/* All Button */}
             <motion.button
@@ -202,7 +202,7 @@ const SocialNetworkGrid = ({
               whileTap={{ scale: 0.97 }}
               onClick={() => onCategoryChange("all")}
               className={cn(
-                "group relative flex flex-col items-center justify-center gap-2 p-3 sm:p-4 rounded-2xl border-2 transition-all duration-300 overflow-hidden",
+                "group relative flex flex-col items-center justify-center gap-1 sm:gap-2 p-2 sm:p-3 lg:p-4 rounded-xl sm:rounded-2xl border-2 transition-all duration-300 overflow-hidden",
                 selectedCategory === "all"
                   ? "bg-gradient-to-br from-primary via-primary to-accent border-primary/50 text-primary-foreground shadow-xl shadow-primary/20"
                   : "bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/30 hover:shadow-lg hover:bg-card"
@@ -218,19 +218,19 @@ const SocialNetworkGrid = ({
               )}
               
               <div className={cn(
-                "w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-all",
+                "w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg sm:rounded-xl flex items-center justify-center transition-all",
                 selectedCategory === "all" 
                   ? "bg-white/20" 
                   : "bg-gradient-to-br from-primary/10 to-accent/10 group-hover:from-primary/20 group-hover:to-accent/20"
               )}>
                 <LayoutGrid className={cn(
-                  "w-5 h-5 sm:w-6 sm:h-6 transition-colors",
+                  "w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 transition-colors",
                   selectedCategory === "all" ? "text-white" : "text-primary"
                 )} />
               </div>
-              <span className="font-bold text-xs sm:text-sm">الكل</span>
+              <span className="font-bold text-[10px] sm:text-xs lg:text-sm">الكل</span>
               <span className={cn(
-                "absolute -top-0.5 -left-0.5 min-w-6 h-6 px-1.5 flex items-center justify-center rounded-full text-[10px] font-bold shadow-md",
+                "absolute -top-0.5 -left-0.5 min-w-5 sm:min-w-6 h-5 sm:h-6 px-1 sm:px-1.5 flex items-center justify-center rounded-full text-[9px] sm:text-[10px] font-bold shadow-md",
                 selectedCategory === "all" 
                   ? "bg-white text-primary" 
                   : "bg-gradient-to-br from-primary to-accent text-white"
@@ -246,10 +246,10 @@ const SocialNetworkGrid = ({
                 <motion.div
                   key={i}
                   variants={itemVariants}
-                  className="flex flex-col items-center justify-center gap-2 p-3 sm:p-4 rounded-2xl border-2 border-border/50 bg-card/50"
+                  className="flex flex-col items-center justify-center gap-1 sm:gap-2 p-2 sm:p-3 lg:p-4 rounded-xl sm:rounded-2xl border-2 border-border/50 bg-card/50"
                 >
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-muted animate-pulse" />
-                  <div className="w-12 h-3 rounded bg-muted animate-pulse" />
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg sm:rounded-xl bg-muted animate-pulse" />
+                  <div className="w-10 sm:w-12 h-2.5 sm:h-3 rounded bg-muted animate-pulse" />
                 </motion.div>
               ))
             ) : (
@@ -265,7 +265,7 @@ const SocialNetworkGrid = ({
                     whileTap={{ scale: 0.97 }}
                     onClick={() => onCategoryChange(category.slug)}
                     className={cn(
-                      "group relative flex flex-col items-center justify-center gap-2 p-3 sm:p-4 rounded-2xl border-2 transition-all duration-300 overflow-hidden",
+                      "group relative flex flex-col items-center justify-center gap-1 sm:gap-2 p-2 sm:p-3 lg:p-4 rounded-xl sm:rounded-2xl border-2 transition-all duration-300 overflow-hidden",
                       isSelected
                         ? `bg-gradient-to-br ${category.color} border-transparent text-white shadow-xl`
                         : "bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/30 hover:shadow-lg hover:bg-card"
@@ -284,7 +284,7 @@ const SocialNetworkGrid = ({
                     )}
                     
                     <div className={cn(
-                      "w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-all",
+                      "w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg sm:rounded-xl flex items-center justify-center transition-all",
                       isSelected 
                         ? "bg-white/20" 
                         : `bg-gradient-to-br ${category.color} bg-opacity-10`
@@ -292,7 +292,7 @@ const SocialNetworkGrid = ({
                       <DynamicIcon 
                         name={category.icon} 
                         className={cn(
-                          "w-5 h-5 sm:w-6 sm:h-6 transition-all",
+                          "w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 transition-all",
                           isSelected ? "text-white" : ""
                         )}
                         style={!isSelected ? { 
@@ -300,14 +300,14 @@ const SocialNetworkGrid = ({
                         } : undefined}
                       />
                     </div>
-                    <span className="font-bold text-xs sm:text-sm text-center leading-tight">
+                    <span className="font-bold text-[10px] sm:text-xs lg:text-sm text-center leading-tight truncate max-w-full px-0.5">
                       {category.name_ar}
                     </span>
                     
                     {/* Count badge */}
                     {count > 0 && (
                       <span className={cn(
-                        "absolute -top-0.5 -left-0.5 min-w-6 h-6 px-1.5 flex items-center justify-center rounded-full text-[10px] font-bold shadow-md transition-all",
+                        "absolute -top-0.5 -left-0.5 min-w-5 sm:min-w-6 h-5 sm:h-6 px-1 sm:px-1.5 flex items-center justify-center rounded-full text-[9px] sm:text-[10px] font-bold shadow-md transition-all",
                         isSelected 
                           ? "bg-white text-foreground" 
                           : "bg-gradient-to-br from-primary to-accent text-white"

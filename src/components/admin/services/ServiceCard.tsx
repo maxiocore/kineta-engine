@@ -132,12 +132,12 @@ const ServiceCard = ({ service, index, viewMode, onEdit, onDelete, onView }: Ser
     >
       <Card className="glass border-border/50 hover:border-primary/30 transition-all h-full overflow-hidden">
         {/* Top Gradient Bar */}
-        <div className={`h-1.5 bg-gradient-to-l ${getCategoryGradient(service.category)}`} />
+        <div className={`h-1 sm:h-1.5 bg-gradient-to-l ${getCategoryGradient(service.category)}`} />
         
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between mb-4">
+        <CardContent className="p-3 sm:p-4 lg:p-6">
+          <div className="flex items-start justify-between mb-2 sm:mb-4">
             <motion.div 
-              className={`w-14 h-14 rounded-xl bg-gradient-to-br ${getCategoryGradient(service.category)} p-3.5 shadow-lg`}
+              className={`w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br ${getCategoryGradient(service.category)} p-2 sm:p-2.5 lg:p-3.5 shadow-lg shrink-0`}
               whileHover={{ scale: 1.1, rotate: 5 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
@@ -146,58 +146,58 @@ const ServiceCard = ({ service, index, viewMode, onEdit, onDelete, onView }: Ser
             {getStatusBadge(service.status)}
           </div>
 
-          <h3 className="font-bold text-lg mb-1">{service.name}</h3>
-          <p className="text-sm text-muted-foreground mb-3">{service.category}</p>
+          <h3 className="font-bold text-sm sm:text-base lg:text-lg mb-0.5 sm:mb-1 line-clamp-2">{service.name}</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">{service.category}</p>
           
           {service.description && (
-            <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{service.description}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-4 line-clamp-2 hidden sm:block">{service.description}</p>
           )}
 
-          <div className="flex items-center justify-between mb-4 pt-4 border-t border-border/50">
-            <span className="text-2xl font-bold bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
+          <div className="flex items-center justify-between mb-2 sm:mb-4 pt-2 sm:pt-4 border-t border-border/50">
+            <span className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
               {service.price.toLocaleString()} ر.س
             </span>
           </div>
 
           {/* Stats */}
-          <div className="flex items-center gap-4 mb-4 text-xs">
+          <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4 text-[10px] sm:text-xs">
             <div className="flex items-center gap-1 text-muted-foreground">
-              <ShoppingCart className="w-3.5 h-3.5" />
+              <ShoppingCart className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               <span>{service.orderCount || 0} طلب</span>
             </div>
             <div className="flex items-center gap-1 text-success">
-              <TrendingUp className="w-3.5 h-3.5" />
+              <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               <span>{(service.revenue || 0).toLocaleString()} ر.س</span>
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+          {/* Actions - Always visible on mobile */}
+          <div className="flex gap-1.5 sm:gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300">
             <Button 
               variant="outline" 
               size="sm" 
-              className="flex-1" 
+              className="flex-1 h-8 sm:h-9 text-[10px] sm:text-xs" 
               onClick={() => onView(service)}
             >
-              <Eye className="w-4 h-4 ms-1" />
+              <Eye className="w-3 h-3 sm:w-4 sm:h-4 ms-1" />
               عرض
             </Button>
             <Button 
               variant="outline" 
               size="sm" 
-              className="flex-1" 
+              className="flex-1 h-8 sm:h-9 text-[10px] sm:text-xs" 
               onClick={() => onEdit(service)}
             >
-              <Edit className="w-4 h-4 ms-1" />
+              <Edit className="w-3 h-3 sm:w-4 sm:h-4 ms-1" />
               تعديل
             </Button>
             <Button
               variant="outline"
               size="icon"
-              className="text-destructive hover:bg-destructive/10"
+              className="text-destructive hover:bg-destructive/10 h-8 w-8 sm:h-9 sm:w-9 shrink-0"
               onClick={() => onDelete(service.id)}
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
             </Button>
           </div>
         </CardContent>
