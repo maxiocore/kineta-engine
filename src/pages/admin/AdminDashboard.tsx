@@ -428,8 +428,8 @@ const AdminDashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4 sm:space-y-6 mt-4">
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {/* Stats Grid - 2 columns on mobile, 4 on desktop */}
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
               {statsData.map((stat, index) => (
                 <motion.div
                   key={stat.title}
@@ -438,35 +438,38 @@ const AdminDashboard = () => {
                   transition={{ delay: index * 0.1 }}
                 >
                   <Card 
-                    className="cursor-pointer hover:shadow-lg transition-all duration-200 border-border/50 bg-card"
+                    className="cursor-pointer hover:shadow-lg transition-all duration-200 border-border/50 bg-card h-full"
                     onClick={stat.onClick}
                   >
-                    <CardContent className="p-3 sm:p-4">
-                      <div className="flex items-start justify-between mb-2 sm:mb-3">
-                        <div className={cn("w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center", stat.iconBg)}>
-                          <stat.icon className={cn("w-5 h-5 sm:w-6 sm:h-6", stat.iconColor)} />
+                    <CardContent className="p-2.5 sm:p-4">
+                      <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                        <div className={cn(
+                          "w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0", 
+                          stat.iconBg
+                        )}>
+                          <stat.icon className={cn("w-4 h-4 sm:w-5 sm:h-5", stat.iconColor)} />
                         </div>
                         {stat.trend !== undefined && stat.trend > 0 && (
-                          <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-success/10 text-success text-[10px] sm:text-xs font-medium">
-                            <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                          <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-success/10 text-success text-[10px] font-medium mr-auto">
+                            <TrendingUp className="w-2.5 h-2.5" />
                             {stat.trend}%
                           </div>
                         )}
                       </div>
-                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold">
+                      <div className="text-lg sm:text-xl lg:text-2xl font-bold truncate">
                         {stat.value.toLocaleString()}{stat.suffix || ""}
                       </div>
-                      <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{stat.title}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 truncate">{stat.title}</p>
                     </CardContent>
                   </Card>
                 </motion.div>
               ))}
             </div>
 
-            {/* Two Column Layout */}
-            <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
+            {/* Two Column Layout - Stack on mobile */}
+            <div className="grid gap-3 sm:gap-4 lg:gap-6 lg:grid-cols-2">
               {/* Top Services */}
-              <Card className="border-border/50">
+              <Card className="border-border/50 overflow-hidden">
                 <CardHeader className="pb-3 px-3 sm:px-6 pt-4 sm:pt-6">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-sm sm:text-base flex items-center gap-2">
