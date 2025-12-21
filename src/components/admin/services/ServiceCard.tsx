@@ -172,32 +172,33 @@ const ServiceCard = ({ service, index, viewMode, onEdit, onDelete, onView }: Ser
           </div>
 
           {/* Actions - Always visible on mobile */}
-          <div className="flex gap-1.5 sm:gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300">
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300">
             <Button 
               variant="outline" 
               size="sm" 
-              className="flex-1 h-8 sm:h-9 text-[10px] sm:text-xs" 
-              onClick={() => onView(service)}
+              className="h-8 sm:h-9 text-[10px] sm:text-xs gap-1" 
+              onClick={() => onEdit(service)}
             >
-              <Eye className="w-3 h-3 sm:w-4 sm:h-4 ms-1" />
-              عرض
+              <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>تعديل</span>
             </Button>
             <Button 
               variant="outline" 
               size="sm" 
-              className="flex-1 h-8 sm:h-9 text-[10px] sm:text-xs" 
-              onClick={() => onEdit(service)}
+              className="h-8 sm:h-9 text-[10px] sm:text-xs gap-1" 
+              onClick={() => onView(service)}
             >
-              <Edit className="w-3 h-3 sm:w-4 sm:h-4 ms-1" />
-              تعديل
+              <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>عرض</span>
             </Button>
             <Button
               variant="outline"
-              size="icon"
-              className="text-destructive hover:bg-destructive/10 h-8 w-8 sm:h-9 sm:w-9 shrink-0"
+              size="sm"
+              className="text-destructive hover:bg-destructive/10 h-8 sm:h-9 text-[10px] sm:text-xs gap-1"
               onClick={() => onDelete(service.id)}
             >
               <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>حذف</span>
             </Button>
           </div>
         </CardContent>
