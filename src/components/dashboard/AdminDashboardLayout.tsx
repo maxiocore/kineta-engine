@@ -10,16 +10,11 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  ChevronLeft,
   Menu,
   X,
   Shield,
-  Mail,
-  FileText,
-  HeadphonesIcon,
-  Sparkles,
   Search,
-  Command,
+  Sparkles,
   Ticket,
   Award,
   CreditCard,
@@ -29,6 +24,9 @@ import {
   Gift,
   Wallet,
   Coins,
+  HeadphonesIcon,
+  Mail,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -73,48 +71,13 @@ interface AdminDashboardLayoutProps {
   children: ReactNode;
 }
 
-const AnimatedIcon = ({ 
-  icon: Icon, 
-  isActive, 
-  className 
-}: { 
-  icon: React.ElementType; 
-  isActive: boolean; 
-  className?: string;
-}) => {
-  return (
-    <motion.div
-      whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
-      whileTap={{ scale: 0.95 }}
-      transition={{ duration: 0.3 }}
-      className={cn("relative", className)}
-    >
-      <Icon className={cn(
-        "w-5 h-5 transition-all duration-300",
-        isActive && "drop-shadow-[0_0_8px_hsl(var(--primary)/0.8)]"
-      )} />
-      {isActive && (
-        <motion.div
-          layoutId="iconGlow"
-          className="absolute inset-0 bg-primary/20 blur-xl rounded-full"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        />
-      )}
-    </motion.div>
-  );
-};
-
 const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [navBadges, setNavBadges] = useState<Record<string, number>>({});
   const location = useLocation();
   const navigate = useNavigate();
   const { profile, signOut } = useAuth();
 
-  // Fetch badge counts for navigation items
   useEffect(() => {
     const fetchBadgeCounts = async () => {
       try {
@@ -139,7 +102,6 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
 
     fetchBadgeCounts();
 
-    // Real-time updates for badges
     const ordersChannel = supabase
       .channel("nav-badges-orders")
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, fetchBadgeCounts)
@@ -169,285 +131,176 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex" dir="rtl">
-      {/* Desktop Sidebar */}
-      <motion.aside
-        initial={false}
-        animate={{ width: isSidebarOpen ? 280 : 80 }}
-        className={cn(
-          "hidden lg:flex flex-col fixed top-0 right-0 h-full z-40 transition-all duration-300",
-          "bg-gradient-to-b from-card via-card to-background border-l border-border/50"
-        )}
-      >
-        {/* Logo */}
-        <div className="p-5 border-b border-border/50 flex items-center justify-between">
-          {isSidebarOpen && (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-            >
-              <Link to="/" className="flex items-center gap-3">
-                <motion.div 
-                  className="w-11 h-11 rounded-xl bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg shadow-destructive/30"
-                  whileHover={{ scale: 1.05, rotate: 5 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Shield className="w-6 h-6 text-primary-foreground" />
-                </motion.div>
-                <div>
-                  <span className="font-bold text-lg block">لوحة الأدمن</span>
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" />
-                    ماركت برو
-                  </span>
-                </div>
-              </Link>
-            </motion.div>
-          )}
+    <div className="min-h-screen bg-background flex w-full" dir="rtl">
+      {/* Desktop Sidebar - Fixed Right */}
+      <aside className="hidden lg:flex flex-col fixed top-0 right-0 h-full w-[260px] z-40 bg-card border-l border-border/50">
+        {/* Logo Section */}
+        <div className="p-4 border-b border-border/40">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg">
+              <Shield className="w-6 h-6 text-white" />
+            </div>
+            <div className="text-right">
+              <h1 className="font-bold text-lg">لوحة الأدمن</h1>
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                ماركت برو
+              </span>
+            </div>
+          </Link>
+        </div>
+
+        {/* Actions Row */}
+        <div className="p-3 border-b border-border/30 flex items-center justify-between">
           <div className="flex items-center gap-1">
             <NotificationBell />
             <ThemeToggle />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="shrink-0 hover:bg-secondary/80"
-            >
-              <motion.div
-                animate={{ rotate: isSidebarOpen ? 0 : 180 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </motion.div>
-            </Button>
+          </div>
+          <Link to="/" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+            ← العودة
+          </Link>
+        </div>
+
+        {/* Search */}
+        <div className="p-3 border-b border-border/30">
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input 
+              placeholder="بحث سريع..."
+              className="pr-9 pl-10 bg-secondary/50 border-border/40 h-10 text-sm rounded-lg"
+            />
+            <kbd className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">
+              K⌘
+            </kbd>
           </div>
         </div>
 
-        {/* Search (when sidebar is open) */}
-        <AnimatePresence>
-          {isSidebarOpen && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="p-4 border-b border-border/30"
-            >
-              <div className="relative">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  placeholder="بحث سريع..."
-                  className="pr-9 pl-12 bg-secondary/50 border-border/50 h-9 text-sm"
-                />
-                <kbd className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">
-                  ⌘K
-                </kbd>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {adminNavItems.map((item, index) => {
+        <nav className="flex-1 p-2 overflow-y-auto space-y-0.5">
+          {adminNavItems.map((item) => {
+            const active = isActive(item.href);
             const badge = navBadges[item.href];
             
             return (
-              <motion.div
+              <Link
                 key={item.href}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.03 }}
+                to={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative",
+                  active
+                    ? "bg-gradient-to-l from-destructive to-orange-500 text-white shadow-md"
+                    : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
+                )}
               >
-                <Link
-                  to={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 group relative overflow-hidden",
-                    isActive(item.href)
-                      ? "bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground shadow-lg shadow-destructive/20"
-                      : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
-                  )}
-                >
-                  {/* Hover Effect */}
-                  {!isActive(item.href) && (
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-l from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
-                    />
-                  )}
-                  
-                  <AnimatedIcon 
-                    icon={item.icon} 
-                    isActive={isActive(item.href)} 
-                    className="shrink-0"
-                  />
-                  
-                  <AnimatePresence>
-                    {isSidebarOpen && (
-                      <motion.span
-                        initial={{ opacity: 0, width: 0 }}
-                        animate={{ opacity: 1, width: "auto" }}
-                        exit={{ opacity: 0, width: 0 }}
-                        className="font-medium whitespace-nowrap flex-1"
-                      >
-                        {item.label}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Badge */}
-                  {badge && badge > 0 && (
-                    <motion.span
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className={cn(
-                        "px-2 py-0.5 text-xs font-bold rounded-full",
-                        isActive(item.href)
-                          ? "bg-primary-foreground/20 text-primary-foreground"
-                          : "bg-destructive/10 text-destructive"
-                      )}
-                    >
-                      {badge}
-                    </motion.span>
-                  )}
-
-                  {/* Active Indicator */}
-                  {isActive(item.href) && (
-                    <motion.div
-                      layoutId="activeIndicator"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary-foreground rounded-r-full"
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    />
-                  )}
-                </Link>
-              </motion.div>
+                <div className={cn(
+                  "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors",
+                  active ? "bg-white/20" : "bg-secondary/60 group-hover:bg-secondary"
+                )}>
+                  <item.icon className="w-4 h-4" />
+                </div>
+                <span className="font-medium text-sm flex-1">{item.label}</span>
+                
+                {badge && badge > 0 && (
+                  <span className={cn(
+                    "px-2 py-0.5 text-[10px] font-bold rounded-full",
+                    active ? "bg-white/20 text-white" : "bg-destructive/10 text-destructive"
+                  )}>
+                    {badge}
+                  </span>
+                )}
+              </Link>
             );
           })}
         </nav>
 
-        {/* Admin Info */}
-        <div className="p-4 border-t border-border/50 bg-gradient-to-t from-secondary/30 to-transparent">
-          <div className={cn("flex items-center gap-3 mb-3", !isSidebarOpen && "justify-center")}>
-            <motion.div 
-              className="w-11 h-11 rounded-full bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-lg shadow-destructive/20"
-              whileHover={{ scale: 1.05 }}
-            >
-              <Shield className="w-5 h-5 text-primary-foreground" />
-            </motion.div>
-            <AnimatePresence>
-              {isSidebarOpen && (
-                <motion.div
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  className="flex-1 min-w-0"
-                >
-                  <p className="font-medium truncate">{profile?.full_name || "المدير"}</p>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                    Super Admin
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+        {/* Admin Info Footer */}
+        <div className="p-3 border-t border-border/40 bg-secondary/20">
+          <div className="flex items-center gap-3 p-2 rounded-lg bg-secondary/40 mb-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center">
+              <Shield className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-sm truncate">{profile?.full_name || "المدير"}</p>
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                Super Admin
+              </p>
+            </div>
           </div>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Button 
-              variant="outline" 
-              className={cn(
-                "w-full gap-2 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive",
-                !isSidebarOpen && "px-2"
-              )}
-              onClick={handleSignOut}
-            >
-              <LogOut className="w-4 h-4" />
-              {isSidebarOpen && <span>تسجيل الخروج</span>}
-            </Button>
-          </motion.div>
-        </div>
-      </motion.aside>
-
-      {/* Mobile Header - Enhanced RTL */}
-      <motion.div 
-        className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-card/95 backdrop-blur-xl border-b border-border/50 z-50"
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      >
-        <div className="h-full flex flex-row-reverse items-center justify-between px-3" dir="rtl">
-          {/* Right side - Menu button */}
-          <motion.div whileTap={{ scale: 0.9 }}>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="w-10 h-10 rounded-lg bg-secondary/50 hover:bg-secondary" 
-              onClick={() => setIsMobileMenuOpen(true)}
-            >
-              <Menu className="w-5 h-5" />
-            </Button>
-          </motion.div>
-          
-          {/* Center - Logo */}
-          <motion.div 
-            className="flex flex-row-reverse items-center gap-2"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
+          <Button 
+            variant="outline" 
+            className="w-full h-9 gap-2 border-destructive/30 text-destructive hover:bg-destructive/10 text-sm rounded-lg"
+            onClick={handleSignOut}
           >
-            <motion.div 
-              className="w-8 h-8 rounded-lg bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shadow-md"
-              whileHover={{ rotate: 5 }}
-            >
-              <Shield className="w-4 h-4 text-primary-foreground" />
-            </motion.div>
-            <div className="flex flex-col text-right">
-              <span className="font-bold text-sm leading-tight">لوحة الأدمن</span>
-              <span className="text-[10px] text-muted-foreground leading-tight flex flex-row-reverse items-center gap-1">
+            <LogOut className="w-4 h-4" />
+            <span>الخروج</span>
+          </Button>
+        </div>
+      </aside>
+
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-card/95 backdrop-blur-xl border-b border-border/50 z-50">
+        <div className="h-full flex items-center justify-between px-3" dir="rtl">
+          {/* Menu Button */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="w-10 h-10 rounded-lg"
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+          
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center">
+              <Shield className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <span className="font-bold text-sm block leading-tight">لوحة الأدمن</span>
+              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                 <Sparkles className="w-2.5 h-2.5" />
                 ماركت برو
               </span>
             </div>
-          </motion.div>
+          </div>
           
-          {/* Left side - Actions */}
-          <div className="flex flex-row-reverse items-center gap-0.5">
+          {/* Actions */}
+          <div className="flex items-center gap-0.5">
             <NotificationBell />
             <ThemeToggle />
           </div>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Mobile Menu - Enhanced RTL */}
+      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="lg:hidden fixed inset-0 bg-background/60 backdrop-blur-md z-50"
+            className="lg:hidden fixed inset-0 bg-background/60 backdrop-blur-sm z-50"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 280 }}
-              className="absolute top-0 right-0 h-full w-[80vw] max-w-[300px] bg-card border-l border-border/50 flex flex-col overflow-hidden"
+              transition={{ type: "spring", damping: 25, stiffness: 250 }}
+              className="absolute top-0 right-0 h-full w-[85vw] max-w-[320px] bg-card border-l border-border/50 flex flex-col"
               onClick={(e) => e.stopPropagation()}
               dir="rtl"
             >
-              {/* Header */}
-              <div className="p-3 border-b border-border/50 flex flex-row-reverse items-center justify-between">
-                <div className="flex flex-row-reverse items-center gap-2">
-                  <motion.div 
-                    className="w-9 h-9 rounded-lg bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center"
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: "spring", delay: 0.1 }}
-                  >
-                    <Shield className="w-4 h-4 text-primary-foreground" />
-                  </motion.div>
-                  <div className="text-right">
+              {/* Mobile Menu Header */}
+              <div className="p-3 border-b border-border/40 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
                     <span className="font-bold text-sm block">لوحة التحكم</span>
-                    <span className="text-[10px] text-muted-foreground flex flex-row-reverse items-center gap-1">
+                    <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                       <Sparkles className="w-2.5 h-2.5" />
                       ماركت برو
                     </span>
@@ -469,13 +322,13 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                   <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input 
                     placeholder="بحث سريع..."
-                    className="pr-9 h-10 bg-secondary/50 border-border/40 rounded-lg text-sm text-right"
+                    className="pr-9 h-10 bg-secondary/50 border-border/40 rounded-lg text-sm"
                   />
                 </div>
               </div>
 
-              {/* Navigation - Scrollable */}
-              <nav className="flex-1 overflow-y-auto p-2 space-y-0.5 overscroll-contain">
+              {/* Mobile Navigation */}
+              <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
                 {adminNavItems.map((item, index) => {
                   const badge = navBadges[item.href];
                   const active = isActive(item.href);
@@ -491,20 +344,12 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                         to={item.href}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
-                          "flex flex-row-reverse items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 relative",
+                          "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
                           active
-                            ? "bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground"
-                            : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                            ? "bg-gradient-to-l from-destructive to-orange-500 text-white"
+                            : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
                         )}
                       >
-                        {/* Active indicator */}
-                        {active && (
-                          <motion.div
-                            layoutId="mobileActiveNav"
-                            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"
-                          />
-                        )}
-                        
                         <div className={cn(
                           "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
                           active ? "bg-white/20" : "bg-secondary/50"
@@ -512,12 +357,12 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                           <item.icon className="w-4 h-4" />
                         </div>
                         
-                        <span className="font-medium text-sm flex-1 text-right">{item.label}</span>
+                        <span className="font-medium text-sm flex-1">{item.label}</span>
                         
                         {badge && badge > 0 && (
                           <span className={cn(
                             "min-w-5 h-5 px-1.5 flex items-center justify-center text-[10px] font-bold rounded-full",
-                            active ? "bg-white/20 text-white" : "bg-destructive text-destructive-foreground"
+                            active ? "bg-white/20 text-white" : "bg-destructive text-white"
                           )}>
                             {badge}
                           </span>
@@ -528,15 +373,15 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                 })}
               </nav>
 
-              {/* Mobile Admin Info - Fixed Bottom */}
-              <div className="p-3 border-t border-border/50 bg-secondary/20">
-                <div className="flex flex-row-reverse items-center gap-2 mb-3 p-2 rounded-lg bg-secondary/40">
+              {/* Mobile Admin Info */}
+              <div className="p-3 border-t border-border/40 bg-secondary/20">
+                <div className="flex items-center gap-2 mb-3 p-2 rounded-lg bg-secondary/40">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center">
-                    <Shield className="w-5 h-5 text-primary-foreground" />
+                    <Shield className="w-5 h-5 text-white" />
                   </div>
-                  <div className="flex-1 min-w-0 text-right">
+                  <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm truncate">{profile?.full_name || "المدير"}</p>
-                    <p className="text-[10px] text-muted-foreground flex flex-row-reverse items-center gap-1">
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-success" />
                       Super Admin
                     </p>
@@ -544,11 +389,11 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                 </div>
                 <Button 
                   variant="outline" 
-                  className="w-full h-10 gap-2 rounded-lg border-destructive/30 text-destructive hover:bg-destructive/10 text-sm flex flex-row-reverse"
+                  className="w-full h-10 gap-2 rounded-lg border-destructive/30 text-destructive hover:bg-destructive/10 text-sm"
                   onClick={handleSignOut}
                 >
                   <LogOut className="w-4 h-4" />
-                  تسجيل الخروج
+                  الخروج
                 </Button>
               </div>
             </motion.div>
@@ -556,14 +401,9 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
         )}
       </AnimatePresence>
 
-      {/* Main Content - Enhanced for mobile RTL */}
-      <main
-        className={cn(
-          "flex-1 transition-all duration-300 pt-14 lg:pt-0 min-h-screen",
-          isSidebarOpen ? "lg:mr-[280px]" : "lg:mr-[80px]"
-        )}
-      >
-        <div className="p-2 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto pb-20 lg:pb-8 overflow-x-hidden">
+      {/* Main Content */}
+      <main className="flex-1 lg:mr-[260px] min-h-screen pt-14 lg:pt-0">
+        <div className="p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto pb-20 lg:pb-8 overflow-x-hidden">
           {children}
         </div>
       </main>
