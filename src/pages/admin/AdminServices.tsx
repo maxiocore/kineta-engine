@@ -337,77 +337,111 @@ const AdminServices = () => {
 
   return (
     <AdminDashboardLayout>
-      <div className="space-y-3 sm:space-y-4 lg:space-y-6" dir="rtl">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 mb-1"
-            >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br from-primary to-cyan-400 p-1.5 sm:p-2">
-                <Package className="w-full h-full text-primary-foreground" />
-              </div>
-              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">إدارة الخدمات</h1>
-            </motion.div>
-            <p className="text-muted-foreground text-xs sm:text-sm">إضافة وتعديل وإدارة الخدمات المقدمة</p>
-          </div>
-          
-          <div className="flex flex-wrap gap-2">
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="h-8 w-8"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-            </Button>
-            <Link to="/admin/services/import">
-              <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs">
-                <Download className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">استيراد</span>
-              </Button>
-            </Link>
-            <Link to="/admin/services/prices">
-              <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs">
-                <DollarSign className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">الأسعار</span>
-              </Button>
-            </Link>
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="gap-1.5 h-8 text-xs text-destructive border-destructive/50 hover:bg-destructive/10"
-              onClick={() => setIsBulkDeleteOpen(true)}
-              disabled={services.length === 0}
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">حذف</span>
-            </Button>
-            <Button 
-              onClick={openNewDialog} 
-              size="sm"
-              className="bg-gradient-to-l from-destructive to-orange-500 text-primary-foreground gap-1.5 h-8 text-xs"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              إضافة
-            </Button>
+      <div className="space-y-3 pb-20" dir="rtl">
+        {/* Header - Mobile Optimized */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-400 p-2">
+              <Package className="w-full h-full text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-base font-bold">إدارة الخدمات</h1>
+              <p className="text-[10px] text-muted-foreground">إضافة وتعديل وإدارة الخدمات المقدمة</p>
+            </div>
           </div>
         </div>
 
-        {/* Stats */}
-        <ServiceStats
-          totalServices={totalServices}
-          activeServices={activeServices}
-          totalRevenue={totalRevenue}
-          totalOrders={totalOrders}
-        />
+        {/* Action Buttons - Compact Row */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+          <Button 
+            onClick={openNewDialog} 
+            size="sm"
+            className="bg-gradient-to-l from-destructive to-orange-500 text-white gap-1 h-8 text-xs shrink-0"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            إضافة
+          </Button>
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => setIsBulkDeleteOpen(true)}
+            disabled={services.length === 0}
+            className="h-8 w-8 shrink-0 text-destructive border-destructive/30"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </Button>
+          <Link to="/admin/services/prices">
+            <Button variant="outline" size="icon" className="h-8 w-8 shrink-0">
+              <DollarSign className="w-3.5 h-3.5" />
+            </Button>
+          </Link>
+          <Link to="/admin/services/import">
+            <Button variant="outline" size="icon" className="h-8 w-8 shrink-0">
+              <Download className="w-3.5 h-3.5" />
+            </Button>
+          </Link>
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="h-8 w-8 shrink-0"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+
+        {/* Stats - Simple 2x2 Grid */}
+        <div className="grid grid-cols-2 gap-2">
+          <Card className="border-border/50 bg-card/50">
+            <CardContent className="p-3 flex items-center gap-2">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-cyan-400 p-2 shrink-0">
+                <Package className="w-full h-full text-white" />
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground">الخدمات</p>
+                <p className="text-lg font-bold">{totalServices}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/50">
+            <CardContent className="p-3 flex items-center gap-2">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-success to-emerald-400 p-2 shrink-0">
+                <Package className="w-full h-full text-white" />
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground">النشطة</p>
+                <p className="text-lg font-bold">{activeServices}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/50">
+            <CardContent className="p-3 flex items-center gap-2">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-accent to-purple-400 p-2 shrink-0">
+                <Package className="w-full h-full text-white" />
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground">الطلبات</p>
+                <p className="text-lg font-bold">{totalOrders}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/50">
+            <CardContent className="p-3 flex items-center gap-2">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-warning to-orange-400 p-2 shrink-0">
+                <DollarSign className="w-full h-full text-white" />
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground">الإيرادات</p>
+                <p className="text-base font-bold">{totalRevenue.toFixed(2)}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Social Network Grid */}
         <Card className="border-border/50">
-          <CardContent className="p-2.5 sm:p-3 lg:p-4">
+          <CardContent className="p-3">
             <SocialNetworkGrid
               selectedCategory={selectedCategory}
               onCategoryChange={setSelectedCategory}
@@ -438,51 +472,36 @@ const AdminServices = () => {
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
         ) : filteredServices.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <Card className="border-border/50">
-              <CardContent className="py-10 text-center">
-                <motion.div
-                  animate={{ y: [0, -8, 0] }}
-                  transition={{ repeat: Infinity, duration: 2 }}
-                >
-                  <Sparkles className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
-                </motion.div>
-                <p className="text-muted-foreground text-sm">
-                  {searchQuery || selectedCategory !== "all" || selectedStatus !== "all"
-                    ? "لا توجد نتائج مطابقة للبحث"
-                    : "لا توجد خدمات. ابدأ بإضافة خدمة جديدة."}
-                </p>
-                {!searchQuery && selectedCategory === "all" && selectedStatus === "all" && (
-                  <Button onClick={openNewDialog} className="mt-3" variant="outline" size="sm">
-                    <Plus className="w-3.5 h-3.5 ml-1.5" />
-                    إضافة أول خدمة
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
+          <Card className="border-border/50">
+            <CardContent className="py-8 text-center">
+              <Sparkles className="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
+              <p className="text-muted-foreground text-sm">
+                {searchQuery || selectedCategory !== "all" || selectedStatus !== "all"
+                  ? "لا توجد نتائج"
+                  : "لا توجد خدمات"}
+              </p>
+              {!searchQuery && selectedCategory === "all" && selectedStatus === "all" && (
+                <Button onClick={openNewDialog} className="mt-3" variant="outline" size="sm">
+                  <Plus className="w-3.5 h-3.5 ml-1" />
+                  إضافة خدمة
+                </Button>
+              )}
+            </CardContent>
+          </Card>
         ) : (
-          <AnimatePresence mode="popLayout">
-            <div className={viewMode === "grid" 
-              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5"
-              : "space-y-3"
-            }>
-              {filteredServices.map((service, index) => (
-                <ServiceCard
-                  key={service.id}
-                  service={service}
-                  index={index}
-                  viewMode={viewMode}
-                  onEdit={openEditDialog}
-                  onDelete={handleDelete}
-                  onView={openDetailsDialog}
-                />
-              ))}
-            </div>
-          </AnimatePresence>
+          <div className="space-y-2">
+            {filteredServices.map((service, index) => (
+              <ServiceCard
+                key={service.id}
+                service={service}
+                index={index}
+                viewMode={viewMode}
+                onEdit={openEditDialog}
+                onDelete={handleDelete}
+                onView={openDetailsDialog}
+              />
+            ))}
+          </div>
         )}
 
         {/* Dialogs */}
