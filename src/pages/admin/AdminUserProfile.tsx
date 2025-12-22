@@ -781,7 +781,7 @@ const AdminUserProfile = () => {
                               </TableCell>
                               <TableCell>{order.quantity?.toLocaleString()}</TableCell>
                               <TableCell className="font-medium">
-                                ${Number(order.total_price).toFixed(2)}
+                                {Number(order.total_price).toFixed(2)} ر.س
                               </TableCell>
                               <TableCell>
                                 <Badge variant="outline" className={statusConfig.color}>

@@ -117,7 +117,7 @@ const ClientBadges = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-xs sm:text-sm text-muted-foreground">إجمالي الإنفاق</p>
-                  <p className="text-xl sm:text-2xl font-bold">${userStats.totalSpending.toFixed(2)}</p>
+                  <p className="text-xl sm:text-2xl font-bold">{userStats.totalSpending.toFixed(2)} ر.س</p>
                 </div>
               </div>
             </CardContent>

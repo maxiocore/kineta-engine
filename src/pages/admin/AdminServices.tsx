@@ -632,7 +632,7 @@ const AdminServices = () => {
                   {[
                     { label: 'نشطة', value: activeServices, gradient: 'from-emerald-500 to-green-500' },
                     { label: 'طلبات', value: totalOrders, gradient: 'from-blue-500 to-cyan-500' },
-                    { label: 'إيرادات', value: `$${totalRevenue.toFixed(0)}`, gradient: 'from-amber-500 to-orange-500' },
+                    { label: 'إيرادات', value: `${totalRevenue.toFixed(0)} ر.س`, gradient: 'from-amber-500 to-orange-500' },
                   ].map((stat) => (
                     <div key={stat.label} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-card/80 border border-border/50">
                       <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${stat.gradient} flex items-center justify-center text-white text-xs font-bold`}>
@@ -738,7 +738,7 @@ const AdminServices = () => {
                               { icon: Package, label: 'خدمات', value: category.services.length, color: 'text-primary' },
                               { icon: Zap, label: 'نشطة', value: activeCount, color: 'text-emerald-500' },
                               { icon: ShoppingCart, label: 'طلبات', value: categoryOrders, color: 'text-blue-500' },
-                              { icon: DollarSign, label: 'إيرادات', value: `$${categoryRevenue.toFixed(0)}`, color: 'text-amber-500' },
+                              { icon: DollarSign, label: 'إيرادات', value: `${categoryRevenue.toFixed(0)} ر.س`, color: 'text-amber-500' },
                             ].map((stat, i) => (
                               <motion.div
                                 key={stat.label}
@@ -832,7 +832,7 @@ const AdminServices = () => {
                                     <div key={service.id} className="space-y-0.5">
                                       <div className="flex items-center justify-between text-[9px]">
                                         <span className="text-muted-foreground truncate max-w-[60%]">{service.name}</span>
-                                        <span className="font-medium text-primary">${(service.revenue || 0).toFixed(0)}</span>
+                                        <span className="font-medium text-primary">{(service.revenue || 0).toFixed(0)} ر.س</span>
                                       </div>
                                       <Progress value={percentage} className="h-1" />
                                     </div>
@@ -877,7 +877,7 @@ const AdminServices = () => {
                             <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                               <span className="flex items-center gap-1">
                                 <Target className="w-3 h-3" />
-                                متوسط: ${avgPrice.toFixed(0)}
+                                متوسط: {avgPrice.toFixed(0)} ر.س
                               </span>
                             </div>
                           </div>

@@ -1058,7 +1058,7 @@ const AdminReferrals = () => {
                               </td>
                               <td className="py-3 px-4 text-sm">{code.total_referrals}</td>
                               <td className="py-3 px-4 text-sm font-bold text-success">
-                                ${code.total_earnings.toFixed(2)}
+                                {code.total_earnings.toFixed(2)} ر.س
                               </td>
                               <td className="py-3 px-4">
                                 <Button

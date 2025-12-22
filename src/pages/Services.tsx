@@ -669,7 +669,7 @@ const Services = () => {
                                               )}
                                             </div>
                                             <span className="font-bold text-primary text-lg">
-                                              ${service.price.toFixed(2)}
+                                              {service.price.toFixed(2)} ر.س
                                             </span>
                                           </div>
                                           <div className="flex items-center justify-between">

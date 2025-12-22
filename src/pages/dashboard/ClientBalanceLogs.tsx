@@ -655,7 +655,7 @@ const ClientBalanceLogs = () => {
                           ))}
                         </Pie>
                         <Tooltip 
-                          formatter={(value: number) => [`$${value.toFixed(2)}`, '']}
+                          formatter={(value: number) => [`${value.toFixed(2)} ر.س`, '']}
                           contentStyle={{
                             backgroundColor: 'hsl(var(--card))',
                             border: '1px solid hsl(var(--border))',
@@ -772,7 +772,7 @@ const ClientBalanceLogs = () => {
                           <ActionIcon className={`w-4 h-4 ${actionInfo.color}`} />
                           <span className={`text-xs font-medium ${actionInfo.color}`}>{item.label}</span>
                         </div>
-                        <p className="text-xl font-bold">${item.total.toFixed(2)}</p>
+                        <p className="text-xl font-bold">{item.total.toFixed(2)} ر.س</p>
                         <p className="text-xs text-muted-foreground mt-0.5">{item.count} عملية</p>
                       </motion.div>
                     );
@@ -924,14 +924,14 @@ const ClientBalanceLogs = () => {
                                   initial={isNew ? { scale: 1.2 } : {}}
                                   animate={{ scale: 1 }}
                                 >
-                                  {isPositive ? "+" : ""}{log.amount.toFixed(2)}$
+                                  {isPositive ? "+" : ""}{log.amount.toFixed(2)} ر.س
                                 </motion.span>
                               </TableCell>
                               <TableCell className="text-muted-foreground hidden sm:table-cell">
-                                ${log.balance_before.toFixed(2)}
+                                {log.balance_before.toFixed(2)} ر.س
                               </TableCell>
                               <TableCell>
-                                <span className="font-semibold">${log.balance_after.toFixed(2)}</span>
+                                <span className="font-semibold">{log.balance_after.toFixed(2)} ر.س</span>
                               </TableCell>
                               <TableCell className="text-muted-foreground text-sm max-w-[200px] truncate hidden md:table-cell">
                                 {log.notes || "-"}

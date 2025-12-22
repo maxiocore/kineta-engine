@@ -514,8 +514,8 @@ const AdminServiceImport = () => {
                                 </p>
                               </div>
                               <div className="text-left">
-                                <p className="text-xs text-muted-foreground line-through">${parseFloat(service.rate).toFixed(4)}</p>
-                                <p className="text-sm font-medium text-primary">${calculatePrice(service.rate).toFixed(4)}</p>
+                                <p className="text-xs text-muted-foreground line-through">{parseFloat(service.rate).toFixed(4)} ر.س</p>
+                                <p className="text-sm font-medium text-primary">{calculatePrice(service.rate).toFixed(4)} ر.س</p>
                               </div>
                             </div>
                           ))}

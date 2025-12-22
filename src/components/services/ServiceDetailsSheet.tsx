@@ -194,7 +194,7 @@ const ServiceDetailsSheet = ({
                       <div>
                         <p className="text-sm text-muted-foreground mb-1">السعر لكل 1000</p>
                         <p className="text-3xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                          ${service.price.toFixed(4)}
+                          {service.price.toFixed(4)} ر.س
                         </p>
                       </div>
                     </div>
