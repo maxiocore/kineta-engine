@@ -5,11 +5,8 @@ import {
   DollarSign,
   CheckCircle,
   Clock,
-  Sparkles,
   BarChart3,
-  Star,
-  Eye,
-  TrendingUp,
+  Sparkles,
 } from "lucide-react";
 import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { useNavigate } from "react-router-dom";
@@ -19,12 +16,15 @@ import { format, subDays } from "date-fns";
 import { ar } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import DashboardSkeleton from "@/components/admin/DashboardSkeleton";
 import AdvancedDashboardCharts from "@/components/admin/AdvancedDashboardCharts";
-import { cn } from "@/lib/utils";
+import DashboardHeader from "@/components/admin/dashboard/DashboardHeader";
+import EnhancedStatCard from "@/components/admin/dashboard/EnhancedStatCard";
+import QuickStatsRow from "@/components/admin/dashboard/QuickStatsRow";
+import TopServicesCard from "@/components/admin/dashboard/TopServicesCard";
+import ActivityFeedCard from "@/components/admin/dashboard/ActivityFeedCard";
+import RevenueOverviewCard from "@/components/admin/dashboard/RevenueOverviewCard";
 
 interface DashboardStats {
   totalUsers: number;
@@ -34,9 +34,14 @@ interface DashboardStats {
   completedOrders: number;
   totalRevenue: number;
   monthlyRevenue: number;
+  weeklyRevenue: number;
   usersTrend: number;
   ordersTrend: number;
   revenueTrend: number;
+  totalBalance: number;
+  totalDeposits: number;
+  openTickets: number;
+  pendingMessages: number;
 }
 
 interface Activity {
@@ -65,8 +70,8 @@ interface ChartData {
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
-  const [activityFilter, setActivityFilter] = useState("all");
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     verifiedUsers: 0,
@@ -75,9 +80,14 @@ const AdminDashboard = () => {
     completedOrders: 0,
     totalRevenue: 0,
     monthlyRevenue: 0,
+    weeklyRevenue: 0,
     usersTrend: 0,
     ordersTrend: 0,
     revenueTrend: 0,
+    totalBalance: 0,
+    totalDeposits: 0,
+    openTickets: 0,
+    pendingMessages: 0,
   });
   const [chartData, setChartData] = useState<ChartData>({
     orders: [],
@@ -182,6 +192,9 @@ const AdminDashboard = () => {
         return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
       }).reduce((sum, o) => sum + Number(o.total_price), 0) || 0;
 
+      const weeklyRevenue = orders?.filter(o => new Date(o.created_at) > weekAgo)
+        .reduce((sum, o) => sum + Number(o.total_price), 0) || 0;
+
       const newOrdersThisWeek = orders?.filter(o => new Date(o.created_at) > weekAgo).length || 0;
       const ordersTrend = totalOrders > 0 ? Math.round((newOrdersThisWeek / totalOrders) * 100) : 0;
 
@@ -193,6 +206,28 @@ const AdminDashboard = () => {
         ? Math.round(((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100) 
         : monthlyRevenue > 0 ? 100 : 0;
 
+      // Fetch additional stats
+      const { data: balances } = await supabase.from("user_balances").select("balance");
+      const totalBalance = balances?.reduce((sum, b) => sum + Number(b.balance), 0) || 0;
+
+      const { data: deposits } = await supabase
+        .from("deposits")
+        .select("id, amount, status, created_at")
+        .eq("status", "completed");
+      const totalDeposits = deposits?.reduce((sum, d) => sum + Number(d.amount), 0) || 0;
+
+      const { data: tickets } = await supabase
+        .from("support_tickets")
+        .select("id, status")
+        .in("status", ["open", "in_progress"]);
+      const openTickets = tickets?.length || 0;
+
+      const { data: messages } = await supabase
+        .from("ticket_messages")
+        .select("id")
+        .eq("is_admin", false);
+      const pendingMessages = messages?.length || 0;
+
       setStats({
         totalUsers,
         verifiedUsers,
@@ -201,9 +236,14 @@ const AdminDashboard = () => {
         completedOrders,
         totalRevenue,
         monthlyRevenue,
+        weeklyRevenue,
         usersTrend,
         ordersTrend,
         revenueTrend,
+        totalBalance,
+        totalDeposits,
+        openTickets,
+        pendingMessages,
       });
 
       const activitiesList: Activity[] = [];
@@ -267,7 +307,7 @@ const AdminDashboard = () => {
       });
 
       activitiesList.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-      setActivities(activitiesList.slice(0, 8));
+      setActivities(activitiesList.slice(0, 10));
 
       const { data: services } = await supabase
         .from("services")
@@ -314,69 +354,49 @@ const AdminDashboard = () => {
   };
 
   const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
     await fetchDashboardData();
+    setIsRefreshing(false);
   }, []);
 
   const statsData = [
-    { 
-      title: "إجمالي المستخدمين", 
-      value: stats.totalUsers, 
+    {
+      title: "إجمالي المستخدمين",
+      value: stats.totalUsers,
       icon: Users,
-      iconBg: "bg-primary/10",
-      iconColor: "text-primary",
+      gradient: "from-primary/20 to-primary/5",
+      iconBg: "bg-gradient-to-br from-primary to-blue-600",
       trend: stats.usersTrend,
       onClick: () => navigate("/admin/users"),
     },
-    { 
-      title: "الطلبات المعلقة", 
-      value: stats.pendingOrders, 
+    {
+      title: "الطلبات المعلقة",
+      value: stats.pendingOrders,
       icon: Clock,
-      iconBg: "bg-warning/10",
-      iconColor: "text-warning",
+      gradient: "from-warning/20 to-warning/5",
+      iconBg: "bg-gradient-to-br from-warning to-orange-600",
       trend: stats.ordersTrend,
       onClick: () => navigate("/admin/orders"),
     },
-    { 
-      title: "الطلبات المكتملة", 
-      value: stats.completedOrders, 
+    {
+      title: "الطلبات المكتملة",
+      value: stats.completedOrders,
       icon: CheckCircle,
-      iconBg: "bg-success/10",
-      iconColor: "text-success",
+      gradient: "from-success/20 to-success/5",
+      iconBg: "bg-gradient-to-br from-success to-emerald-600",
       onClick: () => navigate("/admin/orders"),
     },
-    { 
-      title: "الإيرادات الشهرية", 
-      value: stats.monthlyRevenue, 
+    {
+      title: "الإيرادات الشهرية",
+      value: stats.monthlyRevenue,
       icon: DollarSign,
-      iconBg: "bg-accent/10",
-      iconColor: "text-accent",
+      gradient: "from-accent/20 to-accent/5",
+      iconBg: "bg-gradient-to-br from-accent to-purple-600",
       suffix: " ر.س",
       trend: stats.revenueTrend,
       onClick: () => navigate("/admin/reports"),
     },
   ];
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case "order":
-        return <Clock className="w-4 h-4 text-warning" />;
-      case "user":
-        return <Users className="w-4 h-4 text-primary" />;
-      case "ticket":
-        return <CheckCircle className="w-4 h-4 text-destructive" />;
-      default:
-        return <Clock className="w-4 h-4" />;
-    }
-  };
-
-  const filteredActivities = activityFilter === "all" 
-    ? activities 
-    : activities.filter(a => {
-        if (activityFilter === "orders") return a.type === "order";
-        if (activityFilter === "users") return a.type === "user";
-        if (activityFilter === "support") return a.type === "ticket";
-        return true;
-      });
 
   if (loading) {
     return (
@@ -388,216 +408,82 @@ const AdminDashboard = () => {
 
   const dashboardContent = (
     <div className="space-y-4 sm:space-y-6" dir="rtl">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <motion.div
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg"
-              animate={{ rotate: [0, 5, -5, 0] }}
-              transition={{ duration: 4, repeat: Infinity }}
-            >
-              <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </motion.div>
-            <div>
-              <h1 className="text-lg sm:text-xl font-bold">لوحة التحكم</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">نظرة شاملة على أداء المنصة</p>
+      {/* Enhanced Header */}
+      <DashboardHeader onRefresh={handleRefresh} isRefreshing={isRefreshing} />
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:inline-flex h-11 p-1 bg-secondary/50">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm gap-1.5 data-[state=active]:bg-background">
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            نظرة عامة
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="text-xs sm:text-sm gap-1.5 data-[state=active]:bg-background">
+            <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            الإحصائيات
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-4 sm:space-y-6 mt-4">
+          {/* Main Stats Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {statsData.map((stat, index) => (
+              <EnhancedStatCard
+                key={stat.title}
+                title={stat.title}
+                value={stat.value}
+                icon={stat.icon}
+                gradient={stat.gradient}
+                iconBg={stat.iconBg}
+                trend={stat.trend}
+                suffix={stat.suffix}
+                delay={index * 0.1}
+                onClick={stat.onClick}
+              />
+            ))}
+          </div>
+
+          {/* Quick Stats Row */}
+          <QuickStatsRow
+            totalBalance={stats.totalBalance}
+            totalDeposits={stats.totalDeposits}
+            openTickets={stats.openTickets}
+            pendingMessages={stats.pendingMessages}
+          />
+
+          {/* Three Column Layout */}
+          <div className="grid gap-4 lg:gap-6 lg:grid-cols-3">
+            {/* Revenue Overview */}
+            <div className="lg:col-span-1">
+              <RevenueOverviewCard
+                totalRevenue={stats.totalRevenue}
+                monthlyRevenue={stats.monthlyRevenue}
+                weeklyRevenue={stats.weeklyRevenue}
+                revenueTrend={stats.revenueTrend}
+              />
+            </div>
+
+            {/* Top Services */}
+            <div className="lg:col-span-1">
+              <TopServicesCard services={topServices} />
+            </div>
+
+            {/* Activity Feed */}
+            <div className="lg:col-span-1">
+              <ActivityFeedCard activities={activities} />
             </div>
           </div>
-          
-          <motion.div 
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-success/10 border border-success/20 w-fit"
-            animate={{ opacity: [1, 0.7, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-            <span className="text-xs text-success font-medium">مباشر</span>
-          </motion.div>
-        </div>
+        </TabsContent>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:inline-flex h-10 p-1">
-            <TabsTrigger value="overview" className="text-xs sm:text-sm gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              نظرة عامة
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="text-xs sm:text-sm gap-1.5">
-              <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              الإحصائيات
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-4 sm:space-y-6 mt-4">
-            {/* Stats Grid - 2 columns on mobile, 4 on desktop */}
-            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
-              {statsData.map((stat, index) => (
-                <motion.div
-                  key={stat.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Card 
-                    className="cursor-pointer hover:shadow-lg transition-all duration-200 border-border/50 bg-card h-full"
-                    onClick={stat.onClick}
-                  >
-                    <CardContent className="p-2.5 sm:p-4">
-                      <div className="flex items-center gap-2 sm:gap-3 mb-2">
-                        <div className={cn(
-                          "w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0", 
-                          stat.iconBg
-                        )}>
-                          <stat.icon className={cn("w-4 h-4 sm:w-5 sm:h-5", stat.iconColor)} />
-                        </div>
-                        {stat.trend !== undefined && stat.trend > 0 && (
-                          <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-success/10 text-success text-[10px] font-medium mr-auto">
-                            <TrendingUp className="w-2.5 h-2.5" />
-                            {stat.trend}%
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-lg sm:text-xl lg:text-2xl font-bold truncate">
-                        {stat.value.toLocaleString()}{stat.suffix || ""}
-                      </div>
-                      <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 truncate">{stat.title}</p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Two Column Layout - Stack on mobile */}
-            <div className="grid gap-3 sm:gap-4 lg:gap-6 lg:grid-cols-2">
-              {/* Top Services */}
-              <Card className="border-border/50 overflow-hidden">
-                <CardHeader className="pb-3 px-3 sm:px-6 pt-4 sm:pt-6">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-                      <Star className="w-4 h-4 text-warning" />
-                      أفضل الخدمات
-                    </CardTitle>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs h-8"
-                      onClick={() => navigate("/admin/services")}
-                    >
-                      <Eye className="w-3 h-3 ml-1" />
-                      عرض الكل
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="px-3 sm:px-6 pb-4 sm:pb-6 space-y-2 sm:space-y-3">
-                  {topServices.length > 0 ? (
-                    topServices.map((service, index) => (
-                      <div 
-                        key={service.id}
-                        className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
-                      >
-                        <div className={cn(
-                          "w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs sm:text-sm font-bold",
-                          index === 0 ? "bg-warning/20 text-warning" : 
-                          index === 1 ? "bg-muted-foreground/20 text-muted-foreground" :
-                          index === 2 ? "bg-orange-500/20 text-orange-500" :
-                          "bg-secondary text-muted-foreground"
-                        )}>
-                          {index + 1}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs sm:text-sm font-medium truncate">{service.name}</p>
-                          <p className="text-[10px] sm:text-xs text-muted-foreground">{service.orders} طلب</p>
-                        </div>
-                        <div className="text-left">
-                          <p className="text-xs sm:text-sm font-semibold">{service.revenue.toLocaleString()} ر.س</p>
-                          {service.trend > 0 && (
-                            <span className="text-[10px] text-success flex items-center justify-end gap-0.5">
-                              <TrendingUp className="w-2.5 h-2.5" />
-                              {service.trend}%
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-6 sm:py-8 text-muted-foreground text-xs sm:text-sm">
-                      لا توجد خدمات بعد
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Activity Feed */}
-              <Card className="border-border/50">
-                <CardHeader className="pb-3 px-3 sm:px-6 pt-4 sm:pt-6">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-primary" />
-                      النشاط الأخير
-                    </CardTitle>
-                  </div>
-                  {/* Activity Filters */}
-                  <div className="flex gap-1 mt-2 flex-wrap">
-                    {[
-                      { id: "all", label: "الكل" },
-                      { id: "orders", label: "الطلبات" },
-                      { id: "users", label: "المستخدمين" },
-                      { id: "support", label: "الدعم" },
-                    ].map((filter) => (
-                      <Button
-                        key={filter.id}
-                        variant={activityFilter === filter.id ? "default" : "outline"}
-                        size="sm"
-                        className="h-7 text-[10px] sm:text-xs px-2 sm:px-3"
-                        onClick={() => setActivityFilter(filter.id)}
-                      >
-                        {filter.label}
-                      </Button>
-                    ))}
-                  </div>
-                </CardHeader>
-                <CardContent className="px-3 sm:px-6 pb-4 sm:pb-6 space-y-2 sm:space-y-3 max-h-[350px] overflow-y-auto">
-                  {filteredActivities.length > 0 ? (
-                    filteredActivities.map((activity) => (
-                      <div 
-                        key={activity.id}
-                        className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
-                      >
-                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-secondary flex items-center justify-center shrink-0">
-                          {getActivityIcon(activity.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs sm:text-sm font-medium truncate">{activity.message}</p>
-                          {activity.details && (
-                            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{activity.details}</p>
-                          )}
-                          <p className="text-[10px] text-muted-foreground mt-0.5">{activity.time}</p>
-                        </div>
-                        {activity.isNew && (
-                          <span className="px-1.5 py-0.5 text-[8px] sm:text-[10px] bg-primary/10 text-primary rounded-full font-medium">
-                            جديد
-                          </span>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-6 sm:py-8 text-muted-foreground text-xs sm:text-sm">
-                      لا يوجد نشاط حتى الآن
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="analytics" className="mt-4">
-            <AdvancedDashboardCharts 
-              orders={chartData.orders}
-              deposits={chartData.deposits}
-              users={chartData.users}
-            />
-          </TabsContent>
-        </Tabs>
-      </div>
+        <TabsContent value="analytics" className="mt-4">
+          <AdvancedDashboardCharts
+            orders={chartData.orders}
+            deposits={chartData.deposits}
+            users={chartData.users}
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 
   return (
