@@ -376,7 +376,7 @@ const AdminServices = () => {
 
   return (
     <AdminDashboardLayout>
-      <div className="space-y-3 pb-20" dir="rtl">
+      <div className="w-full max-w-full overflow-x-hidden space-y-4 pb-20" dir="rtl">
         {/* Header */}
         <ServicesHeader
           onAddNew={openNewDialog}
@@ -424,7 +424,7 @@ const AdminServices = () => {
           setSortBy={setSortBy}
         />
 
-        {/* Services List */}
+        {/* Services Grid/List */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-16">
             <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
@@ -436,14 +436,8 @@ const AdminServices = () => {
             onAddNew={openNewDialog}
             onClearFilters={clearAllFilters}
           />
-        ) : (
-          <motion.div 
-            className={viewMode === "grid" 
-              ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5" 
-              : "space-y-1.5"
-            }
-            layout
-          >
+        ) : viewMode === "list" ? (
+          <div className="flex flex-col gap-2">
             <AnimatePresence mode="popLayout">
               {filteredServices.map((service, index) => (
                 <EnhancedServiceCard
@@ -457,7 +451,23 @@ const AdminServices = () => {
                 />
               ))}
             </AnimatePresence>
-          </motion.div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <AnimatePresence mode="popLayout">
+              {filteredServices.map((service, index) => (
+                <EnhancedServiceCard
+                  key={service.id}
+                  service={service}
+                  index={index}
+                  viewMode={viewMode}
+                  onEdit={openEditDialog}
+                  onDelete={handleDelete}
+                  onView={openDetailsDialog}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
         )}
 
         {/* Dialogs */}

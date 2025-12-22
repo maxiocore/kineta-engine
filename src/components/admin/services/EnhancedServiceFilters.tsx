@@ -47,14 +47,14 @@ const EnhancedServiceFilters = ({
   ];
 
   return (
-    <div className="space-y-2">
+    <div className="w-full space-y-2">
       {/* Search Row */}
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <div className="flex items-center gap-2 w-full">
+        <div className="relative flex-1 min-w-0">
+          <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <Input
             placeholder="ابحث عن خدمة..."
-            className="pr-9 h-9 text-sm bg-secondary/30 border-border/50 rounded-lg"
+            className="w-full pr-9 h-9 text-sm bg-secondary/30 border-border/50 rounded-lg"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -71,7 +71,7 @@ const EnhancedServiceFilters = ({
         </div>
 
         {/* View Toggle */}
-        <div className="flex rounded-lg border border-border/50 bg-secondary/30 p-0.5">
+        <div className="flex rounded-lg border border-border/50 bg-secondary/30 p-0.5 shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -101,7 +101,7 @@ const EnhancedServiceFilters = ({
           variant="outline"
           size="icon"
           className={cn(
-            "h-9 w-9 border-border/50",
+            "h-9 w-9 border-border/50 shrink-0",
             showFilters && "bg-primary text-primary-foreground border-primary"
           )}
           onClick={() => setShowFilters(!showFilters)}
@@ -110,35 +110,37 @@ const EnhancedServiceFilters = ({
         </Button>
       </div>
 
-      {/* Filters Row */}
+      {/* Filters Row - horizontally scrollable on mobile */}
       {showFilters && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-            <SelectTrigger className="w-[120px] h-8 text-xs bg-secondary/30 border-border/50">
-              <SelectValue placeholder="الحالة" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">الكل</SelectItem>
-              {statusOptions.map(opt => (
-                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="w-full overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-2 min-w-max pb-1">
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className="w-[110px] h-8 text-xs bg-secondary/30 border-border/50">
+                <SelectValue placeholder="الحالة" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">الكل</SelectItem>
+                {statusOptions.map(opt => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[120px] h-8 text-xs bg-secondary/30 border-border/50">
-              <SelectValue placeholder="الترتيب" />
-            </SelectTrigger>
-            <SelectContent>
-              {sortOptions.map(opt => (
-                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <span className="text-xs text-muted-foreground mr-auto">
-            {filteredCount} / {totalCount}
-          </span>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[120px] h-8 text-xs bg-secondary/30 border-border/50">
+                <SelectValue placeholder="الترتيب" />
+              </SelectTrigger>
+              <SelectContent>
+                {sortOptions.map(opt => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <span className="text-xs text-muted-foreground whitespace-nowrap px-2">
+              {filteredCount} / {totalCount}
+            </span>
+          </div>
         </div>
       )}
     </div>
