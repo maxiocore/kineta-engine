@@ -1,7 +1,16 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, AlertTriangle, Trash2 } from "lucide-react";
+import { 
+  Loader2, AlertTriangle, Trash2, Package, Plus, RefreshCw, 
+  ArrowUpRight, Globe, Palette, Code, Layers, Settings2,
+  Instagram, Facebook, Youtube, Twitter, Send, MessageCircle,
+  Sparkles, Star, Smartphone, TrendingUp, ChevronLeft, Eye,
+  Grid3X3, LayoutList, Filter, Search
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,9 +30,6 @@ import {
 } from "@/components/ui/select";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import ServicesHeader from "@/components/admin/services/ServicesHeader";
-import ServicesStatsGrid from "@/components/admin/services/ServicesStatsGrid";
-import ServicesCategoryTabs from "@/components/admin/services/ServicesCategoryTabs";
-import EnhancedServiceFilters from "@/components/admin/services/EnhancedServiceFilters";
 import EnhancedServiceCard from "@/components/admin/services/EnhancedServiceCard";
 import EmptyServicesState from "@/components/admin/services/EmptyServicesState";
 import ServiceFormDialog from "@/components/admin/services/ServiceFormDialog";
@@ -46,30 +52,52 @@ interface Service {
   revenue?: number;
 }
 
+interface CategoryGroup {
+  id: string;
+  name: string;
+  nameAr: string;
+  icon: React.ElementType;
+  gradient: string;
+  iconGradient: string;
+  bgGlow: string;
+  services: Service[];
+  platforms?: { icon: React.ElementType; color: string; bg: string }[];
+}
+
 const serviceSchema = z.object({
   name: z.string().min(3, "اسم الخدمة مطلوب (3 أحرف على الأقل)"),
   category: z.string().min(1, "التصنيف مطلوب"),
   price: z.number().min(0, "السعر يجب أن يكون رقماً موجباً"),
 });
 
-const statusOptions = [
-  { value: "active", label: "نشط" },
-  { value: "inactive", label: "غير نشط" },
-  { value: "archived", label: "مؤرشف" },
-];
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { type: "spring" as const, stiffness: 100, damping: 15 }
+  }
+};
 
 const AdminServices = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   
-  // Filters
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedStatus, setSelectedStatus] = useState("all");
+  // View states
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
-  const [sortBy, setSortBy] = useState("newest");
+  const [searchQuery, setSearchQuery] = useState("");
   
   // Dialogs
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
@@ -111,11 +139,6 @@ const AdminServices = () => {
       toast.error("خطأ في جلب الخدمات");
     } else {
       setServices(data as Service[]);
-      // Update max price
-      if (data && data.length > 0) {
-        const maxPrice = Math.max(...data.map(s => s.price));
-        setPriceRange([0, maxPrice > 0 ? maxPrice : 1000]);
-      }
     }
     setLoading(false);
     setRefreshing(false);
@@ -147,12 +170,6 @@ const AdminServices = () => {
     fetchOrderStats();
   };
 
-  // Max price for filter
-  const maxPrice = useMemo(() => {
-    if (services.length === 0) return 1000;
-    return Math.max(...services.map(s => s.price));
-  }, [services]);
-
   // Enrich services with order stats
   const enrichedServices = useMemo(() => {
     return services.map(service => {
@@ -165,93 +182,111 @@ const AdminServices = () => {
     });
   }, [services, orderStats]);
 
-  // Get category slug from category name
-  const getCategorySlug = (categoryName: string) => {
-    const slugMap: Record<string, string> = {
-      "Instagram": "instagram",
-      "Facebook": "facebook",
-      "Youtube": "youtube",
-      "Twitter": "twitter",
-      "TikTok": "tiktok",
-      "Telegram": "telegram",
-      "LinkedIn": "linkedin",
-      "Spotify": "spotify",
-      "SoundCloud": "soundcloud",
-      "Website Traffic": "website-traffic",
-      "Other": "other",
-    };
-    return slugMap[categoryName] || categoryName.toLowerCase().replace(/\s+/g, "-");
-  };
+  // Category groups
+  const categoryGroups: CategoryGroup[] = useMemo(() => {
+    const groups: CategoryGroup[] = [
+      {
+        id: 'social',
+        name: 'Social Media',
+        nameAr: 'خدمات التواصل الاجتماعي',
+        icon: Globe,
+        gradient: 'from-blue-600/80 to-cyan-600/80',
+        iconGradient: 'from-blue-500 to-cyan-500',
+        bgGlow: 'bg-blue-500/10',
+        services: [],
+        platforms: [
+          { icon: Instagram, color: 'text-pink-400', bg: 'bg-pink-500/10' },
+          { icon: Facebook, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+          { icon: Youtube, color: 'text-red-400', bg: 'bg-red-500/10' },
+          { icon: Twitter, color: 'text-sky-400', bg: 'bg-sky-500/10' },
+          { icon: MessageCircle, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+          { icon: Send, color: 'text-blue-400', bg: 'bg-blue-400/10' },
+        ]
+      },
+      {
+        id: 'design',
+        name: 'Design',
+        nameAr: 'خدمات التصميم',
+        icon: Palette,
+        gradient: 'from-violet-600/80 to-purple-600/80',
+        iconGradient: 'from-violet-500 to-purple-500',
+        bgGlow: 'bg-violet-500/10',
+        services: [],
+        platforms: [
+          { icon: Sparkles, color: 'text-violet-400', bg: 'bg-violet-500/10' },
+          { icon: Layers, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+          { icon: Star, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+        ]
+      },
+      {
+        id: 'dev',
+        name: 'Development',
+        nameAr: 'خدمات البرمجة والتطوير',
+        icon: Code,
+        gradient: 'from-emerald-600/80 to-teal-600/80',
+        iconGradient: 'from-emerald-500 to-teal-500',
+        bgGlow: 'bg-emerald-500/10',
+        services: [],
+        platforms: [
+          { icon: Globe, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+          { icon: Code, color: 'text-teal-400', bg: 'bg-teal-500/10' },
+          { icon: Smartphone, color: 'text-green-400', bg: 'bg-green-500/10' },
+        ]
+      },
+      {
+        id: 'other',
+        name: 'Other',
+        nameAr: 'خدمات أخرى',
+        icon: Package,
+        gradient: 'from-gray-600/80 to-slate-600/80',
+        iconGradient: 'from-gray-500 to-slate-500',
+        bgGlow: 'bg-gray-500/10',
+        services: [],
+      }
+    ];
 
-  // Filter and sort services
+    // Categorize services
+    enrichedServices.forEach(service => {
+      const cat = service.category.toLowerCase();
+      if (cat.includes('instagram') || cat.includes('facebook') || cat.includes('twitter') || 
+          cat.includes('youtube') || cat.includes('tiktok') || cat.includes('telegram') || 
+          cat.includes('linkedin') || cat.includes('spotify') || cat.includes('social')) {
+        groups[0].services.push(service);
+      } else if (cat.includes('design') || cat.includes('تصميم')) {
+        groups[1].services.push(service);
+      } else if (cat.includes('dev') || cat.includes('برمجة') || cat.includes('تطوير') || cat.includes('موقع')) {
+        groups[2].services.push(service);
+      } else {
+        groups[3].services.push(service);
+      }
+    });
+
+    return groups.filter(g => g.services.length > 0);
+  }, [enrichedServices]);
+
+  // Get selected category
+  const selectedCategory = useMemo(() => {
+    return categoryGroups.find(g => g.id === selectedCategoryId) || null;
+  }, [categoryGroups, selectedCategoryId]);
+
+  // Filter services in selected category
   const filteredServices = useMemo(() => {
-    let filtered = enrichedServices.filter(service => {
-      const matchesSearch = 
-        service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        service.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (service.description?.toLowerCase().includes(searchQuery.toLowerCase()));
-      
-      const categorySlug = getCategorySlug(service.category);
-      const matchesCategory = selectedCategory === "all" || categorySlug === selectedCategory || service.category === selectedCategory;
-      const matchesStatus = selectedStatus === "all" || service.status === selectedStatus;
-      const matchesPrice = service.price >= priceRange[0] && service.price <= priceRange[1];
-      
-      return matchesSearch && matchesCategory && matchesStatus && matchesPrice;
-    });
+    if (!selectedCategory) return [];
+    return selectedCategory.services.filter(service =>
+      service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      service.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [selectedCategory, searchQuery]);
 
-    // Sort
-    switch (sortBy) {
-      case "newest":
-        filtered = filtered.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-        break;
-      case "oldest":
-        filtered = filtered.sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime());
-        break;
-      case "price-high":
-        filtered = filtered.sort((a, b) => b.price - a.price);
-        break;
-      case "price-low":
-        filtered = filtered.sort((a, b) => a.price - b.price);
-        break;
-      case "orders":
-        filtered = filtered.sort((a, b) => (b.orderCount || 0) - (a.orderCount || 0));
-        break;
-      case "revenue":
-        filtered = filtered.sort((a, b) => (b.revenue || 0) - (a.revenue || 0));
-        break;
-    }
-
-    return filtered;
-  }, [enrichedServices, searchQuery, selectedCategory, selectedStatus, priceRange, sortBy]);
-
-  // Category counts
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    services.forEach(service => {
-      const slug = getCategorySlug(service.category);
-      counts[slug] = (counts[slug] || 0) + 1;
-    });
-    return counts;
-  }, [services]);
-
-  // Stats calculations
+  // Stats
   const totalServices = services.length;
   const activeServices = services.filter(s => s.status === "active").length;
-  const inactiveServices = services.filter(s => s.status === "inactive").length;
   const totalRevenue = orderStats.reduce((sum, s) => sum + s.revenue, 0);
   const totalOrders = orderStats.reduce((sum, s) => sum + s.count, 0);
-  const avgPrice = totalServices > 0 ? services.reduce((sum, s) => sum + s.price, 0) / totalServices : 0;
 
-  const hasActiveFilters = Boolean(searchQuery) || selectedCategory !== "all" || selectedStatus !== "all" || 
-    priceRange[0] > 0 || priceRange[1] < maxPrice;
-
-  const clearAllFilters = () => {
-    setSearchQuery("");
-    setSelectedCategory("all");
-    setSelectedStatus("all");
-    setPriceRange([0, maxPrice]);
-    setSortBy("newest");
-  };
+  const uniqueCategories = useMemo(() => {
+    return [...new Set(services.map(s => s.category))];
+  }, [services]);
 
   const openNewDialog = () => {
     setEditingService(null);
@@ -370,227 +405,338 @@ const AdminServices = () => {
     return services.filter(s => s.category === bulkDeleteCategory).length;
   };
 
-  const uniqueCategories = useMemo(() => {
-    return [...new Set(services.map(s => s.category))];
-  }, [services]);
-
-  const sidebarCategories = [
-    { id: "all", label: "جميع الخدمات", icon: "📦", count: totalServices, color: "bg-primary" },
-    { id: "instagram", label: "Instagram", icon: "📸", count: categoryCounts["instagram"] || 0, color: "bg-gradient-to-br from-pink-500 to-orange-400" },
-    { id: "facebook", label: "Facebook", icon: "👤", count: categoryCounts["facebook"] || 0, color: "bg-gradient-to-br from-blue-600 to-blue-400" },
-    { id: "youtube", label: "Youtube", icon: "▶️", count: categoryCounts["youtube"] || 0, color: "bg-gradient-to-br from-red-600 to-red-400" },
-    { id: "twitter", label: "Twitter", icon: "🐦", count: categoryCounts["twitter"] || 0, color: "bg-gradient-to-br from-sky-500 to-sky-400" },
-    { id: "tiktok", label: "TikTok", icon: "🎵", count: categoryCounts["tiktok"] || 0, color: "bg-gradient-to-br from-pink-500 to-cyan-400" },
-    { id: "telegram", label: "Telegram", icon: "✈️", count: categoryCounts["telegram"] || 0, color: "bg-gradient-to-br from-sky-500 to-blue-500" },
-    { id: "linkedin", label: "LinkedIn", icon: "💼", count: categoryCounts["linkedin"] || 0, color: "bg-gradient-to-br from-blue-700 to-blue-500" },
-    { id: "spotify", label: "Spotify", icon: "🎧", count: categoryCounts["spotify"] || 0, color: "bg-gradient-to-br from-green-500 to-green-400" },
-  ];
+  if (loading) {
+    return (
+      <AdminDashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <p className="text-muted-foreground text-sm">جاري تحميل الخدمات...</p>
+          </div>
+        </div>
+      </AdminDashboardLayout>
+    );
+  }
 
   return (
     <AdminDashboardLayout>
-      <div className="w-full min-h-screen overflow-x-hidden" dir="rtl">
-        <div className="flex flex-col lg:flex-row gap-3 lg:gap-4 pb-10">
-          
-          {/* Sidebar */}
-          <motion.aside 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="lg:w-52 xl:w-56 shrink-0"
-          >
-            {/* Mobile: Horizontal Categories */}
-            <div className="lg:hidden overflow-x-auto scrollbar-hide -mx-2 px-2 pb-2">
-              <div className="flex items-center gap-2 min-w-max">
-                {sidebarCategories.slice(0, 7).map((cat) => (
-                  <motion.button
-                    key={cat.id}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setSelectedCategory(cat.id)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all shrink-0 ${
-                      selectedCategory === cat.id
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"
-                    }`}
-                  >
-                    <span>{cat.icon}</span>
-                    <span>{cat.label}</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${
-                      selectedCategory === cat.id ? "bg-white/20" : "bg-secondary"
-                    }`}>{cat.count}</span>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-
-            {/* Desktop: Vertical Sidebar */}
-            <div className="hidden lg:block sticky top-4 space-y-3">
-              {/* Categories */}
-              <div className="bg-card/60 backdrop-blur-sm rounded-2xl border border-border/40 p-3 shadow-sm">
-                <h3 className="text-xs font-semibold text-muted-foreground px-2 pb-2 mb-2 border-b border-border/30">التصنيفات</h3>
-                <div className="space-y-1">
-                  {sidebarCategories.map((cat, index) => (
-                    <motion.button
-                      key={cat.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.03 }}
-                      whileHover={{ x: 3 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setSelectedCategory(cat.id)}
-                      className={`flex items-center gap-2.5 w-full px-2.5 py-2 rounded-xl text-sm transition-all ${
-                        selectedCategory === cat.id
-                          ? "bg-primary text-primary-foreground shadow-md"
-                          : "hover:bg-secondary/70 text-muted-foreground hover:text-foreground"
-                      }`}
+      <div className="w-full min-h-screen overflow-x-hidden pb-10" dir="rtl">
+        <AnimatePresence mode="wait">
+          {/* Categories View */}
+          {!selectedCategoryId ? (
+            <motion.div
+              key="categories"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-6"
+            >
+              {/* Header */}
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card/80 via-card/60 to-card/40 backdrop-blur-xl border border-border/30 p-4 sm:p-6"
+              >
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+                
+                <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/50 rounded-xl blur-xl opacity-50" />
+                      <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-primary via-primary/90 to-primary/70 flex items-center justify-center shadow-2xl shadow-primary/30">
+                        <Package className="w-6 h-6 sm:w-7 sm:h-7 text-primary-foreground" />
+                      </div>
+                    </div>
+                    <div>
+                      <h1 className="text-xl sm:text-2xl font-bold text-foreground">إدارة الخدمات</h1>
+                      <p className="text-sm text-muted-foreground">{totalServices} خدمة متاحة</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRefresh}
+                      disabled={refreshing}
+                      className="gap-2"
                     >
-                      <span className={`w-7 h-7 rounded-lg ${cat.color} flex items-center justify-center text-sm shadow-sm`}>
-                        {cat.icon}
-                      </span>
-                      <span className="flex-1 text-start font-medium text-xs">{cat.label}</span>
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
-                        selectedCategory === cat.id ? "bg-white/20" : "bg-secondary"
-                      }`}>
-                        {cat.count}
-                      </span>
-                    </motion.button>
+                      <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                      تحديث
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setIsBulkDeleteOpen(true)}
+                      className="gap-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      حذف
+                    </Button>
+                    <Button onClick={openNewDialog} size="sm" className="gap-2">
+                      <Plus className="w-4 h-4" />
+                      إضافة خدمة
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Quick Stats */}
+                <div className="relative z-10 flex flex-wrap gap-3 mt-4">
+                  {[
+                    { label: 'نشطة', value: activeServices, gradient: 'from-emerald-500 to-green-500' },
+                    { label: 'طلبات', value: totalOrders, gradient: 'from-blue-500 to-cyan-500' },
+                    { label: 'إيرادات', value: `$${totalRevenue.toFixed(0)}`, gradient: 'from-amber-500 to-orange-500' },
+                  ].map((stat) => (
+                    <div key={stat.label} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-card/80 border border-border/50">
+                      <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${stat.gradient} flex items-center justify-center text-white text-xs font-bold`}>
+                        {typeof stat.value === 'number' ? stat.value : stat.value.replace('$', '')}
+                      </div>
+                      <span className="text-xs font-medium text-muted-foreground">{stat.label}</span>
+                    </div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
 
-              {/* Quick Stats */}
-              <div className="bg-card/60 backdrop-blur-sm rounded-2xl border border-border/40 p-3 shadow-sm">
-                <h3 className="text-xs font-semibold text-muted-foreground px-2 pb-2 mb-2 border-b border-border/30">إحصائيات</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  <motion.div 
-                    whileHover={{ scale: 1.02 }}
-                    className="bg-success/10 rounded-xl p-2.5 text-center border border-success/20"
+              {/* Category Cards Grid */}
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+              >
+                {categoryGroups.map((category) => (
+                  <motion.div
+                    key={category.id}
+                    variants={itemVariants}
+                    onMouseEnter={() => setHoveredCategory(category.id)}
+                    onMouseLeave={() => setHoveredCategory(null)}
+                    className="group cursor-pointer"
+                    onClick={() => setSelectedCategoryId(category.id)}
                   >
-                    <p className="text-lg font-bold text-success">{activeServices}</p>
-                    <p className="text-[10px] text-muted-foreground">نشط</p>
+                    <Card className="h-full relative overflow-hidden border border-border/50 bg-card/80 backdrop-blur-xl transition-all duration-500 hover:shadow-xl hover:border-border hover:scale-[1.02]">
+                      {/* Background Gradient */}
+                      <div
+                        className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-[0.03] transition-opacity duration-500 group-hover:opacity-[0.08]`}
+                      />
+                      
+                      {/* Glow Orb */}
+                      <div
+                        className={`absolute -top-20 -right-20 w-40 h-40 ${category.bgGlow} rounded-full blur-3xl opacity-30 group-hover:opacity-50 transition-opacity duration-500`}
+                      />
+
+                      <CardContent className="relative z-10 p-5 sm:p-6 flex flex-col h-full min-h-[260px]">
+                        {/* Header */}
+                        <div className="flex items-start justify-between mb-4">
+                          <motion.div
+                            animate={{ 
+                              x: hoveredCategory === category.id ? 8 : 0,
+                              scale: hoveredCategory === category.id ? 1.1 : 1
+                            }}
+                            className="flex items-center gap-2 text-muted-foreground group-hover:text-primary transition-all duration-300"
+                          >
+                            <ArrowUpRight className="w-5 h-5" />
+                            <span className="text-xs font-semibold">استعراض</span>
+                          </motion.div>
+                          
+                          <motion.div 
+                            whileHover={{ scale: 1.05, rotate: 5 }}
+                            className="relative"
+                          >
+                            <div className={`absolute inset-0 bg-gradient-to-br ${category.iconGradient} rounded-xl blur-lg opacity-40`} />
+                            <div className={`relative p-4 rounded-xl bg-gradient-to-br ${category.iconGradient} shadow-lg`}>
+                              <category.icon className="w-6 h-6 text-white" />
+                            </div>
+                          </motion.div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 space-y-3">
+                          <div className="flex items-center gap-3 justify-end">
+                            <Badge className={`bg-gradient-to-r ${category.iconGradient} text-white border-0 shadow-md px-3 py-1 text-xs font-bold`}>
+                              {category.services.length}
+                            </Badge>
+                            <h3 className="text-lg sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+                              {category.nameAr}
+                            </h3>
+                          </div>
+                          <p className="text-xs text-muted-foreground/70 uppercase tracking-wider text-right">
+                            {category.name.toUpperCase()}
+                          </p>
+                          <p className="text-sm text-muted-foreground text-right line-clamp-2">
+                            {category.services.filter(s => s.status === 'active').length} خدمة نشطة
+                          </p>
+                        </div>
+
+                        {/* Platform Icons */}
+                        {category.platforms && (
+                          <div className="flex flex-wrap gap-2 mt-4 justify-end">
+                            {category.platforms.slice(0, 5).map((platform, i) => (
+                              <motion.div
+                                key={i}
+                                initial={{ opacity: 0, scale: 0 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.1 + i * 0.05 }}
+                                whileHover={{ scale: 1.2, y: -2 }}
+                                className={`w-9 h-9 rounded-lg ${platform.bg} flex items-center justify-center transition-all duration-300 hover:shadow-lg`}
+                              >
+                                <platform.icon className={`w-4 h-4 ${platform.color}`} />
+                              </motion.div>
+                            ))}
+                            {category.services.length > 5 && (
+                              <div className="px-3 h-9 rounded-lg bg-secondary/50 flex items-center justify-center text-xs font-medium text-muted-foreground">
+                                +{category.services.length - 5}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Footer */}
+                        <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/30">
+                          <motion.span
+                            animate={{ x: hoveredCategory === category.id ? 5 : 0 }}
+                            className="text-xs font-medium text-primary flex items-center gap-1"
+                          >
+                            <span>عرض الكل</span>
+                            <ArrowUpRight className="w-3 h-3" />
+                          </motion.span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">
+                              ${category.services.reduce((sum, s) => sum + (s.revenue || 0), 0).toFixed(0)} إيرادات
+                            </span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </motion.div>
-                  <motion.div 
-                    whileHover={{ scale: 1.02 }}
-                    className="bg-warning/10 rounded-xl p-2.5 text-center border border-warning/20"
-                  >
-                    <p className="text-lg font-bold text-warning">{inactiveServices}</p>
-                    <p className="text-[10px] text-muted-foreground">متوقف</p>
-                  </motion.div>
-                  <motion.div 
-                    whileHover={{ scale: 1.02 }}
-                    className="bg-primary/10 rounded-xl p-2.5 text-center border border-primary/20"
-                  >
-                    <p className="text-lg font-bold text-primary">{totalOrders}</p>
-                    <p className="text-[10px] text-muted-foreground">طلب</p>
-                  </motion.div>
-                  <motion.div 
-                    whileHover={{ scale: 1.02 }}
-                    className="bg-accent/10 rounded-xl p-2.5 text-center border border-accent/20"
-                  >
-                    <p className="text-lg font-bold text-accent">${totalRevenue.toFixed(0)}</p>
-                    <p className="text-[10px] text-muted-foreground">إيراد</p>
-                  </motion.div>
+                ))}
+              </motion.div>
+
+              {/* Empty State */}
+              {categoryGroups.length === 0 && (
+                <EmptyServicesState hasFilters={false} onAddNew={openNewDialog} onClearFilters={() => {}} />
+              )}
+            </motion.div>
+          ) : (
+            /* Category Detail View */
+            <motion.div
+              key="category-detail"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              className="space-y-4"
+            >
+              {/* Back Header */}
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card/80 via-card/60 to-card/40 backdrop-blur-xl border border-border/30 p-4 sm:p-6"
+              >
+                <div className={`absolute top-0 right-0 w-64 h-64 ${selectedCategory?.bgGlow} rounded-full blur-3xl opacity-30 -translate-y-1/2 translate-x-1/4`} />
+                
+                <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setSelectedCategoryId(null)}
+                      className="shrink-0"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </Button>
+                    <div className="relative">
+                      <div className={`absolute inset-0 bg-gradient-to-br ${selectedCategory?.iconGradient} rounded-xl blur-xl opacity-50`} />
+                      <div className={`relative w-12 h-12 rounded-xl bg-gradient-to-br ${selectedCategory?.iconGradient} flex items-center justify-center shadow-xl`}>
+                        {selectedCategory && <selectedCategory.icon className="w-6 h-6 text-white" />}
+                      </div>
+                    </div>
+                    <div>
+                      <h1 className="text-xl sm:text-2xl font-bold text-foreground">{selectedCategory?.nameAr}</h1>
+                      <p className="text-sm text-muted-foreground">{selectedCategory?.services.length} خدمة</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+                    <div className="relative flex-1 sm:flex-none sm:w-64">
+                      <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="بحث..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pr-9 h-9"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1 bg-secondary/50 rounded-lg p-1">
+                      <Button
+                        variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => setViewMode('grid')}
+                      >
+                        <Grid3X3 className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => setViewMode('list')}
+                      >
+                        <LayoutList className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <Button onClick={openNewDialog} size="sm" className="gap-2">
+                      <Plus className="w-4 h-4" />
+                      إضافة
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </motion.aside>
-
-          {/* Main Content */}
-          <main className="flex-1 min-w-0 space-y-3">
-            {/* Header */}
-            <ServicesHeader
-              onAddNew={openNewDialog}
-              onBulkDelete={() => setIsBulkDeleteOpen(true)}
-              onRefresh={handleRefresh}
-              refreshing={refreshing}
-              servicesCount={totalServices}
-            />
-
-            {/* Mobile Stats */}
-            <div className="lg:hidden">
-              <ServicesStatsGrid
-                totalServices={totalServices}
-                activeServices={activeServices}
-                inactiveServices={inactiveServices}
-                totalRevenue={totalRevenue}
-                totalOrders={totalOrders}
-                avgPrice={avgPrice}
-              />
-            </div>
-
-            {/* Filters */}
-            <EnhancedServiceFilters
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              selectedCategory={selectedCategory}
-              setSelectedCategory={setSelectedCategory}
-              selectedStatus={selectedStatus}
-              setSelectedStatus={setSelectedStatus}
-              viewMode={viewMode}
-              setViewMode={setViewMode}
-              statusOptions={statusOptions}
-              totalCount={totalServices}
-              filteredCount={filteredServices.length}
-              priceRange={priceRange}
-              setPriceRange={setPriceRange}
-              maxPrice={maxPrice}
-              sortBy={sortBy}
-              setSortBy={setSortBy}
-            />
-
-            {/* Services Content */}
-            {loading ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
-                <p className="text-sm text-muted-foreground">جاري تحميل الخدمات...</p>
-              </div>
-            ) : filteredServices.length === 0 ? (
-              <EmptyServicesState
-                hasFilters={hasActiveFilters}
-                onAddNew={openNewDialog}
-                onClearFilters={clearAllFilters}
-              />
-            ) : viewMode === "list" ? (
-              <motion.div 
-                className="flex flex-col gap-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <AnimatePresence mode="popLayout">
-                  {filteredServices.map((service, index) => (
-                    <EnhancedServiceCard
-                      key={service.id}
-                      service={service}
-                      index={index}
-                      viewMode={viewMode}
-                      onEdit={openEditDialog}
-                      onDelete={handleDelete}
-                      onView={openDetailsDialog}
-                    />
-                  ))}
-                </AnimatePresence>
               </motion.div>
-            ) : (
-              <motion.div 
-                className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-3"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <AnimatePresence mode="popLayout">
+
+              {/* Services Grid/List */}
+              {filteredServices.length > 0 ? (
+                <motion.div
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className={
+                    viewMode === 'grid'
+                      ? 'grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                      : 'flex flex-col gap-2'
+                  }
+                >
                   {filteredServices.map((service, index) => (
-                    <EnhancedServiceCard
+                    <motion.div
                       key={service.id}
-                      service={service}
-                      index={index}
-                      viewMode={viewMode}
-                      onEdit={openEditDialog}
-                      onDelete={handleDelete}
-                      onView={openDetailsDialog}
-                    />
+                      variants={itemVariants}
+                    >
+                      <EnhancedServiceCard
+                        service={service}
+                        index={index}
+                        viewMode={viewMode}
+                        onView={(s) => openDetailsDialog(s)}
+                        onEdit={(s) => openEditDialog(s)}
+                        onDelete={(id) => handleDelete(id)}
+                      />
+                    </motion.div>
                   ))}
-                </AnimatePresence>
-              </motion.div>
-            )}
-          </main>
-        </div>
+                </motion.div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <Package className="w-12 h-12 text-muted-foreground/30 mb-4" />
+                  <h3 className="text-lg font-medium text-muted-foreground">لا توجد خدمات</h3>
+                  <p className="text-sm text-muted-foreground/70 mt-1">
+                    {searchQuery ? 'جرب البحث بكلمات مختلفة' : 'أضف خدمة جديدة للبدء'}
+                  </p>
+                  {!searchQuery && (
+                    <Button onClick={openNewDialog} className="mt-4 gap-2">
+                      <Plus className="w-4 h-4" />
+                      إضافة خدمة
+                    </Button>
+                  )}
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Dialogs */}
         <ServiceFormDialog
@@ -598,7 +744,12 @@ const AdminServices = () => {
           onClose={() => setIsFormDialogOpen(false)}
           editingService={editingService}
           onSubmit={handleSubmit}
-          statusOptions={statusOptions}
+          categories={uniqueCategories}
+          statusOptions={[
+            { value: "active", label: "نشط" },
+            { value: "inactive", label: "غير نشط" },
+            { value: "archived", label: "مؤرشف" },
+          ]}
         />
 
         <ServiceDetailsDialog
@@ -609,64 +760,52 @@ const AdminServices = () => {
 
         {/* Bulk Delete Dialog */}
         <AlertDialog open={isBulkDeleteOpen} onOpenChange={setIsBulkDeleteOpen}>
-          <AlertDialogContent className="max-w-md" dir="rtl">
+          <AlertDialogContent dir="rtl">
             <AlertDialogHeader>
               <AlertDialogTitle className="flex items-center gap-2 text-destructive">
                 <AlertTriangle className="w-5 h-5" />
-                حذف الخدمات بشكل جماعي
+                حذف الخدمات
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-right">
-                هذا الإجراء لا يمكن التراجع عنه. سيتم حذف الخدمات المحددة نهائياً.
-                <br />
-                <span className="text-destructive font-medium">
-                  ملاحظة: الخدمات المرتبطة بطلبات لن يتم حذفها.
-                </span>
+              <AlertDialogDescription>
+                اختر التصنيف الذي تريد حذف خدماته. هذا الإجراء لا يمكن التراجع عنه.
               </AlertDialogDescription>
             </AlertDialogHeader>
             
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">اختر نطاق الحذف</label>
-                <Select value={bulkDeleteCategory} onValueChange={setBulkDeleteCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="اختر..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">جميع الخدمات ({services.length})</SelectItem>
-                    {uniqueCategories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat} ({services.filter(s => s.category === cat).length})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="py-4">
+              <Select value={bulkDeleteCategory} onValueChange={setBulkDeleteCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر التصنيف" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع الخدمات ({services.length})</SelectItem>
+                  {uniqueCategories.map(cat => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat} ({services.filter(s => s.category === cat).length})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               
-              <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 text-center">
-                <p className="text-sm text-muted-foreground mb-1">سيتم حذف</p>
-                <p className="text-3xl font-bold text-destructive">{getDeleteCount()}</p>
-                <p className="text-sm text-muted-foreground mt-1">خدمة</p>
-              </div>
+              {getDeleteCount() > 0 && (
+                <p className="mt-3 text-sm text-destructive">
+                  سيتم حذف {getDeleteCount()} خدمة
+                </p>
+              )}
             </div>
 
-            <AlertDialogFooter className="gap-2">
+            <AlertDialogFooter className="flex-row-reverse gap-2">
               <AlertDialogCancel disabled={deleting}>إلغاء</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleBulkDelete}
                 disabled={deleting || getDeleteCount() === 0}
-                className="bg-destructive hover:bg-destructive/90"
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 {deleting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin ml-2" />
-                    جاري الحذف...
-                  </>
+                  <Loader2 className="w-4 h-4 animate-spin ml-2" />
                 ) : (
-                  <>
-                    <Trash2 className="w-4 h-4 ml-2" />
-                    حذف {getDeleteCount()} خدمة
-                  </>
+                  <Trash2 className="w-4 h-4 ml-2" />
                 )}
+                حذف
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
