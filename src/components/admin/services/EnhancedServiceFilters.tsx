@@ -32,8 +32,6 @@ interface EnhancedServiceFiltersProps {
 const EnhancedServiceFilters = ({
   searchQuery,
   setSearchQuery,
-  selectedCategory,
-  setSelectedCategory,
   selectedStatus,
   setSelectedStatus,
   viewMode,
@@ -49,12 +47,11 @@ const EnhancedServiceFilters = ({
 }: EnhancedServiceFiltersProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const hasActiveFilters = Boolean(searchQuery) || selectedCategory !== "all" || selectedStatus !== "all" || 
+  const hasActiveFilters = Boolean(searchQuery) || selectedStatus !== "all" || 
     priceRange[0] > 0 || priceRange[1] < maxPrice;
 
   const clearAllFilters = () => {
     setSearchQuery("");
-    setSelectedCategory("all");
     setSelectedStatus("all");
     setPriceRange([0, maxPrice]);
     setSortBy("newest");
@@ -71,15 +68,15 @@ const EnhancedServiceFilters = ({
 
   return (
     <Card className="border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden">
-      <CardContent className="p-4 space-y-4">
+      <CardContent className="p-2.5 md:p-4 space-y-2.5 md:space-y-3">
         {/* Top Row: Search + Quick Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* Search */}
           <div className="relative flex-1">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <Input
               placeholder="ابحث..."
-              className="pr-10 bg-secondary/50 rounded-xl h-11 text-sm border-0 focus-visible:ring-primary/30"
+              className="pr-8 bg-secondary/50 rounded-lg h-9 text-xs border-0 focus-visible:ring-primary/30"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -87,37 +84,37 @@ const EnhancedServiceFilters = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute left-2 top-1/2 -translate-y-1/2 h-6 w-6"
+                className="absolute left-1 top-1/2 -translate-y-1/2 h-5 w-5"
                 onClick={() => setSearchQuery("")}
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-3 h-3" />
               </Button>
             )}
           </div>
 
           {/* View Toggle */}
-          <div className="flex rounded-xl border border-border bg-secondary/30 p-1">
+          <div className="flex rounded-lg border border-border bg-secondary/30 p-0.5">
             <Button
               variant={viewMode === "grid" ? "default" : "ghost"}
               size="icon"
               className={cn(
-                "rounded-lg h-9 w-9 transition-all",
+                "rounded h-8 w-8 transition-all",
                 viewMode === "grid" && "bg-primary text-primary-foreground shadow-sm"
               )}
               onClick={() => setViewMode("grid")}
             >
-              <Grid3X3 className="w-4 h-4" />
+              <Grid3X3 className="w-3.5 h-3.5" />
             </Button>
             <Button
               variant={viewMode === "list" ? "default" : "ghost"}
               size="icon"
               className={cn(
-                "rounded-lg h-9 w-9 transition-all",
+                "rounded h-8 w-8 transition-all",
                 viewMode === "list" && "bg-primary text-primary-foreground shadow-sm"
               )}
               onClick={() => setViewMode("list")}
             >
-              <List className="w-4 h-4" />
+              <List className="w-3.5 h-3.5" />
             </Button>
           </div>
 
@@ -125,13 +122,12 @@ const EnhancedServiceFilters = ({
           <Button
             variant={showAdvanced ? "default" : "outline"}
             size="sm"
-            className="gap-2 h-11 px-4"
+            className="gap-1 h-9 px-2.5"
             onClick={() => setShowAdvanced(!showAdvanced)}
           >
-            <SlidersHorizontal className="w-4 h-4" />
-            <span className="hidden sm:inline text-sm">فلاتر</span>
+            <SlidersHorizontal className="w-3.5 h-3.5" />
             {hasActiveFilters && (
-              <Badge className="h-5 w-5 p-0 flex items-center justify-center text-[10px]">
+              <Badge className="h-4 w-4 p-0 flex items-center justify-center text-[8px]">
                 !
               </Badge>
             )}
@@ -148,12 +144,12 @@ const EnhancedServiceFilters = ({
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <div className="pt-4 border-t border-border/50 space-y-4">
+              <div className="pt-2.5 border-t border-border/50">
                 {/* Filter Row */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-3 gap-2">
                   {/* Status */}
                   <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                    <SelectTrigger className="bg-secondary/50 rounded-xl h-10 text-sm">
+                    <SelectTrigger className="bg-secondary/50 rounded-lg h-8 text-[11px]">
                       <SelectValue placeholder="الحالة" />
                     </SelectTrigger>
                     <SelectContent>
@@ -166,7 +162,7 @@ const EnhancedServiceFilters = ({
 
                   {/* Sort By */}
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="bg-secondary/50 rounded-xl h-10 text-sm">
+                    <SelectTrigger className="bg-secondary/50 rounded-lg h-8 text-[11px]">
                       <SelectValue placeholder="الترتيب" />
                     </SelectTrigger>
                     <SelectContent>
@@ -179,16 +175,14 @@ const EnhancedServiceFilters = ({
                   {/* Price Range */}
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="justify-between bg-secondary/50 rounded-xl h-10 border-0 text-sm">
-                        <span>
-                          ${priceRange[0]} - ${priceRange[1]}
-                        </span>
-                        <ChevronDown className="w-4 h-4 mr-2" />
+                      <Button variant="outline" className="justify-between bg-secondary/50 rounded-lg h-8 border-0 text-[11px] px-2">
+                        <span>${priceRange[0]}-${priceRange[1]}</span>
+                        <ChevronDown className="w-3 h-3" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-64 p-4">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between text-sm">
+                    <PopoverContent className="w-56 p-3">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between text-xs">
                           <span>نطاق السعر</span>
                           <span className="text-muted-foreground">
                             ${priceRange[0]} - ${priceRange[1]}
@@ -204,52 +198,33 @@ const EnhancedServiceFilters = ({
                       </div>
                     </PopoverContent>
                   </Popover>
-
-                  {/* Clear Filters */}
-                  {hasActiveFilters && (
-                    <Button
-                      variant="ghost"
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10 h-10 text-sm"
-                      onClick={clearAllFilters}
-                    >
-                      <X className="w-4 h-4 ml-1" />
-                      مسح الفلاتر
-                    </Button>
-                  )}
                 </div>
+
+                {/* Clear Filters */}
+                {hasActiveFilters && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 text-[10px] mt-2 w-full"
+                    onClick={clearAllFilters}
+                  >
+                    <X className="w-3 h-3 ml-1" />
+                    مسح الفلاتر
+                  </Button>
+                )}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* Results Counter */}
-        <div className="flex items-center justify-between text-sm flex-wrap gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">
-              <span className="font-bold text-foreground">{filteredCount}</span>
-              {" من "}
-              <span className="font-bold text-foreground">{totalCount}</span>
-              {" خدمة"}
-            </span>
-          </div>
-          
-          {/* Active Filter Tags */}
-          {hasActiveFilters && (
-            <div className="hidden sm:flex items-center gap-2 flex-wrap">
-              {searchQuery && (
-                <Badge variant="secondary" className="gap-1 text-xs">
-                  بحث: {searchQuery}
-                  <X className="w-3 h-3 cursor-pointer" onClick={() => setSearchQuery("")} />
-                </Badge>
-              )}
-              {selectedStatus !== "all" && (
-                <Badge variant="secondary" className="gap-1 text-xs">
-                  {statusOptions.find(s => s.value === selectedStatus)?.label}
-                  <X className="w-3 h-3 cursor-pointer" onClick={() => setSelectedStatus("all")} />
-                </Badge>
-              )}
-            </div>
-          )}
+        <div className="flex items-center justify-between text-[11px]">
+          <span className="text-muted-foreground">
+            <span className="font-bold text-foreground">{filteredCount}</span>
+            {" من "}
+            <span className="font-bold text-foreground">{totalCount}</span>
+            {" خدمة"}
+          </span>
         </div>
       </CardContent>
     </Card>
