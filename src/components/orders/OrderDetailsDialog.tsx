@@ -278,6 +278,55 @@ export const OrderDetailsDialog = ({ order, orderHistory, loadingHistory, onClos
                 ))}
               </div>
 
+              {/* Provider Status */}
+              {(order.external_order_id || order.external_status) && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 rounded-xl bg-gradient-to-l from-accent/10 via-accent/5 to-transparent border border-accent/20"
+                >
+                  <div className="flex items-center gap-2 mb-3 flex-row-reverse justify-end">
+                    <span className="text-sm font-medium">حالة المزود</span>
+                    <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                      <Package className="w-4 h-4 text-accent" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    {order.external_order_id && (
+                      <div className="text-right">
+                        <span className="text-xs text-muted-foreground">رقم الطلب لدى المزود</span>
+                        <p className="font-mono font-bold text-sm">{order.external_order_id}</p>
+                      </div>
+                    )}
+                    {order.external_status && (
+                      <div className="text-right">
+                        <span className="text-xs text-muted-foreground">حالة التنفيذ</span>
+                        <Badge 
+                          variant="secondary" 
+                          className={cn(
+                            "mt-1",
+                            order.external_status === 'Completed' && "bg-success/10 text-success",
+                            order.external_status === 'In progress' && "bg-primary/10 text-primary",
+                            order.external_status === 'Pending' && "bg-warning/10 text-warning",
+                            order.external_status === 'Partial' && "bg-orange-500/10 text-orange-500",
+                            order.external_status === 'Canceled' && "bg-destructive/10 text-destructive",
+                            order.external_status === 'error' && "bg-destructive/10 text-destructive"
+                          )}
+                        >
+                          {order.external_status === 'Completed' ? 'مكتمل' :
+                           order.external_status === 'In progress' ? 'قيد التنفيذ' :
+                           order.external_status === 'Pending' || order.external_status === 'pending' ? 'قيد الانتظار' :
+                           order.external_status === 'Partial' ? 'مكتمل جزئياً' :
+                           order.external_status === 'Canceled' ? 'ملغي' :
+                           order.external_status === 'error' ? 'خطأ' :
+                           order.external_status}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+
               {/* Price Summary */}
               <motion.div 
                 initial={{ opacity: 0 }}
