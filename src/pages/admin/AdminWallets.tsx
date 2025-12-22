@@ -31,6 +31,7 @@ import { DepositCard } from "@/components/admin/wallets/DepositCard";
 import { WalletTransferDialog } from "@/components/admin/wallets/WalletTransferDialog";
 import { DepositDetailsDialog } from "@/components/admin/wallets/DepositDetailsDialog";
 import { RecentActivities } from "@/components/admin/wallets/RecentActivities";
+import { SmartAlertsPanel } from "@/components/admin/wallets/SmartAlertsPanel";
 
 interface UserBalance {
   id: string;
@@ -433,8 +434,9 @@ const AdminWallets = () => {
             </Tabs>
           </div>
 
-          {/* Recent Activities */}
-          <div className="lg:col-span-1">
+          {/* Sidebar: Alerts + Activities */}
+          <div className="lg:col-span-1 space-y-4">
+            <SmartAlertsPanel />
             <RecentActivities />
           </div>
         </div>
