@@ -248,16 +248,27 @@ const AdminServices = () => {
       }
     ];
 
-    // Categorize services
+    // Categorize services - include Arabic keywords
     enrichedServices.forEach(service => {
       const cat = service.category.toLowerCase();
+      const catOriginal = service.category;
+      
+      // Social Media - English and Arabic keywords
       if (cat.includes('instagram') || cat.includes('facebook') || cat.includes('twitter') || 
           cat.includes('youtube') || cat.includes('tiktok') || cat.includes('telegram') || 
-          cat.includes('linkedin') || cat.includes('spotify') || cat.includes('social')) {
+          cat.includes('linkedin') || cat.includes('spotify') || cat.includes('social') ||
+          catOriginal.includes('انستقرام') || catOriginal.includes('انستا') || 
+          catOriginal.includes('فيسبوك') || catOriginal.includes('تويتر') || 
+          catOriginal.includes('يوتيوب') || catOriginal.includes('تيك توك') || 
+          catOriginal.includes('تيليجرام') || catOriginal.includes('سناب') ||
+          catOriginal.includes('واتساب') || catOriginal.includes('لايكات') ||
+          catOriginal.includes('متابعين') || catOriginal.includes('مشاهدات') ||
+          catOriginal.includes('اشتراكات') || catOriginal.includes('ريتويت') ||
+          catOriginal.includes('تغريد') || catOriginal.includes('سبوتيفاي')) {
         groups[0].services.push(service);
-      } else if (cat.includes('design') || cat.includes('تصميم')) {
+      } else if (cat.includes('design') || catOriginal.includes('تصميم')) {
         groups[1].services.push(service);
-      } else if (cat.includes('dev') || cat.includes('برمجة') || cat.includes('تطوير') || cat.includes('موقع')) {
+      } else if (cat.includes('dev') || catOriginal.includes('برمجة') || catOriginal.includes('تطوير') || catOriginal.includes('موقع') || catOriginal.includes('تطبيق')) {
         groups[2].services.push(service);
       } else {
         groups[3].services.push(service);
