@@ -22,7 +22,7 @@ serve(async (req) => {
 
     console.log('Translating service:', name);
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -33,28 +33,88 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `أنت مترجم محترف. قم بترجمة النصوص التالية من الإنجليزية إلى العربية بشكل احترافي ومناسب لخدمات السوشيال ميديا.
-            
-قواعد الترجمة:
-- اجعل الترجمة طبيعية ومفهومة
-- حافظ على المصطلحات التقنية الشائعة (مثل Instagram, Facebook, TikTok, YouTube)
-- اجعل الوصف مختصراً ومفيداً
-- أرجع النتيجة بصيغة JSON فقط بدون أي نص إضافي`
+            content: `أنت مترجم محترف متخصص في خدمات السوشيال ميديا. ترجم من الإنجليزية إلى العربية بدقة.
+
+قواعد الترجمة المهمة:
+1. ترجم أسماء المنصات بشكل صحيح:
+   - Instagram = انستقرام
+   - Facebook = فيسبوك  
+   - Twitter/X = تويتر
+   - YouTube = يوتيوب
+   - TikTok = تيك توك
+   - Telegram = تيليجرام
+   - Snapchat = سناب شات
+   - LinkedIn = لينكد إن
+   - Spotify = سبوتيفاي
+   - WhatsApp = واتساب
+   - Discord = ديسكورد
+   - Threads = ثريدز
+   - Pinterest = بنترست
+   - Twitch = تويتش
+   - SoundCloud = ساوند كلاود
+
+2. ترجم أنواع الخدمات:
+   - Followers = متابعين
+   - Likes = لايكات / إعجابات
+   - Views = مشاهدات
+   - Comments = تعليقات
+   - Shares = مشاركات
+   - Subscribers = مشتركين
+   - Retweets = ريتويت / إعادة تغريد
+   - Story Views = مشاهدات الستوري
+   - Reel Views = مشاهدات الريلز
+   - Watch Hours = ساعات المشاهدة
+   - Live Views = مشاهدات البث المباشر
+   - Saves = حفظ
+   - Impressions = انطباعات
+   - Reach = وصول
+   - Plays = تشغيلات
+   - Streams = استماعات
+   - Members = أعضاء
+   - Reactions = تفاعلات
+
+3. ترجم الصفات:
+   - Real = حقيقي
+   - Active = نشط
+   - High Quality = جودة عالية
+   - Premium = مميز
+   - Fast = سريع
+   - Slow = بطيء
+   - Instant = فوري
+   - Organic = طبيعي
+   - Targeted = مستهدف
+   - Worldwide = عالمي
+   - Arab = عربي
+   - USA = أمريكي
+   - Guaranteed = مضمون
+   - Lifetime = مدى الحياة
+   - Non-Drop = بدون نقصان
+   - Refill = إعادة تعبئة
+
+4. ترجم الفئة بشكل وصفي. مثال:
+   - "Instagram - Followers" = "انستقرام - متابعين"
+   - "YouTube - Views" = "يوتيوب - مشاهدات"
+   - "TikTok - Likes" = "تيك توك - لايكات"
+   - "Facebook - Page Likes" = "فيسبوك - لايكات الصفحة"
+   - "Telegram - Channel Members" = "تيليجرام - أعضاء القناة"
+
+5. اجعل الترجمة طبيعية ومفهومة للمستخدم العربي
+6. أرجع النتيجة بصيغة JSON فقط بدون أي نص إضافي`
           },
           {
             role: 'user',
-            content: `قم بترجمة الخدمة التالية:
-            
+            content: `ترجم الخدمة التالية:
+
 الاسم: ${name}
 الوصف: ${description || 'غير متوفر'}
 الفئة: ${category}
 
-أرجع JSON بالشكل التالي فقط:
+أرجع JSON بهذا الشكل فقط:
 {"name": "الاسم بالعربية", "description": "الوصف بالعربية", "category": "الفئة بالعربية"}`
           }
         ],
-        temperature: 0.3,
-        max_tokens: 500,
+        temperature: 0.2,
+        max_tokens: 800,
       }),
     });
 
