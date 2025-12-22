@@ -12,7 +12,9 @@ import {
   History,
   FileText,
   RefreshCw,
-  Send
+  Send,
+  Bot,
+  UserCircle
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -53,6 +55,7 @@ interface OrderHistory {
   new_status: string;
   created_at: string;
   notes: string | null;
+  changed_by: string;
 }
 
 interface OrderDetailsDialogProps {
@@ -332,16 +335,50 @@ const OrderDetailsDialog = ({
                   <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">سجل التغييرات</Label>
                     <div className="space-y-2">
-                      {orderHistory.slice(0, 5).map((item) => {
+                      {orderHistory.slice(0, 10).map((item) => {
                         const newConfig = getStatusConfig(item.new_status);
+                        const isAutoUpdate = item.changed_by === '00000000-0000-0000-0000-000000000000';
+                        const oldConfig = item.old_status ? getStatusConfig(item.old_status) : null;
+                        
                         return (
-                          <div key={item.id} className="flex items-center gap-2 text-xs p-2 rounded-lg bg-secondary/30">
-                            <Badge variant="outline" className={cn("text-[10px]", newConfig.bgColor, newConfig.textColor)}>
-                              {newConfig.label}
-                            </Badge>
-                            <span className="text-muted-foreground">
-                              {format(new Date(item.created_at), "d MMM HH:mm", { locale: ar })}
-                            </span>
+                          <div key={item.id} className="p-2.5 rounded-lg bg-secondary/30 space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {oldConfig && (
+                                  <>
+                                    <Badge variant="outline" className={cn("text-[10px]", oldConfig.bgColor, oldConfig.textColor)}>
+                                      {oldConfig.label}
+                                    </Badge>
+                                    <span className="text-muted-foreground text-[10px]">←</span>
+                                  </>
+                                )}
+                                <Badge variant="outline" className={cn("text-[10px]", newConfig.bgColor, newConfig.textColor)}>
+                                  {newConfig.label}
+                                </Badge>
+                              </div>
+                              <span className="text-muted-foreground text-[10px]">
+                                {format(new Date(item.created_at), "d MMM HH:mm", { locale: ar })}
+                              </span>
+                            </div>
+                            
+                            <div className="flex items-center gap-1.5">
+                              {isAutoUpdate ? (
+                                <Badge variant="secondary" className="text-[10px] gap-1 bg-blue-500/10 text-blue-600 border-blue-500/20">
+                                  <Bot className="w-3 h-3" />
+                                  تحديث تلقائي
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary" className="text-[10px] gap-1 bg-amber-500/10 text-amber-600 border-amber-500/20">
+                                  <UserCircle className="w-3 h-3" />
+                                  تحديث يدوي
+                                </Badge>
+                              )}
+                              {item.notes && (
+                                <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">
+                                  {item.notes}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         );
                       })}

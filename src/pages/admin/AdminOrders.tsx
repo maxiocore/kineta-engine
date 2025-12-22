@@ -39,6 +39,7 @@ interface OrderHistory {
   new_status: string;
   created_at: string;
   notes: string | null;
+  changed_by: string;
 }
 
 const statusOptions = [
