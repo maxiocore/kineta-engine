@@ -1,12 +1,7 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { Search, Grid3X3, List, X, SlidersHorizontal, ChevronDown } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Search, Grid3X3, List, SlidersHorizontal, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
@@ -39,195 +34,114 @@ const EnhancedServiceFilters = ({
   statusOptions,
   totalCount,
   filteredCount,
-  priceRange,
-  setPriceRange,
-  maxPrice,
   sortBy,
   setSortBy,
 }: EnhancedServiceFiltersProps) => {
-  const [showAdvanced, setShowAdvanced] = useState(false);
-
-  const hasActiveFilters = Boolean(searchQuery) || selectedStatus !== "all" || 
-    priceRange[0] > 0 || priceRange[1] < maxPrice;
-
-  const clearAllFilters = () => {
-    setSearchQuery("");
-    setSelectedStatus("all");
-    setPriceRange([0, maxPrice]);
-    setSortBy("newest");
-  };
+  const [showFilters, setShowFilters] = useState(false);
 
   const sortOptions = [
     { value: "newest", label: "الأحدث" },
     { value: "oldest", label: "الأقدم" },
     { value: "price-high", label: "الأعلى سعراً" },
     { value: "price-low", label: "الأقل سعراً" },
-    { value: "orders", label: "الأكثر طلباً" },
-    { value: "revenue", label: "الأعلى إيراداً" },
   ];
 
   return (
-    <Card className="border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden">
-      <CardContent className="p-2.5 md:p-4 space-y-2.5 md:space-y-3">
-        {/* Top Row: Search + Quick Actions */}
-        <div className="flex items-center gap-2">
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-            <Input
-              placeholder="ابحث..."
-              className="pr-8 bg-secondary/50 rounded-lg h-9 text-xs border-0 focus-visible:ring-primary/30"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute left-1 top-1/2 -translate-y-1/2 h-5 w-5"
-                onClick={() => setSearchQuery("")}
-              >
-                <X className="w-3 h-3" />
-              </Button>
-            )}
-          </div>
-
-          {/* View Toggle */}
-          <div className="flex rounded-lg border border-border bg-secondary/30 p-0.5">
+    <div className="space-y-2">
+      {/* Search Row */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="ابحث عن خدمة..."
+            className="pr-9 h-9 text-sm bg-secondary/30 border-border/50 rounded-lg"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
             <Button
-              variant={viewMode === "grid" ? "default" : "ghost"}
+              variant="ghost"
               size="icon"
-              className={cn(
-                "rounded h-8 w-8 transition-all",
-                viewMode === "grid" && "bg-primary text-primary-foreground shadow-sm"
-              )}
-              onClick={() => setViewMode("grid")}
+              className="absolute left-1 top-1/2 -translate-y-1/2 h-6 w-6"
+              onClick={() => setSearchQuery("")}
             >
-              <Grid3X3 className="w-3.5 h-3.5" />
+              <X className="w-3.5 h-3.5" />
             </Button>
-            <Button
-              variant={viewMode === "list" ? "default" : "ghost"}
-              size="icon"
-              className={cn(
-                "rounded h-8 w-8 transition-all",
-                viewMode === "list" && "bg-primary text-primary-foreground shadow-sm"
-              )}
-              onClick={() => setViewMode("list")}
-            >
-              <List className="w-3.5 h-3.5" />
-            </Button>
-          </div>
+          )}
+        </div>
 
-          {/* Advanced Filters Toggle */}
+        {/* View Toggle */}
+        <div className="flex rounded-lg border border-border/50 bg-secondary/30 p-0.5">
           <Button
-            variant={showAdvanced ? "default" : "outline"}
-            size="sm"
-            className="gap-1 h-9 px-2.5"
-            onClick={() => setShowAdvanced(!showAdvanced)}
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            {hasActiveFilters && (
-              <Badge className="h-4 w-4 p-0 flex items-center justify-center text-[8px]">
-                !
-              </Badge>
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "h-8 w-8 rounded-md",
+              viewMode === "grid" && "bg-background shadow-sm"
             )}
+            onClick={() => setViewMode("grid")}
+          >
+            <Grid3X3 className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "h-8 w-8 rounded-md",
+              viewMode === "list" && "bg-background shadow-sm"
+            )}
+            onClick={() => setViewMode("list")}
+          >
+            <List className="w-4 h-4" />
           </Button>
         </div>
 
-        {/* Advanced Filters */}
-        <AnimatePresence>
-          {showAdvanced && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <div className="pt-2.5 border-t border-border/50">
-                {/* Filter Row */}
-                <div className="grid grid-cols-3 gap-2">
-                  {/* Status */}
-                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                    <SelectTrigger className="bg-secondary/50 rounded-lg h-8 text-[11px]">
-                      <SelectValue placeholder="الحالة" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">جميع الحالات</SelectItem>
-                      {statusOptions.map(opt => (
-                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Sort By */}
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="bg-secondary/50 rounded-lg h-8 text-[11px]">
-                      <SelectValue placeholder="الترتيب" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {sortOptions.map(opt => (
-                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Price Range */}
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="justify-between bg-secondary/50 rounded-lg h-8 border-0 text-[11px] px-2">
-                        <span>${priceRange[0]}-${priceRange[1]}</span>
-                        <ChevronDown className="w-3 h-3" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-56 p-3">
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between text-xs">
-                          <span>نطاق السعر</span>
-                          <span className="text-muted-foreground">
-                            ${priceRange[0]} - ${priceRange[1]}
-                          </span>
-                        </div>
-                        <Slider
-                          value={priceRange}
-                          onValueChange={(value) => setPriceRange(value as [number, number])}
-                          max={maxPrice}
-                          step={1}
-                          className="w-full"
-                        />
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                {/* Clear Filters */}
-                {hasActiveFilters && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 text-[10px] mt-2 w-full"
-                    onClick={clearAllFilters}
-                  >
-                    <X className="w-3 h-3 ml-1" />
-                    مسح الفلاتر
-                  </Button>
-                )}
-              </div>
-            </motion.div>
+        {/* Filters Toggle */}
+        <Button
+          variant="outline"
+          size="icon"
+          className={cn(
+            "h-9 w-9 border-border/50",
+            showFilters && "bg-primary text-primary-foreground border-primary"
           )}
-        </AnimatePresence>
+          onClick={() => setShowFilters(!showFilters)}
+        >
+          <SlidersHorizontal className="w-4 h-4" />
+        </Button>
+      </div>
 
-        {/* Results Counter */}
-        <div className="flex items-center justify-between text-[11px]">
-          <span className="text-muted-foreground">
-            <span className="font-bold text-foreground">{filteredCount}</span>
-            {" من "}
-            <span className="font-bold text-foreground">{totalCount}</span>
-            {" خدمة"}
+      {/* Filters Row */}
+      {showFilters && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <SelectTrigger className="w-[120px] h-8 text-xs bg-secondary/30 border-border/50">
+              <SelectValue placeholder="الحالة" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">الكل</SelectItem>
+              {statusOptions.map(opt => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[120px] h-8 text-xs bg-secondary/30 border-border/50">
+              <SelectValue placeholder="الترتيب" />
+            </SelectTrigger>
+            <SelectContent>
+              {sortOptions.map(opt => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          <span className="text-xs text-muted-foreground mr-auto">
+            {filteredCount} / {totalCount}
           </span>
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 };
 
