@@ -113,6 +113,12 @@ const AdminServices = () => {
   const [bulkDeleteCategory, setBulkDeleteCategory] = useState("all");
   const [deleting, setDeleting] = useState(false);
 
+  // Selection for bulk operations
+  const [selectedServiceIds, setSelectedServiceIds] = useState<Set<string>>(new Set());
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [isDeleteSelectedOpen, setIsDeleteSelectedOpen] = useState(false);
+  const [isDeleteCategoryOpen, setIsDeleteCategoryOpen] = useState(false);
+
   // Stats from orders
   const [orderStats, setOrderStats] = useState<{ serviceId: string; count: number; revenue: number }[]>([]);
 
@@ -439,6 +445,79 @@ const AdminServices = () => {
     setDeleting(false);
     setIsBulkDeleteOpen(false);
     setBulkDeleteCategory("all");
+  };
+
+  // Delete selected services
+  const handleDeleteSelected = async () => {
+    if (selectedServiceIds.size === 0) return;
+    
+    setDeleting(true);
+    const idsArray = Array.from(selectedServiceIds);
+    
+    const { error } = await supabase
+      .from("services")
+      .delete()
+      .in("id", idsArray);
+
+    if (error) {
+      toast.error("خطأ في حذف الخدمات المحددة");
+    } else {
+      toast.success(`تم حذف ${idsArray.length} خدمة بنجاح`);
+      setSelectedServiceIds(new Set());
+      setIsSelectionMode(false);
+      fetchServices();
+    }
+    
+    setDeleting(false);
+    setIsDeleteSelectedOpen(false);
+  };
+
+  // Delete all services in current category
+  const handleDeleteCurrentCategory = async () => {
+    if (!selectedCategory) return;
+    
+    setDeleting(true);
+    const categoryServiceIds = selectedCategory.services.map(s => s.id);
+    
+    const { error } = await supabase
+      .from("services")
+      .delete()
+      .in("id", categoryServiceIds);
+
+    if (error) {
+      toast.error("خطأ في حذف خدمات القسم");
+    } else {
+      toast.success(`تم حذف ${categoryServiceIds.length} خدمة من القسم`);
+      setSelectedCategoryId(null);
+      fetchServices();
+    }
+    
+    setDeleting(false);
+    setIsDeleteCategoryOpen(false);
+  };
+
+  // Toggle service selection
+  const toggleServiceSelection = (serviceId: string) => {
+    setSelectedServiceIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(serviceId)) {
+        newSet.delete(serviceId);
+      } else {
+        newSet.add(serviceId);
+      }
+      return newSet;
+    });
+  };
+
+  // Select all services in current category
+  const selectAllInCategory = () => {
+    if (!selectedCategory) return;
+    const allIds = selectedCategory.services.map(s => s.id);
+    if (selectedServiceIds.size === allIds.length) {
+      setSelectedServiceIds(new Set());
+    } else {
+      setSelectedServiceIds(new Set(allIds));
+    }
   };
 
   const getDeleteCount = () => {
@@ -827,7 +906,7 @@ const AdminServices = () => {
                   </div>
                   
                   <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
-                    <div className="relative flex-1 sm:flex-none sm:w-64">
+                    <div className="relative flex-1 sm:flex-none sm:w-48">
                       <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         placeholder="بحث..."
@@ -854,6 +933,60 @@ const AdminServices = () => {
                         <LayoutList className="w-4 h-4" />
                       </Button>
                     </div>
+                    
+                    {/* Selection Mode Toggle */}
+                    <Button
+                      variant={isSelectionMode ? "secondary" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        setIsSelectionMode(!isSelectionMode);
+                        if (isSelectionMode) {
+                          setSelectedServiceIds(new Set());
+                        }
+                      }}
+                      className="gap-2"
+                    >
+                      {isSelectionMode ? "إلغاء التحديد" : "تحديد"}
+                    </Button>
+
+                    {/* Select All / Delete Selected */}
+                    {isSelectionMode && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={selectAllInCategory}
+                          className="gap-2"
+                        >
+                          {selectedServiceIds.size === selectedCategory?.services.length ? "إلغاء الكل" : "تحديد الكل"}
+                        </Button>
+                        {selectedServiceIds.size > 0 && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => setIsDeleteSelectedOpen(true)}
+                            className="gap-2"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            حذف المحدد ({selectedServiceIds.size})
+                          </Button>
+                        )}
+                      </>
+                    )}
+
+                    {/* Delete All Category Services */}
+                    {!isSelectionMode && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setIsDeleteCategoryOpen(true)}
+                        className="gap-2"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        حذف الكل
+                      </Button>
+                    )}
+                    
                     <Button onClick={openNewDialog} size="sm" className="gap-2">
                       <Plus className="w-4 h-4" />
                       إضافة
@@ -952,6 +1085,9 @@ const AdminServices = () => {
                                         onView={(s) => openDetailsDialog(s)}
                                         onEdit={(s) => openEditDialog(s)}
                                         onDelete={(id) => handleDelete(id)}
+                                        isSelectionMode={isSelectionMode}
+                                        isSelected={selectedServiceIds.has(service.id)}
+                                        onToggleSelect={toggleServiceSelection}
                                       />
                                     </motion.div>
                                   ))}
@@ -1051,6 +1187,68 @@ const AdminServices = () => {
                   <Trash2 className="w-4 h-4 ml-2" />
                 )}
                 حذف
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete Selected Dialog */}
+        <AlertDialog open={isDeleteSelectedOpen} onOpenChange={setIsDeleteSelectedOpen}>
+          <AlertDialogContent dir="rtl">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="w-5 h-5" />
+                حذف الخدمات المحددة
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                سيتم حذف {selectedServiceIds.size} خدمة محددة. هذا الإجراء لا يمكن التراجع عنه.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <AlertDialogFooter className="flex-row-reverse gap-2">
+              <AlertDialogCancel disabled={deleting}>إلغاء</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteSelected}
+                disabled={deleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleting ? (
+                  <Loader2 className="w-4 h-4 animate-spin ml-2" />
+                ) : (
+                  <Trash2 className="w-4 h-4 ml-2" />
+                )}
+                حذف ({selectedServiceIds.size})
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete Category Services Dialog */}
+        <AlertDialog open={isDeleteCategoryOpen} onOpenChange={setIsDeleteCategoryOpen}>
+          <AlertDialogContent dir="rtl">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="w-5 h-5" />
+                حذف جميع خدمات القسم
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                سيتم حذف جميع خدمات قسم "{selectedCategory?.nameAr}" ({selectedCategory?.services.length} خدمة). هذا الإجراء لا يمكن التراجع عنه.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <AlertDialogFooter className="flex-row-reverse gap-2">
+              <AlertDialogCancel disabled={deleting}>إلغاء</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteCurrentCategory}
+                disabled={deleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleting ? (
+                  <Loader2 className="w-4 h-4 animate-spin ml-2" />
+                ) : (
+                  <Trash2 className="w-4 h-4 ml-2" />
+                )}
+                حذف الكل ({selectedCategory?.services.length})
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
