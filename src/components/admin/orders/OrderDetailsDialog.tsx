@@ -1,0 +1,301 @@
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  X, 
+  Clock, 
+  User, 
+  Package, 
+  LinkIcon, 
+  Copy, 
+  ExternalLink,
+  Save,
+  History,
+  FileText
+} from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
+import { toast } from "sonner";
+import { getStatusConfig, statusConfig } from "./OrderRow";
+
+interface Order {
+  id: string;
+  order_number: string;
+  status: string;
+  total_price: number;
+  quantity: number | null;
+  link: string | null;
+  notes: string | null;
+  admin_notes: string | null;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  external_order_id: string | null;
+  external_status: string | null;
+  service: { id: string; name: string; category: string } | null;
+  profile: { full_name: string | null; email: string | null } | null;
+}
+
+interface OrderHistory {
+  id: string;
+  old_status: string | null;
+  new_status: string;
+  created_at: string;
+  notes: string | null;
+}
+
+interface OrderDetailsDialogProps {
+  order: Order | null;
+  orderHistory: OrderHistory[];
+  open: boolean;
+  onClose: () => void;
+  onSave: (orderId: string, status: string, adminNotes: string) => void;
+  saving: boolean;
+}
+
+const statusOptions = Object.entries(statusConfig).map(([value, config]) => ({
+  value,
+  label: config.label,
+  icon: config.icon,
+}));
+
+const OrderDetailsDialog = ({
+  order,
+  orderHistory,
+  open,
+  onClose,
+  onSave,
+  saving,
+}: OrderDetailsDialogProps) => {
+  const [newStatus, setNewStatus] = useState(order?.status || "");
+  const [adminNotes, setAdminNotes] = useState(order?.admin_notes || "");
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Update state when order changes
+  if (order && newStatus !== order.status && !saving) {
+    setNewStatus(order.status);
+    setAdminNotes(order.admin_notes || "");
+  }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("تم النسخ");
+  };
+
+  if (!order) return null;
+
+  const config = getStatusConfig(order.status);
+
+  return (
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden">
+        <DialogHeader className="p-4 pb-3 border-b border-border/50">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <Package className="w-5 h-5 text-primary" />
+              تفاصيل الطلب
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowHistory(!showHistory)}
+              className="gap-1.5 h-8 text-xs"
+            >
+              <History className="w-3.5 h-3.5" />
+              السجل
+            </Button>
+          </div>
+        </DialogHeader>
+
+        <ScrollArea className="max-h-[70vh]">
+          <div className="p-4 space-y-4">
+            {/* Order Info */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <button 
+                  onClick={() => copyToClipboard(order.order_number)}
+                  className="font-mono text-lg font-bold hover:text-primary transition-colors flex items-center gap-2"
+                >
+                  {order.order_number}
+                  <Copy className="w-4 h-4 opacity-50" />
+                </button>
+                <Badge 
+                  variant="outline" 
+                  className={cn(
+                    "text-xs gap-1.5",
+                    config.bgColor, 
+                    config.textColor, 
+                    config.borderColor
+                  )}
+                >
+                  <config.icon className="w-3.5 h-3.5" />
+                  {config.label}
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="p-3 rounded-lg bg-secondary/40">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <User className="w-3.5 h-3.5" />
+                    <span className="text-xs">العميل</span>
+                  </div>
+                  <p className="font-medium truncate">
+                    {order.profile?.full_name || order.profile?.email || "غير معروف"}
+                  </p>
+                </div>
+                <div className="p-3 rounded-lg bg-secondary/40">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span className="text-xs">التاريخ</span>
+                  </div>
+                  <p className="font-medium">
+                    {format(new Date(order.created_at), "d MMM yyyy", { locale: ar })}
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-lg bg-secondary/40">
+                <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                  <Package className="w-3.5 h-3.5" />
+                  <span className="text-xs">الخدمة</span>
+                </div>
+                <p className="font-medium text-sm">{order.service?.name || "غير محدد"}</p>
+              </div>
+
+              {order.link && (
+                <div className="p-3 rounded-lg bg-secondary/40">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <LinkIcon className="w-3.5 h-3.5" />
+                      <span className="text-xs">الرابط</span>
+                    </div>
+                    <a 
+                      href={order.link} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline text-xs flex items-center gap-1"
+                    >
+                      فتح <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 truncate">{order.link}</p>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/20">
+                <span className="text-sm text-muted-foreground">السعر الإجمالي</span>
+                <span className="text-lg font-bold">{order.total_price.toFixed(2)} ر.س</span>
+              </div>
+
+              {order.quantity && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">الكمية</span>
+                  <span className="font-medium">{order.quantity.toLocaleString()}</span>
+                </div>
+              )}
+
+              {order.notes && (
+                <div className="p-3 rounded-lg bg-secondary/40">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <FileText className="w-3.5 h-3.5" />
+                    <span className="text-xs">ملاحظات العميل</span>
+                  </div>
+                  <p className="text-sm">{order.notes}</p>
+                </div>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* Edit Section */}
+            <div className="space-y-3">
+              <Label className="text-xs text-muted-foreground">تغيير الحالة</Label>
+              <Select value={newStatus} onValueChange={setNewStatus}>
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="اختر الحالة" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      <div className="flex items-center gap-2">
+                        <opt.icon className="w-3.5 h-3.5" />
+                        {opt.label}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">ملاحظات الإدارة</Label>
+                <Textarea 
+                  value={adminNotes}
+                  onChange={(e) => setAdminNotes(e.target.value)}
+                  placeholder="أضف ملاحظات..."
+                  className="min-h-[80px] text-sm"
+                />
+              </div>
+            </div>
+
+            {/* History Section */}
+            <AnimatePresence>
+              {showHistory && orderHistory.length > 0 && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <Separator className="my-3" />
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">سجل التغييرات</Label>
+                    <div className="space-y-2">
+                      {orderHistory.slice(0, 5).map((item) => {
+                        const newConfig = getStatusConfig(item.new_status);
+                        return (
+                          <div key={item.id} className="flex items-center gap-2 text-xs p-2 rounded-lg bg-secondary/30">
+                            <Badge variant="outline" className={cn("text-[10px]", newConfig.bgColor, newConfig.textColor)}>
+                              {newConfig.label}
+                            </Badge>
+                            <span className="text-muted-foreground">
+                              {format(new Date(item.created_at), "d MMM HH:mm", { locale: ar })}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </ScrollArea>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-border/50 flex gap-2">
+          <Button variant="outline" onClick={onClose} className="flex-1">
+            إلغاء
+          </Button>
+          <Button 
+            onClick={() => onSave(order.id, newStatus, adminNotes)} 
+            disabled={saving}
+            className="flex-1 gap-2"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? "جاري الحفظ..." : "حفظ"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default OrderDetailsDialog;
