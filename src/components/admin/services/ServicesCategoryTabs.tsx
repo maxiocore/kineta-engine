@@ -42,7 +42,7 @@ const ServicesCategoryTabs = ({
 
   return (
     <ScrollArea className="w-full whitespace-nowrap">
-      <div className="flex items-center gap-2 pb-2">
+      <div className="flex items-center gap-1.5 sm:gap-2 pb-2">
         {categories.map((category, index) => {
           const isSelected = selectedCategory === category.id;
           const count = category.id === "all" ? totalCount : (categoryCounts[category.id] || 0);
@@ -57,28 +57,25 @@ const ServicesCategoryTabs = ({
               whileTap={{ scale: 0.95 }}
               onClick={() => onCategoryChange(category.id)}
               className={cn(
-                "relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 shrink-0",
+                "relative flex items-center gap-1 sm:gap-2 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 shrink-0",
                 isSelected
                   ? "bg-gradient-to-l text-white shadow-lg"
                   : "bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground"
               )}
-              style={isSelected ? {
-                backgroundImage: `linear-gradient(to left, var(--tw-gradient-stops))`,
-              } : {}}
             >
               {/* Gradient background for selected */}
               {isSelected && (
-                <div className={`absolute inset-0 rounded-xl bg-gradient-to-l ${category.gradient} opacity-100`} />
+                <div className={`absolute inset-0 rounded-lg sm:rounded-xl bg-gradient-to-l ${category.gradient} opacity-100`} />
               )}
               
-              <div className="relative z-10 flex items-center gap-2">
+              <div className="relative z-10 flex items-center gap-1 sm:gap-2">
                 <Icon className={cn(
-                  "w-4 h-4",
+                  "w-3.5 h-3.5 sm:w-4 sm:h-4",
                   isSelected ? "text-white" : "text-muted-foreground"
                 )} />
-                <span className={isSelected ? "text-white" : ""}>{category.label}</span>
+                <span className={cn("hidden xs:inline", isSelected ? "text-white" : "")}>{category.label}</span>
                 <span className={cn(
-                  "text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center",
+                  "text-[9px] sm:text-[10px] font-bold px-1 sm:px-1.5 py-0.5 rounded-full min-w-[16px] sm:min-w-[20px] text-center",
                   isSelected 
                     ? "bg-white/20 text-white" 
                     : "bg-muted text-muted-foreground"
@@ -90,7 +87,7 @@ const ServicesCategoryTabs = ({
           );
         })}
       </div>
-      <ScrollBar orientation="horizontal" className="h-1.5" />
+      <ScrollBar orientation="horizontal" className="h-1 sm:h-1.5" />
     </ScrollArea>
   );
 };
