@@ -2,15 +2,17 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Loader2, AlertTriangle, Trash2, Package, Plus, RefreshCw, 
-  ArrowUpRight, Globe, Palette, Code, Layers, Settings2,
+  ArrowUpRight, Globe, Palette, Code, Layers,
   Instagram, Facebook, Youtube, Twitter, Send, MessageCircle,
-  Sparkles, Star, Smartphone, TrendingUp, ChevronLeft, Eye,
-  Grid3X3, LayoutList, Filter, Search
+  Sparkles, Star, Smartphone, TrendingUp, ChevronLeft,
+  Grid3X3, LayoutList, Search, DollarSign, ShoppingCart, BarChart3,
+  Activity, Zap, Target
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,8 +30,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AreaChart, Area, ResponsiveContainer, Tooltip, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
-import ServicesHeader from "@/components/admin/services/ServicesHeader";
 import EnhancedServiceCard from "@/components/admin/services/EnhancedServiceCard";
 import EmptyServicesState from "@/components/admin/services/EmptyServicesState";
 import ServiceFormDialog from "@/components/admin/services/ServiceFormDialog";
@@ -497,118 +499,248 @@ const AdminServices = () => {
                 </div>
               </motion.div>
 
-              {/* Category Cards Grid */}
+              {/* Category Cards Grid with Charts */}
               <motion.div
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
-                className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3"
               >
-                {categoryGroups.map((category) => (
-                  <motion.div
-                    key={category.id}
-                    variants={itemVariants}
-                    onMouseEnter={() => setHoveredCategory(category.id)}
-                    onMouseLeave={() => setHoveredCategory(null)}
-                    className="group cursor-pointer"
-                    onClick={() => setSelectedCategoryId(category.id)}
-                  >
-                    <Card className="h-full relative overflow-hidden border border-border/50 bg-card/80 backdrop-blur-xl transition-all duration-500 hover:shadow-xl hover:border-border hover:scale-[1.02]">
-                      {/* Background Gradient */}
-                      <div
-                        className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-[0.03] transition-opacity duration-500 group-hover:opacity-[0.08]`}
-                      />
-                      
-                      {/* Glow Orb */}
-                      <div
-                        className={`absolute -top-20 -right-20 w-40 h-40 ${category.bgGlow} rounded-full blur-3xl opacity-30 group-hover:opacity-50 transition-opacity duration-500`}
-                      />
+                {categoryGroups.map((category) => {
+                  const categoryRevenue = category.services.reduce((sum, s) => sum + (s.revenue || 0), 0);
+                  const categoryOrders = category.services.reduce((sum, s) => sum + (s.orderCount || 0), 0);
+                  const activeCount = category.services.filter(s => s.status === 'active').length;
+                  const avgPrice = category.services.length > 0 
+                    ? category.services.reduce((sum, s) => sum + s.price, 0) / category.services.length 
+                    : 0;
+                  
+                  // Mini chart data - simulate trend
+                  const chartData = Array.from({ length: 7 }, (_, i) => ({
+                    day: i,
+                    value: Math.floor(Math.random() * categoryOrders * 0.3) + categoryOrders * 0.7 / 7
+                  }));
 
-                      <CardContent className="relative z-10 p-5 sm:p-6 flex flex-col h-full min-h-[260px]">
-                        {/* Header */}
-                        <div className="flex items-start justify-between mb-4">
-                          <motion.div
-                            animate={{ 
-                              x: hoveredCategory === category.id ? 8 : 0,
-                              scale: hoveredCategory === category.id ? 1.1 : 1
-                            }}
-                            className="flex items-center gap-2 text-muted-foreground group-hover:text-primary transition-all duration-300"
-                          >
-                            <ArrowUpRight className="w-5 h-5" />
-                            <span className="text-xs font-semibold">استعراض</span>
-                          </motion.div>
-                          
-                          <motion.div 
-                            whileHover={{ scale: 1.05, rotate: 5 }}
-                            className="relative"
-                          >
-                            <div className={`absolute inset-0 bg-gradient-to-br ${category.iconGradient} rounded-xl blur-lg opacity-40`} />
-                            <div className={`relative p-4 rounded-xl bg-gradient-to-br ${category.iconGradient} shadow-lg`}>
-                              <category.icon className="w-6 h-6 text-white" />
-                            </div>
-                          </motion.div>
-                        </div>
+                  // Status distribution for pie chart
+                  const statusData = [
+                    { name: 'نشط', value: activeCount, color: '#22c55e' },
+                    { name: 'متوقف', value: category.services.filter(s => s.status === 'inactive').length, color: '#f59e0b' },
+                    { name: 'مؤرشف', value: category.services.filter(s => s.status === 'archived').length, color: '#64748b' },
+                  ].filter(d => d.value > 0);
 
-                        {/* Content */}
-                        <div className="flex-1 space-y-3">
-                          <div className="flex items-center gap-3 justify-end">
-                            <Badge className={`bg-gradient-to-r ${category.iconGradient} text-white border-0 shadow-md px-3 py-1 text-xs font-bold`}>
-                              {category.services.length}
-                            </Badge>
-                            <h3 className="text-lg sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors">
-                              {category.nameAr}
-                            </h3>
-                          </div>
-                          <p className="text-xs text-muted-foreground/70 uppercase tracking-wider text-right">
-                            {category.name.toUpperCase()}
-                          </p>
-                          <p className="text-sm text-muted-foreground text-right line-clamp-2">
-                            {category.services.filter(s => s.status === 'active').length} خدمة نشطة
-                          </p>
-                        </div>
+                  // Top services by revenue
+                  const topServices = [...category.services]
+                    .sort((a, b) => (b.revenue || 0) - (a.revenue || 0))
+                    .slice(0, 3);
 
-                        {/* Platform Icons */}
-                        {category.platforms && (
-                          <div className="flex flex-wrap gap-2 mt-4 justify-end">
-                            {category.platforms.slice(0, 5).map((platform, i) => (
-                              <motion.div
-                                key={i}
-                                initial={{ opacity: 0, scale: 0 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.1 + i * 0.05 }}
-                                whileHover={{ scale: 1.2, y: -2 }}
-                                className={`w-9 h-9 rounded-lg ${platform.bg} flex items-center justify-center transition-all duration-300 hover:shadow-lg`}
+                  return (
+                    <motion.div
+                      key={category.id}
+                      variants={itemVariants}
+                      onMouseEnter={() => setHoveredCategory(category.id)}
+                      onMouseLeave={() => setHoveredCategory(null)}
+                      className="group cursor-pointer"
+                      onClick={() => setSelectedCategoryId(category.id)}
+                    >
+                      <Card className="h-full relative overflow-hidden border border-border/50 bg-card/80 backdrop-blur-xl transition-all duration-500 hover:shadow-xl hover:border-border hover:scale-[1.01]">
+                        {/* Background Gradient */}
+                        <div
+                          className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-[0.03] transition-opacity duration-500 group-hover:opacity-[0.08]`}
+                        />
+                        
+                        {/* Glow Orb */}
+                        <div
+                          className={`absolute -top-20 -right-20 w-40 h-40 ${category.bgGlow} rounded-full blur-3xl opacity-30 group-hover:opacity-50 transition-opacity duration-500`}
+                        />
+
+                        <CardContent className="relative z-10 p-4 sm:p-5 flex flex-col h-full">
+                          {/* Header */}
+                          <div className="flex items-start justify-between mb-3">
+                            <motion.div
+                              animate={{ 
+                                x: hoveredCategory === category.id ? 8 : 0,
+                                scale: hoveredCategory === category.id ? 1.1 : 1
+                              }}
+                              className="flex items-center gap-2 text-muted-foreground group-hover:text-primary transition-all duration-300"
+                            >
+                              <ArrowUpRight className="w-4 h-4" />
+                              <span className="text-[10px] font-semibold">استعراض</span>
+                            </motion.div>
+                            
+                            <div className="flex items-center gap-3">
+                              <div>
+                                <h3 className="text-base sm:text-lg font-bold text-foreground group-hover:text-primary transition-colors text-right">
+                                  {category.nameAr}
+                                </h3>
+                                <p className="text-[10px] text-muted-foreground/70 uppercase tracking-wider text-right">
+                                  {category.name.toUpperCase()}
+                                </p>
+                              </div>
+                              <motion.div 
+                                whileHover={{ scale: 1.05, rotate: 5 }}
+                                className="relative"
                               >
-                                <platform.icon className={`w-4 h-4 ${platform.color}`} />
+                                <div className={`absolute inset-0 bg-gradient-to-br ${category.iconGradient} rounded-xl blur-lg opacity-40`} />
+                                <div className={`relative p-3 rounded-xl bg-gradient-to-br ${category.iconGradient} shadow-lg`}>
+                                  <category.icon className="w-5 h-5 text-white" />
+                                </div>
+                              </motion.div>
+                            </div>
+                          </div>
+
+                          {/* Stats Grid */}
+                          <div className="grid grid-cols-4 gap-2 mb-3">
+                            {[
+                              { icon: Package, label: 'خدمات', value: category.services.length, color: 'text-primary' },
+                              { icon: Zap, label: 'نشطة', value: activeCount, color: 'text-emerald-500' },
+                              { icon: ShoppingCart, label: 'طلبات', value: categoryOrders, color: 'text-blue-500' },
+                              { icon: DollarSign, label: 'إيرادات', value: `$${categoryRevenue.toFixed(0)}`, color: 'text-amber-500' },
+                            ].map((stat, i) => (
+                              <motion.div
+                                key={stat.label}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.05 }}
+                                className="text-center p-2 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
+                              >
+                                <stat.icon className={`w-3.5 h-3.5 mx-auto mb-1 ${stat.color}`} />
+                                <p className={`text-sm font-bold ${stat.color}`}>{stat.value}</p>
+                                <p className="text-[9px] text-muted-foreground">{stat.label}</p>
                               </motion.div>
                             ))}
-                            {category.services.length > 5 && (
-                              <div className="px-3 h-9 rounded-lg bg-secondary/50 flex items-center justify-center text-xs font-medium text-muted-foreground">
-                                +{category.services.length - 5}
-                              </div>
-                            )}
                           </div>
-                        )}
 
-                        {/* Footer */}
-                        <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/30">
-                          <motion.span
-                            animate={{ x: hoveredCategory === category.id ? 5 : 0 }}
-                            className="text-xs font-medium text-primary flex items-center gap-1"
-                          >
-                            <span>عرض الكل</span>
-                            <ArrowUpRight className="w-3 h-3" />
-                          </motion.span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-muted-foreground">
-                              ${category.services.reduce((sum, s) => sum + (s.revenue || 0), 0).toFixed(0)} إيرادات
-                            </span>
+                          {/* Charts Row */}
+                          <div className="flex gap-3 mb-3">
+                            {/* Mini Area Chart - Orders Trend */}
+                            <div className="flex-1 p-2 rounded-lg bg-secondary/20">
+                              <div className="flex items-center justify-between mb-1">
+                                <Activity className="w-3 h-3 text-blue-500" />
+                                <span className="text-[9px] text-muted-foreground">اتجاه الطلبات</span>
+                              </div>
+                              <div className="h-12">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <AreaChart data={chartData}>
+                                    <defs>
+                                      <linearGradient id={`gradient-${category.id}`} x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.4} />
+                                        <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                                      </linearGradient>
+                                    </defs>
+                                    <Tooltip 
+                                      content={({ payload }) => payload?.[0] ? (
+                                        <div className="bg-popover/90 backdrop-blur-sm px-2 py-1 rounded text-[10px] border border-border">
+                                          {Number(payload[0].value || 0).toFixed(0)} طلب
+                                        </div>
+                                      ) : null}
+                                    />
+                                    <Area 
+                                      type="monotone" 
+                                      dataKey="value" 
+                                      stroke="#3b82f6" 
+                                      strokeWidth={1.5}
+                                      fill={`url(#gradient-${category.id})`} 
+                                    />
+                                  </AreaChart>
+                                </ResponsiveContainer>
+                              </div>
+                            </div>
+
+                            {/* Mini Pie Chart - Status Distribution */}
+                            <div className="w-20 p-2 rounded-lg bg-secondary/20">
+                              <div className="flex items-center justify-center mb-1">
+                                <span className="text-[9px] text-muted-foreground">الحالة</span>
+                              </div>
+                              <div className="h-12">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <PieChart>
+                                    <Pie
+                                      data={statusData}
+                                      dataKey="value"
+                                      cx="50%"
+                                      cy="50%"
+                                      innerRadius={12}
+                                      outerRadius={20}
+                                      strokeWidth={0}
+                                    >
+                                      {statusData.map((entry, index) => (
+                                        <Cell key={index} fill={entry.color} />
+                                      ))}
+                                    </Pie>
+                                  </PieChart>
+                                </ResponsiveContainer>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
+
+                          {/* Top Services Bar */}
+                          {topServices.length > 0 && (
+                            <div className="mb-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <BarChart3 className="w-3 h-3 text-muted-foreground" />
+                                <span className="text-[9px] text-muted-foreground">أعلى الخدمات إيراداً</span>
+                              </div>
+                              <div className="space-y-1.5">
+                                {topServices.map((service, i) => {
+                                  const maxRevenue = topServices[0].revenue || 1;
+                                  const percentage = ((service.revenue || 0) / maxRevenue) * 100;
+                                  return (
+                                    <div key={service.id} className="space-y-0.5">
+                                      <div className="flex items-center justify-between text-[9px]">
+                                        <span className="text-muted-foreground truncate max-w-[60%]">{service.name}</span>
+                                        <span className="font-medium text-primary">${(service.revenue || 0).toFixed(0)}</span>
+                                      </div>
+                                      <Progress value={percentage} className="h-1" />
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Platform Icons */}
+                          {category.platforms && (
+                            <div className="flex flex-wrap gap-1.5 justify-end mb-2">
+                              {category.platforms.slice(0, 4).map((platform, i) => (
+                                <motion.div
+                                  key={i}
+                                  initial={{ opacity: 0, scale: 0 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{ delay: 0.1 + i * 0.03 }}
+                                  whileHover={{ scale: 1.15, y: -1 }}
+                                  className={`w-7 h-7 rounded-lg ${platform.bg} flex items-center justify-center transition-all duration-300`}
+                                >
+                                  <platform.icon className={`w-3.5 h-3.5 ${platform.color}`} />
+                                </motion.div>
+                              ))}
+                              {category.services.length > 4 && (
+                                <div className="px-2 h-7 rounded-lg bg-secondary/50 flex items-center justify-center text-[10px] font-medium text-muted-foreground">
+                                  +{category.services.length - 4}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Footer */}
+                          <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/30">
+                            <motion.span
+                              animate={{ x: hoveredCategory === category.id ? 5 : 0 }}
+                              className="text-[10px] font-medium text-primary flex items-center gap-1"
+                            >
+                              <span>عرض التفاصيل</span>
+                              <ArrowUpRight className="w-3 h-3" />
+                            </motion.span>
+                            <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Target className="w-3 h-3" />
+                                متوسط: ${avgPrice.toFixed(0)}
+                              </span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
               </motion.div>
 
               {/* Empty State */}
