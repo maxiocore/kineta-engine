@@ -155,6 +155,7 @@ const ClientServicesNew = () => {
   const [link, setLink] = useState("");
   const [quantity, setQuantity] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "creating" | "sending" | "done">("idle");
   const [showRecentLinks, setShowRecentLinks] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
@@ -431,6 +432,7 @@ const ClientServicesNew = () => {
     if (!userBalance || userBalance.balance < totalPrice) { toast.error("رصيدك غير كافي"); return; }
 
     setIsSubmitting(true);
+    setSubmitStatus("creating");
     try {
       const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
       const { data: orderData, error: orderError } = await supabase.from("orders").insert({
@@ -443,6 +445,7 @@ const ClientServicesNew = () => {
       
       // Send order to provider automatically
       if (selectedService.external_service_id) {
+        setSubmitStatus("sending");
         try {
           const { data: providerResult, error: providerError } = await supabase.functions.invoke('provider-order', {
             body: {
@@ -461,17 +464,22 @@ const ClientServicesNew = () => {
             toast.warning(`تم إنشاء الطلب - خطأ من المزود: ${providerResult.error}`);
           } else {
             console.log('Provider order success:', providerResult);
+            toast.success(`تم إرسال الطلب للمزود برقم: ${providerResult.external_order_id}`);
           }
         } catch (providerErr) {
           console.error('Error calling provider-order:', providerErr);
         }
       }
       
+      setSubmitStatus("done");
       toast.success("تم إرسال الطلب بنجاح!");
       setLink(""); setQuantity(""); setSelectedService(null);
       refetch();
     } catch { toast.error("حدث خطأ أثناء إرسال الطلب"); }
-    finally { setIsSubmitting(false); }
+    finally { 
+      setIsSubmitting(false); 
+      setSubmitStatus("idle");
+    }
   };
 
   if (isLoading) {
@@ -1541,7 +1549,12 @@ const ClientServicesNew = () => {
                       {isSubmitting ? (
                         <>
                           <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                          <span className="text-sm sm:text-lg">جاري إرسال الطلب...</span>
+                          <span className="text-sm sm:text-lg">
+                            {submitStatus === "creating" && "جاري إنشاء الطلب..."}
+                            {submitStatus === "sending" && "جاري الإرسال للمزود..."}
+                            {submitStatus === "done" && "تم بنجاح!"}
+                            {submitStatus === "idle" && "جاري المعالجة..."}
+                          </span>
                         </>
                       ) : (
                         <>
