@@ -72,17 +72,22 @@ const EnhancedServiceCard = ({ service, index, viewMode, onEdit, onDelete, onVie
       <motion.div
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: index * 0.02 }}
+        transition={{ delay: Math.min(index * 0.02, 0.3) }}
+        className="w-full"
       >
-        <Card className="p-2.5 flex items-center gap-2.5 hover:shadow-md transition-shadow border-border/50">
-          <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${getCategoryColor(service.category)} p-2 shrink-0`}>
+        <Card className="p-3 flex items-center gap-3 hover:shadow-md transition-shadow border-border/50 w-full">
+          <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${getCategoryColor(service.category)} p-2 shrink-0`}>
             <Package className="w-full h-full text-white" />
           </div>
           
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">{service.name}</p>
-            <p className="text-[10px] text-muted-foreground">{service.category}</p>
+            <p className="text-xs text-muted-foreground truncate">{service.category}</p>
           </div>
+          
+          <Badge className={cn("text-[10px] px-2 py-0.5 shrink-0", statusConfig.className)}>
+            {statusConfig.label}
+          </Badge>
           
           <p className="text-sm font-bold text-primary shrink-0">${service.price.toFixed(2)}</p>
           
@@ -94,25 +99,23 @@ const EnhancedServiceCard = ({ service, index, viewMode, onEdit, onDelete, onVie
     );
   }
 
-  // Grid View
+  // Grid View - flex-column internal layout
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.02 }}
-      className="h-full"
+      transition={{ delay: Math.min(index * 0.02, 0.3) }}
+      className="w-full h-full"
     >
-      <Card className="p-3 flex flex-col h-full border-border/50 hover:shadow-lg hover:border-primary/20 transition-all group">
+      <Card className="flex flex-col h-full min-h-[180px] p-3 border-border/50 hover:shadow-lg hover:border-primary/20 transition-all group">
         {/* Header */}
-        <div className="flex items-start justify-between gap-2 mb-2.5">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${getCategoryColor(service.category)} p-2 shrink-0 shadow-md`}>
-              <Package className="w-full h-full text-white" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold truncate leading-tight">{service.name}</p>
-              <p className="text-[10px] text-muted-foreground">{service.category}</p>
-            </div>
+        <div className="flex items-start gap-2 mb-2">
+          <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${getCategoryColor(service.category)} p-2 shrink-0 shadow-md`}>
+            <Package className="w-full h-full text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold leading-tight line-clamp-1">{service.name}</p>
+            <p className="text-xs text-muted-foreground truncate">{service.category}</p>
           </div>
           
           <DropdownMenu>
@@ -129,13 +132,20 @@ const EnhancedServiceCard = ({ service, index, viewMode, onEdit, onDelete, onVie
           </DropdownMenu>
         </div>
 
+        {/* Description - 2 lines max */}
+        {service.description && (
+          <p className="text-xs text-muted-foreground line-clamp-2 mb-2 flex-shrink-0">
+            {service.description}
+          </p>
+        )}
+
         {/* Badges */}
-        <div className="flex items-center gap-1.5 mb-2.5">
-          <Badge className={cn("text-[9px] px-1.5 py-0", statusConfig.className)}>
+        <div className="flex flex-wrap items-center gap-1.5 mb-2">
+          <Badge className={cn("text-[10px] px-1.5 py-0", statusConfig.className)}>
             {statusConfig.label}
           </Badge>
           {isNew && (
-            <Badge className="bg-accent/10 text-accent text-[9px] px-1.5 py-0">
+            <Badge className="bg-accent/10 text-accent text-[10px] px-1.5 py-0">
               <Zap className="w-2.5 h-2.5 ml-0.5" />
               جديد
             </Badge>
@@ -143,12 +153,12 @@ const EnhancedServiceCard = ({ service, index, viewMode, onEdit, onDelete, onVie
         </div>
 
         {/* Stats */}
-        <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-2.5 py-1.5 px-2 rounded-md bg-secondary/30">
+        <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-2 py-1.5 px-2 rounded-md bg-secondary/30">
           <span>{service.orderCount || 0} طلب</span>
           <span className="text-success font-medium">${(service.revenue || 0).toFixed(0)}</span>
         </div>
 
-        {/* Price & Action */}
+        {/* Price & Action - pushed to bottom */}
         <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/30">
           <span className="text-base font-bold text-primary">${service.price.toFixed(2)}</span>
           <Button 
