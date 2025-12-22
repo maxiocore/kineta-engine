@@ -7,6 +7,9 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('=== provider-order function called ===');
+  console.log('Method:', req.method);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -16,7 +19,11 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { orderId, serviceId, link, quantity } = await req.json();
+    
+    const body = await req.json();
+    console.log('Request body:', JSON.stringify(body));
+    
+    const { orderId, serviceId, link, quantity } = body;
 
     console.log('Processing order:', { orderId, serviceId, link, quantity });
 
