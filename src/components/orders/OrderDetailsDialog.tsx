@@ -4,7 +4,7 @@ import {
   FileText, Clock, Hash, Calendar, ShoppingBag, LinkIcon, 
   Copy, Check, ExternalLink, Zap, Shield, Timer, Loader2,
   CheckCircle, XCircle, AlertCircle, Package, Download,
-  Share2, MessageCircle
+  Share2, MessageCircle, MapPin
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { format, formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
-import OrderProgressTracker from "./OrderProgressTracker";
+import InteractiveTimeline from "./modern/InteractiveTimeline";
 
 interface OrderDetailsDialogProps {
   order: {
@@ -136,9 +136,9 @@ export const OrderDetailsDialog = ({ order, orderHistory, loadingHistory, onClos
                 التفاصيل
                 <FileText className="w-4 h-4" />
               </TabsTrigger>
-              <TabsTrigger value="progress" className="gap-2 rounded-lg data-[state=active]:shadow-md flex-row-reverse">
-                التقدم
-                <Package className="w-4 h-4" />
+              <TabsTrigger value="tracking" className="gap-2 rounded-lg data-[state=active]:shadow-md flex-row-reverse">
+                التتبع
+                <MapPin className="w-4 h-4" />
               </TabsTrigger>
               <TabsTrigger value="history" className="gap-2 rounded-lg data-[state=active]:shadow-md flex-row-reverse">
                 السجل
@@ -381,40 +381,17 @@ export const OrderDetailsDialog = ({ order, orderHistory, loadingHistory, onClos
               )}
             </TabsContent>
 
-            {/* Progress Tab */}
-            <TabsContent value="progress" className="p-6 pt-4 m-0">
-              <OrderProgressTracker 
-                status={order.status} 
+            {/* Tracking Tab - Interactive Timeline */}
+            <TabsContent value="tracking" className="p-6 pt-4 m-0">
+              <InteractiveTimeline
+                status={order.status}
+                createdAt={order.created_at}
+                updatedAt={order.updated_at}
                 externalStatus={order.external_status}
-                showSteps={true}
-                size="lg"
+                externalOrderId={order.external_order_id}
+                orderHistory={orderHistory}
+                loadingHistory={loadingHistory}
               />
-
-              {/* External Order Info */}
-              {order.external_order_id && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-6 p-4 rounded-xl bg-secondary/30 border border-border/50 text-right"
-                >
-                  <div className="flex items-center gap-2 mb-2 flex-row-reverse justify-end">
-                    <span className="text-sm font-medium">معلومات المزود الخارجي</span>
-                    <Package className="w-4 h-4 text-primary" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">رقم الطلب الخارجي:</span>
-                      <p className="font-mono font-medium">{order.external_order_id}</p>
-                    </div>
-                    {order.external_status && (
-                      <div>
-                        <span className="text-muted-foreground">حالة المزود:</span>
-                        <p className="font-medium">{order.external_status}</p>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
             </TabsContent>
 
             {/* History Tab */}
