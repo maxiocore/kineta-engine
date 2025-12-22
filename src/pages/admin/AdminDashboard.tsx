@@ -25,6 +25,12 @@ import QuickStatsRow from "@/components/admin/dashboard/QuickStatsRow";
 import TopServicesCard from "@/components/admin/dashboard/TopServicesCard";
 import ActivityFeedCard from "@/components/admin/dashboard/ActivityFeedCard";
 import RevenueOverviewCard from "@/components/admin/dashboard/RevenueOverviewCard";
+import MobileDashboardHeader from "@/components/admin/MobileDashboardHeader";
+import MobileDashboardStats from "@/components/admin/MobileDashboardStats";
+import MobileRevenueCard from "@/components/admin/MobileRevenueCard";
+import MobileActivityFeed from "@/components/admin/MobileActivityFeed";
+import MobileQuickActions from "@/components/admin/MobileQuickActions";
+import MobileTopServices from "@/components/admin/MobileTopServices";
 
 interface DashboardStats {
   totalUsers: number;
@@ -406,6 +412,48 @@ const AdminDashboard = () => {
     );
   }
 
+  // Mobile-optimized dashboard content
+  const mobileDashboardContent = (
+    <div className="space-y-3" dir="rtl">
+      <MobileDashboardHeader onRefresh={handleRefresh} isRefreshing={isRefreshing} />
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full grid grid-cols-2 h-9 p-0.5 bg-secondary/50">
+          <TabsTrigger value="overview" className="text-xs gap-1 data-[state=active]:bg-background">
+            <Sparkles className="w-3 h-3" />
+            نظرة عامة
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="text-xs gap-1 data-[state=active]:bg-background">
+            <BarChart3 className="w-3 h-3" />
+            الإحصائيات
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-3 mt-3">
+          <MobileDashboardStats stats={statsData} />
+          <MobileRevenueCard
+            totalRevenue={stats.totalRevenue}
+            monthlyRevenue={stats.monthlyRevenue}
+            weeklyRevenue={stats.weeklyRevenue}
+            revenueTrend={stats.revenueTrend}
+          />
+          <MobileQuickActions />
+          <MobileTopServices services={topServices} />
+          <MobileActivityFeed activities={activities} />
+        </TabsContent>
+
+        <TabsContent value="analytics" className="mt-3">
+          <AdvancedDashboardCharts
+            orders={chartData.orders}
+            deposits={chartData.deposits}
+            users={chartData.users}
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+
+  // Desktop dashboard content
   const dashboardContent = (
     <div className="space-y-4 sm:space-y-6" dir="rtl">
       {/* Enhanced Header */}
@@ -490,7 +538,7 @@ const AdminDashboard = () => {
     <AdminDashboardLayout>
       {isMobile ? (
         <PullToRefresh onRefresh={handleRefresh} className="h-full">
-          {dashboardContent}
+          {mobileDashboardContent}
         </PullToRefresh>
       ) : (
         dashboardContent
