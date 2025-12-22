@@ -4,7 +4,7 @@ import {
   Loader2, AlertTriangle, Trash2, Package, Plus, RefreshCw, 
   ArrowUpRight, Globe, Palette, Code, Layers,
   Instagram, Facebook, Youtube, Twitter, Send, MessageCircle,
-  Sparkles, Star, Smartphone, TrendingUp, ChevronLeft,
+  Sparkles, Star, Smartphone, TrendingUp, ChevronLeft, ChevronDown,
   Grid3X3, LayoutList, Search, DollarSign, ShoppingCart, BarChart3,
   Activity, Zap, Target
 } from "lucide-react";
@@ -100,6 +100,7 @@ const AdminServices = () => {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
+  const [expandedSubcategories, setExpandedSubcategories] = useState<Set<string>>(new Set());
   
   // Dialogs
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
@@ -279,6 +280,33 @@ const AdminServices = () => {
       service.description?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [selectedCategory, searchQuery]);
+
+  // Group services by subcategory (actual category field from database)
+  const subcategories = useMemo(() => {
+    if (!selectedCategory) return {};
+    const groups: Record<string, Service[]> = {};
+    selectedCategory.services.forEach(service => {
+      const cat = service.category;
+      if (!groups[cat]) {
+        groups[cat] = [];
+      }
+      groups[cat].push(service);
+    });
+    return groups;
+  }, [selectedCategory]);
+
+  // Toggle subcategory expansion
+  const toggleSubcategory = (subcat: string) => {
+    setExpandedSubcategories(prev => {
+      const next = new Set(prev);
+      if (next.has(subcat)) {
+        next.delete(subcat);
+      } else {
+        next.add(subcat);
+      }
+      return next;
+    });
+  };
 
   // Stats
   const totalServices = services.length;
@@ -749,7 +777,7 @@ const AdminServices = () => {
               )}
             </motion.div>
           ) : (
-            /* Category Detail View */
+            /* Category Detail View with Subcategories */
             <motion.div
               key="category-detail"
               initial={{ opacity: 0, x: 50 }}
@@ -783,7 +811,7 @@ const AdminServices = () => {
                     </div>
                     <div>
                       <h1 className="text-xl sm:text-2xl font-bold text-foreground">{selectedCategory?.nameAr}</h1>
-                      <p className="text-sm text-muted-foreground">{selectedCategory?.services.length} خدمة</p>
+                      <p className="text-sm text-muted-foreground">{selectedCategory?.services.length} خدمة • {Object.keys(subcategories).length} قسم</p>
                     </div>
                   </div>
                   
@@ -823,33 +851,107 @@ const AdminServices = () => {
                 </div>
               </motion.div>
 
-              {/* Services Grid/List */}
-              {filteredServices.length > 0 ? (
+              {/* Subcategories with Services */}
+              {Object.keys(subcategories).length > 0 ? (
                 <motion.div
                   variants={containerVariants}
                   initial="hidden"
                   animate="visible"
-                  className={
-                    viewMode === 'grid'
-                      ? 'grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-                      : 'flex flex-col gap-2'
-                  }
+                  className="space-y-4"
                 >
-                  {filteredServices.map((service, index) => (
-                    <motion.div
-                      key={service.id}
-                      variants={itemVariants}
-                    >
-                      <EnhancedServiceCard
-                        service={service}
-                        index={index}
-                        viewMode={viewMode}
-                        onView={(s) => openDetailsDialog(s)}
-                        onEdit={(s) => openEditDialog(s)}
-                        onDelete={(id) => handleDelete(id)}
-                      />
-                    </motion.div>
-                  ))}
+                  {Object.entries(subcategories).map(([subcat, subServices], index) => {
+                    const isExpanded = expandedSubcategories.has(subcat);
+                    const subcatRevenue = subServices.reduce((sum, s) => sum + (s.revenue || 0), 0);
+                    const subcatOrders = subServices.reduce((sum, s) => sum + (s.orderCount || 0), 0);
+                    const activeCount = subServices.filter(s => s.status === 'active').length;
+                    
+                    // Filter by search
+                    const filteredSubServices = subServices.filter(service =>
+                      service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      service.description?.toLowerCase().includes(searchQuery.toLowerCase())
+                    );
+
+                    if (searchQuery && filteredSubServices.length === 0) return null;
+
+                    return (
+                      <motion.div
+                        key={subcat}
+                        variants={itemVariants}
+                        className="overflow-hidden rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm"
+                      >
+                        <button
+                          onClick={() => toggleSubcategory(subcat)}
+                          className="w-full p-4 sm:p-5 flex items-center justify-between hover:bg-muted/30 transition-colors duration-300"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${selectedCategory?.iconGradient} flex items-center justify-center`}>
+                              <Package className="w-6 h-6 text-white" />
+                            </div>
+                            <div className="text-right">
+                              <h3 className="font-bold text-lg">{subcat}</h3>
+                              <div className="flex items-center gap-3 mt-1">
+                                <span className="text-sm text-muted-foreground">{subServices.length} خدمة</span>
+                                <span className="text-xs text-emerald-500">{activeCount} نشطة</span>
+                                <span className="text-xs text-blue-500">{subcatOrders} طلب</span>
+                                <span className="text-xs text-amber-500">${subcatRevenue.toFixed(0)}</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-3">
+                            <Badge variant="secondary" className="h-7 px-3 text-xs font-medium">
+                              {subServices.length}
+                            </Badge>
+                            <motion.div
+                              animate={{ rotate: isExpanded ? 180 : 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center"
+                            >
+                              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                            </motion.div>
+                          </div>
+                        </button>
+                        
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="border-t border-border/40 p-4 sm:p-5">
+                                <div className={
+                                  viewMode === 'grid'
+                                    ? 'grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                                    : 'flex flex-col gap-2'
+                                }>
+                                  {(searchQuery ? filteredSubServices : subServices).map((service, idx) => (
+                                    <motion.div
+                                      key={service.id}
+                                      initial={{ opacity: 0, y: 20 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      transition={{ delay: idx * 0.03 }}
+                                    >
+                                      <EnhancedServiceCard
+                                        service={service}
+                                        index={idx}
+                                        viewMode={viewMode}
+                                        onView={(s) => openDetailsDialog(s)}
+                                        onEdit={(s) => openEditDialog(s)}
+                                        onDelete={(id) => handleDelete(id)}
+                                      />
+                                    </motion.div>
+                                  ))}
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                    );
+                  })}
                 </motion.div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
