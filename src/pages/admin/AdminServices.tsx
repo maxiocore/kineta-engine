@@ -376,99 +376,109 @@ const AdminServices = () => {
 
   return (
     <AdminDashboardLayout>
-      <div className="w-full max-w-full overflow-x-hidden space-y-4 pb-20" dir="rtl">
-        {/* Header */}
-        <ServicesHeader
-          onAddNew={openNewDialog}
-          onBulkDelete={() => setIsBulkDeleteOpen(true)}
-          onRefresh={handleRefresh}
-          refreshing={refreshing}
-          servicesCount={totalServices}
-        />
-
-        {/* Stats - Horizontal Scroll */}
-        <ServicesStatsGrid
-          totalServices={totalServices}
-          activeServices={activeServices}
-          inactiveServices={inactiveServices}
-          totalRevenue={totalRevenue}
-          totalOrders={totalOrders}
-          avgPrice={avgPrice}
-        />
-
-        {/* Category Tabs */}
-        <ServicesCategoryTabs
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          categoryCounts={categoryCounts}
-          totalCount={totalServices}
-        />
-
-        {/* Filters */}
-        <EnhancedServiceFilters
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          selectedStatus={selectedStatus}
-          setSelectedStatus={setSelectedStatus}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-          statusOptions={statusOptions}
-          totalCount={totalServices}
-          filteredCount={filteredServices.length}
-          priceRange={priceRange}
-          setPriceRange={setPriceRange}
-          maxPrice={maxPrice}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-        />
-
-        {/* Services Grid/List */}
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
-            <p className="text-sm text-muted-foreground">جاري تحميل الخدمات...</p>
-          </div>
-        ) : filteredServices.length === 0 ? (
-          <EmptyServicesState
-            hasFilters={hasActiveFilters}
+      <div className="w-full min-h-screen overflow-x-hidden" dir="rtl">
+        <div className="w-full max-w-full space-y-4 sm:space-y-6 pb-20 px-0">
+          {/* Header */}
+          <ServicesHeader
             onAddNew={openNewDialog}
-            onClearFilters={clearAllFilters}
+            onBulkDelete={() => setIsBulkDeleteOpen(true)}
+            onRefresh={handleRefresh}
+            refreshing={refreshing}
+            servicesCount={totalServices}
           />
-        ) : viewMode === "list" ? (
-          <div className="flex flex-col gap-2">
-            <AnimatePresence mode="popLayout">
-              {filteredServices.map((service, index) => (
-                <EnhancedServiceCard
-                  key={service.id}
-                  service={service}
-                  index={index}
-                  viewMode={viewMode}
-                  onEdit={openEditDialog}
-                  onDelete={handleDelete}
-                  onView={openDetailsDialog}
-                />
-              ))}
-            </AnimatePresence>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            <AnimatePresence mode="popLayout">
-              {filteredServices.map((service, index) => (
-                <EnhancedServiceCard
-                  key={service.id}
-                  service={service}
-                  index={index}
-                  viewMode={viewMode}
-                  onEdit={openEditDialog}
-                  onDelete={handleDelete}
-                  onView={openDetailsDialog}
-                />
-              ))}
-            </AnimatePresence>
-          </div>
-        )}
+
+          {/* Stats Grid */}
+          <ServicesStatsGrid
+            totalServices={totalServices}
+            activeServices={activeServices}
+            inactiveServices={inactiveServices}
+            totalRevenue={totalRevenue}
+            totalOrders={totalOrders}
+            avgPrice={avgPrice}
+          />
+
+          {/* Category Tabs */}
+          <ServicesCategoryTabs
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            categoryCounts={categoryCounts}
+            totalCount={totalServices}
+          />
+
+          {/* Filters */}
+          <EnhancedServiceFilters
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            selectedStatus={selectedStatus}
+            setSelectedStatus={setSelectedStatus}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            statusOptions={statusOptions}
+            totalCount={totalServices}
+            filteredCount={filteredServices.length}
+            priceRange={priceRange}
+            setPriceRange={setPriceRange}
+            maxPrice={maxPrice}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+          />
+
+          {/* Services Grid/List */}
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
+              <p className="text-sm text-muted-foreground">جاري تحميل الخدمات...</p>
+            </div>
+          ) : filteredServices.length === 0 ? (
+            <EmptyServicesState
+              hasFilters={hasActiveFilters}
+              onAddNew={openNewDialog}
+              onClearFilters={clearAllFilters}
+            />
+          ) : viewMode === "list" ? (
+            <motion.div 
+              className="flex flex-col gap-2 sm:gap-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <AnimatePresence mode="popLayout">
+                {filteredServices.map((service, index) => (
+                  <EnhancedServiceCard
+                    key={service.id}
+                    service={service}
+                    index={index}
+                    viewMode={viewMode}
+                    onEdit={openEditDialog}
+                    onDelete={handleDelete}
+                    onView={openDetailsDialog}
+                  />
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          ) : (
+            <motion.div 
+              className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <AnimatePresence mode="popLayout">
+                {filteredServices.map((service, index) => (
+                  <EnhancedServiceCard
+                    key={service.id}
+                    service={service}
+                    index={index}
+                    viewMode={viewMode}
+                    onEdit={openEditDialog}
+                    onDelete={handleDelete}
+                    onView={openDetailsDialog}
+                  />
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </div>
 
         {/* Dialogs */}
         <ServiceFormDialog

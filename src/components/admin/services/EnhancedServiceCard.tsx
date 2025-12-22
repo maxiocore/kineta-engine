@@ -1,14 +1,8 @@
 import { motion } from "framer-motion";
-import { Package, Eye, MoreVertical, Zap } from "lucide-react";
+import { Package, Eye, Edit2, Trash2, Zap, ShoppingCart, DollarSign } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 interface Service {
@@ -38,18 +32,18 @@ const EnhancedServiceCard = ({ service, index, viewMode, onEdit, onDelete, onVie
   const getStatusConfig = (status: string) => {
     switch (status) {
       case "active":
-        return { label: "نشط", className: "bg-success/10 text-success" };
+        return { label: "نشط", className: "bg-success/10 text-success border-success/20" };
       case "inactive":
-        return { label: "متوقف", className: "bg-warning/10 text-warning" };
+        return { label: "متوقف", className: "bg-warning/10 text-warning border-warning/20" };
       case "archived":
-        return { label: "مؤرشف", className: "bg-muted text-muted-foreground" };
+        return { label: "مؤرشف", className: "bg-muted text-muted-foreground border-border" };
       default:
-        return { label: status, className: "bg-secondary text-secondary-foreground" };
+        return { label: status, className: "bg-secondary text-secondary-foreground border-border" };
     }
   };
 
-  const getCategoryColor = (category: string) => {
-    const colors: Record<string, string> = {
+  const getCategoryGradient = (category: string) => {
+    const gradients: Record<string, string> = {
       "Instagram": "from-pink-500 to-orange-400",
       "Facebook": "from-blue-600 to-blue-400",
       "Youtube": "from-red-600 to-red-400",
@@ -59,117 +53,158 @@ const EnhancedServiceCard = ({ service, index, viewMode, onEdit, onDelete, onVie
       "LinkedIn": "from-blue-700 to-blue-500",
       "Spotify": "from-green-500 to-green-400",
     };
-    return colors[category] || "from-primary to-accent";
+    return gradients[category] || "from-primary to-accent";
   };
 
   const statusConfig = getStatusConfig(service.status);
   const isNew = service.created_at && 
     new Date(service.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const gradient = getCategoryGradient(service.category);
 
   // List View
   if (viewMode === "list") {
     return (
       <motion.div
-        initial={{ opacity: 0, x: -10 }}
+        initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: Math.min(index * 0.02, 0.3) }}
+        transition={{ delay: Math.min(index * 0.03, 0.3) }}
+        whileHover={{ scale: 1.005 }}
         className="w-full"
       >
-        <Card className="p-3 flex items-center gap-3 hover:shadow-md transition-shadow border-border/50 w-full">
-          <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${getCategoryColor(service.category)} p-2 shrink-0`}>
+        <Card className="p-3 sm:p-4 flex items-center gap-3 sm:gap-4 hover:shadow-lg hover:border-primary/20 transition-all border-border/50 group">
+          {/* Icon */}
+          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${gradient} p-2.5 shrink-0 shadow-md`}>
             <Package className="w-full h-full text-white" />
           </div>
           
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{service.name}</p>
-            <p className="text-xs text-muted-foreground truncate">{service.category}</p>
+          {/* Content */}
+          <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-2 sm:gap-4 items-center">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-sm sm:text-base font-semibold truncate">{service.name}</p>
+                {isNew && (
+                  <Badge className="bg-accent/10 text-accent text-[10px] px-1.5 py-0 shrink-0">
+                    <Zap className="w-2.5 h-2.5 ml-0.5" />
+                    جديد
+                  </Badge>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground truncate">{service.category}</p>
+            </div>
+
+            {/* Stats */}
+            <div className="flex items-center gap-3 sm:gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <ShoppingCart className="w-3.5 h-3.5" />
+                <span>{service.orderCount || 0}</span>
+              </div>
+              <div className="flex items-center gap-1 text-success">
+                <DollarSign className="w-3.5 h-3.5" />
+                <span>{(service.revenue || 0).toFixed(0)}</span>
+              </div>
+            </div>
+
+            {/* Price & Status */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Badge className={cn("text-[10px] sm:text-xs px-2 py-0.5 border", statusConfig.className)}>
+                {statusConfig.label}
+              </Badge>
+              <span className="text-sm sm:text-base font-bold text-primary">${service.price.toFixed(2)}</span>
+            </div>
           </div>
           
-          <Badge className={cn("text-[10px] px-2 py-0.5 shrink-0", statusConfig.className)}>
-            {statusConfig.label}
-          </Badge>
-          
-          <p className="text-sm font-bold text-primary shrink-0">${service.price.toFixed(2)}</p>
-          
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => onView(service)}>
-            <Eye className="w-4 h-4" />
-          </Button>
+          {/* Actions */}
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onView(service)}>
+              <Eye className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(service)}>
+              <Edit2 className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-destructive" onClick={() => onDelete(service.id)}>
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
         </Card>
       </motion.div>
     );
   }
 
-  // Grid View - flex-column internal layout
+  // Grid View
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: Math.min(index * 0.02, 0.3) }}
+      transition={{ delay: Math.min(index * 0.03, 0.3) }}
+      whileHover={{ y: -4 }}
       className="w-full h-full"
     >
-      <Card className="flex flex-col h-full min-h-[180px] p-3 border-border/50 hover:shadow-lg hover:border-primary/20 transition-all group">
+      <Card className="flex flex-col h-full min-h-[200px] p-4 border-border/50 hover:shadow-xl hover:border-primary/30 transition-all group overflow-hidden">
         {/* Header */}
-        <div className="flex items-start gap-2 mb-2">
-          <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${getCategoryColor(service.category)} p-2 shrink-0 shadow-md`}>
+        <div className="flex items-start gap-3 mb-3">
+          <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${gradient} p-2.5 shrink-0 shadow-lg`}>
             <Package className="w-full h-full text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold leading-tight line-clamp-1">{service.name}</p>
-            <p className="text-xs text-muted-foreground truncate">{service.category}</p>
+            <p className="text-sm font-bold leading-tight line-clamp-1">{service.name}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{service.category}</p>
           </div>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                <MoreVertical className="w-3.5 h-3.5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onView(service)}>عرض</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(service)}>تعديل</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDelete(service.id)} className="text-destructive">حذف</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
 
-        {/* Description - 2 lines max */}
+        {/* Description */}
         {service.description && (
-          <p className="text-xs text-muted-foreground line-clamp-2 mb-2 flex-shrink-0">
+          <p className="text-xs text-muted-foreground line-clamp-2 mb-3 leading-relaxed">
             {service.description}
           </p>
         )}
 
         {/* Badges */}
-        <div className="flex flex-wrap items-center gap-1.5 mb-2">
-          <Badge className={cn("text-[10px] px-1.5 py-0", statusConfig.className)}>
+        <div className="flex flex-wrap items-center gap-1.5 mb-3">
+          <Badge className={cn("text-[10px] px-2 py-0.5 border", statusConfig.className)}>
             {statusConfig.label}
           </Badge>
           {isNew && (
-            <Badge className="bg-accent/10 text-accent text-[10px] px-1.5 py-0">
+            <Badge className="bg-accent/10 text-accent text-[10px] px-2 py-0.5 border border-accent/20">
               <Zap className="w-2.5 h-2.5 ml-0.5" />
               جديد
             </Badge>
           )}
         </div>
 
-        {/* Stats */}
-        <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-2 py-1.5 px-2 rounded-md bg-secondary/30">
-          <span>{service.orderCount || 0} طلب</span>
-          <span className="text-success font-medium">${(service.revenue || 0).toFixed(0)}</span>
+        {/* Stats Row */}
+        <div className="flex items-center justify-between text-xs bg-secondary/50 rounded-lg px-3 py-2 mb-3">
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <ShoppingCart className="w-3.5 h-3.5" />
+            <span>{service.orderCount || 0} طلب</span>
+          </div>
+          <div className="flex items-center gap-1 text-success font-medium">
+            <DollarSign className="w-3.5 h-3.5" />
+            <span>{(service.revenue || 0).toFixed(0)}</span>
+          </div>
         </div>
 
-        {/* Price & Action - pushed to bottom */}
-        <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/30">
-          <span className="text-base font-bold text-primary">${service.price.toFixed(2)}</span>
-          <Button 
-            variant="secondary" 
-            size="sm" 
-            className="h-7 text-[10px] px-2.5"
-            onClick={() => onView(service)}
-          >
-            <Eye className="w-3 h-3 ml-1" />
-            عرض
-          </Button>
+        {/* Price & Actions - pushed to bottom */}
+        <div className="flex items-center justify-between mt-auto pt-3 border-t border-border/50">
+          <span className="text-lg font-bold text-primary">${service.price.toFixed(2)}</span>
+          <div className="flex items-center gap-1">
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              className="h-8 text-xs px-3 gap-1.5"
+              onClick={() => onView(service)}
+            >
+              <Eye className="w-3.5 h-3.5" />
+              عرض
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => onEdit(service)}
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+            </Button>
+          </div>
         </div>
       </Card>
     </motion.div>
