@@ -452,7 +452,7 @@ export const AnalyticsAlertsPanel = () => {
         id: "high_low_balance_ratio",
         type: "threshold",
         title: "نسبة عالية من الأرصدة المنخفضة",
-        message: `${lowBalancePercent.toFixed(0)}% من المستخدمين لديهم رصيد أقل من $10`,
+        message: `${lowBalancePercent.toFixed(0)}% من المستخدمين لديهم رصيد أقل من 10 ر.س`,
         severity: lowBalancePercent > 50 ? "critical" : "warning",
         metric: "نسبة الأرصدة المنخفضة",
         value: lowBalancePercent,

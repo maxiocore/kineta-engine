@@ -416,7 +416,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                     className="flex-1"
                   >
                     <p className="text-xs text-muted-foreground">رصيدك الحالي</p>
-                    <p className="text-lg xl:text-xl font-bold text-primary">${balance.toFixed(2)}</p>
+                    <p className="text-lg xl:text-xl font-bold text-primary">{balance.toFixed(2)} ر.س</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -514,7 +514,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
             className="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-primary/10 border border-primary/20"
           >
             <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
-            <span className="font-bold text-primary text-xs sm:text-sm">${balance.toFixed(2)}</span>
+            <span className="font-bold text-primary text-xs sm:text-sm">{balance.toFixed(2)} ر.س</span>
           </motion.div>
           <ThemeToggle />
         </div>

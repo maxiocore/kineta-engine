@@ -311,12 +311,12 @@ export const FinancialReportsPanel = () => {
 
       // Summary cards
       const summaryData = [
-        ["Total Deposits", `$${reportData.summary.totalDeposits.toLocaleString()}`],
-        ["Total Orders", `$${reportData.summary.totalOrders.toLocaleString()}`],
-        ["Net Revenue", `$${reportData.summary.netRevenue.toLocaleString()}`],
+        ["Total Deposits", `${reportData.summary.totalDeposits.toLocaleString()} SAR`],
+        ["Total Orders", `${reportData.summary.totalOrders.toLocaleString()} SAR`],
+        ["Net Revenue", `${reportData.summary.netRevenue.toLocaleString()} SAR`],
         ["Active Users", reportData.summary.activeUsers.toString()],
-        ["Avg Order Value", `$${reportData.summary.averageOrderValue.toFixed(2)}`],
-        ["Total Refunds", `$${reportData.summary.totalRefunds.toLocaleString()}`],
+        ["Avg Order Value", `${reportData.summary.averageOrderValue.toFixed(2)} SAR`],
+        ["Total Refunds", `${reportData.summary.totalRefunds.toLocaleString()} SAR`],
       ];
 
       autoTable(doc, {
@@ -344,7 +344,7 @@ export const FinancialReportsPanel = () => {
         (index + 1).toString(),
         user.name,
         user.email,
-        `$${user.totalSpent.toLocaleString()}`,
+        `${user.totalSpent.toLocaleString()} SAR`,
         user.ordersCount.toString(),
       ]);
 
@@ -373,7 +373,7 @@ export const FinancialReportsPanel = () => {
       const balanceData = reportData.balanceDistribution.map((item) => [
         item.range,
         item.count.toString(),
-        `$${item.total.toLocaleString()}`,
+        `${item.total.toLocaleString()} SAR`,
       ]);
 
       autoTable(doc, {
@@ -400,7 +400,7 @@ export const FinancialReportsPanel = () => {
       const depositMethodData = reportData.depositsByMethod.map((item) => [
         item.method,
         item.count.toString(),
-        `$${item.amount.toLocaleString()}`,
+        `${item.amount.toLocaleString()} SAR`,
       ]);
 
       autoTable(doc, {
@@ -449,13 +449,13 @@ export const FinancialReportsPanel = () => {
         [`الفترة: ${format(start, "dd/MM/yyyy")} - ${format(end, "dd/MM/yyyy")}`],
         [],
         ["المقياس", "القيمة"],
-        ["إجمالي الإيداعات", `$${reportData.summary.totalDeposits.toLocaleString()}`],
-        ["إجمالي الطلبات", `$${reportData.summary.totalOrders.toLocaleString()}`],
-        ["صافي الإيرادات", `$${reportData.summary.netRevenue.toLocaleString()}`],
+        ["إجمالي الإيداعات", `${reportData.summary.totalDeposits.toLocaleString()} ر.س`],
+        ["إجمالي الطلبات", `${reportData.summary.totalOrders.toLocaleString()} ر.س`],
+        ["صافي الإيرادات", `${reportData.summary.netRevenue.toLocaleString()} ر.س`],
         ["المستخدمين النشطين", reportData.summary.activeUsers],
-        ["متوسط قيمة الطلب", `$${reportData.summary.averageOrderValue.toFixed(2)}`],
-        ["إجمالي الاستردادات", `$${reportData.summary.totalRefunds.toLocaleString()}`],
-        ["إجمالي العمولات", `$${reportData.summary.totalCommissions.toLocaleString()}`],
+        ["متوسط قيمة الطلب", `${reportData.summary.averageOrderValue.toFixed(2)} ر.س`],
+        ["إجمالي الاستردادات", `${reportData.summary.totalRefunds.toLocaleString()} ر.س`],
+        ["إجمالي العمولات", `${reportData.summary.totalCommissions.toLocaleString()} ر.س`],
       ]);
       XLSX.utils.book_append_sheet(workbook, summarySheet, "الملخص");
 
@@ -606,7 +606,7 @@ export const FinancialReportsPanel = () => {
                 <div>
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                   <p className={`text-lg font-bold ${stat.color}`}>
-                    {stat.noPrefix ? stat.value.toLocaleString("ar-SA") : `$${stat.value.toLocaleString("ar-SA")}`}
+                    {stat.noPrefix ? stat.value.toLocaleString("ar-SA") : `${stat.value.toLocaleString("ar-SA")} ر.س`}
                   </p>
                 </div>
               </div>
@@ -777,7 +777,7 @@ export const FinancialReportsPanel = () => {
                     </div>
                     <div className="text-left">
                       <p className="font-bold text-emerald-500">
-                        ${user.totalSpent.toLocaleString("ar-SA")}
+                        {user.totalSpent.toLocaleString("ar-SA")} ر.س
                       </p>
                       <p className="text-xs text-muted-foreground">{user.ordersCount} طلب</p>
                     </div>

@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 
 interface Service {
   id: string;
@@ -127,8 +127,7 @@ const EnhancedServiceCard = ({
                 {service.orderCount || 0}
               </span>
               <span className="flex items-center gap-0.5 text-success">
-                <DollarSign className="w-3 h-3" />
-                {(service.revenue || 0).toFixed(0)}
+                {(service.revenue || 0).toFixed(0)} ر.س
               </span>
             </div>
           </div>
@@ -138,7 +137,7 @@ const EnhancedServiceCard = ({
             <Badge className={cn("text-[9px] px-1.5 py-0 h-5 border", statusConfig.className)}>
               {statusConfig.label}
             </Badge>
-            <span className="text-sm font-bold text-primary min-w-[60px] text-start">${service.price.toFixed(2)}</span>
+            <span className="text-sm font-bold text-primary min-w-[70px] text-start">{formatPrice(service.price)}</span>
           </div>
           
           {/* Actions */}
@@ -221,14 +220,13 @@ const EnhancedServiceCard = ({
             <span>{service.orderCount || 0}</span>
           </div>
           <div className="flex items-center gap-1 text-success">
-            <DollarSign className="w-3 h-3" />
-            <span>{(service.revenue || 0).toFixed(0)}</span>
+            <span>{(service.revenue || 0).toFixed(0)} ر.س</span>
           </div>
         </div>
 
         {/* Footer */}
         <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/30">
-          <span className="text-base font-bold text-primary">${service.price.toFixed(2)}</span>
+          <span className="text-base font-bold text-primary">{formatPrice(service.price)}</span>
           <div className="flex items-center gap-0.5">
             <Button 
               variant="ghost" 

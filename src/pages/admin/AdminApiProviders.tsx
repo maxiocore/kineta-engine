@@ -334,7 +334,7 @@ const AdminApiProviders = () => {
         }
       }));
 
-      toast.success(`رصيد ${data.provider?.name_ar || 'المزود'}: $${data.balance?.toFixed(2) || '0.00'}`);
+      toast.success(`رصيد ${data.provider?.name_ar || 'المزود'}: ${data.balance?.toFixed(2) || '0.00'} ر.س`);
     } catch (error: any) {
       console.error('Error fetching balance:', error);
       setProviderBalances(prev => ({
@@ -621,7 +621,7 @@ const AdminApiProviders = () => {
                         <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
                       ) : providerBalances[provider.id]?.balance !== undefined && providerBalances[provider.id]?.balance !== null ? (
                         <span className="font-bold text-green-600 dark:text-green-400">
-                          ${providerBalances[provider.id].balance?.toFixed(2)}
+                          {providerBalances[provider.id].balance?.toFixed(2)} ر.س
                         </span>
                       ) : (
                         <span className="text-muted-foreground text-sm">--</span>

@@ -395,8 +395,8 @@ const AdminPriceUpdate = () => {
               <TrendingUp className="h-8 w-8 mx-auto mb-2 text-warning" />
               <p className="text-2xl font-bold">
                 {updateType === 'percentage' ? `${isIncrease ? '+' : '-'}${percentageChange}%` : 
-                 updateType === 'fixed' ? `${isIncrease ? '+' : '-'}$${fixedChange}` : 
-                 `$${setPrice}`}
+                 updateType === 'fixed' ? `${isIncrease ? '+' : '-'}${fixedChange} ر.س` : 
+                 `${setPrice} ر.س`}
               </p>
               <p className="text-sm text-muted-foreground">التغيير</p>
             </CardContent>
@@ -455,14 +455,14 @@ const AdminPriceUpdate = () => {
                             <p className="text-xs text-muted-foreground">{service.category}</p>
                           </div>
                           <div className="col-span-2 text-center">
-                            <span className="text-muted-foreground">${service.price.toFixed(2)}</span>
+                            <span className="text-muted-foreground">{service.price.toFixed(2)} ر.س</span>
                           </div>
                           <div className="col-span-2 text-center">
-                            <span className="font-bold text-primary">${newPrice.toFixed(2)}</span>
+                            <span className="font-bold text-primary">{newPrice.toFixed(2)} ر.س</span>
                           </div>
                           <div className="col-span-2 text-center">
                             <Badge className={`${difference >= 0 ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
-                              {difference >= 0 ? '+' : ''}{difference.toFixed(2)}$
+                              {difference >= 0 ? '+' : ''}{difference.toFixed(2)} ر.س
                             </Badge>
                           </div>
                         </div>
@@ -478,10 +478,10 @@ const AdminPriceUpdate = () => {
                             <p className="font-medium text-sm">{service.name}</p>
                             <p className="text-xs text-muted-foreground mb-2">{service.category}</p>
                             <div className="flex items-center gap-2 text-sm">
-                              <span className="text-muted-foreground line-through">${service.price.toFixed(2)}</span>
-                              <span className="text-primary font-bold">${newPrice.toFixed(2)}</span>
+                              <span className="text-muted-foreground line-through">{service.price.toFixed(2)} ر.س</span>
+                              <span className="text-primary font-bold">{newPrice.toFixed(2)} ر.س</span>
                               <Badge className={`text-xs ${difference >= 0 ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
-                                {difference >= 0 ? '+' : ''}{difference.toFixed(2)}$
+                                {difference >= 0 ? '+' : ''}{difference.toFixed(2)} ر.س
                               </Badge>
                             </div>
                           </div>

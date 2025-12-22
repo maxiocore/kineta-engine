@@ -644,7 +644,7 @@ ${formData.additionalNotes || "لا توجد"}
                     <div className="flex items-center justify-between mb-4">
                       <span className="font-bold text-lg">المبلغ الإجمالي</span>
                       <span className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-                        ${service.price.toFixed(2)}
+                        {service.price.toFixed(2)} ر.س
                       </span>
                     </div>
 
@@ -654,7 +654,7 @@ ${formData.additionalNotes || "لا توجد"}
                         <span className="text-muted-foreground">رصيدك الحالي</span>
                       </div>
                       <span className={`font-bold text-xl ${insufficientBalance ? 'text-destructive' : 'text-green-500'}`}>
-                        ${balance.toFixed(2)}
+                        {balance.toFixed(2)} ر.س
                       </span>
                     </div>
 
@@ -672,7 +672,7 @@ ${formData.additionalNotes || "لا توجد"}
                             <div>
                               <p className="font-semibold text-destructive">رصيدك غير كافي</p>
                               <p className="text-sm text-destructive/80">
-                                تحتاج ${(service.price - balance).toFixed(2)} إضافية
+                                تحتاج {(service.price - balance).toFixed(2)} ر.س إضافية
                               </p>
                             </div>
                           </div>

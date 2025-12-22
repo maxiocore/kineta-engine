@@ -401,9 +401,9 @@ const AdminCashback = () => {
                     <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20">
                       <p className="text-sm font-medium mb-2">معاينة:</p>
                       <p className="text-muted-foreground text-sm">
-                        عند إيداع <span className="font-bold text-foreground">$100</span>، سيحصل المستخدم على{" "}
+                        عند إيداع <span className="font-bold text-foreground">100 ر.س</span>، سيحصل المستخدم على{" "}
                         <span className="font-bold text-emerald-500">
-                          ${((formData.cashback_percentage ?? settings?.cashback_percentage ?? 5) * 100 / 100).toFixed(2)}
+                          {((formData.cashback_percentage ?? settings?.cashback_percentage ?? 5) * 100 / 100).toFixed(2)} ر.س
                         </span>{" "}
                         كاش باك
                       </p>
