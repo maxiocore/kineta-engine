@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
-import { Package, Eye, Edit2, Trash2, Zap, ShoppingCart, DollarSign } from "lucide-react";
+import { Package, Eye, Edit2, Trash2, Zap, ShoppingCart, DollarSign, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
 interface Service {
@@ -26,9 +27,22 @@ interface EnhancedServiceCardProps {
   onEdit: (service: Service) => void;
   onDelete: (id: string) => void;
   onView: (service: Service) => void;
+  isSelectionMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (serviceId: string) => void;
 }
 
-const EnhancedServiceCard = ({ service, index, viewMode, onEdit, onDelete, onView }: EnhancedServiceCardProps) => {
+const EnhancedServiceCard = ({ 
+  service, 
+  index, 
+  viewMode, 
+  onEdit, 
+  onDelete, 
+  onView,
+  isSelectionMode = false,
+  isSelected = false,
+  onToggleSelect
+}: EnhancedServiceCardProps) => {
   const getStatusConfig = (status: string) => {
     switch (status) {
       case "active":
@@ -71,7 +85,21 @@ const EnhancedServiceCard = ({ service, index, viewMode, onEdit, onDelete, onVie
         whileHover={{ x: 2 }}
         className="w-full"
       >
-        <Card className="p-2.5 sm:p-3 flex items-center gap-2.5 sm:gap-3 hover:shadow-md hover:border-primary/20 transition-all border-border/40 group bg-card/80 backdrop-blur-sm">
+        <Card className={cn(
+          "p-2.5 sm:p-3 flex items-center gap-2.5 sm:gap-3 hover:shadow-md transition-all border-border/40 group bg-card/80 backdrop-blur-sm",
+          isSelected ? "border-primary bg-primary/5 ring-1 ring-primary/30" : "hover:border-primary/20"
+        )}>
+          {/* Selection Checkbox */}
+          {isSelectionMode && (
+            <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={() => onToggleSelect?.(service.id)}
+                className="h-5 w-5"
+              />
+            </div>
+          )}
+          
           {/* Icon */}
           <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${gradient} p-1.5 shrink-0 shadow-sm`}>
             <Package className="w-full h-full text-white" />
@@ -139,7 +167,24 @@ const EnhancedServiceCard = ({ service, index, viewMode, onEdit, onDelete, onVie
       whileHover={{ y: -3, scale: 1.01 }}
       className="w-full h-full"
     >
-      <Card className="flex flex-col h-full p-3 border-border/40 hover:shadow-lg hover:border-primary/30 transition-all group overflow-hidden bg-card/80 backdrop-blur-sm">
+      <Card className={cn(
+        "flex flex-col h-full p-3 border-border/40 hover:shadow-lg transition-all group overflow-hidden bg-card/80 backdrop-blur-sm relative",
+        isSelected ? "border-primary bg-primary/5 ring-1 ring-primary/30" : "hover:border-primary/30"
+      )}>
+        {/* Selection Checkbox */}
+        {isSelectionMode && (
+          <div 
+            className="absolute top-2 left-2 z-10" 
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={() => onToggleSelect?.(service.id)}
+              className="h-5 w-5 bg-background"
+            />
+          </div>
+        )}
+        
         {/* Header Row */}
         <div className="flex items-center gap-2.5 mb-2">
           <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${gradient} p-1.5 shrink-0 shadow-md`}>
