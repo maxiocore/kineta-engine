@@ -361,7 +361,8 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
     try {
       const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
 
-      const { error } = await supabase.from("orders").insert({
+      // Insert order and get the created order
+      const { data: createdOrder, error } = await supabase.from("orders").insert({
         user_id: user.id,
         service_id: service.id,
         order_number: orderNumber,
@@ -372,7 +373,7 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
         coupon_id: appliedCoupon?.id || null,
         discount_amount: discountAmount,
         status: "pending"
-      });
+      }).select('id').single();
 
       if (error) throw error;
 
@@ -412,6 +413,31 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
             })
             .eq("user_id", user.id);
         }
+      }
+
+      // Send order to provider immediately
+      if (createdOrder?.id && service.external_service_id) {
+        console.log('Sending order to provider:', {
+          orderId: createdOrder.id,
+          serviceId: service.id,
+          link,
+          quantity
+        });
+
+        supabase.functions.invoke('provider-order', {
+          body: {
+            orderId: createdOrder.id,
+            serviceId: service.id,
+            link,
+            quantity
+          }
+        }).then(({ data, error: providerError }) => {
+          if (providerError) {
+            console.error('Provider order error:', providerError);
+          } else {
+            console.log('Provider order response:', data);
+          }
+        });
       }
 
       // Show progress indicator
