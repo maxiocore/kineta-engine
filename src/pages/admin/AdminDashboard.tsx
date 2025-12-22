@@ -31,6 +31,8 @@ import MobileRevenueCard from "@/components/admin/MobileRevenueCard";
 import MobileActivityFeed from "@/components/admin/MobileActivityFeed";
 import MobileQuickActions from "@/components/admin/MobileQuickActions";
 import MobileTopServices from "@/components/admin/MobileTopServices";
+import LiveOrdersChart from "@/components/admin/LiveOrdersChart";
+import MobileLiveOrdersChart from "@/components/admin/MobileLiveOrdersChart";
 
 interface DashboardStats {
   totalUsers: number;
@@ -431,6 +433,7 @@ const AdminDashboard = () => {
 
         <TabsContent value="overview" className="space-y-3 mt-3">
           <MobileDashboardStats stats={statsData} />
+          <MobileLiveOrdersChart />
           <MobileRevenueCard
             totalRevenue={stats.totalRevenue}
             monthlyRevenue={stats.monthlyRevenue}
@@ -498,6 +501,9 @@ const AdminDashboard = () => {
             openTickets={stats.openTickets}
             pendingMessages={stats.pendingMessages}
           />
+
+          {/* Live Orders Chart - Full Width */}
+          <LiveOrdersChart />
 
           {/* Three Column Layout */}
           <div className="grid gap-4 lg:gap-6 lg:grid-cols-3">
