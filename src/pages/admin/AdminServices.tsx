@@ -1,9 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, Plus, Loader2, Sparkles, RefreshCw, Download, DollarSign, Trash2, AlertTriangle } from "lucide-react";
+import { Loader2, AlertTriangle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Link } from "react-router-dom";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,12 +20,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
-import ServiceStats from "@/components/admin/services/ServiceStats";
-import ServiceFilters from "@/components/admin/services/ServiceFilters";
-import ServiceCard from "@/components/admin/services/ServiceCard";
+import ServicesHeader from "@/components/admin/services/ServicesHeader";
+import ServicesStatsGrid from "@/components/admin/services/ServicesStatsGrid";
+import ServicesCategoryTabs from "@/components/admin/services/ServicesCategoryTabs";
+import EnhancedServiceFilters from "@/components/admin/services/EnhancedServiceFilters";
+import EnhancedServiceCard from "@/components/admin/services/EnhancedServiceCard";
+import EmptyServicesState from "@/components/admin/services/EmptyServicesState";
 import ServiceFormDialog from "@/components/admin/services/ServiceFormDialog";
 import ServiceDetailsDialog from "@/components/admin/services/ServiceDetailsDialog";
-import SocialNetworkGrid from "@/components/services/SocialNetworkGrid";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -52,7 +52,6 @@ const serviceSchema = z.object({
   price: z.number().min(0, "السعر يجب أن يكون رقماً موجباً"),
 });
 
-const categories = ["التصميم", "التسويق", "الإعلانات", "التطوير", "الاستشارات"];
 const statusOptions = [
   { value: "active", label: "نشط" },
   { value: "inactive", label: "غير نشط" },
@@ -69,6 +68,8 @@ const AdminServices = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
+  const [sortBy, setSortBy] = useState("newest");
   
   // Dialogs
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
@@ -88,7 +89,6 @@ const AdminServices = () => {
     fetchServices();
     fetchOrderStats();
 
-    // Real-time subscription
     const channel = supabase
       .channel('services-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, () => {
@@ -111,6 +111,11 @@ const AdminServices = () => {
       toast.error("خطأ في جلب الخدمات");
     } else {
       setServices(data as Service[]);
+      // Update max price
+      if (data && data.length > 0) {
+        const maxPrice = Math.max(...data.map(s => s.price));
+        setPriceRange([0, maxPrice > 0 ? maxPrice : 1000]);
+      }
     }
     setLoading(false);
     setRefreshing(false);
@@ -142,6 +147,12 @@ const AdminServices = () => {
     fetchOrderStats();
   };
 
+  // Max price for filter
+  const maxPrice = useMemo(() => {
+    if (services.length === 0) return 1000;
+    return Math.max(...services.map(s => s.price));
+  }, [services]);
+
   // Enrich services with order stats
   const enrichedServices = useMemo(() => {
     return services.map(service => {
@@ -172,9 +183,9 @@ const AdminServices = () => {
     return slugMap[categoryName] || categoryName.toLowerCase().replace(/\s+/g, "-");
   };
 
-  // Filter services
+  // Filter and sort services
   const filteredServices = useMemo(() => {
-    return enrichedServices.filter(service => {
+    let filtered = enrichedServices.filter(service => {
       const matchesSearch = 
         service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         service.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -183,13 +194,38 @@ const AdminServices = () => {
       const categorySlug = getCategorySlug(service.category);
       const matchesCategory = selectedCategory === "all" || categorySlug === selectedCategory || service.category === selectedCategory;
       const matchesStatus = selectedStatus === "all" || service.status === selectedStatus;
+      const matchesPrice = service.price >= priceRange[0] && service.price <= priceRange[1];
       
-      return matchesSearch && matchesCategory && matchesStatus;
+      return matchesSearch && matchesCategory && matchesStatus && matchesPrice;
     });
-  }, [enrichedServices, searchQuery, selectedCategory, selectedStatus]);
 
-  // Category counts for SocialNetworkGrid
-  const socialNetworkCounts = useMemo(() => {
+    // Sort
+    switch (sortBy) {
+      case "newest":
+        filtered = filtered.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+        break;
+      case "oldest":
+        filtered = filtered.sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime());
+        break;
+      case "price-high":
+        filtered = filtered.sort((a, b) => b.price - a.price);
+        break;
+      case "price-low":
+        filtered = filtered.sort((a, b) => a.price - b.price);
+        break;
+      case "orders":
+        filtered = filtered.sort((a, b) => (b.orderCount || 0) - (a.orderCount || 0));
+        break;
+      case "revenue":
+        filtered = filtered.sort((a, b) => (b.revenue || 0) - (a.revenue || 0));
+        break;
+    }
+
+    return filtered;
+  }, [enrichedServices, searchQuery, selectedCategory, selectedStatus, priceRange, sortBy]);
+
+  // Category counts
+  const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     services.forEach(service => {
       const slug = getCategorySlug(service.category);
@@ -198,19 +234,24 @@ const AdminServices = () => {
     return counts;
   }, [services]);
 
-  // Category counts for ServiceFilters
-  const serviceCounts = useMemo(() => {
-    return categories.map(cat => ({
-      category: cat,
-      count: services.filter(s => s.category === cat).length,
-    }));
-  }, [services]);
-
   // Stats calculations
   const totalServices = services.length;
   const activeServices = services.filter(s => s.status === "active").length;
+  const inactiveServices = services.filter(s => s.status === "inactive").length;
   const totalRevenue = orderStats.reduce((sum, s) => sum + s.revenue, 0);
   const totalOrders = orderStats.reduce((sum, s) => sum + s.count, 0);
+  const avgPrice = totalServices > 0 ? services.reduce((sum, s) => sum + s.price, 0) / totalServices : 0;
+
+  const hasActiveFilters = Boolean(searchQuery) || selectedCategory !== "all" || selectedStatus !== "all" || 
+    priceRange[0] > 0 || priceRange[1] < maxPrice;
+
+  const clearAllFilters = () => {
+    setSearchQuery("");
+    setSelectedCategory("all");
+    setSelectedStatus("all");
+    setPriceRange([0, maxPrice]);
+    setSortBy("newest");
+  };
 
   const openNewDialog = () => {
     setEditingService(null);
@@ -304,11 +345,10 @@ const AdminServices = () => {
     if (bulkDeleteCategory !== "all") {
       query = query.eq("category", bulkDeleteCategory);
     } else {
-      // Delete all - need to use a condition that's always true
       query = query.neq("id", "00000000-0000-0000-0000-000000000000");
     }
 
-    const { error, count } = await query.select();
+    const { error } = await query.select();
 
     if (error) {
       toast.error("خطأ في حذف الخدمات. قد تكون بعضها مرتبطة بطلبات.");
@@ -330,128 +370,42 @@ const AdminServices = () => {
     return services.filter(s => s.category === bulkDeleteCategory).length;
   };
 
-  // Get unique categories from services
   const uniqueCategories = useMemo(() => {
     return [...new Set(services.map(s => s.category))];
   }, [services]);
 
   return (
     <AdminDashboardLayout>
-      <div className="space-y-3 pb-20" dir="rtl">
-        {/* Header - Mobile Optimized */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-400 p-2">
-              <Package className="w-full h-full text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-base font-bold">إدارة الخدمات</h1>
-              <p className="text-[10px] text-muted-foreground">إضافة وتعديل وإدارة الخدمات المقدمة</p>
-            </div>
-          </div>
-        </div>
+      <div className="space-y-6 pb-20" dir="rtl">
+        {/* Header */}
+        <ServicesHeader
+          onAddNew={openNewDialog}
+          onBulkDelete={() => setIsBulkDeleteOpen(true)}
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
+          servicesCount={totalServices}
+        />
 
-        {/* Action Buttons - Compact Row */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-          <Button 
-            onClick={openNewDialog} 
-            size="sm"
-            className="bg-gradient-to-l from-destructive to-orange-500 text-white gap-1 h-8 text-xs shrink-0"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            إضافة
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={() => setIsBulkDeleteOpen(true)}
-            disabled={services.length === 0}
-            className="h-8 w-8 shrink-0 text-destructive border-destructive/30"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </Button>
-          <Link to="/admin/services/prices">
-            <Button variant="outline" size="icon" className="h-8 w-8 shrink-0">
-              <DollarSign className="w-3.5 h-3.5" />
-            </Button>
-          </Link>
-          <Link to="/admin/services/import">
-            <Button variant="outline" size="icon" className="h-8 w-8 shrink-0">
-              <Download className="w-3.5 h-3.5" />
-            </Button>
-          </Link>
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="h-8 w-8 shrink-0"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-          </Button>
-        </div>
+        {/* Stats Grid */}
+        <ServicesStatsGrid
+          totalServices={totalServices}
+          activeServices={activeServices}
+          inactiveServices={inactiveServices}
+          totalRevenue={totalRevenue}
+          totalOrders={totalOrders}
+          avgPrice={avgPrice}
+        />
 
-        {/* Stats - Simple 2x2 Grid */}
-        <div className="grid grid-cols-2 gap-2">
-          <Card className="border-border/50 bg-card/50">
-            <CardContent className="p-3 flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-cyan-400 p-2 shrink-0">
-                <Package className="w-full h-full text-white" />
-              </div>
-              <div>
-                <p className="text-[10px] text-muted-foreground">الخدمات</p>
-                <p className="text-lg font-bold">{totalServices}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-border/50 bg-card/50">
-            <CardContent className="p-3 flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-success to-emerald-400 p-2 shrink-0">
-                <Package className="w-full h-full text-white" />
-              </div>
-              <div>
-                <p className="text-[10px] text-muted-foreground">النشطة</p>
-                <p className="text-lg font-bold">{activeServices}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-border/50 bg-card/50">
-            <CardContent className="p-3 flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-accent to-purple-400 p-2 shrink-0">
-                <Package className="w-full h-full text-white" />
-              </div>
-              <div>
-                <p className="text-[10px] text-muted-foreground">الطلبات</p>
-                <p className="text-lg font-bold">{totalOrders}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-border/50 bg-card/50">
-            <CardContent className="p-3 flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-warning to-orange-400 p-2 shrink-0">
-                <DollarSign className="w-full h-full text-white" />
-              </div>
-              <div>
-                <p className="text-[10px] text-muted-foreground">الإيرادات</p>
-                <p className="text-base font-bold">{totalRevenue.toFixed(2)}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Social Network Grid */}
-        <Card className="border-border/50">
-          <CardContent className="p-3">
-            <SocialNetworkGrid
-              selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
-              serviceCounts={socialNetworkCounts}
-            />
-          </CardContent>
-        </Card>
+        {/* Category Tabs */}
+        <ServicesCategoryTabs
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          categoryCounts={categoryCounts}
+          totalCount={totalServices}
+        />
 
         {/* Filters */}
-        <ServiceFilters
+        <EnhancedServiceFilters
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           selectedCategory={selectedCategory}
@@ -460,48 +414,50 @@ const AdminServices = () => {
           setSelectedStatus={setSelectedStatus}
           viewMode={viewMode}
           setViewMode={setViewMode}
-          categories={categories}
           statusOptions={statusOptions}
-          serviceCounts={serviceCounts}
-          totalCount={services.length}
+          totalCount={totalServices}
+          filteredCount={filteredServices.length}
+          priceRange={priceRange}
+          setPriceRange={setPriceRange}
+          maxPrice={maxPrice}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
         />
 
         {/* Services List */}
         {loading ? (
-          <div className="flex items-center justify-center py-10">
-            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">جاري تحميل الخدمات...</p>
           </div>
         ) : filteredServices.length === 0 ? (
-          <Card className="border-border/50">
-            <CardContent className="py-8 text-center">
-              <Sparkles className="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
-              <p className="text-muted-foreground text-sm">
-                {searchQuery || selectedCategory !== "all" || selectedStatus !== "all"
-                  ? "لا توجد نتائج"
-                  : "لا توجد خدمات"}
-              </p>
-              {!searchQuery && selectedCategory === "all" && selectedStatus === "all" && (
-                <Button onClick={openNewDialog} className="mt-3" variant="outline" size="sm">
-                  <Plus className="w-3.5 h-3.5 ml-1" />
-                  إضافة خدمة
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+          <EmptyServicesState
+            hasFilters={hasActiveFilters}
+            onAddNew={openNewDialog}
+            onClearFilters={clearAllFilters}
+          />
         ) : (
-          <div className="space-y-2">
-            {filteredServices.map((service, index) => (
-              <ServiceCard
-                key={service.id}
-                service={service}
-                index={index}
-                viewMode={viewMode}
-                onEdit={openEditDialog}
-                onDelete={handleDelete}
-                onView={openDetailsDialog}
-              />
-            ))}
-          </div>
+          <motion.div 
+            className={viewMode === "grid" 
+              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" 
+              : "space-y-3"
+            }
+            layout
+          >
+            <AnimatePresence mode="popLayout">
+              {filteredServices.map((service, index) => (
+                <EnhancedServiceCard
+                  key={service.id}
+                  service={service}
+                  index={index}
+                  viewMode={viewMode}
+                  onEdit={openEditDialog}
+                  onDelete={handleDelete}
+                  onView={openDetailsDialog}
+                />
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
 
         {/* Dialogs */}
@@ -554,10 +510,10 @@ const AdminServices = () => {
                 </Select>
               </div>
               
-              <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 text-center">
-                <p className="text-sm text-muted-foreground">سيتم حذف</p>
-                <p className="text-2xl font-bold text-destructive">{getDeleteCount()}</p>
-                <p className="text-sm text-muted-foreground">خدمة</p>
+              <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 text-center">
+                <p className="text-sm text-muted-foreground mb-1">سيتم حذف</p>
+                <p className="text-3xl font-bold text-destructive">{getDeleteCount()}</p>
+                <p className="text-sm text-muted-foreground mt-1">خدمة</p>
               </div>
             </div>
 
