@@ -1,4 +1,5 @@
-import { Package, Plus, RefreshCw, Settings2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { Package, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ServicesHeaderProps {
@@ -11,32 +12,38 @@ interface ServicesHeaderProps {
 
 const ServicesHeader = ({ 
   onAddNew, 
+  onBulkDelete,
   onRefresh, 
   refreshing,
   servicesCount 
 }: ServicesHeaderProps) => {
   return (
-    <div className="flex items-center justify-between gap-3 py-2">
+    <motion.div 
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-wrap items-center justify-between gap-3"
+    >
       {/* Title Section */}
-      <div className="flex items-center gap-2.5 min-w-0">
-        <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0 shadow-lg shadow-primary/25">
-          <Package className="w-4.5 h-4.5 md:w-5 md:h-5 text-white" />
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0 shadow-lg shadow-primary/25">
+          <Package className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         </div>
-        <div className="min-w-0">
-          <h1 className="text-base md:text-lg font-bold text-foreground leading-tight">الخدمات</h1>
-          <p className="text-[10px] md:text-xs text-muted-foreground">{servicesCount} خدمة</p>
+        <div>
+          <h1 className="text-lg sm:text-xl font-bold text-foreground">إدارة الخدمات</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">{servicesCount} خدمة متاحة</p>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-2">
         <Button 
           onClick={onAddNew}
           size="sm"
-          className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md shadow-primary/25 h-8 md:h-9 px-3 md:px-4 text-xs gap-1.5"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md h-9 px-3 sm:px-4 text-xs sm:text-sm gap-1.5"
         >
-          <Plus className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">إضافة</span>
+          <Plus className="w-4 h-4" />
+          <span className="hidden xs:inline">إضافة خدمة</span>
+          <span className="xs:hidden">إضافة</span>
         </Button>
         
         <Button 
@@ -44,20 +51,21 @@ const ServicesHeader = ({
           size="icon"
           onClick={onRefresh}
           disabled={refreshing}
-          className="h-8 w-8 md:h-9 md:w-9 border-border/50"
+          className="h-9 w-9 border-border/50 hover:bg-secondary"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
         </Button>
         
         <Button 
           variant="outline" 
           size="icon"
-          className="h-8 w-8 md:h-9 md:w-9 border-border/50"
+          onClick={onBulkDelete}
+          className="h-9 w-9 border-border/50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50"
         >
-          <Settings2 className="w-3.5 h-3.5" />
+          <Trash2 className="w-4 h-4" />
         </Button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
