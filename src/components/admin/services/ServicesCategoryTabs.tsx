@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { 
@@ -28,66 +27,50 @@ const ServicesCategoryTabs = ({
   totalCount,
 }: ServicesCategoryTabsProps) => {
   const categories = [
-    { id: "all", label: "الكل", icon: Layers, gradient: "from-slate-500 to-slate-400" },
-    { id: "instagram", label: "Instagram", icon: Instagram, gradient: "from-pink-500 via-purple-500 to-orange-500" },
-    { id: "facebook", label: "Facebook", icon: Facebook, gradient: "from-blue-600 to-blue-400" },
-    { id: "youtube", label: "Youtube", icon: Youtube, gradient: "from-red-600 to-red-400" },
-    { id: "twitter", label: "Twitter", icon: Twitter, gradient: "from-sky-500 to-sky-400" },
-    { id: "tiktok", label: "TikTok", icon: Sparkles, gradient: "from-black via-pink-500 to-cyan-400" },
-    { id: "telegram", label: "Telegram", icon: MessageCircle, gradient: "from-sky-500 to-blue-500" },
-    { id: "linkedin", label: "LinkedIn", icon: Linkedin, gradient: "from-blue-700 to-blue-500" },
-    { id: "spotify", label: "Spotify", icon: Music, gradient: "from-green-500 to-green-400" },
-    { id: "website-traffic", label: "Traffic", icon: Globe, gradient: "from-emerald-500 to-teal-400" },
+    { id: "all", label: "الكل", icon: Layers },
+    { id: "instagram", label: "Instagram", icon: Instagram },
+    { id: "facebook", label: "Facebook", icon: Facebook },
+    { id: "youtube", label: "Youtube", icon: Youtube },
+    { id: "twitter", label: "Twitter", icon: Twitter },
+    { id: "tiktok", label: "TikTok", icon: Sparkles },
+    { id: "telegram", label: "Telegram", icon: MessageCircle },
+    { id: "linkedin", label: "LinkedIn", icon: Linkedin },
+    { id: "spotify", label: "Spotify", icon: Music },
+    { id: "website-traffic", label: "Traffic", icon: Globe },
   ];
 
   return (
-    <ScrollArea className="w-full">
-      <div className="flex items-center gap-1.5 pb-2">
-        {categories.map((category, index) => {
+    <ScrollArea className="w-full -mx-1 px-1">
+      <div className="flex items-center gap-1.5 pb-1">
+        {categories.map((category) => {
           const isSelected = selectedCategory === category.id;
           const count = category.id === "all" ? totalCount : (categoryCounts[category.id] || 0);
           const Icon = category.icon;
           
           return (
-            <motion.button
+            <button
               key={category.id}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.02 }}
-              whileTap={{ scale: 0.95 }}
               onClick={() => onCategoryChange(category.id)}
               className={cn(
-                "relative flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all shrink-0 whitespace-nowrap",
+                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0",
                 isSelected
-                  ? "text-white shadow-md"
-                  : "bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground"
               )}
             >
-              {/* Gradient background for selected */}
-              {isSelected && (
-                <div className={`absolute inset-0 rounded-lg bg-gradient-to-l ${category.gradient}`} />
-              )}
-              
-              <div className="relative z-10 flex items-center gap-1.5">
-                <Icon className={cn(
-                  "w-3.5 h-3.5",
-                  isSelected ? "text-white" : "text-muted-foreground"
-                )} />
-                <span className={cn(isSelected ? "text-white" : "")}>{category.label}</span>
-                <span className={cn(
-                  "text-[9px] font-bold px-1 py-0.5 rounded-full min-w-[16px] text-center",
-                  isSelected 
-                    ? "bg-white/20 text-white" 
-                    : "bg-muted text-muted-foreground"
-                )}>
-                  {count}
-                </span>
-              </div>
-            </motion.button>
+              <Icon className="w-3.5 h-3.5" />
+              <span>{category.label}</span>
+              <span className={cn(
+                "text-[9px] font-bold px-1 py-0.5 rounded min-w-[14px] text-center",
+                isSelected ? "bg-white/20" : "bg-muted"
+              )}>
+                {count}
+              </span>
+            </button>
           );
         })}
       </div>
-      <ScrollBar orientation="horizontal" className="h-1" />
+      <ScrollBar orientation="horizontal" className="h-0" />
     </ScrollArea>
   );
 };

@@ -376,7 +376,7 @@ const AdminServices = () => {
 
   return (
     <AdminDashboardLayout>
-      <div className="space-y-4 sm:space-y-6 pb-20" dir="rtl">
+      <div className="space-y-3 pb-20" dir="rtl">
         {/* Header */}
         <ServicesHeader
           onAddNew={openNewDialog}
@@ -386,7 +386,7 @@ const AdminServices = () => {
           servicesCount={totalServices}
         />
 
-        {/* Stats Grid */}
+        {/* Stats - Horizontal Scroll */}
         <ServicesStatsGrid
           totalServices={totalServices}
           activeServices={activeServices}
@@ -426,9 +426,9 @@ const AdminServices = () => {
 
         {/* Services List */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">جاري تحميل الخدمات...</p>
+          <div className="flex flex-col items-center justify-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
+            <p className="text-sm text-muted-foreground">جاري تحميل الخدمات...</p>
           </div>
         ) : filteredServices.length === 0 ? (
           <EmptyServicesState
@@ -439,8 +439,8 @@ const AdminServices = () => {
         ) : (
           <motion.div 
             className={viewMode === "grid" 
-              ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3" 
-              : "space-y-2"
+              ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5" 
+              : "space-y-1.5"
             }
             layout
           >
