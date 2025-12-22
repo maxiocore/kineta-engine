@@ -433,12 +433,40 @@ const ClientServicesNew = () => {
     setIsSubmitting(true);
     try {
       const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-      const { error: orderError } = await supabase.from("orders").insert({
+      const { data: orderData, error: orderError } = await supabase.from("orders").insert({
         user_id: user.id, service_id: selectedService.id, order_number: orderNumber, quantity: parseInt(quantity), link, total_price: totalPrice, status: "pending",
-      });
+      }).select().single();
       if (orderError) throw orderError;
+      
       await saveRecentLink(link);
       await supabase.from("user_balances").update({ balance: userBalance.balance - totalPrice, total_spent: userBalance.total_spent + totalPrice }).eq("user_id", user.id);
+      
+      // Send order to provider automatically
+      if (selectedService.external_service_id) {
+        try {
+          const { data: providerResult, error: providerError } = await supabase.functions.invoke('provider-order', {
+            body: {
+              orderId: orderData.id,
+              serviceId: selectedService.id,
+              link: link,
+              quantity: parseInt(quantity)
+            }
+          });
+          
+          if (providerError) {
+            console.error('Provider order error:', providerError);
+            toast.warning("تم إنشاء الطلب لكن حدث خطأ في إرساله للمزود");
+          } else if (providerResult?.error) {
+            console.error('Provider API error:', providerResult.error);
+            toast.warning(`تم إنشاء الطلب - خطأ من المزود: ${providerResult.error}`);
+          } else {
+            console.log('Provider order success:', providerResult);
+          }
+        } catch (providerErr) {
+          console.error('Error calling provider-order:', providerErr);
+        }
+      }
+      
       toast.success("تم إرسال الطلب بنجاح!");
       setLink(""); setQuantity(""); setSelectedService(null);
       refetch();
