@@ -18,7 +18,7 @@ import {
   ModernOrdersSearch,
   ModernOrdersList
 } from "@/components/orders/modern";
-import OrderDetailsDialog from "@/components/orders/OrderDetailsDialog";
+import OrderDetailsSheet from "@/components/orders/OrderDetailsSheet";
 
 interface Service {
   id: string;
@@ -400,8 +400,8 @@ const ClientOrders = () => {
           />
         </motion.div>
 
-        {/* Order Details Dialog */}
-        <OrderDetailsDialog
+        {/* Order Details Sheet */}
+        <OrderDetailsSheet
           order={selectedOrder}
           orderHistory={orderHistory}
           loadingHistory={loadingHistory}
