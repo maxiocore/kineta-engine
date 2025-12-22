@@ -41,54 +41,56 @@ const ServicesCategoryTabs = ({
   ];
 
   return (
-    <ScrollArea className="w-full whitespace-nowrap">
-      <div className="flex items-center gap-1.5 sm:gap-2 pb-2">
-        {categories.map((category, index) => {
-          const isSelected = selectedCategory === category.id;
-          const count = category.id === "all" ? totalCount : (categoryCounts[category.id] || 0);
-          const Icon = category.icon;
-          
-          return (
-            <motion.button
-              key={category.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.03 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => onCategoryChange(category.id)}
-              className={cn(
-                "relative flex items-center gap-1 sm:gap-2 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 shrink-0",
-                isSelected
-                  ? "bg-gradient-to-l text-white shadow-lg"
-                  : "bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {/* Gradient background for selected */}
-              {isSelected && (
-                <div className={`absolute inset-0 rounded-lg sm:rounded-xl bg-gradient-to-l ${category.gradient} opacity-100`} />
-              )}
-              
-              <div className="relative z-10 flex items-center gap-1 sm:gap-2">
-                <Icon className={cn(
-                  "w-3.5 h-3.5 sm:w-4 sm:h-4",
-                  isSelected ? "text-white" : "text-muted-foreground"
-                )} />
-                <span className={cn("hidden xs:inline", isSelected ? "text-white" : "")}>{category.label}</span>
-                <span className={cn(
-                  "text-[9px] sm:text-[10px] font-bold px-1 sm:px-1.5 py-0.5 rounded-full min-w-[16px] sm:min-w-[20px] text-center",
-                  isSelected 
-                    ? "bg-white/20 text-white" 
-                    : "bg-muted text-muted-foreground"
-                )}>
-                  {count}
-                </span>
-              </div>
-            </motion.button>
-          );
-        })}
-      </div>
-      <ScrollBar orientation="horizontal" className="h-1 sm:h-1.5" />
-    </ScrollArea>
+    <div className="w-full overflow-hidden">
+      <ScrollArea className="w-full">
+        <div className="flex items-center gap-2 pb-3 px-0.5">
+          {categories.map((category, index) => {
+            const isSelected = selectedCategory === category.id;
+            const count = category.id === "all" ? totalCount : (categoryCounts[category.id] || 0);
+            const Icon = category.icon;
+            
+            return (
+              <motion.button
+                key={category.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.03 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => onCategoryChange(category.id)}
+                className={cn(
+                  "relative flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 shrink-0 whitespace-nowrap",
+                  isSelected
+                    ? "text-white shadow-lg"
+                    : "bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {/* Gradient background for selected */}
+                {isSelected && (
+                  <div className={`absolute inset-0 rounded-xl bg-gradient-to-l ${category.gradient}`} />
+                )}
+                
+                <div className="relative z-10 flex items-center gap-2">
+                  <Icon className={cn(
+                    "w-4 h-4",
+                    isSelected ? "text-white" : "text-muted-foreground"
+                  )} />
+                  <span className={cn(isSelected ? "text-white" : "")}>{category.label}</span>
+                  <span className={cn(
+                    "text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center",
+                    isSelected 
+                      ? "bg-white/20 text-white" 
+                      : "bg-muted text-muted-foreground"
+                  )}>
+                    {count}
+                  </span>
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+        <ScrollBar orientation="horizontal" className="h-1.5" />
+      </ScrollArea>
+    </div>
   );
 };
 
