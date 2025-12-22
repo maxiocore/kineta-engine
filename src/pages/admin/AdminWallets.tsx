@@ -32,6 +32,7 @@ import { WalletTransferDialog } from "@/components/admin/wallets/WalletTransferD
 import { DepositDetailsDialog } from "@/components/admin/wallets/DepositDetailsDialog";
 import { RecentActivities } from "@/components/admin/wallets/RecentActivities";
 import { SmartAlertsPanel } from "@/components/admin/wallets/SmartAlertsPanel";
+import { FinancialReportsPanel } from "@/components/admin/wallets/FinancialReportsPanel";
 
 interface UserBalance {
   id: string;
@@ -314,6 +315,9 @@ const AdminWallets = () => {
 
         {/* Charts */}
         <WalletsCharts chartData={chartData} distributionData={distributionData} isLoading={statsLoading} />
+
+        {/* Financial Reports */}
+        <FinancialReportsPanel />
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
