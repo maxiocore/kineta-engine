@@ -118,6 +118,8 @@ const AdminServices = () => {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [isDeleteSelectedOpen, setIsDeleteSelectedOpen] = useState(false);
   const [isDeleteCategoryOpen, setIsDeleteCategoryOpen] = useState(false);
+  const [isDeleteSubcategoryOpen, setIsDeleteSubcategoryOpen] = useState(false);
+  const [subcategoryToDelete, setSubcategoryToDelete] = useState<string | null>(null);
 
   // Stats from orders
   const [orderStats, setOrderStats] = useState<{ serviceId: string; count: number; revenue: number }[]>([]);
@@ -518,6 +520,31 @@ const AdminServices = () => {
     } else {
       setSelectedServiceIds(new Set(allIds));
     }
+  };
+
+  // Delete all services in a subcategory
+  const handleDeleteSubcategory = async () => {
+    if (!subcategoryToDelete) return;
+    
+    setDeleting(true);
+    const subcategoryServices = services.filter(s => s.category === subcategoryToDelete);
+    const idsToDelete = subcategoryServices.map(s => s.id);
+    
+    const { error } = await supabase
+      .from("services")
+      .delete()
+      .in("id", idsToDelete);
+
+    if (error) {
+      toast.error("خطأ في حذف خدمات الفئة");
+    } else {
+      toast.success(`تم حذف ${idsToDelete.length} خدمة من فئة "${subcategoryToDelete}"`);
+      fetchServices();
+    }
+    
+    setDeleting(false);
+    setIsDeleteSubcategoryOpen(false);
+    setSubcategoryToDelete(null);
   };
 
   const getDeleteCount = () => {
@@ -1042,7 +1069,20 @@ const AdminServices = () => {
                             </div>
                           </div>
                           
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
+                            {/* Delete Subcategory Button */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSubcategoryToDelete(subcat);
+                                setIsDeleteSubcategoryOpen(true);
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                             <Badge variant="secondary" className="h-7 px-3 text-xs font-medium">
                               {subServices.length}
                             </Badge>
@@ -1249,6 +1289,37 @@ const AdminServices = () => {
                   <Trash2 className="w-4 h-4 ml-2" />
                 )}
                 حذف الكل ({selectedCategory?.services.length})
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete Subcategory Dialog */}
+        <AlertDialog open={isDeleteSubcategoryOpen} onOpenChange={setIsDeleteSubcategoryOpen}>
+          <AlertDialogContent dir="rtl">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="w-5 h-5" />
+                حذف خدمات الفئة
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                سيتم حذف جميع خدمات فئة "{subcategoryToDelete}" ({services.filter(s => s.category === subcategoryToDelete).length} خدمة). هذا الإجراء لا يمكن التراجع عنه.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <AlertDialogFooter className="flex-row-reverse gap-2">
+              <AlertDialogCancel disabled={deleting}>إلغاء</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteSubcategory}
+                disabled={deleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleting ? (
+                  <Loader2 className="w-4 h-4 animate-spin ml-2" />
+                ) : (
+                  <Trash2 className="w-4 h-4 ml-2" />
+                )}
+                حذف ({services.filter(s => s.category === subcategoryToDelete).length})
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
