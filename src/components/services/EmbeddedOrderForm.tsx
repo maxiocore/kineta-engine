@@ -415,30 +415,32 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
         }
       }
 
-      // Send order to provider immediately
-      if (createdOrder?.id && service.external_service_id) {
-        console.log('Sending order to provider:', {
+      // Send order to provider immediately (don't wait, fire and forget)
+      console.log('Attempting to send order to provider:', {
+        orderId: createdOrder.id,
+        serviceId: service.id,
+        link,
+        quantity,
+        hasExternalServiceId: !!service.external_service_id
+      });
+
+      // Always call provider-order - let the edge function decide if it should send to provider
+      supabase.functions.invoke('provider-order', {
+        body: {
           orderId: createdOrder.id,
           serviceId: service.id,
           link,
           quantity
-        });
-
-        supabase.functions.invoke('provider-order', {
-          body: {
-            orderId: createdOrder.id,
-            serviceId: service.id,
-            link,
-            quantity
-          }
-        }).then(({ data, error: providerError }) => {
-          if (providerError) {
-            console.error('Provider order error:', providerError);
-          } else {
-            console.log('Provider order response:', data);
-          }
-        });
-      }
+        }
+      }).then(({ data, error: providerError }) => {
+        if (providerError) {
+          console.error('Provider order error:', providerError);
+        } else {
+          console.log('Provider order response:', data);
+        }
+      }).catch((err) => {
+        console.error('Provider order exception:', err);
+      });
 
       // Show progress indicator
       setCreatedOrderNumber(orderNumber);
