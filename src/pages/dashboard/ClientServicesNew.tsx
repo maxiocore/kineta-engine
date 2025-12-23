@@ -24,16 +24,13 @@ import {
   Sparkles,
   ShoppingCart,
   Clock,
-  X,
   Info,
   Link2,
   Hash,
   Wallet,
   Award,
   CheckCircle2,
-  XCircle,
   History,
-  Trash2,
   MessageCircle,
   Ghost,
   Radio,
@@ -43,53 +40,30 @@ import {
   RefreshCw,
   ChevronUp,
   Loader2,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  Filter,
-  RotateCcw,
-  Repeat
+  CreditCard,
+  Target,
+  ArrowLeft,
+  Copy,
+  Check,
+  AlertCircle,
+  ChevronRight,
+  Flame,
+  Crown,
+  Gift,
+  Rocket
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Slider } from "@/components/ui/slider";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
-interface RecentOrder {
-  id: string;
-  order_number: string;
-  link: string;
-  quantity: number;
-  total_price: number;
-  status: string;
-  created_at: string;
-  service: Service;
-}
-
-type SortField = "price" | "name" | "refill" | "min" | "max";
-type SortDirection = "asc" | "desc";
-
-interface RecentLink {
-  id: string;
-  link: string;
-  service_category: string | null;
-  label: string | null;
-  use_count: number;
-  last_used_at: string;
-}
 
 interface Service {
   id: string;
@@ -104,66 +78,50 @@ interface Service {
   refill_enabled: boolean | null;
 }
 
-interface Category {
-  id: string;
-  name: string;
-  name_ar: string;
-  slug: string;
-  icon: string;
-  color: string;
-  display_order: number;
-  is_active: boolean;
-}
-
-// Social network data
+// Social network data with icons
 const socialNetworks = [
-  { id: 'all', name: 'الكل', icon: MoreHorizontal, color: 'from-slate-500 to-slate-600' },
-  { id: 'facebook', name: 'فيسبوك', icon: Facebook, color: 'from-blue-500 to-blue-600' },
-  { id: 'instagram', name: 'انستقرام', icon: Instagram, color: 'from-pink-500 via-purple-500 to-orange-500' },
-  { id: 'tiktok', name: 'تيك توك', icon: Music2, color: 'from-zinc-800 to-zinc-900' },
-  { id: 'youtube', name: 'يوتيوب', icon: Youtube, color: 'from-red-500 to-red-600' },
-  { id: 'twitter', name: 'تويتر', icon: Twitter, color: 'from-sky-400 to-sky-500' },
-  { id: 'telegram', name: 'تيليجرام', icon: Send, color: 'from-sky-500 to-sky-600' },
-  { id: 'discord', name: 'ديسكورد', icon: MessageCircle, color: 'from-indigo-500 to-indigo-600' },
-  { id: 'twitch', name: 'تويتش', icon: Tv, color: 'from-purple-500 to-purple-600' },
-  { id: 'spotify', name: 'سبوتيفاي', icon: Radio, color: 'from-green-500 to-green-600' },
-  { id: 'snapchat', name: 'سناب شات', icon: Ghost, color: 'from-yellow-400 to-yellow-500' },
-  { id: 'google', name: 'جوجل', icon: Globe2, color: 'from-red-500 via-yellow-500 to-blue-500' },
-  { id: 'reviews', name: 'تقييمات', icon: StarIcon, color: 'from-amber-400 to-orange-500' },
-  { id: 'website', name: 'زيارات', icon: Globe, color: 'from-emerald-500 to-teal-600' },
-  { id: 'linkedin', name: 'لينكدان', icon: Linkedin, color: 'from-blue-600 to-blue-700' },
+  { id: 'all', name: 'الكل', icon: MoreHorizontal, gradient: 'from-slate-500 to-slate-600' },
+  { id: 'instagram', name: 'انستقرام', icon: Instagram, gradient: 'from-pink-500 via-purple-500 to-orange-500' },
+  { id: 'facebook', name: 'فيسبوك', icon: Facebook, gradient: 'from-blue-500 to-blue-600' },
+  { id: 'tiktok', name: 'تيك توك', icon: Music2, gradient: 'from-zinc-800 to-zinc-900' },
+  { id: 'youtube', name: 'يوتيوب', icon: Youtube, gradient: 'from-red-500 to-red-600' },
+  { id: 'twitter', name: 'تويتر', icon: Twitter, gradient: 'from-sky-400 to-sky-500' },
+  { id: 'telegram', name: 'تيليجرام', icon: Send, gradient: 'from-sky-500 to-sky-600' },
+  { id: 'snapchat', name: 'سناب شات', icon: Ghost, gradient: 'from-yellow-400 to-yellow-500' },
+  { id: 'linkedin', name: 'لينكدان', icon: Linkedin, gradient: 'from-blue-600 to-blue-700' },
+  { id: 'spotify', name: 'سبوتيفاي', icon: Radio, gradient: 'from-green-500 to-green-600' },
+  { id: 'twitch', name: 'تويتش', icon: Tv, gradient: 'from-purple-500 to-purple-600' },
+  { id: 'discord', name: 'ديسكورد', icon: MessageCircle, gradient: 'from-indigo-500 to-indigo-600' },
+  { id: 'google', name: 'جوجل', icon: Globe2, gradient: 'from-red-500 via-yellow-500 to-blue-500' },
+  { id: 'website', name: 'زيارات', icon: Globe, gradient: 'from-emerald-500 to-teal-600' },
 ];
 
 const ClientServicesNew = () => {
   const { user } = useAuth();
   const { favorites, toggleFavorite } = useFavorites();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [searchQuery, setSearchQuery] = useState("");
+  
+  // Form state
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedNetwork, setSelectedNetwork] = useState<string>("all");
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [link, setLink] = useState("");
   const [quantity, setQuantity] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "creating" | "sending" | "done">("idle");
-  const [showRecentLinks, setShowRecentLinks] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  
-  // Features state
-  const [sortField, setSortField] = useState<SortField>("name");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
-  const [filterGuaranteed, setFilterGuaranteed] = useState<boolean | null>(null);
 
   // Scroll handler
   useEffect(() => {
-    const handleScroll = () => setShowScrollTop(window.scrollY > 500);
+    const handleScroll = () => setShowScrollTop(window.scrollY > 300);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Fetch user balance
-  const { data: userBalance } = useQuery({
+  const { data: userBalance, refetch: refetchBalance } = useQuery({
     queryKey: ["user-balance", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
@@ -194,47 +152,83 @@ const ClientServicesNew = () => {
     },
   });
 
-  // Fetch recent links
-  const { data: recentLinks = [], refetch: refetchLinks } = useQuery({
-    queryKey: ["recent-links", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data } = await supabase.from("user_recent_links").select("*").eq("user_id", user.id).order("last_used_at", { ascending: false }).limit(10);
-      return data as RecentLink[] || [];
-    },
-    enabled: !!user?.id,
-  });
+  // Keywords to exclude design and development categories
+  const designDevKeywords = useMemo(() => ['تصميم', 'شعار', 'لوجو', 'design', 'logo', 'بنر', 'banner', 'هوية', 
+    'برمجة', 'تطوير', 'موقع', 'تطبيق', 'dev', 'development', 'website', 'app'], []);
 
-  // Fetch recent orders for quick reorder
-  const { data: recentOrders = [] } = useQuery({
-    queryKey: ["recent-orders", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data } = await supabase
-        .from("orders")
-        .select("*, services(*)")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(5);
-      return (data || []).map((order: any) => ({
-        ...order,
-        service: order.services
-      })) as RecentOrder[];
-    },
-    enabled: !!user?.id,
-  });
+  const isDesignOrDevCategory = (category: string) => {
+    const lowerCat = category.toLowerCase();
+    return designDevKeywords.some(k => lowerCat.includes(k));
+  };
 
-  // Get max price for filter
-  const maxServicePrice = useMemo(() => {
-    return Math.max(...services.map(s => s.price), 100);
-  }, [services]);
+  // Get social network icon and gradient
+  const getSocialNetworkInfo = useMemo(() => (text: string) => {
+    const lowerText = text.toLowerCase();
+    const networkPatterns = [
+      { keywords: ['facebook', 'فيسبوك', 'فيس بوك', 'fb'], icon: Facebook, gradient: 'from-blue-500 to-blue-600' },
+      { keywords: ['instagram', 'انستقرام', 'انستا', 'insta'], icon: Instagram, gradient: 'from-pink-500 via-purple-500 to-orange-500' },
+      { keywords: ['tiktok', 'تيك توك', 'تيكتوك', 'tik tok'], icon: Music2, gradient: 'from-zinc-800 to-zinc-900' },
+      { keywords: ['youtube', 'يوتيوب', 'يوتوب', 'yt'], icon: Youtube, gradient: 'from-red-500 to-red-600' },
+      { keywords: ['twitter', 'تويتر', 'x ', ' x', 'اكس'], icon: Twitter, gradient: 'from-sky-400 to-sky-500' },
+      { keywords: ['telegram', 'تيليجرام', 'تلجرام', 'تليجرام'], icon: Send, gradient: 'from-sky-500 to-sky-600' },
+      { keywords: ['discord', 'ديسكورد', 'دسكورد'], icon: MessageCircle, gradient: 'from-indigo-500 to-indigo-600' },
+      { keywords: ['twitch', 'تويتش'], icon: Tv, gradient: 'from-purple-500 to-purple-600' },
+      { keywords: ['spotify', 'سبوتيفاي', 'سبوتفاي'], icon: Radio, gradient: 'from-green-500 to-green-600' },
+      { keywords: ['snapchat', 'سناب شات', 'سناب', 'snap'], icon: Ghost, gradient: 'from-yellow-400 to-yellow-500' },
+      { keywords: ['google', 'جوجل', 'قوقل'], icon: Globe2, gradient: 'from-red-500 via-yellow-500 to-blue-500' },
+      { keywords: ['linkedin', 'لينكدان', 'لينكد ان'], icon: Linkedin, gradient: 'from-blue-600 to-blue-700' },
+      { keywords: ['review', 'تقييم', 'rating'], icon: StarIcon, gradient: 'from-amber-400 to-orange-500' },
+      { keywords: ['website', 'زيار', 'visit', 'traffic', 'موقع'], icon: Globe, gradient: 'from-emerald-500 to-teal-600' },
+    ];
 
-  // Update price range when services load
-  useEffect(() => {
-    if (maxServicePrice > priceRange[1]) {
-      setPriceRange([0, maxServicePrice]);
+    for (const pattern of networkPatterns) {
+      if (pattern.keywords.some(k => lowerText.includes(k))) {
+        return { icon: pattern.icon, gradient: pattern.gradient };
+      }
     }
-  }, [maxServicePrice]);
+    return { icon: Package, gradient: 'from-slate-500 to-slate-600' };
+  }, []);
+
+  // Get unique categories
+  const serviceCategories = useMemo(() => 
+    [...new Set(services.map(s => s.category))]
+      .filter(cat => !isDesignOrDevCategory(cat))
+      .sort()
+  , [services, designDevKeywords]);
+
+  // Count services per category
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    services
+      .filter(service => !isDesignOrDevCategory(service.category))
+      .forEach(service => { counts[service.category] = (counts[service.category] || 0) + 1; });
+    return counts;
+  }, [services, designDevKeywords]);
+
+  // Filter categories by network
+  const filteredByNetwork = useMemo(() => {
+    if (selectedNetwork === 'all') return serviceCategories;
+    return serviceCategories.filter(cat => cat.toLowerCase().includes(selectedNetwork.toLowerCase()));
+  }, [serviceCategories, selectedNetwork]);
+
+  // Filter services
+  const filteredServices = useMemo(() => {
+    if (!selectedCategory) return [];
+    return services.filter(service => {
+      const matchesSearch = !searchQuery || 
+        service.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        (service.description?.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesCategory = service.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [services, searchQuery, selectedCategory]);
+
+  // Calculate total price
+  const totalPrice = useMemo(() => {
+    if (!selectedService || !quantity) return 0;
+    const qty = parseInt(quantity) || 0;
+    return (selectedService.price / 1000) * qty;
+  }, [selectedService, quantity]);
 
   // Handle URL params
   useEffect(() => {
@@ -252,153 +246,20 @@ const ClientServicesNew = () => {
     if (categoryParam || serviceParam) setSearchParams({});
   }, [services, searchParams]);
 
-  // Keywords to exclude design and development categories
-  const designDevKeywords = useMemo(() => ['تصميم', 'شعار', 'لوجو', 'design', 'logo', 'بنر', 'banner', 'هوية', 
-    'برمجة', 'تطوير', 'موقع', 'تطبيق', 'dev', 'development', 'website', 'app'], []);
+  // Update current step
+  useEffect(() => {
+    if (!selectedCategory) setCurrentStep(1);
+    else if (!selectedService) setCurrentStep(2);
+    else if (!link) setCurrentStep(3);
+    else setCurrentStep(4);
+  }, [selectedCategory, selectedService, link]);
 
-  const isDesignOrDevCategory = (category: string) => {
-    const lowerCat = category.toLowerCase();
-    return designDevKeywords.some(k => lowerCat.includes(k));
-  };
-
-  // Get social network icon and color based on category/service name
-  const getSocialNetworkInfo = useMemo(() => (text: string) => {
-    const lowerText = text.toLowerCase();
-    
-    const networkPatterns = [
-      { keywords: ['facebook', 'فيسبوك', 'فيس بوك', 'fb'], icon: Facebook, color: 'from-blue-500 to-blue-600', bg: 'bg-blue-500' },
-      { keywords: ['instagram', 'انستقرام', 'انستا', 'insta'], icon: Instagram, color: 'from-pink-500 via-purple-500 to-orange-500', bg: 'bg-gradient-to-br from-pink-500 via-purple-500 to-orange-500' },
-      { keywords: ['tiktok', 'تيك توك', 'تيكتوك', 'tik tok'], icon: Music2, color: 'from-zinc-800 to-zinc-900', bg: 'bg-zinc-800' },
-      { keywords: ['youtube', 'يوتيوب', 'يوتوب', 'yt'], icon: Youtube, color: 'from-red-500 to-red-600', bg: 'bg-red-500' },
-      { keywords: ['twitter', 'تويتر', 'x ', ' x', 'اكس'], icon: Twitter, color: 'from-sky-400 to-sky-500', bg: 'bg-sky-500' },
-      { keywords: ['telegram', 'تيليجرام', 'تلجرام', 'تليجرام'], icon: Send, color: 'from-sky-500 to-sky-600', bg: 'bg-sky-600' },
-      { keywords: ['discord', 'ديسكورد', 'دسكورد'], icon: MessageCircle, color: 'from-indigo-500 to-indigo-600', bg: 'bg-indigo-500' },
-      { keywords: ['twitch', 'تويتش'], icon: Tv, color: 'from-purple-500 to-purple-600', bg: 'bg-purple-500' },
-      { keywords: ['spotify', 'سبوتيفاي', 'سبوتفاي'], icon: Radio, color: 'from-green-500 to-green-600', bg: 'bg-green-500' },
-      { keywords: ['snapchat', 'سناب شات', 'سناب', 'snap'], icon: Ghost, color: 'from-yellow-400 to-yellow-500', bg: 'bg-yellow-400' },
-      { keywords: ['google', 'جوجل', 'قوقل'], icon: Globe2, color: 'from-red-500 via-yellow-500 to-blue-500', bg: 'bg-gradient-to-br from-red-500 via-yellow-500 to-blue-500' },
-      { keywords: ['linkedin', 'لينكدان', 'لينكد ان'], icon: Linkedin, color: 'from-blue-600 to-blue-700', bg: 'bg-blue-600' },
-      { keywords: ['review', 'تقييم', 'rating'], icon: StarIcon, color: 'from-amber-400 to-orange-500', bg: 'bg-amber-500' },
-      { keywords: ['website', 'زيار', 'visit', 'traffic', 'موقع'], icon: Globe, color: 'from-emerald-500 to-teal-600', bg: 'bg-emerald-500' },
-      { keywords: ['thread', 'ثريد'], icon: MessageCircle, color: 'from-zinc-700 to-zinc-900', bg: 'bg-zinc-800' },
-      { keywords: ['kick'], icon: Tv, color: 'from-green-400 to-green-600', bg: 'bg-green-500' },
-      { keywords: ['soundcloud', 'ساوند'], icon: Radio, color: 'from-orange-500 to-orange-600', bg: 'bg-orange-500' },
-    ];
-
-    for (const pattern of networkPatterns) {
-      if (pattern.keywords.some(k => lowerText.includes(k))) {
-        return { icon: pattern.icon, color: pattern.color, bg: pattern.bg };
-      }
+  const handleCopyLink = () => {
+    if (link) {
+      navigator.clipboard.writeText(link);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
     }
-    
-    return { icon: Package, color: 'from-slate-500 to-slate-600', bg: 'bg-slate-500' };
-  }, []);
-
-  // Get unique categories (excluding design and development)
-  const serviceCategories = useMemo(() => 
-    [...new Set(services.map(s => s.category))]
-      .filter(cat => !isDesignOrDevCategory(cat))
-      .sort()
-  , [services, designDevKeywords]);
-
-  // Count services per category (only social media)
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    services
-      .filter(service => !isDesignOrDevCategory(service.category))
-      .forEach(service => { counts[service.category] = (counts[service.category] || 0) + 1; });
-    return counts;
-  }, [services, designDevKeywords]);
-
-  // Filter services by network
-  const filteredByNetwork = useMemo(() => {
-    if (selectedNetwork === 'all') return serviceCategories;
-    return serviceCategories.filter(cat => cat.toLowerCase().includes(selectedNetwork.toLowerCase()));
-  }, [serviceCategories, selectedNetwork]);
-
-  // Filter and sort services
-  const filteredServices = useMemo(() => {
-    if (!selectedCategory) return [];
-    
-    let result = services.filter(service => {
-      const matchesSearch = !searchQuery || 
-        service.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        (service.external_service_id?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (service.description?.toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchesCategory = service.category === selectedCategory;
-      const matchesPrice = priceRange[1] >= maxServicePrice || (service.price >= priceRange[0] && service.price <= priceRange[1]);
-      const matchesGuarantee = filterGuaranteed === null || service.refill_enabled === filterGuaranteed;
-      
-      return matchesSearch && matchesCategory && matchesPrice && matchesGuarantee;
-    });
-
-    result.sort((a, b) => {
-      let comparison = 0;
-      switch (sortField) {
-        case "price": comparison = a.price - b.price; break;
-        case "name": comparison = a.name.localeCompare(b.name, 'ar'); break;
-        case "refill": comparison = (a.refill_enabled ? 1 : 0) - (b.refill_enabled ? 1 : 0); break;
-        case "min": comparison = (a.features?.min || 10) - (b.features?.min || 10); break;
-        case "max": comparison = (a.features?.max || 1000000) - (b.features?.max || 1000000); break;
-      }
-      return sortDirection === "asc" ? comparison : -comparison;
-    });
-
-    return result;
-  }, [services, searchQuery, selectedCategory, priceRange, filterGuaranteed, sortField, sortDirection]);
-
-  // Calculate total price
-  const totalPrice = useMemo(() => {
-    if (!selectedService || !quantity) return 0;
-    const qty = parseInt(quantity) || 0;
-    return (selectedService.price / 1000) * qty;
-  }, [selectedService, quantity]);
-
-  // Save recent link
-  const saveRecentLink = async (linkUrl: string) => {
-    if (!user?.id || !linkUrl.trim()) return;
-    try {
-      const existingLink = recentLinks.find(l => l.link === linkUrl);
-      if (existingLink) {
-        await supabase.from("user_recent_links").update({ use_count: existingLink.use_count + 1, last_used_at: new Date().toISOString(), service_category: selectedCategory }).eq("id", existingLink.id);
-      } else {
-        await supabase.from("user_recent_links").insert({ user_id: user.id, link: linkUrl, service_category: selectedCategory, label: null });
-      }
-      refetchLinks();
-    } catch (error) { console.error("Error saving recent link:", error); }
-  };
-
-  const deleteRecentLink = async (linkId: string) => {
-    if (!user?.id) return;
-    try {
-      await supabase.from("user_recent_links").delete().eq("id", linkId);
-      refetchLinks();
-      toast.success("تم حذف الرابط");
-    } catch { toast.error("حدث خطأ أثناء الحذف"); }
-  };
-
-  const useRecentLink = (recentLink: RecentLink) => {
-    setLink(recentLink.link);
-    setShowRecentLinks(false);
-    toast.success("تم تحديد الرابط");
-  };
-
-  const handleQuickReorder = (order: RecentOrder) => {
-    if (order.service) {
-      setSelectedCategory(order.service.category);
-      setSelectedService(order.service);
-      setLink(order.link || "");
-      setQuantity(order.quantity?.toString() || "");
-      toast.success("تم تحميل بيانات الطلب السابق");
-    }
-  };
-
-  const resetFilters = () => {
-    setPriceRange([0, maxServicePrice]);
-    setFilterGuaranteed(null);
-    setSortField("name");
-    setSortDirection("asc");
-    setSearchQuery("");
   };
 
   const handleSubmit = async () => {
@@ -407,7 +268,6 @@ const ClientServicesNew = () => {
     if (!userBalance || userBalance.balance < totalPrice) { toast.error("رصيدك غير كافي"); return; }
 
     setIsSubmitting(true);
-    setSubmitStatus("creating");
     try {
       const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
       const { data: orderData, error: orderError } = await supabase.from("orders").insert({
@@ -415,10 +275,8 @@ const ClientServicesNew = () => {
       }).select().single();
       if (orderError) throw orderError;
       
-      await saveRecentLink(link);
       await supabase.from("user_balances").update({ balance: userBalance.balance - totalPrice, total_spent: userBalance.total_spent + totalPrice }).eq("user_id", user.id);
       
-      setSubmitStatus("sending");
       toast.loading("جاري إرسال الطلب للمزود...", { id: 'provider-order' });
       
       try {
@@ -437,29 +295,26 @@ const ClientServicesNew = () => {
         } else {
           toast.dismiss('provider-order');
         }
-      } catch (providerErr) {
+      } catch {
         toast.error("خطأ في الاتصال بالمزود", { id: 'provider-order' });
       }
       
-      setSubmitStatus("done");
       toast.success("تم إرسال الطلب بنجاح!");
       setLink(""); setQuantity(""); setSelectedService(null);
       refetch();
+      refetchBalance();
     } catch { toast.error("حدث خطأ أثناء إرسال الطلب"); }
-    finally { 
-      setIsSubmitting(false); 
-      setSubmitStatus("idle");
-    }
+    finally { setIsSubmitting(false); }
   };
 
   if (isLoading) {
     return (
       <ClientDashboardLayout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-          <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-            <Sparkles className="w-6 h-6 text-primary-foreground" />
+          <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+            <Sparkles className="w-8 h-8 text-primary-foreground" />
           </motion.div>
-          <p className="text-xs text-muted-foreground animate-pulse">جاري تحميل الخدمات...</p>
+          <p className="text-sm text-muted-foreground animate-pulse">جاري تحميل الخدمات...</p>
         </div>
       </ClientDashboardLayout>
     );
@@ -467,545 +322,547 @@ const ClientServicesNew = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-3 sm:space-y-4 max-w-4xl mx-auto">
-        {/* Compact Stats Row */}
-        <div className="grid grid-cols-4 gap-2">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }}>
-            <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-lg p-2 sm:p-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span className="text-[9px] sm:text-[10px] opacity-80">الرصيد</span>
-              </div>
-              <p className="text-sm sm:text-base font-bold">{(userBalance?.balance || 0).toFixed(2)}</p>
-            </div>
-          </motion.div>
+      <div className="min-h-screen" dir="rtl">
+        {/* Hero Section with Stats */}
+        <div className="relative overflow-hidden rounded-2xl lg:rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-accent p-4 sm:p-6 lg:p-8 mb-6">
+          <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+          <div className="absolute top-0 left-0 w-32 h-32 sm:w-48 sm:h-48 bg-white/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-0 w-40 h-40 sm:w-64 sm:h-64 bg-accent/30 rounded-full blur-3xl" />
           
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-            <div className="bg-card border border-border/50 rounded-lg p-2 sm:p-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
-                <span className="text-[9px] sm:text-[10px] text-muted-foreground">النقاط</span>
+          <div className="relative z-10">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6 mb-6">
+              <div>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-primary-foreground mb-2">
+                  طلب خدمة جديدة
+                </h1>
+                <p className="text-primary-foreground/80 text-sm sm:text-base">
+                  اختر من بين أكثر من {services.length} خدمة متاحة
+                </p>
               </div>
-              <p className="text-sm sm:text-base font-bold">{userPoints?.available_points || 0}</p>
-            </div>
-          </motion.div>
-          
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <div className="bg-card border border-border/50 rounded-lg p-2 sm:p-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-500" />
-                <span className="text-[9px] sm:text-[10px] text-muted-foreground">المستوى</span>
+              
+              {/* Quick Stats */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }} 
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white/15 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-white/20"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <Wallet className="w-4 h-4 text-primary-foreground/80" />
+                    <span className="text-xs text-primary-foreground/70">الرصيد</span>
+                  </div>
+                  <p className="text-lg sm:text-xl font-bold text-primary-foreground">{(userBalance?.balance || 0).toFixed(2)} <span className="text-xs">ر.س</span></p>
+                </motion.div>
+                
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }} 
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-white/15 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-white/20"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <TrendingUp className="w-4 h-4 text-primary-foreground/80" />
+                    <span className="text-xs text-primary-foreground/70">النقاط</span>
+                  </div>
+                  <p className="text-lg sm:text-xl font-bold text-primary-foreground">{userPoints?.available_points || 0}</p>
+                </motion.div>
+                
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }} 
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-white/15 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-white/20"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <Crown className="w-4 h-4 text-primary-foreground/80" />
+                    <span className="text-xs text-primary-foreground/70">المستوى</span>
+                  </div>
+                  <p className="text-sm sm:text-base font-bold text-primary-foreground truncate">{(userPoints?.reward_tiers as any)?.name_ar || "مبتدئ"}</p>
+                </motion.div>
+                
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }} 
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="bg-white/15 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-white/20"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <Heart className="w-4 h-4 text-primary-foreground/80" />
+                    <span className="text-xs text-primary-foreground/70">المفضلة</span>
+                  </div>
+                  <p className="text-lg sm:text-xl font-bold text-primary-foreground">{favorites.length}</p>
+                </motion.div>
               </div>
-              <p className="text-[10px] sm:text-xs font-bold truncate">{(userPoints?.reward_tiers as any)?.name_ar || "مبتدئ"}</p>
             </div>
-          </motion.div>
-          
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-            <div className="bg-card border border-border/50 rounded-lg p-2 sm:p-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500" />
-                <span className="text-[9px] sm:text-[10px] text-muted-foreground">الخدمات</span>
-              </div>
-              <p className="text-sm sm:text-base font-bold">{services.length}</p>
+
+            {/* Progress Steps */}
+            <div className="flex items-center justify-between gap-2 bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4">
+              {[
+                { step: 1, label: "اختر المنصة", icon: Layers },
+                { step: 2, label: "اختر الخدمة", icon: Package },
+                { step: 3, label: "أدخل الرابط", icon: Link2 },
+                { step: 4, label: "حدد الكمية", icon: Hash },
+              ].map((item, index) => (
+                <div key={item.step} className="flex items-center flex-1 last:flex-none">
+                  <div className={cn(
+                    "flex flex-col sm:flex-row items-center gap-1 sm:gap-2",
+                    currentStep >= item.step ? "opacity-100" : "opacity-50"
+                  )}>
+                    <div className={cn(
+                      "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all",
+                      currentStep > item.step 
+                        ? "bg-white text-primary" 
+                        : currentStep === item.step 
+                          ? "bg-white/30 text-white ring-2 ring-white" 
+                          : "bg-white/10 text-white/60"
+                    )}>
+                      {currentStep > item.step ? (
+                        <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                      ) : (
+                        <item.icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                      )}
+                    </div>
+                    <span className="text-[10px] sm:text-xs text-primary-foreground font-medium hidden sm:block">{item.label}</span>
+                  </div>
+                  {index < 3 && (
+                    <div className={cn(
+                      "flex-1 h-0.5 mx-2 sm:mx-3 rounded-full",
+                      currentStep > item.step ? "bg-white" : "bg-white/20"
+                    )} />
+                  )}
+                </div>
+              ))}
             </div>
-          </motion.div>
+          </div>
         </div>
 
-        {/* Networks Scrollable */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <div className="bg-card border border-border/50 rounded-lg p-2 sm:p-3">
-            <div className="flex items-center gap-1.5 mb-2">
-              <Layers className="w-3.5 h-3.5 text-primary" />
-              <span className="text-[10px] sm:text-xs font-medium">اختر المنصة</span>
-            </div>
-            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-              {socialNetworks.map((network) => {
-                const Icon = network.icon;
-                const isSelected = selectedNetwork === network.id;
-                return (
-                  <button
-                    key={network.id}
-                    onClick={() => { setSelectedNetwork(network.id); setSelectedCategory(null); setSelectedService(null); }}
-                    className={cn(
-                      "flex flex-col items-center gap-1 p-1.5 sm:p-2 rounded-lg transition-all shrink-0 min-w-[48px] sm:min-w-[56px]",
-                      isSelected ? "bg-primary/10 ring-1 ring-primary" : "bg-muted/40 hover:bg-muted/60"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br flex items-center justify-center text-white",
-                      network.color
-                    )}>
-                      <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    </div>
-                    <span className="text-[8px] sm:text-[9px] font-medium truncate w-full text-center">{network.name}</span>
-                  </button>
-                );
-              })}
-            </div>
+        {/* Social Networks Selector */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <Flame className="w-5 h-5 text-primary" />
+            <h2 className="text-base sm:text-lg font-semibold">اختر المنصة</h2>
+          </div>
+          
+          <div className="grid grid-cols-4 sm:grid-cols-7 lg:grid-cols-14 gap-2 sm:gap-3">
+            {socialNetworks.map((network) => {
+              const Icon = network.icon;
+              const isSelected = selectedNetwork === network.id;
+              return (
+                <motion.button
+                  key={network.id}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => { 
+                    setSelectedNetwork(network.id); 
+                    setSelectedCategory(null); 
+                    setSelectedService(null); 
+                  }}
+                  className={cn(
+                    "flex flex-col items-center gap-1.5 p-2 sm:p-3 rounded-xl transition-all",
+                    isSelected 
+                      ? "bg-primary/10 ring-2 ring-primary shadow-lg" 
+                      : "bg-card hover:bg-muted border border-border/50"
+                  )}
+                >
+                  <div className={cn(
+                    "w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br flex items-center justify-center text-white shadow-md",
+                    network.gradient
+                  )}>
+                    <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </div>
+                  <span className="text-[10px] sm:text-xs font-medium truncate w-full text-center">{network.name}</span>
+                </motion.button>
+              );
+            })}
           </div>
         </motion.div>
 
-        {/* Main Form Tabs */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-          <Tabs defaultValue="new-order" className="w-full">
-            <TabsList className="w-full grid grid-cols-4 h-8 sm:h-9 p-0.5 bg-muted/50 rounded-lg">
-              <TabsTrigger value="new-order" className="text-[9px] sm:text-[10px] h-full gap-1 data-[state=active]:bg-background">
-                <ShoppingCart className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                <span className="hidden xs:inline">طلب</span> جديد
-              </TabsTrigger>
-              <TabsTrigger value="quick-reorder" className="text-[9px] sm:text-[10px] h-full gap-1 data-[state=active]:bg-background">
-                <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                <span className="hidden xs:inline">إعادة</span> طلب
-              </TabsTrigger>
-              <TabsTrigger value="favorites" className="text-[9px] sm:text-[10px] h-full gap-1 data-[state=active]:bg-background">
-                <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                المفضلة
-                {favorites.length > 0 && <Badge variant="secondary" className="text-[8px] h-4 px-1">{favorites.length}</Badge>}
-              </TabsTrigger>
-              <TabsTrigger value="subscriptions" className="text-[9px] sm:text-[10px] h-full gap-1 data-[state=active]:bg-background">
-                <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                اشتراكات
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="new-order" className="mt-3">
-              <div className="bg-card border border-border/50 rounded-lg p-3 sm:p-4 space-y-3">
-                {/* Progress Steps */}
-                <div className="flex items-center justify-between gap-1 py-1">
-                  {[
-                    { step: 1, label: "القسم", done: !!selectedCategory },
-                    { step: 2, label: "الخدمة", done: !!selectedService },
-                    { step: 3, label: "الرابط", done: !!link },
-                    { step: 4, label: "الكمية", done: !!quantity },
-                  ].map((item, index) => (
-                    <div key={item.step} className="flex items-center flex-1 last:flex-none">
-                      <div className={cn(
-                        "w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] font-bold transition-all shrink-0",
-                        item.done ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                      )}>
-                        {item.done ? <CheckCircle2 className="w-3 h-3" /> : item.step}
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+          {/* Categories & Services List */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* Categories */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} 
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <Card className="border-border/50 overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="bg-muted/30 p-3 sm:p-4 border-b border-border/50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Layers className="w-5 h-5 text-primary" />
+                        <h3 className="font-semibold text-sm sm:text-base">الأقسام</h3>
+                        <Badge variant="secondary" className="text-xs">{filteredByNetwork.length}</Badge>
                       </div>
-                      <span className={cn(
-                        "text-[8px] sm:text-[9px] mr-0.5 hidden sm:block",
-                        item.done ? "text-primary font-medium" : "text-muted-foreground"
-                      )}>{item.label}</span>
-                      {index < 3 && <div className={cn("flex-1 h-0.5 mx-1", item.done ? "bg-primary" : "bg-muted")} />}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                  
+                  <ScrollArea className="h-[200px] sm:h-[250px]">
+                    <div className="p-2 sm:p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {filteredByNetwork.map((category) => {
+                        const networkInfo = getSocialNetworkInfo(category);
+                        const NetworkIcon = networkInfo.icon;
+                        const isSelected = selectedCategory === category;
+                        
+                        return (
+                          <motion.button
+                            key={category}
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => { 
+                              setSelectedCategory(category); 
+                              setSelectedService(null); 
+                              setSearchQuery("");
+                            }}
+                            className={cn(
+                              "flex items-center gap-3 p-3 rounded-xl transition-all text-right w-full",
+                              isSelected 
+                                ? "bg-primary text-primary-foreground shadow-md" 
+                                : "bg-muted/50 hover:bg-muted"
+                            )}
+                          >
+                            <div className={cn(
+                              "w-9 h-9 rounded-lg bg-gradient-to-br flex items-center justify-center text-white shrink-0",
+                              networkInfo.gradient
+                            )}>
+                              <NetworkIcon className="w-4 h-4" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs sm:text-sm font-medium truncate">{category}</p>
+                            </div>
+                            <Badge variant={isSelected ? "secondary" : "outline"} className="text-[10px] shrink-0">
+                              {categoryCounts[category]}
+                            </Badge>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-                {/* Category Select */}
-                <div className="space-y-1">
-                  <Label className="text-[10px] sm:text-xs font-medium flex items-center gap-1">
-                    <Layers className="w-3 h-3 text-primary" />
-                    القسم <span className="text-destructive">*</span>
-                  </Label>
-                  <Select value={selectedCategory || ""} onValueChange={(v) => { setSelectedCategory(v || null); setSelectedService(null); setQuantity(""); setSearchQuery(""); }} dir="rtl">
-                    <SelectTrigger className="h-9 sm:h-10 text-[11px] sm:text-xs bg-muted/30 border-border/50 rounded-lg">
-                      <SelectValue placeholder="اختر القسم...">
-                        {selectedCategory && (
-                          <div className="flex items-center justify-between gap-2 w-full">
-                            <span className="truncate text-[11px] sm:text-xs">{selectedCategory}</span>
-                            <Badge variant="secondary" className="text-[8px] h-4 px-1">{categoryCounts[selectedCategory]}</Badge>
+            {/* Services */}
+            <AnimatePresence mode="wait">
+              {selectedCategory && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }} 
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <Card className="border-border/50 overflow-hidden">
+                    <CardContent className="p-0">
+                      <div className="bg-muted/30 p-3 sm:p-4 border-b border-border/50">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-2">
+                            <Star className="w-5 h-5 text-yellow-500" />
+                            <h3 className="font-semibold text-sm sm:text-base">الخدمات</h3>
+                            <Badge variant="secondary" className="text-xs">{filteredServices.length}</Badge>
                           </div>
-                        )}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[50vh] w-[calc(100vw-1.5rem)] sm:w-[var(--radix-select-trigger-width)] bg-popover border-border z-[100]" position="popper" sideOffset={4}>
-                      <ScrollArea className="max-h-[calc(50vh-8px)]">
-                        <div className="p-1">
-                          {filteredByNetwork.map((category) => {
-                            const networkInfo = getSocialNetworkInfo(category);
-                            const NetworkIcon = networkInfo.icon;
-                            return (
-                              <SelectItem key={category} value={category} className="py-2 px-2 rounded-md cursor-pointer text-[11px] sm:text-xs" dir="rtl">
-                                <div className="flex items-center justify-between gap-2 w-full flex-row-reverse">
-                                  <div className="flex items-center gap-1.5 flex-row-reverse min-w-0">
-                                    <div className={cn("w-5 h-5 rounded flex items-center justify-center text-white shrink-0", networkInfo.bg)}>
-                                      <NetworkIcon className="w-2.5 h-2.5" />
-                                    </div>
-                                    <span className="truncate text-[10px] sm:text-[11px]">{category}</span>
-                                  </div>
-                                  <Badge className="bg-primary/15 text-primary border-0 text-[8px] h-4 px-1 shrink-0">{categoryCounts[category]}</Badge>
-                                </div>
-                              </SelectItem>
-                            );
-                          })}
-                        </div>
-                      </ScrollArea>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Service Select */}
-                <div className="space-y-1">
-                  <Label className="text-[10px] sm:text-xs font-medium flex items-center gap-1">
-                    <Star className="w-3 h-3 text-yellow-500" />
-                    الخدمة <span className="text-destructive">*</span>
-                  </Label>
-                  <Select 
-                    value={selectedService?.id || ""} 
-                    onValueChange={(v) => {
-                      const service = filteredServices.find(s => s.id === v);
-                      setSelectedService(service || null);
-                      if (service?.features?.min) setQuantity(service.features.min.toString());
-                    }} 
-                    disabled={!selectedCategory} 
-                    dir="rtl"
-                  >
-                    <SelectTrigger className={cn(
-                      "h-9 sm:h-10 text-[11px] sm:text-xs bg-muted/30 border-border/50 rounded-lg",
-                      !selectedCategory && "opacity-50"
-                    )}>
-                      <SelectValue placeholder={selectedCategory ? "اختر الخدمة..." : "اختر القسم أولاً"}>
-                        {selectedService && (
-                          <div className="flex items-center gap-1.5 w-full">
-                            <span className="truncate text-[10px] sm:text-[11px]">{selectedService.name}</span>
-                            <span className="text-primary font-bold text-[10px] shrink-0 mr-auto">{selectedService.price.toFixed(2)} ر.س</span>
+                          
+                          <div className="relative w-full sm:w-64">
+                            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input 
+                              placeholder="ابحث عن خدمة..." 
+                              className="pr-9 h-9 text-sm bg-background" 
+                              value={searchQuery} 
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                            />
                           </div>
-                        )}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[50vh] w-[calc(100vw-1.5rem)] sm:w-[var(--radix-select-trigger-width)] bg-popover border-border z-[100]" position="popper" sideOffset={4}>
-                      <div className="p-1.5 sticky top-0 bg-popover z-20 border-b border-border/50">
-                        <div className="relative">
-                          <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
-                          <Input 
-                            placeholder="بحث..." 
-                            className="pr-7 h-7 text-[10px] bg-muted/30 border-border/40 rounded" 
-                            value={searchQuery} 
-                            onChange={(e) => setSearchQuery(e.target.value)} 
-                            onClick={(e) => e.stopPropagation()}
-                            dir="rtl"
-                          />
                         </div>
                       </div>
-                      <ScrollArea className="max-h-[calc(50vh-48px)]">
+                      
+                      <ScrollArea className="h-[300px] sm:h-[400px]">
                         {filteredServices.length === 0 ? (
-                          <div className="p-4 text-center text-muted-foreground text-[10px]">
-                            <Search className="w-6 h-6 mx-auto mb-1 opacity-30" />
-                            <p>لا توجد خدمات</p>
+                          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                            <Search className="w-12 h-12 mb-3 opacity-30" />
+                            <p className="text-sm">لا توجد خدمات متاحة</p>
                           </div>
                         ) : (
-                          <div className="p-1" dir="rtl">
+                          <div className="p-2 sm:p-3 space-y-2">
                             {filteredServices.map((service) => {
                               const networkInfo = getSocialNetworkInfo(service.name || service.category);
                               const NetworkIcon = networkInfo.icon;
+                              const isFavorite = favorites.includes(service.id);
+                              const isSelected = selectedService?.id === service.id;
+                              
                               return (
-                                <SelectItem key={service.id} value={service.id} className="py-1.5 px-2 rounded-md cursor-pointer" dir="rtl">
-                                  <div className="flex items-center gap-1.5 w-full">
-                                    <div className={cn("w-5 h-5 rounded flex items-center justify-center text-white shrink-0", networkInfo.bg)}>
-                                      <NetworkIcon className="w-2.5 h-2.5" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-[9px] sm:text-[10px] font-medium truncate">{service.name}</p>
-                                      <div className="flex items-center gap-1 text-[8px] text-muted-foreground">
-                                        <span>{service.features?.min || 10} - {service.features?.max || "∞"}</span>
-                                        {service.refill_enabled && <Badge className="h-3 px-0.5 text-[7px] bg-success/10 text-success border-0">مضمون</Badge>}
-                                      </div>
-                                    </div>
-                                    <span className="text-[9px] font-bold text-primary shrink-0">{service.price.toFixed(2)}</span>
+                                <motion.div
+                                  key={service.id}
+                                  whileHover={{ scale: 1.005 }}
+                                  onClick={() => {
+                                    setSelectedService(service);
+                                    if (service.features?.min) setQuantity(service.features.min.toString());
+                                  }}
+                                  className={cn(
+                                    "flex items-center gap-3 p-3 sm:p-4 rounded-xl cursor-pointer transition-all border",
+                                    isSelected 
+                                      ? "bg-primary/5 border-primary shadow-sm" 
+                                      : "bg-card border-border/50 hover:bg-muted/50"
+                                  )}
+                                >
+                                  <div className={cn(
+                                    "w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center text-white shrink-0",
+                                    networkInfo.gradient
+                                  )}>
+                                    <NetworkIcon className="w-5 h-5" />
                                   </div>
-                                </SelectItem>
+                                  
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs sm:text-sm font-medium mb-1 line-clamp-2">{service.name}</p>
+                                    <div className="flex flex-wrap items-center gap-1.5">
+                                      <Badge variant="outline" className="text-[10px] h-5">
+                                        {service.features?.min || 10} - {service.features?.max || "∞"}
+                                      </Badge>
+                                      {service.refill_enabled && (
+                                        <Badge className="text-[10px] h-5 bg-success/10 text-success border-success/20">
+                                          <Shield className="w-3 h-3 ml-1" />
+                                          مضمون
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex flex-col items-end gap-2 shrink-0">
+                                    <p className="text-sm sm:text-base font-bold text-primary">{service.price.toFixed(2)} <span className="text-[10px] text-muted-foreground">ر.س</span></p>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="w-7 h-7"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleFavorite(service.id);
+                                      }}
+                                    >
+                                      <Heart className={cn("w-4 h-4", isFavorite ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
+                                    </Button>
+                                  </div>
+                                </motion.div>
                               );
                             })}
                           </div>
                         )}
                       </ScrollArea>
-                    </SelectContent>
-                  </Select>
-                </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
-                {/* Link Input */}
-                <div className="space-y-1">
-                  <Label className="text-[10px] sm:text-xs font-medium flex items-center gap-1">
-                    <Link2 className="w-3 h-3 text-blue-500" />
-                    الرابط <span className="text-destructive">*</span>
-                  </Label>
-                  <div className="relative">
-                    <Input 
-                      type="url"
-                      placeholder="https://..." 
-                      className={cn(
-                        "h-9 sm:h-10 text-[11px] sm:text-xs bg-muted/30 border-border/50 rounded-lg pr-8",
-                        !selectedService && "opacity-50",
-                        link && !link.startsWith("http") && "border-destructive/50"
-                      )}
-                      value={link} 
-                      onChange={(e) => setLink(e.target.value)} 
-                      disabled={!selectedService}
-                      dir="ltr"
-                    />
-                    {recentLinks.length > 0 && (
-                      <Popover open={showRecentLinks} onOpenChange={setShowRecentLinks}>
-                        <PopoverTrigger asChild>
-                          <Button variant="ghost" size="icon" className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7" disabled={!selectedService}>
-                            <History className="w-3.5 h-3.5" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-72 p-2" align="end">
-                          <p className="text-[10px] font-medium mb-2">الروابط المستخدمة مؤخراً</p>
-                          <div className="space-y-1 max-h-40 overflow-y-auto">
-                            {recentLinks.map((recentLink) => (
-                              <div key={recentLink.id} className="flex items-center gap-1.5 p-1.5 rounded bg-muted/50 hover:bg-muted transition-colors">
-                                <button onClick={() => useRecentLink(recentLink)} className="flex-1 text-[9px] text-right truncate">{recentLink.link}</button>
-                                <Button variant="ghost" size="icon" className="h-5 w-5 text-destructive" onClick={() => deleteRecentLink(recentLink.id)}>
-                                  <Trash2 className="w-2.5 h-2.5" />
-                                </Button>
-                              </div>
-                            ))}
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    )}
-                  </div>
-                  {link && !link.startsWith("http") && (
-                    <p className="text-[9px] text-destructive flex items-center gap-0.5">
-                      <Info className="w-2.5 h-2.5" />
-                      يجب أن يبدأ الرابط بـ http
-                    </p>
-                  )}
-                </div>
-
-                {/* Quantity Input */}
-                <div className="space-y-1">
-                  <Label className="text-[10px] sm:text-xs font-medium flex items-center gap-1">
-                    <Hash className="w-3 h-3 text-purple-500" />
-                    الكمية <span className="text-destructive">*</span>
-                  </Label>
-                  <div className="relative">
-                    <Input 
-                      type="number"
-                      inputMode="numeric"
-                      placeholder={selectedService ? `${selectedService.features?.min || 10} - ${selectedService.features?.max || "∞"}` : "اختر الخدمة أولاً"} 
-                      className={cn(
-                        "h-9 sm:h-10 text-[11px] sm:text-xs bg-muted/30 border-border/50 rounded-lg",
-                        !selectedService && "opacity-50",
-                        quantity && selectedService && (
-                          parseInt(quantity) < (selectedService.features?.min || 10) ||
-                          (selectedService.features?.max && parseInt(quantity) > selectedService.features.max)
-                        ) && "border-destructive/50"
-                      )}
-                      value={quantity} 
-                      onChange={(e) => setQuantity(e.target.value)} 
-                      min={selectedService?.features?.min || 10} 
-                      max={selectedService?.features?.max || 1000000}
-                      disabled={!selectedService}
-                    />
-                    {selectedService && quantity && parseInt(quantity) > 0 && (
-                      <div className="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-muted-foreground bg-background/80 px-0.5 rounded">
-                        ≈ {((selectedService.price / 1000) * parseInt(quantity || "0")).toFixed(2)} ر.س
+          {/* Order Form Sidebar */}
+          <div className="lg:col-span-1">
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }} 
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="sticky top-4"
+            >
+              <Card className="border-border/50 overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="bg-gradient-to-br from-primary/10 to-accent/10 p-4 sm:p-5 border-b border-border/50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white">
+                        <ShoppingCart className="w-5 h-5" />
                       </div>
-                    )}
-                  </div>
-                  {selectedService && quantity && (
-                    <>
-                      {parseInt(quantity) < (selectedService.features?.min || 10) && (
-                        <p className="text-[9px] text-destructive flex items-center gap-0.5">
-                          <Info className="w-2.5 h-2.5" />
-                          الحد الأدنى {selectedService.features?.min || 10}
-                        </p>
-                      )}
-                      {selectedService.features?.max && parseInt(quantity) > selectedService.features.max && (
-                        <p className="text-[9px] text-destructive flex items-center gap-0.5">
-                          <Info className="w-2.5 h-2.5" />
-                          الحد الأقصى {selectedService.features.max}
-                        </p>
-                      )}
-                    </>
-                  )}
-                  {/* Quick quantity buttons */}
-                  {selectedService && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {[
-                        selectedService.features?.min || 100,
-                        500, 1000, 5000, 10000
-                      ].filter(q => !selectedService.features?.max || q <= selectedService.features.max)
-                       .filter(q => q >= (selectedService.features?.min || 10))
-                       .slice(0, 5)
-                       .map((q) => (
-                        <Button
-                          key={q}
-                          type="button"
-                          variant={parseInt(quantity) === q ? "default" : "outline"}
-                          size="sm"
-                          className="h-5 text-[8px] px-1.5"
-                          onClick={() => setQuantity(q.toString())}
-                        >
-                          {q.toLocaleString()}
-                        </Button>
-                      ))}
+                      <div>
+                        <h3 className="font-semibold text-base">تفاصيل الطلب</h3>
+                        <p className="text-xs text-muted-foreground">املأ البيانات لإتمام الطلب</p>
+                      </div>
                     </div>
-                  )}
-                </div>
-
-                {/* Total Summary */}
-                <div className="p-2 sm:p-3 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] sm:text-xs text-muted-foreground">المبلغ الإجمالي</span>
-                    <p className="text-base sm:text-lg font-bold text-primary">{totalPrice.toFixed(4)} ر.س</p>
                   </div>
                   
-                  {userBalance && totalPrice > 0 && (
-                    <div className={cn(
-                      "flex items-center gap-1 p-1.5 rounded text-[9px] sm:text-[10px]",
-                      userBalance.balance >= totalPrice ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
-                    )}>
-                      {userBalance.balance >= totalPrice ? (
+                  <div className="p-4 sm:p-5 space-y-4">
+                    {/* Selected Service Info */}
+                    {selectedService && (
+                      <div className="bg-muted/50 rounded-xl p-3 border border-border/50">
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "w-9 h-9 rounded-lg bg-gradient-to-br flex items-center justify-center text-white shrink-0",
+                            getSocialNetworkInfo(selectedService.name).gradient
+                          )}>
+                            {(() => { const Icon = getSocialNetworkInfo(selectedService.name).icon; return <Icon className="w-4 h-4" />; })()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium line-clamp-2">{selectedService.name}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              السعر: {selectedService.price.toFixed(2)} ر.س / 1000
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Link Input */}
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium flex items-center gap-1.5">
+                        <Link2 className="w-3.5 h-3.5 text-primary" />
+                        الرابط <span className="text-destructive">*</span>
+                      </Label>
+                      <div className="relative">
+                        <Input 
+                          type="url"
+                          placeholder="https://..." 
+                          className={cn(
+                            "h-11 text-sm bg-background pl-10",
+                            !selectedService && "opacity-50"
+                          )}
+                          value={link}
+                          onChange={(e) => setLink(e.target.value)}
+                          disabled={!selectedService}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute left-1 top-1/2 -translate-y-1/2 w-8 h-8"
+                          onClick={handleCopyLink}
+                          disabled={!link}
+                        >
+                          {copiedLink ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+                        </Button>
+                      </div>
+                      {link && !link.startsWith('http') && (
+                        <p className="text-[10px] text-destructive flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          الرابط يجب أن يبدأ بـ http
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Quantity Input */}
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium flex items-center gap-1.5">
+                        <Hash className="w-3.5 h-3.5 text-primary" />
+                        الكمية <span className="text-destructive">*</span>
+                      </Label>
+                      <Input 
+                        type="number"
+                        placeholder={selectedService ? `الحد الأدنى: ${selectedService.features?.min || 10}` : "اختر خدمة أولاً"} 
+                        className={cn(
+                          "h-11 text-sm bg-background",
+                          !selectedService && "opacity-50"
+                        )}
+                        value={quantity}
+                        onChange={(e) => setQuantity(e.target.value)}
+                        disabled={!selectedService}
+                        min={selectedService?.features?.min || 10}
+                        max={selectedService?.features?.max}
+                      />
+                      {selectedService && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {[100, 500, 1000, 5000, 10000].map((q) => (
+                            <Button
+                              key={q}
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-[10px] px-2"
+                              onClick={() => setQuantity(q.toString())}
+                            >
+                              +{q.toLocaleString()}
+                            </Button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Price Summary */}
+                    <div className="bg-muted/50 rounded-xl p-4 space-y-3 border border-border/50">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">السعر التقديري</span>
+                        <span className="font-semibold">{totalPrice.toFixed(4)} ر.س</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">رصيدك الحالي</span>
+                        <span className={cn(
+                          "font-semibold",
+                          userBalance && userBalance.balance >= totalPrice ? "text-success" : "text-destructive"
+                        )}>
+                          {(userBalance?.balance || 0).toFixed(2)} ر.س
+                        </span>
+                      </div>
+                      {userBalance && userBalance.balance < totalPrice && totalPrice > 0 && (
+                        <div className="flex items-center gap-2 text-xs text-destructive bg-destructive/10 p-2 rounded-lg">
+                          <AlertCircle className="w-4 h-4 shrink-0" />
+                          <span>رصيدك غير كافي. تحتاج {(totalPrice - userBalance.balance).toFixed(2)} ر.س إضافية</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Submit Button */}
+                    <Button
+                      className="w-full h-12 text-sm font-medium bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity"
+                      disabled={!selectedService || !link || !quantity || isSubmitting || (userBalance && userBalance.balance < totalPrice)}
+                      onClick={handleSubmit}
+                    >
+                      {isSubmitting ? (
                         <>
-                          <CheckCircle2 className="w-3 h-3 shrink-0" />
-                          <span>رصيدك كافي ({userBalance.balance.toFixed(2)} ر.س)</span>
+                          <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                          جاري الإرسال...
                         </>
                       ) : (
                         <>
-                          <XCircle className="w-3 h-3 shrink-0" />
-                          <span>تحتاج {(totalPrice - userBalance.balance).toFixed(2)} ر.س إضافية</span>
+                          <Rocket className="w-4 h-4 ml-2" />
+                          إرسال الطلب
                         </>
                       )}
-                    </div>
-                  )}
-                </div>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
 
-                {/* Submit Button */}
-                <Button 
-                  className="w-full h-10 sm:h-11 text-xs sm:text-sm font-bold rounded-lg gap-2" 
-                  onClick={handleSubmit} 
-                  disabled={
-                    isSubmitting || !selectedService || !link || !link.startsWith("http") || !quantity ||
-                    (selectedService && parseInt(quantity) < (selectedService.features?.min || 10)) ||
-                    (selectedService?.features?.max && parseInt(quantity) > selectedService.features.max) ||
-                    (userBalance && userBalance.balance < totalPrice)
-                  }
+              {/* Features Cards */}
+              <div className="grid grid-cols-2 gap-3 mt-4">
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  className="bg-card border border-border/50 rounded-xl p-3 text-center"
                 >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>
-                        {submitStatus === "creating" && "جاري الإنشاء..."}
-                        {submitStatus === "sending" && "جاري الإرسال..."}
-                        {submitStatus === "done" && "تم!"}
-                        {submitStatus === "idle" && "جاري المعالجة..."}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart className="w-3.5 h-3.5" />
-                      <span>إرسال الطلب - {totalPrice.toFixed(2)} ر.س</span>
-                    </>
-                  )}
-                </Button>
+                  <Zap className="w-6 h-6 mx-auto mb-2 text-yellow-500" />
+                  <p className="text-[10px] sm:text-xs font-medium">تنفيذ فوري</p>
+                </motion.div>
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  className="bg-card border border-border/50 rounded-xl p-3 text-center"
+                >
+                  <Shield className="w-6 h-6 mx-auto mb-2 text-green-500" />
+                  <p className="text-[10px] sm:text-xs font-medium">ضمان الخدمة</p>
+                </motion.div>
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  className="bg-card border border-border/50 rounded-xl p-3 text-center"
+                >
+                  <Gift className="w-6 h-6 mx-auto mb-2 text-pink-500" />
+                  <p className="text-[10px] sm:text-xs font-medium">نقاط مكافآت</p>
+                </motion.div>
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  className="bg-card border border-border/50 rounded-xl p-3 text-center"
+                >
+                  <Clock className="w-6 h-6 mx-auto mb-2 text-blue-500" />
+                  <p className="text-[10px] sm:text-xs font-medium">دعم 24/7</p>
+                </motion.div>
               </div>
-            </TabsContent>
+            </motion.div>
+          </div>
+        </div>
 
-            {/* Quick Reorder Tab */}
-            <TabsContent value="quick-reorder" className="mt-3">
-              <div className="bg-card border border-border/50 rounded-lg p-3 sm:p-4">
-                <div className="flex items-center gap-1.5 mb-3">
-                  <Repeat className="w-3.5 h-3.5 text-primary" />
-                  <span className="text-[11px] sm:text-xs font-medium">إعادة الطلب السريع</span>
-                </div>
-                {recentOrders.length === 0 ? (
-                  <div className="py-8 text-center">
-                    <History className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
-                    <p className="text-[10px] text-muted-foreground">لا توجد طلبات سابقة</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {recentOrders.map((order, i) => (
-                      <motion.div
-                        key={order.id}
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-                      >
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                          <Package className="w-4 h-4 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[10px] sm:text-[11px] font-medium truncate">{order.service?.name || "خدمة محذوفة"}</p>
-                          <div className="flex items-center gap-1.5 text-[8px] sm:text-[9px] text-muted-foreground">
-                            <span>{order.quantity} وحدة</span>
-                            <span>•</span>
-                            <span>{order.total_price.toFixed(2)} ر.س</span>
-                          </div>
-                        </div>
-                        <Button
-                          size="sm"
-                          className="h-6 text-[9px] gap-1 px-2"
-                          onClick={() => handleQuickReorder(order)}
-                          disabled={!order.service}
-                        >
-                          <RefreshCw className="w-2.5 h-2.5" />
-                          إعادة
-                        </Button>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-
-            {/* Subscriptions Tab */}
-            <TabsContent value="subscriptions" className="mt-3">
-              <div className="bg-card border border-border/50 rounded-lg p-3 sm:p-4">
-                <div className="py-8 text-center">
-                  <Zap className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
-                  <p className="text-[10px] text-muted-foreground">لا توجد اشتراكات حالياً</p>
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* Favorites Tab */}
-            <TabsContent value="favorites" className="mt-3">
-              <div className="bg-card border border-border/50 rounded-lg p-3 sm:p-4">
-                {favorites.length === 0 ? (
-                  <div className="py-8 text-center">
-                    <Heart className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
-                    <p className="text-[10px] text-muted-foreground">لا توجد خدمات مفضلة</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {services.filter(s => favorites.includes(s.id)).map((service, i) => (
-                      <motion.div 
-                        key={service.id} 
-                        initial={{ opacity: 0, x: 10 }} 
-                        animate={{ opacity: 1, x: 0 }} 
-                        transition={{ delay: i * 0.05 }} 
-                        className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 hover:bg-muted/50 cursor-pointer transition-colors"
-                        onClick={() => { setSelectedCategory(service.category); setSelectedService(service); }}
-                      >
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                          <Star className="w-4 h-4 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[10px] sm:text-[11px] font-medium truncate">{service.name}</p>
-                          <p className="text-[8px] sm:text-[9px] text-muted-foreground truncate">{service.category}</p>
-                        </div>
-                        <span className="text-[10px] font-bold text-primary shrink-0">{service.price.toFixed(2)} ر.س</span>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0 text-destructive" onClick={(e) => { e.stopPropagation(); toggleFavorite(service.id); }}>
-                          <Heart className="w-3 h-3 fill-current" />
-                        </Button>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
-        </motion.div>
-
-        {/* Scroll to Top */}
+        {/* Scroll to Top Button */}
         <AnimatePresence>
           {showScrollTop && (
             <motion.button
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="fixed bottom-4 left-4 z-50 w-8 h-8 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="fixed bottom-6 left-6 z-50 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity"
             >
-              <ChevronUp className="w-4 h-4" />
+              <ChevronUp className="w-6 h-6" />
             </motion.button>
           )}
         </AnimatePresence>
