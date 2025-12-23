@@ -1180,18 +1180,18 @@ const ClientServicesNew = () => {
                                       selectedCategory === category && "bg-primary/15 border-primary/30"
                                     )}
                                   >
-                                    <div className="flex items-center justify-between gap-3 w-full min-w-0">
-                                      <div className="flex items-center gap-3">
+                                    <div className="flex items-center justify-between gap-2 w-full min-w-0 flex-row-reverse" dir="rtl">
+                                      <div className="flex items-center gap-2 flex-row-reverse">
                                         <div className={cn(
-                                          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-white",
+                                          "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-white",
                                           networkInfo.bg
                                         )}>
-                                          <NetworkIcon className="w-4 h-4" />
+                                          <NetworkIcon className="w-3.5 h-3.5" />
                                         </div>
-                                        <span className="text-sm font-semibold">{category}</span>
+                                        <span className="text-xs font-medium line-clamp-1">{category}</span>
                                       </div>
-                                      <Badge className="bg-primary/15 text-primary border-0 text-[11px] font-bold px-2.5">
-                                        {categoryCounts[category]} خدمة
+                                      <Badge className="bg-primary/15 text-primary border-0 text-[10px] font-bold px-2">
+                                        {categoryCounts[category]}
                                       </Badge>
                                     </div>
                                   </SelectItem>
@@ -1281,48 +1281,33 @@ const ClientServicesNew = () => {
                                     )}
                                     dir="rtl"
                                   >
-                                    <div className="flex items-center gap-3 w-full min-w-0" dir="rtl">
-                                      {/* Service ID Badge - الرقم التعريفي */}
-                                      <div className="shrink-0 w-16 text-center">
-                                        <Badge 
-                                          variant="secondary" 
-                                          className="font-mono text-[10px] px-2 py-0.5 bg-muted/80 border border-border/50"
-                                        >
-                                          {service.external_service_id || "-"}
-                                        </Badge>
-                                      </div>
-                                      
-                                      {/* Social Network Icon */}
+                                    <div className="flex items-center gap-2 w-full min-w-0 flex-row-reverse" dir="rtl">
+                                      {/* Social Network Icon - أولاً على اليمين */}
                                       {(() => {
                                         const networkInfo = getSocialNetworkInfo(service.name || service.category);
                                         const NetworkIcon = networkInfo.icon;
                                         return (
                                           <div className={cn(
-                                            "shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-white",
+                                            "shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-white",
                                             networkInfo.bg
                                           )}>
-                                            <NetworkIcon className="w-4 h-4" />
+                                            <NetworkIcon className="w-3.5 h-3.5" />
                                           </div>
                                         );
                                       })()}
                                       
                                       {/* Service Name & Description */}
                                       <div className="flex-1 min-w-0 text-right">
-                                        <p className="text-sm font-semibold leading-tight line-clamp-1 group-hover:text-primary transition-colors">
+                                        <p className="text-xs font-medium leading-tight line-clamp-1">
                                           {service.name}
                                         </p>
-                                        {service.description && (
-                                          <p className="text-[11px] text-muted-foreground/70 line-clamp-1 mt-0.5">
-                                            {service.description}
-                                          </p>
-                                        )}
                                         {/* Tags row */}
-                                        <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                          <span className="text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">
-                                            الكمية: {service.features?.min || 10} - {service.features?.max ? service.features.max.toLocaleString() : "∞"}
+                                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap flex-row-reverse">
+                                          <span className="text-[9px] text-muted-foreground">
+                                            {service.features?.min || 10} - {service.features?.max ? service.features.max.toLocaleString() : "∞"}
                                           </span>
                                           {service.refill_enabled && (
-                                            <span className="text-[10px] text-success bg-success/10 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                                            <span className="text-[9px] text-success flex items-center gap-0.5">
                                               <Shield className="w-2.5 h-2.5" />
                                               ضمان
                                             </span>
@@ -1330,12 +1315,19 @@ const ClientServicesNew = () => {
                                         </div>
                                       </div>
                                       
+                                      {/* Service ID Badge */}
+                                      <Badge 
+                                        variant="secondary" 
+                                        className="font-mono text-[9px] px-1.5 py-0 h-5 bg-muted/60 border border-border/40 shrink-0"
+                                      >
+                                        {service.external_service_id || "-"}
+                                      </Badge>
+                                      
                                       {/* Price - السعر */}
-                                      <div className="shrink-0 text-left min-w-[80px]">
-                                        <p className="text-sm font-bold text-primary">
+                                      <div className="shrink-0 text-left min-w-[60px]">
+                                        <p className="text-xs font-bold text-primary">
                                           ${service.price.toFixed(2)}
                                         </p>
-                                        <p className="text-[9px] text-muted-foreground">لكل 1000</p>
                                       </div>
                                     </div>
                                   </SelectItem>
