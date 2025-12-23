@@ -46,7 +46,7 @@ import ServicesHomeSkeleton from "@/components/dashboard/ServicesHomeSkeleton";
 import PullToRefresh from "@/components/ui/pull-to-refresh";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
+import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, PieChart, Pie, Cell } from "recharts";
 
 // Animated Counter Component
 const AnimatedCounter = ({ value, duration = 2000, suffix = '' }: { value: number; duration?: number; suffix?: string }) => {
@@ -785,6 +785,111 @@ const ClientServicesHome = () => {
                       {weeklyData.length > 0 ? Math.round(weeklyData.reduce((sum, d) => sum + d.orders, 0) / 7) : 0}
                     </div>
                     <div className="text-[10px] sm:text-xs text-muted-foreground">معدل يومي</div>
+                  </div>
+                </div>
+              </div>
+            </motion.section>
+          )}
+
+          {/* Order Status Pie Chart */}
+          {(globalStats.pendingOrders > 0 || globalStats.inProgressOrders > 0 || globalStats.completedOrders > 0) && (
+            <motion.section
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              className="mb-8 sm:mb-12"
+            >
+              <div className="rounded-2xl bg-card border border-border/50 p-4 sm:p-6 overflow-hidden">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg">
+                    <Target className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-semibold text-foreground">توزيع حالات الطلبات</h3>
+                    <p className="text-xs text-muted-foreground">نظرة عامة على جميع الطلبات</p>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col lg:flex-row items-center gap-6">
+                  {/* Pie Chart */}
+                  <div className="h-48 w-48 sm:h-56 sm:w-56 flex-shrink-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: 'قيد الانتظار', value: globalStats.pendingOrders, color: '#f97316' },
+                            { name: 'قيد التنفيذ', value: globalStats.inProgressOrders, color: '#14b8a6' },
+                            { name: 'مكتمل', value: globalStats.completedOrders, color: '#10b981' },
+                          ].filter(item => item.value > 0)}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={80}
+                          paddingAngle={4}
+                          dataKey="value"
+                          animationBegin={0}
+                          animationDuration={1000}
+                        >
+                          {[
+                            { name: 'قيد الانتظار', value: globalStats.pendingOrders, color: '#f97316' },
+                            { name: 'قيد التنفيذ', value: globalStats.inProgressOrders, color: '#14b8a6' },
+                            { name: 'مكتمل', value: globalStats.completedOrders, color: '#10b981' },
+                          ].filter(item => item.value > 0).map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={entry.color}
+                              stroke="hsl(var(--card))"
+                              strokeWidth={2}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '12px',
+                            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                            direction: 'rtl'
+                          }}
+                          formatter={(value: number, name: string) => [value, name]}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  
+                  {/* Legend & Stats */}
+                  <div className="flex-1 w-full">
+                    <div className="grid gap-3">
+                      {[
+                        { name: 'قيد الانتظار', value: globalStats.pendingOrders, color: 'bg-orange-500', percentage: globalStats.totalOrders > 0 ? ((globalStats.pendingOrders / globalStats.totalOrders) * 100).toFixed(1) : 0 },
+                        { name: 'قيد التنفيذ', value: globalStats.inProgressOrders, color: 'bg-teal-500', percentage: globalStats.totalOrders > 0 ? ((globalStats.inProgressOrders / globalStats.totalOrders) * 100).toFixed(1) : 0 },
+                        { name: 'مكتمل', value: globalStats.completedOrders, color: 'bg-emerald-500', percentage: globalStats.totalOrders > 0 ? ((globalStats.completedOrders / globalStats.totalOrders) * 100).toFixed(1) : 0 },
+                      ].map((item) => (
+                        <motion.div
+                          key={item.name}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/30"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-3 h-3 rounded-full ${item.color}`} />
+                            <span className="text-sm font-medium text-foreground">{item.name}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-lg font-bold text-foreground">{item.value}</span>
+                            <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full">
+                              {item.percentage}%
+                            </span>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                    
+                    {/* Total */}
+                    <div className="mt-4 pt-4 border-t border-border/50 flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">إجمالي الطلبات</span>
+                      <span className="text-xl font-bold text-foreground">{globalStats.totalOrders}</span>
+                    </div>
                   </div>
                 </div>
               </div>
