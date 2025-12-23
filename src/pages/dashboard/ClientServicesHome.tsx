@@ -620,28 +620,28 @@ const ClientServicesHome = () => {
                   value: globalStats.totalServices, 
                   label: 'خدمة متاحة', 
                   icon: Layers, 
-                  gradient: 'from-blue-500 to-cyan-500',
+                  bgColor: 'bg-cyan-500',
                   suffix: '+'
                 },
                 { 
                   value: globalStats.pendingOrders, 
                   label: 'طلب قيد الانتظار', 
                   icon: Clock, 
-                  gradient: 'from-amber-500 to-orange-500',
+                  bgColor: 'bg-orange-500',
                   suffix: ''
                 },
                 { 
                   value: globalStats.inProgressOrders, 
                   label: 'طلب قيد التنفيذ', 
                   icon: TrendingUp, 
-                  gradient: 'from-violet-500 to-purple-500',
+                  bgColor: 'bg-teal-500',
                   suffix: ''
                 },
                 { 
                   value: globalStats.completedOrders, 
                   label: 'طلب مكتمل', 
                   icon: CheckCircle2, 
-                  gradient: 'from-emerald-500 to-teal-500',
+                  bgColor: 'bg-emerald-500',
                   suffix: ''
                 },
               ].map((stat, i) => (
@@ -650,24 +650,30 @@ const ClientServicesHome = () => {
                   initial={{ opacity: 0, y: 30, scale: 0.9 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ delay: 0.6 + i * 0.1 }}
-                  className="group relative"
+                  whileHover={{ scale: 1.02, y: -4 }}
+                  className="group cursor-pointer"
                 >
-                  <div className="relative overflow-hidden rounded-2xl bg-card border border-border/50 p-4 sm:p-5 hover:border-border transition-all duration-300">
-                    {/* Background Gradient on Hover */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
+                  <div className="relative overflow-hidden rounded-2xl bg-card border border-border/50 p-5 sm:p-6 hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-lg">
+                    {/* Subtle Background Glow */}
+                    <div className={`absolute -top-10 -left-10 w-24 h-24 ${stat.bgColor} opacity-10 rounded-full blur-2xl group-hover:opacity-20 transition-opacity duration-500`} />
                     
-                    <div className="relative z-10 flex items-center gap-3 sm:gap-4">
-                      {/* Icon */}
-                      <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-lg flex-shrink-0`}>
+                    <div className="relative z-10 flex flex-row-reverse items-start justify-between gap-3">
+                      {/* Icon Container */}
+                      <motion.div 
+                        whileHover={{ rotate: [0, -10, 10, 0] }}
+                        transition={{ duration: 0.5 }}
+                        className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl ${stat.bgColor} flex items-center justify-center shadow-lg`}
+                      >
                         <stat.icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-                      </div>
+                      </motion.div>
                       
                       {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
-                          <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+                      <div className="flex-1 text-right">
+                        <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-1">
+                          {stat.suffix && <span className="text-primary">{stat.suffix}</span>}
+                          <AnimatedCounter value={stat.value} />
                         </div>
-                        <div className="text-xs sm:text-sm text-muted-foreground mt-0.5 truncate">
+                        <div className="text-sm sm:text-base text-muted-foreground font-medium">
                           {stat.label}
                         </div>
                       </div>
