@@ -47,7 +47,9 @@ import {
   TrendingDown,
   Percent,
   BadgeCheck,
-  ThumbsUp
+  ThumbsUp,
+  RotateCcw,
+  History
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -179,6 +181,23 @@ const ClientServicesNew = () => {
       if (error) throw error;
       return data as Service[];
     },
+  });
+
+  // Fetch recent orders for quick reorder
+  const { data: recentOrders = [] } = useQuery({
+    queryKey: ["recent-orders", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from("orders")
+        .select("*, services(id, name, price, category, status)")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
   });
 
   // Fetch popular services (most ordered)
@@ -558,6 +577,70 @@ const ClientServicesNew = () => {
                 </div>
               </CardContent>
             </Card>
+          </motion.div>
+        )}
+
+        {/* Quick Reorder Section */}
+        {recentOrders.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <History className="w-5 h-5 text-primary" />
+              <h2 className="text-lg font-bold">إعادة طلب سريع</h2>
+              <Badge variant="secondary" className="text-[10px]">طلباتك الأخيرة</Badge>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+              {recentOrders.slice(0, 5).map((order: any) => {
+                const service = order.services;
+                if (!service || service.status !== 'active') return null;
+                const networkInfo = getSocialNetworkInfo(service.name);
+                const Icon = networkInfo.icon;
+                const priceInSAR = convertToSAR(service.price);
+                
+                return (
+                  <motion.div
+                    key={order.id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setSelectedCategory(service.category);
+                      setSelectedService(service);
+                      setLink(order.link || '');
+                      setQuantity(order.quantity?.toString() || '');
+                      toast.success('تم تحميل بيانات الطلب السابق');
+                    }}
+                    className="bg-card border border-border/50 rounded-xl p-3 cursor-pointer hover:border-primary/50 hover:shadow-md transition-all group"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={cn(
+                        "w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center text-white shrink-0",
+                        networkInfo.gradient
+                      )}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium line-clamp-2 mb-1">{service.name}</p>
+                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                          <span>{order.quantity?.toLocaleString()}</span>
+                          <span>•</span>
+                          <span className="text-primary font-medium">{priceInSAR.toFixed(2)}ر.س</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="w-full mt-3 h-8 text-xs bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                    >
+                      <RotateCcw className="w-3 h-3 ml-1" />
+                      إعادة الطلب
+                    </Button>
+                  </motion.div>
+                );
+              })}
+            </div>
           </motion.div>
         )}
 
