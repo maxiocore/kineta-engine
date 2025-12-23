@@ -610,7 +610,17 @@ const ClientServicesNew = () => {
                       setSelectedService(service);
                       setLink(order.link || '');
                       setQuantity(order.quantity?.toString() || '');
-                      toast.success('تم تحميل بيانات الطلب السابق');
+                      toast.success('تم تحميل بيانات الطلب السابق، يمكنك الآن إرسال الطلب!', {
+                        description: `الخدمة: ${service.name.substring(0, 50)}...`,
+                        duration: 4000,
+                      });
+                      // Scroll to order form
+                      setTimeout(() => {
+                        document.getElementById('order-form-section')?.scrollIntoView({ 
+                          behavior: 'smooth', 
+                          block: 'start' 
+                        });
+                      }, 100);
                     }}
                     className="bg-card border border-border/50 rounded-xl p-3 cursor-pointer hover:border-primary/50 hover:shadow-md transition-all group"
                   >
@@ -914,7 +924,7 @@ const ClientServicesNew = () => {
           </div>
 
           {/* Order Form Sidebar */}
-          <div className="lg:col-span-1">
+          <div id="order-form-section" className="lg:col-span-1">
             <motion.div 
               initial={{ opacity: 0, x: 20 }} 
               animate={{ opacity: 1, x: 0 }}
