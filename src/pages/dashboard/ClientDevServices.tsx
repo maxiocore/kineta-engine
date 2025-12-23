@@ -35,7 +35,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import ServiceDetailsSheet from "@/components/services/ServiceDetailsSheet";
+import DevServiceDetailsSheet from "@/components/services/DevServiceDetailsSheet";
 import ServicesPageSkeleton from "@/components/dashboard/ServicesPageSkeleton";
 import PullToRefresh from "@/components/ui/pull-to-refresh";
 
@@ -52,14 +52,14 @@ interface Service {
   external_service_id: string | null;
 }
 
-// Category configuration
+// Category configuration with keywords for filtering
 const serviceCategories = [
-  { id: "all", name: "جميع الخدمات", icon: Layers, color: "from-emerald-500 to-teal-500" },
-  { id: "web", name: "تطوير الويب", icon: Globe, color: "from-blue-500 to-cyan-500" },
-  { id: "mobile", name: "تطبيقات الجوال", icon: Smartphone, color: "from-purple-500 to-pink-500" },
-  { id: "backend", name: "باك إند", icon: Server, color: "from-orange-500 to-red-500" },
-  { id: "database", name: "قواعد البيانات", icon: Database, color: "from-green-500 to-emerald-500" },
-  { id: "api", name: "APIs", icon: Terminal, color: "from-indigo-500 to-purple-500" },
+  { id: "all", name: "جميع الخدمات", icon: Layers, color: "from-emerald-500 to-teal-500", keywords: [] },
+  { id: "web", name: "تطوير الويب", icon: Globe, color: "from-blue-500 to-cyan-500", keywords: ["web", "website", "موقع", "ويب", "frontend", "html", "css", "react", "vue", "landing"] },
+  { id: "mobile", name: "تطبيقات الجوال", icon: Smartphone, color: "from-purple-500 to-pink-500", keywords: ["mobile", "app", "تطبيق", "جوال", "ios", "android", "flutter", "react native"] },
+  { id: "backend", name: "باك إند", icon: Server, color: "from-orange-500 to-red-500", keywords: ["backend", "server", "سيرفر", "باك", "node", "python", "php", "laravel", "express"] },
+  { id: "database", name: "قواعد البيانات", icon: Database, color: "from-green-500 to-emerald-500", keywords: ["database", "قواعد", "بيانات", "sql", "mysql", "postgresql", "mongodb", "firebase"] },
+  { id: "api", name: "APIs", icon: Terminal, color: "from-indigo-500 to-purple-500", keywords: ["api", "rest", "graphql", "integration", "تكامل", "ربط"] },
 ];
 
 // Stats configuration
@@ -169,13 +169,31 @@ const ClientDevServices = () => {
     };
   }, []);
 
+  // Filter services by search and category
   const filteredServices = services.filter(service => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      service.name.toLowerCase().includes(query) ||
-      service.description?.toLowerCase().includes(query)
-    );
+    const searchText = `${service.name} ${service.description || ''} ${service.category}`.toLowerCase();
+    
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      if (!service.name.toLowerCase().includes(query) && 
+          !service.description?.toLowerCase().includes(query)) {
+        return false;
+      }
+    }
+    
+    // Category filter
+    if (activeCategory !== "all") {
+      const category = serviceCategories.find(c => c.id === activeCategory);
+      if (category && category.keywords.length > 0) {
+        const hasKeyword = category.keywords.some(keyword => 
+          searchText.includes(keyword.toLowerCase())
+        );
+        if (!hasKeyword) return false;
+      }
+    }
+    
+    return true;
   });
 
   const handleServiceClick = (service: Service) => {
@@ -606,7 +624,7 @@ const ClientDevServices = () => {
         </div>
 
         {/* Service Details Sheet */}
-        <ServiceDetailsSheet
+        <DevServiceDetailsSheet
           service={selectedService ? {
             ...selectedService,
             refill_days: null,
