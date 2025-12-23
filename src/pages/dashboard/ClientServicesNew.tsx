@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
@@ -10,7 +10,6 @@ import {
   Zap,
   Shield,
   TrendingUp,
-  ChevronDown,
   Layers,
   Instagram,
   Facebook,
@@ -24,33 +23,30 @@ import {
   Sparkles,
   ShoppingCart,
   Clock,
-  Info,
   Link2,
   Hash,
   Wallet,
-  Award,
   CheckCircle2,
-  History,
   MessageCircle,
   Ghost,
   Radio,
   Star as StarIcon,
   Globe2,
   Tv,
-  RefreshCw,
   ChevronUp,
   Loader2,
-  CreditCard,
-  Target,
-  ArrowLeft,
   Copy,
   Check,
   AlertCircle,
-  ChevronRight,
   Flame,
   Crown,
   Gift,
-  Rocket
+  Rocket,
+  Timer,
+  TrendingDown,
+  Percent,
+  BadgeCheck,
+  ThumbsUp
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -64,6 +60,37 @@ import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+// Countdown Timer Hook
+const useCountdown = (targetDate: Date) => {
+  const calculateTimeLeft = useCallback(() => {
+    const difference = targetDate.getTime() - new Date().getTime();
+    if (difference <= 0) return { hours: 0, minutes: 0, seconds: 0, isExpired: true };
+    return {
+      hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+      minutes: Math.floor((difference / 1000 / 60) % 60),
+      seconds: Math.floor((difference / 1000) % 60),
+      isExpired: false,
+    };
+  }, [targetDate]);
+
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+
+  useEffect(() => {
+    const timer = setInterval(() => setTimeLeft(calculateTimeLeft()), 1000);
+    return () => clearInterval(timer);
+  }, [calculateTimeLeft]);
+
+  return timeLeft;
+};
+
+// Get offer end time (end of current day)
+const getOfferEndTime = () => {
+  const now = new Date();
+  const endOfDay = new Date(now);
+  endOfDay.setHours(23, 59, 59, 999);
+  return endOfDay;
+};
 
 interface Service {
   id: string;
@@ -151,6 +178,44 @@ const ClientServicesNew = () => {
       return data as Service[];
     },
   });
+
+  // Fetch popular services (most ordered)
+  const { data: popularServiceIds = [] } = useQuery({
+    queryKey: ["popular-services"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select("service_id")
+        .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+      
+      if (!data) return [];
+      
+      const counts: Record<string, number> = {};
+      data.forEach((order) => {
+        counts[order.service_id] = (counts[order.service_id] || 0) + 1;
+      });
+      
+      return Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 20)
+        .map(([id]) => id);
+    },
+  });
+
+  // Countdown timer
+  const countdown = useCountdown(getOfferEndTime());
+
+  // Check if service is popular
+  const isPopularService = useCallback((serviceId: string) => {
+    return popularServiceIds.includes(serviceId);
+  }, [popularServiceIds]);
+
+  // Get random discount for demo (in real app, this would come from database)
+  const getServiceDiscount = useCallback((serviceId: string) => {
+    const hash = serviceId.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0);
+    const discounts = [0, 0, 0, 5, 10, 15, 20, 0, 0, 0];
+    return discounts[Math.abs(hash) % discounts.length];
+  }, []);
 
   // Keywords to exclude design and development categories
   const designDevKeywords = useMemo(() => ['تصميم', 'شعار', 'لوجو', 'design', 'logo', 'بنر', 'banner', 'هوية', 
@@ -436,6 +501,63 @@ const ClientServicesNew = () => {
           </div>
         </div>
 
+        {/* Limited Time Offers Banner */}
+        {!countdown.isExpired && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <Card className="border-0 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 overflow-hidden">
+              <CardContent className="p-4 sm:p-5">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <motion.div 
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 1, repeat: Infinity }}
+                      className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center"
+                    >
+                      <Timer className="w-6 h-6 text-white" />
+                    </motion.div>
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                        <Flame className="w-5 h-5" />
+                        عروض اليوم المحدودة
+                      </h3>
+                      <p className="text-white/80 text-xs sm:text-sm">خصومات حصرية تنتهي قريباً!</p>
+                    </div>
+                  </div>
+                  
+                  {/* Countdown Timer */}
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="text-center bg-white/20 backdrop-blur-sm rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[60px]">
+                      <p className="text-xl sm:text-2xl font-bold text-white">{String(countdown.hours).padStart(2, '0')}</p>
+                      <p className="text-[9px] sm:text-[10px] text-white/70">ساعة</p>
+                    </div>
+                    <span className="text-white text-xl font-bold">:</span>
+                    <div className="text-center bg-white/20 backdrop-blur-sm rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[60px]">
+                      <p className="text-xl sm:text-2xl font-bold text-white">{String(countdown.minutes).padStart(2, '0')}</p>
+                      <p className="text-[9px] sm:text-[10px] text-white/70">دقيقة</p>
+                    </div>
+                    <span className="text-white text-xl font-bold">:</span>
+                    <div className="text-center bg-white/20 backdrop-blur-sm rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[60px]">
+                      <motion.p 
+                        key={countdown.seconds}
+                        initial={{ scale: 1.2 }}
+                        animate={{ scale: 1 }}
+                        className="text-xl sm:text-2xl font-bold text-white"
+                      >
+                        {String(countdown.seconds).padStart(2, '0')}
+                      </motion.p>
+                      <p className="text-[9px] sm:text-[10px] text-white/70">ثانية</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Social Networks Selector */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }} 
@@ -587,27 +709,56 @@ const ClientServicesNew = () => {
                           </div>
                         ) : (
                           <div className="p-2 sm:p-3 space-y-2">
-                            {filteredServices.map((service) => {
+                            {filteredServices.map((service, index) => {
                               const networkInfo = getSocialNetworkInfo(service.name || service.category);
                               const NetworkIcon = networkInfo.icon;
                               const isFavorite = favorites.includes(service.id);
                               const isSelected = selectedService?.id === service.id;
+                              const isPopular = isPopularService(service.id);
+                              const discount = getServiceDiscount(service.id);
+                              const discountedPrice = discount > 0 ? service.price * (1 - discount / 100) : service.price;
                               
                               return (
                                 <motion.div
                                   key={service.id}
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: index * 0.02 }}
                                   whileHover={{ scale: 1.005 }}
                                   onClick={() => {
                                     setSelectedService(service);
                                     if (service.features?.min) setQuantity(service.features.min.toString());
                                   }}
                                   className={cn(
-                                    "flex items-center gap-3 p-3 sm:p-4 rounded-xl cursor-pointer transition-all border",
+                                    "relative flex items-center gap-3 p-3 sm:p-4 rounded-xl cursor-pointer transition-all border",
                                     isSelected 
                                       ? "bg-primary/5 border-primary shadow-sm" 
-                                      : "bg-card border-border/50 hover:bg-muted/50"
+                                      : "bg-card border-border/50 hover:bg-muted/50",
+                                    discount > 0 && "ring-1 ring-orange-400/50"
                                   )}
                                 >
+                                  {/* Badges Container */}
+                                  <div className="absolute -top-1.5 right-2 flex items-center gap-1.5 z-10">
+                                    {isPopular && (
+                                      <Badge className="text-[9px] h-5 px-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-sm">
+                                        <Flame className="w-2.5 h-2.5 ml-0.5" />
+                                        الأكثر طلباً
+                                      </Badge>
+                                    )}
+                                    {discount > 0 && (
+                                      <Badge className="text-[9px] h-5 px-1.5 bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-sm animate-pulse">
+                                        <Percent className="w-2.5 h-2.5 ml-0.5" />
+                                        خصم {discount}%
+                                      </Badge>
+                                    )}
+                                    {service.refill_enabled && !isPopular && !discount && (
+                                      <Badge className="text-[9px] h-5 px-1.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-sm">
+                                        <BadgeCheck className="w-2.5 h-2.5 ml-0.5" />
+                                        مضمون
+                                      </Badge>
+                                    )}
+                                  </div>
+
                                   <div className={cn(
                                     "w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center text-white shrink-0",
                                     networkInfo.gradient
@@ -615,23 +766,36 @@ const ClientServicesNew = () => {
                                     <NetworkIcon className="w-5 h-5" />
                                   </div>
                                   
-                                  <div className="flex-1 min-w-0">
+                                  <div className="flex-1 min-w-0 mt-1">
                                     <p className="text-xs sm:text-sm font-medium mb-1 line-clamp-2">{service.name}</p>
                                     <div className="flex flex-wrap items-center gap-1.5">
                                       <Badge variant="outline" className="text-[10px] h-5">
                                         {service.features?.min || 10} - {service.features?.max || "∞"}
                                       </Badge>
-                                      {service.refill_enabled && (
+                                      {service.refill_enabled && (isPopular || discount > 0) && (
                                         <Badge className="text-[10px] h-5 bg-success/10 text-success border-success/20">
                                           <Shield className="w-3 h-3 ml-1" />
                                           مضمون
+                                        </Badge>
+                                      )}
+                                      {isPopular && (
+                                        <Badge className="text-[10px] h-5 bg-amber-500/10 text-amber-600 border-amber-500/20">
+                                          <ThumbsUp className="w-3 h-3 ml-1" />
+                                          موثوق
                                         </Badge>
                                       )}
                                     </div>
                                   </div>
                                   
                                   <div className="flex flex-col items-end gap-2 shrink-0">
-                                    <p className="text-sm sm:text-base font-bold text-primary">{service.price.toFixed(2)} <span className="text-[10px] text-muted-foreground">ر.س</span></p>
+                                    {discount > 0 ? (
+                                      <div className="text-left">
+                                        <p className="text-[10px] text-muted-foreground line-through">{service.price.toFixed(2)} ر.س</p>
+                                        <p className="text-sm sm:text-base font-bold text-red-500">{discountedPrice.toFixed(2)} <span className="text-[10px]">ر.س</span></p>
+                                      </div>
+                                    ) : (
+                                      <p className="text-sm sm:text-base font-bold text-primary">{service.price.toFixed(2)} <span className="text-[10px] text-muted-foreground">ر.س</span></p>
+                                    )}
                                     <Button
                                       variant="ghost"
                                       size="icon"
