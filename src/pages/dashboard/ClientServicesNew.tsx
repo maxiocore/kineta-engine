@@ -1115,24 +1115,48 @@ const ClientServicesNew = () => {
                       )}
                     </div>
 
-                    {/* Submit Button */}
-                    <Button
-                      className="w-full h-12 text-sm font-medium bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity"
-                      disabled={!selectedService || !link || !quantity || isSubmitting || (userBalance && userBalance.balance < totalPrice)}
-                      onClick={handleSubmit}
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                          جاري الإرسال...
-                        </>
-                      ) : (
-                        <>
-                          <Rocket className="w-4 h-4 ml-2" />
-                          إرسال الطلب
-                        </>
+                    {/* Action Buttons */}
+                    <div className="space-y-2">
+                      {/* Submit Button */}
+                      <Button
+                        className="w-full h-12 text-sm font-medium bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity"
+                        disabled={!selectedService || !link || !quantity || isSubmitting || (userBalance && userBalance.balance < totalPrice)}
+                        onClick={handleSubmit}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                            جاري الإرسال...
+                          </>
+                        ) : (
+                          <>
+                            <Rocket className="w-4 h-4 ml-2" />
+                            إرسال الطلب
+                          </>
+                        )}
+                      </Button>
+
+                      {/* Reset Button */}
+                      {(selectedService || link || quantity) && (
+                        <Button
+                          variant="outline"
+                          className="w-full h-10 text-sm font-medium border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors"
+                          onClick={() => {
+                            setSelectedService(null);
+                            setSelectedCategory(null);
+                            setLink('');
+                            setQuantity('');
+                            toast.info('تم مسح بيانات الطلب', {
+                              description: 'يمكنك الآن البدء من جديد',
+                              duration: 2000,
+                            });
+                          }}
+                        >
+                          <RotateCcw className="w-4 h-4 ml-2" />
+                          مسح البيانات والبدء من جديد
+                        </Button>
                       )}
-                    </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
