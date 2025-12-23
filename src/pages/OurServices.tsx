@@ -424,14 +424,65 @@ const OurServices = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   
+  // Refs for parallax sections
+  const containerRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef(null);
+  const serviceTypesRef = useRef(null);
+  const categoriesRef = useRef(null);
+  const ctaRef = useRef(null);
+  
+  // Main scroll progress
+  const { scrollYProgress: mainScrollProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"]
+  });
+  
+  // Hero section parallax
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"]
   });
   
-  const heroY = useTransform(scrollYProgress, [0, 1], [0, 150]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  // Service types section parallax
+  const { scrollYProgress: serviceTypesScrollProgress } = useScroll({
+    target: serviceTypesRef,
+    offset: ["start end", "end start"]
+  });
+  
+  // Categories section parallax
+  const { scrollYProgress: categoriesScrollProgress } = useScroll({
+    target: categoriesRef,
+    offset: ["start end", "end start"]
+  });
+  
+  // CTA section parallax
+  const { scrollYProgress: ctaScrollProgress } = useScroll({
+    target: ctaRef,
+    offset: ["start end", "end start"]
+  });
+  
+  // Hero transforms
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, 200]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 0.85]);
+  const heroBlur = useTransform(scrollYProgress, [0, 1], [0, 15]);
+  
+  // Background parallax layers
+  const bgLayer1Y = useTransform(mainScrollProgress, [0, 1], [0, -400]);
+  const bgLayer2Y = useTransform(mainScrollProgress, [0, 1], [0, -250]);
+  const bgLayer3Y = useTransform(mainScrollProgress, [0, 1], [0, -550]);
+  
+  // Service types parallax
+  const serviceTypesY = useTransform(serviceTypesScrollProgress, [0, 1], [100, -100]);
+  const serviceTypesOpacity = useTransform(serviceTypesScrollProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0.5]);
+  
+  // Categories parallax
+  const categoriesY = useTransform(categoriesScrollProgress, [0, 1], [80, -80]);
+  const categoriesScale = useTransform(categoriesScrollProgress, [0, 0.5, 1], [0.95, 1, 0.98]);
+  
+  // CTA parallax
+  const ctaY = useTransform(ctaScrollProgress, [0, 1], [60, -40]);
+  const ctaRotate = useTransform(ctaScrollProgress, [0, 0.5, 1], [-2, 0, 2]);
 
   // Fetch categories
   const { data: initialCategories, isLoading } = useQuery({
@@ -521,19 +572,35 @@ const OurServices = () => {
   }, [categories, searchQuery]);
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden" dir="rtl">
+    <div ref={containerRef} className="min-h-screen bg-background overflow-x-hidden" dir="rtl">
       <Header />
       
-      <main className="pt-16">
-        {/* Hero Section */}
+      {/* Fixed Parallax Background Layers */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <motion.div 
+          style={{ y: bgLayer1Y }}
+          className="absolute top-20 right-[10%] w-[500px] h-[500px] bg-gradient-to-br from-primary/25 via-primary/10 to-transparent rounded-full blur-[180px]"
+        />
+        <motion.div 
+          style={{ y: bgLayer2Y }}
+          className="absolute top-1/3 left-[5%] w-[400px] h-[400px] bg-gradient-to-tr from-purple-500/20 via-pink-500/10 to-transparent rounded-full blur-[150px]"
+        />
+        <motion.div 
+          style={{ y: bgLayer3Y }}
+          className="absolute bottom-1/4 right-1/3 w-[350px] h-[350px] bg-gradient-to-tl from-cyan-500/15 via-blue-500/10 to-transparent rounded-full blur-[120px]"
+        />
+      </div>
+      
+      <main className="pt-16 relative z-10">
+        {/* Hero Section with Enhanced Parallax */}
         <section 
           ref={heroRef}
-          className="relative min-h-[70vh] flex items-center justify-center overflow-hidden"
+          className="relative min-h-[85vh] flex items-center justify-center overflow-hidden"
         >
           {/* Animated background elements */}
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
           
-          {/* Floating orbs */}
+          {/* Floating orbs with parallax */}
           <motion.div 
             className="absolute top-20 right-[10%] w-96 h-96 bg-primary/20 rounded-full blur-[150px]"
             animate={{ 
@@ -561,8 +628,35 @@ const OurServices = () => {
           {/* Grid pattern */}
           <div className="absolute inset-0 bg-grid-pattern opacity-30" />
           
+          {/* Floating particles */}
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-primary/30 rounded-full"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [0, -30, 0],
+                opacity: [0.3, 0.8, 0.3],
+                scale: [1, 1.5, 1],
+              }}
+              transition={{
+                duration: 3 + Math.random() * 2,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
+          
           <motion.div 
-            style={{ y: heroY, opacity: heroOpacity }}
+            style={{ 
+              y: heroY, 
+              opacity: heroOpacity, 
+              scale: heroScale,
+              filter: useTransform(heroBlur, (v) => `blur(${v}px)`)
+            }}
             className="container px-4 relative z-10"
           >
             <motion.div
@@ -707,12 +801,15 @@ const OurServices = () => {
           </motion.div>
         </section>
 
-        {/* Service Types Section */}
-        <section className="py-16 sm:py-24 relative">
+        {/* Service Types Section with Parallax */}
+        <section ref={serviceTypesRef} className="py-16 sm:py-24 relative">
           {/* Background decoration */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-secondary/30 to-transparent" />
           
-          <div className="container px-4 relative z-10">
+          <motion.div 
+            style={{ y: serviceTypesY, opacity: serviceTypesOpacity }}
+            className="container px-4 relative z-10"
+          >
             {/* Section header */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -744,16 +841,19 @@ const OurServices = () => {
                 />
               ))}
             </div>
-          </div>
+          </motion.div>
         </section>
 
-        {/* All Categories Section */}
-        <section className="py-16 sm:py-24 relative overflow-hidden">
+        {/* All Categories Section with Parallax */}
+        <section ref={categoriesRef} className="py-16 sm:py-24 relative overflow-hidden">
           {/* Background */}
           <div className="absolute inset-0 bg-gradient-to-t from-secondary/50 via-background to-background" />
           <div className="absolute inset-0 bg-grid-pattern opacity-20" />
           
-          <div className="container px-4 relative z-10">
+          <motion.div 
+            style={{ y: categoriesY, scale: categoriesScale }}
+            className="container px-4 relative z-10"
+          >
             {/* Section header */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -827,7 +927,7 @@ const OurServices = () => {
                 </AnimatePresence>
               </motion.div>
             )}
-          </div>
+          </motion.div>
         </section>
 
         {/* CTA Section */}
