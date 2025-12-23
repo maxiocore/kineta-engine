@@ -730,7 +730,7 @@ const ClientServicesNew = () => {
                                     if (service.features?.min) setQuantity(service.features.min.toString());
                                   }}
                                   className={cn(
-                                    "relative flex items-center gap-3 p-3 sm:p-4 rounded-xl cursor-pointer transition-all border",
+                                    "relative flex flex-row-reverse items-center gap-3 p-3 sm:p-4 rounded-xl cursor-pointer transition-all border",
                                     isSelected 
                                       ? "bg-primary/5 border-primary shadow-sm" 
                                       : "bg-card border-border/50 hover:bg-muted/50",
@@ -759,6 +759,7 @@ const ClientServicesNew = () => {
                                     )}
                                   </div>
 
+                                  {/* Icon on the right */}
                                   <div className={cn(
                                     "w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center text-white shrink-0",
                                     networkInfo.gradient
@@ -766,9 +767,10 @@ const ClientServicesNew = () => {
                                     <NetworkIcon className="w-5 h-5" />
                                   </div>
                                   
-                                  <div className="flex-1 min-w-0 mt-1">
+                                  {/* Service details in the middle */}
+                                  <div className="flex-1 min-w-0 mt-1 text-right">
                                     <p className="text-xs sm:text-sm font-medium mb-1 line-clamp-2">{service.name}</p>
-                                    <div className="flex flex-wrap items-center gap-1.5">
+                                    <div className="flex flex-wrap items-center justify-end gap-1.5">
                                       <Badge variant="outline" className="text-[10px] h-5">
                                         {service.features?.min || 10} - {service.features?.max || "∞"}
                                       </Badge>
@@ -787,9 +789,10 @@ const ClientServicesNew = () => {
                                     </div>
                                   </div>
                                   
-                                  <div className="flex flex-col items-end gap-2 shrink-0">
+                                  {/* Price on the left */}
+                                  <div className="flex flex-col items-start gap-2 shrink-0">
                                     {discount > 0 ? (
-                                      <div className="text-left">
+                                      <div className="text-right">
                                         <p className="text-[10px] text-muted-foreground line-through">{service.price.toFixed(2)} ر.س</p>
                                         <p className="text-sm sm:text-base font-bold text-red-500">{discountedPrice.toFixed(2)} <span className="text-[10px]">ر.س</span></p>
                                       </div>
