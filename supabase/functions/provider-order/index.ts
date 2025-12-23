@@ -6,6 +6,204 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface OrderPayload {
+  orderId: string;
+  serviceId: string;
+  link: string;
+  quantity: number;
+}
+
+async function sendOrderToProvider(supabase: any, payload: OrderPayload): Promise<{ success: boolean; data?: any; error?: string }> {
+  const { orderId, serviceId, link, quantity } = payload;
+  
+  console.log('Processing order:', { orderId, serviceId, link, quantity });
+
+  // Get service with provider information
+  const { data: service, error: serviceError } = await supabase
+    .from('services')
+    .select(`
+      external_service_id, 
+      name,
+      provider_id,
+      api_providers (
+        id,
+        name,
+        api_url,
+        api_key,
+        is_active
+      )
+    `)
+    .eq('id', serviceId)
+    .maybeSingle();
+
+  if (serviceError || !service) {
+    console.error('Service not found:', serviceError);
+    return { success: false, error: 'Service not found' };
+  }
+
+  if (!service.external_service_id) {
+    console.log('No external service ID, skipping provider API');
+    return { success: true, data: { message: 'Local order only - no external service ID' } };
+  }
+
+  // Get provider info - either from service or use default
+  let apiUrl: string;
+  let apiKey: string;
+  let providerName: string;
+  let providerId: string | null = null;
+
+  if (service.provider_id && service.api_providers) {
+    const provider = service.api_providers as any;
+    if (!provider.is_active) {
+      console.error('Provider is not active:', provider.name);
+      
+      // Update order with error
+      await supabase
+        .from('orders')
+        .update({ 
+          external_status: 'error',
+          admin_notes: `المزود ${provider.name} غير نشط`
+        })
+        .eq('id', orderId);
+      
+      return { success: false, error: 'Provider is not active' };
+    }
+    apiUrl = provider.api_url;
+    apiKey = provider.api_key;
+    providerName = provider.name;
+    providerId = provider.id;
+  } else {
+    // Fallback to default provider
+    const { data: defaultProvider, error: defaultError } = await supabase
+      .from('api_providers')
+      .select('id, name, api_url, api_key, is_active')
+      .eq('is_default', true)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (defaultError || !defaultProvider) {
+      console.error('No provider found for service and no default provider');
+      
+      // Update order with error
+      await supabase
+        .from('orders')
+        .update({ 
+          external_status: 'error',
+          admin_notes: 'لا يوجد مزود مُعيّن لهذه الخدمة'
+        })
+        .eq('id', orderId);
+      
+      return { success: false, error: 'No provider configured for this service' };
+    }
+    
+    apiUrl = defaultProvider.api_url;
+    apiKey = defaultProvider.api_key;
+    providerName = defaultProvider.name;
+    providerId = defaultProvider.id;
+  }
+
+  // Send order to provider API
+  console.log(`Sending to ${providerName}:`, { service: service.external_service_id, link, quantity, apiUrl });
+
+  const formData = new FormData();
+  formData.append('key', apiKey);
+  formData.append('action', 'add');
+  formData.append('service', service.external_service_id);
+  formData.append('link', link);
+  formData.append('quantity', quantity.toString());
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const result = await response.json();
+    console.log(`${providerName} response:`, result);
+
+    if (result.error) {
+      // Update order with error status
+      await supabase
+        .from('orders')
+        .update({ 
+          external_status: 'error',
+          admin_notes: `خطأ من ${providerName}: ${result.error}`
+        })
+        .eq('id', orderId);
+
+      return { success: false, error: result.error };
+    }
+
+    // Update order with external order ID and set status to processing
+    const { error: updateError } = await supabase
+      .from('orders')
+      .update({ 
+        external_order_id: result.order?.toString(),
+        external_status: 'pending',
+        status: 'processing'
+      })
+      .eq('id', orderId);
+
+    if (updateError) {
+      console.error('Error updating order:', updateError);
+    }
+
+    // Log the order to provider_balance_logs
+    if (providerId) {
+      const balanceFormData = new FormData();
+      balanceFormData.append('key', apiKey);
+      balanceFormData.append('action', 'balance');
+      
+      try {
+        const balanceResponse = await fetch(apiUrl, {
+          method: 'POST',
+          body: balanceFormData,
+        });
+        const balanceData = await balanceResponse.json();
+        const currentBalance = parseFloat(balanceData.balance || balanceData.funds || '0');
+
+        await supabase
+          .from('provider_balance_logs')
+          .insert({
+            provider_id: providerId,
+            balance: currentBalance,
+            currency: balanceData.currency || 'USD',
+            order_id: orderId,
+            order_cost: result.charge || null,
+            action_type: 'order_placed',
+            notes: `طلب رقم ${result.order} - الخدمة: ${service.name}`
+          });
+        console.log('Order logged to balance logs');
+      } catch (logError) {
+        console.error('Error logging order to balance logs:', logError);
+      }
+    }
+
+    return { 
+      success: true, 
+      data: { 
+        external_order_id: result.order,
+        provider: providerName,
+        message: `Order sent to ${providerName} successfully`
+      }
+    };
+
+  } catch (fetchError) {
+    console.error('Error calling provider API:', fetchError);
+    
+    // Update order with error
+    await supabase
+      .from('orders')
+      .update({ 
+        external_status: 'error',
+        admin_notes: `خطأ في الاتصال بـ ${providerName}: ${fetchError instanceof Error ? fetchError.message : 'Unknown error'}`
+      })
+      .eq('id', orderId);
+
+    return { success: false, error: fetchError instanceof Error ? fetchError.message : 'Unknown error' };
+  }
+}
+
 serve(async (req) => {
   console.log('=== provider-order function called ===');
   console.log('Method:', req.method);
@@ -25,182 +223,26 @@ serve(async (req) => {
     
     const { orderId, serviceId, link, quantity } = body;
 
-    console.log('Processing order:', { orderId, serviceId, link, quantity });
-
-    // Get service with provider information
-    const { data: service, error: serviceError } = await supabase
-      .from('services')
-      .select(`
-        external_service_id, 
-        name,
-        provider_id,
-        api_providers (
-          id,
-          name,
-          api_url,
-          api_key,
-          is_active
-        )
-      `)
-      .eq('id', serviceId)
-      .maybeSingle();
-
-    if (serviceError || !service) {
-      console.error('Service not found:', serviceError);
+    if (!orderId || !serviceId || !link || !quantity) {
       return new Response(
-        JSON.stringify({ error: 'Service not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Missing required fields: orderId, serviceId, link, quantity' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (!service.external_service_id) {
-      console.log('No external service ID, skipping provider API');
+    const result = await sendOrderToProvider(supabase, { orderId, serviceId, link, quantity });
+
+    if (result.success) {
       return new Response(
-        JSON.stringify({ success: true, message: 'Local order only - no external service ID' }),
+        JSON.stringify({ success: true, ...result.data }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
-    }
-
-    // Get provider info - either from service or use default
-    let apiUrl: string;
-    let apiKey: string;
-    let providerName: string;
-
-    if (service.provider_id && service.api_providers) {
-      const provider = service.api_providers as any;
-      if (!provider.is_active) {
-        console.error('Provider is not active:', provider.name);
-        return new Response(
-          JSON.stringify({ error: 'Provider is not active' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      apiUrl = provider.api_url;
-      apiKey = provider.api_key;
-      providerName = provider.name;
     } else {
-      // Fallback to default provider
-      const { data: defaultProvider, error: defaultError } = await supabase
-        .from('api_providers')
-        .select('id, name, api_url, api_key, is_active')
-        .eq('is_default', true)
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (defaultError || !defaultProvider) {
-        console.error('No provider found for service and no default provider');
-        return new Response(
-          JSON.stringify({ error: 'No provider configured for this service' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      apiUrl = defaultProvider.api_url;
-      apiKey = defaultProvider.api_key;
-      providerName = defaultProvider.name;
-    }
-
-    // Send order to provider API
-    console.log(`Sending to ${providerName}:`, { service: service.external_service_id, link, quantity, apiUrl });
-
-    const formData = new FormData();
-    formData.append('key', apiKey);
-    formData.append('action', 'add');
-    formData.append('service', service.external_service_id);
-    formData.append('link', link);
-    formData.append('quantity', quantity.toString());
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      body: formData,
-    });
-
-    const result = await response.json();
-    console.log(`${providerName} response:`, result);
-
-    if (result.error) {
-      // Update order with error status
-      await supabase
-        .from('orders')
-        .update({ 
-          external_status: 'error',
-          admin_notes: `${providerName} Error: ${result.error}`
-        })
-        .eq('id', orderId);
-
       return new Response(
         JSON.stringify({ error: result.error }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    // Update order with external order ID
-    const { error: updateError } = await supabase
-      .from('orders')
-      .update({ 
-        external_order_id: result.order?.toString(),
-        external_status: 'pending'
-      })
-      .eq('id', orderId);
-
-    if (updateError) {
-      console.error('Error updating order:', updateError);
-    }
-
-    // Log the order to provider_balance_logs
-    // Get provider ID
-    let providerId = service.provider_id;
-    if (!providerId) {
-      const { data: defaultProvider } = await supabase
-        .from('api_providers')
-        .select('id')
-        .eq('is_default', true)
-        .eq('is_active', true)
-        .maybeSingle();
-      providerId = defaultProvider?.id;
-    }
-
-    if (providerId) {
-      // Get current balance after order
-      const balanceFormData = new FormData();
-      balanceFormData.append('key', apiKey);
-      balanceFormData.append('action', 'balance');
-      
-      try {
-        const balanceResponse = await fetch(apiUrl, {
-          method: 'POST',
-          body: balanceFormData,
-        });
-        const balanceData = await balanceResponse.json();
-        const currentBalance = parseFloat(balanceData.balance || balanceData.funds || '0');
-
-        // Log the order placement
-        await supabase
-          .from('provider_balance_logs')
-          .insert({
-            provider_id: providerId,
-            balance: currentBalance,
-            currency: balanceData.currency || 'USD',
-            order_id: orderId,
-            order_cost: result.charge || null,
-            action_type: 'order_placed',
-            notes: `طلب رقم ${result.order} - الخدمة: ${service.name}`
-          });
-        console.log('Order logged to balance logs');
-      } catch (logError) {
-        console.error('Error logging order to balance logs:', logError);
-      }
-    }
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        external_order_id: result.order,
-        provider: providerName,
-        message: `Order sent to ${providerName} successfully`
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
 
   } catch (error: unknown) {
     console.error('Error in provider-order:', error);

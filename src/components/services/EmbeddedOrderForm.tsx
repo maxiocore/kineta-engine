@@ -415,8 +415,9 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
         }
       }
 
-      // Send order to provider with retry logic
-      console.log('Attempting to send order to provider:', {
+      // Send order to provider IMMEDIATELY after order creation
+      console.log('=== SENDING ORDER TO PROVIDER IMMEDIATELY ===');
+      console.log('Order details:', {
         orderId: createdOrder.id,
         serviceId: service.id,
         link,
@@ -424,75 +425,54 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
         hasExternalServiceId: !!service.external_service_id
       });
 
-      // Retry function with exponential backoff
-      const sendToProviderWithRetry = async (maxRetries: number = 3) => {
-        let lastError: any = null;
-        
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-          console.log(`Provider order attempt ${attempt}/${maxRetries}`);
-          
-          try {
-            const { data: providerData, error: providerError } = await supabase.functions.invoke('provider-order', {
-              body: {
-                orderId: createdOrder.id,
-                serviceId: service.id,
-                link,
-                quantity
-              }
-            });
+      // Show immediate feedback
+      toast.loading("جاري إرسال الطلب للمزود...", { id: 'provider-order' });
 
-            if (providerError) {
-              console.error(`Provider order error (attempt ${attempt}):`, providerError);
-              lastError = providerError;
-              
-              // If not the last attempt, wait before retrying
-              if (attempt < maxRetries) {
-                const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000); // 1s, 2s, 4s, max 5s
-                console.log(`Waiting ${delay}ms before retry...`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-              }
-            } else {
-              console.log('Provider order response:', providerData);
-              
-              // Check if provider returned success
-              if (providerData?.success) {
-                toast.success("تم إرسال الطلب للمزود بنجاح");
-                return { success: true, data: providerData };
-              } else if (providerData?.error) {
-                console.error('Provider returned error:', providerData.error);
-                lastError = providerData.error;
-                
-                if (attempt < maxRetries) {
-                  const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-                  await new Promise(resolve => setTimeout(resolve, delay));
-                }
-              } else {
-                // Response without explicit success/error, treat as success
-                return { success: true, data: providerData };
-              }
-            }
-          } catch (err) {
-            console.error(`Provider order exception (attempt ${attempt}):`, err);
-            lastError = err;
-            
-            if (attempt < maxRetries) {
-              const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-              await new Promise(resolve => setTimeout(resolve, delay));
-            }
+      try {
+        const { data: providerData, error: providerError } = await supabase.functions.invoke('provider-order', {
+          body: {
+            orderId: createdOrder.id,
+            serviceId: service.id,
+            link,
+            quantity
           }
-        }
-        
-        // All retries failed
-        console.error('All provider order attempts failed:', lastError);
-        return { success: false, error: lastError };
-      };
+        });
 
-      // Execute with retry
-      const providerResult = await sendToProviderWithRetry(3);
-      
-      if (!providerResult.success) {
-        console.warn('Failed to send to provider after 3 attempts, order will need manual resend');
-        // Order is created, user can manually resend later
+        console.log('Provider response:', providerData, 'Error:', providerError);
+
+        if (providerError) {
+          console.error('Provider error:', providerError);
+          toast.error("فشل إرسال الطلب للمزود - سيتم إعادة المحاولة", { id: 'provider-order' });
+          
+          // Retry once after 2 seconds
+          setTimeout(async () => {
+            try {
+              const { data: retryData, error: retryError } = await supabase.functions.invoke('provider-order', {
+                body: {
+                  orderId: createdOrder.id,
+                  serviceId: service.id,
+                  link,
+                  quantity
+                }
+              });
+              
+              if (!retryError && retryData?.success) {
+                toast.success("تم إرسال الطلب للمزود بنجاح!", { id: 'provider-retry' });
+              }
+            } catch (e) {
+              console.error('Retry failed:', e);
+            }
+          }, 2000);
+        } else if (providerData?.success) {
+          toast.success(`تم إرسال الطلب للمزود بنجاح! رقم الطلب الخارجي: ${providerData.external_order_id || '---'}`, { id: 'provider-order' });
+        } else if (providerData?.error) {
+          toast.error(`خطأ من المزود: ${providerData.error}`, { id: 'provider-order' });
+        } else if (providerData?.message?.includes('Local order')) {
+          toast.info("تم إنشاء الطلب - خدمة محلية", { id: 'provider-order' });
+        }
+      } catch (providerErr) {
+        console.error('Error calling provider-order:', providerErr);
+        toast.error("حدث خطأ في الاتصال بالمزود", { id: 'provider-order' });
       }
 
       // Show progress indicator

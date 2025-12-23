@@ -443,32 +443,38 @@ const ClientServicesNew = () => {
       await saveRecentLink(link);
       await supabase.from("user_balances").update({ balance: userBalance.balance - totalPrice, total_spent: userBalance.total_spent + totalPrice }).eq("user_id", user.id);
       
-      // Send order to provider automatically
-      if (selectedService.external_service_id) {
-        setSubmitStatus("sending");
-        try {
-          const { data: providerResult, error: providerError } = await supabase.functions.invoke('provider-order', {
-            body: {
-              orderId: orderData.id,
-              serviceId: selectedService.id,
-              link: link,
-              quantity: parseInt(quantity)
-            }
-          });
-          
-          if (providerError) {
-            console.error('Provider order error:', providerError);
-            toast.warning("تم إنشاء الطلب لكن حدث خطأ في إرساله للمزود");
-          } else if (providerResult?.error) {
-            console.error('Provider API error:', providerResult.error);
-            toast.warning(`تم إنشاء الطلب - خطأ من المزود: ${providerResult.error}`);
-          } else {
-            console.log('Provider order success:', providerResult);
-            toast.success(`تم إرسال الطلب للمزود برقم: ${providerResult.external_order_id}`);
+      // Send order to provider IMMEDIATELY
+      console.log('=== SENDING ORDER TO PROVIDER ===');
+      setSubmitStatus("sending");
+      toast.loading("جاري إرسال الطلب للمزود...", { id: 'provider-order' });
+      
+      try {
+        const { data: providerResult, error: providerError } = await supabase.functions.invoke('provider-order', {
+          body: {
+            orderId: orderData.id,
+            serviceId: selectedService.id,
+            link: link,
+            quantity: parseInt(quantity)
           }
-        } catch (providerErr) {
-          console.error('Error calling provider-order:', providerErr);
+        });
+        
+        console.log('Provider response:', providerResult, 'Error:', providerError);
+        
+        if (providerError) {
+          console.error('Provider order error:', providerError);
+          toast.error("فشل إرسال الطلب للمزود", { id: 'provider-order' });
+        } else if (providerResult?.success) {
+          toast.success(`تم إرسال الطلب للمزود! رقم: ${providerResult.external_order_id || '---'}`, { id: 'provider-order' });
+        } else if (providerResult?.error) {
+          toast.error(`خطأ من المزود: ${providerResult.error}`, { id: 'provider-order' });
+        } else if (providerResult?.message?.includes('Local order')) {
+          toast.info("تم إنشاء الطلب - خدمة محلية", { id: 'provider-order' });
+        } else {
+          toast.dismiss('provider-order');
         }
+      } catch (providerErr) {
+        console.error('Error calling provider-order:', providerErr);
+        toast.error("خطأ في الاتصال بالمزود", { id: 'provider-order' });
       }
       
       setSubmitStatus("done");

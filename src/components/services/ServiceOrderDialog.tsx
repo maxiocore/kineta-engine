@@ -371,17 +371,32 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
         });
       }
 
-      const { error: apiError } = await supabase.functions.invoke('provider-order', {
-        body: {
-          orderId: orderData.id,
-          serviceId: currentService.id,
-          link: data.link,
-          quantity: data.quantity,
-        }
-      });
+      // Send to provider immediately
+      toast.loading("جاري إرسال الطلب للمزود...", { id: 'provider-send' });
+      
+      try {
+        const { data: providerData, error: apiError } = await supabase.functions.invoke('provider-order', {
+          body: {
+            orderId: orderData.id,
+            serviceId: currentService.id,
+            link: data.link,
+            quantity: data.quantity,
+          }
+        });
 
-      if (apiError) {
-        console.warn('Provider API error:', apiError);
+        if (apiError) {
+          console.warn('Provider API error:', apiError);
+          toast.error("فشل إرسال الطلب للمزود", { id: 'provider-send' });
+        } else if (providerData?.success) {
+          toast.success(`تم إرسال الطلب للمزود! رقم: ${providerData.external_order_id || '---'}`, { id: 'provider-send' });
+        } else if (providerData?.error) {
+          toast.error(`خطأ من المزود: ${providerData.error}`, { id: 'provider-send' });
+        } else {
+          toast.dismiss('provider-send');
+        }
+      } catch (providerErr) {
+        console.error('Error calling provider:', providerErr);
+        toast.error("خطأ في الاتصال بالمزود", { id: 'provider-send' });
       }
 
       setOrderNumber(orderData.order_number);
