@@ -586,7 +586,107 @@ const ClientServicesHome = () => {
             </motion.div>
           </motion.section>
 
-          {/* Animated Statistics Section */}
+          {/* Main Services Grid - Moved to Top */}
+          <motion.section
+            ref={sectionsRef}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mb-8 sm:mb-12 space-y-5 sm:space-y-6"
+          >
+            <motion.h2 
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3"
+            >
+              <Crown className="w-6 h-6 text-primary" />
+              اختر نوع الخدمة
+            </motion.h2>
+
+            <div className="grid gap-5 sm:gap-6 grid-cols-1 lg:grid-cols-3">
+              {sections.map((section, index) => (
+                <motion.div
+                  key={section.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ 
+                    duration: 0.4, 
+                    delay: 0.3 + index * 0.1
+                  }}
+                  className="group"
+                >
+                  <Link to={section.path} className="block h-full">
+                    <Card className="h-full relative overflow-hidden border border-border/50 bg-card hover:border-border transition-colors duration-300">
+                      <CardContent className="p-5 sm:p-6 lg:p-7 flex flex-col h-full min-h-[320px] sm:min-h-[360px]">
+                        {/* Header */}
+                        <div className="flex items-start justify-between mb-5">
+                          {/* Icon */}
+                          <div className={`p-4 rounded-2xl bg-gradient-to-br ${section.gradient} shadow-lg`}>
+                            <section.icon className="w-7 h-7 text-white" />
+                          </div>
+                          
+                          {/* Counter Badge */}
+                          <Badge className={`bg-gradient-to-l ${section.gradient} text-white border-0 shadow-lg px-3 py-1.5 text-sm font-bold`}>
+                            {section.count}+
+                          </Badge>
+                        </div>
+
+                        {/* Title & Description */}
+                        <div className="mb-5">
+                          <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
+                            {section.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {section.description}
+                          </p>
+                        </div>
+
+                        {/* Platforms Grid */}
+                        <div className="flex-1 mb-5">
+                          <div className="flex flex-wrap gap-2">
+                            {section.platforms.map((platform) => (
+                              <div
+                                key={platform.label}
+                                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${platform.color} flex items-center justify-center shadow-md`}
+                              >
+                                <platform.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Features List */}
+                        <div className="space-y-2 mb-5">
+                          {section.features.map((feat) => (
+                            <div
+                              key={feat}
+                              className="flex items-center gap-2 text-sm text-muted-foreground"
+                            >
+                              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                              <span>{feat}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* CTA Button */}
+                        <Button 
+                          className={cn(
+                            "w-full h-12 rounded-xl font-semibold text-sm gap-2",
+                            `bg-gradient-to-l ${section.gradient} hover:opacity-90 text-white`
+                          )}
+                        >
+                          <span>استعراض الخدمات</span>
+                          <ArrowUpLeft className="w-4 h-4" />
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </motion.section>
+
           <motion.section
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -927,107 +1027,6 @@ const ClientServicesHome = () => {
                     <div className="text-xs text-muted-foreground">{feature.desc}</div>
                   </div>
                   <div className="sm:hidden text-sm font-medium text-foreground">{feature.title}</div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.section>
-
-          {/* Main Services Grid */}
-          <motion.section
-            ref={sectionsRef}
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="space-y-5 sm:space-y-6"
-          >
-            <motion.h2 
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3"
-            >
-              <Crown className="w-6 h-6 text-primary" />
-              اختر نوع الخدمة
-            </motion.h2>
-
-            <div className="grid gap-5 sm:gap-6 grid-cols-1 lg:grid-cols-3">
-              {sections.map((section, index) => (
-                <motion.div
-                  key={section.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ 
-                    duration: 0.4, 
-                    delay: 0.3 + index * 0.1
-                  }}
-                  className="group"
-                >
-                  <Link to={section.path} className="block h-full">
-                    <Card className="h-full relative overflow-hidden border border-border/50 bg-card hover:border-border transition-colors duration-300">
-                      <CardContent className="p-5 sm:p-6 lg:p-7 flex flex-col h-full min-h-[320px] sm:min-h-[360px]">
-                        {/* Header */}
-                        <div className="flex items-start justify-between mb-5">
-                          {/* Icon */}
-                          <div className={`p-4 rounded-2xl bg-gradient-to-br ${section.gradient} shadow-lg`}>
-                            <section.icon className="w-7 h-7 text-white" />
-                          </div>
-                          
-                          {/* Counter Badge */}
-                          <Badge className={`bg-gradient-to-l ${section.gradient} text-white border-0 shadow-lg px-3 py-1.5 text-sm font-bold`}>
-                            {section.count}+
-                          </Badge>
-                        </div>
-
-                        {/* Title & Description */}
-                        <div className="mb-5">
-                          <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
-                            {section.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            {section.description}
-                          </p>
-                        </div>
-
-                        {/* Platforms Grid */}
-                        <div className="flex-1 mb-5">
-                          <div className="flex flex-wrap gap-2">
-                            {section.platforms.map((platform) => (
-                              <div
-                                key={platform.label}
-                                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${platform.color} flex items-center justify-center shadow-md`}
-                              >
-                                <platform.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Features List */}
-                        <div className="space-y-2 mb-5">
-                          {section.features.map((feat) => (
-                            <div
-                              key={feat}
-                              className="flex items-center gap-2 text-sm text-muted-foreground"
-                            >
-                              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                              <span>{feat}</span>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* CTA Button */}
-                        <Button 
-                          className={cn(
-                            "w-full h-12 rounded-xl font-semibold text-sm gap-2",
-                            `bg-gradient-to-l ${section.gradient} hover:opacity-90 text-white`
-                          )}
-                        >
-                          <span>استعراض الخدمات</span>
-                          <ArrowUpLeft className="w-4 h-4" />
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </Link>
                 </motion.div>
               ))}
             </div>
