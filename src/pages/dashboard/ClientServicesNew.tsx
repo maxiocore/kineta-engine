@@ -49,7 +49,8 @@ import {
   BadgeCheck,
   ThumbsUp,
   RotateCcw,
-  History
+  History,
+  ArrowLeft
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -580,30 +581,52 @@ const ClientServicesNew = () => {
           </motion.div>
         )}
 
-        {/* Quick Reorder Section */}
+        {/* Quick Reorder Section - Modern Design */}
         {recentOrders.length > 0 && (
           <motion.div 
             initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6"
+            className="mb-8"
           >
-            <div className="flex items-center gap-2 mb-4">
-              <History className="w-5 h-5 text-primary" />
-              <h2 className="text-lg font-bold">إعادة طلب سريع</h2>
-              <Badge variant="secondary" className="text-[10px]">طلباتك الأخيرة</Badge>
+            {/* Section Header */}
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                    <History className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold">إعادة طلب سريع</h2>
+                  <p className="text-xs text-muted-foreground">أكمل طلبك بنقرة واحدة</p>
+                </div>
+              </div>
+              <Badge className="bg-gradient-to-r from-primary/20 to-primary/10 text-primary border-0 text-[10px] px-3">
+                <Sparkles className="w-3 h-3 ml-1" />
+                {recentOrders.length} طلبات سابقة
+              </Badge>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-              {recentOrders.slice(0, 5).map((order: any) => {
+
+            {/* Reorder Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+              {recentOrders.slice(0, 5).map((order: any, index: number) => {
                 const service = order.services;
                 if (!service || service.status !== 'active') return null;
                 const networkInfo = getSocialNetworkInfo(service.name);
                 const Icon = networkInfo.icon;
                 const priceInSAR = convertToSAR(service.price);
+                const totalPrice = priceInSAR * (order.quantity || 1) / 1000;
+                const orderDate = new Date(order.created_at);
+                const timeAgo = Math.floor((Date.now() - orderDate.getTime()) / (1000 * 60 * 60 * 24));
                 
                 return (
                   <motion.div
                     key={order.id}
-                    whileHover={{ scale: 1.02 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ y: -4, scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {
                       setSelectedCategory(service.category);
@@ -614,7 +637,6 @@ const ClientServicesNew = () => {
                         description: `الخدمة: ${service.name.substring(0, 50)}...`,
                         duration: 4000,
                       });
-                      // Scroll to order form
                       setTimeout(() => {
                         document.getElementById('order-form-section')?.scrollIntoView({ 
                           behavior: 'smooth', 
@@ -622,30 +644,62 @@ const ClientServicesNew = () => {
                         });
                       }, 100);
                     }}
-                    className="bg-card border border-border/50 rounded-xl p-3 cursor-pointer hover:border-primary/50 hover:shadow-md transition-all group"
+                    className="group relative bg-gradient-to-br from-card to-card/80 border border-border/50 rounded-2xl p-4 cursor-pointer hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 overflow-hidden"
                   >
-                    <div className="flex items-start gap-3">
+                    {/* Decorative Background */}
+                    <div className={cn(
+                      "absolute top-0 right-0 w-24 h-24 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity",
+                      networkInfo.gradient.includes('pink') ? 'bg-pink-500' :
+                      networkInfo.gradient.includes('blue') ? 'bg-blue-500' :
+                      networkInfo.gradient.includes('red') ? 'bg-red-500' :
+                      networkInfo.gradient.includes('green') ? 'bg-green-500' :
+                      networkInfo.gradient.includes('purple') ? 'bg-purple-500' :
+                      networkInfo.gradient.includes('cyan') ? 'bg-cyan-500' :
+                      networkInfo.gradient.includes('orange') ? 'bg-orange-500' :
+                      'bg-primary'
+                    )} />
+
+                    {/* Header with Icon & Badge */}
+                    <div className="relative flex items-start justify-between mb-3">
                       <div className={cn(
-                        "w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center text-white shrink-0",
+                        "w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center text-white shadow-lg",
                         networkInfo.gradient
                       )}>
-                        <Icon className="w-5 h-5" />
+                        <Icon className="w-6 h-6" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium line-clamp-2 mb-1">{service.name}</p>
-                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                          <span>{order.quantity?.toLocaleString()}</span>
-                          <span>•</span>
-                          <span className="text-primary font-medium">{priceInSAR.toFixed(2)}ر.س</span>
-                        </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <Badge variant="outline" className="text-[9px] bg-background/50 backdrop-blur-sm border-border/50">
+                          {timeAgo === 0 ? 'اليوم' : timeAgo === 1 ? 'أمس' : `منذ ${timeAgo} أيام`}
+                        </Badge>
+                        <span className="text-[10px] text-muted-foreground">#{order.order_number?.slice(-6)}</span>
                       </div>
                     </div>
+
+                    {/* Service Name */}
+                    <p className="relative text-sm font-medium line-clamp-2 mb-3 leading-relaxed">
+                      {service.name}
+                    </p>
+
+                    {/* Order Details */}
+                    <div className="relative flex items-center gap-2 mb-4 p-2 rounded-lg bg-muted/30">
+                      <div className="flex-1 text-center border-l border-border/50">
+                        <p className="text-[10px] text-muted-foreground">الكمية</p>
+                        <p className="text-sm font-bold text-foreground">{order.quantity?.toLocaleString()}</p>
+                      </div>
+                      <div className="flex-1 text-center">
+                        <p className="text-[10px] text-muted-foreground">السعر</p>
+                        <p className="text-sm font-bold text-primary">{totalPrice.toFixed(2)}ر.س</p>
+                      </div>
+                    </div>
+
+                    {/* Reorder Button */}
                     <Button
                       size="sm"
-                      className="w-full mt-3 h-8 text-xs bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                      className="relative w-full h-10 text-sm font-medium bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-md hover:shadow-lg transition-all duration-300 group-hover:shadow-primary/25"
                     >
-                      <RotateCcw className="w-3 h-3 ml-1" />
-                      إعادة الطلب
+                      <RotateCcw className="w-4 h-4 ml-2 group-hover:rotate-180 transition-transform duration-500" />
+                      إعادة الطلب الآن
+                      <ArrowLeft className="w-4 h-4 mr-2 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
                     </Button>
                   </motion.div>
                 );
