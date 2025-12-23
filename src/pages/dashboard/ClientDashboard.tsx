@@ -20,11 +20,23 @@ import {
   Users,
   CreditCard,
   Activity,
+  Settings2,
+  Target,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import SpendingChart from "@/components/dashboard/SpendingChart";
@@ -172,12 +184,16 @@ const ClientDashboard = () => {
   const { 
     achievements, 
     loading: achievementsLoading, 
-    updateAchievement, 
+    updateAchievement,
+    updateMonthlyGoal,
     markGoalAchieved,
     currentAchievement 
   } = useMonthlyAchievements(user?.id);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showGoalDialog, setShowGoalDialog] = useState(false);
+  const [newGoal, setNewGoal] = useState<number>(10);
+  const [savingGoal, setSavingGoal] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
@@ -421,14 +437,16 @@ const ClientDashboard = () => {
         isWithinInterval(new Date(o.created_at), { start: monthStart, end: monthEnd })
       ).length;
 
-      // Dynamic monthly goal based on previous month performance
+      // Dynamic monthly goal based on previous month performance or user setting
       const lastMonthStart = startOfMonth(subMonths(currentDate, 1));
       const lastMonthEnd = endOfMonth(subMonths(currentDate, 1));
       const completedLastMonth = ordersData.filter(o => 
         o.status === "completed" && 
         isWithinInterval(new Date(o.created_at), { start: lastMonthStart, end: lastMonthEnd })
       ).length;
-      const monthlyGoal = Math.max(10, Math.ceil(completedLastMonth * 1.2)); // Goal is 20% more than last month, minimum 10
+      // Use saved goal from database if available, otherwise calculate
+      const defaultGoal = Math.max(10, Math.ceil(completedLastMonth * 1.2)); // Goal is 20% more than last month, minimum 10
+      const monthlyGoal = currentAchievement?.monthly_goal || defaultGoal;
 
       // Calculate status distribution
       const statusData: OrderStatusData = {
@@ -707,6 +725,30 @@ const ClientDashboard = () => {
     setTips(prev => prev.filter(t => t.id !== id));
   };
 
+  const handleSaveGoal = async () => {
+    if (newGoal < 1 || newGoal > 1000) {
+      toast.error("الرجاء إدخال هدف بين 1 و 1000");
+      return;
+    }
+    
+    setSavingGoal(true);
+    try {
+      await updateMonthlyGoal(newGoal);
+      setStats(prev => ({ ...prev, monthlyGoal: newGoal }));
+      setShowGoalDialog(false);
+      toast.success("تم تحديث الهدف الشهري بنجاح! 🎯");
+    } catch (error) {
+      toast.error("حدث خطأ أثناء حفظ الهدف");
+    } finally {
+      setSavingGoal(false);
+    }
+  };
+
+  const openGoalDialog = () => {
+    setNewGoal(currentAchievement?.monthly_goal || stats.monthlyGoal);
+    setShowGoalDialog(true);
+  };
+
   // Loading skeleton
   if (loading) {
     return (
@@ -742,6 +784,80 @@ const ClientDashboard = () => {
         completedOrders={stats.completedThisMonth}
         monthlyGoal={stats.monthlyGoal}
       />
+
+      {/* Goal Setting Dialog */}
+      <Dialog open={showGoalDialog} onOpenChange={setShowGoalDialog}>
+        <DialogContent className="sm:max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-right">
+              <Target className="w-5 h-5 text-primary" />
+              تحديد الهدف الشهري
+            </DialogTitle>
+            <DialogDescription className="text-right">
+              حدد عدد الطلبات التي تريد إكمالها هذا الشهر
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="goal" className="text-right block">
+                الهدف الشهري (عدد الطلبات)
+              </Label>
+              <Input
+                id="goal"
+                type="number"
+                min={1}
+                max={1000}
+                value={newGoal}
+                onChange={(e) => setNewGoal(Math.max(1, parseInt(e.target.value) || 1))}
+                className="text-center text-lg font-bold"
+                placeholder="10"
+              />
+            </div>
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              {[5, 10, 20, 30, 50].map((preset) => (
+                <Button
+                  key={preset}
+                  variant={newGoal === preset ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setNewGoal(preset)}
+                  className="min-w-12"
+                >
+                  {preset}
+                </Button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground text-center">
+              الهدف الحالي: {currentAchievement?.monthly_goal || stats.monthlyGoal} طلب
+            </p>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setShowGoalDialog(false)}
+              disabled={savingGoal}
+            >
+              إلغاء
+            </Button>
+            <Button
+              onClick={handleSaveGoal}
+              disabled={savingGoal}
+              className="gap-2"
+            >
+              {savingGoal ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  جاري الحفظ...
+                </>
+              ) : (
+                <>
+                  <Target className="w-4 h-4" />
+                  حفظ الهدف
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <motion.div 
         dir="rtl"
@@ -828,12 +944,23 @@ const ClientDashboard = () => {
                     </p>
                   </div>
                 </div>
-                <div className="text-right sm:text-left flex items-center sm:block gap-2">
-                  <p className="text-lg sm:text-xl md:text-2xl font-bold text-success">
-                    {stats.completedThisMonth}
-                    <span className="text-xs sm:text-sm text-muted-foreground font-normal">/{stats.monthlyGoal}</span>
-                  </p>
-                  <p className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground">طلب مكتمل</p>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="text-right sm:text-left flex items-center sm:block gap-2">
+                    <p className="text-lg sm:text-xl md:text-2xl font-bold text-success">
+                      {stats.completedThisMonth}
+                      <span className="text-xs sm:text-sm text-muted-foreground font-normal">/{stats.monthlyGoal}</span>
+                    </p>
+                    <p className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground">طلب مكتمل</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={openGoalDialog}
+                    className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 p-0 shrink-0"
+                  >
+                    <Settings2 className="w-4 h-4" />
+                    <span className="hidden sm:inline mr-1">تعديل الهدف</span>
+                  </Button>
                 </div>
               </div>
               <div className="space-y-1.5 sm:space-y-2">
