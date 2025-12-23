@@ -795,12 +795,12 @@ const ClientServicesNew = () => {
                                   {/* Price on the left */}
                                   <div className="flex flex-col items-start gap-2 shrink-0">
                                     {discount > 0 ? (
-                                      <div className="text-right">
-                                        <p className="text-[10px] text-muted-foreground line-through">{service.price.toFixed(2)} ر.س</p>
-                                        <p className="text-sm sm:text-base font-bold text-red-500">{discountedPrice.toFixed(2)} <span className="text-[10px]">ر.س</span></p>
+                                      <div className="text-left">
+                                        <p className="text-[10px] text-muted-foreground line-through"><span>ر.س</span> {service.price.toFixed(2)}</p>
+                                        <p className="text-sm sm:text-base font-bold text-red-500"><span className="text-[10px]">ر.س</span> {discountedPrice.toFixed(2)}</p>
                                       </div>
                                     ) : (
-                                      <p className="text-sm sm:text-base font-bold text-primary">{service.price.toFixed(2)} <span className="text-[10px] text-muted-foreground">ر.س</span></p>
+                                      <p className="text-sm sm:text-base font-bold text-primary"><span className="text-[10px] text-muted-foreground">ر.س</span> {service.price.toFixed(2)}</p>
                                     )}
                                     <Button
                                       variant="ghost"
