@@ -133,7 +133,7 @@ const ClientDeposits = () => {
     fetchProfile();
   }, [user]);
 
-  // Generate PDF Invoice - Arabic RTL
+  // Generate PDF Invoice - Clean English format
   const generatePDF = useCallback((deposit: Deposit) => {
     const doc = new jsPDF({
       orientation: 'portrait',
@@ -141,189 +141,184 @@ const ClientDeposits = () => {
       format: 'a4',
     });
     
-    // Arabic text helper - reverse for RTL display
-    const arabicText = (text: string, x: number, y: number, options?: { align?: 'left' | 'center' | 'right', fontSize?: number, isBold?: boolean }) => {
-      if (options?.fontSize) doc.setFontSize(options.fontSize);
-      // For RTL, we position from right side
-      const pageWidth = 210;
-      let finalX = x;
-      if (options?.align === 'center') {
-        finalX = pageWidth / 2;
-      } else if (options?.align === 'right' || !options?.align) {
-        finalX = pageWidth - x;
-      }
-      doc.text(text, finalX, y, { align: options?.align || 'right' });
-    };
+    const invoiceNumber = `INV-${deposit.id.slice(0, 8).toUpperCase()}`;
     
-    // Header background - gradient effect
+    // Header background
     doc.setFillColor(14, 165, 233);
-    doc.rect(0, 0, 210, 55, 'F');
-    
-    // Secondary header decoration
-    doc.setFillColor(2, 132, 199);
-    doc.rect(0, 45, 210, 10, 'F');
+    doc.rect(0, 0, 210, 50, 'F');
     
     // Company name
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(28);
-    doc.text('KINETA', 105, 22, { align: 'center' });
+    doc.setFont('helvetica', 'bold');
+    doc.text('KINETA', 105, 25, { align: 'center' });
     
-    doc.setFontSize(14);
-    doc.text('فاتورة إيداع', 105, 35, { align: 'center' });
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Deposit Invoice', 105, 38, { align: 'center' });
     
+    // Invoice details section
+    doc.setTextColor(60, 60, 60);
     doc.setFontSize(10);
-    doc.text('Deposit Invoice', 105, 42, { align: 'center' });
     
-    // Invoice info box - RTL aligned
-    doc.setTextColor(100, 100, 100);
-    doc.setFontSize(9);
+    // Left column - Invoice info
+    doc.setFont('helvetica', 'bold');
+    doc.text('Invoice Number:', 20, 65);
+    doc.setFont('helvetica', 'normal');
+    doc.text(invoiceNumber, 20, 72);
     
-    // Right side - Invoice number
-    const invoiceNumber = `INV-${deposit.id.slice(0, 8).toUpperCase()}`;
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(11);
-    doc.text(`${invoiceNumber} :رقم الفاتورة`, 195, 65, { align: 'right' });
+    doc.setFont('helvetica', 'bold');
+    doc.text('Date:', 20, 82);
+    doc.setFont('helvetica', 'normal');
+    doc.text(format(new Date(deposit.created_at), 'dd/MM/yyyy HH:mm'), 20, 89);
     
-    // Date
-    doc.setFontSize(10);
-    doc.setTextColor(80, 80, 80);
-    const dateFormatted = format(new Date(deposit.created_at), 'yyyy/MM/dd - HH:mm', { locale: ar });
-    doc.text(`${dateFormatted} :التاريخ`, 195, 73, { align: 'right' });
+    doc.setFont('helvetica', 'bold');
+    doc.text('Transaction ID:', 20, 99);
+    doc.setFont('helvetica', 'normal');
+    doc.text(deposit.transaction_id || 'N/A', 20, 106);
     
-    // Transaction ID
-    doc.text(`${deposit.transaction_id || 'غير متوفر'} :رقم العملية`, 195, 81, { align: 'right' });
-    
-    // Status with colored background
-    const statusText = statusConfig[deposit.status]?.label || deposit.status;
+    // Right column - Status
+    const statusLabels: Record<string, string> = {
+      pending: 'Pending',
+      completed: 'Completed',
+      rejected: 'Rejected',
+      cancelled: 'Cancelled',
+    };
+    const statusText = statusLabels[deposit.status] || deposit.status;
     let statusColor: [number, number, number] = [100, 100, 100];
     if (deposit.status === 'completed') statusColor = [34, 197, 94];
     else if (deposit.status === 'pending') statusColor = [234, 179, 8];
     else if (deposit.status === 'rejected' || deposit.status === 'cancelled') statusColor = [239, 68, 68];
     
     doc.setFillColor(...statusColor);
-    doc.roundedRect(15, 62, 45, 12, 2, 2, 'F');
+    doc.roundedRect(140, 60, 50, 14, 3, 3, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(11);
-    doc.text(statusText, 37.5, 70, { align: 'center' });
+    doc.setFont('helvetica', 'bold');
+    doc.text(statusText, 165, 69, { align: 'center' });
     
     if (deposit.completed_at) {
       doc.setTextColor(80, 80, 80);
       doc.setFontSize(9);
-      const completedDate = format(new Date(deposit.completed_at), 'yyyy/MM/dd', { locale: ar });
-      doc.text(`${completedDate} :تاريخ الإتمام`, 37.5, 80, { align: 'center' });
+      doc.setFont('helvetica', 'normal');
+      doc.text('Completed: ' + format(new Date(deposit.completed_at), 'dd/MM/yyyy'), 140, 82);
     }
     
-    // Divider line
-    doc.setDrawColor(230, 230, 230);
+    // Divider
+    doc.setDrawColor(220, 220, 220);
     doc.setLineWidth(0.5);
-    doc.line(15, 90, 195, 90);
+    doc.line(20, 115, 190, 115);
     
-    // Customer Information Section
+    // Customer Information
     doc.setFillColor(248, 250, 252);
-    doc.roundedRect(15, 95, 180, 30, 3, 3, 'F');
+    doc.roundedRect(20, 120, 170, 28, 3, 3, 'F');
     
     doc.setTextColor(14, 165, 233);
-    doc.setFontSize(12);
-    doc.text('معلومات العميل', 190, 105, { align: 'right' });
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Customer Information', 25, 130);
     
     doc.setTextColor(60, 60, 60);
     doc.setFontSize(10);
-    doc.text(`${profile?.full_name || 'غير محدد'} :الاسم`, 185, 115, { align: 'right' });
-    doc.text(`${profile?.email || user?.email || 'غير محدد'} :البريد الإلكتروني`, 185, 122, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.text('Name: ' + (profile?.full_name || 'N/A'), 25, 140);
+    doc.text('Email: ' + (profile?.email || user?.email || 'N/A'), 105, 140);
     
-    // Payment Details Section
+    // Payment Details
     doc.setTextColor(14, 165, 233);
-    doc.setFontSize(12);
-    doc.text('تفاصيل الدفع', 190, 140, { align: 'right' });
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Payment Details', 25, 160);
     
     // Table header
     doc.setFillColor(14, 165, 233);
-    doc.roundedRect(15, 145, 180, 12, 2, 2, 'F');
+    doc.roundedRect(20, 165, 170, 10, 2, 2, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(10);
-    doc.text('المبلغ (ر.س)', 40, 153, { align: 'center' });
-    doc.text('البيان', 140, 153, { align: 'center' });
+    doc.text('Description', 25, 172);
+    doc.text('Amount (SAR)', 165, 172, { align: 'right' });
     
     // Table content
+    let yPos = 185;
     doc.setTextColor(60, 60, 60);
-    let yPos = 168;
+    doc.setFont('helvetica', 'normal');
     
-    // Deposit amount row
+    // Deposit row
     doc.setFillColor(252, 252, 252);
-    doc.rect(15, 160, 180, 12, 'F');
-    doc.text(`${deposit.amount.toFixed(2)}`, 40, yPos, { align: 'center' });
-    doc.text(`إيداع عبر ${deposit.payment_method?.name_ar || 'بوابة الدفع'}`, 185, yPos, { align: 'right' });
+    doc.rect(20, yPos - 7, 170, 12, 'F');
+    doc.text('Deposit via ' + (deposit.payment_method?.name_ar || 'Payment Gateway'), 25, yPos);
+    doc.text(deposit.amount.toFixed(2), 185, yPos, { align: 'right' });
     yPos += 15;
     
-    // Fee row (if exists)
+    // Fee row
     if (deposit.fee_amount && deposit.fee_amount > 0) {
       doc.setFillColor(254, 242, 242);
-      doc.rect(15, yPos - 8, 180, 12, 'F');
+      doc.rect(20, yPos - 7, 170, 12, 'F');
       doc.setTextColor(220, 38, 38);
-      doc.text(`${deposit.fee_amount.toFixed(2)}-`, 40, yPos, { align: 'center' });
-      doc.text('رسوم المعالجة', 185, yPos, { align: 'right' });
+      doc.text('Processing Fee', 25, yPos);
+      doc.text('-' + deposit.fee_amount.toFixed(2), 185, yPos, { align: 'right' });
       doc.setTextColor(60, 60, 60);
       yPos += 15;
     }
     
-    // Bonus row (if exists)
+    // Bonus row
     if (deposit.bonus_amount && deposit.bonus_amount > 0) {
       doc.setFillColor(240, 253, 244);
-      doc.rect(15, yPos - 8, 180, 12, 'F');
+      doc.rect(20, yPos - 7, 170, 12, 'F');
       doc.setTextColor(22, 163, 74);
-      doc.text(`${deposit.bonus_amount.toFixed(2)}+`, 40, yPos, { align: 'center' });
-      doc.text('مكافأة الإيداع', 185, yPos, { align: 'right' });
+      doc.text('Deposit Bonus', 25, yPos);
+      doc.text('+' + deposit.bonus_amount.toFixed(2), 185, yPos, { align: 'right' });
       doc.setTextColor(60, 60, 60);
       yPos += 15;
     }
     
-    // Total section
+    // Total
     yPos += 5;
     doc.setDrawColor(14, 165, 233);
     doc.setLineWidth(1);
-    doc.line(15, yPos - 3, 195, yPos - 3);
+    doc.line(20, yPos - 3, 190, yPos - 3);
     
     doc.setFillColor(14, 165, 233);
-    doc.roundedRect(15, yPos, 180, 18, 3, 3, 'F');
-    
+    doc.roundedRect(20, yPos, 170, 16, 3, 3, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
-    doc.text(`${deposit.total_credited.toFixed(2)} ر.س`, 40, yPos + 12, { align: 'center' });
-    doc.text('المبلغ المضاف للرصيد', 185, yPos + 12, { align: 'right' });
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Total Credited', 25, yPos + 11);
+    doc.text(deposit.total_credited.toFixed(2) + ' SAR', 185, yPos + 11, { align: 'right' });
     
     yPos += 30;
     
-    // Notes section (if exists)
+    // Notes
     if (deposit.notes) {
       doc.setTextColor(100, 100, 100);
       doc.setFontSize(10);
-      doc.text('ملاحظات:', 190, yPos, { align: 'right' });
+      doc.setFont('helvetica', 'bold');
+      doc.text('Notes:', 25, yPos);
+      doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
-      doc.text(deposit.notes, 185, yPos + 8, { align: 'right' });
-      yPos += 20;
+      doc.text(deposit.notes.substring(0, 80), 25, yPos + 7);
     }
     
     // Footer
-    doc.setDrawColor(230, 230, 230);
+    doc.setDrawColor(220, 220, 220);
     doc.setLineWidth(0.3);
-    doc.line(15, 255, 195, 255);
+    doc.line(20, 265, 190, 265);
     
     doc.setTextColor(150, 150, 150);
     doc.setFontSize(8);
-    doc.text('هذه فاتورة إلكترونية صادرة آلياً ولا تحتاج إلى توقيع أو ختم', 105, 262, { align: 'center' });
-    doc.text('شكراً لاستخدامكم خدماتنا', 105, 269, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.text('This is an electronically generated invoice.', 105, 272, { align: 'center' });
+    doc.text('Thank you for using our services!', 105, 278, { align: 'center' });
+    doc.text('Generated: ' + format(new Date(), 'dd/MM/yyyy HH:mm'), 105, 284, { align: 'center' });
     
-    const generatedDate = format(new Date(), 'yyyy/MM/dd - HH:mm', { locale: ar });
-    doc.text(`تاريخ الإصدار: ${generatedDate}`, 105, 276, { align: 'center' });
-    
-    // Decorative footer line
+    // Footer bar
     doc.setFillColor(14, 165, 233);
-    doc.rect(0, 287, 210, 10, 'F');
+    doc.rect(0, 290, 210, 7, 'F');
     
-    // Save the PDF
-    doc.save(`فاتورة-${invoiceNumber}.pdf`);
+    // Save
+    doc.save(`Invoice-${invoiceNumber}.pdf`);
     
-    sonnerToast.success('تم تحميل الفاتورة بنجاح');
+    sonnerToast.success('Invoice downloaded successfully');
   }, [profile, user]);
 
   // Verify payment function

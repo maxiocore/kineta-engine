@@ -80,7 +80,7 @@ export const OrderDetailsSheet = ({ order, orderHistory, loadingHistory, onClose
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  // Generate PDF Invoice - Arabic RTL
+  // Generate PDF Invoice - Clean English format
   const generatePDF = useCallback(() => {
     if (!order) return;
     
@@ -90,42 +90,55 @@ export const OrderDetailsSheet = ({ order, orderHistory, loadingHistory, onClose
       format: 'a4',
     });
     
-    // Header background - gradient effect
-    doc.setFillColor(14, 165, 233);
-    doc.rect(0, 0, 210, 55, 'F');
+    const invoiceNumber = `ORD-${order.order_number}`;
     
-    // Secondary header decoration
-    doc.setFillColor(2, 132, 199);
-    doc.rect(0, 45, 210, 10, 'F');
+    // Status labels in English
+    const statusLabels: Record<string, string> = {
+      pending: 'Pending',
+      processing: 'Processing',
+      in_progress: 'In Progress',
+      completed: 'Completed',
+      partial: 'Partial',
+      cancelled: 'Cancelled',
+      refunded: 'Refunded',
+    };
+    
+    // Header background
+    doc.setFillColor(14, 165, 233);
+    doc.rect(0, 0, 210, 50, 'F');
     
     // Company name
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(28);
-    doc.text('KINETA', 105, 22, { align: 'center' });
+    doc.setFont('helvetica', 'bold');
+    doc.text('KINETA', 105, 25, { align: 'center' });
     
-    doc.setFontSize(14);
-    doc.text('فاتورة طلب', 105, 35, { align: 'center' });
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Order Invoice', 105, 38, { align: 'center' });
     
+    // Invoice details section
+    doc.setTextColor(60, 60, 60);
     doc.setFontSize(10);
-    doc.text('Order Invoice', 105, 42, { align: 'center' });
     
-    // Invoice info box - RTL aligned
-    const invoiceNumber = `ORD-${order.order_number}`;
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(11);
-    doc.text(`${invoiceNumber} :رقم الفاتورة`, 195, 65, { align: 'right' });
+    // Left column - Invoice info
+    doc.setFont('helvetica', 'bold');
+    doc.text('Invoice Number:', 20, 65);
+    doc.setFont('helvetica', 'normal');
+    doc.text(invoiceNumber, 20, 72);
     
-    // Date
-    doc.setFontSize(10);
-    doc.setTextColor(80, 80, 80);
-    const dateFormatted = format(new Date(order.created_at), 'yyyy/MM/dd - HH:mm', { locale: ar });
-    doc.text(`${dateFormatted} :التاريخ`, 195, 73, { align: 'right' });
+    doc.setFont('helvetica', 'bold');
+    doc.text('Order Number:', 20, 82);
+    doc.setFont('helvetica', 'normal');
+    doc.text(order.order_number, 20, 89);
     
-    // Order Number
-    doc.text(`${order.order_number} :رقم الطلب`, 195, 81, { align: 'right' });
+    doc.setFont('helvetica', 'bold');
+    doc.text('Date:', 20, 99);
+    doc.setFont('helvetica', 'normal');
+    doc.text(format(new Date(order.created_at), 'dd/MM/yyyy HH:mm'), 20, 106);
     
-    // Status with colored background
-    const statusConfig = getStatusConfig(order.status);
+    // Right column - Status
+    const statusText = statusLabels[order.status] || order.status;
     let statusColor: [number, number, number] = [100, 100, 100];
     if (order.status === 'completed') statusColor = [34, 197, 94];
     else if (order.status === 'pending') statusColor = [234, 179, 8];
@@ -134,135 +147,143 @@ export const OrderDetailsSheet = ({ order, orderHistory, loadingHistory, onClose
     else if (order.status === 'partial') statusColor = [249, 115, 22];
     
     doc.setFillColor(...statusColor);
-    doc.roundedRect(15, 62, 45, 12, 2, 2, 'F');
+    doc.roundedRect(140, 60, 50, 14, 3, 3, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(11);
-    doc.text(statusConfig.label, 37.5, 70, { align: 'center' });
+    doc.setFont('helvetica', 'bold');
+    doc.text(statusText, 165, 69, { align: 'center' });
     
-    // Divider line
-    doc.setDrawColor(230, 230, 230);
+    // Divider
+    doc.setDrawColor(220, 220, 220);
     doc.setLineWidth(0.5);
-    doc.line(15, 90, 195, 90);
+    doc.line(20, 115, 190, 115);
     
-    // Service Information Section
+    // Service Information
     doc.setFillColor(248, 250, 252);
-    doc.roundedRect(15, 95, 180, 35, 3, 3, 'F');
+    doc.roundedRect(20, 120, 170, 35, 3, 3, 'F');
     
     doc.setTextColor(14, 165, 233);
-    doc.setFontSize(12);
-    doc.text('معلومات الخدمة', 190, 105, { align: 'right' });
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Service Information', 25, 130);
     
     doc.setTextColor(60, 60, 60);
     doc.setFontSize(10);
-    doc.text(`${order.service?.name || 'غير محدد'} :الخدمة`, 185, 115, { align: 'right' });
-    doc.text(`${order.service?.category || 'غير محدد'} :القسم`, 185, 123, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
     
-    // Quantity
+    // Service name (truncate if too long)
+    const serviceName = order.service?.name || 'N/A';
+    const truncatedName = serviceName.length > 40 ? serviceName.substring(0, 37) + '...' : serviceName;
+    doc.text('Service: ' + truncatedName, 25, 140);
+    doc.text('Category: ' + (order.service?.category || 'N/A'), 25, 148);
+    
     if (order.quantity) {
-      doc.text(`${order.quantity.toLocaleString()} :الكمية`, 100, 115, { align: 'right' });
+      doc.text('Quantity: ' + order.quantity.toLocaleString(), 130, 140);
     }
     
-    // Link (truncated if too long)
+    // Link section
     if (order.link) {
       const truncatedLink = order.link.length > 50 ? order.link.substring(0, 47) + '...' : order.link;
       doc.setFontSize(8);
-      doc.text(`${truncatedLink} :الرابط`, 185, 128, { align: 'right' });
+      doc.text('Link: ' + truncatedLink, 25, 152);
     }
     
-    // Payment Details Section
+    // Payment Details
     doc.setTextColor(14, 165, 233);
-    doc.setFontSize(12);
-    doc.text('تفاصيل السعر', 190, 145, { align: 'right' });
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Payment Details', 25, 168);
     
     // Table header
     doc.setFillColor(14, 165, 233);
-    doc.roundedRect(15, 150, 180, 12, 2, 2, 'F');
+    doc.roundedRect(20, 173, 170, 10, 2, 2, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(10);
-    doc.text('المبلغ (ر.س)', 40, 158, { align: 'center' });
-    doc.text('البيان', 140, 158, { align: 'center' });
+    doc.text('Description', 25, 180);
+    doc.text('Amount (SAR)', 165, 180, { align: 'right' });
     
     // Table content
+    let yPos = 193;
     doc.setTextColor(60, 60, 60);
-    let yPos = 173;
+    doc.setFont('helvetica', 'normal');
     
     // Base price row
     const basePrice = order.total_price + (order.discount_amount || 0);
     doc.setFillColor(252, 252, 252);
-    doc.rect(15, 165, 180, 12, 'F');
-    doc.text(`${basePrice.toFixed(2)}`, 40, yPos, { align: 'center' });
-    doc.text('سعر الخدمة', 185, yPos, { align: 'right' });
+    doc.rect(20, yPos - 7, 170, 12, 'F');
+    doc.text('Service Price', 25, yPos);
+    doc.text(basePrice.toFixed(2), 185, yPos, { align: 'right' });
     yPos += 15;
     
-    // Discount row (if exists)
+    // Discount row
     if (order.discount_amount && order.discount_amount > 0) {
       doc.setFillColor(240, 253, 244);
-      doc.rect(15, yPos - 8, 180, 12, 'F');
+      doc.rect(20, yPos - 7, 170, 12, 'F');
       doc.setTextColor(22, 163, 74);
-      doc.text(`${order.discount_amount.toFixed(2)}-`, 40, yPos, { align: 'center' });
-      doc.text('الخصم', 185, yPos, { align: 'right' });
+      doc.text('Discount', 25, yPos);
+      doc.text('-' + order.discount_amount.toFixed(2), 185, yPos, { align: 'right' });
       doc.setTextColor(60, 60, 60);
       yPos += 15;
     }
     
-    // Total section
+    // Total
     yPos += 5;
     doc.setDrawColor(14, 165, 233);
     doc.setLineWidth(1);
-    doc.line(15, yPos - 3, 195, yPos - 3);
+    doc.line(20, yPos - 3, 190, yPos - 3);
     
     doc.setFillColor(14, 165, 233);
-    doc.roundedRect(15, yPos, 180, 18, 3, 3, 'F');
-    
+    doc.roundedRect(20, yPos, 170, 16, 3, 3, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
-    doc.text(`${order.total_price.toFixed(2)} ر.س`, 40, yPos + 12, { align: 'center' });
-    doc.text('الإجمالي المدفوع', 185, yPos + 12, { align: 'right' });
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Total Paid', 25, yPos + 11);
+    doc.text(order.total_price.toFixed(2) + ' SAR', 185, yPos + 11, { align: 'right' });
     
     yPos += 30;
     
-    // Notes section (if exists)
+    // Notes
     if (order.notes) {
       doc.setTextColor(100, 100, 100);
       doc.setFontSize(10);
-      doc.text('ملاحظات العميل:', 190, yPos, { align: 'right' });
+      doc.setFont('helvetica', 'bold');
+      doc.text('Customer Notes:', 25, yPos);
+      doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
-      const truncatedNotes = order.notes.length > 100 ? order.notes.substring(0, 97) + '...' : order.notes;
-      doc.text(truncatedNotes, 185, yPos + 8, { align: 'right' });
-      yPos += 20;
+      doc.text(order.notes.substring(0, 80), 25, yPos + 7);
+      yPos += 18;
     }
     
-    // Admin notes (if exists)
     if (order.admin_notes) {
       doc.setTextColor(180, 120, 50);
       doc.setFontSize(10);
-      doc.text('ملاحظات الإدارة:', 190, yPos, { align: 'right' });
+      doc.setFont('helvetica', 'bold');
+      doc.text('Admin Notes:', 25, yPos);
+      doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
-      const truncatedAdminNotes = order.admin_notes.length > 100 ? order.admin_notes.substring(0, 97) + '...' : order.admin_notes;
-      doc.text(truncatedAdminNotes, 185, yPos + 8, { align: 'right' });
+      doc.text(order.admin_notes.substring(0, 80), 25, yPos + 7);
     }
     
     // Footer
-    doc.setDrawColor(230, 230, 230);
+    doc.setDrawColor(220, 220, 220);
     doc.setLineWidth(0.3);
-    doc.line(15, 255, 195, 255);
+    doc.line(20, 265, 190, 265);
     
     doc.setTextColor(150, 150, 150);
     doc.setFontSize(8);
-    doc.text('هذه فاتورة إلكترونية صادرة آلياً ولا تحتاج إلى توقيع أو ختم', 105, 262, { align: 'center' });
-    doc.text('شكراً لاستخدامكم خدماتنا', 105, 269, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.text('This is an electronically generated invoice.', 105, 272, { align: 'center' });
+    doc.text('Thank you for using our services!', 105, 278, { align: 'center' });
+    doc.text('Generated: ' + format(new Date(), 'dd/MM/yyyy HH:mm'), 105, 284, { align: 'center' });
     
-    const generatedDate = format(new Date(), 'yyyy/MM/dd - HH:mm', { locale: ar });
-    doc.text(`تاريخ الإصدار: ${generatedDate}`, 105, 276, { align: 'center' });
-    
-    // Decorative footer line
+    // Footer bar
     doc.setFillColor(14, 165, 233);
-    doc.rect(0, 287, 210, 10, 'F');
+    doc.rect(0, 290, 210, 7, 'F');
     
-    // Save the PDF
-    doc.save(`فاتورة-${invoiceNumber}.pdf`);
+    // Save
+    doc.save(`Invoice-${invoiceNumber}.pdf`);
     
-    toast.success('تم تحميل الفاتورة بنجاح');
+    toast.success('Invoice downloaded successfully');
   }, [order]);
 
   if (!order) return null;
