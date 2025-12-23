@@ -592,17 +592,17 @@ const ClientServicesNew = () => {
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-primary/15 dark:bg-primary/20 flex items-center justify-center">
                     <History className="w-5 h-5 text-primary" />
                   </div>
                   <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold">إعادة طلب سريع</h2>
+                  <h2 className="text-lg font-bold text-foreground">إعادة طلب سريع</h2>
                   <p className="text-xs text-muted-foreground">أكمل طلبك بنقرة واحدة</p>
                 </div>
               </div>
-              <Badge className="bg-gradient-to-r from-primary/20 to-primary/10 text-primary border-0 text-[10px] px-3">
+              <Badge className="bg-primary/15 dark:bg-primary/25 text-primary border-0 text-[10px] px-3">
                 <Sparkles className="w-3 h-3 ml-1" />
                 {recentOrders.length} طلبات سابقة
               </Badge>
@@ -644,11 +644,11 @@ const ClientServicesNew = () => {
                         });
                       }, 100);
                     }}
-                    className="group relative bg-gradient-to-br from-card to-card/80 border border-border/50 rounded-2xl p-4 cursor-pointer hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 overflow-hidden"
+                    className="group relative bg-card border border-border rounded-2xl p-4 cursor-pointer hover:border-primary/50 hover:shadow-xl transition-all duration-300 overflow-hidden"
                   >
                     {/* Decorative Background */}
                     <div className={cn(
-                      "absolute top-0 right-0 w-24 h-24 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity",
+                      "absolute top-0 right-0 w-24 h-24 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity",
                       networkInfo.gradient.includes('pink') ? 'bg-pink-500' :
                       networkInfo.gradient.includes('blue') ? 'bg-blue-500' :
                       networkInfo.gradient.includes('red') ? 'bg-red-500' :
@@ -668,7 +668,7 @@ const ClientServicesNew = () => {
                         <Icon className="w-6 h-6" />
                       </div>
                       <div className="flex flex-col items-end gap-1">
-                        <Badge variant="outline" className="text-[9px] bg-background/50 backdrop-blur-sm border-border/50">
+                        <Badge variant="outline" className="text-[9px] bg-background border-border text-foreground">
                           {timeAgo === 0 ? 'اليوم' : timeAgo === 1 ? 'أمس' : `منذ ${timeAgo} أيام`}
                         </Badge>
                         <span className="text-[10px] text-muted-foreground">#{order.order_number?.slice(-6)}</span>
@@ -676,13 +676,13 @@ const ClientServicesNew = () => {
                     </div>
 
                     {/* Service Name */}
-                    <p className="relative text-sm font-medium line-clamp-2 mb-3 leading-relaxed">
+                    <p className="relative text-sm font-medium text-foreground line-clamp-2 mb-3 leading-relaxed">
                       {service.name}
                     </p>
 
                     {/* Order Details */}
-                    <div className="relative flex items-center gap-2 mb-4 p-2 rounded-lg bg-muted/30">
-                      <div className="flex-1 text-center border-l border-border/50">
+                    <div className="relative flex items-center gap-2 mb-4 p-2 rounded-lg bg-muted/50 dark:bg-muted/30">
+                      <div className="flex-1 text-center border-l border-border">
                         <p className="text-[10px] text-muted-foreground">الكمية</p>
                         <p className="text-sm font-bold text-foreground">{order.quantity?.toLocaleString()}</p>
                       </div>
@@ -695,7 +695,7 @@ const ClientServicesNew = () => {
                     {/* Reorder Button */}
                     <Button
                       size="sm"
-                      className="relative w-full h-10 text-sm font-medium bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-md hover:shadow-lg transition-all duration-300 group-hover:shadow-primary/25"
+                      className="relative w-full h-10 text-sm font-medium bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-300"
                     >
                       <RotateCcw className="w-4 h-4 ml-2 group-hover:rotate-180 transition-transform duration-500" />
                       إعادة الطلب الآن
