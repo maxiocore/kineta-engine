@@ -46,6 +46,42 @@ import PullToRefresh from "@/components/ui/pull-to-refresh";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+// Animated Counter Component
+const AnimatedCounter = ({ value, duration = 2000, suffix = '' }: { value: number; duration?: number; suffix?: string }) => {
+  const [count, setCount] = useState(0);
+  const countRef = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(countRef, { once: true, amount: 0.5 });
+
+  useEffect(() => {
+    if (!isInView) return;
+    
+    let startTime: number;
+    let animationFrame: number;
+    
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      
+      // Easing function for smooth animation
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      setCount(Math.floor(easeOutQuart * value));
+      
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+    
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [isInView, value, duration]);
+
+  return (
+    <span ref={countRef} className="tabular-nums">
+      {count.toLocaleString()}{suffix}
+    </span>
+  );
+};
+
 // Animation Variants
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -85,18 +121,6 @@ const slideInRight = {
   }
 };
 
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      type: "spring",
-      stiffness: 200,
-      damping: 20
-    }
-  }
-};
 
 const ClientServicesHome = () => {
   const navigate = useNavigate();
@@ -115,8 +139,13 @@ const ClientServicesHome = () => {
     design: 0,
     dev: 0
   });
+  const [globalStats, setGlobalStats] = useState({
+    totalServices: 0,
+    totalOrders: 0,
+    totalUsers: 0,
+    completedOrders: 0
+  });
   const [isLoading, setIsLoading] = useState(true);
-  const [hoveredSection, setHoveredSection] = useState<string | null>(null);
   const [activeFeatureIndex, setActiveFeatureIndex] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
@@ -135,6 +164,7 @@ const ClientServicesHome = () => {
   const fetchCounts = async () => {
     setIsLoading(true);
     try {
+      // Fetch service counts
       const { count: socialCount } = await supabase
         .from('services')
         .select('*', { count: 'exact', head: true })
@@ -153,10 +183,36 @@ const ClientServicesHome = () => {
         .eq('status', 'active')
         .or('category.ilike.%dev%,category.ilike.%برمجة%,category.ilike.%تطوير%,name.ilike.%موقع%,name.ilike.%تطبيق%,name.ilike.%برمجة%');
 
+      // Fetch global stats
+      const { count: totalServicesCount } = await supabase
+        .from('services')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active');
+
+      const { count: totalOrdersCount } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true });
+
+      const { count: completedOrdersCount } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'completed');
+
+      const { count: totalUsersCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
       setServicesCount({
         social: socialCount || 0,
         design: designCount || 0,
         dev: devCount || 0
+      });
+
+      setGlobalStats({
+        totalServices: totalServicesCount || 0,
+        totalOrders: totalOrdersCount || 0,
+        totalUsers: totalUsersCount || 0,
+        completedOrders: completedOrdersCount || 0
       });
     } finally {
       setIsLoading(false);
@@ -441,11 +497,82 @@ const ClientServicesHome = () => {
             </motion.div>
           </motion.section>
 
+          {/* Animated Statistics Section */}
+          <motion.section
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mb-8 sm:mb-12"
+          >
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              {[
+                { 
+                  value: globalStats.totalServices, 
+                  label: 'خدمة متاحة', 
+                  icon: Layers, 
+                  gradient: 'from-blue-500 to-cyan-500',
+                  suffix: '+'
+                },
+                { 
+                  value: globalStats.totalUsers, 
+                  label: 'عميل سعيد', 
+                  icon: Users, 
+                  gradient: 'from-violet-500 to-purple-500',
+                  suffix: '+'
+                },
+                { 
+                  value: globalStats.totalOrders, 
+                  label: 'طلب منفذ', 
+                  icon: TrendingUp, 
+                  gradient: 'from-emerald-500 to-teal-500',
+                  suffix: ''
+                },
+                { 
+                  value: globalStats.completedOrders, 
+                  label: 'طلب مكتمل', 
+                  icon: CheckCircle2, 
+                  gradient: 'from-amber-500 to-orange-500',
+                  suffix: ''
+                },
+              ].map((stat, i) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ delay: 0.6 + i * 0.1 }}
+                  className="group relative"
+                >
+                  <div className="relative overflow-hidden rounded-2xl bg-card border border-border/50 p-4 sm:p-5 hover:border-border transition-all duration-300">
+                    {/* Background Gradient on Hover */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
+                    
+                    <div className="relative z-10 flex items-center gap-3 sm:gap-4">
+                      {/* Icon */}
+                      <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-lg flex-shrink-0`}>
+                        <stat.icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                      </div>
+                      
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
+                          <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+                        </div>
+                        <div className="text-xs sm:text-sm text-muted-foreground mt-0.5 truncate">
+                          {stat.label}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.section>
+
           {/* Features Row */}
           <motion.section
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.7 }}
             className="mb-8 sm:mb-12"
           >
             <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
