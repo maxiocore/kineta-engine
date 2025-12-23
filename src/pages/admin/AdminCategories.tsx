@@ -59,6 +59,10 @@ import {
   Gamepad2,
   Camera,
   Headphones,
+  ArrowRightLeft,
+  Merge,
+  FolderInput,
+  PackageX,
 } from "lucide-react";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -332,6 +336,13 @@ const AdminCategories = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
   
+  // New dialogs for category management
+  const [moveServicesDialogOpen, setMoveServicesDialogOpen] = useState(false);
+  const [mergeCategoriesDialogOpen, setMergeCategoriesDialogOpen] = useState(false);
+  const [selectedSourceCategory, setSelectedSourceCategory] = useState<Category | null>(null);
+  const [selectedTargetCategory, setSelectedTargetCategory] = useState<string>("");
+  const [deleteSourceAfterMove, setDeleteSourceAfterMove] = useState(false);
+  
   // Form state
   const [formData, setFormData] = useState({
     name: "",
@@ -490,6 +501,75 @@ const AdminCategories = () => {
     },
     onError: () => {
       toast.error("حدث خطأ أثناء تحديث الترتيب");
+    },
+  });
+
+  // Move services mutation
+  const moveServicesMutation = useMutation({
+    mutationFn: async ({ sourceId, targetId, deleteSource }: { sourceId: string; targetId: string; deleteSource: boolean }) => {
+      // Move all services from source to target
+      const { error: moveError } = await supabase
+        .from("services")
+        .update({ category_id: targetId })
+        .eq("category_id", sourceId);
+      
+      if (moveError) throw moveError;
+
+      // Also update the category field to match the target category name
+      const targetCategory = categories?.find(c => c.id === targetId);
+      if (targetCategory) {
+        const { error: updateCategoryFieldError } = await supabase
+          .from("services")
+          .update({ category: targetCategory.name })
+          .eq("category_id", targetId);
+        
+        if (updateCategoryFieldError) throw updateCategoryFieldError;
+      }
+
+      // Delete source category if requested
+      if (deleteSource) {
+        const { error: deleteError } = await supabase
+          .from("categories")
+          .delete()
+          .eq("id", sourceId);
+        
+        if (deleteError) throw deleteError;
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
+      queryClient.invalidateQueries({ queryKey: ["category-service-counts"] });
+      const message = variables.deleteSource 
+        ? "تم نقل الخدمات وحذف القسم المصدر بنجاح" 
+        : "تم نقل الخدمات بنجاح";
+      toast.success(message);
+      setMoveServicesDialogOpen(false);
+      setMergeCategoriesDialogOpen(false);
+      setSelectedSourceCategory(null);
+      setSelectedTargetCategory("");
+      setDeleteSourceAfterMove(false);
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء نقل الخدمات");
+    },
+  });
+
+  // Move category with services (change parent)
+  const moveCategoryMutation = useMutation({
+    mutationFn: async ({ categoryId, newParentId }: { categoryId: string; newParentId: string | null }) => {
+      const { error } = await supabase
+        .from("categories")
+        .update({ parent_id: newParentId })
+        .eq("id", categoryId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
+      toast.success("تم نقل الفئة بنجاح");
+    },
+    onError: () => {
+      toast.error("حدث خطأ أثناء نقل الفئة");
     },
   });
 
@@ -660,10 +740,30 @@ const AdminCategories = () => {
               إضافة وتعديل أقسام الخدمات
             </p>
           </div>
-          <Button onClick={() => handleOpenDialog()} className="gap-2">
-            <Plus className="w-4 h-4" />
-            إضافة قسم
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button onClick={() => handleOpenDialog()} className="gap-2">
+              <Plus className="w-4 h-4" />
+              إضافة قسم
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setMoveServicesDialogOpen(true)}
+              className="gap-2"
+              disabled={!categories || categories.length < 2}
+            >
+              <ArrowRightLeft className="w-4 h-4" />
+              نقل الخدمات
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setMergeCategoriesDialogOpen(true)}
+              className="gap-2"
+              disabled={!categories || categories.length < 2}
+            >
+              <Merge className="w-4 h-4" />
+              دمج الأقسام
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -1006,6 +1106,284 @@ const AdminCategories = () => {
           onConfirm={() => categoryToDelete && deleteMutation.mutate(categoryToDelete.id)}
           loading={deleteMutation.isPending}
         />
+
+        {/* Move Services Dialog */}
+        <Dialog open={moveServicesDialogOpen} onOpenChange={setMoveServicesDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <ArrowRightLeft className="w-5 h-5 text-primary" />
+                نقل الخدمات بين الأقسام
+              </DialogTitle>
+              <DialogDescription>
+                اختر القسم المصدر والقسم الهدف لنقل جميع الخدمات
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              {/* Source Category */}
+              <div className="space-y-2">
+                <Label>من القسم (المصدر)</Label>
+                <Select
+                  value={selectedSourceCategory?.id || ""}
+                  onValueChange={(value) => {
+                    const cat = categories?.find(c => c.id === value);
+                    setSelectedSourceCategory(cat || null);
+                    if (selectedTargetCategory === value) {
+                      setSelectedTargetCategory("");
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر القسم المصدر" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories?.map((cat) => {
+                      const Icon = iconMap[cat.icon] || Layers;
+                      const count = serviceCounts?.[cat.id] || 0;
+                      return (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          <div className="flex items-center gap-2">
+                            <Icon className="w-4 h-4" />
+                            <span>{cat.name_ar}</span>
+                            <Badge variant="secondary" className="text-xs">{count} خدمة</Badge>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Target Category */}
+              <div className="space-y-2">
+                <Label>إلى القسم (الهدف)</Label>
+                <Select
+                  value={selectedTargetCategory}
+                  onValueChange={setSelectedTargetCategory}
+                  disabled={!selectedSourceCategory}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر القسم الهدف" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories
+                      ?.filter((cat) => cat.id !== selectedSourceCategory?.id)
+                      .map((cat) => {
+                        const Icon = iconMap[cat.icon] || Layers;
+                        const count = serviceCounts?.[cat.id] || 0;
+                        return (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            <div className="flex items-center gap-2">
+                              <Icon className="w-4 h-4" />
+                              <span>{cat.name_ar}</span>
+                              <Badge variant="secondary" className="text-xs">{count} خدمة</Badge>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Delete source option */}
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <div className="space-y-0.5">
+                  <Label className="text-sm">حذف القسم المصدر بعد النقل</Label>
+                  <p className="text-xs text-muted-foreground">سيتم حذف القسم بعد نقل جميع خدماته</p>
+                </div>
+                <Switch
+                  checked={deleteSourceAfterMove}
+                  onCheckedChange={setDeleteSourceAfterMove}
+                />
+              </div>
+
+              {/* Preview */}
+              {selectedSourceCategory && selectedTargetCategory && (
+                <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg space-y-2">
+                  <p className="text-sm font-medium">ملخص العملية:</p>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Badge variant="outline">{serviceCounts?.[selectedSourceCategory.id] || 0} خدمة</Badge>
+                    <span className="text-muted-foreground">من</span>
+                    <span className="font-medium">{selectedSourceCategory.name_ar}</span>
+                    <ArrowRightLeft className="w-4 h-4 text-muted-foreground" />
+                    <span className="font-medium">{categories?.find(c => c.id === selectedTargetCategory)?.name_ar}</span>
+                  </div>
+                  {deleteSourceAfterMove && (
+                    <p className="text-xs text-destructive flex items-center gap-1">
+                      <PackageX className="w-3 h-3" />
+                      سيتم حذف القسم "{selectedSourceCategory.name_ar}" بعد النقل
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => {
+                setMoveServicesDialogOpen(false);
+                setSelectedSourceCategory(null);
+                setSelectedTargetCategory("");
+                setDeleteSourceAfterMove(false);
+              }}>
+                إلغاء
+              </Button>
+              <Button
+                onClick={() => {
+                  if (selectedSourceCategory && selectedTargetCategory) {
+                    moveServicesMutation.mutate({
+                      sourceId: selectedSourceCategory.id,
+                      targetId: selectedTargetCategory,
+                      deleteSource: deleteSourceAfterMove,
+                    });
+                  }
+                }}
+                disabled={!selectedSourceCategory || !selectedTargetCategory || moveServicesMutation.isPending}
+              >
+                {moveServicesMutation.isPending ? "جاري النقل..." : "نقل الخدمات"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Merge Categories Dialog */}
+        <Dialog open={mergeCategoriesDialogOpen} onOpenChange={setMergeCategoriesDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Merge className="w-5 h-5 text-primary" />
+                دمج الأقسام
+              </DialogTitle>
+              <DialogDescription>
+                دمج قسمين معاً - سيتم نقل جميع الخدمات من القسم الأول إلى الثاني ثم حذف القسم الأول
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              {/* Source Category (to be merged/deleted) */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <PackageX className="w-4 h-4 text-destructive" />
+                  القسم المراد دمجه (سيتم حذفه)
+                </Label>
+                <Select
+                  value={selectedSourceCategory?.id || ""}
+                  onValueChange={(value) => {
+                    const cat = categories?.find(c => c.id === value);
+                    setSelectedSourceCategory(cat || null);
+                    if (selectedTargetCategory === value) {
+                      setSelectedTargetCategory("");
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر القسم" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories?.map((cat) => {
+                      const Icon = iconMap[cat.icon] || Layers;
+                      const count = serviceCounts?.[cat.id] || 0;
+                      return (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          <div className="flex items-center gap-2">
+                            <Icon className="w-4 h-4" />
+                            <span>{cat.name_ar}</span>
+                            <Badge variant="secondary" className="text-xs">{count} خدمة</Badge>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Target Category (to keep) */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <FolderInput className="w-4 h-4 text-success" />
+                  القسم الهدف (سيبقى)
+                </Label>
+                <Select
+                  value={selectedTargetCategory}
+                  onValueChange={setSelectedTargetCategory}
+                  disabled={!selectedSourceCategory}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر القسم الهدف" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories
+                      ?.filter((cat) => cat.id !== selectedSourceCategory?.id)
+                      .map((cat) => {
+                        const Icon = iconMap[cat.icon] || Layers;
+                        const count = serviceCounts?.[cat.id] || 0;
+                        return (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            <div className="flex items-center gap-2">
+                              <Icon className="w-4 h-4" />
+                              <span>{cat.name_ar}</span>
+                              <Badge variant="secondary" className="text-xs">{count} خدمة</Badge>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Merge Preview */}
+              {selectedSourceCategory && selectedTargetCategory && (
+                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg space-y-2">
+                  <p className="text-sm font-medium text-amber-700 dark:text-amber-400">تحذير: هذا الإجراء لا يمكن التراجع عنه</p>
+                  <div className="space-y-1 text-sm">
+                    <p className="flex items-center gap-2">
+                      <span className="text-muted-foreground">سيتم نقل</span>
+                      <Badge variant="outline">{serviceCounts?.[selectedSourceCategory.id] || 0} خدمة</Badge>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <span className="text-muted-foreground">من</span>
+                      <span className="font-medium text-destructive">{selectedSourceCategory.name_ar}</span>
+                      <span className="text-xs text-destructive">(سيُحذف)</span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <span className="text-muted-foreground">إلى</span>
+                      <span className="font-medium text-success">{categories?.find(c => c.id === selectedTargetCategory)?.name_ar}</span>
+                      <span className="text-xs text-success">(سيبقى)</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      الإجمالي بعد الدمج: {(serviceCounts?.[selectedSourceCategory.id] || 0) + (serviceCounts?.[selectedTargetCategory] || 0)} خدمة
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => {
+                setMergeCategoriesDialogOpen(false);
+                setSelectedSourceCategory(null);
+                setSelectedTargetCategory("");
+              }}>
+                إلغاء
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (selectedSourceCategory && selectedTargetCategory) {
+                    moveServicesMutation.mutate({
+                      sourceId: selectedSourceCategory.id,
+                      targetId: selectedTargetCategory,
+                      deleteSource: true,
+                    });
+                  }
+                }}
+                disabled={!selectedSourceCategory || !selectedTargetCategory || moveServicesMutation.isPending}
+              >
+                {moveServicesMutation.isPending ? "جاري الدمج..." : "دمج الأقسام"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminDashboardLayout>
   );
