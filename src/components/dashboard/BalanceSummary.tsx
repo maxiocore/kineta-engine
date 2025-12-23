@@ -50,7 +50,7 @@ const BalanceSummary = ({ balance, totalDeposited, totalSpent }: BalanceSummaryP
                 e.stopPropagation();
                 navigate("/dashboard/deposit");
               }}
-              className="bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-lg gap-1 sm:gap-2 h-8 sm:h-9 md:h-10 px-2 sm:px-3 md:px-4 text-xs sm:text-sm cursor-pointer shrink-0"
+              className="bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-lg gap-1 sm:gap-2 h-8 sm:h-9 md:h-10 px-2 sm:px-3 md:px-4 text-xs sm:text-sm cursor-pointer shrink-0 relative z-10"
             >
               <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">شحن الرصيد</span>
