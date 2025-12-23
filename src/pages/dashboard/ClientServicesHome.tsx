@@ -227,8 +227,51 @@ const ClientServicesHome = () => {
     }
   };
 
+  // Initial fetch and auto-refresh every 30 seconds
   useEffect(() => {
     fetchCounts();
+    
+    // Auto-refresh interval
+    const intervalId = setInterval(() => {
+      fetchCounts();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  // Realtime subscription for orders changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('orders-stats-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders'
+        },
+        () => {
+          // Refetch stats when orders change
+          fetchCounts();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'services'
+        },
+        () => {
+          // Refetch stats when services change
+          fetchCounts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleRefresh = async () => {
