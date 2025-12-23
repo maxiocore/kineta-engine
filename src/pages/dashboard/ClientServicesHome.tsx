@@ -34,7 +34,8 @@ import {
   Flame,
   Crown,
   BadgeCheck,
-  Music2
+  Music2,
+  BarChart3
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ import ServicesHomeSkeleton from "@/components/dashboard/ServicesHomeSkeleton";
 import PullToRefresh from "@/components/ui/pull-to-refresh";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 
 // Animated Counter Component
 const AnimatedCounter = ({ value, duration = 2000, suffix = '' }: { value: number; duration?: number; suffix?: string }) => {
@@ -150,6 +152,7 @@ const ClientServicesHome = () => {
   const [activeFeatureIndex, setActiveFeatureIndex] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [weeklyData, setWeeklyData] = useState<Array<{ day: string; orders: number; completed: number }>>([]);
 
   // Track mouse for parallax effect
   useEffect(() => {
@@ -223,7 +226,39 @@ const ClientServicesHome = () => {
         inProgressOrders: inProgressOrdersCount || 0,
         completedOrders: completedOrdersCount || 0
       });
+
+      // Fetch weekly orders data
+      const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+      const weekData: Array<{ day: string; orders: number; completed: number }> = [];
       
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const startOfDay = new Date(date.setHours(0, 0, 0, 0)).toISOString();
+        const endOfDay = new Date(date.setHours(23, 59, 59, 999)).toISOString();
+        
+        const { count: dayOrders } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', startOfDay)
+          .lte('created_at', endOfDay);
+
+        const { count: dayCompleted } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'completed')
+          .gte('created_at', startOfDay)
+          .lte('created_at', endOfDay);
+
+        const dayIndex = new Date(date).getDay();
+        weekData.push({
+          day: days[dayIndex],
+          orders: dayOrders || 0,
+          completed: dayCompleted || 0
+        });
+      }
+      
+      setWeeklyData(weekData);
       setLastUpdated(new Date());
     } finally {
       setIsLoading(false);
@@ -642,6 +677,113 @@ const ClientServicesHome = () => {
               ))}
             </div>
           </motion.section>
+
+          {/* Weekly Orders Chart */}
+          {weeklyData.length > 0 && (
+            <motion.section
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="mb-8 sm:mb-12"
+            >
+              <div className="rounded-2xl bg-card border border-border/50 p-4 sm:p-6 overflow-hidden">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg">
+                      <BarChart3 className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-base sm:text-lg font-semibold text-foreground">تطور الطلبات</h3>
+                      <p className="text-xs text-muted-foreground">آخر 7 أيام</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-primary" />
+                      <span className="text-muted-foreground">إجمالي الطلبات</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                      <span className="text-muted-foreground">المكتملة</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="h-40 sm:h-52">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={weeklyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="ordersGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="completedGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis 
+                        dataKey="day" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--card))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                          direction: 'rtl'
+                        }}
+                        labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold', marginBottom: 4 }}
+                        formatter={(value: number, name: string) => [
+                          value,
+                          name === 'orders' ? 'إجمالي الطلبات' : 'المكتملة'
+                        ]}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="orders"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth={2}
+                        fill="url(#ordersGradient)"
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="completed"
+                        stroke="#10b981"
+                        strokeWidth={2}
+                        fill="url(#completedGradient)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Summary Stats */}
+                <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-border/50">
+                  <div className="text-center">
+                    <div className="text-lg sm:text-xl font-bold text-foreground">
+                      {weeklyData.reduce((sum, d) => sum + d.orders, 0)}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-muted-foreground">إجمالي الأسبوع</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg sm:text-xl font-bold text-emerald-500">
+                      {weeklyData.reduce((sum, d) => sum + d.completed, 0)}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-muted-foreground">المكتملة</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg sm:text-xl font-bold text-primary">
+                      {weeklyData.length > 0 ? Math.round(weeklyData.reduce((sum, d) => sum + d.orders, 0) / 7) : 0}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-muted-foreground">معدل يومي</div>
+                  </div>
+                </div>
+              </div>
+            </motion.section>
+          )}
 
           {/* Features Row */}
           <motion.section
