@@ -149,6 +149,7 @@ const ClientServicesHome = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeFeatureIndex, setActiveFeatureIndex] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   // Track mouse for parallax effect
   useEffect(() => {
@@ -222,6 +223,8 @@ const ClientServicesHome = () => {
         inProgressOrders: inProgressOrdersCount || 0,
         completedOrders: completedOrdersCount || 0
       });
+      
+      setLastUpdated(new Date());
     } finally {
       setIsLoading(false);
     }
@@ -555,6 +558,27 @@ const ClientServicesHome = () => {
             transition={{ delay: 0.5 }}
             className="mb-8 sm:mb-12"
           >
+            {/* Last Updated Indicator */}
+            {lastUpdated && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex items-center justify-end gap-2 mb-3"
+              >
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="w-2 h-2 rounded-full bg-emerald-500"
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    آخر تحديث: {lastUpdated.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                  </span>
+                  <Clock className="w-3 h-3 text-muted-foreground" />
+                </div>
+              </motion.div>
+            )}
+            
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {[
                 { 
