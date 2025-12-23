@@ -643,21 +643,24 @@ const ClientServicesNew = () => {
                               setSearchQuery("");
                             }}
                             className={cn(
-                              "flex items-center gap-3 p-3 rounded-xl transition-all text-right w-full",
+                              "flex flex-row-reverse items-center gap-3 p-3 rounded-xl transition-all text-right w-full",
                               isSelected 
                                 ? "bg-primary text-primary-foreground shadow-md" 
                                 : "bg-muted/50 hover:bg-muted"
                             )}
                           >
+                            {/* Icon on the right */}
                             <div className={cn(
                               "w-9 h-9 rounded-lg bg-gradient-to-br flex items-center justify-center text-white shrink-0",
                               networkInfo.gradient
                             )}>
                               <NetworkIcon className="w-4 h-4" />
                             </div>
-                            <div className="flex-1 min-w-0">
+                            {/* Category name in the middle */}
+                            <div className="flex-1 min-w-0 text-right">
                               <p className="text-xs sm:text-sm font-medium truncate">{category}</p>
                             </div>
+                            {/* Count on the left */}
                             <Badge variant={isSelected ? "secondary" : "outline"} className="text-[10px] shrink-0">
                               {categoryCounts[category]}
                             </Badge>
