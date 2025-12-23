@@ -518,13 +518,14 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
       exit={{ opacity: 0, y: -30, scale: 0.98 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       className="sticky top-4"
+      dir="rtl"
     >
       {/* Main Card Container */}
       <div className="relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-b from-card via-card to-background shadow-2xl">
         {/* Decorative Background Elements */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-tr from-accent/10 to-transparent rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+          <div className="absolute top-0 left-0 w-72 h-72 bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2" />
+          <div className="absolute bottom-0 right-0 w-72 h-72 bg-gradient-to-tr from-accent/10 to-transparent rounded-full blur-3xl translate-y-1/2 translate-x-1/2" />
           <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.05)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.05)_1px,transparent_1px)] bg-[size:20px_20px]" />
         </div>
 
@@ -532,11 +533,11 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
           <div className="relative p-6 pb-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+            <div className="flex items-center justify-between flex-row-reverse">
+              <div className="flex items-center gap-4 flex-row-reverse">
                 <motion.div 
                   className="relative"
-                  whileHover={{ rotate: 5, scale: 1.05 }}
+                  whileHover={{ rotate: -5, scale: 1.05 }}
                   transition={{ type: "spring", stiffness: 400 }}
                 >
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary via-primary to-accent p-[2px] shadow-xl shadow-primary/40">
@@ -545,20 +546,20 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
                     </div>
                   </div>
                   <motion.div 
-                    className="absolute -top-1 -right-1 w-6 h-6 bg-success rounded-full flex items-center justify-center shadow-lg"
+                    className="absolute -top-1 -left-1 w-6 h-6 bg-success rounded-full flex items-center justify-center shadow-lg"
                     animate={{ scale: [1, 1.15, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
                     <Rocket className="w-3.5 h-3.5 text-success-foreground" />
                   </motion.div>
                 </motion.div>
-                <div>
-                  <h3 className="font-bold text-2xl bg-gradient-to-l from-foreground to-foreground/80 bg-clip-text">إتمام الطلب</h3>
+                <div className="text-right">
+                  <h3 className="font-bold text-2xl bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">إتمام الطلب</h3>
                   <p className="text-sm text-muted-foreground mt-0.5">أكمل بيانات طلبك بسهولة</p>
                 </div>
               </div>
               <motion.button
-                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileHover={{ scale: 1.1, rotate: -90 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={onClose}
                 className="w-11 h-11 rounded-2xl bg-secondary/60 hover:bg-destructive/10 hover:text-destructive flex items-center justify-center transition-all duration-300"
@@ -567,12 +568,12 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
               </motion.button>
             </div>
 
-            {/* Progress Steps */}
-            <div className="flex items-center justify-between mt-6 pt-4 border-t border-border/30">
+            {/* Progress Steps - RTL */}
+            <div className="flex items-center justify-between mt-6 pt-4 border-t border-border/30 flex-row-reverse">
               <StepIndicator number={1} title="الرابط" active={currentStep >= 1} completed={currentStep > 1} />
-              <div className="flex-1 h-px bg-gradient-to-r from-border to-border/30 mx-3" />
+              <div className="flex-1 h-px bg-gradient-to-l from-border to-border/30 mx-3" />
               <StepIndicator number={2} title="الكمية" active={currentStep >= 2} completed={currentStep > 2} />
-              <div className="flex-1 h-px bg-gradient-to-r from-border/30 to-border mx-3" />
+              <div className="flex-1 h-px bg-gradient-to-l from-border/30 to-border mx-3" />
               <StepIndicator number={3} title="التأكيد" active={currentStep >= 3} completed={false} />
             </div>
           </div>
@@ -582,23 +583,23 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
         <div className="relative p-6 pt-4 space-y-6">
           {/* Selected Service Card */}
           <motion.div 
-            className="relative overflow-hidden p-5 rounded-2xl bg-gradient-to-br from-secondary/40 via-secondary/30 to-muted/20 border border-border/40"
+            className="relative overflow-hidden p-5 rounded-2xl bg-gradient-to-bl from-secondary/40 via-secondary/30 to-muted/20 border border-border/40"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/5 to-transparent rounded-bl-full" />
+            <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-bl from-primary/5 to-transparent rounded-br-full" />
             
-            <div className="relative flex items-start gap-4">
+            <div className="relative flex items-start gap-4 flex-row-reverse">
               <motion.div 
                 className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center shrink-0 border border-primary/20"
-                whileHover={{ rotate: 5, scale: 1.05 }}
+                whileHover={{ rotate: -5, scale: 1.05 }}
               >
                 <Sparkles className="w-7 h-7 text-primary" />
               </motion.div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 text-right">
                 <p className="font-bold text-base leading-relaxed line-clamp-2">{service.name}</p>
-                <div className="flex flex-wrap gap-2 mt-3">
-                  <Badge className="text-[11px] bg-primary/10 text-primary border-primary/20 gap-1.5">
+                <div className="flex flex-wrap gap-2 mt-3 justify-end">
+                  <Badge className="text-[11px] bg-primary/10 text-primary border-primary/20 gap-1.5 flex-row-reverse">
                     <Target className="w-3 h-3" />
                     {service.category}
                   </Badge>
@@ -608,7 +609,7 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
                     </Badge>
                   )}
                   {service.refill_enabled && (
-                    <Badge className="text-[11px] bg-success/10 text-success border-success/20 gap-1.5">
+                    <Badge className="text-[11px] bg-success/10 text-success border-success/20 gap-1.5 flex-row-reverse">
                       <Shield className="w-3 h-3" />
                       مع ضمان
                     </Badge>
@@ -652,14 +653,14 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
             </div>
           </motion.div>
 
-          {/* Link Input Section */}
+          {/* Link Input Section - RTL */}
           <motion.div 
             className="space-y-3"
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <Label className="text-sm font-semibold flex items-center gap-2.5">
+            <Label className="text-sm font-semibold flex items-center gap-2.5 justify-end flex-row-reverse">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary/15 to-primary/10 flex items-center justify-center border border-primary/20">
                 <LinkIcon className="w-4 h-4 text-primary" />
               </div>
@@ -672,7 +673,7 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
                 className={cn(
-                  "h-14 pr-5 text-base bg-secondary/40 border-2 rounded-2xl transition-all duration-300 placeholder:text-muted-foreground/60",
+                  "h-14 pl-12 pr-5 text-base bg-secondary/40 border-2 rounded-2xl transition-all duration-300 placeholder:text-muted-foreground/60 text-left",
                   link.trim() 
                     ? "border-success/50 bg-success/5 focus:border-success" 
                     : "border-border/50 focus:border-primary/50 focus:bg-background"
@@ -696,14 +697,14 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
             </div>
           </motion.div>
 
-          {/* Quantity Section */}
+          {/* Quantity Section - RTL */}
           <motion.div 
             className="space-y-4"
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.15 }}
           >
-            <Label className="text-sm font-semibold flex items-center gap-2.5">
+            <Label className="text-sm font-semibold flex items-center gap-2.5 justify-end flex-row-reverse">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-accent/15 to-accent/10 flex items-center justify-center border border-accent/20">
                 <Hash className="w-4 h-4 text-accent" />
               </div>
@@ -711,12 +712,13 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
               <span className="text-destructive text-lg">*</span>
             </Label>
             
-            {/* Quantity Controls */}
-            <div className="flex items-center gap-4">
+            {/* Quantity Controls - RTL */}
+            <div className="flex items-center gap-4 flex-row-reverse">
               <QuantityButton
-                onClick={() => setQuantity(Math.max(minQuantity, quantity - 100))}
-                disabled={quantity <= minQuantity}
-                icon={Minus}
+                onClick={() => setQuantity(Math.min(maxQuantity, quantity + 100))}
+                disabled={quantity >= maxQuantity}
+                icon={Plus}
+                variant="add"
               />
               
               <div className="flex-1 relative">
@@ -734,10 +736,9 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
               </div>
               
               <QuantityButton
-                onClick={() => setQuantity(Math.min(maxQuantity, quantity + 100))}
-                disabled={quantity >= maxQuantity}
-                icon={Plus}
-                variant="add"
+                onClick={() => setQuantity(Math.max(minQuantity, quantity - 100))}
+                disabled={quantity <= minQuantity}
+                icon={Minus}
               />
             </div>
 
@@ -806,18 +807,18 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
             />
             
             <div className="relative p-6 border-2 border-primary/20 rounded-3xl space-y-4">
-              {/* Header */}
-              <div className="flex items-center gap-3 pb-3 border-b border-border/40">
+              {/* Header - RTL */}
+              <div className="flex items-center gap-3 pb-3 border-b border-border/40 flex-row-reverse">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30">
                   <CreditCard className="w-5 h-5 text-primary-foreground" />
                 </div>
                 <h4 className="font-bold text-lg">ملخص الطلب</h4>
               </div>
 
-              {/* Price breakdown */}
+              {/* Price breakdown - RTL */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-sm text-muted-foreground flex items-center gap-2">
+                <div className="flex items-center justify-between py-2 flex-row-reverse">
+                  <span className="text-sm text-muted-foreground flex items-center gap-2 flex-row-reverse">
                     <Hash className="w-4 h-4" />
                     الكمية المطلوبة
                   </span>
@@ -832,8 +833,8 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
                   </motion.span>
                 </div>
                 
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-sm text-muted-foreground flex items-center gap-2">
+                <div className="flex items-center justify-between py-2 flex-row-reverse">
+                  <span className="text-sm text-muted-foreground flex items-center gap-2 flex-row-reverse">
                     <CreditCard className="w-4 h-4" />
                     السعر الأساسي
                   </span>
@@ -842,16 +843,16 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
                   </span>
                 </div>
 
-                {/* Tier Discount */}
+                {/* Tier Discount - RTL */}
                 <AnimatePresence>
                   {tierDiscountPercent > 0 && (
                     <motion.div
                       initial={{ opacity: 0, height: 0, y: -10 }}
                       animate={{ opacity: 1, height: "auto", y: 0 }}
                       exit={{ opacity: 0, height: 0, y: -10 }}
-                      className="flex items-center justify-between py-3 px-4 -mx-2 rounded-2xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20"
+                      className="flex items-center justify-between py-3 px-4 -mx-2 rounded-2xl bg-gradient-to-l from-amber-500/10 to-orange-500/10 border border-amber-500/20 flex-row-reverse"
                     >
-                      <span className="text-sm flex items-center gap-2 font-semibold text-amber-600 dark:text-amber-400">
+                      <span className="text-sm flex items-center gap-2 font-semibold text-amber-600 dark:text-amber-400 flex-row-reverse">
                         <Star className="w-4 h-4" />
                         خصم {userTier?.name_ar} ({tierDiscountPercent}%)
                       </span>
@@ -862,15 +863,16 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
                   )}
                 </AnimatePresence>
 
+                {/* Coupon Discount - RTL */}
                 <AnimatePresence>
                   {appliedCoupon && (
                     <motion.div
                       initial={{ opacity: 0, height: 0, y: -10 }}
                       animate={{ opacity: 1, height: "auto", y: 0 }}
                       exit={{ opacity: 0, height: 0, y: -10 }}
-                      className="flex items-center justify-between py-3 px-4 -mx-2 rounded-2xl bg-gradient-to-r from-success/10 to-emerald-500/10 border border-success/20"
+                      className="flex items-center justify-between py-3 px-4 -mx-2 rounded-2xl bg-gradient-to-l from-success/10 to-emerald-500/10 border border-success/20 flex-row-reverse"
                     >
-                      <span className="text-sm flex items-center gap-2 font-semibold text-success">
+                      <span className="text-sm flex items-center gap-2 font-semibold text-success flex-row-reverse">
                         <Gift className="w-4 h-4" />
                         كود الخصم ({appliedCoupon.code})
                       </span>
@@ -881,17 +883,18 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
                   )}
                 </AnimatePresence>
 
+                {/* Points Discount - RTL */}
                 <AnimatePresence>
                   {usePoints && pointsDiscount > 0 && (
                     <motion.div
                       initial={{ opacity: 0, height: 0, y: -10 }}
                       animate={{ opacity: 1, height: "auto", y: 0 }}
                       exit={{ opacity: 0, height: 0, y: -10 }}
-                      className="flex items-center justify-between py-3 px-4 -mx-2 rounded-2xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20"
+                      className="flex items-center justify-between py-3 px-4 -mx-2 rounded-2xl bg-gradient-to-l from-amber-500/10 to-orange-500/10 border border-amber-500/20 flex-row-reverse"
                     >
-                      <span className="text-sm flex items-center gap-2 font-semibold text-amber-600 dark:text-amber-400">
+                      <span className="text-sm flex items-center gap-2 font-semibold text-amber-600 dark:text-amber-400 flex-row-reverse">
                         <Coins className="w-4 h-4" />
-                        خصم النقاط ({actualPointsToUse.toLocaleString()} نقطة)
+                        خصم النقاط ({actualPointsToUse.toLocaleString('ar-SA')} نقطة)
                       </span>
                       <span className="font-bold text-amber-600 dark:text-amber-400">
                         -<AnimatedPrice value={pointsDiscount} /> ر.س
@@ -901,18 +904,18 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
                 </AnimatePresence>
               </div>
 
-              {/* Total */}
+              {/* Total - RTL */}
               <div className="pt-5 border-t-2 border-dashed border-primary/30">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between flex-row-reverse">
+                  <div className="flex items-center gap-3 flex-row-reverse">
                     <motion.div 
                       className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary via-primary to-accent flex items-center justify-center shadow-xl shadow-primary/40"
-                      animate={{ rotate: [0, 3, -3, 0] }}
+                      animate={{ rotate: [0, -3, 3, 0] }}
                       transition={{ duration: 3, repeat: Infinity }}
                     >
                       <Sparkles className="w-6 h-6 text-primary-foreground" />
                     </motion.div>
-                    <div>
+                    <div className="text-right">
                       <span className="font-bold text-xl">الإجمالي</span>
                       {discountAmount > 0 && (
                         <p className="text-xs text-success font-medium">وفرت {discountPercentage.toFixed(0)}%</p>
@@ -926,7 +929,7 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
                     animate={{ scale: 1 }}
                   >
                     <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-black bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
+                      <span className="text-4xl font-black bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                         <AnimatedPrice value={finalPrice} size="large" />
                       </span>
                       <span className="text-lg font-bold text-muted-foreground">ر.س</span>
@@ -1106,16 +1109,16 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting || !link.trim() || quantity < minQuantity}
-              className="w-full h-16 text-lg font-bold rounded-2xl bg-gradient-to-r from-primary via-primary to-accent hover:opacity-90 shadow-xl shadow-primary/40 transition-all duration-300 group"
+              className="w-full h-16 text-lg font-bold rounded-2xl bg-gradient-to-l from-primary via-primary to-accent hover:opacity-90 shadow-xl shadow-primary/40 transition-all duration-300 group"
             >
               {isSubmitting ? (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-row-reverse">
                   <Loader2 className="w-6 h-6 animate-spin" />
                   <span>جاري إرسال الطلب...</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-3">
-                  <Send className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                <div className="flex items-center gap-3 flex-row-reverse">
+                  <Send className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
                   <span>إرسال الطلب</span>
                   <Badge className="bg-primary-foreground/20 text-primary-foreground border-0 text-sm">
                     {finalPrice.toFixed(2)} ر.س
@@ -1124,19 +1127,19 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
               )}
             </Button>
 
-            {/* Trust badges */}
-            <div className="flex items-center justify-center gap-4 mt-5">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            {/* Trust badges - RTL */}
+            <div className="flex items-center justify-center gap-4 mt-5 flex-row-reverse">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground flex-row-reverse">
                 <BadgeCheck className="w-4 h-4 text-success" />
                 <span>دفع آمن</span>
               </div>
               <div className="w-px h-4 bg-border" />
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground flex-row-reverse">
                 <Clock className="w-4 h-4 text-primary" />
                 <span>تنفيذ سريع</span>
               </div>
               <div className="w-px h-4 bg-border" />
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground flex-row-reverse">
                 <Shield className="w-4 h-4 text-warning" />
                 <span>ضمان الجودة</span>
               </div>
