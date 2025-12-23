@@ -104,7 +104,6 @@ const ClientServicesHome = () => {
   const heroRef = useRef<HTMLDivElement>(null);
   const sectionsRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, amount: 0.05 });
-  const sectionsInView = useInView(sectionsRef, { once: true, amount: 0.1 });
   
   const { scrollYProgress } = useScroll();
   const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
@@ -481,13 +480,15 @@ const ClientServicesHome = () => {
           {/* Main Services Grid */}
           <motion.section
             ref={sectionsRef}
-            variants={containerVariants}
-            initial="hidden"
-            animate={sectionsInView ? "visible" : "hidden"}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
             className="space-y-5 sm:space-y-6"
           >
             <motion.h2 
-              variants={itemVariants}
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
               className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3"
             >
               <Crown className="w-6 h-6 text-primary" />
@@ -498,7 +499,15 @@ const ClientServicesHome = () => {
               {sections.map((section, index) => (
                 <motion.div
                   key={section.id}
-                  variants={itemVariants}
+                  initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ 
+                    duration: 0.5, 
+                    delay: 0.5 + index * 0.15,
+                    type: "spring",
+                    stiffness: 100
+                  }}
+                  whileHover={{ y: -8, scale: 1.02 }}
                   onMouseEnter={() => setHoveredSection(section.id)}
                   onMouseLeave={() => setHoveredSection(null)}
                   className="group"
