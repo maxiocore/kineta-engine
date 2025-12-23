@@ -142,7 +142,8 @@ const ClientServicesHome = () => {
   const [globalStats, setGlobalStats] = useState({
     totalServices: 0,
     totalOrders: 0,
-    totalUsers: 0,
+    pendingOrders: 0,
+    inProgressOrders: 0,
     completedOrders: 0
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -193,14 +194,20 @@ const ClientServicesHome = () => {
         .from('orders')
         .select('*', { count: 'exact', head: true });
 
+      const { count: pendingOrdersCount } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+
+      const { count: inProgressOrdersCount } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'in_progress');
+
       const { count: completedOrdersCount } = await supabase
         .from('orders')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'completed');
-
-      const { count: totalUsersCount } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
 
       setServicesCount({
         social: socialCount || 0,
@@ -211,7 +218,8 @@ const ClientServicesHome = () => {
       setGlobalStats({
         totalServices: totalServicesCount || 0,
         totalOrders: totalOrdersCount || 0,
-        totalUsers: totalUsersCount || 0,
+        pendingOrders: pendingOrdersCount || 0,
+        inProgressOrders: inProgressOrdersCount || 0,
         completedOrders: completedOrdersCount || 0
       });
     } finally {
@@ -514,24 +522,24 @@ const ClientServicesHome = () => {
                   suffix: '+'
                 },
                 { 
-                  value: globalStats.totalUsers, 
-                  label: 'عميل سعيد', 
-                  icon: Users, 
-                  gradient: 'from-violet-500 to-purple-500',
-                  suffix: '+'
+                  value: globalStats.pendingOrders, 
+                  label: 'طلب قيد الانتظار', 
+                  icon: Clock, 
+                  gradient: 'from-amber-500 to-orange-500',
+                  suffix: ''
                 },
                 { 
-                  value: globalStats.totalOrders, 
-                  label: 'طلب منفذ', 
+                  value: globalStats.inProgressOrders, 
+                  label: 'طلب قيد التنفيذ', 
                   icon: TrendingUp, 
-                  gradient: 'from-emerald-500 to-teal-500',
+                  gradient: 'from-violet-500 to-purple-500',
                   suffix: ''
                 },
                 { 
                   value: globalStats.completedOrders, 
                   label: 'طلب مكتمل', 
                   icon: CheckCircle2, 
-                  gradient: 'from-amber-500 to-orange-500',
+                  gradient: 'from-emerald-500 to-teal-500',
                   suffix: ''
                 },
               ].map((stat, i) => (
