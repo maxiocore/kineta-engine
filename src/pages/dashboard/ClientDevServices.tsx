@@ -457,10 +457,11 @@ const ClientDevServices = () => {
                                 )}
                               </div>
 
-                              <div className="text-left shrink-0">
+                            <div className="text-left shrink-0">
                                 <p className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
                                   {service.price.toFixed(0)} ر.س
                                 </p>
+                                <span className="text-xs text-muted-foreground">للمشروع</span>
                               </div>
 
                               <div className="flex items-center gap-2 shrink-0">
@@ -527,9 +528,9 @@ const ClientDevServices = () => {
                                 whileHover={{ scale: 1.05 }}
                                 className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent"
                               >
-                                {service.price.toFixed(0)}
+                                {service.price.toFixed(0)} ر.س
                               </motion.p>
-                              <span className="text-sm text-muted-foreground">ر.س</span>
+                              <span className="text-xs text-muted-foreground">للمشروع</span>
                             </div>
                           </div>
 
