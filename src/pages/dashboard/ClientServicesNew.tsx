@@ -796,11 +796,11 @@ const ClientServicesNew = () => {
                                   <div className="flex flex-col items-start gap-2 shrink-0">
                                     {discount > 0 ? (
                                       <div className="text-left">
-                                        <p className="text-[10px] text-muted-foreground line-through">{service.price.toFixed(2)}<span className="mr-0.5">ر.س</span></p>
-                                        <p className="text-sm sm:text-base font-bold text-red-500">{discountedPrice.toFixed(2)}<span className="text-[10px] mr-0.5">ر.س</span></p>
+                                        <p className="text-[10px] text-muted-foreground line-through whitespace-nowrap">{service.price.toFixed(2)}ر.س</p>
+                                        <p className="text-sm sm:text-base font-bold text-red-500 whitespace-nowrap">{discountedPrice.toFixed(2)}ر.س</p>
                                       </div>
                                     ) : (
-                                      <p className="text-sm sm:text-base font-bold text-primary">{service.price.toFixed(2)}<span className="text-[10px] text-muted-foreground mr-0.5">ر.س</span></p>
+                                      <p className="text-sm sm:text-base font-bold text-primary whitespace-nowrap">{service.price.toFixed(2)}ر.س</p>
                                     )}
                                     <Button
                                       variant="ghost"
