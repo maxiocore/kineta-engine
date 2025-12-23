@@ -140,6 +140,42 @@ const getCategoryEmoji = (slug: string) => {
   return emojiMap[slug] || '📦';
 };
 
+// Enhanced animated step indicator
+const StepIndicator = ({ step, currentStep, icon: Icon, label }: { step: number; currentStep: number; icon: React.ComponentType<any>; label: string }) => {
+  const isActive = currentStep >= step;
+  const isCompleted = currentStep > step;
+  
+  return (
+    <motion.div 
+      className="flex flex-col items-center gap-2"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: step * 0.1 }}
+    >
+      <motion.div 
+        className={cn(
+          "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 border-2",
+          isCompleted 
+            ? "bg-success border-success text-success-foreground shadow-lg shadow-success/30" 
+            : isActive 
+              ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/30" 
+              : "bg-muted/50 border-border text-muted-foreground"
+        )}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        {isCompleted ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
+      </motion.div>
+      <span className={cn(
+        "text-xs font-medium transition-colors",
+        isActive ? "text-foreground" : "text-muted-foreground"
+      )}>
+        {label}
+      </span>
+    </motion.div>
+  );
+};
+
 const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrderDialogProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
@@ -147,6 +183,7 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [activeStep, setActiveStep] = useState(1);
   
   // Category & Service selection states
   const [categories, setCategories] = useState<Category[]>([]);
@@ -165,6 +202,7 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
   });
 
   const quantity = form.watch("quantity");
+  const link = form.watch("link");
 
   // Fetch categories and all services
   useEffect(() => {
@@ -524,21 +562,44 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
               exit={{ opacity: 0 }}
               className="flex flex-col"
             >
-              {/* Header */}
-              <div className="px-5 py-4 border-b border-border/50 flex items-center justify-between">
-                <button
-                  onClick={handleClose}
-                  className="w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-                <div className="flex items-center gap-3">
-                  <div>
-                    <h2 className="text-lg font-bold">طلب جديد</h2>
+              {/* Enhanced Header */}
+              <div className="relative px-6 py-5 border-b border-border/30">
+                {/* Gradient background */}
+                <div className="absolute inset-0 bg-gradient-to-l from-primary/5 via-transparent to-accent/5" />
+                
+                <div className="relative flex items-center justify-between">
+                  <motion.button
+                    whileHover={{ scale: 1.1, rotate: 90 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={handleClose}
+                    className="w-10 h-10 rounded-xl bg-secondary/60 hover:bg-destructive/10 hover:text-destructive flex items-center justify-center transition-all duration-300"
+                  >
+                    <X className="w-4 h-4" />
+                  </motion.button>
+                  
+                  <div className="flex items-center gap-4 flex-row-reverse">
+                    <motion.div 
+                      className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary via-primary to-accent p-[2px] shadow-xl shadow-primary/30"
+                      whileHover={{ rotate: 5, scale: 1.05 }}
+                    >
+                      <div className="w-full h-full rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                        <Package className="w-7 h-7 text-primary-foreground" />
+                      </div>
+                    </motion.div>
+                    <div className="text-right">
+                      <h2 className="text-xl font-bold">طلب خدمة جديد</h2>
+                      <p className="text-sm text-muted-foreground">أكمل البيانات لإتمام طلبك</p>
+                    </div>
                   </div>
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Package className="w-5 h-5 text-primary" />
-                  </div>
+                </div>
+
+                {/* Step Indicators */}
+                <div className="flex items-center justify-center gap-8 mt-5 pt-4 border-t border-border/30">
+                  <StepIndicator step={1} currentStep={selectedServiceId ? 2 : 1} icon={Layers} label="الخدمة" />
+                  <div className="flex-1 h-px max-w-[60px] bg-gradient-to-l from-border to-border/30" />
+                  <StepIndicator step={2} currentStep={link ? 3 : selectedServiceId ? 2 : 1} icon={LinkIcon} label="الرابط" />
+                  <div className="flex-1 h-px max-w-[60px] bg-gradient-to-l from-border/30 to-border" />
+                  <StepIndicator step={3} currentStep={link && quantity > 0 ? 3 : 2} icon={ShoppingCart} label="التأكيد" />
                 </div>
               </div>
 
@@ -657,27 +718,69 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                     </Select>
                   </div>
 
-                  {/* Service Info Cards */}
+                  {/* Enhanced Service Info Cards */}
                   {currentService && (
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="grid grid-cols-3 gap-2"
+                      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-secondary/40 via-secondary/30 to-muted/20 border border-border/40 p-4"
                     >
-                      <div className="bg-muted/50 rounded-xl p-3 text-center">
-                        <DollarSign className="w-4 h-4 mx-auto mb-1 text-primary" />
-                        <p className="text-xs text-muted-foreground">السعر</p>
-                        <p className="text-sm font-bold">${currentService.price.toFixed(4)}</p>
+                      {/* Decorative element */}
+                      <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-primary/10 to-transparent rounded-br-full" />
+                      
+                      {/* Service name and ID */}
+                      <div className="relative flex items-start gap-3 mb-4 flex-row-reverse">
+                        <motion.div 
+                          className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center shrink-0 border border-primary/20"
+                          whileHover={{ rotate: 5 }}
+                        >
+                          <Sparkles className="w-6 h-6 text-primary" />
+                        </motion.div>
+                        <div className="flex-1 min-w-0 text-right">
+                          <p className="font-bold text-sm line-clamp-2">{currentService.name}</p>
+                          {currentService.external_service_id && (
+                            <Badge variant="outline" className="text-[10px] font-mono mt-1">
+                              #{currentService.external_service_id}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                      <div className="bg-muted/50 rounded-xl p-3 text-center">
-                        <Zap className="w-4 h-4 mx-auto mb-1 text-yellow-500" />
-                        <p className="text-xs text-muted-foreground">الحد الأدنى</p>
-                        <p className="text-sm font-bold">{minQuantity.toLocaleString()}</p>
-                      </div>
-                      <div className="bg-muted/50 rounded-xl p-3 text-center">
-                        <Shield className={cn("w-4 h-4 mx-auto mb-1", guaranteed ? "text-success" : "text-muted-foreground")} />
-                        <p className="text-xs text-muted-foreground">الضمان</p>
-                        <p className="text-sm font-bold">{guaranteed ? "مضمون" : "لا"}</p>
+
+                      {/* Stats Grid */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <motion.div 
+                          className="bg-background/60 rounded-xl p-3 text-center border border-border/30"
+                          whileHover={{ scale: 1.02, y: -2 }}
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                            <DollarSign className="w-4 h-4 text-primary" />
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">السعر / 1000</p>
+                          <p className="text-sm font-bold text-primary">${currentService.price.toFixed(4)}</p>
+                        </motion.div>
+                        <motion.div 
+                          className="bg-background/60 rounded-xl p-3 text-center border border-border/30"
+                          whileHover={{ scale: 1.02, y: -2 }}
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center mx-auto mb-2">
+                            <Zap className="w-4 h-4 text-yellow-500" />
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">الحد الأدنى</p>
+                          <p className="text-sm font-bold">{minQuantity.toLocaleString('ar-SA')}</p>
+                        </motion.div>
+                        <motion.div 
+                          className="bg-background/60 rounded-xl p-3 text-center border border-border/30"
+                          whileHover={{ scale: 1.02, y: -2 }}
+                        >
+                          <div className={cn(
+                            "w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-2",
+                            guaranteed ? "bg-success/10" : "bg-muted"
+                          )}>
+                            <Shield className={cn("w-4 h-4", guaranteed ? "text-success" : "text-muted-foreground")} />
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">الضمان</p>
+                          <p className={cn("text-sm font-bold", guaranteed && "text-success")}>{guaranteed ? "مضمون ✓" : "لا"}</p>
+                        </motion.div>
                       </div>
                     </motion.div>
                   )}
@@ -861,24 +964,51 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                         </div>
                       </div>
 
-                      {/* Submit Button */}
-                      <Button 
-                        type="submit" 
-                        disabled={isSubmitting || !currentService} 
-                        className="w-full h-14 text-lg font-bold rounded-xl"
+                      {/* Enhanced Submit Button */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
                       >
-                        {isSubmitting ? (
-                          <>
-                            <Loader2 className="w-5 h-5 animate-spin ml-2" />
-                            جاري الإرسال...
-                          </>
-                        ) : (
-                          <>
-                            <ShoppingCart className="w-5 h-5 ml-2" />
-                            إرسال الطلب
-                          </>
-                        )}
-                      </Button>
+                        <Button 
+                          type="submit" 
+                          disabled={isSubmitting || !currentService} 
+                          className="w-full h-16 text-lg font-bold rounded-2xl bg-gradient-to-l from-primary via-primary to-accent hover:opacity-90 shadow-xl shadow-primary/30 transition-all duration-300 group"
+                        >
+                          {isSubmitting ? (
+                            <div className="flex items-center gap-3 flex-row-reverse">
+                              <Loader2 className="w-6 h-6 animate-spin" />
+                              <span>جاري إرسال الطلب...</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-3 flex-row-reverse">
+                              <ShoppingCart className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                              <span>إرسال الطلب</span>
+                              <Badge className="bg-primary-foreground/20 text-primary-foreground border-0 text-sm">
+                                ${totalPrice.toFixed(4)}
+                              </Badge>
+                            </div>
+                          )}
+                        </Button>
+
+                        {/* Trust badges */}
+                        <div className="flex items-center justify-center gap-4 mt-4">
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Shield className="w-4 h-4 text-success" />
+                            <span>دفع آمن</span>
+                          </div>
+                          <div className="w-px h-4 bg-border" />
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Timer className="w-4 h-4 text-primary" />
+                            <span>تنفيذ سريع</span>
+                          </div>
+                          <div className="w-px h-4 bg-border" />
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <RefreshCw className="w-4 h-4 text-warning" />
+                            <span>ضمان التعويض</span>
+                          </div>
+                        </div>
+                      </motion.div>
                     </form>
                   </Form>
                 </div>
