@@ -1130,16 +1130,28 @@ const ClientServicesNew = () => {
                           align="start"
                         >
                           <ScrollArea className="max-h-[calc(60vh-10px)] sm:max-h-[290px]">
-                            <div className="p-1">
-                              {filteredByNetwork.map((category) => (
+                            <div className="p-1 space-y-0.5">
+                              {filteredByNetwork.map((category, catIndex) => (
                                 <SelectItem 
                                   key={category} 
                                   value={category}
-                                  className="py-3 px-3 rounded-lg cursor-pointer focus:bg-accent/50 data-[highlighted]:bg-accent/50 mb-1"
+                                  className={cn(
+                                    "py-3 px-4 rounded-lg cursor-pointer transition-all duration-150",
+                                    "hover:bg-primary/10 focus:bg-primary/10 data-[highlighted]:bg-primary/10",
+                                    "border-b border-border/30 last:border-b-0",
+                                    selectedCategory === category && "bg-primary/15 border-primary/30"
+                                  )}
                                 >
                                   <div className="flex items-center justify-between gap-3 w-full min-w-0">
-                                    <span className="truncate text-sm font-medium">{category}</span>
-                                    <Badge variant="secondary" className="text-[10px] shrink-0">{categoryCounts[category]} خدمة</Badge>
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                        <Layers className="w-4 h-4 text-primary" />
+                                      </div>
+                                      <span className="text-sm font-semibold">{category}</span>
+                                    </div>
+                                    <Badge className="bg-primary/15 text-primary border-0 text-[11px] font-bold px-2.5">
+                                      {categoryCounts[category]} خدمة
+                                    </Badge>
                                   </div>
                                 </SelectItem>
                               ))}
@@ -1214,43 +1226,75 @@ const ClientServicesNew = () => {
                                 <p>لا توجد خدمات مطابقة للبحث</p>
                               </div>
                             ) : (
-                              <div className="p-1" dir="rtl">
-                                {filteredServices.map((service) => (
+                              <div className="p-1 space-y-0.5" dir="rtl">
+                                {filteredServices.map((service, serviceIndex) => (
                                   <SelectItem 
                                     key={service.id} 
                                     value={service.id} 
-                                    className="py-3 px-3 rounded-lg cursor-pointer focus:bg-accent/50 data-[highlighted]:bg-accent/50 mb-1 text-right"
+                                    className={cn(
+                                      "py-2.5 px-3 rounded-lg cursor-pointer text-right transition-all duration-150",
+                                      "hover:bg-primary/10 focus:bg-primary/10 data-[highlighted]:bg-primary/10",
+                                      "border-b border-border/30 last:border-b-0",
+                                      selectedService?.id === service.id && "bg-primary/15 border-primary/30"
+                                    )}
                                     dir="rtl"
                                   >
-                                    <div className="flex flex-col gap-1.5 w-full min-w-0 text-right" dir="rtl">
-                                      {/* Service ID and Name */}
-                                      <div className="flex items-start gap-2 min-w-0 flex-row-reverse justify-end">
-                                        <span className="text-sm font-medium leading-tight break-words flex-1 min-w-0 text-right">
-                                          {service.name}
-                                        </span>
-                                        <Badge variant="outline" className="text-[9px] font-mono shrink-0 mt-0.5">
-                                          #{service.external_service_id}
+                                    <div className="flex items-center gap-3 w-full min-w-0" dir="rtl">
+                                      {/* Service ID Badge - الرقم التعريفي */}
+                                      <div className="shrink-0 w-16 text-center">
+                                        <Badge 
+                                          variant="secondary" 
+                                          className="font-mono text-[10px] px-2 py-0.5 bg-muted/80 border border-border/50"
+                                        >
+                                          {service.external_service_id || "-"}
                                         </Badge>
                                       </div>
-                                      {/* Price and Details Row */}
-                                      <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-xs flex-row-reverse">
-                                        <span className="text-primary font-bold">{service.price.toFixed(4)} ر.س</span>
-                                        <span className="text-muted-foreground">
-                                          الحد: {service.features?.min || 10} - {service.features?.max || "∞"}
-                                        </span>
-                                        {service.refill_enabled && (
-                                          <Badge className="bg-success/10 text-success border-0 text-[10px] h-5 px-1.5">
-                                            <Shield className="w-3 h-3 ml-0.5" />
-                                            مضمون
-                                          </Badge>
+                                      
+                                      {/* Service Icon/Indicator */}
+                                      <div className={cn(
+                                        "shrink-0 w-8 h-8 rounded-lg flex items-center justify-center",
+                                        service.refill_enabled 
+                                          ? "bg-success/10 text-success" 
+                                          : "bg-muted/50 text-muted-foreground"
+                                      )}>
+                                        {service.refill_enabled ? (
+                                          <Shield className="w-4 h-4" />
+                                        ) : (
+                                          <Package className="w-4 h-4" />
                                         )}
                                       </div>
-                                      {/* Description */}
-                                      {service.description && (
-                                        <p className="text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed text-right">
-                                          {service.description}
+                                      
+                                      {/* Service Name & Description */}
+                                      <div className="flex-1 min-w-0 text-right">
+                                        <p className="text-sm font-semibold leading-tight line-clamp-1 group-hover:text-primary transition-colors">
+                                          {service.name}
                                         </p>
-                                      )}
+                                        {service.description && (
+                                          <p className="text-[11px] text-muted-foreground/70 line-clamp-1 mt-0.5">
+                                            {service.description}
+                                          </p>
+                                        )}
+                                        {/* Tags row */}
+                                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                          <span className="text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">
+                                            الكمية: {service.features?.min || 10} - {service.features?.max ? service.features.max.toLocaleString() : "∞"}
+                                          </span>
+                                          {service.refill_enabled && (
+                                            <span className="text-[10px] text-success bg-success/10 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                                              <Shield className="w-2.5 h-2.5" />
+                                              ضمان
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                      
+                                      {/* Price - السعر */}
+                                      <div className="shrink-0 text-left min-w-[80px]">
+                                        <p className="text-sm font-bold text-primary">
+                                          ${service.price.toFixed(2)}
+                                        </p>
+                                        <p className="text-[9px] text-muted-foreground">لكل 1000</p>
+                                      </div>
                                     </div>
                                   </SelectItem>
                                 ))}
