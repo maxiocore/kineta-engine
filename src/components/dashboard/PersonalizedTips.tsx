@@ -34,11 +34,11 @@ const PersonalizedTips = ({ tips, onDismiss }: PersonalizedTipsProps) => {
   const getTypeStyle = (type: string) => {
     switch (type) {
       case "promo":
-        return "from-gradient-start to-gradient-end";
+        return "from-primary to-accent";
       case "achievement":
-        return "from-success to-emerald-400";
+        return "from-success to-emerald-500";
       default:
-        return "from-primary to-cyan-400";
+        return "from-primary to-cyan-500";
     }
   };
 

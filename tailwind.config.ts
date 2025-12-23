@@ -52,10 +52,11 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         success: {
-          DEFAULT: "hsl(var(--success))",
-          foreground: "hsl(var(--success-foreground))",
-        },
-        warning: "hsl(var(--warning))",
+55:           DEFAULT: "hsl(var(--success))",
+56:           foreground: "hsl(var(--success-foreground))",
+57:         },
+58:         warning: "hsl(var(--warning))",
+59:         "warning-foreground": "hsl(var(--foreground))",
         brand: {
           DEFAULT: "hsl(var(--brand))",
           light: "hsl(var(--brand-light))",
