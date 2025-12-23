@@ -275,6 +275,41 @@ const ClientServicesNew = () => {
     return designDevKeywords.some(k => lowerCat.includes(k));
   };
 
+  // Get social network icon and color based on category/service name
+  const getSocialNetworkInfo = useMemo(() => (text: string) => {
+    const lowerText = text.toLowerCase();
+    
+    // Network detection keywords
+    const networkPatterns = [
+      { keywords: ['facebook', 'فيسبوك', 'فيس بوك', 'fb'], icon: Facebook, color: 'from-blue-500 to-blue-600', bg: 'bg-blue-500' },
+      { keywords: ['instagram', 'انستقرام', 'انستا', 'insta'], icon: Instagram, color: 'from-pink-500 via-purple-500 to-orange-500', bg: 'bg-gradient-to-br from-pink-500 via-purple-500 to-orange-500' },
+      { keywords: ['tiktok', 'تيك توك', 'تيكتوك', 'tik tok'], icon: Music2, color: 'from-zinc-800 to-zinc-900', bg: 'bg-zinc-800' },
+      { keywords: ['youtube', 'يوتيوب', 'يوتوب', 'yt'], icon: Youtube, color: 'from-red-500 to-red-600', bg: 'bg-red-500' },
+      { keywords: ['twitter', 'تويتر', 'x ', ' x', 'اكس'], icon: Twitter, color: 'from-sky-400 to-sky-500', bg: 'bg-sky-500' },
+      { keywords: ['telegram', 'تيليجرام', 'تلجرام', 'تليجرام'], icon: Send, color: 'from-sky-500 to-sky-600', bg: 'bg-sky-600' },
+      { keywords: ['discord', 'ديسكورد', 'دسكورد'], icon: MessageCircle, color: 'from-indigo-500 to-indigo-600', bg: 'bg-indigo-500' },
+      { keywords: ['twitch', 'تويتش'], icon: Tv, color: 'from-purple-500 to-purple-600', bg: 'bg-purple-500' },
+      { keywords: ['spotify', 'سبوتيفاي', 'سبوتفاي'], icon: Radio, color: 'from-green-500 to-green-600', bg: 'bg-green-500' },
+      { keywords: ['snapchat', 'سناب شات', 'سناب', 'snap'], icon: Ghost, color: 'from-yellow-400 to-yellow-500', bg: 'bg-yellow-400' },
+      { keywords: ['google', 'جوجل', 'قوقل'], icon: Globe2, color: 'from-red-500 via-yellow-500 to-blue-500', bg: 'bg-gradient-to-br from-red-500 via-yellow-500 to-blue-500' },
+      { keywords: ['linkedin', 'لينكدان', 'لينكد ان'], icon: Linkedin, color: 'from-blue-600 to-blue-700', bg: 'bg-blue-600' },
+      { keywords: ['review', 'تقييم', 'rating'], icon: StarIcon, color: 'from-amber-400 to-orange-500', bg: 'bg-amber-500' },
+      { keywords: ['website', 'زيار', 'visit', 'traffic', 'موقع'], icon: Globe, color: 'from-emerald-500 to-teal-600', bg: 'bg-emerald-500' },
+      { keywords: ['thread', 'ثريد'], icon: MessageCircle, color: 'from-zinc-700 to-zinc-900', bg: 'bg-zinc-800' },
+      { keywords: ['kick'], icon: Tv, color: 'from-green-400 to-green-600', bg: 'bg-green-500' },
+      { keywords: ['soundcloud', 'ساوند'], icon: Radio, color: 'from-orange-500 to-orange-600', bg: 'bg-orange-500' },
+    ];
+
+    for (const pattern of networkPatterns) {
+      if (pattern.keywords.some(k => lowerText.includes(k))) {
+        return { icon: pattern.icon, color: pattern.color, bg: pattern.bg };
+      }
+    }
+    
+    // Default fallback
+    return { icon: Package, color: 'from-slate-500 to-slate-600', bg: 'bg-slate-500' };
+  }, []);
+
   // Get unique categories (excluding design and development)
   const serviceCategories = useMemo(() => 
     [...new Set(services.map(s => s.category))]
@@ -1131,30 +1166,37 @@ const ClientServicesNew = () => {
                         >
                           <ScrollArea className="max-h-[calc(60vh-10px)] sm:max-h-[290px]">
                             <div className="p-1 space-y-0.5">
-                              {filteredByNetwork.map((category, catIndex) => (
-                                <SelectItem 
-                                  key={category} 
-                                  value={category}
-                                  className={cn(
-                                    "py-3 px-4 rounded-lg cursor-pointer transition-all duration-150",
-                                    "hover:bg-primary/10 focus:bg-primary/10 data-[highlighted]:bg-primary/10",
-                                    "border-b border-border/30 last:border-b-0",
-                                    selectedCategory === category && "bg-primary/15 border-primary/30"
-                                  )}
-                                >
-                                  <div className="flex items-center justify-between gap-3 w-full min-w-0">
-                                    <div className="flex items-center gap-3">
-                                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                                        <Layers className="w-4 h-4 text-primary" />
+                              {filteredByNetwork.map((category, catIndex) => {
+                                const networkInfo = getSocialNetworkInfo(category);
+                                const NetworkIcon = networkInfo.icon;
+                                return (
+                                  <SelectItem 
+                                    key={category} 
+                                    value={category}
+                                    className={cn(
+                                      "py-3 px-4 rounded-lg cursor-pointer transition-all duration-150",
+                                      "hover:bg-primary/10 focus:bg-primary/10 data-[highlighted]:bg-primary/10",
+                                      "border-b border-border/30 last:border-b-0",
+                                      selectedCategory === category && "bg-primary/15 border-primary/30"
+                                    )}
+                                  >
+                                    <div className="flex items-center justify-between gap-3 w-full min-w-0">
+                                      <div className="flex items-center gap-3">
+                                        <div className={cn(
+                                          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-white",
+                                          networkInfo.bg
+                                        )}>
+                                          <NetworkIcon className="w-4 h-4" />
+                                        </div>
+                                        <span className="text-sm font-semibold">{category}</span>
                                       </div>
-                                      <span className="text-sm font-semibold">{category}</span>
+                                      <Badge className="bg-primary/15 text-primary border-0 text-[11px] font-bold px-2.5">
+                                        {categoryCounts[category]} خدمة
+                                      </Badge>
                                     </div>
-                                    <Badge className="bg-primary/15 text-primary border-0 text-[11px] font-bold px-2.5">
-                                      {categoryCounts[category]} خدمة
-                                    </Badge>
-                                  </div>
-                                </SelectItem>
-                              ))}
+                                  </SelectItem>
+                                );
+                              })}
                             </div>
                           </ScrollArea>
                         </SelectContent>
@@ -1250,19 +1292,19 @@ const ClientServicesNew = () => {
                                         </Badge>
                                       </div>
                                       
-                                      {/* Service Icon/Indicator */}
-                                      <div className={cn(
-                                        "shrink-0 w-8 h-8 rounded-lg flex items-center justify-center",
-                                        service.refill_enabled 
-                                          ? "bg-success/10 text-success" 
-                                          : "bg-muted/50 text-muted-foreground"
-                                      )}>
-                                        {service.refill_enabled ? (
-                                          <Shield className="w-4 h-4" />
-                                        ) : (
-                                          <Package className="w-4 h-4" />
-                                        )}
-                                      </div>
+                                      {/* Social Network Icon */}
+                                      {(() => {
+                                        const networkInfo = getSocialNetworkInfo(service.name || service.category);
+                                        const NetworkIcon = networkInfo.icon;
+                                        return (
+                                          <div className={cn(
+                                            "shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-white",
+                                            networkInfo.bg
+                                          )}>
+                                            <NetworkIcon className="w-4 h-4" />
+                                          </div>
+                                        );
+                                      })()}
                                       
                                       {/* Service Name & Description */}
                                       <div className="flex-1 min-w-0 text-right">
