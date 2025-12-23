@@ -608,8 +608,8 @@ const ClientServicesNew = () => {
               </Badge>
             </div>
 
-            {/* Reorder Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {/* Reorder Cards - Horizontal scroll on mobile */}
+            <div className="flex lg:grid lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 overflow-x-auto pb-2 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0 snap-x snap-mandatory lg:snap-none">
               {recentOrders.slice(0, 5).map((order: any, index: number) => {
                 const service = order.services;
                 if (!service || service.status !== 'active') return null;
@@ -644,7 +644,7 @@ const ClientServicesNew = () => {
                         });
                       }, 100);
                     }}
-                    className="group relative bg-card border border-border rounded-2xl p-4 cursor-pointer hover:border-primary/50 hover:shadow-xl transition-all duration-300 overflow-hidden"
+                    className="group relative bg-card border border-border rounded-2xl p-3 sm:p-4 cursor-pointer hover:border-primary/50 hover:shadow-xl transition-all duration-300 overflow-hidden min-w-[260px] sm:min-w-[280px] lg:min-w-0 snap-start"
                   >
                     {/* Decorative Background */}
                     <div className={cn(
@@ -753,10 +753,10 @@ const ClientServicesNew = () => {
           </div>
         </motion.div>
 
-        {/* Main Content Grid */}
+        {/* Main Content Grid - Stack on mobile, side by side on desktop */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-          {/* Categories & Services List */}
-          <div className="lg:col-span-2 space-y-4">
+          {/* Categories & Services List - Full width on mobile */}
+          <div className="lg:col-span-2 space-y-4 order-2 lg:order-1">
             {/* Categories */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }} 
@@ -977,13 +977,13 @@ const ClientServicesNew = () => {
             </AnimatePresence>
           </div>
 
-          {/* Order Form Sidebar */}
-          <div id="order-form-section" className="lg:col-span-1">
+          {/* Order Form Sidebar - Show first on mobile for better UX */}
+          <div id="order-form-section" className="lg:col-span-1 order-1 lg:order-2">
             <motion.div 
               initial={{ opacity: 0, x: 20 }} 
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              className="sticky top-4"
+              className="lg:sticky lg:top-4"
             >
               <Card className="border-border/50 overflow-hidden">
                 <CardContent className="p-0">
@@ -1161,42 +1161,42 @@ const ClientServicesNew = () => {
                 </CardContent>
               </Card>
 
-              {/* Features Cards */}
-              <div className="grid grid-cols-2 gap-3 mt-4">
+              {/* Features Cards - Hide on small mobile, show on larger screens */}
+              <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mt-4">
                 <motion.div 
                   whileHover={{ scale: 1.02 }}
-                  className="bg-card border border-border/50 rounded-xl p-3 text-center"
+                  className="bg-card border border-border/50 rounded-xl p-2 sm:p-3 text-center"
                 >
-                  <Zap className="w-6 h-6 mx-auto mb-2 text-yellow-500" />
-                  <p className="text-[10px] sm:text-xs font-medium">تنفيذ فوري</p>
+                  <Zap className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2 text-yellow-500" />
+                  <p className="text-[9px] sm:text-[10px] lg:text-xs font-medium text-foreground">تنفيذ فوري</p>
                 </motion.div>
                 <motion.div 
                   whileHover={{ scale: 1.02 }}
-                  className="bg-card border border-border/50 rounded-xl p-3 text-center"
+                  className="bg-card border border-border/50 rounded-xl p-2 sm:p-3 text-center"
                 >
-                  <Shield className="w-6 h-6 mx-auto mb-2 text-green-500" />
-                  <p className="text-[10px] sm:text-xs font-medium">ضمان الخدمة</p>
+                  <Shield className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2 text-green-500" />
+                  <p className="text-[9px] sm:text-[10px] lg:text-xs font-medium text-foreground">ضمان الخدمة</p>
                 </motion.div>
                 <motion.div 
                   whileHover={{ scale: 1.02 }}
-                  className="bg-card border border-border/50 rounded-xl p-3 text-center"
+                  className="bg-card border border-border/50 rounded-xl p-2 sm:p-3 text-center"
                 >
-                  <Gift className="w-6 h-6 mx-auto mb-2 text-pink-500" />
-                  <p className="text-[10px] sm:text-xs font-medium">نقاط مكافآت</p>
+                  <Gift className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2 text-pink-500" />
+                  <p className="text-[9px] sm:text-[10px] lg:text-xs font-medium text-foreground">نقاط مكافآت</p>
                 </motion.div>
                 <motion.div 
                   whileHover={{ scale: 1.02 }}
-                  className="bg-card border border-border/50 rounded-xl p-3 text-center"
+                  className="bg-card border border-border/50 rounded-xl p-2 sm:p-3 text-center"
                 >
-                  <Clock className="w-6 h-6 mx-auto mb-2 text-blue-500" />
-                  <p className="text-[10px] sm:text-xs font-medium">دعم 24/7</p>
+                  <Clock className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2 text-blue-500" />
+                  <p className="text-[9px] sm:text-[10px] lg:text-xs font-medium text-foreground">دعم 24/7</p>
                 </motion.div>
               </div>
             </motion.div>
           </div>
         </div>
 
-        {/* Scroll to Top Button */}
+        {/* Scroll to Top Button - Adjusted position for mobile */}
         <AnimatePresence>
           {showScrollTop && (
             <motion.button
@@ -1204,9 +1204,9 @@ const ClientServicesNew = () => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="fixed bottom-6 left-6 z-50 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity"
+              className="fixed bottom-20 sm:bottom-6 left-4 sm:left-6 z-50 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity"
             >
-              <ChevronUp className="w-6 h-6" />
+              <ChevronUp className="w-5 h-5 sm:w-6 sm:h-6" />
             </motion.button>
           )}
         </AnimatePresence>
