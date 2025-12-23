@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
+import { useExchangeRate } from "@/hooks/useExchangeRate";
 import { 
   Search, 
   Package, 
@@ -127,6 +128,7 @@ const ClientServicesNew = () => {
   const { user } = useAuth();
   const { favorites, toggleFavorite } = useFavorites();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { convertToSAR, rate, loading: exchangeRateLoading } = useExchangeRate();
   
   // Form state
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -288,12 +290,13 @@ const ClientServicesNew = () => {
     });
   }, [services, searchQuery, selectedCategory]);
 
-  // Calculate total price
+  // Calculate total price (convert from USD to SAR)
   const totalPrice = useMemo(() => {
     if (!selectedService || !quantity) return 0;
     const qty = parseInt(quantity) || 0;
-    return (selectedService.price / 1000) * qty;
-  }, [selectedService, quantity]);
+    const priceInUSD = (selectedService.price / 1000) * qty;
+    return convertToSAR(priceInUSD);
+  }, [selectedService, quantity, convertToSAR]);
 
   // Handle URL params
   useEffect(() => {
@@ -792,15 +795,15 @@ const ClientServicesNew = () => {
                                     </div>
                                   </div>
                                   
-                                  {/* Price on the left */}
+                                  {/* Price on the left - converted from USD to SAR */}
                                   <div className="flex flex-col items-start gap-2 shrink-0">
                                     {discount > 0 ? (
                                       <div className="text-left">
-                                        <p className="text-[10px] text-muted-foreground line-through whitespace-nowrap">{service.price.toFixed(2)}ر.س</p>
-                                        <p className="text-sm sm:text-base font-bold text-red-500 whitespace-nowrap">{discountedPrice.toFixed(2)}ر.س</p>
+                                        <p className="text-[10px] text-muted-foreground line-through whitespace-nowrap">{convertToSAR(service.price).toFixed(2)}ر.س</p>
+                                        <p className="text-sm sm:text-base font-bold text-red-500 whitespace-nowrap">{convertToSAR(discountedPrice).toFixed(2)}ر.س</p>
                                       </div>
                                     ) : (
-                                      <p className="text-sm sm:text-base font-bold text-primary whitespace-nowrap">{service.price.toFixed(2)}ر.س</p>
+                                      <p className="text-sm sm:text-base font-bold text-primary whitespace-nowrap">{convertToSAR(service.price).toFixed(2)}ر.س</p>
                                     )}
                                     <Button
                                       variant="ghost"
@@ -863,7 +866,7 @@ const ClientServicesNew = () => {
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-medium line-clamp-2">{selectedService.name}</p>
                             <p className="text-xs text-muted-foreground mt-0.5">
-                              السعر: {selectedService.price.toFixed(2)} ر.س / 1000
+                              السعر: {convertToSAR(selectedService.price).toFixed(2)} ر.س / 1000
                             </p>
                           </div>
                         </div>
