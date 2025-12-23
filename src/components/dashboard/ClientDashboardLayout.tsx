@@ -192,7 +192,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex w-full">
+    <div className="min-h-screen bg-background flex w-full" dir="rtl">
       {/* Desktop Sidebar */}
       <motion.aside
         initial={false}
@@ -492,6 +492,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
         className="lg:hidden fixed top-0 left-0 right-0 h-14 sm:h-16 bg-card/95 backdrop-blur-xl border-b border-border z-50 flex items-center justify-between px-3 sm:px-4"
+        dir="rtl"
       >
         <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
           <Button variant="ghost" size="icon" className="w-9 h-9 sm:w-10 sm:h-10" onClick={() => setIsMobileMenuOpen(true)}>
@@ -541,6 +542,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
               animate="visible"
               exit="exit"
               className="lg:hidden fixed top-0 right-0 h-full w-[300px] max-w-[85vw] bg-card border-l border-border z-[70] overflow-hidden flex flex-col"
+              dir="rtl"
             >
               {/* Header */}
               <div className="p-4 border-b border-border flex items-center justify-between shrink-0">
