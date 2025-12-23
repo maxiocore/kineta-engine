@@ -955,8 +955,11 @@ const ClientDashboard = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={openGoalDialog}
-                    className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 p-0 shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openGoalDialog();
+                    }}
+                    className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 p-0 shrink-0 relative z-10"
                   >
                     <Settings2 className="w-4 h-4" />
                     <span className="hidden sm:inline mr-1">تعديل الهدف</span>
