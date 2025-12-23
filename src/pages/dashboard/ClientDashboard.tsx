@@ -49,6 +49,7 @@ import OrderCalendar from "@/components/dashboard/OrderCalendar";
 import PersonalizedTips from "@/components/dashboard/PersonalizedTips";
 import RewardPointsCard from "@/components/dashboard/RewardPointsCard";
 import MonthlyGoalCelebration from "@/components/dashboard/MonthlyGoalCelebration";
+import MonthlyGoalCard from "@/components/dashboard/MonthlyGoalCard";
 import AchievementsHistory from "@/components/dashboard/AchievementsHistory";
 import { supabase } from "@/integrations/supabase/client";
 import OrderStatusChart from "@/components/dashboard/OrderStatusChart";
@@ -924,68 +925,15 @@ const ClientDashboard = () => {
           ))}
         </motion.div>
 
-        {/* Monthly Progress Bar */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-        >
-          <Card className="card-elevated border-border/30 overflow-hidden">
-            <CardContent className="p-3 sm:p-4 md:p-5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 mb-2 sm:mb-3">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-success to-emerald-400 flex items-center justify-center shadow-lg shrink-0">
-                    <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-semibold text-xs sm:text-sm md:text-base truncate">تقدم الطلبات هذا الشهر</h3>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">
-                      {format(new Date(), "MMMM yyyy", { locale: ar })}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="text-right sm:text-left flex items-center sm:block gap-2">
-                    <p className="text-lg sm:text-xl md:text-2xl font-bold text-success">
-                      {stats.completedThisMonth}
-                      <span className="text-xs sm:text-sm text-muted-foreground font-normal">/{stats.monthlyGoal}</span>
-                    </p>
-                    <p className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground">طلب مكتمل</p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openGoalDialog();
-                    }}
-                    className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 p-0 shrink-0 relative z-10"
-                  >
-                    <Settings2 className="w-4 h-4" />
-                    <span className="hidden sm:inline mr-1">تعديل الهدف</span>
-                  </Button>
-                </div>
-              </div>
-              <div className="space-y-1.5 sm:space-y-2">
-                <Progress 
-                  value={Math.min((stats.completedThisMonth / stats.monthlyGoal) * 100, 100)} 
-                  className="h-2 sm:h-3 bg-muted/50"
-                />
-                <div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground gap-2">
-                  <span className="truncate">
-                    {stats.completedThisMonth >= stats.monthlyGoal 
-                      ? "🎉 تهانينا! حققت هدف الشهر"
-                      : `باقي ${stats.monthlyGoal - stats.completedThisMonth} طلب للوصول للهدف`
-                    }
-                  </span>
-                  <span className="font-medium text-success shrink-0">
-                    {Math.round((stats.completedThisMonth / stats.monthlyGoal) * 100)}%
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+        {/* Enhanced Monthly Goal Card */}
+        <MonthlyGoalCard
+          completedThisMonth={stats.completedThisMonth}
+          monthlyGoal={stats.monthlyGoal}
+          onEditGoal={openGoalDialog}
+          currentStreak={currentAchievement?.goal_achieved ? 1 : 0}
+          bonusPoints={currentAchievement?.bonus_points_awarded || 0}
+          isGoalAchieved={stats.completedThisMonth >= stats.monthlyGoal && stats.monthlyGoal > 0}
+        />
 
         <AnimatePresence>
           {tips.length > 0 && (
