@@ -499,76 +499,35 @@ const ClientServicesHome = () => {
               {sections.map((section, index) => (
                 <motion.div
                   key={section.id}
-                  initial={{ opacity: 0, y: 50, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ 
-                    duration: 0.5, 
-                    delay: 0.5 + index * 0.15,
-                    type: "spring",
-                    stiffness: 100
+                    duration: 0.4, 
+                    delay: 0.3 + index * 0.1
                   }}
-                  whileHover={{ y: -8, scale: 1.02 }}
-                  onMouseEnter={() => setHoveredSection(section.id)}
-                  onMouseLeave={() => setHoveredSection(null)}
                   className="group"
                 >
                   <Link to={section.path} className="block h-full">
-                    <Card className={cn(
-                      "h-full relative overflow-hidden border-2 bg-card/80 backdrop-blur-xl transition-all duration-500",
-                      hoveredSection === section.id 
-                        ? `border-transparent ${section.shadowColor} shadow-2xl` 
-                        : "border-border/50 hover:border-border"
-                    )}>
-                      {/* Card Background */}
-                      <div className={`absolute inset-0 bg-gradient-to-br ${section.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-                      
-                      {/* Animated Border Gradient */}
-                      <motion.div
-                        animate={{
-                          rotate: hoveredSection === section.id ? 360 : 0
-                        }}
-                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                        className={`absolute -inset-1 bg-gradient-to-r ${section.gradient} rounded-[inherit] opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-500`}
-                        style={{ zIndex: -1 }}
-                      />
-
-                      <CardContent className="relative z-10 p-5 sm:p-6 lg:p-7 flex flex-col h-full min-h-[320px] sm:min-h-[360px]">
+                    <Card className="h-full relative overflow-hidden border border-border/50 bg-card hover:border-border transition-colors duration-300">
+                      <CardContent className="p-5 sm:p-6 lg:p-7 flex flex-col h-full min-h-[320px] sm:min-h-[360px]">
                         {/* Header */}
                         <div className="flex items-start justify-between mb-5">
                           {/* Icon */}
-                          <motion.div 
-                            animate={{ 
-                              scale: hoveredSection === section.id ? 1.1 : 1,
-                              rotate: hoveredSection === section.id ? 5 : 0
-                            }}
-                            className="relative"
-                          >
-                            <div className={`absolute inset-0 bg-gradient-to-br ${section.gradient} rounded-2xl blur-xl opacity-50 group-hover:opacity-80 transition-opacity`} />
-                            <div className={`relative p-4 rounded-2xl bg-gradient-to-br ${section.gradient} shadow-xl`}>
-                              <section.icon className="w-7 h-7 text-white" />
-                            </div>
-                          </motion.div>
+                          <div className={`p-4 rounded-2xl bg-gradient-to-br ${section.gradient} shadow-lg`}>
+                            <section.icon className="w-7 h-7 text-white" />
+                          </div>
                           
                           {/* Counter Badge */}
-                          <motion.div
-                            animate={{ 
-                              scale: hoveredSection === section.id ? 1.1 : 1 
-                            }}
-                          >
-                            <Badge className={`bg-gradient-to-l ${section.gradient} text-white border-0 shadow-lg px-3 py-1.5 text-sm font-bold`}>
-                              {section.count}+
-                            </Badge>
-                          </motion.div>
+                          <Badge className={`bg-gradient-to-l ${section.gradient} text-white border-0 shadow-lg px-3 py-1.5 text-sm font-bold`}>
+                            {section.count}+
+                          </Badge>
                         </div>
 
                         {/* Title & Description */}
                         <div className="mb-5">
-                          <motion.h3 
-                            animate={{ x: hoveredSection === section.id ? -6 : 0 }}
-                            className="text-xl sm:text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors duration-300"
-                          >
+                          <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
                             {section.title}
-                          </motion.h3>
+                          </h3>
                           <p className="text-sm text-muted-foreground leading-relaxed">
                             {section.description}
                           </p>
@@ -577,55 +536,40 @@ const ClientServicesHome = () => {
                         {/* Platforms Grid */}
                         <div className="flex-1 mb-5">
                           <div className="flex flex-wrap gap-2">
-                            {section.platforms.map((platform, i) => (
-                              <motion.div
+                            {section.platforms.map((platform) => (
+                              <div
                                 key={platform.label}
-                                initial={{ opacity: 0, scale: 0 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.5 + i * 0.05 }}
-                                whileHover={{ scale: 1.1, y: -2 }}
-                                className="group/platform"
+                                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${platform.color} flex items-center justify-center shadow-md`}
                               >
-                                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${platform.color} flex items-center justify-center shadow-lg transition-all duration-300 group-hover/platform:shadow-xl`}>
-                                  <platform.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                                </div>
-                              </motion.div>
+                                <platform.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                              </div>
                             ))}
                           </div>
                         </div>
 
                         {/* Features List */}
                         <div className="space-y-2 mb-5">
-                          {section.features.map((feat, i) => (
-                            <motion.div
+                          {section.features.map((feat) => (
+                            <div
                               key={feat}
-                              initial={{ opacity: 0, x: 20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 0.6 + i * 0.1 }}
                               className="flex items-center gap-2 text-sm text-muted-foreground"
                             >
                               <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                               <span>{feat}</span>
-                            </motion.div>
+                            </div>
                           ))}
                         </div>
 
                         {/* CTA Button */}
-                        <motion.div
-                          animate={{ 
-                            y: hoveredSection === section.id ? -4 : 0 
-                          }}
+                        <Button 
+                          className={cn(
+                            "w-full h-12 rounded-xl font-semibold text-sm gap-2",
+                            `bg-gradient-to-l ${section.gradient} hover:opacity-90 text-white`
+                          )}
                         >
-                          <Button 
-                            className={cn(
-                              "w-full h-12 rounded-xl font-semibold text-sm gap-2 transition-all duration-300",
-                              `bg-gradient-to-l ${section.gradient} hover:shadow-lg text-white`
-                            )}
-                          >
-                            <span>استعراض الخدمات</span>
-                            <ArrowUpLeft className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                          </Button>
-                        </motion.div>
+                          <span>استعراض الخدمات</span>
+                          <ArrowUpLeft className="w-4 h-4" />
+                        </Button>
                       </CardContent>
                     </Card>
                   </Link>
