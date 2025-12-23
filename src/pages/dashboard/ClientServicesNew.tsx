@@ -1269,69 +1269,58 @@ const ClientServicesNew = () => {
                               </div>
                             ) : (
                               <div className="p-1 space-y-0.5" dir="rtl">
-                                {filteredServices.map((service, serviceIndex) => (
-                                  <SelectItem 
-                                    key={service.id} 
-                                    value={service.id} 
-                                    className={cn(
-                                      "py-2.5 px-3 rounded-lg cursor-pointer text-right transition-all duration-150",
-                                      "hover:bg-primary/10 focus:bg-primary/10 data-[highlighted]:bg-primary/10",
-                                      "border-b border-border/30 last:border-b-0",
-                                      selectedService?.id === service.id && "bg-primary/15 border-primary/30"
-                                    )}
-                                    dir="rtl"
-                                  >
-                                    <div className="flex items-center gap-2 w-full min-w-0 flex-row-reverse" dir="rtl">
-                                      {/* Social Network Icon - أولاً على اليمين */}
-                                      {(() => {
-                                        const networkInfo = getSocialNetworkInfo(service.name || service.category);
-                                        const NetworkIcon = networkInfo.icon;
-                                        return (
-                                          <div className={cn(
-                                            "shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-white",
-                                            networkInfo.bg
-                                          )}>
-                                            <NetworkIcon className="w-3.5 h-3.5" />
-                                          </div>
-                                        );
-                                      })()}
-                                      
-                                      {/* Service Name & Description */}
-                                      <div className="flex-1 min-w-0 text-right">
-                                        <p className="text-xs font-medium leading-tight line-clamp-1">
-                                          {service.name}
-                                        </p>
-                                        {/* Tags row */}
-                                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap flex-row-reverse">
-                                          <span className="text-[9px] text-muted-foreground">
-                                            {service.features?.min || 10} - {service.features?.max ? service.features.max.toLocaleString() : "∞"}
-                                          </span>
-                                          {service.refill_enabled && (
-                                            <span className="text-[9px] text-success flex items-center gap-0.5">
-                                              <Shield className="w-2.5 h-2.5" />
-                                              ضمان
+                                {filteredServices.map((service, serviceIndex) => {
+                                  const networkInfo = getSocialNetworkInfo(service.name || service.category);
+                                  const NetworkIcon = networkInfo.icon;
+                                  return (
+                                    <SelectItem 
+                                      key={service.id} 
+                                      value={service.id} 
+                                      className={cn(
+                                        "py-2 px-3 rounded-lg cursor-pointer text-right transition-all duration-150",
+                                        "hover:bg-primary/10 focus:bg-primary/10 data-[highlighted]:bg-primary/10",
+                                        "border-b border-border/30 last:border-b-0",
+                                        selectedService?.id === service.id && "bg-primary/15 border-primary/30"
+                                      )}
+                                      dir="rtl"
+                                    >
+                                      <div className="flex items-center gap-2.5 w-full" dir="rtl">
+                                        {/* أيقونة الشبكة - على اليمين أولاً */}
+                                        <div className={cn(
+                                          "shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-white",
+                                          networkInfo.bg
+                                        )}>
+                                          <NetworkIcon className="w-3.5 h-3.5" />
+                                        </div>
+                                        
+                                        {/* اسم الخدمة والتفاصيل */}
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-xs font-medium leading-tight line-clamp-1 text-right">
+                                            {service.name}
+                                          </p>
+                                          <div className="flex items-center gap-1.5 mt-0.5 justify-end">
+                                            <span className="text-[9px] text-muted-foreground">
+                                              {service.features?.min || 10} - {service.features?.max ? service.features.max.toLocaleString() : "∞"}
                                             </span>
-                                          )}
+                                            {service.refill_enabled && (
+                                              <span className="text-[9px] text-success flex items-center gap-0.5">
+                                                <Shield className="w-2.5 h-2.5" />
+                                                ضمان
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                        
+                                        {/* السعر - على اليسار */}
+                                        <div className="shrink-0 text-left">
+                                          <p className="text-xs font-bold text-primary">
+                                            ${service.price.toFixed(2)}
+                                          </p>
                                         </div>
                                       </div>
-                                      
-                                      {/* Service ID Badge */}
-                                      <Badge 
-                                        variant="secondary" 
-                                        className="font-mono text-[9px] px-1.5 py-0 h-5 bg-muted/60 border border-border/40 shrink-0"
-                                      >
-                                        {service.external_service_id || "-"}
-                                      </Badge>
-                                      
-                                      {/* Price - السعر */}
-                                      <div className="shrink-0 text-left min-w-[60px]">
-                                        <p className="text-xs font-bold text-primary">
-                                          ${service.price.toFixed(2)}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </SelectItem>
-                                ))}
+                                    </SelectItem>
+                                  );
+                                })}
                               </div>
                             )}
                           </ScrollArea>
