@@ -234,126 +234,216 @@ const ClientOrderDetails = () => {
     });
     
     const statusLabels: Record<string, string> = {
-      pending: 'Pending',
-      processing: 'Processing',
-      in_progress: 'In Progress',
-      completed: 'Completed',
-      partial: 'Partial',
-      cancelled: 'Cancelled',
-      refunded: 'Refunded',
+      pending: 'قيد الانتظار',
+      processing: 'قيد المعالجة',
+      in_progress: 'قيد التنفيذ',
+      completed: 'مكتمل',
+      partial: 'مكتمل جزئياً',
+      cancelled: 'ملغي',
+      refunded: 'مسترجع',
     };
     
-    // Header
+    // Helper function to reverse Arabic text for PDF (RTL support)
+    const reverseArabic = (text: string) => {
+      return text.split('').reverse().join('');
+    };
+    
+    // Header - Gradient Blue
     doc.setFillColor(14, 165, 233);
-    doc.rect(0, 0, 210, 50, 'F');
+    doc.rect(0, 0, 210, 55, 'F');
+    
+    // Logo/Brand Name (Right side for RTL)
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(28);
+    doc.setFontSize(32);
     doc.setFont('helvetica', 'bold');
-    doc.text('MARKETO', 105, 25, { align: 'center' });
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Order Invoice', 105, 38, { align: 'center' });
+    doc.text('MARKETO', 105, 28, { align: 'center' });
     
-    // Order Info
-    doc.setTextColor(60, 60, 60);
+    // Invoice Title
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Invoice / Fatura', 105, 42, { align: 'center' });
+    
+    // Invoice Details Box
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(15, 65, 180, 35, 4, 4, 'F');
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(15, 65, 180, 35, 4, 4, 'S');
+    
+    // Invoice Number (Right aligned for RTL feel)
+    doc.setTextColor(100, 116, 139);
     doc.setFontSize(10);
+    doc.text('Invoice Number:', 185, 77, { align: 'right' });
+    doc.setTextColor(30, 41, 59);
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('Order Number:', 20, 65);
-    doc.setFont('helvetica', 'normal');
-    doc.text(order.order_number, 20, 72);
+    doc.text(order.order_number, 185, 85, { align: 'right' });
     
-    doc.setFont('helvetica', 'bold');
-    doc.text('Date:', 20, 82);
+    // Date (Left side)
+    doc.setTextColor(100, 116, 139);
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(format(new Date(order.created_at), 'dd/MM/yyyy HH:mm'), 20, 89);
+    doc.text('Date:', 25, 77);
+    doc.setTextColor(30, 41, 59);
+    doc.setFontSize(11);
+    doc.text(format(new Date(order.created_at), 'dd/MM/yyyy'), 25, 85);
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text(format(new Date(order.created_at), 'HH:mm'), 25, 92);
     
-    // Status badge
+    // Status Badge
     const statusText = statusLabels[order.status] || order.status;
-    let statusColor: [number, number, number] = [100, 100, 100];
-    if (order.status === 'completed') statusColor = [34, 197, 94];
-    else if (order.status === 'pending') statusColor = [234, 179, 8];
+    let statusColor: [number, number, number] = [100, 116, 139];
+    if (order.status === 'completed') statusColor = [16, 185, 129];
+    else if (order.status === 'pending') statusColor = [245, 158, 11];
     else if (order.status === 'in_progress' || order.status === 'processing') statusColor = [59, 130, 246];
     else if (order.status === 'cancelled' || order.status === 'refunded') statusColor = [239, 68, 68];
     
     doc.setFillColor(...statusColor);
-    doc.roundedRect(140, 60, 50, 14, 3, 3, 'F');
+    doc.roundedRect(80, 88, 50, 10, 3, 3, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text(statusText === 'Completed' ? 'Completed' : statusText.toUpperCase(), 105, 95, { align: 'center' });
+    
+    // Service Information Section
+    let yPos = 115;
+    
+    doc.setFillColor(14, 165, 233);
+    doc.roundedRect(15, yPos, 180, 10, 2, 2, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text(statusText, 165, 69, { align: 'center' });
+    doc.text('Service Details', 105, yPos + 7, { align: 'center' });
     
-    // Service Info
-    doc.setDrawColor(220, 220, 220);
-    doc.setLineWidth(0.5);
-    doc.line(20, 100, 190, 100);
+    yPos += 18;
     
+    // Service Info Box
     doc.setFillColor(248, 250, 252);
-    doc.roundedRect(20, 105, 170, 35, 3, 3, 'F');
+    doc.roundedRect(15, yPos, 180, 45, 4, 4, 'F');
     
-    doc.setTextColor(14, 165, 233);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Service Information', 25, 115);
-    
-    doc.setTextColor(60, 60, 60);
-    doc.setFontSize(10);
+    // Service Name
+    doc.setTextColor(100, 116, 139);
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
+    doc.text('Service Name:', 25, yPos + 10);
+    doc.setTextColor(30, 41, 59);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
     const serviceName = order.service?.name || 'N/A';
-    doc.text('Service: ' + serviceName.substring(0, 40), 25, 125);
-    doc.text('Category: ' + (order.service?.category || 'N/A'), 25, 133);
-    if (order.quantity) {
-      doc.text('Quantity: ' + order.quantity.toLocaleString(), 130, 125);
-    }
+    doc.text(serviceName.length > 50 ? serviceName.substring(0, 50) + '...' : serviceName, 25, yPos + 18);
     
-    // Price
-    doc.setTextColor(14, 165, 233);
+    // Category
+    doc.setTextColor(100, 116, 139);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Category:', 25, yPos + 30);
+    doc.setTextColor(30, 41, 59);
+    doc.setFontSize(10);
+    doc.text(order.service?.category || 'N/A', 25, yPos + 38);
+    
+    // Quantity (Right side)
+    doc.setTextColor(100, 116, 139);
+    doc.setFontSize(9);
+    doc.text('Quantity:', 140, yPos + 10);
+    doc.setTextColor(30, 41, 59);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text((order.quantity || 1).toLocaleString(), 140, yPos + 20);
+    
+    // Unit Price
+    doc.setTextColor(100, 116, 139);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Unit Price:', 140, yPos + 30);
+    doc.setTextColor(30, 41, 59);
+    doc.setFontSize(10);
+    const unitPrice = order.service?.price || 0;
+    doc.text(unitPrice.toFixed(4) + ' SAR', 140, yPos + 38);
+    
+    yPos += 55;
+    
+    // Payment Summary Section
+    doc.setFillColor(14, 165, 233);
+    doc.roundedRect(15, yPos, 180, 10, 2, 2, 'F');
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text('Payment Details', 25, 155);
+    doc.text('Payment Summary', 105, yPos + 7, { align: 'center' });
     
-    doc.setFillColor(14, 165, 233);
-    doc.roundedRect(20, 160, 170, 10, 2, 2, 'F');
-    doc.setTextColor(255, 255, 255);
+    yPos += 18;
+    
+    // Price breakdown
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(15, yPos, 180, 55, 4, 4, 'F');
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(15, yPos, 180, 55, 4, 4, 'S');
+    
+    const basePrice = (order.service?.price || 0) * (order.quantity || 1);
+    
+    // Unit Price row
+    doc.setTextColor(100, 116, 139);
     doc.setFontSize(10);
-    doc.text('Description', 25, 167);
-    doc.text('Amount (SAR)', 165, 167, { align: 'right' });
-    
-    let yPos = 180;
-    doc.setTextColor(60, 60, 60);
     doc.setFont('helvetica', 'normal');
+    doc.text('Unit Price x Quantity', 25, yPos + 12);
+    doc.setTextColor(30, 41, 59);
+    doc.text(`${unitPrice.toFixed(4)} x ${(order.quantity || 1).toLocaleString()}`, 185, yPos + 12, { align: 'right' });
     
-    const basePrice = order.total_price + (order.discount_amount || 0);
-    doc.text('Service Price', 25, yPos);
-    doc.text(basePrice.toFixed(2), 185, yPos, { align: 'right' });
-    yPos += 12;
+    // Subtotal
+    doc.setTextColor(100, 116, 139);
+    doc.text('Subtotal', 25, yPos + 24);
+    doc.setTextColor(30, 41, 59);
+    doc.text(basePrice.toFixed(2) + ' SAR', 185, yPos + 24, { align: 'right' });
     
+    // Discount if applicable
     if (order.discount_amount && order.discount_amount > 0) {
-      doc.setTextColor(22, 163, 74);
-      doc.text('Discount', 25, yPos);
-      doc.text('-' + order.discount_amount.toFixed(2), 185, yPos, { align: 'right' });
-      doc.setTextColor(60, 60, 60);
-      yPos += 12;
+      doc.setTextColor(16, 185, 129);
+      doc.text('Discount', 25, yPos + 36);
+      doc.text('-' + order.discount_amount.toFixed(2) + ' SAR', 185, yPos + 36, { align: 'right' });
     }
     
-    yPos += 5;
-    doc.setFillColor(14, 165, 233);
-    doc.roundedRect(20, yPos, 170, 16, 3, 3, 'F');
-    doc.setTextColor(255, 255, 255);
+    // Divider line
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.5);
+    doc.line(25, yPos + 42, 185, yPos + 42);
+    
+    // Total
+    doc.setTextColor(14, 165, 233);
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('Total Paid', 25, yPos + 11);
-    doc.text(order.total_price.toFixed(2) + ' SAR', 185, yPos + 11, { align: 'right' });
+    doc.text('Total Paid', 25, yPos + 52);
+    doc.setFontSize(14);
+    doc.text(order.total_price.toFixed(2) + ' SAR', 185, yPos + 52, { align: 'right' });
+    
+    yPos += 65;
+    
+    // Link Section (if exists)
+    if (order.link) {
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(15, yPos, 180, 20, 4, 4, 'F');
+      doc.setTextColor(100, 116, 139);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Link:', 25, yPos + 8);
+      doc.setTextColor(59, 130, 246);
+      doc.setFontSize(8);
+      const displayLink = order.link.length > 70 ? order.link.substring(0, 70) + '...' : order.link;
+      doc.text(displayLink, 25, yPos + 16);
+      yPos += 28;
+    }
     
     // Footer
-    doc.setDrawColor(220, 220, 220);
+    doc.setDrawColor(226, 232, 240);
     doc.setLineWidth(0.3);
-    doc.line(20, 265, 190, 265);
-    doc.setTextColor(150, 150, 150);
+    doc.line(15, 270, 195, 270);
+    
+    doc.setTextColor(148, 163, 184);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.text('This is an electronically generated invoice.', 105, 272, { align: 'center' });
-    doc.text('Generated: ' + format(new Date(), 'dd/MM/yyyy HH:mm'), 105, 278, { align: 'center' });
+    doc.text('This is an electronically generated invoice. No signature required.', 105, 278, { align: 'center' });
+    doc.text('Generated: ' + format(new Date(), 'dd/MM/yyyy HH:mm'), 105, 284, { align: 'center' });
     
+    // Bottom accent bar
     doc.setFillColor(14, 165, 233);
     doc.rect(0, 290, 210, 7, 'F');
     
@@ -783,12 +873,33 @@ const ClientOrderDetails = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* سعر الوحدة */}
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">سعر الوحدة</span>
+                    <span className="font-medium font-mono">
+                      {(order.service?.price || 0).toFixed(4)} ر.س
+                    </span>
+                  </div>
+                  
+                  {/* الكمية */}
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">الكمية</span>
+                    <span className="font-medium">
+                      {(order.quantity || 1).toLocaleString()}
+                    </span>
+                  </div>
+                  
+                  <Separator className="opacity-50" />
+                  
+                  {/* السعر الأساسي */}
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">السعر الأساسي</span>
                     <span className="font-medium">
                       {((order.service?.price || 0) * (order.quantity || 1)).toFixed(2)} ر.س
                     </span>
                   </div>
+                  
+                  {/* الخصم */}
                   {order.discount_amount && order.discount_amount > 0 && (
                     <div className="flex justify-between items-center text-sm text-emerald-600 dark:text-emerald-400">
                       <span className="flex items-center gap-2">
@@ -797,7 +908,10 @@ const ClientOrderDetails = () => {
                       <span className="font-medium">-{order.discount_amount.toFixed(2)} ر.س</span>
                     </div>
                   )}
+                  
                   <Separator />
+                  
+                  {/* الإجمالي */}
                   <div className="flex justify-between items-center">
                     <span className="font-semibold">الإجمالي المدفوع</span>
                     <motion.span 
