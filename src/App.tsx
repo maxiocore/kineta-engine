@@ -75,6 +75,7 @@ import AdminBankWithdrawals from "./pages/admin/AdminBankWithdrawals";
 import AdminUserSettings from "./pages/admin/AdminUserSettings";
 import AdminFeaturedOffers from "./pages/admin/AdminFeaturedOffers";
 import AdminTamaraPayments from "./pages/admin/AdminTamaraPayments";
+import AdminPaymentsHub from "./pages/admin/AdminPaymentsHub";
 
 const queryClient = new QueryClient();
 
@@ -222,6 +223,11 @@ const App = () => (
                   <Route path="/admin/payments" element={
                     <ProtectedRoute requireAdmin>
                       <AdminPaymentMethods />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/payments-hub" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminPaymentsHub />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/refills" element={
