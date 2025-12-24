@@ -785,7 +785,9 @@ const ClientOrderDetails = () => {
                 <CardContent className="space-y-4">
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">السعر الأساسي</span>
-                    <span className="font-medium">{(order.total_price + (order.discount_amount || 0)).toFixed(2)} ر.س</span>
+                    <span className="font-medium">
+                      {((order.service?.price || 0) * (order.quantity || 1)).toFixed(2)} ر.س
+                    </span>
                   </div>
                   {order.discount_amount && order.discount_amount > 0 && (
                     <div className="flex justify-between items-center text-sm text-emerald-600 dark:text-emerald-400">
