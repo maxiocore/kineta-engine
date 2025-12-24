@@ -1,8 +1,10 @@
 import React, { memo, useState, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { 
   Clock, CheckCircle, AlertCircle, XCircle, Loader2, 
-  Copy, Check, Calendar, Package, TrendingUp, RotateCcw, Zap
+  Copy, Check, Calendar, Package, TrendingUp, RotateCcw, Zap,
+  RefreshCw, Eye, ChevronDown, LinkIcon, ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,12 +25,14 @@ interface ModernOrderCardProps {
     external_status: string | null;
     external_order_id: string | null;
     service: {
+      id?: string;
       name: string;
       category: string;
     };
   };
   index: number;
   onClick: () => void;
+  onReorder?: (order: any) => void;
 }
 
 const getStatusConfig = (status: string) => {
@@ -126,8 +130,10 @@ const getStatusConfig = (status: string) => {
   }
 };
 
-export const ModernOrderCard = memo(({ order, index, onClick }: ModernOrderCardProps) => {
+export const ModernOrderCard = memo(({ order, index, onClick, onReorder }: ModernOrderCardProps) => {
+  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const statusConfig = getStatusConfig(order.status);
   const StatusIcon = statusConfig.icon;
   const isAnimating = statusConfig.animate;
@@ -139,6 +145,35 @@ export const ModernOrderCard = memo(({ order, index, onClick }: ModernOrderCardP
     toast.success("تم نسخ رقم الطلب");
     setTimeout(() => setCopied(false), 2000);
   }, [order.order_number]);
+
+  const handleReorder = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onReorder) {
+      onReorder(order);
+    } else {
+      // Navigate to service page with pre-filled data
+      navigate(`/dashboard/services?reorder=${order.service?.id}&link=${encodeURIComponent(order.link || '')}&quantity=${order.quantity || 1}`);
+    }
+    toast.success("جاري إعادة الطلب...");
+  }, [order, onReorder, navigate]);
+
+  const handleViewDetails = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onClick();
+  }, [onClick]);
+
+  const toggleExpand = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpanded(!expanded);
+  }, [expanded]);
+
+  const copyLink = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (order.link) {
+      navigator.clipboard.writeText(order.link);
+      toast.success("تم نسخ الرابط");
+    }
+  }, [order.link]);
 
   return (
     <motion.div
@@ -152,11 +187,9 @@ export const ModernOrderCard = memo(({ order, index, onClick }: ModernOrderCardP
         stiffness: 400, 
         damping: 30 
       }}
-      whileHover={{ y: -4 }}
-      whileTap={{ scale: 0.99 }}
-      className="group relative bg-card rounded-2xl border-r-4 border border-border/50 overflow-hidden cursor-pointer hover:border-primary/30 transition-all duration-300 hover:shadow-xl"
+      whileHover={{ y: -2 }}
+      className="group relative bg-card rounded-2xl border-r-4 border border-border/50 overflow-hidden hover:border-primary/30 transition-all duration-300 hover:shadow-xl"
       style={{ borderRightColor: `var(--${order.status === 'pending' ? 'amber' : order.status === 'completed' ? 'emerald' : order.status === 'in_progress' ? 'purple' : 'blue'}-500, #8b5cf6)` }}
-      onClick={onClick}
     >
       {/* Colored Right Border */}
       <div className={cn(
@@ -266,17 +299,116 @@ export const ModernOrderCard = memo(({ order, index, onClick }: ModernOrderCardP
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5" />
-            <span>{format(new Date(order.created_at), "d MMMM yyyy", { locale: ar })}</span>
+        {/* Footer with Date */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5" />
+              <span>{format(new Date(order.created_at), "d MMMM yyyy", { locale: ar })}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" />
+              <span>{formatDistanceToNow(new Date(order.created_at), { addSuffix: true, locale: ar })}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5" />
-            <span>{formatDistanceToNow(new Date(order.created_at), { addSuffix: true, locale: ar })}</span>
-          </div>
+          
+          {/* Expand Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-xs"
+            onClick={toggleExpand}
+          >
+            <ChevronDown className={cn(
+              "w-4 h-4 transition-transform",
+              expanded && "rotate-180"
+            )} />
+          </Button>
         </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 h-9 text-xs gap-1.5"
+            onClick={handleViewDetails}
+          >
+            <Eye className="w-4 h-4" />
+            التفاصيل
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            className="flex-1 h-9 text-xs gap-1.5"
+            onClick={handleReorder}
+          >
+            <RefreshCw className="w-4 h-4" />
+            إعادة الطلب
+          </Button>
+        </div>
+
+        {/* Expanded Details */}
+        <AnimatePresence>
+          {expanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="pt-4 mt-4 border-t border-border/50 space-y-3">
+                {/* Link */}
+                {order.link && (
+                  <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <LinkIcon className="w-4 h-4 text-primary" />
+                        <span className="text-xs font-medium">الرابط</span>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={copyLink}
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          asChild
+                        >
+                          <a href={order.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-xs font-mono text-muted-foreground break-all" dir="ltr">
+                      {order.link}
+                    </p>
+                  </div>
+                )}
+
+                {/* Additional Info */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                    <p className="text-[10px] text-muted-foreground mb-1">التصنيف</p>
+                    <p className="text-xs font-medium">{order.service?.category}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                    <p className="text-[10px] text-muted-foreground mb-1">آخر تحديث</p>
+                    <p className="text-xs font-medium">{format(new Date(order.created_at), "HH:mm", { locale: ar })}</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );
