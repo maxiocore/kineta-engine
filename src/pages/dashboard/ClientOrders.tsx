@@ -16,7 +16,7 @@ import {
   OrderType, 
   ModernOrdersStats, 
   ModernOrdersSearch,
-  ModernOrdersList
+  ModernOrdersTable
 } from "@/components/orders/modern";
 import OrderDetailsSheet from "@/components/orders/OrderDetailsSheet";
 
@@ -383,13 +383,13 @@ const ClientOrders = () => {
           />
         </motion.div>
 
-        {/* Orders List */}
+        {/* Orders Table */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <ModernOrdersList
+          <ModernOrdersTable
             orders={filteredOrders}
             loading={loading}
             onViewOrder={handleViewOrder}
