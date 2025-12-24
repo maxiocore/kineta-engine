@@ -77,6 +77,7 @@ import AdminUserSettings from "./pages/admin/AdminUserSettings";
 import AdminFeaturedOffers from "./pages/admin/AdminFeaturedOffers";
 import AdminTamaraPayments from "./pages/admin/AdminTamaraPayments";
 import AdminPaymentsHub from "./pages/admin/AdminPaymentsHub";
+import AdminChallenges from "./pages/admin/AdminChallenges";
 
 const queryClient = new QueryClient();
 
@@ -319,6 +320,11 @@ const App = () => (
                   <Route path="/admin/rewards" element={
                     <ProtectedRoute requireAdmin>
                       <AdminRewards />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/challenges" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminChallenges />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/rewards/reports" element={
