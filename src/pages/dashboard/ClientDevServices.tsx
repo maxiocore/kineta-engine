@@ -38,6 +38,7 @@ import { toast } from "sonner";
 import DevServiceDetailsSheet from "@/components/services/DevServiceDetailsSheet";
 import ServicesPageSkeleton from "@/components/dashboard/ServicesPageSkeleton";
 import PullToRefresh from "@/components/ui/pull-to-refresh";
+import FeaturedOffersSection from "@/components/offers/FeaturedOffersSection";
 
 interface Service {
   id: string;
@@ -395,6 +396,9 @@ const ClientDevServices = () => {
               )}
             </div>
           </motion.div>
+
+          {/* Featured Offers Section */}
+          <FeaturedOffersSection category="dev" />
 
           {/* Services Grid */}
           {filteredServices.length === 0 ? (
