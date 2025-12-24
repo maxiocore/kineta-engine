@@ -23,6 +23,7 @@ import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout"
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 interface Order {
   id: string;
@@ -428,237 +429,170 @@ const ClientOrderDetails = () => {
   const generateArabicPDF = useCallback(async () => {
     if (!order) return;
     
-    toast.loading('جاري إنشاء الفاتورة...');
+    toast.loading('جاري إنشاء الفاتورة العربية...');
     
+    const statusLabels: Record<string, string> = {
+      pending: 'قيد الانتظار',
+      processing: 'قيد المعالجة',
+      in_progress: 'قيد التنفيذ',
+      completed: 'مكتمل',
+      partial: 'مكتمل جزئياً',
+      cancelled: 'ملغي',
+      refunded: 'مسترجع',
+    };
+
+    const getStatusColor = (status: string) => {
+      switch (status) {
+        case 'completed': return '#10B981';
+        case 'pending': return '#F59E0B';
+        case 'in_progress':
+        case 'processing': return '#3B82F6';
+        case 'cancelled':
+        case 'refunded': return '#EF4444';
+        default: return '#6B7280';
+      }
+    };
+
+    const unitPrice = order.service?.price || 0;
+    const basePrice = unitPrice * (order.quantity || 1);
+
+    // Create hidden container for HTML invoice
+    const container = document.createElement('div');
+    container.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 595px; background: white; font-family: system-ui, -apple-system, sans-serif;';
+    container.innerHTML = `
+      <div style="direction: rtl; text-align: right; padding: 0;">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 40px 30px; text-align: center;">
+          <h1 style="color: white; font-size: 36px; font-weight: bold; margin: 0; letter-spacing: 2px;">MARKETO</h1>
+          <p style="color: rgba(255,255,255,0.9); font-size: 18px; margin: 10px 0 0;">فاتورة ضريبية</p>
+        </div>
+        
+        <!-- Invoice Info -->
+        <div style="background: #f8fafc; padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0;">
+          <div style="text-align: right;">
+            <p style="color: #64748b; font-size: 12px; margin: 0;">رقم الطلب</p>
+            <p style="color: #1e293b; font-size: 16px; font-weight: bold; margin: 5px 0; font-family: monospace;">${order.order_number}</p>
+          </div>
+          <div style="text-align: center;">
+            <span style="background: ${getStatusColor(order.status)}; color: white; padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: bold;">
+              ${statusLabels[order.status] || order.status}
+            </span>
+          </div>
+          <div style="text-align: left;">
+            <p style="color: #64748b; font-size: 12px; margin: 0;">التاريخ</p>
+            <p style="color: #1e293b; font-size: 14px; margin: 5px 0;">${format(new Date(order.created_at), 'dd/MM/yyyy')}</p>
+            <p style="color: #64748b; font-size: 12px; margin: 0;">${format(new Date(order.created_at), 'HH:mm')}</p>
+          </div>
+        </div>
+
+        <!-- Service Details -->
+        <div style="padding: 25px 30px;">
+          <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 12px 20px; border-radius: 8px 8px 0 0; text-align: center;">
+            <h2 style="margin: 0; font-size: 16px;">تفاصيل الخدمة</h2>
+          </div>
+          <div style="background: #f8fafc; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0; border-top: none;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+              <div style="text-align: right; flex: 1;">
+                <p style="color: #64748b; font-size: 11px; margin: 0;">الخدمة</p>
+                <p style="color: #1e293b; font-size: 14px; font-weight: bold; margin: 5px 0;">${order.service?.name || 'غير محدد'}</p>
+              </div>
+              <div style="text-align: left;">
+                <p style="color: #64748b; font-size: 11px; margin: 0;">الكمية</p>
+                <p style="color: #1e293b; font-size: 20px; font-weight: bold; margin: 5px 0;">${(order.quantity || 1).toLocaleString('ar-SA')}</p>
+              </div>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <div style="text-align: right;">
+                <p style="color: #64748b; font-size: 11px; margin: 0;">التصنيف</p>
+                <p style="color: #1e293b; font-size: 13px; margin: 5px 0;">${order.service?.category || 'غير محدد'}</p>
+              </div>
+              <div style="text-align: left;">
+                <p style="color: #64748b; font-size: 11px; margin: 0;">سعر الوحدة</p>
+                <p style="color: #1e293b; font-size: 13px; margin: 5px 0;">${unitPrice.toFixed(4)} ر.س</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Summary -->
+        <div style="padding: 0 30px 25px;">
+          <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 12px 20px; border-radius: 8px 8px 0 0; text-align: center;">
+            <h2 style="margin: 0; font-size: 16px;">ملخص الدفع</h2>
+          </div>
+          <div style="background: white; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0; border-top: none;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+              <span style="color: #64748b; font-size: 13px;">سعر الوحدة × الكمية</span>
+              <span style="color: #1e293b; font-size: 13px;">${unitPrice.toFixed(4)} × ${(order.quantity || 1).toLocaleString()}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+              <span style="color: #64748b; font-size: 13px;">المجموع الفرعي</span>
+              <span style="color: #1e293b; font-size: 13px;">${basePrice.toFixed(2)} ر.س</span>
+            </div>
+            ${order.discount_amount && order.discount_amount > 0 ? `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+              <span style="color: #10B981; font-size: 13px;">الخصم</span>
+              <span style="color: #10B981; font-size: 13px;">-${order.discount_amount.toFixed(2)} ر.س</span>
+            </div>
+            ` : ''}
+            <div style="border-top: 2px solid #e2e8f0; margin: 15px 0; padding-top: 15px; display: flex; justify-content: space-between;">
+              <span style="color: #10B981; font-size: 16px; font-weight: bold;">المجموع المدفوع</span>
+              <span style="color: #10B981; font-size: 18px; font-weight: bold;">${order.total_price.toFixed(2)} ر.س</span>
+            </div>
+          </div>
+        </div>
+
+        ${order.link ? `
+        <!-- Link -->
+        <div style="padding: 0 30px 25px;">
+          <div style="background: #f8fafc; padding: 15px 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <p style="color: #64748b; font-size: 11px; margin: 0 0 5px;">الرابط</p>
+            <p style="color: #3B82F6; font-size: 11px; margin: 0; word-break: break-all;">${order.link}</p>
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- Footer -->
+        <div style="border-top: 1px solid #e2e8f0; padding: 20px 30px; text-align: center;">
+          <p style="color: #94a3b8; font-size: 11px; margin: 0;">هذه فاتورة إلكترونية - لا تحتاج إلى توقيع</p>
+          <p style="color: #94a3b8; font-size: 10px; margin: 8px 0 0;">تم الإنشاء: ${format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
+        </div>
+        
+        <!-- Footer Bar -->
+        <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); height: 20px;"></div>
+      </div>
+    `;
+
+    document.body.appendChild(container);
+
     try {
-      const doc = new jsPDF({
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
       });
-      
-      const statusLabelsEn: Record<string, string> = {
-        pending: 'PENDING',
-        processing: 'PROCESSING',
-        in_progress: 'IN PROGRESS',
-        completed: 'COMPLETED',
-        partial: 'PARTIAL',
-        cancelled: 'CANCELLED',
-        refunded: 'REFUNDED',
-      };
-      
-      // Header - Emerald gradient style
-      doc.setFillColor(16, 185, 129);
-      doc.rect(0, 0, 210, 55, 'F');
-      
-      // Logo
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(32);
-      doc.setFont('helvetica', 'bold');
-      doc.text('MARKETO', 105, 28, { align: 'center' });
-      
-      // Subtitle
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Invoice', 105, 42, { align: 'center' });
-      
-      // Invoice info box
-      doc.setFillColor(255, 255, 255);
-      doc.roundedRect(15, 65, 180, 38, 5, 5, 'F');
-      doc.setDrawColor(229, 231, 235);
-      doc.setLineWidth(0.5);
-      doc.roundedRect(15, 65, 180, 38, 5, 5, 'S');
-      
-      // Order number (right side)
-      doc.setTextColor(107, 114, 128);
-      doc.setFontSize(9);
-      doc.text('Order Number', 185, 77, { align: 'right' });
-      doc.setTextColor(17, 24, 39);
-      doc.setFontSize(13);
-      doc.setFont('helvetica', 'bold');
-      doc.text(order.order_number, 185, 86, { align: 'right' });
-      
-      // Date (left side)
-      doc.setTextColor(107, 114, 128);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Date', 25, 77);
-      doc.setTextColor(17, 24, 39);
-      doc.setFontSize(11);
-      doc.text(format(new Date(order.created_at), 'dd/MM/yyyy HH:mm'), 25, 86);
-      
-      // Status badge
-      const statusText = statusLabelsEn[order.status] || order.status.toUpperCase();
-      let statusBg: [number, number, number] = [107, 114, 128];
-      
-      if (order.status === 'completed') statusBg = [16, 185, 129];
-      else if (order.status === 'pending') statusBg = [245, 158, 11];
-      else if (order.status === 'in_progress' || order.status === 'processing') statusBg = [59, 130, 246];
-      else if (order.status === 'cancelled' || order.status === 'refunded') statusBg = [239, 68, 68];
-      
-      doc.setFillColor(...statusBg);
-      doc.roundedRect(75, 90, 60, 10, 3, 3, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.text(statusText, 105, 97, { align: 'center' });
-      
-      // Service Details Section
-      let yPos = 115;
-      
-      doc.setFillColor(16, 185, 129);
-      doc.roundedRect(15, yPos, 180, 10, 2, 2, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Service Details', 105, yPos + 7, { align: 'center' });
-      
-      yPos += 18;
-      
-      // Service info box
-      doc.setFillColor(249, 250, 251);
-      doc.roundedRect(15, yPos, 180, 48, 4, 4, 'F');
-      
-      // Service name - use category as fallback if name is Arabic
-      const serviceName = order.service?.name || 'N/A';
-      const isArabicName = /[\u0600-\u06FF]/.test(serviceName);
-      
-      doc.setTextColor(107, 114, 128);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Service', 25, yPos + 10);
-      doc.setTextColor(17, 24, 39);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      
-      if (isArabicName) {
-        // For Arabic names, show category + service ID
-        doc.text(`${order.service?.category || 'Service'} #${order.service?.id?.substring(0, 8) || 'N/A'}`, 25, yPos + 18);
-      } else {
-        const displayName = serviceName.length > 50 ? serviceName.substring(0, 50) + '...' : serviceName;
-        doc.text(displayName, 25, yPos + 18);
-      }
-      
-      // Category
-      doc.setTextColor(107, 114, 128);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Category', 25, yPos + 30);
-      doc.setTextColor(17, 24, 39);
-      doc.setFontSize(10);
-      doc.text(order.service?.category || 'N/A', 25, yPos + 38);
-      
-      // Quantity (right side)
-      doc.setTextColor(107, 114, 128);
-      doc.setFontSize(9);
-      doc.text('Quantity', 185, yPos + 10, { align: 'right' });
-      doc.setTextColor(17, 24, 39);
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text((order.quantity || 1).toLocaleString(), 185, yPos + 20, { align: 'right' });
-      
-      // Unit Price
-      doc.setTextColor(107, 114, 128);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Unit Price', 185, yPos + 30, { align: 'right' });
-      doc.setTextColor(17, 24, 39);
-      doc.setFontSize(10);
-      const unitPrice = order.service?.price || 0;
-      doc.text(unitPrice.toFixed(4) + ' SAR', 185, yPos + 38, { align: 'right' });
-      
-      yPos += 58;
-      
-      // Payment Summary Section
-      doc.setFillColor(16, 185, 129);
-      doc.roundedRect(15, yPos, 180, 10, 2, 2, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Payment Summary', 105, yPos + 7, { align: 'center' });
-      
-      yPos += 18;
-      
-      // Price breakdown box
-      doc.setFillColor(255, 255, 255);
-      doc.roundedRect(15, yPos, 180, 55, 4, 4, 'F');
-      doc.setDrawColor(229, 231, 235);
-      doc.roundedRect(15, yPos, 180, 55, 4, 4, 'S');
-      
-      const basePrice = (order.service?.price || 0) * (order.quantity || 1);
-      
-      // Row 1: Unit x Qty
-      doc.setTextColor(107, 114, 128);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Unit Price x Quantity', 25, yPos + 12);
-      doc.setTextColor(17, 24, 39);
-      doc.text(`${unitPrice.toFixed(4)} x ${(order.quantity || 1).toLocaleString()}`, 185, yPos + 12, { align: 'right' });
-      
-      // Row 2: Subtotal
-      doc.setTextColor(107, 114, 128);
-      doc.text('Subtotal', 25, yPos + 24);
-      doc.setTextColor(17, 24, 39);
-      doc.text(basePrice.toFixed(2) + ' SAR', 185, yPos + 24, { align: 'right' });
-      
-      // Row 3: Discount
-      if (order.discount_amount && order.discount_amount > 0) {
-        doc.setTextColor(16, 185, 129);
-        doc.text('Discount', 25, yPos + 36);
-        doc.text('-' + order.discount_amount.toFixed(2) + ' SAR', 185, yPos + 36, { align: 'right' });
-      }
-      
-      // Divider
-      doc.setDrawColor(229, 231, 235);
-      doc.setLineWidth(0.5);
-      doc.line(25, yPos + 42, 185, yPos + 42);
-      
-      // Total
-      doc.setTextColor(16, 185, 129);
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Total Paid', 25, yPos + 52);
-      doc.setFontSize(14);
-      doc.text(order.total_price.toFixed(2) + ' SAR', 185, yPos + 52, { align: 'right' });
-      
-      yPos += 65;
-      
-      // Link section
-      if (order.link) {
-        doc.setFillColor(249, 250, 251);
-        doc.roundedRect(15, yPos, 180, 20, 4, 4, 'F');
-        doc.setTextColor(107, 114, 128);
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.text('Link:', 25, yPos + 8);
-        doc.setTextColor(59, 130, 246);
-        doc.setFontSize(8);
-        const dLink = order.link.length > 70 ? order.link.substring(0, 70) + '...' : order.link;
-        doc.text(dLink, 25, yPos + 16);
-      }
-      
-      // Footer
-      doc.setDrawColor(229, 231, 235);
-      doc.setLineWidth(0.3);
-      doc.line(15, 272, 195, 272);
-      
-      doc.setTextColor(156, 163, 175);
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.text('This is an electronic invoice - No signature required', 105, 280, { align: 'center' });
-      doc.text('Generated: ' + format(new Date(), 'dd/MM/yyyy HH:mm'), 105, 286, { align: 'center' });
-      
-      // Footer bar
-      doc.setFillColor(16, 185, 129);
-      doc.rect(0, 290, 210, 7, 'F');
-      
-      doc.save(`Invoice-${order.order_number}.pdf`);
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`فاتورة-${order.order_number}.pdf`);
+
       toast.dismiss();
-      toast.success('تم تحميل الفاتورة بنجاح');
+      toast.success('تم تحميل الفاتورة العربية بنجاح');
     } catch (error) {
       toast.dismiss();
       toast.error('حدث خطأ في إنشاء الفاتورة');
       console.error(error);
+    } finally {
+      document.body.removeChild(container);
     }
   }, [order]);
 
