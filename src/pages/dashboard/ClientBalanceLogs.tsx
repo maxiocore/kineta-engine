@@ -64,6 +64,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface BalanceLog {
   id: string;
@@ -411,6 +421,7 @@ const StatsMiniCard = ({
 
 const ClientBalanceLogs = () => {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const [logs, setLogs] = useState<BalanceLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -426,6 +437,7 @@ const ClientBalanceLogs = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
   const fetchLogs = useCallback(async () => {
     if (!user) return;
@@ -1237,15 +1249,16 @@ const ClientBalanceLogs = () => {
           </motion.div>
         )}
 
-        {/* Filters - Enhanced */}
+        {/* Filters - Desktop */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.65 }}
+          className="hidden sm:block"
         >
           <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
             <CardContent className="p-4">
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-row gap-4">
                 <div className="relative flex-1">
                   <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -1256,7 +1269,7 @@ const ClientBalanceLogs = () => {
                   />
                 </div>
                 <Select value={filterType} onValueChange={setFilterType}>
-                  <SelectTrigger className="w-full sm:w-48 bg-background/50">
+                  <SelectTrigger className="w-48 bg-background/50">
                     <Filter className="w-4 h-4 ml-2" />
                     <SelectValue placeholder="نوع العملية" />
                   </SelectTrigger>
@@ -1270,6 +1283,137 @@ const ClientBalanceLogs = () => {
                     <SelectItem value="debit">خصم</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Filters - Mobile Bottom Sheet */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.65 }}
+          className="sm:hidden"
+        >
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-3">
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="بحث..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pr-9 bg-background/50 h-10"
+                  />
+                </div>
+                
+                <Drawer open={isFilterDrawerOpen} onOpenChange={setIsFilterDrawerOpen}>
+                  <DrawerTrigger asChild>
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
+                      className={`relative flex items-center justify-center w-10 h-10 rounded-xl transition-all ${
+                        filterType !== 'all' 
+                          ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25' 
+                          : 'bg-muted hover:bg-muted/80'
+                      }`}
+                    >
+                      <Filter className="w-5 h-5" />
+                      {filterType !== 'all' && (
+                        <motion.span
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="absolute -top-1 -left-1 w-4 h-4 bg-destructive rounded-full text-[10px] flex items-center justify-center text-white font-bold"
+                        >
+                          1
+                        </motion.span>
+                      )}
+                    </motion.button>
+                  </DrawerTrigger>
+                  
+                  <DrawerContent className="px-4">
+                    <DrawerHeader className="text-center pb-2">
+                      <DrawerTitle className="flex items-center justify-center gap-2">
+                        <Filter className="w-5 h-5 text-primary" />
+                        فلترة العمليات
+                      </DrawerTitle>
+                    </DrawerHeader>
+                    
+                    <div className="space-y-6 py-4">
+                      {/* Filter Type Selection */}
+                      <div className="space-y-3">
+                        <p className="text-sm font-medium text-muted-foreground">نوع العملية</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { value: 'all', label: 'الكل', icon: Activity, color: 'text-foreground', bg: 'bg-muted' },
+                            { value: 'deposit', label: 'إيداع', icon: ArrowUpCircle, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+                            { value: 'order', label: 'طلب', icon: ArrowDownCircle, color: 'text-orange-500', bg: 'bg-orange-500/10' },
+                            { value: 'refund', label: 'استرداد', icon: RefreshCw, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+                            { value: 'commission', label: 'عمولة', icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+                            { value: 'credit', label: 'إضافة', icon: ArrowUpCircle, color: 'text-green-500', bg: 'bg-green-500/10' },
+                            { value: 'debit', label: 'خصم', icon: ArrowDownCircle, color: 'text-red-500', bg: 'bg-red-500/10' },
+                          ].map((item) => {
+                            const Icon = item.icon;
+                            const isSelected = filterType === item.value;
+                            return (
+                              <motion.button
+                                key={item.value}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => setFilterType(item.value)}
+                                className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                                  isSelected 
+                                    ? 'border-primary bg-primary/10 shadow-md' 
+                                    : 'border-transparent ' + item.bg
+                                }`}
+                              >
+                                <Icon className={`w-5 h-5 ${item.color}`} />
+                                <span className={`text-sm font-medium ${isSelected ? 'text-primary' : ''}`}>
+                                  {item.label}
+                                </span>
+                                {isSelected && (
+                                  <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="mr-auto w-2 h-2 rounded-full bg-primary"
+                                  />
+                                )}
+                              </motion.button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Active Filter Info */}
+                      {filterType !== 'all' && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="bg-primary/5 border border-primary/20 rounded-xl p-3 flex items-center justify-between"
+                        >
+                          <span className="text-sm">
+                            عرض: <span className="font-bold text-primary">{filteredLogs.length}</span> عملية
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setFilterType('all')}
+                            className="text-xs h-7"
+                          >
+                            مسح الفلتر
+                          </Button>
+                        </motion.div>
+                      )}
+                    </div>
+                    
+                    <DrawerFooter className="pt-2">
+                      <DrawerClose asChild>
+                        <Button className="w-full h-12 text-base font-medium">
+                          تطبيق الفلتر
+                        </Button>
+                      </DrawerClose>
+                    </DrawerFooter>
+                  </DrawerContent>
+                </Drawer>
               </div>
             </CardContent>
           </Card>
