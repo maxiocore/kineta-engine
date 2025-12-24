@@ -3,4 +3,5 @@ export { OrdersTypeTabs, type OrderType } from './OrdersTypeTabs';
 export { ModernOrdersStats } from './ModernOrdersStats';
 export { ModernOrdersSearch } from './ModernOrdersSearch';
 export { ModernOrdersList } from './ModernOrdersList';
+export { ModernOrdersTable } from './ModernOrdersTable';
 export { InteractiveTimeline } from './InteractiveTimeline';
