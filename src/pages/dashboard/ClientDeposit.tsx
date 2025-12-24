@@ -1179,33 +1179,6 @@ const ClientDeposit = () => {
                       />
                     </motion.div>
 
-                    {/* Tamara */}
-                    <motion.div
-                      whileHover={{ scale: 1.05, y: -5 }}
-                      className="relative group"
-                    >
-                      <div className="p-4 rounded-xl border-2 border-dashed border-pink-500/30 bg-gradient-to-br from-pink-500/5 to-pink-600/10 text-center transition-all group-hover:border-pink-500/50 group-hover:shadow-lg group-hover:shadow-pink-500/10">
-                        <motion.div
-                          animate={{ y: [0, -5, 0] }}
-                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
-                          className="w-14 h-14 mx-auto mb-3 rounded-xl bg-gradient-to-br from-pink-500 to-pink-700 flex items-center justify-center shadow-lg shadow-pink-500/30"
-                        >
-                          <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                          </svg>
-                        </motion.div>
-                        <p className="font-bold text-sm mb-1">تمارا</p>
-                        <Badge variant="outline" className="text-[10px] bg-pink-500/10 border-pink-500/30 text-pink-600">
-                          Tamara
-                        </Badge>
-                      </div>
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        whileHover={{ opacity: 1 }}
-                        className="absolute inset-0 bg-gradient-to-t from-pink-500/20 to-transparent rounded-xl pointer-events-none"
-                      />
-                    </motion.div>
-
                     {/* STC Bank */}
                     <motion.div
                       whileHover={{ scale: 1.05, y: -5 }}
