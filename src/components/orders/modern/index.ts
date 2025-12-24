@@ -5,3 +5,7 @@ export { ModernOrdersSearch } from './ModernOrdersSearch';
 export { ModernOrdersList } from './ModernOrdersList';
 export { ModernOrdersTable } from './ModernOrdersTable';
 export { InteractiveTimeline } from './InteractiveTimeline';
+export { DesignOrderCard } from './DesignOrderCard';
+export { DevOrderCard } from './DevOrderCard';
+export { DesignOrdersList } from './DesignOrdersList';
+export { DevOrdersList } from './DevOrdersList';
