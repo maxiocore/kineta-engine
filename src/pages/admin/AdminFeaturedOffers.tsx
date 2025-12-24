@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
@@ -15,7 +15,8 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { 
   Plus, Pencil, Trash2, Sparkles, Gift, Star, Zap, 
-  Clock, Percent, Eye, EyeOff, GripVertical, ArrowUpDown
+  Clock, Percent, Eye, EyeOff, GripVertical, ArrowUpDown,
+  Link as LinkIcon, Package, Search
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -33,12 +34,25 @@ interface FeaturedOffer {
   badge_text_ar: string | null;
   badge_color: string | null;
   category: string;
+  service_id: string | null;
   is_active: boolean;
   is_featured: boolean;
   display_order: number;
   start_date: string | null;
   end_date: string | null;
   created_at: string;
+  service?: {
+    id: string;
+    name: string;
+    price: number;
+  } | null;
+}
+
+interface Service {
+  id: string;
+  name: string;
+  price: number;
+  category: string;
 }
 
 const emptyOffer = {
@@ -54,6 +68,7 @@ const emptyOffer = {
   badge_text_ar: "",
   badge_color: "from-primary to-accent",
   category: "design",
+  service_id: "",
   is_active: true,
   is_featured: false,
   display_order: 0,
@@ -67,13 +82,18 @@ const AdminFeaturedOffers = () => {
   const [editingOffer, setEditingOffer] = useState<FeaturedOffer | null>(null);
   const [formData, setFormData] = useState(emptyOffer);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [serviceSearch, setServiceSearch] = useState("");
 
+  // Fetch offers with linked services
   const { data: offers, isLoading } = useQuery({
     queryKey: ['admin-featured-offers'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('featured_offers')
-        .select('*')
+        .select(`
+          *,
+          service:services(id, name, price)
+        `)
         .order('category', { ascending: true })
         .order('display_order', { ascending: true });
       
@@ -82,12 +102,59 @@ const AdminFeaturedOffers = () => {
     }
   });
 
+  // Fetch services based on category
+  const { data: services } = useQuery({
+    queryKey: ['services-for-offers', formData.category],
+    queryFn: async () => {
+      let query = supabase
+        .from('services')
+        .select('id, name, price, category')
+        .eq('status', 'active')
+        .order('name', { ascending: true });
+
+      // Filter by category keywords
+      if (formData.category === 'design') {
+        query = query.or('category.ilike.%design%,category.ilike.%تصميم%,category.ilike.%creative%');
+      } else if (formData.category === 'dev') {
+        query = query.or('category.ilike.%dev%,category.ilike.%برمجة%,category.ilike.%web%,category.ilike.%mobile%,category.ilike.%تطبيق%');
+      } else if (formData.category === 'smm') {
+        query = query.or('category.ilike.%social%,category.ilike.%smm%,category.ilike.%instagram%,category.ilike.%facebook%,category.ilike.%tiktok%,category.ilike.%twitter%,category.ilike.%youtube%');
+      }
+
+      const { data, error } = await query.limit(100);
+      
+      if (error) throw error;
+      return data as Service[];
+    },
+    enabled: isDialogOpen
+  });
+
+  // Filter services based on search
+  const filteredServices = services?.filter(s => 
+    s.name.toLowerCase().includes(serviceSearch.toLowerCase())
+  ) || [];
+
+  // Auto-fill price from selected service
+  useEffect(() => {
+    if (formData.service_id && services) {
+      const selectedService = services.find(s => s.id === formData.service_id);
+      if (selectedService) {
+        setFormData(prev => ({
+          ...prev,
+          original_price: selectedService.price,
+          offer_price: prev.offer_price || selectedService.price
+        }));
+      }
+    }
+  }, [formData.service_id, services]);
+
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const { error } = await supabase
         .from('featured_offers')
         .insert([{
           ...data,
+          service_id: data.service_id || null,
           start_date: data.start_date || null,
           end_date: data.end_date || null,
         }]);
@@ -98,6 +165,7 @@ const AdminFeaturedOffers = () => {
       toast.success("تم إضافة العرض بنجاح");
       setIsDialogOpen(false);
       setFormData(emptyOffer);
+      setServiceSearch("");
     },
     onError: () => {
       toast.error("حدث خطأ أثناء إضافة العرض");
@@ -110,6 +178,7 @@ const AdminFeaturedOffers = () => {
         .from('featured_offers')
         .update({
           ...data,
+          service_id: data.service_id || null,
           start_date: data.start_date || null,
           end_date: data.end_date || null,
         })
@@ -122,6 +191,7 @@ const AdminFeaturedOffers = () => {
       setIsDialogOpen(false);
       setEditingOffer(null);
       setFormData(emptyOffer);
+      setServiceSearch("");
     },
     onError: () => {
       toast.error("حدث خطأ أثناء تحديث العرض");
@@ -182,6 +252,7 @@ const AdminFeaturedOffers = () => {
       badge_text_ar: offer.badge_text_ar || "",
       badge_color: offer.badge_color || "from-primary to-accent",
       category: offer.category,
+      service_id: offer.service_id || "",
       is_active: offer.is_active,
       is_featured: offer.is_featured,
       display_order: offer.display_order,
@@ -233,6 +304,7 @@ const AdminFeaturedOffers = () => {
             if (!open) {
               setEditingOffer(null);
               setFormData(emptyOffer);
+              setServiceSearch("");
             }
           }}>
             <DialogTrigger asChild>
@@ -291,6 +363,101 @@ const AdminFeaturedOffers = () => {
                   </div>
                 </div>
 
+                {/* Category Selection */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>القسم</Label>
+                    <Select 
+                      value={formData.category} 
+                      onValueChange={(v) => {
+                        setFormData({ ...formData, category: v, service_id: "" });
+                        setServiceSearch("");
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="design">التصميم الإبداعي</SelectItem>
+                        <SelectItem value="dev">البرمجة والتطوير</SelectItem>
+                        <SelectItem value="smm">السوشيال ميديا</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>ترتيب العرض</Label>
+                    <Input
+                      type="number"
+                      value={formData.display_order}
+                      onChange={(e) => setFormData({ ...formData, display_order: Number(e.target.value) })}
+                      min={0}
+                    />
+                  </div>
+                </div>
+
+                {/* Service Linking */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <LinkIcon className="h-4 w-4" />
+                    ربط بخدمة (اختياري)
+                  </Label>
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="ابحث عن خدمة..."
+                        value={serviceSearch}
+                        onChange={(e) => setServiceSearch(e.target.value)}
+                        className="pr-10"
+                        dir="rtl"
+                      />
+                    </div>
+                    
+                    {formData.service_id && (
+                      <div className="flex items-center gap-2 p-2 bg-primary/10 rounded-lg border border-primary/20">
+                        <Package className="h-4 w-4 text-primary" />
+                        <span className="text-sm flex-1 truncate">
+                          {services?.find(s => s.id === formData.service_id)?.name || "خدمة محددة"}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setFormData({ ...formData, service_id: "" })}
+                          className="h-6 px-2 text-destructive hover:text-destructive"
+                        >
+                          إزالة
+                        </Button>
+                      </div>
+                    )}
+
+                    <div className="max-h-40 overflow-y-auto border rounded-lg divide-y">
+                      {filteredServices.length === 0 ? (
+                        <div className="p-4 text-center text-sm text-muted-foreground">
+                          {serviceSearch ? "لا توجد نتائج" : "اختر قسماً لعرض الخدمات"}
+                        </div>
+                      ) : (
+                        filteredServices.slice(0, 20).map((service) => (
+                          <div
+                            key={service.id}
+                            onClick={() => setFormData({ ...formData, service_id: service.id })}
+                            className={`p-3 cursor-pointer hover:bg-muted/50 transition-colors ${
+                              formData.service_id === service.id ? 'bg-primary/10 border-r-2 border-primary' : ''
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium truncate flex-1">{service.name}</span>
+                              <Badge variant="secondary" className="text-xs ml-2">
+                                ${service.price}
+                              </Badge>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pricing */}
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label>نسبة الخصم %</Label>
@@ -322,31 +489,7 @@ const AdminFeaturedOffers = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>القسم</Label>
-                    <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="design">التصميم الإبداعي</SelectItem>
-                        <SelectItem value="dev">البرمجة والتطوير</SelectItem>
-                        <SelectItem value="smm">السوشيال ميديا</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>ترتيب العرض</Label>
-                    <Input
-                      type="number"
-                      value={formData.display_order}
-                      onChange={(e) => setFormData({ ...formData, display_order: Number(e.target.value) })}
-                      min={0}
-                    />
-                  </div>
-                </div>
-
+                {/* Badge */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>نص الشارة (English)</Label>
@@ -383,6 +526,7 @@ const AdminFeaturedOffers = () => {
                   </Select>
                 </div>
 
+                {/* Dates */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>تاريخ البداية</Label>
@@ -402,6 +546,7 @@ const AdminFeaturedOffers = () => {
                   </div>
                 </div>
 
+                {/* Toggles */}
                 <div className="flex items-center gap-6">
                   <div className="flex items-center gap-2">
                     <Switch
@@ -501,6 +646,15 @@ const AdminFeaturedOffers = () => {
                   <CardContent className="space-y-4">
                     {offer.description_ar && (
                       <p className="text-sm text-muted-foreground line-clamp-2">{offer.description_ar}</p>
+                    )}
+
+                    {/* Linked Service */}
+                    {offer.service && (
+                      <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg text-xs">
+                        <LinkIcon className="h-3 w-3 text-primary" />
+                        <span className="truncate flex-1">{offer.service.name}</span>
+                        <Badge variant="secondary" className="text-[10px]">${offer.service.price}</Badge>
+                      </div>
                     )}
 
                     <div className="flex items-center justify-between">
