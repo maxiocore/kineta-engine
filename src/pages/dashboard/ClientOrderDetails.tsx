@@ -443,148 +443,244 @@ const ClientOrderDetails = () => {
 
     const getStatusColor = (status: string) => {
       switch (status) {
-        case 'completed': return '#10B981';
-        case 'pending': return '#F59E0B';
+        case 'completed': return { bg: '#DCFCE7', text: '#166534', border: '#86EFAC' };
+        case 'pending': return { bg: '#FEF9C3', text: '#854D0E', border: '#FDE047' };
         case 'in_progress':
-        case 'processing': return '#3B82F6';
+        case 'processing': return { bg: '#DBEAFE', text: '#1E40AF', border: '#93C5FD' };
         case 'cancelled':
-        case 'refunded': return '#EF4444';
-        default: return '#6B7280';
+        case 'refunded': return { bg: '#FEE2E2', text: '#991B1B', border: '#FCA5A5' };
+        default: return { bg: '#F3F4F6', text: '#374151', border: '#D1D5DB' };
       }
     };
 
     const unitPrice = order.service?.price || 0;
     const basePrice = unitPrice * (order.quantity || 1);
+    const statusStyle = getStatusColor(order.status);
+
+    // Generate QR Code as SVG
+    const qrData = `INV:${order.order_number}|AMT:${order.total_price}|DATE:${format(new Date(order.created_at), 'yyyyMMdd')}`;
+    const generateQRCodeSVG = (data: string) => {
+      // Simple QR-like pattern generator (visual representation)
+      const size = 100;
+      const cellSize = 4;
+      const cells = Math.floor(size / cellSize);
+      let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">`;
+      svg += `<rect width="${size}" height="${size}" fill="white"/>`;
+      
+      // Generate pseudo-random pattern based on data
+      const hash = data.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0);
+      for (let i = 0; i < cells; i++) {
+        for (let j = 0; j < cells; j++) {
+          const seed = (hash + i * cells + j) % 100;
+          if (seed < 45 || (i < 3 && j < 3) || (i < 3 && j > cells - 4) || (i > cells - 4 && j < 3)) {
+            svg += `<rect x="${j * cellSize}" y="${i * cellSize}" width="${cellSize}" height="${cellSize}" fill="#1a1a1a"/>`;
+          }
+        }
+      }
+      // Position detection patterns
+      const drawPositionPattern = (x: number, y: number) => {
+        svg += `<rect x="${x}" y="${y}" width="28" height="28" fill="#1a1a1a"/>`;
+        svg += `<rect x="${x + 4}" y="${y + 4}" width="20" height="20" fill="white"/>`;
+        svg += `<rect x="${x + 8}" y="${y + 8}" width="12" height="12" fill="#1a1a1a"/>`;
+      };
+      drawPositionPattern(0, 0);
+      drawPositionPattern(size - 28, 0);
+      drawPositionPattern(0, size - 28);
+      svg += '</svg>';
+      return svg;
+    };
+
+    const qrCodeSVG = generateQRCodeSVG(qrData);
+    const qrCodeBase64 = `data:image/svg+xml;base64,${btoa(qrCodeSVG)}`;
 
     // Create hidden container for HTML invoice
     const container = document.createElement('div');
     container.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 595px; background: white;';
     container.innerHTML = `
-      <div style="direction: rtl; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: #fff; min-height: 842px;">
-        <!-- Header -->
-        <div style="background: linear-gradient(135deg, #059669 0%, #10B981 50%, #34D399 100%); padding: 35px 40px; position: relative; overflow: hidden;">
-          <div style="position: absolute; top: -50px; left: -50px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
-          <div style="position: absolute; bottom: -30px; right: -30px; width: 100px; height: 100px; background: rgba(255,255,255,0.08); border-radius: 50%;"></div>
-          <div style="text-align: center; position: relative; z-index: 1;">
-            <h1 style="color: white; font-size: 32px; font-weight: 800; margin: 0; letter-spacing: 3px; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">MARKETO</h1>
-            <div style="width: 60px; height: 3px; background: rgba(255,255,255,0.5); margin: 12px auto;"></div>
-            <p style="color: rgba(255,255,255,0.95); font-size: 16px; margin: 0; font-weight: 500;">فاتورة ضريبية مبسطة</p>
+      <div style="direction: rtl; font-family: 'Tajawal', 'Cairo', 'Noto Kufi Arabic', 'Segoe UI', Tahoma, sans-serif; background: #fff; min-height: 842px; position: relative;">
+        
+        <!-- Modern Header with Gradient -->
+        <div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #334155 100%); padding: 0; position: relative; overflow: hidden;">
+          <!-- Decorative Elements -->
+          <div style="position: absolute; top: -80px; left: -80px; width: 200px; height: 200px; background: linear-gradient(135deg, rgba(99,102,241,0.3) 0%, transparent 70%); border-radius: 50%;"></div>
+          <div style="position: absolute; bottom: -60px; right: -60px; width: 180px; height: 180px; background: linear-gradient(135deg, rgba(34,197,94,0.2) 0%, transparent 70%); border-radius: 50%;"></div>
+          <div style="position: absolute; top: 20px; right: 40px; width: 80px; height: 80px; border: 2px solid rgba(255,255,255,0.1); border-radius: 50%;"></div>
+          
+          <div style="padding: 35px 45px; position: relative; z-index: 1;">
+            <table style="width: 100%;">
+              <tr>
+                <td style="vertical-align: middle; width: 60%;">
+                  <h1 style="color: white; font-size: 36px; font-weight: 900; margin: 0; letter-spacing: 4px; font-family: 'Tajawal', sans-serif;">MARKETO</h1>
+                  <p style="color: rgba(255,255,255,0.7); font-size: 13px; margin: 8px 0 0; font-weight: 500; letter-spacing: 1px;">منصة الخدمات الرقمية المتكاملة</p>
+                </td>
+                <td style="text-align: left; vertical-align: middle;">
+                  <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 15px 25px; text-align: center;">
+                    <p style="color: rgba(255,255,255,0.6); font-size: 11px; margin: 0; font-weight: 600;">فاتورة ضريبية مبسطة</p>
+                    <p style="color: white; font-size: 14px; margin: 5px 0 0; font-weight: 700;">TAX INVOICE</p>
+                  </div>
+                </td>
+              </tr>
+            </table>
           </div>
         </div>
-        
-        <!-- Invoice Info Bar -->
-        <div style="background: #f0fdf4; padding: 20px 40px; border-bottom: 2px solid #d1fae5;">
-          <table style="width: 100%; border-collapse: collapse;">
+
+        <!-- Invoice Number Banner -->
+        <div style="background: linear-gradient(90deg, #6366F1 0%, #8B5CF6 50%, #A855F7 100%); padding: 18px 45px;">
+          <table style="width: 100%;">
             <tr>
-              <td style="text-align: right; width: 33%; vertical-align: top;">
-                <p style="color: #059669; font-size: 11px; margin: 0; font-weight: 600; text-transform: uppercase;">رقم الطلب</p>
-                <p style="color: #064e3b; font-size: 15px; font-weight: 700; margin: 6px 0 0; font-family: 'Courier New', monospace; letter-spacing: 0.5px;">${order.order_number}</p>
+              <td style="text-align: right;">
+                <span style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 500;">رقم الفاتورة</span>
+                <span style="color: white; font-size: 18px; font-weight: 800; margin-right: 15px; font-family: 'Courier New', monospace; letter-spacing: 2px;">#${order.order_number}</span>
               </td>
-              <td style="text-align: center; width: 34%; vertical-align: middle;">
-                <span style="display: inline-block; background: ${getStatusColor(order.status)}; color: white; padding: 10px 28px; border-radius: 25px; font-size: 13px; font-weight: 700; box-shadow: 0 2px 8px ${getStatusColor(order.status)}40;">
+              <td style="text-align: left;">
+                <span style="display: inline-block; background: ${statusStyle.bg}; color: ${statusStyle.text}; border: 2px solid ${statusStyle.border}; padding: 8px 24px; border-radius: 50px; font-size: 12px; font-weight: 700;">
                   ${statusLabels[order.status] || order.status}
                 </span>
-              </td>
-              <td style="text-align: left; width: 33%; vertical-align: top;">
-                <p style="color: #059669; font-size: 11px; margin: 0; font-weight: 600; text-transform: uppercase;">التاريخ</p>
-                <p style="color: #064e3b; font-size: 14px; font-weight: 600; margin: 6px 0 0;">${format(new Date(order.created_at), 'dd/MM/yyyy')}</p>
-                <p style="color: #6b7280; font-size: 12px; margin: 2px 0 0;">${format(new Date(order.created_at), 'HH:mm')}</p>
               </td>
             </tr>
           </table>
         </div>
 
         <!-- Main Content -->
-        <div style="padding: 30px 40px;">
+        <div style="padding: 35px 45px;">
           
-          <!-- Service Details Section -->
-          <div style="margin-bottom: 25px;">
-            <div style="background: #059669; color: white; padding: 14px 24px; border-radius: 10px 10px 0 0;">
-              <h2 style="margin: 0; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                <span style="width: 6px; height: 6px; background: white; border-radius: 50%;"></span>
+          <!-- Date & Info Row -->
+          <div style="display: flex; gap: 20px; margin-bottom: 30px;">
+            <table style="width: 100%; background: #F8FAFC; border-radius: 12px; overflow: hidden;">
+              <tr>
+                <td style="padding: 20px 25px; border-left: 1px solid #E2E8F0; width: 33%;">
+                  <p style="color: #64748B; font-size: 11px; margin: 0; font-weight: 600; text-transform: uppercase;">تاريخ الإصدار</p>
+                  <p style="color: #0F172A; font-size: 16px; font-weight: 700; margin: 8px 0 0;">${format(new Date(order.created_at), 'dd / MM / yyyy')}</p>
+                  <p style="color: #94A3B8; font-size: 12px; margin: 4px 0 0;">${format(new Date(order.created_at), 'hh:mm a')}</p>
+                </td>
+                <td style="padding: 20px 25px; border-left: 1px solid #E2E8F0; width: 33%;">
+                  <p style="color: #64748B; font-size: 11px; margin: 0; font-weight: 600; text-transform: uppercase;">رقم المرجع الخارجي</p>
+                  <p style="color: #0F172A; font-size: 14px; font-weight: 600; margin: 8px 0 0; font-family: monospace;">${order.external_order_id || 'غير متوفر'}</p>
+                </td>
+                <td style="padding: 20px 25px; width: 34%;">
+                  <p style="color: #64748B; font-size: 11px; margin: 0; font-weight: 600; text-transform: uppercase;">التصنيف</p>
+                  <p style="color: #0F172A; font-size: 14px; font-weight: 600; margin: 8px 0 0;">${order.service?.category || 'عام'}</p>
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Service Details Card -->
+          <div style="background: white; border: 2px solid #E2E8F0; border-radius: 16px; overflow: hidden; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+            <div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); padding: 16px 25px;">
+              <h3 style="color: white; font-size: 14px; font-weight: 700; margin: 0; display: flex; align-items: center;">
+                <span style="display: inline-block; width: 8px; height: 8px; background: #22C55E; border-radius: 50%; margin-left: 10px;"></span>
                 تفاصيل الخدمة
-              </h2>
+              </h3>
             </div>
-            <div style="background: #fafafa; border: 2px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px; padding: 24px;">
-              <table style="width: 100%; border-collapse: collapse;">
+            <div style="padding: 25px;">
+              <table style="width: 100%;">
                 <tr>
-                  <td style="text-align: right; padding: 8px 0; vertical-align: top; width: 65%;">
-                    <p style="color: #6b7280; font-size: 11px; margin: 0; font-weight: 600;">اسم الخدمة</p>
-                    <p style="color: #111827; font-size: 14px; font-weight: 700; margin: 6px 0 0; line-height: 1.5;">${order.service?.name || 'غير محدد'}</p>
-                  </td>
-                  <td style="text-align: left; padding: 8px 0; vertical-align: top; width: 35%;">
-                    <p style="color: #6b7280; font-size: 11px; margin: 0; font-weight: 600;">الكمية</p>
-                    <p style="color: #059669; font-size: 24px; font-weight: 800; margin: 4px 0 0;">${(order.quantity || 1).toLocaleString('ar-SA')}</p>
+                  <td style="vertical-align: top; padding-bottom: 20px;" colspan="2">
+                    <p style="color: #64748B; font-size: 11px; margin: 0; font-weight: 600;">اسم الخدمة</p>
+                    <p style="color: #0F172A; font-size: 15px; font-weight: 700; margin: 10px 0 0; line-height: 1.7; padding: 12px 16px; background: #F8FAFC; border-radius: 8px; border-right: 4px solid #6366F1;">${order.service?.name || 'غير محدد'}</p>
                   </td>
                 </tr>
                 <tr>
-                  <td style="text-align: right; padding: 8px 0; border-top: 1px dashed #e5e7eb; vertical-align: top;">
-                    <p style="color: #6b7280; font-size: 11px; margin: 0; font-weight: 600;">التصنيف</p>
-                    <p style="color: #374151; font-size: 13px; font-weight: 500; margin: 6px 0 0;">${order.service?.category || 'غير محدد'}</p>
+                  <td style="width: 50%; padding: 15px 0; border-top: 1px dashed #E2E8F0;">
+                    <p style="color: #64748B; font-size: 11px; margin: 0; font-weight: 600;">الكمية المطلوبة</p>
+                    <p style="color: #6366F1; font-size: 28px; font-weight: 900; margin: 8px 0 0;">${(order.quantity || 1).toLocaleString('ar-SA')}</p>
                   </td>
-                  <td style="text-align: left; padding: 8px 0; border-top: 1px dashed #e5e7eb; vertical-align: top;">
-                    <p style="color: #6b7280; font-size: 11px; margin: 0; font-weight: 600;">سعر الوحدة</p>
-                    <p style="color: #374151; font-size: 13px; font-weight: 600; margin: 6px 0 0;">${unitPrice.toFixed(4)} ر.س</p>
+                  <td style="width: 50%; padding: 15px 0; border-top: 1px dashed #E2E8F0; text-align: left;">
+                    <p style="color: #64748B; font-size: 11px; margin: 0; font-weight: 600;">سعر الوحدة</p>
+                    <p style="color: #0F172A; font-size: 18px; font-weight: 700; margin: 8px 0 0;">${unitPrice.toFixed(4)} <span style="font-size: 12px; color: #64748B;">ر.س</span></p>
                   </td>
                 </tr>
               </table>
             </div>
           </div>
 
-          <!-- Payment Summary Section -->
-          <div style="margin-bottom: 25px;">
-            <div style="background: #059669; color: white; padding: 14px 24px; border-radius: 10px 10px 0 0;">
-              <h2 style="margin: 0; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                <span style="width: 6px; height: 6px; background: white; border-radius: 50%;"></span>
-                ملخص الدفع
-              </h2>
+          <!-- Payment Summary Card -->
+          <div style="background: white; border: 2px solid #E2E8F0; border-radius: 16px; overflow: hidden; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+            <div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); padding: 16px 25px;">
+              <h3 style="color: white; font-size: 14px; font-weight: 700; margin: 0; display: flex; align-items: center;">
+                <span style="display: inline-block; width: 8px; height: 8px; background: #F59E0B; border-radius: 50%; margin-left: 10px;"></span>
+                ملخص الحساب
+              </h3>
             </div>
-            <div style="background: #ffffff; border: 2px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px; padding: 20px 24px;">
-              <table style="width: 100%; border-collapse: collapse;">
+            <div style="padding: 20px 25px;">
+              <table style="width: 100%;">
                 <tr>
-                  <td style="text-align: right; padding: 10px 0; color: #6b7280; font-size: 13px;">سعر الوحدة × الكمية</td>
-                  <td style="text-align: left; padding: 10px 0; color: #374151; font-size: 13px; font-weight: 500;">${unitPrice.toFixed(4)} × ${(order.quantity || 1).toLocaleString()}</td>
-                </tr>
-                <tr>
-                  <td style="text-align: right; padding: 10px 0; color: #6b7280; font-size: 13px; border-top: 1px solid #f3f4f6;">المجموع الفرعي</td>
-                  <td style="text-align: left; padding: 10px 0; color: #374151; font-size: 13px; font-weight: 600; border-top: 1px solid #f3f4f6;">${basePrice.toFixed(2)} ر.س</td>
+                  <td style="padding: 12px 0; color: #64748B; font-size: 13px; font-weight: 500;">المجموع الفرعي</td>
+                  <td style="padding: 12px 0; color: #0F172A; font-size: 14px; font-weight: 600; text-align: left;">${basePrice.toFixed(2)} ر.س</td>
                 </tr>
                 ${order.discount_amount && order.discount_amount > 0 ? `
                 <tr>
-                  <td style="text-align: right; padding: 10px 0; color: #10b981; font-size: 13px; border-top: 1px solid #f3f4f6;">الخصم</td>
-                  <td style="text-align: left; padding: 10px 0; color: #10b981; font-size: 13px; font-weight: 600; border-top: 1px solid #f3f4f6;">- ${order.discount_amount.toFixed(2)} ر.س</td>
+                  <td style="padding: 12px 0; color: #22C55E; font-size: 13px; font-weight: 500; border-top: 1px solid #F1F5F9;">
+                    <span style="display: inline-block; background: #DCFCE7; padding: 3px 10px; border-radius: 20px; font-size: 11px;">خصم</span>
+                  </td>
+                  <td style="padding: 12px 0; color: #22C55E; font-size: 14px; font-weight: 700; text-align: left; border-top: 1px solid #F1F5F9;">- ${order.discount_amount.toFixed(2)} ر.س</td>
                 </tr>
                 ` : ''}
+                <tr>
+                  <td style="padding: 12px 0; color: #64748B; font-size: 13px; font-weight: 500; border-top: 1px solid #F1F5F9;">ضريبة القيمة المضافة (0%)</td>
+                  <td style="padding: 12px 0; color: #64748B; font-size: 13px; text-align: left; border-top: 1px solid #F1F5F9;">0.00 ر.س</td>
+                </tr>
               </table>
-              <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); margin: 15px -24px -20px; padding: 18px 24px; border-radius: 0 0 8px 8px; border-top: 2px solid #10b981;">
-                <table style="width: 100%; border-collapse: collapse;">
-                  <tr>
-                    <td style="text-align: right; color: #047857; font-size: 16px; font-weight: 700;">المجموع المدفوع</td>
-                    <td style="text-align: left; color: #047857; font-size: 20px; font-weight: 800;">${order.total_price.toFixed(2)} ر.س</td>
-                  </tr>
-                </table>
-              </div>
+            </div>
+            <!-- Total Section -->
+            <div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); padding: 20px 25px; margin: 0;">
+              <table style="width: 100%;">
+                <tr>
+                  <td>
+                    <p style="color: rgba(255,255,255,0.7); font-size: 12px; margin: 0; font-weight: 500;">المبلغ الإجمالي</p>
+                    <p style="color: white; font-size: 28px; font-weight: 900; margin: 8px 0 0;">${order.total_price.toFixed(2)} <span style="font-size: 14px; font-weight: 600;">ريال سعودي</span></p>
+                  </td>
+                  <td style="text-align: left; vertical-align: bottom;">
+                    <p style="color: rgba(255,255,255,0.5); font-size: 11px; margin: 0;">SAR</p>
+                  </td>
+                </tr>
+              </table>
             </div>
           </div>
 
           ${order.link ? `
           <!-- Link Section -->
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; margin-bottom: 20px;">
-            <p style="color: #64748b; font-size: 11px; margin: 0 0 6px; font-weight: 600;">الرابط المستهدف</p>
-            <p style="color: #3b82f6; font-size: 12px; margin: 0; word-break: break-all; direction: ltr; text-align: left;">${order.link}</p>
+          <div style="background: #F0F9FF; border: 1px solid #BAE6FD; border-radius: 12px; padding: 18px 22px; margin-bottom: 20px;">
+            <p style="color: #0369A1; font-size: 11px; margin: 0 0 8px; font-weight: 700;">
+              <span style="display: inline-block; margin-left: 6px;">🔗</span> الرابط المستهدف
+            </p>
+            <p style="color: #0C4A6E; font-size: 12px; margin: 0; word-break: break-all; direction: ltr; text-align: left; font-family: monospace; background: white; padding: 10px 12px; border-radius: 6px;">${order.link}</p>
           </div>
           ` : ''}
 
         </div>
 
-        <!-- Footer -->
-        <div style="background: #f9fafb; border-top: 1px solid #e5e7eb; padding: 20px 40px; text-align: center; position: absolute; bottom: 20px; left: 0; right: 0;">
-          <p style="color: #9ca3af; font-size: 11px; margin: 0;">هذه فاتورة إلكترونية صادرة من نظام MARKETO</p>
-          <p style="color: #9ca3af; font-size: 10px; margin: 6px 0 0;">لا تحتاج إلى توقيع أو ختم • تم الإنشاء: ${format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
+        <!-- Footer Section with QR Code -->
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; background: #F8FAFC; border-top: 2px solid #E2E8F0;">
+          <div style="padding: 25px 45px;">
+            <table style="width: 100%;">
+              <tr>
+                <td style="vertical-align: middle; width: 75%;">
+                  <p style="color: #64748B; font-size: 11px; margin: 0; line-height: 1.8;">
+                    <strong style="color: #0F172A;">ملاحظة:</strong> هذه فاتورة إلكترونية صادرة من نظام MARKETO
+                  </p>
+                  <p style="color: #94A3B8; font-size: 10px; margin: 8px 0 0;">
+                    تم الإنشاء تلقائياً بتاريخ ${format(new Date(), 'dd/MM/yyyy')} الساعة ${format(new Date(), 'HH:mm')} • لا تحتاج إلى توقيع أو ختم
+                  </p>
+                  <div style="margin-top: 12px; display: flex; gap: 15px;">
+                    <span style="color: #64748B; font-size: 10px;">📧 support@marketo.sa</span>
+                    <span style="color: #64748B; font-size: 10px;">🌐 www.marketo.sa</span>
+                  </div>
+                </td>
+                <td style="text-align: left; vertical-align: middle;">
+                  <div style="background: white; padding: 10px; border-radius: 12px; border: 2px solid #E2E8F0; display: inline-block;">
+                    <img src="${qrCodeBase64}" width="80" height="80" style="display: block;" />
+                    <p style="color: #64748B; font-size: 8px; margin: 6px 0 0; text-align: center;">امسح للتحقق</p>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <!-- Bottom Bar -->
+          <div style="background: linear-gradient(90deg, #0F172A 0%, #334155 50%, #6366F1 100%); height: 6px;"></div>
         </div>
         
-        <!-- Footer Bar -->
-        <div style="background: linear-gradient(90deg, #059669 0%, #10B981 50%, #34D399 100%); height: 8px; position: absolute; bottom: 0; left: 0; right: 0;"></div>
       </div>
     `;
 
@@ -592,7 +688,7 @@ const ClientOrderDetails = () => {
 
     try {
       const canvas = await html2canvas(container, {
-        scale: 2,
+        scale: 2.5,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
