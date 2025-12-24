@@ -363,7 +363,20 @@ const ClientServicesNew = () => {
       }).select().single();
       if (orderError) throw orderError;
       
+      // Update balance
       await supabase.from("user_balances").update({ balance: userBalance.balance - totalPrice, total_spent: userBalance.total_spent + totalPrice }).eq("user_id", user.id);
+      
+      // Create balance log with order reference for proper tracking
+      await supabase.from("balance_logs").insert({
+        user_id: user.id,
+        action_type: 'order',
+        amount: -totalPrice,
+        balance_before: userBalance.balance,
+        balance_after: userBalance.balance - totalPrice,
+        reference_type: 'order',
+        reference_id: orderData.id,
+        notes: `خصم للطلب رقم ${orderData.order_number}`
+      });
       
       toast.loading("جاري إرسال الطلب للمزود...", { id: 'provider-order' });
       

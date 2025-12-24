@@ -191,7 +191,7 @@ ${formData.additionalNotes || "لا توجد"}
 📞 طريقة التواصل المفضلة: ${formData.contactMethod === "email" ? "البريد الإلكتروني" : formData.contactMethod === "whatsapp" ? "واتساب" : "الهاتف"}
 `.trim();
 
-      const { error: orderError } = await supabase
+      const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert([{
           user_id: user.id,
@@ -202,7 +202,9 @@ ${formData.additionalNotes || "لا توجد"}
           notes: detailedNotes,
           status: 'pending' as const,
           order_number: orderNumber
-        }]);
+        }])
+        .select('id, order_number')
+        .single();
 
       if (orderError) throw orderError;
 
@@ -210,11 +212,23 @@ ${formData.additionalNotes || "لا توجد"}
         .from('user_balances')
         .update({ 
           balance: balance - service.price,
-          total_spent: balance + service.price
+          total_spent: (balance || 0) + service.price
         })
         .eq('user_id', user.id);
 
       if (balanceError) throw balanceError;
+
+      // Create balance log with order reference for proper tracking
+      await supabase.from("balance_logs").insert({
+        user_id: user.id,
+        action_type: 'order',
+        amount: -service.price,
+        balance_before: balance,
+        balance_after: balance - service.price,
+        reference_type: 'order',
+        reference_id: orderData.id,
+        notes: `خصم للطلب رقم ${orderData.order_number}`
+      });
 
       toast.success("تم إرسال الطلب بنجاح! 🎉", {
         description: "سيتم التواصل معك قريباً لمناقشة التفاصيل"
