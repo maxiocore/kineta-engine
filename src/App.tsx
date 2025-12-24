@@ -23,6 +23,7 @@ import CategoryDetails from "./pages/CategoryDetails";
 // Client Dashboard
 import ClientDashboard from "./pages/dashboard/ClientDashboard";
 import ClientOrders from "./pages/dashboard/ClientOrders";
+import ClientOrderDetails from "./pages/dashboard/ClientOrderDetails";
 import ClientBadges from "./pages/dashboard/ClientBadges";
 import ClientNotifications from "./pages/dashboard/ClientNotifications";
 import ClientSupport from "./pages/dashboard/ClientSupport";
@@ -106,6 +107,11 @@ const App = () => (
                   <Route path="/dashboard/orders" element={
                     <ProtectedRoute>
                       <ClientOrders />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/orders/:orderId" element={
+                    <ProtectedRoute>
+                      <ClientOrderDetails />
                     </ProtectedRoute>
                   } />
                   <Route path="/dashboard/badges" element={
