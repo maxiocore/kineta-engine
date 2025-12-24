@@ -41,6 +41,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { z } from "zod";
+import { FileAttachment, AttachmentDisplay } from "@/components/support/FileAttachment";
+
+interface Attachment {
+  name: string;
+  url: string;
+  type: string;
+  size: number;
+}
 
 const messageSchema = z.object({
   message: z.string().trim().min(1, "الرسالة مطلوبة").max(1000, "الرسالة يجب أن تكون أقل من 1000 حرف"),
@@ -64,6 +72,7 @@ interface TicketMessage {
   message: string;
   is_admin: boolean;
   created_at: string;
+  attachments?: Attachment[];
 }
 
 const getStatusLabel = (status: string) => {
@@ -149,6 +158,7 @@ const AdminSupport = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newMessage, setNewMessage] = useState("");
+  const [messageAttachments, setMessageAttachments] = useState<Attachment[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -227,7 +237,12 @@ const AdminSupport = () => {
         .order("created_at", { ascending: true });
       
       if (error) throw error;
-      setMessages(data || []);
+      const typedData = (data || []).map(msg => ({
+        ...msg,
+        attachments: Array.isArray(msg.attachments) ? (msg.attachments as unknown as Attachment[]) : [],
+        is_admin: msg.is_admin || false
+      }));
+      setMessages(typedData);
     } catch (error) {
       toast({
         title: "خطأ",
@@ -249,16 +264,18 @@ const AdminSupport = () => {
     
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from("ticket_messages").insert({
+      const { error } = await supabase.from("ticket_messages").insert([{
         ticket_id: selectedTicket.id,
         sender_id: user.id,
         message: newMessage.trim(),
         is_admin: true,
-      });
+        attachments: messageAttachments.length > 0 ? JSON.stringify(messageAttachments) : null,
+      }]);
       
       if (error) throw error;
       
       setNewMessage("");
+      setMessageAttachments([]);
       fetchMessages(selectedTicket.id);
     } catch (error) {
       toast({
@@ -418,6 +435,9 @@ const AdminSupport = () => {
                       </span>
                     </div>
                     <p className="text-sm leading-relaxed">{msg.message}</p>
+                    {msg.attachments && msg.attachments.length > 0 && (
+                      <AttachmentDisplay attachments={msg.attachments} />
+                    )}
                     <p className={`text-xs mt-3 flex items-center gap-1 ${
                       msg.is_admin ? "text-primary-foreground/60" : "text-muted-foreground"
                     }`}>
@@ -436,7 +456,18 @@ const AdminSupport = () => {
       {/* Message Input */}
       <div className="p-4 border-t border-border/50 bg-background/80 backdrop-blur-sm">
         {selectedTicket?.status !== "closed" ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
+            {/* File Attachments */}
+            {user && selectedTicket && (
+              <FileAttachment
+                userId={user.id}
+                ticketId={selectedTicket.id}
+                attachments={messageAttachments}
+                onAttachmentsChange={setMessageAttachments}
+                disabled={isSubmitting}
+              />
+            )}
+            
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Input
@@ -450,7 +481,7 @@ const AdminSupport = () => {
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button 
                   onClick={handleSendMessage} 
-                  disabled={isSubmitting || !newMessage.trim()}
+                  disabled={isSubmitting || (!newMessage.trim() && messageAttachments.length === 0)}
                   size="icon"
                   className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20"
                 >
