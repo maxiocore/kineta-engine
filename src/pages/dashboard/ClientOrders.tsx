@@ -210,12 +210,31 @@ const ClientOrders = () => {
       o.status === "in_progress" || o.status === "processing"
     ).length,
     completed: filteredOrders.filter(o => o.status === "completed").length,
+    cancelled: filteredOrders.filter(o => 
+      o.status === "cancelled" || o.status === "refunded"
+    ).length,
   }), [filteredOrders]);
 
+  // Calculate spending (only completed orders count as actual spending)
   const totalSpent = useMemo(() => 
-    filteredOrders.reduce((sum, o) => sum + o.total_price, 0), 
+    filteredOrders
+      .filter(o => o.status === 'completed' || o.status === 'in_progress' || o.status === 'processing')
+      .reduce((sum, o) => sum + o.total_price, 0), 
     [filteredOrders]
   );
+
+  // Today's spending
+  const todaySpent = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return filteredOrders
+      .filter(o => {
+        const orderDate = new Date(o.created_at);
+        return orderDate >= today && 
+          (o.status === 'completed' || o.status === 'in_progress' || o.status === 'processing');
+      })
+      .reduce((sum, o) => sum + o.total_price, 0);
+  }, [filteredOrders]);
 
   // Counts for tabs
   const typeCounts = useMemo(() => ({
@@ -343,7 +362,7 @@ const ClientOrders = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.12 }}
         >
-          <ModernOrdersStats stats={stats} totalSpent={totalSpent} />
+          <ModernOrdersStats stats={stats} totalSpent={totalSpent} todaySpent={todaySpent} />
         </motion.div>
 
         {/* Search & Filters */}
