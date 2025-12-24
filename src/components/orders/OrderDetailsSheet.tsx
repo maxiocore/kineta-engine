@@ -621,15 +621,7 @@ export const OrderDetailsSheet = ({ order, orderHistory, loadingHistory, onClose
       yPos += 18;
     }
     
-    if (order.admin_notes) {
-      doc.setTextColor(180, 120, 50);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Admin Notes:', 25, yPos);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.text(order.admin_notes.substring(0, 80), 25, yPos + 7);
-    }
+    // ملاحظات الإدارة مخفية عن العملاء في PDF أيضاً
     
     doc.setDrawColor(220, 220, 220);
     doc.setLineWidth(0.3);
@@ -939,22 +931,7 @@ export const OrderDetailsSheet = ({ order, orderHistory, loadingHistory, onClose
                 </motion.div>
               )}
 
-              {order.admin_notes && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.35 }}
-                  className="rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-4"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                      <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                    </div>
-                    <span className="text-sm font-medium text-amber-600 dark:text-amber-400">ملاحظات الإدارة</span>
-                  </div>
-                  <p className="text-sm">{order.admin_notes}</p>
-                </motion.div>
-              )}
+              {/* ملاحظات الإدارة مخفية عن العملاء */}
 
               {/* Order History Timeline */}
               <motion.div 

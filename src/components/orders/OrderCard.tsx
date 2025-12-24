@@ -183,13 +183,7 @@ export const OrderCard = memo(({ order, index, onClick }: OrderCardProps) => {
           </motion.p>
           <p className="text-xs text-muted-foreground">{order.service?.category}</p>
           
-          {/* External status */}
-          {order.external_status && (
-            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 justify-end flex-row-reverse">
-              <ExternalLink className="w-3 h-3" />
-              {order.external_status}
-            </p>
-          )}
+          {/* حالة المزود مخفية عن العملاء */}
         </div>
 
         {/* Status Icon with animation - Now on the left */}
