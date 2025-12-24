@@ -140,7 +140,9 @@ const ClientDeposit = () => {
   const [copied, setCopied] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [usePaylinkDirect, setUsePaylinkDirect] = useState(false);
+  const [useTamara, setUseTamara] = useState(false);
   const [paylinkLoading, setPaylinkLoading] = useState(false);
+  const [tamaraLoading, setTamaraLoading] = useState(false);
   const [clientMobile, setClientMobile] = useState('');
 
   useEffect(() => {
@@ -264,6 +266,58 @@ const ClientDeposit = () => {
       });
     } finally {
       setPaylinkLoading(false);
+    }
+  };
+
+  const handleTamaraPayment = async () => {
+    if (!user || numericAmount < 100 || !clientMobile) {
+      toast({
+        title: 'خطأ',
+        description: numericAmount < 100 
+          ? 'الحد الأدنى للدفع عبر تمارا هو 100 ريال' 
+          : 'يرجى إدخال رقم الجوال',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setTamaraLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('tamara-payment', {
+        body: {
+          action: 'create-payment',
+          userId: user.id,
+          amount: numericAmount,
+          clientName: profile?.full_name || user.email?.split('@')[0] || 'عميل',
+          clientEmail: user.email || '',
+          clientPhone: clientMobile,
+          successUrl: `${window.location.origin}/dashboard/deposits?payment=tamara-success`,
+          failureUrl: `${window.location.origin}/dashboard/deposit?payment=tamara-failed`,
+          cancelUrl: `${window.location.origin}/dashboard/deposit?payment=tamara-cancelled`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.checkoutUrl) {
+        toast({
+          title: 'جاري التحويل لتمارا',
+          description: 'سيتم تحويلك إلى صفحة تمارا لإكمال الدفع',
+        });
+        window.location.href = data.checkoutUrl;
+      } else {
+        throw new Error('لم يتم الحصول على رابط الدفع');
+      }
+    } catch (error: any) {
+      console.error('Tamara error:', error);
+      toast({
+        title: 'خطأ',
+        description: error.message || 'حدث خطأ أثناء إنشاء طلب الدفع عبر تمارا',
+        variant: 'destructive',
+      });
+    } finally {
+      setTamaraLoading(false);
     }
   };
 
@@ -730,6 +784,177 @@ const ClientDeposit = () => {
                         <>
                           <ExternalLink className="w-5 h-5" />
                           ادفع الآن {numericAmount > 0 && `(${numericAmount} ر.س)`}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Tamara - Buy Now Pay Later */}
+            <motion.div variants={itemVariants}>
+              <Card className="border-2 border-pink-500/50 shadow-lg overflow-hidden bg-gradient-to-l from-pink-500/5 to-transparent">
+                <CardHeader className="border-b border-pink-500/20">
+                  <CardTitle className="flex flex-col gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center text-white shadow-lg shadow-pink-500/30">
+                        <Clock className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-lg">تمارا - اشترِ الآن وادفع لاحقاً</span>
+                          <Badge className="bg-pink-500/20 text-pink-600 border-pink-500/30">تقسيط</Badge>
+                        </div>
+                        <p className="text-sm font-normal text-muted-foreground">قسّط مبلغك على 3 دفعات بدون فوائد</p>
+                      </div>
+                    </div>
+                    {/* Tamara Logo */}
+                    <div className="flex items-center gap-3">
+                      <motion.div 
+                        whileHover={{ scale: 1.05 }}
+                        className="flex items-center gap-2 bg-pink-500/10 dark:bg-pink-500/20 px-4 py-2 rounded-lg border border-pink-500/20"
+                      >
+                        <svg className="w-24 h-6" viewBox="0 0 120 30" fill="none">
+                          <text x="0" y="22" fill="currentColor" className="text-pink-600" fontSize="20" fontWeight="bold">تمارا</text>
+                          <text x="50" y="22" fill="currentColor" className="text-pink-400" fontSize="12">TAMARA</text>
+                        </svg>
+                      </motion.div>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Check className="w-4 h-4 text-pink-500" />
+                        <span>بدون فوائد</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Check className="w-4 h-4 text-pink-500" />
+                        <span>3 أقساط</span>
+                      </div>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 space-y-6">
+                  <div className="grid gap-4">
+                    {/* Amount Selection for Tamara */}
+                    <div>
+                      <Label className="text-sm text-muted-foreground mb-3 block">اختر المبلغ (الحد الأدنى 100 ريال)</Label>
+                      <div className="flex flex-wrap gap-3">
+                        {[100, 200, 300, 500, 1000].map((preset, i) => (
+                          <motion.button
+                            key={preset}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: i * 0.05 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => {
+                              setAmount(preset.toString());
+                              setUseTamara(true);
+                              setUsePaylinkDirect(false);
+                              setSelectedMethod(null);
+                            }}
+                            className={cn(
+                              "px-5 py-3 rounded-xl font-semibold transition-all border-2",
+                              useTamara && amount === preset.toString()
+                                ? "bg-pink-500 text-white border-pink-500 shadow-lg shadow-pink-500/30"
+                                : "bg-secondary/50 border-border hover:border-pink-500/50 hover:bg-pink-500/10"
+                            )}
+                          >
+                            {preset} ر.س
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Custom Amount & Phone */}
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm text-muted-foreground">مبلغ مخصص (الحد الأدنى 100 ريال)</Label>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            placeholder="أدخل المبلغ"
+                            value={useTamara ? amount : ''}
+                            onChange={(e) => {
+                              setAmount(e.target.value);
+                              setUseTamara(true);
+                              setUsePaylinkDirect(false);
+                              setSelectedMethod(null);
+                            }}
+                            min={100}
+                            className="h-12 pr-4 text-center border-2 focus:border-pink-500"
+                          />
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">ر.س</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-sm text-muted-foreground">رقم الجوال <span className="text-destructive">*</span></Label>
+                        <Input
+                          type="tel"
+                          placeholder="05xxxxxxxx"
+                          value={clientMobile}
+                          onChange={(e) => setClientMobile(e.target.value)}
+                          className="h-12 border-2 focus:border-pink-500"
+                          dir="ltr"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Tamara Installment Preview */}
+                    {useTamara && numericAmount >= 100 && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-pink-500/10 rounded-xl p-4 border border-pink-500/20"
+                      >
+                        <p className="text-sm font-medium text-pink-600 mb-3">تفاصيل الأقساط:</p>
+                        <div className="grid grid-cols-3 gap-4">
+                          {[1, 2, 3].map((num) => (
+                            <div key={num} className="text-center">
+                              <div className="w-8 h-8 rounded-full bg-pink-500/20 text-pink-600 font-bold flex items-center justify-center mx-auto mb-1">
+                                {num}
+                              </div>
+                              <p className="text-lg font-bold">{(numericAmount / 3).toFixed(2)} ر.س</p>
+                              <p className="text-xs text-muted-foreground">
+                                {num === 1 ? 'اليوم' : num === 2 ? 'بعد شهر' : 'بعد شهرين'}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* Tamara Benefits */}
+                    <div className="grid sm:grid-cols-3 gap-3">
+                      {[
+                        { icon: Clock, label: 'قسّط على 3 دفعات', color: 'text-pink-500' },
+                        { icon: BadgeCheck, label: 'بدون فوائد', color: 'text-emerald-500' },
+                        { icon: Shield, label: 'موثوق وآمن', color: 'text-blue-500' },
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-center gap-2 p-3 rounded-lg bg-secondary/30">
+                          <item.icon className={cn("w-5 h-5", item.color)} />
+                          <span className="text-sm font-medium">{item.label}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Pay with Tamara Button */}
+                    <Button
+                      className="w-full h-14 text-lg gap-3 bg-gradient-to-l from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 shadow-lg shadow-pink-500/30"
+                      size="lg"
+                      disabled={!useTamara || numericAmount < 100 || !clientMobile || tamaraLoading}
+                      onClick={handleTamaraPayment}
+                    >
+                      {tamaraLoading ? (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        >
+                          <Loader2 className="w-5 h-5" />
+                        </motion.div>
+                      ) : (
+                        <>
+                          <Clock className="w-5 h-5" />
+                          ادفع عبر تمارا {numericAmount >= 100 && `(${(numericAmount / 3).toFixed(2)} ر.س × 3)`}
                         </>
                       )}
                     </Button>
