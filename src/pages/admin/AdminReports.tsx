@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { BarChart3, TrendingUp, DollarSign, ShoppingBag, Download, Calendar, Clock, CheckCircle, XCircle, Loader2, Gift, Wallet, ArrowDownCircle, ArrowUpCircle, Users } from "lucide-react";
+import { BarChart3, TrendingUp, DollarSign, ShoppingBag, Download, Calendar, Clock, CheckCircle, XCircle, Loader2, Gift, Wallet, ArrowDownCircle, ArrowUpCircle, Users, Ban, RefreshCcw, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -41,6 +41,25 @@ interface CashbackStats {
   monthlyData: { month: string; earned: number; withdrawn: number }[];
 }
 
+interface CancelledOrder {
+  id: string;
+  order_number: string;
+  total_price: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  service_name: string;
+  user_email: string;
+}
+
+interface DailyCancelledStats {
+  date: string;
+  cancelled_count: number;
+  refunded_count: number;
+  total_refunded_amount: number;
+  orders: CancelledOrder[];
+}
+
 const AdminReports = () => {
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState("6");
@@ -65,10 +84,22 @@ const AdminReports = () => {
     transactionCount: 0,
     monthlyData: []
   });
+  const [cancelledStats, setCancelledStats] = useState<{
+    totalCancelled: number;
+    totalRefunded: number;
+    totalRefundedAmount: number;
+    dailyData: DailyCancelledStats[];
+  }>({
+    totalCancelled: 0,
+    totalRefunded: 0,
+    totalRefundedAmount: 0,
+    dailyData: []
+  });
 
   useEffect(() => {
     fetchAnalytics();
     fetchCashbackAnalytics();
+    fetchCancelledOrdersReport();
   }, [dateRange]);
 
   const fetchAnalytics = async () => {
@@ -248,6 +279,99 @@ const AdminReports = () => {
         monthlyData: monthlyDataArr
       });
     }
+  };
+
+  const fetchCancelledOrdersReport = async () => {
+    const months = parseInt(dateRange);
+    const startDate = startOfMonth(subMonths(new Date(), months - 1));
+
+    // Fetch cancelled and refunded orders with service and user info
+    const { data: cancelledOrders, error } = await supabase
+      .from('orders')
+      .select(`
+        id,
+        order_number,
+        total_price,
+        status,
+        created_at,
+        updated_at,
+        service:services(name),
+        user_id
+      `)
+      .in('status', ['cancelled', 'refunded'])
+      .gte('updated_at', startDate.toISOString())
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching cancelled orders:', error);
+      return;
+    }
+
+    // Get user profiles for emails
+    const userIds = [...new Set(cancelledOrders?.map(o => o.user_id) || [])];
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, email')
+      .in('id', userIds);
+
+    const profileMap = new Map(profiles?.map(p => [p.id, p.email]) || []);
+
+    // Process orders
+    const processedOrders: CancelledOrder[] = (cancelledOrders || []).map(order => ({
+      id: order.id,
+      order_number: order.order_number,
+      total_price: Number(order.total_price),
+      status: order.status,
+      created_at: order.created_at,
+      updated_at: order.updated_at,
+      service_name: order.service?.name || 'غير معروف',
+      user_email: profileMap.get(order.user_id) || 'غير معروف'
+    }));
+
+    // Group by day
+    const dailyMap = new Map<string, DailyCancelledStats>();
+    
+    processedOrders.forEach(order => {
+      const dateKey = format(new Date(order.updated_at), 'yyyy-MM-dd');
+      const dateDisplay = format(new Date(order.updated_at), 'dd MMMM yyyy', { locale: ar });
+      
+      if (!dailyMap.has(dateKey)) {
+        dailyMap.set(dateKey, {
+          date: dateDisplay,
+          cancelled_count: 0,
+          refunded_count: 0,
+          total_refunded_amount: 0,
+          orders: []
+        });
+      }
+      
+      const daily = dailyMap.get(dateKey)!;
+      daily.orders.push(order);
+      daily.total_refunded_amount += order.total_price;
+      
+      if (order.status === 'cancelled') {
+        daily.cancelled_count += 1;
+      } else if (order.status === 'refunded') {
+        daily.refunded_count += 1;
+      }
+    });
+
+    // Convert to array and sort by date descending
+    const dailyData = Array.from(dailyMap.entries())
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([_, value]) => value);
+
+    // Calculate totals
+    const totalCancelled = processedOrders.filter(o => o.status === 'cancelled').length;
+    const totalRefunded = processedOrders.filter(o => o.status === 'refunded').length;
+    const totalRefundedAmount = processedOrders.reduce((sum, o) => sum + o.total_price, 0);
+
+    setCancelledStats({
+      totalCancelled,
+      totalRefunded,
+      totalRefundedAmount,
+      dailyData
+    });
   };
 
   const maxRevenue = Math.max(...monthlyData.map(d => d.revenue), 1);
@@ -680,6 +804,199 @@ const AdminReports = () => {
                   </div>
                 </CardContent>
               </Card>
+            </motion.div>
+
+            {/* Cancelled Orders Report Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9 }}
+              className="space-y-6"
+            >
+              <h2 className="text-2xl font-bold font-display flex items-center gap-2">
+                <Ban className="w-6 h-6 text-destructive" />
+                تقرير الطلبات الملغية والمستردة
+              </h2>
+
+              {/* Cancelled Orders Summary Stats */}
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { 
+                    title: "إجمالي الطلبات الملغية", 
+                    value: cancelledStats.totalCancelled.toString(), 
+                    icon: XCircle, 
+                    color: "from-destructive to-red-400" 
+                  },
+                  { 
+                    title: "إجمالي الطلبات المستردة", 
+                    value: cancelledStats.totalRefunded.toString(), 
+                    icon: RefreshCcw, 
+                    color: "from-warning to-orange-400" 
+                  },
+                  { 
+                    title: "إجمالي المبالغ المستردة", 
+                    value: `${cancelledStats.totalRefundedAmount.toLocaleString('ar-SA')} ر.س`, 
+                    icon: DollarSign, 
+                    color: "from-accent to-pink-400" 
+                  },
+                  { 
+                    title: "إجمالي العمليات", 
+                    value: (cancelledStats.totalCancelled + cancelledStats.totalRefunded).toString(), 
+                    icon: FileText, 
+                    color: "from-muted-foreground to-gray-400" 
+                  },
+                ].map((stat) => (
+                  <Card key={stat.title} className="glass border-border/50">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.color} p-2.5`}>
+                          <stat.icon className="w-full h-full text-primary-foreground" />
+                        </div>
+                        <p className="text-lg font-bold font-display">{stat.value}</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{stat.title}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Daily Cancelled Orders Report */}
+              <Card className="glass border-border/50">
+                <CardHeader>
+                  <CardTitle className="font-display flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-destructive" />
+                    التقرير اليومي للطلبات الملغية والمستردة
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {cancelledStats.dailyData.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Ban className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
+                      <p className="text-muted-foreground">لا توجد طلبات ملغية أو مستردة في الفترة المحددة</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {cancelledStats.dailyData.map((dayData, dayIndex) => (
+                        <motion.div
+                          key={dayData.date}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: dayIndex * 0.05 }}
+                          className="border border-border/50 rounded-xl overflow-hidden"
+                        >
+                          {/* Day Header */}
+                          <div className="bg-muted/30 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
+                                <Calendar className="w-5 h-5 text-destructive" />
+                              </div>
+                              <div>
+                                <p className="font-bold text-sm">{dayData.date}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {dayData.cancelled_count + dayData.refunded_count} عملية
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4 text-sm">
+                              <div className="flex items-center gap-1.5">
+                                <XCircle className="w-4 h-4 text-destructive" />
+                                <span className="text-destructive font-medium">{dayData.cancelled_count} ملغي</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <RefreshCcw className="w-4 h-4 text-warning" />
+                                <span className="text-warning font-medium">{dayData.refunded_count} مسترد</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 bg-destructive/10 px-3 py-1 rounded-full">
+                                <DollarSign className="w-4 h-4 text-destructive" />
+                                <span className="text-destructive font-bold">
+                                  {dayData.total_refunded_amount.toLocaleString('ar-SA')} ر.س
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Day Orders */}
+                          <div className="divide-y divide-border/30">
+                            {dayData.orders.map((order) => (
+                              <div key={order.id} className="p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 hover:bg-muted/20 transition-colors">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-2 h-2 rounded-full ${order.status === 'cancelled' ? 'bg-destructive' : 'bg-warning'}`} />
+                                  <div>
+                                    <p className="font-medium text-sm">{order.order_number}</p>
+                                    <p className="text-xs text-muted-foreground">{order.service_name}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-4 text-xs">
+                                  <span className="text-muted-foreground">{order.user_email}</span>
+                                  <span className={`px-2 py-0.5 rounded-full ${order.status === 'cancelled' ? 'bg-destructive/10 text-destructive' : 'bg-warning/10 text-warning'}`}>
+                                    {order.status === 'cancelled' ? 'ملغي' : 'مسترد'}
+                                  </span>
+                                  <span className="font-bold text-destructive">
+                                    {order.total_price.toLocaleString('ar-SA')} ر.س
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Summary by Status */}
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Card className="glass border-border/50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="font-display text-lg flex items-center gap-2">
+                      <XCircle className="w-5 h-5 text-destructive" />
+                      الطلبات الملغية
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-4">
+                      <p className="text-4xl font-bold font-display text-destructive mb-2">
+                        {cancelledStats.totalCancelled}
+                      </p>
+                      <p className="text-sm text-muted-foreground">طلب ملغي</p>
+                      <p className="text-lg font-bold text-destructive mt-2">
+                        {cancelledStats.dailyData
+                          .flatMap(d => d.orders)
+                          .filter(o => o.status === 'cancelled')
+                          .reduce((sum, o) => sum + o.total_price, 0)
+                          .toLocaleString('ar-SA')} ر.س
+                      </p>
+                      <p className="text-xs text-muted-foreground">مبالغ مستردة من الإلغاء</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="glass border-border/50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="font-display text-lg flex items-center gap-2">
+                      <RefreshCcw className="w-5 h-5 text-warning" />
+                      الطلبات المستردة
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-4">
+                      <p className="text-4xl font-bold font-display text-warning mb-2">
+                        {cancelledStats.totalRefunded}
+                      </p>
+                      <p className="text-sm text-muted-foreground">طلب مسترد</p>
+                      <p className="text-lg font-bold text-warning mt-2">
+                        {cancelledStats.dailyData
+                          .flatMap(d => d.orders)
+                          .filter(o => o.status === 'refunded')
+                          .reduce((sum, o) => sum + o.total_price, 0)
+                          .toLocaleString('ar-SA')} ر.س
+                      </p>
+                      <p className="text-xs text-muted-foreground">مبالغ مستردة</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </motion.div>
           </>
         )}
