@@ -9,21 +9,22 @@ import {
   User,
   AlertCircle,
   Search,
-  ArrowLeft,
   Loader2,
   Inbox,
-  MessageSquare
+  MessageSquare,
+  Sparkles,
+  Shield,
+  Filter,
+  TrendingUp,
+  Users,
+  Zap,
+  ChevronLeft
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   Select,
   SelectContent,
@@ -32,11 +33,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect, useRef } from "react";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { z } from "zod";
 
 const messageSchema = z.object({
@@ -75,12 +78,22 @@ const getStatusLabel = (status: string) => {
 
 const getStatusStyles = (status: string) => {
   const map: Record<string, string> = {
-    open: "bg-success/10 text-success border-success/20",
-    in_progress: "bg-warning/10 text-warning border-warning/20",
-    resolved: "bg-primary/10 text-primary border-primary/20",
+    open: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    in_progress: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+    resolved: "bg-blue-500/10 text-blue-500 border-blue-500/20",
     closed: "bg-muted text-muted-foreground border-muted",
   };
   return map[status] || "bg-muted text-muted-foreground border-muted";
+};
+
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case "open": return <Sparkles className="w-3.5 h-3.5" />;
+    case "in_progress": return <Loader2 className="w-3.5 h-3.5 animate-spin" />;
+    case "resolved": return <CheckCircle className="w-3.5 h-3.5" />;
+    case "closed": return <Shield className="w-3.5 h-3.5" />;
+    default: return <MessageCircle className="w-3.5 h-3.5" />;
+  }
 };
 
 const getPriorityLabel = (priority: string) => {
@@ -95,10 +108,10 @@ const getPriorityLabel = (priority: string) => {
 
 const getPriorityStyles = (priority: string) => {
   const map: Record<string, string> = {
-    low: "bg-muted text-muted-foreground",
-    medium: "bg-primary/10 text-primary",
-    high: "bg-warning/10 text-warning",
-    urgent: "bg-destructive/10 text-destructive",
+    low: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+    medium: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    high: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+    urgent: "bg-red-500/10 text-red-400 border-red-500/20 animate-pulse",
   };
   return map[priority] || "bg-muted text-muted-foreground";
 };
@@ -140,6 +153,7 @@ const AdminSupport = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -147,7 +161,6 @@ const AdminSupport = () => {
   useEffect(() => {
     fetchTickets();
 
-    // Realtime subscription for tickets and messages
     const channel: RealtimeChannel = supabase
       .channel('admin-support-realtime')
       .on(
@@ -302,98 +315,268 @@ const AdminSupport = () => {
   const resolvedCount = tickets.filter(t => t.status === "resolved" || t.status === "closed").length;
 
   const statsData = [
-    { label: "إجمالي التذاكر", value: tickets.length, icon: HeadphonesIcon, gradient: "from-primary to-cyan-400", shadowColor: "shadow-primary/20" },
-    { label: "التذاكر المفتوحة", value: openCount, icon: MessageCircle, gradient: "from-success to-emerald-400", shadowColor: "shadow-success/20" },
-    { label: "قيد المعالجة", value: inProgressCount, icon: Clock, gradient: "from-warning to-orange-400", shadowColor: "shadow-warning/20" },
-    { label: "تم الحل", value: resolvedCount, icon: CheckCircle, gradient: "from-accent to-pink-400", shadowColor: "shadow-accent/20" },
+    { label: "إجمالي التذاكر", value: tickets.length, icon: Inbox, gradient: "from-primary to-cyan-500", bg: "bg-primary/10" },
+    { label: "مفتوحة", value: openCount, icon: MessageCircle, gradient: "from-emerald-500 to-teal-500", bg: "bg-emerald-500/10" },
+    { label: "قيد المعالجة", value: inProgressCount, icon: Clock, gradient: "from-amber-500 to-orange-500", bg: "bg-amber-500/10" },
+    { label: "تم الحل", value: resolvedCount, icon: CheckCircle, gradient: "from-blue-500 to-indigo-500", bg: "bg-blue-500/10" },
   ];
+
+  const ChatContent = () => (
+    <div className="flex flex-col h-full">
+      {/* Chat Header */}
+      <div className="p-4 border-b border-border/50 bg-gradient-to-l from-primary/5 to-transparent">
+        <div className="flex items-center gap-3 mb-4">
+          <motion.div 
+            className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20"
+            animate={{ rotate: [0, 5, -5, 0] }}
+            transition={{ duration: 4, repeat: Infinity }}
+          >
+            <User className="w-6 h-6 text-primary-foreground" />
+          </motion.div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-lg truncate">{selectedTicket?.subject}</h3>
+            <p className="text-xs text-muted-foreground">ID: {selectedTicket?.user_id.slice(0, 8)}...</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Select 
+            value={selectedTicket?.status} 
+            onValueChange={(value: "open" | "in_progress" | "resolved" | "closed") => {
+              if (selectedTicket) handleUpdateStatus(selectedTicket.id, value);
+            }}
+          >
+            <SelectTrigger className={`w-36 h-9 text-xs border ${getStatusStyles(selectedTicket?.status || "open")}`}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="open">مفتوح</SelectItem>
+              <SelectItem value="in_progress">قيد المعالجة</SelectItem>
+              <SelectItem value="resolved">تم الحل</SelectItem>
+              <SelectItem value="closed">مغلق</SelectItem>
+            </SelectContent>
+          </Select>
+          <Badge variant="outline" className={`text-xs ${getPriorityStyles(selectedTicket?.priority || "medium")}`}>
+            {getPriorityLabel(selectedTicket?.priority || "medium")}
+          </Badge>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <ScrollArea className="flex-1 px-4 py-6">
+        <div className="space-y-4">
+          {/* Original Description */}
+          <motion.div 
+            className="flex justify-end"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <div className="max-w-[85%] relative">
+              <div className="bg-secondary/80 backdrop-blur-sm rounded-2xl rounded-tr-md p-4 border border-border/50">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center">
+                    <User className="w-3.5 h-3.5 text-muted-foreground" />
+                  </div>
+                  <span className="text-xs font-medium text-muted-foreground">العميل</span>
+                </div>
+                <p className="text-sm leading-relaxed">{selectedTicket?.description}</p>
+                <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {selectedTicket && formatDate(selectedTicket.created_at)}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+          
+          <AnimatePresence>
+            {messages.map((msg, index) => (
+              <motion.div 
+                key={msg.id} 
+                className={`flex ${msg.is_admin ? "justify-start" : "justify-end"}`}
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <div className="max-w-[85%] relative">
+                  <div className={`rounded-2xl p-4 ${
+                    msg.is_admin 
+                      ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-tl-md shadow-lg shadow-primary/20" 
+                      : "bg-secondary/80 backdrop-blur-sm rounded-tr-md border border-border/50"
+                  }`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                        msg.is_admin ? "bg-primary-foreground/20" : "bg-secondary"
+                      }`}>
+                        {msg.is_admin ? (
+                          <HeadphonesIcon className="w-3.5 h-3.5" />
+                        ) : (
+                          <User className="w-3.5 h-3.5 text-muted-foreground" />
+                        )}
+                      </div>
+                      <span className={`text-xs font-medium ${msg.is_admin ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                        {msg.is_admin ? "فريق الدعم" : "العميل"}
+                      </span>
+                    </div>
+                    <p className="text-sm leading-relaxed">{msg.message}</p>
+                    <p className={`text-xs mt-3 flex items-center gap-1 ${
+                      msg.is_admin ? "text-primary-foreground/60" : "text-muted-foreground"
+                    }`}>
+                      <Clock className="w-3 h-3" />
+                      {formatDate(msg.created_at)}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+          <div ref={messagesEndRef} />
+        </div>
+      </ScrollArea>
+
+      {/* Message Input */}
+      <div className="p-4 border-t border-border/50 bg-background/80 backdrop-blur-sm">
+        {selectedTicket?.status !== "closed" ? (
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Input
+                  placeholder="اكتب ردك للعميل..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
+                  className="bg-secondary/50 border-border/50 pr-4 pl-12 h-12 rounded-xl"
+                />
+              </div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button 
+                  onClick={handleSendMessage} 
+                  disabled={isSubmitting || !newMessage.trim()}
+                  size="icon"
+                  className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20"
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Send className="w-5 h-5" />
+                  )}
+                </Button>
+              </motion.div>
+            </div>
+            {error && (
+              <motion.p 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-xs text-destructive"
+              >
+                {error}
+              </motion.p>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm py-4 bg-muted/50 rounded-xl">
+            <Shield className="w-4 h-4" />
+            <span>هذه التذكرة مغلقة</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <AdminDashboardLayout>
       <motion.div 
-        className="space-y-4 sm:space-y-6"
+        className="space-y-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
         dir="rtl"
       >
         {/* Header */}
-        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
-              <motion.div
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-              >
-                <HeadphonesIcon className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              </motion.div>
-              إدارة الدعم الفني
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">إدارة تذاكر الدعم والرد على العملاء</p>
+        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <motion.div 
+              className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20"
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 4, repeat: Infinity, repeatDelay: 2 }}
+            >
+              <HeadphonesIcon className="w-7 h-7 text-primary-foreground" />
+            </motion.div>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">إدارة الدعم الفني</h1>
+              <p className="text-sm text-muted-foreground">إدارة تذاكر الدعم والرد على العملاء</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="gap-1.5 py-1.5 px-3">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              {openCount} تحتاج رد
+            </Badge>
           </div>
         </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+        <motion.div 
+          variants={itemVariants}
+          className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+        >
           {statsData.map((stat, index) => (
             <motion.div
               key={stat.label}
-              variants={itemVariants}
-              whileHover={{ y: -2, transition: { duration: 0.2 } }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
             >
-              <Card className={`card-elevated border-border/30 ${stat.shadowColor} shadow-md`}>
-                <CardContent className="p-2.5 sm:p-4">
-                  <div className="flex items-center gap-2 sm:gap-3">
+              <Card className="border-border/30 overflow-hidden relative group">
+                <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-5 transition-opacity`} />
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
                     <motion.div 
-                      className={`w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-gradient-to-br ${stat.gradient} p-2 sm:p-2.5 shadow-lg flex-shrink-0`}
+                      className={`w-11 h-11 rounded-xl bg-gradient-to-br ${stat.gradient} p-2.5 shadow-lg flex-shrink-0`}
                       whileHover={{ scale: 1.1, rotate: 5 }}
                     >
-                      <stat.icon className="w-full h-full text-primary-foreground" />
+                      <stat.icon className="w-full h-full text-white" />
                     </motion.div>
                     <div className="min-w-0">
                       <motion.p 
-                        className="text-lg sm:text-2xl font-bold"
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: index * 0.1 }}
+                        className="text-2xl font-bold"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.2 + index * 0.1 }}
                       >
                         {stat.value}
                       </motion.p>
-                      <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{stat.label}</p>
+                      <p className="text-xs text-muted-foreground truncate">{stat.label}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Filters */}
         <motion.div variants={itemVariants}>
-          <Card className="card-elevated border-border/30">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+          <Card className="border-border/30">
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input 
                     placeholder="بحث في التذاكر..." 
-                    className="pr-10 bg-secondary/50 border-border/50 h-9 sm:h-10 text-sm"
+                    className="pr-10 bg-secondary/50 border-border/50 h-11 rounded-xl"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-40 bg-secondary/50 border-border/50 h-9 sm:h-10 text-sm">
-                    <SelectValue placeholder="الحالة" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">جميع الحالات</SelectItem>
-                    <SelectItem value="open">مفتوح</SelectItem>
-                    <SelectItem value="in_progress">قيد المعالجة</SelectItem>
-                    <SelectItem value="resolved">تم الحل</SelectItem>
-                    <SelectItem value="closed">مغلق</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full sm:w-auto">
+                  <TabsList className="w-full sm:w-auto h-11 p-1 bg-secondary/50">
+                    <TabsTrigger value="all" className="flex-1 sm:flex-none rounded-lg">الكل</TabsTrigger>
+                    <TabsTrigger value="open" className="flex-1 sm:flex-none rounded-lg">مفتوحة</TabsTrigger>
+                    <TabsTrigger value="in_progress" className="flex-1 sm:flex-none rounded-lg">قيد المعالجة</TabsTrigger>
+                    <TabsTrigger value="resolved" className="flex-1 sm:flex-none rounded-lg">تم الحل</TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
             </CardContent>
           </Card>
@@ -401,80 +584,103 @@ const AdminSupport = () => {
 
         {/* Tickets List */}
         <motion.div variants={itemVariants}>
-          <Card className="card-elevated border-border/30">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
+          <Card className="border-border/30 overflow-hidden">
+            <div className="p-4 border-b border-border/50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
                 <Inbox className="w-5 h-5 text-primary" />
-                تذاكر الدعم
-                <Badge variant="secondary" className="mr-2">{filteredTickets.length}</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+                <h2 className="font-semibold text-lg">تذاكر الدعم</h2>
+              </div>
+              <Badge variant="secondary" className="rounded-full">{filteredTickets.length}</Badge>
+            </div>
+            <CardContent className="p-0">
               {isLoading ? (
-                <div className="flex justify-center py-16">
+                <div className="flex flex-col items-center justify-center py-16 gap-4">
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                   >
                     <Loader2 className="w-10 h-10 text-primary" />
                   </motion.div>
+                  <p className="text-sm text-muted-foreground">جاري التحميل...</p>
                 </div>
               ) : filteredTickets.length === 0 ? (
                 <motion.div 
-                  className="text-center py-16"
+                  className="text-center py-16 px-4"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                 >
-                  <HeadphonesIcon className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
-                  <p className="text-muted-foreground text-lg">لا توجد تذاكر</p>
+                  <motion.div
+                    animate={{ y: [0, -10, 0] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <HeadphonesIcon className="w-20 h-20 mx-auto mb-6 text-muted-foreground/20" />
+                  </motion.div>
+                  <h3 className="font-semibold text-lg mb-2">لا توجد تذاكر</h3>
+                  <p className="text-sm text-muted-foreground">لم يتم العثور على تذاكر مطابقة للفلتر</p>
                 </motion.div>
               ) : (
-                <div className="space-y-3">
+                <div className="divide-y divide-border/30">
                   <AnimatePresence>
                     {filteredTickets.map((ticket, index) => (
                       <motion.div
                         key={ticket.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
                         transition={{ delay: index * 0.03 }}
-                        whileHover={{ x: -4 }}
-                        className="p-4 rounded-xl bg-secondary/30 hover:bg-secondary/50 border border-border/30 hover:border-primary/20 transition-all cursor-pointer group"
+                        whileHover={{ backgroundColor: "hsl(var(--secondary)/0.5)" }}
+                        className="p-4 cursor-pointer transition-colors group"
                         onClick={() => openTicketChat(ticket)}
                       >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                          <div className="flex items-center gap-4">
-                            <motion.div 
-                              className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20"
-                              whileHover={{ scale: 1.1 }}
-                            >
-                              <User className="w-6 h-6 text-primary" />
-                            </motion.div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-bold truncate">{ticket.subject}</p>
-                              <p className="text-sm text-muted-foreground line-clamp-1">{ticket.description}</p>
+                        <div className="flex items-center gap-4">
+                          <motion.div 
+                            className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/10 shrink-0"
+                            whileHover={{ scale: 1.1, rotate: 5 }}
+                          >
+                            <User className="w-6 h-6 text-primary" />
+                          </motion.div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-semibold truncate">{ticket.subject}</p>
+                              {ticket.status === "open" && (
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                              )}
+                              {ticket.priority === "urgent" && (
+                                <Badge variant="destructive" className="text-[10px] px-1.5 py-0">عاجل</Badge>
+                              )}
                             </div>
+                            <p className="text-sm text-muted-foreground line-clamp-1">{ticket.description}</p>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <Badge variant="outline" className={getPriorityStyles(ticket.priority)}>
-                              {getPriorityLabel(ticket.priority)}
-                            </Badge>
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusStyles(ticket.status)}`}>
-                              {getStatusLabel(ticket.status)}
-                            </span>
-                            <span className="text-xs text-muted-foreground hidden lg:flex items-center gap-1">
+                          <div className="hidden md:flex flex-col items-end gap-2 shrink-0">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className={`text-xs ${getPriorityStyles(ticket.priority)}`}>
+                                {getPriorityLabel(ticket.priority)}
+                              </Badge>
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusStyles(ticket.status)}`}>
+                                {getStatusIcon(ticket.status)}
+                                {getStatusLabel(ticket.status)}
+                              </span>
+                            </div>
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
                               <Clock className="w-3 h-3" />
                               {formatDate(ticket.created_at)}
                             </span>
-                            <motion.div
-                              className="opacity-0 group-hover:opacity-100 transition-opacity"
-                              whileHover={{ scale: 1.1 }}
-                            >
-                              <Button variant="ghost" size="icon" className="rounded-full">
-                                <ArrowLeft className="w-4 h-4" />
-                              </Button>
-                            </motion.div>
                           </div>
+                          <motion.div
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            whileHover={{ x: 4 }}
+                          >
+                            <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+                          </motion.div>
+                        </div>
+                        <div className="md:hidden flex items-center gap-2 mt-3 pt-3 border-t border-border/30">
+                          <Badge variant="outline" className={`text-xs ${getPriorityStyles(ticket.priority)}`}>
+                            {getPriorityLabel(ticket.priority)}
+                          </Badge>
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusStyles(ticket.status)}`}>
+                            {getStatusLabel(ticket.status)}
+                          </span>
+                          <span className="text-xs text-muted-foreground mr-auto">{formatDate(ticket.created_at)}</span>
                         </div>
                       </motion.div>
                     ))}
@@ -485,148 +691,12 @@ const AdminSupport = () => {
           </Card>
         </motion.div>
 
-        {/* Ticket Chat Dialog */}
-        <Dialog open={!!selectedTicket} onOpenChange={() => setSelectedTicket(null)}>
-          <DialogContent className="sm:max-w-2xl h-[85vh] flex flex-col p-0 gap-0">
-            <DialogHeader className="px-6 py-4 border-b border-border/50">
-              <DialogTitle className="flex items-center justify-between flex-wrap gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                    <MessageSquare className="w-5 h-5 text-primary" />
-                  </div>
-                  <span className="font-bold">{selectedTicket?.subject}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Select 
-                    value={selectedTicket?.status} 
-                    onValueChange={(value: "open" | "in_progress" | "resolved" | "closed") => {
-                      if (selectedTicket) handleUpdateStatus(selectedTicket.id, value);
-                    }}
-                  >
-                    <SelectTrigger className={`w-36 h-9 text-xs border ${getStatusStyles(selectedTicket?.status || "open")}`}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="open">مفتوح</SelectItem>
-                      <SelectItem value="in_progress">قيد المعالجة</SelectItem>
-                      <SelectItem value="resolved">تم الحل</SelectItem>
-                      <SelectItem value="closed">مغلق</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Badge variant="outline" className={getPriorityStyles(selectedTicket?.priority || "medium")}>
-                    {getPriorityLabel(selectedTicket?.priority || "medium")}
-                  </Badge>
-                </div>
-              </DialogTitle>
-            </DialogHeader>
-            
-            {/* Messages */}
-            <ScrollArea className="flex-1 px-6 py-4">
-              <div className="space-y-4">
-                {/* Original Description */}
-                <motion.div 
-                  className="flex justify-end"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <div className="max-w-[80%] bg-secondary/50 rounded-2xl rounded-tr-md p-4 border border-border/30">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center">
-                        <User className="w-3.5 h-3.5 text-muted-foreground" />
-                      </div>
-                      <span className="text-xs font-medium text-muted-foreground">العميل</span>
-                    </div>
-                    <p className="text-sm">{selectedTicket?.description}</p>
-                    <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {selectedTicket && formatDate(selectedTicket.created_at)}
-                    </p>
-                  </div>
-                </motion.div>
-                
-                {/* Messages */}
-                <AnimatePresence>
-                  {messages.map((msg, index) => (
-                    <motion.div 
-                      key={msg.id} 
-                      className={`flex ${msg.is_admin ? "justify-start" : "justify-end"}`}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <div className={`max-w-[80%] rounded-2xl p-4 ${
-                        msg.is_admin 
-                          ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-tl-md shadow-lg shadow-primary/20" 
-                          : "bg-secondary/50 rounded-tr-md border border-border/30"
-                      }`}>
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                            msg.is_admin ? "bg-primary-foreground/20" : "bg-secondary"
-                          }`}>
-                            {msg.is_admin ? (
-                              <HeadphonesIcon className="w-3.5 h-3.5" />
-                            ) : (
-                              <User className="w-3.5 h-3.5 text-muted-foreground" />
-                            )}
-                          </div>
-                          <span className={`text-xs font-medium ${msg.is_admin ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-                            {msg.is_admin ? "فريق الدعم" : "العميل"}
-                          </span>
-                        </div>
-                        <p className="text-sm">{msg.message}</p>
-                        <p className={`text-xs mt-2 flex items-center gap-1 ${
-                          msg.is_admin ? "text-primary-foreground/70" : "text-muted-foreground"
-                        }`}>
-                          <Clock className="w-3 h-3" />
-                          {formatDate(msg.created_at)}
-                        </p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-                <div ref={messagesEndRef} />
-              </div>
-            </ScrollArea>
-            
-            {/* Send Message */}
-            <div className="px-6 py-4 border-t border-border/50 bg-card/50">
-              {selectedTicket?.status !== "closed" ? (
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="اكتب ردك..."
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
-                      className="bg-secondary/50 border-border/50"
-                    />
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Button 
-                        onClick={handleSendMessage} 
-                        disabled={isSubmitting}
-                        className="bg-gradient-to-l from-primary to-cyan-500 shadow-lg shadow-primary/20"
-                      >
-                        {isSubmitting ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Send className="w-4 h-4" />
-                        )}
-                      </Button>
-                    </motion.div>
-                  </div>
-                  {error && (
-                    <p className="text-xs text-destructive">{error}</p>
-                  )}
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 text-muted-foreground text-sm justify-center py-2">
-                  <AlertCircle className="w-4 h-4" />
-                  <span>هذه التذكرة مغلقة</span>
-                </div>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Ticket Chat Sheet */}
+        <Sheet open={!!selectedTicket} onOpenChange={() => setSelectedTicket(null)}>
+          <SheetContent side={isMobile ? "bottom" : "right"} className={`${isMobile ? "h-[95vh] rounded-t-3xl" : "w-full sm:max-w-xl"} p-0`}>
+            {selectedTicket && <ChatContent />}
+          </SheetContent>
+        </Sheet>
       </motion.div>
     </AdminDashboardLayout>
   );
