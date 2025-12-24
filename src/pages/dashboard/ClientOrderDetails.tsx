@@ -762,19 +762,7 @@ const ClientOrderDetails = () => {
                   </Card>
                 )}
 
-                {order.admin_notes && (
-                  <Card className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base flex items-center gap-2 text-amber-600 dark:text-amber-400">
-                        <AlertCircle className="w-4 h-4" />
-                        ملاحظات الإدارة
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm">{order.admin_notes}</p>
-                    </CardContent>
-                  </Card>
-                )}
+                {/* ملاحظات الإدارة مخفية عن العملاء - تظهر فقط للمسؤولين */}
               </motion.div>
             )}
           </div>
