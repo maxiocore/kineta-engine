@@ -27,6 +27,7 @@ import {
   Globe,
   FileCode,
   Coins,
+  Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -51,7 +52,8 @@ const clientNavItems: NavItem[] = [
   { label: "الإيداعات", href: "/dashboard/deposits", icon: History },
   { label: "سجل الرصيد", href: "/dashboard/balance-logs", icon: Wallet },
   { label: "كاش باك", href: "/dashboard/cashback", icon: Coins },
-  { label: "الشارات", href: "/dashboard/badges", icon: Award },
+  { label: "الشارات والمكافآت", href: "/dashboard/badges", icon: Award },
+  { label: "التحديات", href: "/dashboard/challenges", icon: Target },
   { label: "الإشعارات", href: "/dashboard/notifications", icon: Bell },
   { label: "API", href: "/dashboard/api", icon: Code },
   { label: "الدعم الفني", href: "/dashboard/support", icon: HeadphonesIcon },
