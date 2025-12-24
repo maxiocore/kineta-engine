@@ -44,6 +44,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import ServicesPageSkeleton from "@/components/dashboard/ServicesPageSkeleton";
 import PullToRefresh from "@/components/ui/pull-to-refresh";
+import FeaturedOffersSection from "@/components/offers/FeaturedOffersSection";
 import {
   Select,
   SelectContent,
@@ -647,6 +648,9 @@ const ClientDesignServices = () => {
               )}
             </div>
           </motion.div>
+
+          {/* Featured Offers Section */}
+          <FeaturedOffersSection category="design" />
 
           {/* Services Grid/List */}
           {filteredServices.length === 0 ? (

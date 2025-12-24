@@ -687,6 +687,86 @@ export type Database = {
           },
         ]
       }
+      featured_offers: {
+        Row: {
+          badge_color: string | null
+          badge_text: string | null
+          badge_text_ar: string | null
+          category: string
+          created_at: string
+          description: string | null
+          description_ar: string | null
+          discount_percentage: number | null
+          display_order: number | null
+          end_date: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          is_featured: boolean
+          offer_price: number | null
+          original_price: number | null
+          service_id: string | null
+          start_date: string | null
+          title: string
+          title_ar: string
+          updated_at: string
+        }
+        Insert: {
+          badge_color?: string | null
+          badge_text?: string | null
+          badge_text_ar?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          discount_percentage?: number | null
+          display_order?: number | null
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_featured?: boolean
+          offer_price?: number | null
+          original_price?: number | null
+          service_id?: string | null
+          start_date?: string | null
+          title: string
+          title_ar: string
+          updated_at?: string
+        }
+        Update: {
+          badge_color?: string | null
+          badge_text?: string | null
+          badge_text_ar?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          discount_percentage?: number | null
+          display_order?: number | null
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_featured?: boolean
+          offer_price?: number | null
+          original_price?: number | null
+          service_id?: string | null
+          start_date?: string | null
+          title?: string
+          title_ar?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "featured_offers_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       monthly_achievements: {
         Row: {
           achieved_at: string | null
