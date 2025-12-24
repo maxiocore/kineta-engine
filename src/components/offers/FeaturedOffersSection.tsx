@@ -6,6 +6,11 @@ import { Sparkles, Clock, Percent, ArrowLeft, Star, Zap, Gift } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import ServiceOrderDialog from "@/components/services/ServiceOrderDialog";
+import { Tables } from "@/integrations/supabase/types";
+import { useAuth } from "@/hooks/useAuth";
+
+type Service = Tables<'services'>;
 
 interface FeaturedOffer {
   id: string;
@@ -23,6 +28,7 @@ interface FeaturedOffer {
   category: string;
   is_featured: boolean;
   end_date: string | null;
+  service_id: string | null;
 }
 
 interface FeaturedOffersSectionProps {
@@ -31,21 +37,28 @@ interface FeaturedOffersSectionProps {
 
 const FeaturedOffersSection = ({ category }: FeaturedOffersSectionProps) => {
   const [timeLeft, setTimeLeft] = useState<{ [key: string]: string }>({});
+  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+  const [orderDialogOpen, setOrderDialogOpen] = useState(false);
+  const { user } = useAuth();
 
   const { data: offers, isLoading } = useQuery({
     queryKey: ['featured-offers', category],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('featured_offers')
-        .select('*')
+        .select('*, services(*)')
         .eq('category', category)
         .eq('is_active', true)
         .order('display_order', { ascending: true });
       
       if (error) throw error;
-      return data as FeaturedOffer[];
+      return data as (FeaturedOffer & { services: Service | null })[];
     }
   });
+
+  const selectedService = selectedServiceId 
+    ? offers?.find(o => o.service_id === selectedServiceId)?.services || null
+    : null;
 
   // Countdown timer for offers with end_date
   useEffect(() => {
@@ -189,6 +202,13 @@ const FeaturedOffersSection = ({ category }: FeaturedOffersSectionProps) => {
                   {/* CTA */}
                   <Button 
                     className="w-full mt-4 bg-gradient-to-r from-primary to-accent hover:opacity-90 gap-2"
+                    onClick={() => {
+                      if (offer.service_id) {
+                        setSelectedServiceId(offer.service_id);
+                        setOrderDialogOpen(true);
+                      }
+                    }}
+                    disabled={!offer.service_id}
                   >
                     <span>اطلب الآن</span>
                     <ArrowLeft className="h-4 w-4" />
@@ -216,6 +236,12 @@ const FeaturedOffersSection = ({ category }: FeaturedOffersSectionProps) => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.05 }}
                 className="group relative bg-card rounded-xl p-4 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                onClick={() => {
+                  if (offer.service_id) {
+                    setSelectedServiceId(offer.service_id);
+                    setOrderDialogOpen(true);
+                  }
+                }}
               >
                 {offer.discount_percentage && offer.discount_percentage > 0 && (
                   <div className="absolute -top-2 -left-2 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
@@ -252,6 +278,16 @@ const FeaturedOffersSection = ({ category }: FeaturedOffersSectionProps) => {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Order Dialog */}
+      {selectedService && (
+        <ServiceOrderDialog
+          service={selectedService}
+          open={orderDialogOpen}
+          onOpenChange={setOrderDialogOpen}
+          userId={user?.id || null}
+        />
       )}
     </div>
   );
