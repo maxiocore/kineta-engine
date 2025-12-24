@@ -24,7 +24,7 @@ import CategoryDetails from "./pages/CategoryDetails";
 import ClientDashboard from "./pages/dashboard/ClientDashboard";
 import ClientOrders from "./pages/dashboard/ClientOrders";
 import ClientOrderDetails from "./pages/dashboard/ClientOrderDetails";
-import ClientBadges from "./pages/dashboard/ClientBadges";
+import ClientRewardsHub from "./pages/dashboard/ClientRewardsHub";
 import ClientNotifications from "./pages/dashboard/ClientNotifications";
 import ClientSupport from "./pages/dashboard/ClientSupport";
 import ClientSettings from "./pages/dashboard/ClientSettings";
@@ -34,7 +34,7 @@ import ClientDeposits from "./pages/dashboard/ClientDeposits";
 import ClientFavorites from "./pages/dashboard/ClientFavorites";
 import ClientServices from "./pages/dashboard/ClientServicesNew";
 import ClientReferrals from "./pages/dashboard/ClientReferrals";
-import ClientRewards from "./pages/dashboard/ClientRewards";
+// ClientRewards merged into ClientRewardsHub
 import ClientBalanceLogs from "./pages/dashboard/ClientBalanceLogs";
 import ClientDesignServices from "./pages/dashboard/ClientDesignServices";
 import ClientDevServices from "./pages/dashboard/ClientDevServices";
@@ -119,7 +119,7 @@ const App = () => (
                   } />
                   <Route path="/dashboard/badges" element={
                     <ProtectedRoute>
-                      <ClientBadges />
+                      <ClientRewardsHub />
                     </ProtectedRoute>
                   } />
                   <Route path="/dashboard/notifications" element={
@@ -169,7 +169,7 @@ const App = () => (
                   } />
                   <Route path="/dashboard/rewards" element={
                     <ProtectedRoute>
-                      <ClientRewards />
+                      <ClientRewardsHub />
                     </ProtectedRoute>
                   } />
                   <Route path="/dashboard/balance-logs" element={
