@@ -68,6 +68,7 @@ const adminNavItems: NavItem[] = [
   { label: "البريد", href: "/admin/emails", icon: Mail },
   { label: "سجل العمليات", href: "/admin/logs", icon: FileText },
   { label: "التقارير", href: "/admin/reports", icon: BarChart3 },
+  { label: "المزامنة التلقائية", href: "/admin/sync-settings", icon: RefreshCw },
   { label: "الإعدادات", href: "/admin/settings", icon: Settings },
 ];
 

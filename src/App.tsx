@@ -78,6 +78,7 @@ import AdminFeaturedOffers from "./pages/admin/AdminFeaturedOffers";
 import AdminTamaraPayments from "./pages/admin/AdminTamaraPayments";
 import AdminPaymentsHub from "./pages/admin/AdminPaymentsHub";
 import AdminChallenges from "./pages/admin/AdminChallenges";
+import AdminSyncSettings from "./pages/admin/AdminSyncSettings";
 
 const queryClient = new QueryClient();
 
@@ -375,6 +376,11 @@ const App = () => (
                   <Route path="/admin/tamara-payments" element={
                     <ProtectedRoute requireAdmin>
                       <AdminTamaraPayments />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/sync-settings" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminSyncSettings />
                     </ProtectedRoute>
                   } />
                   
