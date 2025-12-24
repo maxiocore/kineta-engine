@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { format, formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow, startOfMonth, subMonths, parseISO } from "date-fns";
 import { ar } from "date-fns/locale";
 import {
   ArrowUpCircle,
@@ -41,6 +41,8 @@ import {
   PieChart,
   Pie,
   Cell,
+  ComposedChart,
+  Line,
 } from "recharts";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -599,6 +601,57 @@ const ClientBalanceLogs = () => {
     }));
   }, [transactionsSummary]);
 
+  // Monthly comparison data
+  const monthlyChartData = useMemo(() => {
+    if (logs.length === 0) return [];
+    
+    const monthlyData: Record<string, { 
+      month: string; 
+      monthLabel: string;
+      deposits: number; 
+      expenses: number; 
+      refunds: number;
+      net: number;
+    }> = {};
+    
+    // Get last 6 months
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const monthDate = subMonths(now, i);
+      const monthKey = format(monthDate, "yyyy-MM");
+      const monthLabel = format(monthDate, "MMM yyyy", { locale: ar });
+      monthlyData[monthKey] = {
+        month: monthKey,
+        monthLabel,
+        deposits: 0,
+        expenses: 0,
+        refunds: 0,
+        net: 0,
+      };
+    }
+    
+    logs.forEach(log => {
+      const monthKey = format(new Date(log.created_at), "yyyy-MM");
+      
+      if (monthlyData[monthKey]) {
+        if (log.action_type === 'deposit' || log.action_type === 'credit' || log.action_type === 'commission') {
+          monthlyData[monthKey].deposits += log.amount;
+        } else if (log.action_type === 'refund') {
+          monthlyData[monthKey].refunds += log.amount;
+        } else if (log.amount < 0) {
+          monthlyData[monthKey].expenses += Math.abs(log.amount);
+        }
+      }
+    });
+    
+    // Calculate net for each month
+    Object.values(monthlyData).forEach(month => {
+      month.net = month.deposits + month.refunds - month.expenses;
+    });
+    
+    return Object.values(monthlyData);
+  }, [logs]);
+
   const filteredLogs = logs.filter((log) => {
     const matchesSearch =
       log.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -919,6 +972,209 @@ const ClientBalanceLogs = () => {
             </Card>
           </motion.div>
         </div>
+
+        {/* Monthly Comparison Chart - NEW */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55 }}
+        >
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <motion.div
+                    animate={{ 
+                      scale: [1, 1.1, 1],
+                      rotate: [0, 5, -5, 0]
+                    }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                  >
+                    <BarChart3 className="w-5 h-5 text-primary" />
+                  </motion.div>
+                  مقارنة شهرية
+                </CardTitle>
+                <div className="flex items-center gap-4 text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                    <span className="text-muted-foreground">الإيداعات</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-orange-500" />
+                    <span className="text-muted-foreground">المصروفات</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-blue-500" />
+                    <span className="text-muted-foreground">الاستردادات</span>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <Skeleton className="h-[320px] w-full rounded-xl" />
+              ) : monthlyChartData.length === 0 ? (
+                <div className="h-[320px] flex items-center justify-center text-muted-foreground">
+                  <motion.div 
+                    className="text-center"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                  >
+                    <BarChart3 className="w-16 h-16 mx-auto mb-3 opacity-30" />
+                    <p className="text-sm">لا توجد بيانات كافية</p>
+                  </motion.div>
+                </div>
+              ) : (
+                <div className="h-[320px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={monthlyChartData} barGap={4}>
+                      <defs>
+                        <linearGradient id="depositsGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#22c55e" stopOpacity={0.9} />
+                          <stop offset="100%" stopColor="#22c55e" stopOpacity={0.5} />
+                        </linearGradient>
+                        <linearGradient id="expensesGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#f97316" stopOpacity={0.9} />
+                          <stop offset="100%" stopColor="#f97316" stopOpacity={0.5} />
+                        </linearGradient>
+                        <linearGradient id="refundsGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.9} />
+                          <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.5} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" vertical={false} />
+                      <XAxis 
+                        dataKey="monthLabel" 
+                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                        axisLine={{ stroke: 'hsl(var(--border))' }}
+                        tickLine={false}
+                      />
+                      <YAxis 
+                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                        axisLine={false}
+                        tickLine={false}
+                        tickFormatter={(value) => `${value}`}
+                      />
+                      <Tooltip 
+                        content={({ active, payload, label }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <motion.div 
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="bg-card/95 backdrop-blur-sm border border-border rounded-xl p-4 shadow-2xl"
+                              >
+                                <p className="text-sm font-bold text-foreground mb-3">{label}</p>
+                                <div className="space-y-2">
+                                  {payload.map((entry: any, index: number) => (
+                                    <div key={index} className="flex items-center justify-between gap-4">
+                                      <div className="flex items-center gap-2">
+                                        <div 
+                                          className="w-3 h-3 rounded-full" 
+                                          style={{ backgroundColor: entry.color }}
+                                        />
+                                        <span className="text-xs text-muted-foreground">{entry.name}</span>
+                                      </div>
+                                      <span className="text-sm font-semibold" style={{ color: entry.color }}>
+                                        {entry.value?.toFixed(2)} ر.س
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="mt-3 pt-3 border-t border-border">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-muted-foreground">صافي الحركة</span>
+                                    <span className={`text-sm font-bold ${
+                                      (payload[0]?.payload?.net || 0) >= 0 ? 'text-emerald-500' : 'text-red-500'
+                                    }`}>
+                                      {(payload[0]?.payload?.net || 0) >= 0 ? '+' : ''}
+                                      {(payload[0]?.payload?.net || 0).toFixed(2)} ر.س
+                                    </span>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Bar 
+                        dataKey="deposits" 
+                        name="الإيداعات" 
+                        fill="url(#depositsGradient)"
+                        radius={[6, 6, 0, 0]}
+                        maxBarSize={50}
+                      />
+                      <Bar 
+                        dataKey="expenses" 
+                        name="المصروفات" 
+                        fill="url(#expensesGradient)"
+                        radius={[6, 6, 0, 0]}
+                        maxBarSize={50}
+                      />
+                      <Bar 
+                        dataKey="refunds" 
+                        name="الاستردادات" 
+                        fill="url(#refundsGradient)"
+                        radius={[6, 6, 0, 0]}
+                        maxBarSize={50}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="net" 
+                        name="صافي الحركة"
+                        stroke="hsl(var(--primary))" 
+                        strokeWidth={3}
+                        dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 5 }}
+                        activeDot={{ r: 7, stroke: 'hsl(var(--primary))', strokeWidth: 2 }}
+                      />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+              
+              {/* Monthly Summary Cards */}
+              {monthlyChartData.length > 0 && (
+                <motion.div 
+                  className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 pt-4 border-t border-border/50"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  {(() => {
+                    const totals = monthlyChartData.reduce((acc, m) => ({
+                      deposits: acc.deposits + m.deposits,
+                      expenses: acc.expenses + m.expenses,
+                      refunds: acc.refunds + m.refunds,
+                      net: acc.net + m.net,
+                    }), { deposits: 0, expenses: 0, refunds: 0, net: 0 });
+                    
+                    return [
+                      { label: "إجمالي الإيداعات", value: totals.deposits, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+                      { label: "إجمالي المصروفات", value: totals.expenses, color: "text-orange-500", bg: "bg-orange-500/10" },
+                      { label: "إجمالي الاستردادات", value: totals.refunds, color: "text-blue-500", bg: "bg-blue-500/10" },
+                      { label: "صافي الحركة", value: totals.net, color: totals.net >= 0 ? "text-emerald-500" : "text-red-500", bg: totals.net >= 0 ? "bg-emerald-500/10" : "bg-red-500/10" },
+                    ].map((item, idx) => (
+                      <motion.div
+                        key={item.label}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.1 * idx }}
+                        className={`${item.bg} rounded-xl p-3 text-center`}
+                      >
+                        <p className="text-xs text-muted-foreground mb-1">{item.label}</p>
+                        <p className={`text-lg font-bold ${item.color}`}>
+                          {item.value >= 0 && item.label === "صافي الحركة" ? '+' : ''}
+                          {item.value.toFixed(2)} ر.س
+                        </p>
+                      </motion.div>
+                    ));
+                  })()}
+                </motion.div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Transactions Summary - Enhanced */}
         {transactionsSummary.length > 0 && (
