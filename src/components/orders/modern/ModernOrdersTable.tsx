@@ -1,8 +1,8 @@
-import React, { memo, useState, useCallback } from "react";
+import React, { memo, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Clock, CheckCircle, AlertCircle, XCircle, Loader2, 
-  Copy, Check, Zap, RotateCcw, ExternalLink
+  Copy, Check, Zap, RotateCcw, ChevronRight, ChevronLeft
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Order {
   id: string;
@@ -260,6 +267,8 @@ const TableSkeleton = () => (
   </>
 );
 
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
+
 export const ModernOrdersTable = memo(({ 
   orders, 
   loading, 
@@ -267,6 +276,62 @@ export const ModernOrdersTable = memo(({
   emptyTitle = "لا توجد طلبات",
   emptyDescription = "ابدأ بإنشاء طلبك الأول"
 }: ModernOrdersTableProps) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(orders.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  
+  const paginatedOrders = useMemo(() => {
+    return orders.slice(startIndex, endIndex);
+  }, [orders, startIndex, endIndex]);
+
+  // Reset to first page when orders change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [orders.length, pageSize]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (value: string) => {
+    setPageSize(Number(value));
+    setCurrentPage(1);
+  };
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisible = 5;
+    
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
+  };
+
   if (loading) {
     return (
       <div className="rounded-xl border border-border/50 overflow-hidden bg-card">
@@ -309,41 +374,116 @@ export const ModernOrdersTable = memo(({
   }
 
   return (
-    <div className="rounded-xl border border-border/50 overflow-hidden bg-card">
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-primary hover:bg-primary">
-              <TableHead className="text-primary-foreground font-bold text-right py-4 whitespace-nowrap">
-                <div className="flex items-center gap-2">
-                  <Copy className="w-4 h-4" />
-                  الرقم
-                </div>
-              </TableHead>
-              <TableHead className="text-primary-foreground font-bold text-right py-4 whitespace-nowrap">تاريخ الطلب</TableHead>
-              <TableHead className="text-primary-foreground font-bold text-right py-4 whitespace-nowrap">الرابط</TableHead>
-              <TableHead className="text-primary-foreground font-bold text-center py-4 whitespace-nowrap">الكمية</TableHead>
-              <TableHead className="text-primary-foreground font-bold text-center py-4 whitespace-nowrap">الثمن</TableHead>
-              <TableHead className="text-primary-foreground font-bold text-center py-4 whitespace-nowrap">عدد البدا</TableHead>
-              <TableHead className="text-primary-foreground font-bold text-right py-4 whitespace-nowrap">الخدمة</TableHead>
-              <TableHead className="text-primary-foreground font-bold text-center py-4 whitespace-nowrap">العدد المتبقي</TableHead>
-              <TableHead className="text-primary-foreground font-bold text-right py-4 whitespace-nowrap">حالة الطلب</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <AnimatePresence mode="popLayout">
-              {orders.map((order, index) => (
-                <OrderTableRow
-                  key={order.id}
-                  order={order}
-                  index={index}
-                  onClick={() => onViewOrder(order)}
-                />
-              ))}
-            </AnimatePresence>
-          </TableBody>
-        </Table>
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border/50 overflow-hidden bg-card">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-primary hover:bg-primary">
+                <TableHead className="text-primary-foreground font-bold text-right py-4 whitespace-nowrap">
+                  <div className="flex items-center gap-2">
+                    <Copy className="w-4 h-4" />
+                    الرقم
+                  </div>
+                </TableHead>
+                <TableHead className="text-primary-foreground font-bold text-right py-4 whitespace-nowrap">تاريخ الطلب</TableHead>
+                <TableHead className="text-primary-foreground font-bold text-right py-4 whitespace-nowrap">الرابط</TableHead>
+                <TableHead className="text-primary-foreground font-bold text-center py-4 whitespace-nowrap">الكمية</TableHead>
+                <TableHead className="text-primary-foreground font-bold text-center py-4 whitespace-nowrap">الثمن</TableHead>
+                <TableHead className="text-primary-foreground font-bold text-center py-4 whitespace-nowrap">عدد البدا</TableHead>
+                <TableHead className="text-primary-foreground font-bold text-right py-4 whitespace-nowrap">الخدمة</TableHead>
+                <TableHead className="text-primary-foreground font-bold text-center py-4 whitespace-nowrap">العدد المتبقي</TableHead>
+                <TableHead className="text-primary-foreground font-bold text-right py-4 whitespace-nowrap">حالة الطلب</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <AnimatePresence mode="popLayout">
+                {paginatedOrders.map((order, index) => (
+                  <OrderTableRow
+                    key={order.id}
+                    order={order}
+                    index={index}
+                    onClick={() => onViewOrder(order)}
+                  />
+                ))}
+              </AnimatePresence>
+            </TableBody>
+          </Table>
+        </div>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2"
+          dir="rtl"
+        >
+          {/* Page Info & Size Selector */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">عرض</span>
+              <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+                <SelectTrigger className="w-[70px] h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAGE_SIZE_OPTIONS.map(size => (
+                    <SelectItem key={size} value={String(size)}>
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="text-sm text-muted-foreground">من أصل {orders.length}</span>
+            </div>
+            
+            <div className="text-sm text-muted-foreground">
+              صفحة {currentPage} من {totalPages}
+            </div>
+          </div>
+
+          {/* Page Numbers */}
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+
+            {getPageNumbers().map((page, index) => (
+              typeof page === 'number' ? (
+                <Button
+                  key={index}
+                  variant={currentPage === page ? "default" : "outline"}
+                  size="icon"
+                  className="h-9 w-9"
+                  onClick={() => handlePageChange(page)}
+                >
+                  {page}
+                </Button>
+              ) : (
+                <span key={index} className="px-2 text-muted-foreground">...</span>
+              )
+            ))}
+
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 });
