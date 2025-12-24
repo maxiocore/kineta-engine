@@ -841,31 +841,6 @@ const ClientOrderDetails = () => {
               </Button>
             </motion.div>
 
-            {/* Quick Info */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <Card>
-                <CardContent className="pt-6 space-y-4">
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
-                    <Hash className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">رقم الطلب الخارجي</p>
-                      <p className="font-mono text-sm">{order.external_order_id || "-"}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
-                    <Shield className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">حالة المزود</p>
-                      <p className="text-sm">{order.external_status || "-"}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
           </div>
         </div>
       </div>
