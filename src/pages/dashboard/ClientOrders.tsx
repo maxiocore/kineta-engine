@@ -16,6 +16,7 @@ import {
   OrderType, 
   ModernOrdersStats, 
   ModernOrdersSearch,
+  ModernOrdersList,
   ModernOrdersTable
 } from "@/components/orders/modern";
 import OrderDetailsSheet from "@/components/orders/OrderDetailsSheet";
@@ -383,19 +384,29 @@ const ClientOrders = () => {
           />
         </motion.div>
 
-        {/* Orders Table */}
+        {/* Orders Display - Table for Social, Cards for others */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <ModernOrdersTable
-            orders={filteredOrders}
-            loading={loading}
-            onViewOrder={handleViewOrder}
-            emptyTitle={emptyState.title}
-            emptyDescription={emptyState.description}
-          />
+          {activeType === 'social' || activeType === 'all' ? (
+            <ModernOrdersTable
+              orders={filteredOrders}
+              loading={loading}
+              onViewOrder={handleViewOrder}
+              emptyTitle={emptyState.title}
+              emptyDescription={emptyState.description}
+            />
+          ) : (
+            <ModernOrdersList
+              orders={filteredOrders}
+              loading={loading}
+              onViewOrder={handleViewOrder}
+              emptyTitle={emptyState.title}
+              emptyDescription={emptyState.description}
+            />
+          )}
         </motion.div>
 
         {/* Order Details Sheet */}
