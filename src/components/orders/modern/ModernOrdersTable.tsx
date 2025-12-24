@@ -2,7 +2,8 @@ import React, { memo, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Clock, CheckCircle, AlertCircle, XCircle, Loader2, 
-  Copy, Check, Zap, RotateCcw, ChevronRight, ChevronLeft
+  Copy, Check, Zap, RotateCcw, ChevronRight, ChevronLeft,
+  ArrowUpDown, ArrowUp, ArrowDown
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,19 @@ interface ModernOrdersTableProps {
   emptyTitle?: string;
   emptyDescription?: string;
 }
+
+type SortField = 'order_number' | 'created_at' | 'quantity' | 'total_price' | 'status' | 'service' | null;
+type SortDirection = 'asc' | 'desc';
+
+const STATUS_ORDER: Record<string, number> = {
+  pending: 1,
+  processing: 2,
+  in_progress: 3,
+  partial: 4,
+  completed: 5,
+  cancelled: 6,
+  refunded: 7,
+};
 
 const getStatusConfig = (status: string) => {
   switch (status) {
@@ -112,6 +126,55 @@ const getStatusConfig = (status: string) => {
         icon: Clock,
       };
   }
+};
+
+interface SortableHeaderProps {
+  field: SortField;
+  currentSort: SortField;
+  direction: SortDirection;
+  onSort: (field: SortField) => void;
+  children: React.ReactNode;
+  className?: string;
+  align?: 'right' | 'center';
+}
+
+const SortableHeader = ({ field, currentSort, direction, onSort, children, className, align = 'right' }: SortableHeaderProps) => {
+  const isActive = currentSort === field;
+  
+  return (
+    <TableHead 
+      className={cn(
+        "text-primary-foreground font-bold py-4 whitespace-nowrap cursor-pointer hover:bg-primary/80 transition-colors select-none",
+        align === 'center' ? 'text-center' : 'text-right',
+        className
+      )}
+      onClick={() => onSort(field)}
+    >
+      <div className={cn(
+        "flex items-center gap-2",
+        align === 'center' && "justify-center"
+      )}>
+        {children}
+        <motion.div
+          initial={false}
+          animate={{ 
+            opacity: isActive ? 1 : 0.5,
+            scale: isActive ? 1 : 0.8
+          }}
+        >
+          {isActive ? (
+            direction === 'asc' ? (
+              <ArrowUp className="w-4 h-4" />
+            ) : (
+              <ArrowDown className="w-4 h-4" />
+            )
+          ) : (
+            <ArrowUpDown className="w-3.5 h-3.5" />
+          )}
+        </motion.div>
+      </div>
+    </TableHead>
+  );
 };
 
 const OrderTableRow = memo(({ order, index, onClick }: { 
@@ -278,15 +341,62 @@ export const ModernOrdersTable = memo(({
 }: ModernOrdersTableProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [sortField, setSortField] = useState<SortField>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  // Handle sort
+  const handleSort = useCallback((field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+    setCurrentPage(1);
+  }, [sortField]);
+
+  // Sort orders
+  const sortedOrders = useMemo(() => {
+    if (!sortField) return orders;
+
+    return [...orders].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortField) {
+        case 'order_number':
+          comparison = a.order_number.localeCompare(b.order_number);
+          break;
+        case 'created_at':
+          comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          break;
+        case 'quantity':
+          comparison = (a.quantity || 0) - (b.quantity || 0);
+          break;
+        case 'total_price':
+          comparison = a.total_price - b.total_price;
+          break;
+        case 'status':
+          comparison = (STATUS_ORDER[a.status] || 99) - (STATUS_ORDER[b.status] || 99);
+          break;
+        case 'service':
+          comparison = (a.service?.name || '').localeCompare(b.service?.name || '');
+          break;
+        default:
+          comparison = 0;
+      }
+
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [orders, sortField, sortDirection]);
 
   // Calculate pagination
-  const totalPages = Math.ceil(orders.length / pageSize);
+  const totalPages = Math.ceil(sortedOrders.length / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   
   const paginatedOrders = useMemo(() => {
-    return orders.slice(startIndex, endIndex);
-  }, [orders, startIndex, endIndex]);
+    return sortedOrders.slice(startIndex, endIndex);
+  }, [sortedOrders, startIndex, endIndex]);
 
   // Reset to first page when orders change
   React.useEffect(() => {
@@ -380,20 +490,60 @@ export const ModernOrdersTable = memo(({
           <Table>
             <TableHeader>
               <TableRow className="bg-primary hover:bg-primary">
-                <TableHead className="text-primary-foreground font-bold text-right py-4 whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <Copy className="w-4 h-4" />
-                    الرقم
-                  </div>
-                </TableHead>
-                <TableHead className="text-primary-foreground font-bold text-right py-4 whitespace-nowrap">تاريخ الطلب</TableHead>
+                <SortableHeader 
+                  field="order_number" 
+                  currentSort={sortField} 
+                  direction={sortDirection} 
+                  onSort={handleSort}
+                >
+                  <Copy className="w-4 h-4" />
+                  الرقم
+                </SortableHeader>
+                <SortableHeader 
+                  field="created_at" 
+                  currentSort={sortField} 
+                  direction={sortDirection} 
+                  onSort={handleSort}
+                >
+                  تاريخ الطلب
+                </SortableHeader>
                 <TableHead className="text-primary-foreground font-bold text-right py-4 whitespace-nowrap">الرابط</TableHead>
-                <TableHead className="text-primary-foreground font-bold text-center py-4 whitespace-nowrap">الكمية</TableHead>
-                <TableHead className="text-primary-foreground font-bold text-center py-4 whitespace-nowrap">الثمن</TableHead>
+                <SortableHeader 
+                  field="quantity" 
+                  currentSort={sortField} 
+                  direction={sortDirection} 
+                  onSort={handleSort}
+                  align="center"
+                >
+                  الكمية
+                </SortableHeader>
+                <SortableHeader 
+                  field="total_price" 
+                  currentSort={sortField} 
+                  direction={sortDirection} 
+                  onSort={handleSort}
+                  align="center"
+                >
+                  الثمن
+                </SortableHeader>
                 <TableHead className="text-primary-foreground font-bold text-center py-4 whitespace-nowrap">عدد البدا</TableHead>
-                <TableHead className="text-primary-foreground font-bold text-right py-4 whitespace-nowrap">الخدمة</TableHead>
+                <SortableHeader 
+                  field="service" 
+                  currentSort={sortField} 
+                  direction={sortDirection} 
+                  onSort={handleSort}
+                >
+                  الخدمة
+                </SortableHeader>
                 <TableHead className="text-primary-foreground font-bold text-center py-4 whitespace-nowrap">العدد المتبقي</TableHead>
-                <TableHead className="text-primary-foreground font-bold text-right py-4 whitespace-nowrap">حالة الطلب</TableHead>
+                <SortableHeader 
+                  field="status" 
+                  currentSort={sortField} 
+                  direction={sortDirection} 
+                  onSort={handleSort}
+                >
+                  حالة الطلب
+                </SortableHeader>
               </TableRow>
             </TableHeader>
             <TableBody>
