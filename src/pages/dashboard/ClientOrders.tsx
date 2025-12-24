@@ -21,7 +21,6 @@ import {
   DesignOrdersList,
   DevOrdersList
 } from "@/components/orders/modern";
-import OrderDetailsSheet from "@/components/orders/OrderDetailsSheet";
 
 interface Service {
   id: string;
@@ -92,9 +91,6 @@ const ClientOrders = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [orderHistory, setOrderHistory] = useState<OrderStatusHistory[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeType, setActiveType] = useState<OrderType>("all");
 
@@ -114,10 +110,6 @@ const ClientOrders = () => {
               setOrders(prev => prev.map(order => 
                 order.id === payload.new.id ? { ...order, ...payload.new } : order
               ));
-              if (selectedOrder && selectedOrder.id === payload.new.id) {
-                setSelectedOrder(prev => prev ? { ...prev, ...payload.new } : null);
-                fetchOrderHistory(payload.new.id as string);
-              }
               toast.info("تم تحديث حالة طلبك");
             } else if (payload.eventType === 'INSERT') {
               fetchOrders();
@@ -127,7 +119,7 @@ const ClientOrders = () => {
         .subscribe();
       return () => { supabase.removeChannel(channel); };
     }
-  }, [user, selectedOrder]);
+  }, [user]);
 
   const fetchOrders = async () => {
     const { data, error } = await supabase
@@ -146,20 +138,9 @@ const ClientOrders = () => {
     setLoading(false);
   };
 
-  const fetchOrderHistory = async (orderId: string) => {
-    setLoadingHistory(true);
-    const { data, error } = await supabase
-      .from("order_status_history")
-      .select("*")
-      .eq("order_id", orderId)
-      .order("created_at", { ascending: false });
-    if (!error && data) setOrderHistory(data);
-    setLoadingHistory(false);
-  };
-
   const handleViewOrder = async (order: Order) => {
-    setSelectedOrder(order);
-    fetchOrderHistory(order.id);
+    // Navigate to order details page instead of opening sheet
+    navigate(`/dashboard/orders/${order.id}`);
   };
 
   const handleRefresh = async () => {
@@ -418,14 +399,6 @@ const ClientOrders = () => {
             />
           )}
         </motion.div>
-
-        {/* Order Details Sheet */}
-        <OrderDetailsSheet
-          order={selectedOrder}
-          orderHistory={orderHistory}
-          loadingHistory={loadingHistory}
-          onClose={() => setSelectedOrder(null)}
-        />
       </motion.div>
     </ClientDashboardLayout>
   );
