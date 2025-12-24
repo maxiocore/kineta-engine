@@ -458,107 +458,133 @@ const ClientOrderDetails = () => {
 
     // Create hidden container for HTML invoice
     const container = document.createElement('div');
-    container.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 595px; background: white; font-family: system-ui, -apple-system, sans-serif;';
+    container.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 595px; background: white;';
     container.innerHTML = `
-      <div style="direction: rtl; text-align: right; padding: 0;">
+      <div style="direction: rtl; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: #fff; min-height: 842px;">
         <!-- Header -->
-        <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 40px 30px; text-align: center;">
-          <h1 style="color: white; font-size: 36px; font-weight: bold; margin: 0; letter-spacing: 2px;">MARKETO</h1>
-          <p style="color: rgba(255,255,255,0.9); font-size: 18px; margin: 10px 0 0;">فاتورة ضريبية</p>
+        <div style="background: linear-gradient(135deg, #059669 0%, #10B981 50%, #34D399 100%); padding: 35px 40px; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: -50px; left: -50px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+          <div style="position: absolute; bottom: -30px; right: -30px; width: 100px; height: 100px; background: rgba(255,255,255,0.08); border-radius: 50%;"></div>
+          <div style="text-align: center; position: relative; z-index: 1;">
+            <h1 style="color: white; font-size: 32px; font-weight: 800; margin: 0; letter-spacing: 3px; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">MARKETO</h1>
+            <div style="width: 60px; height: 3px; background: rgba(255,255,255,0.5); margin: 12px auto;"></div>
+            <p style="color: rgba(255,255,255,0.95); font-size: 16px; margin: 0; font-weight: 500;">فاتورة ضريبية مبسطة</p>
+          </div>
         </div>
         
-        <!-- Invoice Info -->
-        <div style="background: #f8fafc; padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0;">
-          <div style="text-align: right;">
-            <p style="color: #64748b; font-size: 12px; margin: 0;">رقم الطلب</p>
-            <p style="color: #1e293b; font-size: 16px; font-weight: bold; margin: 5px 0; font-family: monospace;">${order.order_number}</p>
-          </div>
-          <div style="text-align: center;">
-            <span style="background: ${getStatusColor(order.status)}; color: white; padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: bold;">
-              ${statusLabels[order.status] || order.status}
-            </span>
-          </div>
-          <div style="text-align: left;">
-            <p style="color: #64748b; font-size: 12px; margin: 0;">التاريخ</p>
-            <p style="color: #1e293b; font-size: 14px; margin: 5px 0;">${format(new Date(order.created_at), 'dd/MM/yyyy')}</p>
-            <p style="color: #64748b; font-size: 12px; margin: 0;">${format(new Date(order.created_at), 'HH:mm')}</p>
-          </div>
+        <!-- Invoice Info Bar -->
+        <div style="background: #f0fdf4; padding: 20px 40px; border-bottom: 2px solid #d1fae5;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="text-align: right; width: 33%; vertical-align: top;">
+                <p style="color: #059669; font-size: 11px; margin: 0; font-weight: 600; text-transform: uppercase;">رقم الطلب</p>
+                <p style="color: #064e3b; font-size: 15px; font-weight: 700; margin: 6px 0 0; font-family: 'Courier New', monospace; letter-spacing: 0.5px;">${order.order_number}</p>
+              </td>
+              <td style="text-align: center; width: 34%; vertical-align: middle;">
+                <span style="display: inline-block; background: ${getStatusColor(order.status)}; color: white; padding: 10px 28px; border-radius: 25px; font-size: 13px; font-weight: 700; box-shadow: 0 2px 8px ${getStatusColor(order.status)}40;">
+                  ${statusLabels[order.status] || order.status}
+                </span>
+              </td>
+              <td style="text-align: left; width: 33%; vertical-align: top;">
+                <p style="color: #059669; font-size: 11px; margin: 0; font-weight: 600; text-transform: uppercase;">التاريخ</p>
+                <p style="color: #064e3b; font-size: 14px; font-weight: 600; margin: 6px 0 0;">${format(new Date(order.created_at), 'dd/MM/yyyy')}</p>
+                <p style="color: #6b7280; font-size: 12px; margin: 2px 0 0;">${format(new Date(order.created_at), 'HH:mm')}</p>
+              </td>
+            </tr>
+          </table>
         </div>
 
-        <!-- Service Details -->
-        <div style="padding: 25px 30px;">
-          <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 12px 20px; border-radius: 8px 8px 0 0; text-align: center;">
-            <h2 style="margin: 0; font-size: 16px;">تفاصيل الخدمة</h2>
-          </div>
-          <div style="background: #f8fafc; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0; border-top: none;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-              <div style="text-align: right; flex: 1;">
-                <p style="color: #64748b; font-size: 11px; margin: 0;">الخدمة</p>
-                <p style="color: #1e293b; font-size: 14px; font-weight: bold; margin: 5px 0;">${order.service?.name || 'غير محدد'}</p>
-              </div>
-              <div style="text-align: left;">
-                <p style="color: #64748b; font-size: 11px; margin: 0;">الكمية</p>
-                <p style="color: #1e293b; font-size: 20px; font-weight: bold; margin: 5px 0;">${(order.quantity || 1).toLocaleString('ar-SA')}</p>
-              </div>
+        <!-- Main Content -->
+        <div style="padding: 30px 40px;">
+          
+          <!-- Service Details Section -->
+          <div style="margin-bottom: 25px;">
+            <div style="background: #059669; color: white; padding: 14px 24px; border-radius: 10px 10px 0 0;">
+              <h2 style="margin: 0; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                <span style="width: 6px; height: 6px; background: white; border-radius: 50%;"></span>
+                تفاصيل الخدمة
+              </h2>
             </div>
-            <div style="display: flex; justify-content: space-between;">
-              <div style="text-align: right;">
-                <p style="color: #64748b; font-size: 11px; margin: 0;">التصنيف</p>
-                <p style="color: #1e293b; font-size: 13px; margin: 5px 0;">${order.service?.category || 'غير محدد'}</p>
-              </div>
-              <div style="text-align: left;">
-                <p style="color: #64748b; font-size: 11px; margin: 0;">سعر الوحدة</p>
-                <p style="color: #1e293b; font-size: 13px; margin: 5px 0;">${unitPrice.toFixed(4)} ر.س</p>
-              </div>
+            <div style="background: #fafafa; border: 2px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px; padding: 24px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="text-align: right; padding: 8px 0; vertical-align: top; width: 65%;">
+                    <p style="color: #6b7280; font-size: 11px; margin: 0; font-weight: 600;">اسم الخدمة</p>
+                    <p style="color: #111827; font-size: 14px; font-weight: 700; margin: 6px 0 0; line-height: 1.5;">${order.service?.name || 'غير محدد'}</p>
+                  </td>
+                  <td style="text-align: left; padding: 8px 0; vertical-align: top; width: 35%;">
+                    <p style="color: #6b7280; font-size: 11px; margin: 0; font-weight: 600;">الكمية</p>
+                    <p style="color: #059669; font-size: 24px; font-weight: 800; margin: 4px 0 0;">${(order.quantity || 1).toLocaleString('ar-SA')}</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="text-align: right; padding: 8px 0; border-top: 1px dashed #e5e7eb; vertical-align: top;">
+                    <p style="color: #6b7280; font-size: 11px; margin: 0; font-weight: 600;">التصنيف</p>
+                    <p style="color: #374151; font-size: 13px; font-weight: 500; margin: 6px 0 0;">${order.service?.category || 'غير محدد'}</p>
+                  </td>
+                  <td style="text-align: left; padding: 8px 0; border-top: 1px dashed #e5e7eb; vertical-align: top;">
+                    <p style="color: #6b7280; font-size: 11px; margin: 0; font-weight: 600;">سعر الوحدة</p>
+                    <p style="color: #374151; font-size: 13px; font-weight: 600; margin: 6px 0 0;">${unitPrice.toFixed(4)} ر.س</p>
+                  </td>
+                </tr>
+              </table>
             </div>
           </div>
-        </div>
 
-        <!-- Payment Summary -->
-        <div style="padding: 0 30px 25px;">
-          <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 12px 20px; border-radius: 8px 8px 0 0; text-align: center;">
-            <h2 style="margin: 0; font-size: 16px;">ملخص الدفع</h2>
+          <!-- Payment Summary Section -->
+          <div style="margin-bottom: 25px;">
+            <div style="background: #059669; color: white; padding: 14px 24px; border-radius: 10px 10px 0 0;">
+              <h2 style="margin: 0; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                <span style="width: 6px; height: 6px; background: white; border-radius: 50%;"></span>
+                ملخص الدفع
+              </h2>
+            </div>
+            <div style="background: #ffffff; border: 2px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px; padding: 20px 24px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="text-align: right; padding: 10px 0; color: #6b7280; font-size: 13px;">سعر الوحدة × الكمية</td>
+                  <td style="text-align: left; padding: 10px 0; color: #374151; font-size: 13px; font-weight: 500;">${unitPrice.toFixed(4)} × ${(order.quantity || 1).toLocaleString()}</td>
+                </tr>
+                <tr>
+                  <td style="text-align: right; padding: 10px 0; color: #6b7280; font-size: 13px; border-top: 1px solid #f3f4f6;">المجموع الفرعي</td>
+                  <td style="text-align: left; padding: 10px 0; color: #374151; font-size: 13px; font-weight: 600; border-top: 1px solid #f3f4f6;">${basePrice.toFixed(2)} ر.س</td>
+                </tr>
+                ${order.discount_amount && order.discount_amount > 0 ? `
+                <tr>
+                  <td style="text-align: right; padding: 10px 0; color: #10b981; font-size: 13px; border-top: 1px solid #f3f4f6;">الخصم</td>
+                  <td style="text-align: left; padding: 10px 0; color: #10b981; font-size: 13px; font-weight: 600; border-top: 1px solid #f3f4f6;">- ${order.discount_amount.toFixed(2)} ر.س</td>
+                </tr>
+                ` : ''}
+              </table>
+              <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); margin: 15px -24px -20px; padding: 18px 24px; border-radius: 0 0 8px 8px; border-top: 2px solid #10b981;">
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="text-align: right; color: #047857; font-size: 16px; font-weight: 700;">المجموع المدفوع</td>
+                    <td style="text-align: left; color: #047857; font-size: 20px; font-weight: 800;">${order.total_price.toFixed(2)} ر.س</td>
+                  </tr>
+                </table>
+              </div>
+            </div>
           </div>
-          <div style="background: white; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0; border-top: none;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-              <span style="color: #64748b; font-size: 13px;">سعر الوحدة × الكمية</span>
-              <span style="color: #1e293b; font-size: 13px;">${unitPrice.toFixed(4)} × ${(order.quantity || 1).toLocaleString()}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-              <span style="color: #64748b; font-size: 13px;">المجموع الفرعي</span>
-              <span style="color: #1e293b; font-size: 13px;">${basePrice.toFixed(2)} ر.س</span>
-            </div>
-            ${order.discount_amount && order.discount_amount > 0 ? `
-            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-              <span style="color: #10B981; font-size: 13px;">الخصم</span>
-              <span style="color: #10B981; font-size: 13px;">-${order.discount_amount.toFixed(2)} ر.س</span>
-            </div>
-            ` : ''}
-            <div style="border-top: 2px solid #e2e8f0; margin: 15px 0; padding-top: 15px; display: flex; justify-content: space-between;">
-              <span style="color: #10B981; font-size: 16px; font-weight: bold;">المجموع المدفوع</span>
-              <span style="color: #10B981; font-size: 18px; font-weight: bold;">${order.total_price.toFixed(2)} ر.س</span>
-            </div>
-          </div>
-        </div>
 
-        ${order.link ? `
-        <!-- Link -->
-        <div style="padding: 0 30px 25px;">
-          <div style="background: #f8fafc; padding: 15px 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <p style="color: #64748b; font-size: 11px; margin: 0 0 5px;">الرابط</p>
-            <p style="color: #3B82F6; font-size: 11px; margin: 0; word-break: break-all;">${order.link}</p>
+          ${order.link ? `
+          <!-- Link Section -->
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; margin-bottom: 20px;">
+            <p style="color: #64748b; font-size: 11px; margin: 0 0 6px; font-weight: 600;">الرابط المستهدف</p>
+            <p style="color: #3b82f6; font-size: 12px; margin: 0; word-break: break-all; direction: ltr; text-align: left;">${order.link}</p>
           </div>
+          ` : ''}
+
         </div>
-        ` : ''}
 
         <!-- Footer -->
-        <div style="border-top: 1px solid #e2e8f0; padding: 20px 30px; text-align: center;">
-          <p style="color: #94a3b8; font-size: 11px; margin: 0;">هذه فاتورة إلكترونية - لا تحتاج إلى توقيع</p>
-          <p style="color: #94a3b8; font-size: 10px; margin: 8px 0 0;">تم الإنشاء: ${format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
+        <div style="background: #f9fafb; border-top: 1px solid #e5e7eb; padding: 20px 40px; text-align: center; position: absolute; bottom: 20px; left: 0; right: 0;">
+          <p style="color: #9ca3af; font-size: 11px; margin: 0;">هذه فاتورة إلكترونية صادرة من نظام MARKETO</p>
+          <p style="color: #9ca3af; font-size: 10px; margin: 6px 0 0;">لا تحتاج إلى توقيع أو ختم • تم الإنشاء: ${format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
         </div>
         
         <!-- Footer Bar -->
-        <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); height: 20px;"></div>
+        <div style="background: linear-gradient(90deg, #059669 0%, #10B981 50%, #34D399 100%); height: 8px; position: absolute; bottom: 0; left: 0; right: 0;"></div>
       </div>
     `;
 
