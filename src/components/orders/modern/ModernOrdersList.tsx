@@ -17,6 +17,7 @@ interface Order {
   external_status: string | null;
   external_order_id: string | null;
   service: {
+    id?: string;
     name: string;
     category: string;
   };
