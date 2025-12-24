@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, User, ArrowLeft, Eye, EyeOff, Sparkles } from "lucide-react";
+import { Mail, Lock, User, ArrowLeft, Eye, EyeOff, Sparkles, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import { z } from "zod";
 
 const emailSchema = z.string().email("البريد الإلكتروني غير صالح");
 const passwordSchema = z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+const phoneSchema = z.string().regex(/^(05|5)\d{8}$/, "رقم الجوال غير صالح (مثال: 0512345678)").optional().or(z.literal(''));
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -18,7 +19,7 @@ const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(searchParams.get("mode") === "signup");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string; name?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; name?: string; phone?: string }>({});
   const { toast } = useToast();
   const { user, signUp, signIn } = useAuth();
 
@@ -26,6 +27,7 @@ const Auth = () => {
     name: "",
     email: "",
     password: "",
+    phone: "",
   });
 
   useEffect(() => {
@@ -40,7 +42,7 @@ const Auth = () => {
   }, [user, navigate]);
 
   const validateForm = () => {
-    const newErrors: { email?: string; password?: string; name?: string } = {};
+    const newErrors: { email?: string; password?: string; name?: string; phone?: string } = {};
     
     try {
       emailSchema.parse(formData.email);
@@ -62,6 +64,16 @@ const Auth = () => {
       newErrors.name = "الاسم مطلوب";
     }
 
+    if (isSignUp && formData.phone) {
+      try {
+        phoneSchema.parse(formData.phone);
+      } catch (e) {
+        if (e instanceof z.ZodError) {
+          newErrors.phone = e.errors[0].message;
+        }
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -77,7 +89,7 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(formData.email, formData.password, formData.name);
+        const { error } = await signUp(formData.email, formData.password, formData.name, formData.phone);
         
         if (error) {
           if (error.message.includes("User already registered")) {
@@ -175,23 +187,45 @@ const Auth = () => {
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.2 }}
+                  className="space-y-5"
                 >
-                  <Label htmlFor="name">الاسم الكامل</Label>
-                  <div className="relative mt-2">
-                    <User className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      id="name"
-                      type="text"
-                      placeholder="محمد أحمد"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="pr-10 bg-secondary/50 border-border/50 h-12 text-right"
-                      required={isSignUp}
-                    />
+                  <div>
+                    <Label htmlFor="name">الاسم الكامل</Label>
+                    <div className="relative mt-2">
+                      <User className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        id="name"
+                        type="text"
+                        placeholder="محمد أحمد"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="pr-10 bg-secondary/50 border-border/50 h-12 text-right"
+                        required={isSignUp}
+                      />
+                    </div>
+                    {errors.name && (
+                      <p className="text-sm text-destructive mt-1">{errors.name}</p>
+                    )}
                   </div>
-                  {errors.name && (
-                    <p className="text-sm text-destructive mt-1">{errors.name}</p>
-                  )}
+
+                  <div>
+                    <Label htmlFor="phone">رقم الجوال <span className="text-muted-foreground text-xs">(اختياري)</span></Label>
+                    <div className="relative mt-2">
+                      <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="0512345678"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        className="pr-10 bg-secondary/50 border-border/50 h-12"
+                        dir="ltr"
+                      />
+                    </div>
+                    {errors.phone && (
+                      <p className="text-sm text-destructive mt-1">{errors.phone}</p>
+                    )}
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

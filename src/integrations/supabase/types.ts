@@ -1200,6 +1200,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_verified: boolean | null
+          phone: string | null
           updated_at: string | null
         }
         Insert: {
@@ -1209,6 +1210,7 @@ export type Database = {
           full_name?: string | null
           id: string
           is_verified?: boolean | null
+          phone?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -1218,6 +1220,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_verified?: boolean | null
+          phone?: string | null
           updated_at?: string | null
         }
         Relationships: []
