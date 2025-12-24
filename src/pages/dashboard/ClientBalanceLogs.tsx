@@ -26,6 +26,9 @@ import {
   Coins,
   Receipt,
   CreditCard,
+  ChevronLeft,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import {
   AreaChart,
@@ -421,6 +424,8 @@ const ClientBalanceLogs = () => {
     totalSpent: 0,
     currentBalance: 0,
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   const fetchLogs = useCallback(async () => {
     if (!user) return;
@@ -652,13 +657,27 @@ const ClientBalanceLogs = () => {
     return Object.values(monthlyData);
   }, [logs]);
 
-  const filteredLogs = logs.filter((log) => {
-    const matchesSearch =
-      log.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.action_type.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterType === "all" || log.action_type === filterType;
-    return matchesSearch && matchesFilter;
-  });
+  const filteredLogs = useMemo(() => {
+    return logs.filter((log) => {
+      const matchesSearch =
+        log.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        log.action_type.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesFilter = filterType === "all" || log.action_type === filterType;
+      return matchesSearch && matchesFilter;
+    });
+  }, [logs, searchTerm, filterType]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredLogs.length / ITEMS_PER_PAGE);
+  const paginatedLogs = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredLogs.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredLogs, currentPage, ITEMS_PER_PAGE]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterType]);
 
   const getActionInfo = (actionType: string) => {
     return actionTypeLabels[actionType] || {
@@ -1316,20 +1335,111 @@ const ClientBalanceLogs = () => {
                   <p className="text-sm mt-1">سيظهر هنا سجل جميع عملياتك المالية</p>
                 </motion.div>
               ) : (
-                <div className="space-y-3">
-                  <AnimatePresence mode="popLayout">
-                    {filteredLogs.map((log, index) => (
-                      <TransactionCard
-                        key={log.id}
-                        log={log}
-                        index={index}
-                        isNew={newLogIds.has(log.id)}
-                        isExpanded={expandedLogId === log.id}
-                        onToggle={() => setExpandedLogId(expandedLogId === log.id ? null : log.id)}
-                      />
-                    ))}
-                  </AnimatePresence>
-                </div>
+                <>
+                  <div className="space-y-3">
+                    <AnimatePresence mode="popLayout">
+                      {paginatedLogs.map((log, index) => (
+                        <TransactionCard
+                          key={log.id}
+                          log={log}
+                          index={index}
+                          isNew={newLogIds.has(log.id)}
+                          isExpanded={expandedLogId === log.id}
+                          onToggle={() => setExpandedLogId(expandedLogId === log.id ? null : log.id)}
+                        />
+                      ))}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center justify-between pt-6 border-t border-border/50 mt-6"
+                    >
+                      <div className="text-sm text-muted-foreground">
+                        عرض {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredLogs.length)} من {filteredLogs.length} عملية
+                      </div>
+                      
+                      <div className="flex items-center gap-1">
+                        {/* First Page */}
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setCurrentPage(1)}
+                          disabled={currentPage === 1}
+                          className="p-2 rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <ChevronsRight className="w-4 h-4" />
+                        </motion.button>
+                        
+                        {/* Previous Page */}
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                          disabled={currentPage === 1}
+                          className="p-2 rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <ChevronDown className="w-4 h-4 rotate-90" />
+                        </motion.button>
+
+                        {/* Page Numbers */}
+                        <div className="flex items-center gap-1 mx-2">
+                          {Array.from({ length: totalPages }, (_, i) => i + 1)
+                            .filter(page => {
+                              if (totalPages <= 5) return true;
+                              if (page === 1 || page === totalPages) return true;
+                              if (Math.abs(page - currentPage) <= 1) return true;
+                              return false;
+                            })
+                            .map((page, index, array) => (
+                              <div key={page} className="flex items-center">
+                                {index > 0 && array[index - 1] !== page - 1 && (
+                                  <span className="px-1 text-muted-foreground">...</span>
+                                )}
+                                <motion.button
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  onClick={() => setCurrentPage(page)}
+                                  className={`min-w-[36px] h-9 rounded-lg text-sm font-medium transition-all ${
+                                    currentPage === page
+                                      ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25'
+                                      : 'hover:bg-muted'
+                                  }`}
+                                >
+                                  {page}
+                                </motion.button>
+                              </div>
+                            ))}
+                        </div>
+
+                        {/* Next Page */}
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                          disabled={currentPage === totalPages}
+                          className="p-2 rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <ChevronDown className="w-4 h-4 -rotate-90" />
+                        </motion.button>
+                        
+                        {/* Last Page */}
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setCurrentPage(totalPages)}
+                          disabled={currentPage === totalPages}
+                          className="p-2 rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <ChevronsLeft className="w-4 h-4" />
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
