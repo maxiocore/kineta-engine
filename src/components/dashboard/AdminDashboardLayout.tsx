@@ -54,6 +54,7 @@ const adminNavItems: NavItem[] = [
   { label: "الطلبات", href: "/admin/orders", icon: ShoppingBag },
   { label: "الإحالات", href: "/admin/referrals", icon: Gift },
   { label: "طرق الدفع", href: "/admin/payments", icon: CreditCard },
+  { label: "مدفوعات تمارا", href: "/admin/tamara-payments", icon: CreditCard },
   { label: "المحافظ", href: "/admin/wallets", icon: Wallet },
   { label: "كاش باك", href: "/admin/cashback", icon: Coins },
   { label: "السحب البنكي", href: "/admin/bank-withdrawals", icon: Building2 },

@@ -74,6 +74,7 @@ import AdminCashback from "./pages/admin/AdminCashback";
 import AdminBankWithdrawals from "./pages/admin/AdminBankWithdrawals";
 import AdminUserSettings from "./pages/admin/AdminUserSettings";
 import AdminFeaturedOffers from "./pages/admin/AdminFeaturedOffers";
+import AdminTamaraPayments from "./pages/admin/AdminTamaraPayments";
 
 const queryClient = new QueryClient();
 
@@ -351,6 +352,11 @@ const App = () => (
                   <Route path="/admin/featured-offers" element={
                     <ProtectedRoute requireAdmin>
                       <AdminFeaturedOffers />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/tamara-payments" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminTamaraPayments />
                     </ProtectedRoute>
                   } />
                   
