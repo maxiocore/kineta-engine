@@ -144,32 +144,33 @@ const SortableHeader = ({ field, currentSort, direction, onSort, children, class
   return (
     <TableHead 
       className={cn(
-        "text-primary-foreground font-bold py-4 whitespace-nowrap cursor-pointer hover:bg-primary/80 transition-colors select-none",
+        "text-primary-foreground/95 font-semibold py-3.5 px-4 whitespace-nowrap cursor-pointer hover:bg-primary/90 transition-all duration-200 select-none text-sm",
         align === 'center' ? 'text-center' : 'text-right',
         className
       )}
       onClick={() => onSort(field)}
     >
       <div className={cn(
-        "flex items-center gap-2",
+        "flex items-center gap-1.5",
         align === 'center' && "justify-center"
       )}>
         {children}
         <motion.div
           initial={false}
           animate={{ 
-            opacity: isActive ? 1 : 0.5,
-            scale: isActive ? 1 : 0.8
+            opacity: isActive ? 1 : 0.4,
+            scale: isActive ? 1 : 0.85
           }}
+          transition={{ duration: 0.15 }}
         >
           {isActive ? (
             direction === 'asc' ? (
-              <ArrowUp className="w-4 h-4" />
+              <ArrowUp className="w-3.5 h-3.5" />
             ) : (
-              <ArrowDown className="w-4 h-4" />
+              <ArrowDown className="w-3.5 h-3.5" />
             )
           ) : (
-            <ArrowUpDown className="w-3.5 h-3.5" />
+            <ArrowUpDown className="w-3 h-3" />
           )}
         </motion.div>
       </div>
@@ -202,109 +203,123 @@ const OrderTableRow = memo(({ order, index, onClick }: {
     }
   }, [order.link]);
 
-  const truncateLink = (link: string, maxLength: number = 35) => {
+  const truncateLink = (link: string, maxLength: number = 30) => {
     if (link.length <= maxLength) return link;
     return link.substring(0, maxLength) + '...';
   };
 
+  // Format order number for display
+  const formatOrderNumber = (orderNum: string) => {
+    const parts = orderNum.split('-');
+    if (parts.length >= 2) {
+      return (
+        <span className="flex flex-col items-start leading-tight">
+          <span className="text-primary font-bold text-sm tracking-wide">{parts[0]}-</span>
+          <span className="text-primary font-bold text-sm tracking-wide">{parts.slice(1).join('-')}</span>
+        </span>
+      );
+    }
+    return <span className="text-primary font-bold text-sm">{orderNum}</span>;
+  };
+
   return (
     <motion.tr
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.03 }}
+      initial={{ opacity: 0, y: 5 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.02, duration: 0.2 }}
       onClick={onClick}
-      className="cursor-pointer hover:bg-muted/50 transition-colors border-b border-border/50"
+      className="cursor-pointer group hover:bg-accent/5 transition-all duration-200 border-b border-border/30"
     >
       {/* Order Number */}
-      <TableCell className="py-4">
+      <TableCell className="py-3.5 px-4">
         <div className="flex items-center gap-2">
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={copyOrderNumber}
-            className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+            className="p-1.5 rounded-md hover:bg-accent/20 transition-colors"
           >
             {copied ? (
-              <Check className="w-4 h-4 text-emerald-500" />
+              <Check className="w-3.5 h-3.5 text-emerald-500" />
             ) : (
-              <Copy className="w-4 h-4 text-muted-foreground" />
+              <Copy className="w-3.5 h-3.5 text-muted-foreground/60 group-hover:text-muted-foreground" />
             )}
           </motion.button>
-          <code className="font-mono font-bold text-sm text-primary">
-            {order.order_number}
+          <code className="font-mono">
+            {formatOrderNumber(order.order_number)}
           </code>
         </div>
       </TableCell>
 
       {/* Date */}
-      <TableCell className="py-4">
-        <div className="text-sm text-foreground">
-          {format(new Date(order.created_at), "yyyy-MM-dd", { locale: ar })}
-        </div>
-        <div className="text-xs text-muted-foreground">
-          {format(new Date(order.created_at), "HH:mm:ss")}
+      <TableCell className="py-3.5 px-4">
+        <div className="flex flex-col leading-tight">
+          <span className="text-sm font-medium text-foreground">
+            {format(new Date(order.created_at), "yyyy-MM-dd", { locale: ar })}
+          </span>
+          <span className="text-xs text-muted-foreground/70">
+            {format(new Date(order.created_at), "HH:mm:ss")}
+          </span>
         </div>
       </TableCell>
 
       {/* Link */}
-      <TableCell className="py-4 max-w-[200px]">
+      <TableCell className="py-3.5 px-4 max-w-[180px]">
         {order.link ? (
-          <div className="flex items-center gap-2">
-            <span 
-              className="text-sm text-muted-foreground truncate cursor-pointer hover:text-primary transition-colors"
-              onClick={copyLink}
-              title={order.link}
-            >
-              {truncateLink(order.link)}
-            </span>
-          </div>
+          <span 
+            className="text-xs text-muted-foreground/80 truncate block cursor-pointer hover:text-primary transition-colors font-mono"
+            onClick={copyLink}
+            title={order.link}
+          >
+            {truncateLink(order.link)}
+          </span>
         ) : (
-          <span className="text-sm text-muted-foreground/50">-</span>
+          <span className="text-sm text-muted-foreground/40 text-center block">-</span>
         )}
       </TableCell>
 
       {/* Quantity */}
-      <TableCell className="py-4 text-center">
-        <span className="font-bold text-sm">
+      <TableCell className="py-3.5 px-4 text-center">
+        <span className="font-semibold text-sm text-foreground tabular-nums">
           {order.quantity?.toLocaleString() || 1}
         </span>
       </TableCell>
 
       {/* Price */}
-      <TableCell className="py-4 text-center">
-        <span className="font-bold text-sm">
+      <TableCell className="py-3.5 px-4 text-center">
+        <span className="font-semibold text-sm text-foreground tabular-nums">
           {order.total_price.toFixed(4)}
         </span>
       </TableCell>
 
       {/* Start Count (placeholder) */}
-      <TableCell className="py-4 text-center">
-        <span className="text-sm text-muted-foreground">-</span>
+      <TableCell className="py-3.5 px-4 text-center">
+        <span className="text-sm text-muted-foreground/50">-</span>
       </TableCell>
 
       {/* Service Name */}
-      <TableCell className="py-4">
-        <div className="text-sm font-medium line-clamp-2 max-w-[200px]">
+      <TableCell className="py-3.5 px-4">
+        <div className="text-sm font-medium text-foreground/90 line-clamp-2 max-w-[180px]">
           {order.service?.name}
         </div>
       </TableCell>
 
       {/* Remaining (placeholder) */}
-      <TableCell className="py-4 text-center">
-        <span className="text-sm">0</span>
+      <TableCell className="py-3.5 px-4 text-center">
+        <span className="text-sm text-muted-foreground/60 tabular-nums">0</span>
       </TableCell>
 
       {/* Status */}
-      <TableCell className="py-4">
+      <TableCell className="py-3.5 px-4">
         <Badge 
           className={cn(
-            "text-xs font-semibold px-3 py-1.5 rounded-lg gap-1.5",
+            "text-xs font-medium px-3 py-1.5 rounded-md gap-1.5 shadow-sm",
             statusConfig.bgColor,
             statusConfig.textColor
           )}
         >
           <StatusIcon className={cn(
-            "w-3.5 h-3.5",
+            "w-3 h-3",
             statusConfig.animate && "animate-spin"
           )} style={statusConfig.animate ? { animationDuration: '2s' } : {}} />
           {statusConfig.label}
@@ -444,19 +459,19 @@ export const ModernOrdersTable = memo(({
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-border/50 overflow-hidden bg-card">
+      <div className="rounded-xl border border-border/40 overflow-hidden bg-card shadow-sm">
         <Table>
           <TableHeader>
-            <TableRow className="bg-primary/90 hover:bg-primary/90">
-              <TableHead className="text-primary-foreground font-bold text-right py-4">الرقم</TableHead>
-              <TableHead className="text-primary-foreground font-bold text-right py-4">تاريخ الطلب</TableHead>
-              <TableHead className="text-primary-foreground font-bold text-right py-4">الرابط</TableHead>
-              <TableHead className="text-primary-foreground font-bold text-center py-4">الكمية</TableHead>
-              <TableHead className="text-primary-foreground font-bold text-center py-4">الثمن</TableHead>
-              <TableHead className="text-primary-foreground font-bold text-center py-4">عدد البدا</TableHead>
-              <TableHead className="text-primary-foreground font-bold text-right py-4">الخدمة</TableHead>
-              <TableHead className="text-primary-foreground font-bold text-center py-4">العدد المتبقي</TableHead>
-              <TableHead className="text-primary-foreground font-bold text-right py-4">حالة الطلب</TableHead>
+            <TableRow className="bg-primary hover:bg-primary border-none">
+              <TableHead className="text-primary-foreground/95 font-semibold text-right py-3.5 px-4 text-sm">الرقم</TableHead>
+              <TableHead className="text-primary-foreground/95 font-semibold text-right py-3.5 px-4 text-sm">تاريخ الطلب</TableHead>
+              <TableHead className="text-primary-foreground/95 font-semibold text-right py-3.5 px-4 text-sm">الرابط</TableHead>
+              <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">الكمية</TableHead>
+              <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">الثمن</TableHead>
+              <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">عدد البدء</TableHead>
+              <TableHead className="text-primary-foreground/95 font-semibold text-right py-3.5 px-4 text-sm">الخدمة</TableHead>
+              <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">العدد المتبقي</TableHead>
+              <TableHead className="text-primary-foreground/95 font-semibold text-right py-3.5 px-4 text-sm">حالة الطلب</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -485,18 +500,18 @@ export const ModernOrdersTable = memo(({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-border/50 overflow-hidden bg-card">
+      <div className="rounded-xl border border-border/40 overflow-hidden bg-card shadow-sm">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-primary hover:bg-primary">
+              <TableRow className="bg-primary hover:bg-primary border-none">
                 <SortableHeader 
                   field="order_number" 
                   currentSort={sortField} 
                   direction={sortDirection} 
                   onSort={handleSort}
                 >
-                  <Copy className="w-4 h-4" />
+                  <Copy className="w-3.5 h-3.5" />
                   الرقم
                 </SortableHeader>
                 <SortableHeader 
@@ -507,7 +522,7 @@ export const ModernOrdersTable = memo(({
                 >
                   تاريخ الطلب
                 </SortableHeader>
-                <TableHead className="text-primary-foreground font-bold text-right py-4 whitespace-nowrap">الرابط</TableHead>
+                <TableHead className="text-primary-foreground/95 font-semibold text-right py-3.5 px-4 whitespace-nowrap text-sm">الرابط</TableHead>
                 <SortableHeader 
                   field="quantity" 
                   currentSort={sortField} 
@@ -526,7 +541,7 @@ export const ModernOrdersTable = memo(({
                 >
                   الثمن
                 </SortableHeader>
-                <TableHead className="text-primary-foreground font-bold text-center py-4 whitespace-nowrap">عدد البدا</TableHead>
+                <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 whitespace-nowrap text-sm">عدد البدء</TableHead>
                 <SortableHeader 
                   field="service" 
                   currentSort={sortField} 
@@ -535,7 +550,7 @@ export const ModernOrdersTable = memo(({
                 >
                   الخدمة
                 </SortableHeader>
-                <TableHead className="text-primary-foreground font-bold text-center py-4 whitespace-nowrap">العدد المتبقي</TableHead>
+                <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 whitespace-nowrap text-sm">العدد المتبقي</TableHead>
                 <SortableHeader 
                   field="status" 
                   currentSort={sortField} 
