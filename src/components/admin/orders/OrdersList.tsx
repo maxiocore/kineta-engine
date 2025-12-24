@@ -32,6 +32,7 @@ interface OrdersListProps {
   onToggleSelectAll: () => void;
   onViewOrder: (order: Order) => void;
   onDeleteOrder: (id: string) => void;
+  onCancelOrder: (order: Order) => void;
 }
 
 const OrdersList = ({
@@ -42,6 +43,7 @@ const OrdersList = ({
   onToggleSelectAll,
   onViewOrder,
   onDeleteOrder,
+  onCancelOrder,
 }: OrdersListProps) => {
   return (
     <Card className="border-border/40 overflow-hidden">
@@ -95,6 +97,7 @@ const OrdersList = ({
                   onSelect={onToggleSelect}
                   onView={onViewOrder}
                   onDelete={onDeleteOrder}
+                  onCancel={onCancelOrder}
                   index={index}
                 />
               ))}

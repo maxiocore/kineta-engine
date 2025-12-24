@@ -70,6 +70,9 @@ const AdminOrders = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<"single" | "bulk">("single");
   const [deleting, setDeleting] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancellingOrder, setCancellingOrder] = useState<Order | null>(null);
+  const [cancelling, setCancelling] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
   const [sortBy, setSortBy] = useState<"date" | "price">("date");
@@ -166,6 +169,28 @@ const AdminOrders = () => {
   const resetFilters = () => { setStatusFilter("all"); setServiceFilter("all"); setDateFrom(undefined); setDateTo(undefined); setSearchQuery(""); setActiveTab("all"); };
   const openDeleteDialog = (id: string) => { setDeletingId(id); setDeleteType("single"); setDeleteDialogOpen(true); };
   const openBulkDeleteDialog = () => { if (selectedIds.length === 0) return; setDeleteType("bulk"); setDeleteDialogOpen(true); };
+  const openCancelDialog = (order: Order) => { setCancellingOrder(order); setCancelDialogOpen(true); };
+
+  const handleCancelOrder = async () => {
+    if (!cancellingOrder) return;
+    setCancelling(true);
+    try {
+      const { error } = await supabase.from("orders").update({ 
+        status: 'cancelled' as any, 
+        updated_at: new Date().toISOString() 
+      }).eq("id", cancellingOrder.id);
+      
+      if (error) throw error;
+      toast.success(`تم إلغاء الطلب ${cancellingOrder.order_number} واسترداد المبلغ $${cancellingOrder.total_price}`);
+      fetchOrders();
+    } catch (error) {
+      toast.error("فشل في إلغاء الطلب");
+    } finally {
+      setCancelling(false);
+      setCancelDialogOpen(false);
+      setCancellingOrder(null);
+    }
+  };
 
   const handleConfirmDelete = async () => {
     setDeleting(true);
@@ -246,9 +271,17 @@ const AdminOrders = () => {
               <BulkActionsBar selectedCount={selectedIds.length} onStatusUpdate={handleBulkStatusUpdate} onExport={exportOrders} onDelete={openBulkDeleteDialog} onClear={() => setSelectedIds([])} statusOptions={statusOptions} />
             </CardContent>
           </Card>
-          <OrdersList orders={filteredOrders} loading={loading} selectedIds={selectedIds} onToggleSelect={toggleSelect} onToggleSelectAll={toggleSelectAll} onViewOrder={openOrderDetails} onDeleteOrder={openDeleteDialog} />
+          <OrdersList orders={filteredOrders} loading={loading} selectedIds={selectedIds} onToggleSelect={toggleSelect} onToggleSelectAll={toggleSelectAll} onViewOrder={openOrderDetails} onDeleteOrder={openDeleteDialog} onCancelOrder={openCancelDialog} />
           <OrderDetailsDialog order={selectedOrder} orderHistory={orderHistory} open={!!selectedOrder} onClose={() => setSelectedOrder(null)} onSave={handleUpdateOrder} saving={updating} />
           <ConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} title={deleteType === "single" ? "حذف الطلب" : `حذف ${selectedIds.length} طلب`} description="هل أنت متأكد؟ لا يمكن التراجع عن هذا الإجراء." onConfirm={handleConfirmDelete} loading={deleting} />
+          <ConfirmDialog 
+            open={cancelDialogOpen} 
+            onOpenChange={setCancelDialogOpen} 
+            title="إلغاء الطلب واسترداد الرصيد" 
+            description={cancellingOrder ? `هل تريد إلغاء الطلب ${cancellingOrder.order_number} واسترداد مبلغ $${cancellingOrder.total_price} لرصيد العميل؟` : ""} 
+            onConfirm={handleCancelOrder} 
+            loading={cancelling} 
+          />
         </div>
       </TooltipProvider>
     </AdminDashboardLayout>

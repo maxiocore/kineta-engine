@@ -55,6 +55,7 @@ interface OrderRowProps {
   onSelect: (id: string) => void;
   onView: (order: Order) => void;
   onDelete: (id: string) => void;
+  onCancel: (order: Order) => void;
   index: number;
 }
 
@@ -83,9 +84,10 @@ const copyToClipboard = (text: string) => {
   toast.success("تم النسخ");
 };
 
-const OrderRow = ({ order, isSelected, onSelect, onView, onDelete, index }: OrderRowProps) => {
+const OrderRow = ({ order, isSelected, onSelect, onView, onDelete, onCancel, index }: OrderRowProps) => {
   const config = getStatusConfig(order.status);
   const StatusIcon = config.icon;
+  const canCancel = !['cancelled', 'refunded', 'completed'].includes(order.status);
 
   return (
     <motion.div
@@ -207,6 +209,15 @@ const OrderRow = ({ order, isSelected, onSelect, onView, onDelete, index }: Orde
                     فتح الرابط
                   </a>
                 </DropdownMenuItem>
+              )}
+              {canCancel && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => onCancel(order)} className="gap-2 text-orange-600">
+                    <RotateCcw className="w-4 h-4" />
+                    إلغاء واسترداد الرصيد
+                  </DropdownMenuItem>
+                </>
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => onDelete(order.id)} className="gap-2 text-destructive">
