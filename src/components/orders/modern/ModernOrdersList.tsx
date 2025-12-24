@@ -48,21 +48,24 @@ const OrderSkeleton = ({ index }: { index: number }) => (
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: index * 0.1 }}
-    className="bg-card/50 rounded-3xl border border-border/50 p-6 space-y-4"
+    className="bg-card rounded-2xl border-r-4 border border-border/50 p-5 space-y-4"
+    style={{ borderRightColor: '#8b5cf6' }}
   >
-    <div className="flex items-center gap-4">
+    <div className="flex items-start gap-4">
       <div className="w-14 h-14 rounded-2xl bg-muted animate-pulse" />
       <div className="space-y-2 flex-1">
-        <div className="h-4 w-24 bg-muted rounded-lg animate-pulse" />
-        <div className="h-6 w-20 bg-muted rounded-full animate-pulse" />
+        <div className="h-4 w-28 bg-muted rounded-lg animate-pulse" />
+        <div className="h-5 w-20 bg-muted rounded-full animate-pulse" />
       </div>
     </div>
-    <div className="h-5 w-3/4 bg-muted rounded-lg animate-pulse" />
-    <div className="grid grid-cols-2 gap-4">
-      <div className="h-16 bg-muted rounded-xl animate-pulse" />
-      <div className="h-16 bg-muted rounded-xl animate-pulse" />
+    <div className="h-4 w-3/4 bg-muted rounded-lg animate-pulse" />
+    <div className="grid grid-cols-2 gap-2">
+      <div className="h-14 bg-muted rounded-xl animate-pulse" />
+      <div className="h-14 bg-muted rounded-xl animate-pulse" />
     </div>
-    <div className="h-2.5 bg-muted rounded-full animate-pulse" />
+    <div className="space-y-1.5">
+      <div className="h-2 bg-muted rounded-full animate-pulse" />
+    </div>
     <div className="h-4 w-1/2 bg-muted rounded-lg animate-pulse" />
   </motion.div>
 );

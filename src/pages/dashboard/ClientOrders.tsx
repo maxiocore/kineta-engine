@@ -272,41 +272,40 @@ const ClientOrders = () => {
   return (
     <ClientDashboardLayout>
       <motion.div 
-        className="space-y-6 pb-8 px-1" 
+        className="space-y-5 pb-8 px-1" 
         dir="rtl"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        {/* Modern Header */}
+        {/* Compact Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-primary/20 via-primary/10 to-accent/10 p-6 md:p-8"
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-primary/10 via-primary/5 to-accent/5 p-5 md:p-6 border border-border/50"
         >
           {/* Background Effects */}
-          <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-          <div className="absolute top-0 left-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-40 h-40 bg-accent/20 rounded-full blur-3xl" />
+          <div className="absolute top-0 left-0 w-24 h-24 bg-primary/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-0 w-32 h-32 bg-accent/20 rounded-full blur-3xl" />
           
-          <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+          <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
               <motion.div 
                 className="relative"
                 animate={{ scale: [1, 1.05, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30">
-                  <ShoppingBag className="w-7 h-7 md:w-8 md:h-8 text-white" />
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30">
+                  <ShoppingBag className="w-6 h-6 md:w-7 md:h-7 text-white" />
                 </div>
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-success rounded-full flex items-center justify-center shadow-sm">
-                  <Sparkles className="w-3 h-3 text-white" />
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center shadow-sm">
+                  <Sparkles className="w-2.5 h-2.5 text-white" />
                 </div>
               </motion.div>
               
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-foreground">طلباتي</h1>
-                <p className="text-sm md:text-base text-muted-foreground">
-                  إدارة ومتابعة جميع طلباتك في مكان واحد
+                <h1 className="text-xl md:text-2xl font-bold text-foreground">طلباتي</h1>
+                <p className="text-xs md:text-sm text-muted-foreground">
+                  إدارة ومتابعة جميع طلباتك
                 </p>
               </div>
             </div>
@@ -315,28 +314,27 @@ const ClientOrders = () => {
               <Button 
                 onClick={() => navigate('/dashboard/our-services')} 
                 className="gap-2 rounded-xl shadow-lg shadow-primary/20"
-                size="lg"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-4 h-4" />
                 طلب جديد
               </Button>
             </motion.div>
           </div>
 
           {/* Quick Type Icons */}
-          <div className="relative mt-6 flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-pink-500/10">
-                <Share2 className="w-4 h-4 text-pink-500" />
-                <span className="font-medium">{typeCounts.social}</span>
+          <div className="relative mt-4 flex items-center gap-3">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-pink-500/10 border border-pink-500/20">
+                <Share2 className="w-3.5 h-3.5 text-pink-500" />
+                <span className="font-semibold text-pink-500">{typeCounts.social}</span>
               </div>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-violet-500/10">
-                <Palette className="w-4 h-4 text-violet-500" />
-                <span className="font-medium">{typeCounts.design}</span>
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-violet-500/10 border border-violet-500/20">
+                <Palette className="w-3.5 h-3.5 text-violet-500" />
+                <span className="font-semibold text-violet-500">{typeCounts.design}</span>
               </div>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10">
-                <Code className="w-4 h-4 text-emerald-500" />
-                <span className="font-medium">{typeCounts.dev}</span>
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                <Code className="w-3.5 h-3.5 text-emerald-500" />
+                <span className="font-semibold text-emerald-500">{typeCounts.dev}</span>
               </div>
             </div>
           </div>
@@ -344,9 +342,9 @@ const ClientOrders = () => {
 
         {/* Type Tabs */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.08 }}
         >
           <OrdersTypeTabs 
             activeType={activeType} 
@@ -357,18 +355,18 @@ const ClientOrders = () => {
 
         {/* Stats */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          transition={{ delay: 0.12 }}
         >
           <ModernOrdersStats stats={stats} totalSpent={totalSpent} />
         </motion.div>
 
         {/* Search & Filters */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.16 }}
         >
           <ModernOrdersSearch
             searchQuery={searchQuery}
@@ -387,9 +385,9 @@ const ClientOrders = () => {
 
         {/* Orders List */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+          transition={{ delay: 0.2 }}
         >
           <ModernOrdersList
             orders={filteredOrders}
