@@ -272,7 +272,7 @@ const AdminOrders = () => {
             </CardContent>
           </Card>
           <OrdersList orders={filteredOrders} loading={loading} selectedIds={selectedIds} onToggleSelect={toggleSelect} onToggleSelectAll={toggleSelectAll} onViewOrder={openOrderDetails} onDeleteOrder={openDeleteDialog} onCancelOrder={openCancelDialog} />
-          <OrderDetailsDialog order={selectedOrder} orderHistory={orderHistory} open={!!selectedOrder} onClose={() => setSelectedOrder(null)} onSave={handleUpdateOrder} saving={updating} />
+          <OrderDetailsDialog order={selectedOrder} orderHistory={orderHistory} open={!!selectedOrder} onClose={() => setSelectedOrder(null)} onSave={handleUpdateOrder} onCancel={(order) => { setSelectedOrder(null); openCancelDialog(order); }} saving={updating} />
           <ConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} title={deleteType === "single" ? "حذف الطلب" : `حذف ${selectedIds.length} طلب`} description="هل أنت متأكد؟ لا يمكن التراجع عن هذا الإجراء." onConfirm={handleConfirmDelete} loading={deleting} />
           <ConfirmDialog 
             open={cancelDialogOpen} 
