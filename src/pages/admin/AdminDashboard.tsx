@@ -191,22 +191,26 @@ const AdminDashboard = () => {
       const totalOrders = orders?.length || 0;
       const pendingOrders = orders?.filter(o => o.status === "pending")?.length || 0;
       const completedOrders = orders?.filter(o => o.status === "completed")?.length || 0;
-      const totalRevenue = orders?.reduce((sum, o) => sum + Number(o.total_price), 0) || 0;
+      // Only count completed orders for revenue (exclude cancelled, refunded orders)
+      const completedOrdersForRevenue = orders?.filter(o => 
+        o.status === 'completed' || o.status === 'in_progress' || o.status === 'processing'
+      ) || [];
+      const totalRevenue = completedOrdersForRevenue.reduce((sum, o) => sum + Number(o.total_price), 0) || 0;
 
       const currentMonth = new Date().getMonth();
       const currentYear = new Date().getFullYear();
-      const monthlyRevenue = orders?.filter(o => {
+      const monthlyRevenue = completedOrdersForRevenue.filter(o => {
         const orderDate = new Date(o.created_at);
         return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
       }).reduce((sum, o) => sum + Number(o.total_price), 0) || 0;
 
-      const weeklyRevenue = orders?.filter(o => new Date(o.created_at) > weekAgo)
+      const weeklyRevenue = completedOrdersForRevenue.filter(o => new Date(o.created_at) > weekAgo)
         .reduce((sum, o) => sum + Number(o.total_price), 0) || 0;
 
       const newOrdersThisWeek = orders?.filter(o => new Date(o.created_at) > weekAgo).length || 0;
       const ordersTrend = totalOrders > 0 ? Math.round((newOrdersThisWeek / totalOrders) * 100) : 0;
 
-      const lastMonthRevenue = orders?.filter(o => {
+      const lastMonthRevenue = completedOrdersForRevenue.filter(o => {
         const orderDate = new Date(o.created_at);
         return orderDate.getMonth() === (currentMonth - 1) && orderDate.getFullYear() === currentYear;
       }).reduce((sum, o) => sum + Number(o.total_price), 0) || 0;
@@ -325,7 +329,11 @@ const AdminDashboard = () => {
       const serviceStats: TopService[] = [];
       for (const service of services || []) {
         const serviceOrders = orders?.filter(o => o.service_id === service.id) || [];
-        const revenue = serviceOrders.reduce((sum, o) => sum + Number(o.total_price), 0);
+        // Only count completed orders for service revenue
+        const completedServiceOrders = serviceOrders.filter(o => 
+          o.status === 'completed' || o.status === 'in_progress' || o.status === 'processing'
+        );
+        const revenue = completedServiceOrders.reduce((sum, o) => sum + Number(o.total_price), 0);
         
         const recentServiceOrders = serviceOrders.filter(o => new Date(o.created_at) > weekAgo);
         const trend = serviceOrders.length > 0 
