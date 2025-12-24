@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { RealtimeChannel } from "@supabase/supabase-js";
@@ -12,10 +12,12 @@ import {
   ChevronDown,
   ChevronUp,
   Check,
-  AlertCircle,
   Percent,
   DollarSign,
-  ArrowRight,
+  Building2,
+  CreditCard,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +25,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -31,6 +35,13 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -59,12 +70,42 @@ interface CashbackSettings {
   is_active: boolean;
 }
 
+interface BankWithdrawalRequest {
+  id: string;
+  amount: number;
+  bank_name: string;
+  account_holder_name: string;
+  iban: string;
+  status: string;
+  admin_notes: string | null;
+  created_at: string;
+}
+
+const SAUDI_BANKS = [
+  "البنك الأهلي السعودي",
+  "بنك الراجحي",
+  "بنك الرياض",
+  "بنك الإنماء",
+  "البنك العربي الوطني",
+  "بنك البلاد",
+  "البنك السعودي الفرنسي",
+  "بنك ساب",
+  "البنك السعودي للاستثمار",
+  "بنك الجزيرة",
+];
+
+const MIN_BANK_WITHDRAWAL = 100;
+
 const ClientCashback = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [showAllTransactions, setShowAllTransactions] = useState(false);
+  const [withdrawType, setWithdrawType] = useState<"balance" | "bank">("balance");
+  const [bankName, setBankName] = useState("");
+  const [accountHolderName, setAccountHolderName] = useState("");
+  const [iban, setIban] = useState("");
 
   // Realtime subscription for cashback updates
   useEffect(() => {
@@ -163,7 +204,24 @@ const ClientCashback = () => {
     enabled: !!user,
   });
 
-  // Withdraw mutation
+  // Fetch bank withdrawal requests
+  const { data: bankRequests } = useQuery({
+    queryKey: ["bank-withdrawal-requests", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("bank_withdrawal_requests")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      return data as BankWithdrawalRequest[];
+    },
+    enabled: !!user,
+  });
+
+  // Withdraw to balance mutation
   const withdrawMutation = useMutation({
     mutationFn: async (amount: number) => {
       if (!user) throw new Error("Not authenticated");
@@ -195,6 +253,60 @@ const ClientCashback = () => {
     },
   });
 
+  // Bank withdrawal mutation
+  const bankWithdrawMutation = useMutation({
+    mutationFn: async (data: { amount: number; bank_name: string; account_holder_name: string; iban: string }) => {
+      if (!user) throw new Error("Not authenticated");
+      
+      // First deduct from cashback balance
+      const { data: rpcResult, error: rpcError } = await supabase.rpc("withdraw_cashback", {
+        p_user_id: user.id,
+        p_amount: data.amount,
+      });
+      
+      if (rpcError) throw rpcError;
+      
+      const result = rpcResult as { success: boolean; error?: string };
+      if (!result.success) {
+        throw new Error(result.error || "فشل السحب");
+      }
+      
+      // Then create bank withdrawal request
+      const { error } = await supabase
+        .from("bank_withdrawal_requests")
+        .insert({
+          user_id: user.id,
+          amount: data.amount,
+          bank_name: data.bank_name,
+          account_holder_name: data.account_holder_name,
+          iban: data.iban,
+        });
+      
+      if (error) throw error;
+      
+      return { success: true };
+    },
+    onSuccess: () => {
+      toast.success("تم إرسال طلب السحب البنكي بنجاح! سيتم التحويل خلال 1-3 أيام عمل.");
+      queryClient.invalidateQueries({ queryKey: ["user-cashback"] });
+      queryClient.invalidateQueries({ queryKey: ["cashback-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["bank-withdrawal-requests"] });
+      setWithdrawDialogOpen(false);
+      resetForm();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "حدث خطأ أثناء إرسال طلب السحب");
+    },
+  });
+
+  const resetForm = () => {
+    setWithdrawAmount("");
+    setBankName("");
+    setAccountHolderName("");
+    setIban("");
+    setWithdrawType("balance");
+  };
+
   const handleWithdraw = () => {
     const amount = parseFloat(withdrawAmount);
     if (isNaN(amount) || amount <= 0) {
@@ -205,8 +317,37 @@ const ClientCashback = () => {
       toast.error("المبلغ المطلوب أكبر من رصيد الكاش باك");
       return;
     }
-    withdrawMutation.mutate(amount);
+
+    if (withdrawType === "balance") {
+      withdrawMutation.mutate(amount);
+    } else {
+      // Bank withdrawal
+      if (amount < MIN_BANK_WITHDRAWAL) {
+        toast.error(`الحد الأدنى للسحب البنكي هو ${MIN_BANK_WITHDRAWAL} ر.س`);
+        return;
+      }
+      if (!bankName) {
+        toast.error("الرجاء اختيار البنك");
+        return;
+      }
+      if (!accountHolderName.trim()) {
+        toast.error("الرجاء إدخال اسم صاحب الحساب");
+        return;
+      }
+      if (!iban.trim() || iban.length < 20) {
+        toast.error("الرجاء إدخال رقم IBAN صحيح");
+        return;
+      }
+      bankWithdrawMutation.mutate({
+        amount,
+        bank_name: bankName,
+        account_holder_name: accountHolderName,
+        iban: iban.toUpperCase(),
+      });
+    }
   };
+
+  const canWithdrawToBank = (cashbackData?.cashback_balance || 0) >= MIN_BANK_WITHDRAWAL;
 
   const displayedTransactions = showAllTransactions 
     ? transactions 
@@ -368,31 +509,145 @@ const ClientCashback = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                <div className="flex-1 w-full">
-                  <p className="text-muted-foreground text-sm mb-3">
-                    يمكنك سحب رصيد الكاش باك إلى رصيدك الرئيسي في أي وقت واستخدامه في طلباتك
-                  </p>
-                  <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/50">
-                    <Gift className="w-5 h-5 text-emerald-500" />
-                    <span className="text-sm">الرصيد المتاح للسحب:</span>
-                    <span className="font-bold text-emerald-500">
-                      {(cashbackData?.cashback_balance || 0).toFixed(2)} ر.س
-                    </span>
+              <div className="space-y-4">
+                <p className="text-muted-foreground text-sm">
+                  يمكنك سحب رصيد الكاش باك إلى رصيدك الرئيسي أو إلى حسابك البنكي
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Option 1: Withdraw to Balance */}
+                  <div className="p-4 rounded-xl border border-border/50 bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                        <CreditCard className="w-5 h-5 text-emerald-500" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold">سحب للرصيد الرئيسي</h4>
+                        <p className="text-xs text-muted-foreground">فوري ومتاح دائماً</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-background mb-3">
+                      <Gift className="w-4 h-4 text-emerald-500" />
+                      <span className="text-sm">المتاح:</span>
+                      <span className="font-bold text-emerald-500">
+                        {(cashbackData?.cashback_balance || 0).toFixed(2)} ر.س
+                      </span>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        setWithdrawType("balance");
+                        setWithdrawDialogOpen(true);
+                      }}
+                      disabled={!cashbackData || cashbackData.cashback_balance <= 0}
+                      className="w-full gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white"
+                      size="sm"
+                    >
+                      <ArrowDownToLine className="w-4 h-4" />
+                      سحب للرصيد
+                    </Button>
+                  </div>
+
+                  {/* Option 2: Withdraw to Bank */}
+                  <div className="p-4 rounded-xl border border-border/50 bg-muted/30 hover:bg-muted/50 transition-colors relative">
+                    {!canWithdrawToBank && (
+                      <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px] rounded-xl flex items-center justify-center z-10">
+                        <div className="text-center p-4">
+                          <AlertTriangle className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+                          <p className="text-sm font-medium">الحد الأدنى للسحب البنكي</p>
+                          <p className="text-lg font-bold text-amber-500">{MIN_BANK_WITHDRAWAL} ر.س</p>
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                        <Building2 className="w-5 h-5 text-blue-500" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold">سحب للحساب البنكي</h4>
+                        <p className="text-xs text-muted-foreground">1-3 أيام عمل</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">جديد</Badge>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-background mb-3">
+                      <Clock className="w-4 h-4 text-blue-500" />
+                      <span className="text-xs text-muted-foreground">الحد الأدنى: {MIN_BANK_WITHDRAWAL} ر.س</span>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        setWithdrawType("bank");
+                        setWithdrawDialogOpen(true);
+                      }}
+                      disabled={!canWithdrawToBank}
+                      variant="outline"
+                      className="w-full gap-2"
+                      size="sm"
+                    >
+                      <Building2 className="w-4 h-4" />
+                      سحب لحساب بنكي
+                    </Button>
                   </div>
                 </div>
-                <Button
-                  onClick={() => setWithdrawDialogOpen(true)}
-                  disabled={!cashbackData || cashbackData.cashback_balance <= 0}
-                  className="gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg"
-                >
-                  <ArrowDownToLine className="w-4 h-4" />
-                  سحب الكاش باك
-                </Button>
               </div>
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Bank Withdrawal Requests */}
+        {bankRequests && bankRequests.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45 }}
+          >
+            <Card className="border-border/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-blue-500" />
+                  طلبات السحب البنكي
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {bankRequests.slice(0, 5).map((request) => (
+                    <div
+                      key={request.id}
+                      className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border border-border/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          request.status === "completed" ? "bg-green-500/20 text-green-500" :
+                          request.status === "rejected" ? "bg-red-500/20 text-red-500" :
+                          "bg-amber-500/20 text-amber-500"
+                        }`}>
+                          <Building2 className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{request.bank_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(request.created_at), "dd MMMM yyyy", { locale: ar })}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-left">
+                        <p className="font-bold text-lg">{request.amount.toFixed(2)} ر.س</p>
+                        <Badge variant={
+                          request.status === "completed" ? "default" :
+                          request.status === "rejected" ? "destructive" :
+                          "secondary"
+                        } className="text-xs">
+                          {request.status === "pending" && "قيد المراجعة"}
+                          {request.status === "processing" && "قيد التنفيذ"}
+                          {request.status === "completed" && "مكتمل"}
+                          {request.status === "rejected" && "مرفوض"}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* How it Works */}
         <motion.div
@@ -425,7 +680,7 @@ const ClientCashback = () => {
                   {
                     step: 3,
                     title: "اسحب أو استخدم",
-                    desc: "اسحب الكاش باك لرصيدك واستخدمه في طلباتك",
+                    desc: "اسحب للرصيد فوراً أو للبنك عند تجاوز 100 ر.س",
                     icon: Wallet,
                   },
                 ].map((item) => (
@@ -548,28 +803,46 @@ const ClientCashback = () => {
         </motion.div>
 
         {/* Withdraw Dialog */}
-        <Dialog open={withdrawDialogOpen} onOpenChange={setWithdrawDialogOpen}>
-          <DialogContent className="sm:max-w-md" dir="rtl">
+        <Dialog open={withdrawDialogOpen} onOpenChange={(open) => {
+          setWithdrawDialogOpen(open);
+          if (!open) resetForm();
+        }}>
+          <DialogContent className="sm:max-w-lg" dir="rtl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <ArrowDownToLine className="w-5 h-5 text-emerald-500" />
-                سحب الكاش باك
+                {withdrawType === "balance" ? (
+                  <CreditCard className="w-5 h-5 text-emerald-500" />
+                ) : (
+                  <Building2 className="w-5 h-5 text-blue-500" />
+                )}
+                {withdrawType === "balance" ? "سحب للرصيد الرئيسي" : "سحب للحساب البنكي"}
               </DialogTitle>
               <DialogDescription>
-                أدخل المبلغ الذي تريد سحبه إلى رصيدك الرئيسي
+                {withdrawType === "balance" 
+                  ? "أدخل المبلغ الذي تريد سحبه إلى رصيدك الرئيسي"
+                  : "أدخل بيانات حسابك البنكي لتحويل الكاش باك"
+                }
               </DialogDescription>
             </DialogHeader>
+            
             <div className="space-y-4 py-4">
               <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">الرصيد المتاح</span>
                   <span className="font-bold text-emerald-500">
-                    ${(cashbackData?.cashback_balance || 0).toFixed(2)}
+                    {(cashbackData?.cashback_balance || 0).toFixed(2)} ر.س
                   </span>
                 </div>
+                {withdrawType === "bank" && (
+                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
+                    <span className="text-xs text-muted-foreground">الحد الأدنى للسحب البنكي</span>
+                    <span className="text-sm font-medium text-amber-500">{MIN_BANK_WITHDRAWAL} ر.س</span>
+                  </div>
+                )}
               </div>
+
               <div>
-                <label className="text-sm font-medium mb-2 block">مبلغ السحب ($)</label>
+                <Label className="text-sm font-medium mb-2 block">مبلغ السحب (ر.س)</Label>
                 <Input
                   type="number"
                   placeholder="0.00"
@@ -577,10 +850,11 @@ const ClientCashback = () => {
                   onChange={(e) => setWithdrawAmount(e.target.value)}
                   className="text-lg h-12"
                   step="0.01"
-                  min="0"
+                  min={withdrawType === "bank" ? MIN_BANK_WITHDRAWAL : 0}
                   max={cashbackData?.cashback_balance || 0}
                 />
               </div>
+
               <Button
                 variant="outline"
                 size="sm"
@@ -589,22 +863,78 @@ const ClientCashback = () => {
               >
                 سحب كل الرصيد
               </Button>
+
+              {withdrawType === "bank" && (
+                <>
+                  <div className="border-t border-border/50 pt-4">
+                    <h4 className="font-medium mb-3">بيانات الحساب البنكي</h4>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-sm mb-2 block">البنك</Label>
+                        <Select value={bankName} onValueChange={setBankName}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر البنك" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {SAUDI_BANKS.map((bank) => (
+                              <SelectItem key={bank} value={bank}>
+                                {bank}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label className="text-sm mb-2 block">اسم صاحب الحساب</Label>
+                        <Input
+                          placeholder="الاسم كما يظهر في الحساب البنكي"
+                          value={accountHolderName}
+                          onChange={(e) => setAccountHolderName(e.target.value)}
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-sm mb-2 block">رقم IBAN</Label>
+                        <Input
+                          placeholder="SA..."
+                          value={iban}
+                          onChange={(e) => setIban(e.target.value.toUpperCase())}
+                          className="font-mono tracking-wider"
+                          dir="ltr"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          يبدأ بـ SA ويتكون من 24 حرف ورقم
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
+
             <DialogFooter className="gap-2">
-              <Button variant="outline" onClick={() => setWithdrawDialogOpen(false)}>
+              <Button variant="outline" onClick={() => {
+                setWithdrawDialogOpen(false);
+                resetForm();
+              }}>
                 إلغاء
               </Button>
               <Button
                 onClick={handleWithdraw}
-                disabled={withdrawMutation.isPending}
-                className="gap-2 bg-gradient-to-r from-emerald-500 to-teal-500"
+                disabled={withdrawMutation.isPending || bankWithdrawMutation.isPending}
+                className={`gap-2 ${withdrawType === "balance" 
+                  ? "bg-gradient-to-r from-emerald-500 to-teal-500" 
+                  : "bg-gradient-to-r from-blue-500 to-cyan-500"
+                }`}
               >
-                {withdrawMutation.isPending ? (
+                {(withdrawMutation.isPending || bankWithdrawMutation.isPending) ? (
                   "جاري السحب..."
                 ) : (
                   <>
                     <Check className="w-4 h-4" />
-                    تأكيد السحب
+                    {withdrawType === "balance" ? "تأكيد السحب" : "إرسال طلب السحب"}
                   </>
                 )}
               </Button>

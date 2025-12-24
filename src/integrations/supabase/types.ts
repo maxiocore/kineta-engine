@@ -271,6 +271,48 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_withdrawal_requests: {
+        Row: {
+          account_holder_name: string
+          admin_notes: string | null
+          amount: number
+          bank_name: string
+          created_at: string
+          iban: string
+          id: string
+          processed_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_holder_name: string
+          admin_notes?: string | null
+          amount: number
+          bank_name: string
+          created_at?: string
+          iban: string
+          id?: string
+          processed_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_holder_name?: string
+          admin_notes?: string | null
+          amount?: number
+          bank_name?: string
+          created_at?: string
+          iban?: string
+          id?: string
+          processed_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cashback_settings: {
         Row: {
           cashback_percentage: number
