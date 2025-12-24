@@ -27,6 +27,7 @@ import {
   HeadphonesIcon,
   Mail,
   FileText,
+  Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -55,6 +56,7 @@ const adminNavItems: NavItem[] = [
   { label: "طرق الدفع", href: "/admin/payments", icon: CreditCard },
   { label: "المحافظ", href: "/admin/wallets", icon: Wallet },
   { label: "كاش باك", href: "/admin/cashback", icon: Coins },
+  { label: "السحب البنكي", href: "/admin/bank-withdrawals", icon: Building2 },
   { label: "إعادة التعبئة", href: "/admin/refills", icon: RefreshCw },
   { label: "الكوبونات", href: "/admin/coupons", icon: Ticket },
   { label: "الشارات", href: "/admin/badges", icon: Award },

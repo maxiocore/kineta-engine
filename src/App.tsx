@@ -71,6 +71,7 @@ import AdminRewards from "./pages/admin/AdminRewards";
 import AdminRewardsReports from "./pages/admin/AdminRewardsReports";
 import AdminWallets from "./pages/admin/AdminWallets";
 import AdminCashback from "./pages/admin/AdminCashback";
+import AdminBankWithdrawals from "./pages/admin/AdminBankWithdrawals";
 import AdminUserSettings from "./pages/admin/AdminUserSettings";
 import AdminFeaturedOffers from "./pages/admin/AdminFeaturedOffers";
 
@@ -210,6 +211,11 @@ const App = () => (
                   <Route path="/admin/cashback" element={
                     <ProtectedRoute requireAdmin>
                       <AdminCashback />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/bank-withdrawals" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminBankWithdrawals />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/payments" element={
