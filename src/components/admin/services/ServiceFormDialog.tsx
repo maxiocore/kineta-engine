@@ -52,6 +52,7 @@ import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ServiceDescriptionDisplay } from "./ServiceDescriptionDisplay";
 
 // Dynamic icon component
 interface DynamicIconProps extends Omit<LucideProps, 'ref'> {
@@ -625,21 +626,44 @@ const ServiceFormDialog = ({
                   </div>
 
                   {/* Description */}
-                  <div className="space-y-2 text-right">
+                  <div className="space-y-3 text-right">
                     <Label className="flex items-center gap-2 justify-end text-sm font-medium">
                       <span>وصف الخدمة</span>
                       <FileText className="w-4 h-4 text-muted-foreground" />
                     </Label>
-                    <Textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="وصف تفصيلي للخدمة يوضح مميزاتها وطريقة تنفيذها..."
-                      className="bg-secondary/50 min-h-28 text-right resize-none"
-                      dir="rtl"
-                    />
-                    <p className="text-xs text-muted-foreground text-left">
-                      {formData.description.length}/500 حرف
-                    </p>
+                    
+                    {/* Display parsed description in modern format */}
+                    {formData.description && (
+                      <div className="mb-3">
+                        <ServiceDescriptionDisplay description={formData.description} />
+                      </div>
+                    )}
+                    
+                    <Collapsible>
+                      <CollapsibleTrigger asChild>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full justify-between gap-2"
+                        >
+                          <ChevronDown className="w-4 h-4" />
+                          <span>تعديل الوصف يدوياً</span>
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="pt-3">
+                        <Textarea
+                          value={formData.description}
+                          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                          placeholder="وصف تفصيلي للخدمة يوضح مميزاتها وطريقة تنفيذها..."
+                          className="bg-secondary/50 min-h-28 text-right resize-none"
+                          dir="rtl"
+                        />
+                        <p className="text-xs text-muted-foreground text-left mt-1">
+                          {formData.description.length}/500 حرف
+                        </p>
+                      </CollapsibleContent>
+                    </Collapsible>
                   </div>
                 </motion.div>
               </TabsContent>
