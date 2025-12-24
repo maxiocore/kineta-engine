@@ -427,9 +427,20 @@ const ClientOrderDetails = () => {
   }, [order]);
 
   const generateArabicPDF = useCallback(async () => {
-    if (!order) return;
+    if (!order || !user) return;
     
     toast.loading('جاري إنشاء الفاتورة العربية...');
+
+    // Fetch customer profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name, email')
+      .eq('id', user.id)
+      .single();
+
+    const customerName = profile?.full_name || user.user_metadata?.full_name || 'غير محدد';
+    const customerEmail = profile?.email || user.email || 'غير محدد';
+    const customerPhone = user.phone || user.user_metadata?.phone || 'غير متوفر';
     
     const statusLabels: Record<string, string> = {
       pending: 'قيد الانتظار',
@@ -542,24 +553,70 @@ const ClientOrderDetails = () => {
         </div>
 
         <!-- Main Content -->
-        <div style="padding: 35px 45px;">
+        <div style="padding: 30px 45px;">
           
-          <!-- Date & Info Row -->
-          <div style="display: flex; gap: 20px; margin-bottom: 30px;">
-            <table style="width: 100%; background: #F8FAFC; border-radius: 12px; overflow: hidden;">
+          <!-- Customer & Date Info Row -->
+          <div style="display: flex; gap: 20px; margin-bottom: 25px;">
+            <table style="width: 100%; border-collapse: collapse;">
               <tr>
-                <td style="padding: 20px 25px; border-left: 1px solid #E2E8F0; width: 33%;">
-                  <p style="color: #64748B; font-size: 11px; margin: 0; font-weight: 600; text-transform: uppercase;">تاريخ الإصدار</p>
-                  <p style="color: #0F172A; font-size: 16px; font-weight: 700; margin: 8px 0 0;">${format(new Date(order.created_at), 'dd / MM / yyyy')}</p>
-                  <p style="color: #94A3B8; font-size: 12px; margin: 4px 0 0;">${format(new Date(order.created_at), 'hh:mm a')}</p>
+                <!-- Customer Info Card -->
+                <td style="width: 50%; vertical-align: top; padding-left: 10px;">
+                  <div style="background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%); border: 2px solid #C7D2FE; border-radius: 12px; padding: 18px 20px; height: 100%;">
+                    <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                      <span style="display: inline-block; width: 32px; height: 32px; background: #6366F1; border-radius: 50%; text-align: center; line-height: 32px; color: white; font-size: 14px; margin-left: 10px;">👤</span>
+                      <p style="color: #4338CA; font-size: 13px; font-weight: 700; margin: 0;">بيانات العميل</p>
+                    </div>
+                    <table style="width: 100%;">
+                      <tr>
+                        <td style="padding: 6px 0;">
+                          <p style="color: #64748B; font-size: 10px; margin: 0; font-weight: 600;">الاسم</p>
+                          <p style="color: #1E293B; font-size: 13px; font-weight: 700; margin: 3px 0 0;">${customerName}</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 0; border-top: 1px dashed #C7D2FE;">
+                          <p style="color: #64748B; font-size: 10px; margin: 0; font-weight: 600;">البريد الإلكتروني</p>
+                          <p style="color: #1E293B; font-size: 11px; font-weight: 600; margin: 3px 0 0; direction: ltr; text-align: right;">${customerEmail}</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 0; border-top: 1px dashed #C7D2FE;">
+                          <p style="color: #64748B; font-size: 10px; margin: 0; font-weight: 600;">رقم الجوال</p>
+                          <p style="color: #1E293B; font-size: 12px; font-weight: 600; margin: 3px 0 0; direction: ltr; text-align: right;">${customerPhone}</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
                 </td>
-                <td style="padding: 20px 25px; border-left: 1px solid #E2E8F0; width: 33%;">
-                  <p style="color: #64748B; font-size: 11px; margin: 0; font-weight: 600; text-transform: uppercase;">رقم المرجع الخارجي</p>
-                  <p style="color: #0F172A; font-size: 14px; font-weight: 600; margin: 8px 0 0; font-family: monospace;">${order.external_order_id || 'غير متوفر'}</p>
-                </td>
-                <td style="padding: 20px 25px; width: 34%;">
-                  <p style="color: #64748B; font-size: 11px; margin: 0; font-weight: 600; text-transform: uppercase;">التصنيف</p>
-                  <p style="color: #0F172A; font-size: 14px; font-weight: 600; margin: 8px 0 0;">${order.service?.category || 'عام'}</p>
+                <!-- Invoice Date Card -->
+                <td style="width: 50%; vertical-align: top; padding-right: 10px;">
+                  <div style="background: #F8FAFC; border: 2px solid #E2E8F0; border-radius: 12px; padding: 18px 20px; height: 100%;">
+                    <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                      <span style="display: inline-block; width: 32px; height: 32px; background: #0F172A; border-radius: 50%; text-align: center; line-height: 32px; color: white; font-size: 14px; margin-left: 10px;">📋</span>
+                      <p style="color: #0F172A; font-size: 13px; font-weight: 700; margin: 0;">تفاصيل الفاتورة</p>
+                    </div>
+                    <table style="width: 100%;">
+                      <tr>
+                        <td style="padding: 6px 0;">
+                          <p style="color: #64748B; font-size: 10px; margin: 0; font-weight: 600;">تاريخ الإصدار</p>
+                          <p style="color: #0F172A; font-size: 14px; font-weight: 700; margin: 3px 0 0;">${format(new Date(order.created_at), 'dd / MM / yyyy')}</p>
+                          <p style="color: #94A3B8; font-size: 11px; margin: 2px 0 0;">${format(new Date(order.created_at), 'hh:mm a')}</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 0; border-top: 1px dashed #E2E8F0;">
+                          <p style="color: #64748B; font-size: 10px; margin: 0; font-weight: 600;">رقم المرجع الخارجي</p>
+                          <p style="color: #0F172A; font-size: 12px; font-weight: 600; margin: 3px 0 0; font-family: monospace;">${order.external_order_id || 'غير متوفر'}</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 6px 0; border-top: 1px dashed #E2E8F0;">
+                          <p style="color: #64748B; font-size: 10px; margin: 0; font-weight: 600;">التصنيف</p>
+                          <p style="color: #0F172A; font-size: 12px; font-weight: 600; margin: 3px 0 0;">${order.service?.category || 'عام'}</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
                 </td>
               </tr>
             </table>
