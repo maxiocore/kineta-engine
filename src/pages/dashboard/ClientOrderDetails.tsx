@@ -7,7 +7,7 @@ import {
   CheckCircle, XCircle, AlertCircle, Package, ArrowRight,
   MessageCircle, RefreshCw, History, Download,
   Sparkles, TrendingUp, RotateCcw, DollarSign, 
-  FileText, Share2, Printer, Star, ChevronDown
+  FileText, Share2, Printer, Star, ChevronDown, Mail
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -698,6 +698,90 @@ const ClientOrderDetails = () => {
     }
   }, [order]);
 
+  const shareViaWhatsApp = useCallback(() => {
+    if (!order) return;
+    
+    const statusLabels: Record<string, string> = {
+      pending: 'قيد الانتظار',
+      processing: 'قيد المعالجة',
+      in_progress: 'قيد التنفيذ',
+      completed: 'مكتمل',
+      partial: 'مكتمل جزئياً',
+      cancelled: 'ملغي',
+      refunded: 'مسترجع',
+    };
+    
+    const message = `
+🧾 *فاتورة طلب - MARKETO*
+
+📋 *رقم الطلب:* ${order.order_number}
+📅 *التاريخ:* ${format(new Date(order.created_at), 'dd/MM/yyyy - HH:mm')}
+📊 *الحالة:* ${statusLabels[order.status] || order.status}
+
+🛍️ *تفاصيل الخدمة:*
+• الخدمة: ${order.service?.name || 'غير محدد'}
+• التصنيف: ${order.service?.category || 'غير محدد'}
+• الكمية: ${(order.quantity || 1).toLocaleString('ar-SA')}
+• سعر الوحدة: ${(order.service?.price || 0).toFixed(4)} ر.س
+
+💰 *ملخص الدفع:*
+• المجموع الفرعي: ${((order.service?.price || 0) * (order.quantity || 1)).toFixed(2)} ر.س
+${order.discount_amount && order.discount_amount > 0 ? `• الخصم: -${order.discount_amount.toFixed(2)} ر.س` : ''}
+• *المجموع المدفوع: ${order.total_price.toFixed(2)} ر.س*
+
+${order.link ? `🔗 *الرابط:* ${order.link}` : ''}
+    `.trim();
+    
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+    toast.success('تم فتح واتساب للمشاركة');
+  }, [order]);
+
+  const shareViaEmail = useCallback(() => {
+    if (!order) return;
+    
+    const statusLabels: Record<string, string> = {
+      pending: 'قيد الانتظار',
+      processing: 'قيد المعالجة',
+      in_progress: 'قيد التنفيذ',
+      completed: 'مكتمل',
+      partial: 'مكتمل جزئياً',
+      cancelled: 'ملغي',
+      refunded: 'مسترجع',
+    };
+    
+    const subject = `فاتورة طلب #${order.order_number} - MARKETO`;
+    const body = `
+فاتورة طلب - MARKETO
+========================
+
+رقم الطلب: ${order.order_number}
+التاريخ: ${format(new Date(order.created_at), 'dd/MM/yyyy - HH:mm')}
+الحالة: ${statusLabels[order.status] || order.status}
+
+تفاصيل الخدمة:
+--------------
+الخدمة: ${order.service?.name || 'غير محدد'}
+التصنيف: ${order.service?.category || 'غير محدد'}
+الكمية: ${(order.quantity || 1).toLocaleString('ar-SA')}
+سعر الوحدة: ${(order.service?.price || 0).toFixed(4)} ر.س
+
+ملخص الدفع:
+-----------
+المجموع الفرعي: ${((order.service?.price || 0) * (order.quantity || 1)).toFixed(2)} ر.س
+${order.discount_amount && order.discount_amount > 0 ? `الخصم: -${order.discount_amount.toFixed(2)} ر.س\n` : ''}المجموع المدفوع: ${order.total_price.toFixed(2)} ر.س
+
+${order.link ? `الرابط: ${order.link}` : ''}
+
+========================
+هذه فاتورة إلكترونية من MARKETO
+    `.trim();
+    
+    const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoLink;
+    toast.success('تم فتح البريد الإلكتروني للمشاركة');
+  }, [order]);
+
   if (loading) {
     return (
       <ClientDashboardLayout>
@@ -757,7 +841,7 @@ const ClientOrderDetails = () => {
               <p className="text-sm text-muted-foreground font-mono">{order.order_number}</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={generatePDF} className="gap-2 rounded-xl">
               <Download className="w-4 h-4" />
               EN
@@ -765,6 +849,14 @@ const ClientOrderDetails = () => {
             <Button variant="outline" size="sm" onClick={generateArabicPDF} className="gap-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40">
               <FileText className="w-4 h-4" />
               عربي
+            </Button>
+            <Button variant="outline" size="sm" onClick={shareViaWhatsApp} className="gap-2 rounded-xl bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/40">
+              <MessageCircle className="w-4 h-4" />
+              واتساب
+            </Button>
+            <Button variant="outline" size="sm" onClick={shareViaEmail} className="gap-2 rounded-xl bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40">
+              <Mail className="w-4 h-4" />
+              إيميل
             </Button>
             <Button variant="outline" size="sm" onClick={fetchOrder} className="gap-2 rounded-xl">
               <RefreshCw className="w-4 h-4" />
