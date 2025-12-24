@@ -18,7 +18,9 @@ import {
   TrendingUp,
   Users,
   Zap,
-  ChevronLeft
+  ChevronLeft,
+  Hash,
+  Ticket
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,9 +56,10 @@ const messageSchema = z.object({
   message: z.string().trim().min(1, "الرسالة مطلوبة").max(1000, "الرسالة يجب أن تكون أقل من 1000 حرف"),
 });
 
-interface Ticket {
+interface TicketType {
   id: string;
   user_id: string;
+  ticket_number: string | null;
   subject: string;
   description: string;
   status: "open" | "in_progress" | "resolved" | "closed";
@@ -152,8 +155,8 @@ const itemVariants = {
 };
 
 const AdminSupport = () => {
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [selectedTicket, setSelectedTicket] = useState<TicketType | null>(null);
+  const [tickets, setTickets] = useState<TicketType[]>([]);
   const [messages, setMessages] = useState<TicketMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -315,7 +318,7 @@ const AdminSupport = () => {
     }
   };
 
-  const openTicketChat = (ticket: Ticket) => {
+  const openTicketChat = (ticket: TicketType) => {
     setSelectedTicket(ticket);
     fetchMessages(ticket.id);
   };
@@ -350,10 +353,18 @@ const AdminSupport = () => {
           >
             <User className="w-6 h-6 text-primary-foreground" />
           </motion.div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-lg truncate">{selectedTicket?.subject}</h3>
-            <p className="text-xs text-muted-foreground">ID: {selectedTicket?.user_id.slice(0, 8)}...</p>
-          </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-lg truncate">{selectedTicket?.subject}</h3>
+              <div className="flex items-center gap-2 flex-wrap mt-1">
+                {selectedTicket?.ticket_number && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-mono bg-secondary text-muted-foreground">
+                    <Hash className="w-3 h-3" />
+                    {selectedTicket.ticket_number}
+                  </span>
+                )}
+                <span className="text-xs text-muted-foreground">ID: {selectedTicket?.user_id.slice(0, 8)}...</span>
+              </div>
+            </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Select 
@@ -671,7 +682,13 @@ const AdminSupport = () => {
                             <User className="w-6 h-6 text-primary" />
                           </motion.div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              {ticket.ticket_number && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-mono bg-secondary text-muted-foreground">
+                                  <Hash className="w-3 h-3" />
+                                  {ticket.ticket_number}
+                                </span>
+                              )}
                               <p className="font-semibold truncate">{ticket.subject}</p>
                               {ticket.status === "open" && (
                                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
