@@ -31,6 +31,20 @@ interface ProviderService {
   cancel: boolean;
   desc?: string;
   description?: string;
+  formatted_description?: string;
+  parsed?: {
+    type: string;
+    min: number;
+    max: number;
+    rate: number;
+    refill: boolean;
+    cancel: boolean;
+    dripfeed: boolean;
+    average_time?: string;
+    quality?: string;
+    speed?: string;
+    desc: string;
+  };
 }
 
 interface ApiProvider {
@@ -234,9 +248,13 @@ const AdminServiceImport = () => {
           }
         }
 
+        // Use formatted_description from API if available, otherwise build it
+        const fullDescription = service.formatted_description || 
+          `${description}\n\nالنوع: ${service.type || 'Default'} | الحد الأدنى: ${service.min} | الحد الأقصى: ${service.max}`;
+        
         const { error } = await supabase.from('services').insert({
           name,
-          description: `${description}\n\nالنوع: ${service.type} | الحد الأدنى: ${service.min} | الحد الأقصى: ${service.max}`,
+          description: fullDescription,
           price: parseFloat(calculatePrice(service.rate).toFixed(4)),
           category,
           status: 'active',

@@ -12,7 +12,9 @@ import {
   CheckCircle2,
   XCircle,
   Package,
-  Gauge
+  Gauge,
+  Droplets,
+  Ban
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -27,6 +29,8 @@ interface ParsedDescription {
   quality?: string;
   cancel?: string;
   drops?: string;
+  averageTime?: string;
+  dripfeed?: string;
   raw?: string;
 }
 
@@ -35,24 +39,30 @@ const parseDescription = (description: string): ParsedDescription => {
   
   const result: ParsedDescription = { raw: description };
   
-  // Parse common patterns from provider descriptions
+  // Parse common patterns from provider descriptions (Arabic and English)
   const patterns = [
     { key: 'type', patterns: [/(?:Type|النوع)[:\s]*([^\n|]+)/i] },
-    { key: 'minQuantity', patterns: [/(?:Min|الحد الأدنى)[:\s]*(\d+)/i, /minimum[:\s]*(\d+)/i] },
-    { key: 'maxQuantity', patterns: [/(?:Max|الحد الأقصى)[:\s]*(\d+)/i, /maximum[:\s]*(\d+)/i] },
-    { key: 'refill', patterns: [/(?:Refill|إعادة التعبئة)[:\s]*([^\n|]+)/i, /(?:ضمان)[:\s]*([^\n|]+)/i] },
-    { key: 'speed', patterns: [/(?:Speed|السرعة)[:\s]*([^\n|]+)/i, /(?:start)[:\s]*([^\n|]+)/i] },
-    { key: 'start', patterns: [/(?:Start Time|وقت البدء)[:\s]*([^\n|]+)/i] },
+    { key: 'minQuantity', patterns: [/(?:Min|الحد الأدنى)[:\s]*(\d[\d,]*)/i, /minimum[:\s]*(\d[\d,]*)/i] },
+    { key: 'maxQuantity', patterns: [/(?:Max|الحد الأقصى)[:\s]*(\d[\d,]*)/i, /maximum[:\s]*(\d[\d,]*)/i] },
+    { key: 'refill', patterns: [/(?:Refill|إعادة التعبئة)[:\s]*([^\n|]+)/i, /(?:ضمان)[:\s]*([^\n|]+)/i, /✓\s*إعادة التعبئة متاحة/i] },
+    { key: 'speed', patterns: [/(?:Speed|السرعة)[:\s]*([^\n|]+)/i] },
+    { key: 'averageTime', patterns: [/(?:Average Time|متوسط الوقت)[:\s]*([^\n|]+)/i, /(?:وقت البدء)[:\s]*([^\n|]+)/i] },
     { key: 'quality', patterns: [/(?:Quality|الجودة)[:\s]*([^\n|]+)/i] },
-    { key: 'cancel', patterns: [/(?:Cancel|الإلغاء)[:\s]*([^\n|]+)/i] },
+    { key: 'cancel', patterns: [/(?:Cancel|الإلغاء|قابل للإلغاء)[:\s]*([^\n|]+)/i, /✓\s*قابل للإلغاء/i] },
     { key: 'drops', patterns: [/(?:Drops?|الانخفاض)[:\s]*([^\n|]+)/i] },
+    { key: 'dripfeed', patterns: [/(?:Dripfeed|التنقيط)[:\s]*([^\n|]+)/i, /✓\s*التنقيط متاح/i] },
   ];
 
   for (const { key, patterns: patternList } of patterns) {
     for (const pattern of patternList) {
       const match = description.match(pattern);
-      if (match && match[1]) {
-        (result as any)[key] = match[1].trim();
+      if (match) {
+        if (match[1]) {
+          (result as any)[key] = match[1].trim();
+        } else {
+          // For patterns like ✓ إعادة التعبئة متاحة
+          (result as any)[key] = 'نعم';
+        }
         break;
       }
     }
@@ -95,11 +105,18 @@ const DetailItem = ({
   </motion.div>
 );
 
+const formatNumber = (value: string): string => {
+  const num = parseInt(value.replace(/,/g, ''));
+  if (isNaN(num)) return value;
+  return num.toLocaleString('ar-SA');
+};
+
 export const ServiceDescriptionDisplay = ({ description, className }: ServiceDescriptionDisplayProps) => {
   const parsed = parseDescription(description);
   
   const hasStructuredData = parsed.type || parsed.minQuantity || parsed.maxQuantity || 
-                            parsed.refill || parsed.speed || parsed.quality;
+                            parsed.refill || parsed.speed || parsed.quality || 
+                            parsed.averageTime || parsed.cancel || parsed.dripfeed;
 
   if (!hasStructuredData) {
     // Show raw description in a styled container
@@ -138,7 +155,7 @@ export const ServiceDescriptionDisplay = ({ description, className }: ServiceDes
           <DetailItem 
             icon={ArrowDown} 
             label="الحد الأدنى" 
-            value={`${parseInt(parsed.minQuantity).toLocaleString()} وحدة`}
+            value={`${formatNumber(parsed.minQuantity)} وحدة`}
             colorClass="text-amber-500"
           />
         )}
@@ -147,7 +164,7 @@ export const ServiceDescriptionDisplay = ({ description, className }: ServiceDes
           <DetailItem 
             icon={ArrowUp} 
             label="الحد الأقصى" 
-            value={`${parseInt(parsed.maxQuantity).toLocaleString()} وحدة`}
+            value={`${formatNumber(parsed.maxQuantity)} وحدة`}
             colorClass="text-success"
           />
         )}
@@ -170,17 +187,17 @@ export const ServiceDescriptionDisplay = ({ description, className }: ServiceDes
           />
         )}
         
-        {parsed.start && (
+        {parsed.averageTime && (
           <DetailItem 
             icon={Clock} 
-            label="وقت البدء" 
-            value={parsed.start}
+            label="متوسط الوقت" 
+            value={parsed.averageTime}
             colorClass="text-cyan-500"
           />
         )}
       </div>
 
-      {/* Additional Info Badges */}
+      {/* Feature Badges */}
       <div className="flex flex-wrap gap-2 justify-end">
         {parsed.refill && (
           <Badge 
@@ -193,7 +210,7 @@ export const ServiceDescriptionDisplay = ({ description, className }: ServiceDes
             )}
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            ضمان: {parsed.refill}
+            إعادة التعبئة: {parsed.refill === 'نعم' ? 'متاحة' : parsed.refill}
           </Badge>
         )}
         
@@ -202,13 +219,26 @@ export const ServiceDescriptionDisplay = ({ description, className }: ServiceDes
             variant="outline" 
             className={cn(
               "gap-1.5 px-3 py-1.5",
-              parsed.cancel.toLowerCase().includes('yes') || parsed.cancel.includes('نعم')
+              parsed.cancel.toLowerCase().includes('yes') || parsed.cancel.includes('نعم') || parsed.cancel === 'نعم'
                 ? "bg-success/10 text-success border-success/30"
                 : "bg-muted text-muted-foreground border-border"
             )}
           >
-            <XCircle className="w-3.5 h-3.5" />
-            الإلغاء: {parsed.cancel}
+            <Ban className="w-3.5 h-3.5" />
+            الإلغاء: {parsed.cancel === 'نعم' ? 'متاح' : parsed.cancel}
+          </Badge>
+        )}
+        
+        {parsed.dripfeed && (
+          <Badge 
+            variant="outline" 
+            className={cn(
+              "gap-1.5 px-3 py-1.5",
+              "bg-blue-500/10 text-blue-600 border-blue-500/30"
+            )}
+          >
+            <Droplets className="w-3.5 h-3.5" />
+            التنقيط: {parsed.dripfeed === 'نعم' ? 'متاح' : parsed.dripfeed}
           </Badge>
         )}
         
@@ -223,15 +253,15 @@ export const ServiceDescriptionDisplay = ({ description, className }: ServiceDes
         )}
       </div>
 
-      {/* Raw Description if exists and different from structured */}
+      {/* Raw Description Preview (first part only) */}
       {parsed.raw && parsed.raw !== "غير متوفر" && (
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="p-3 rounded-xl bg-muted/30 border border-border/30"
         >
-          <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">
-            {parsed.raw}
+          <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
+            {parsed.raw.split('\n')[0]}
           </p>
         </motion.div>
       )}

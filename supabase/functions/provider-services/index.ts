@@ -6,6 +6,96 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper function to parse and format description with all available details
+const formatServiceDescription = (service: any): string => {
+  const parts: string[] = [];
+  
+  // Add original description if exists
+  if (service.desc && service.desc.trim()) {
+    parts.push(service.desc.trim());
+  } else if (service.description && service.description.trim()) {
+    parts.push(service.description.trim());
+  } else {
+    parts.push('غير متوفر');
+  }
+  
+  // Build structured details line
+  const details: string[] = [];
+  
+  // Type
+  if (service.type) {
+    details.push(`النوع: ${service.type}`);
+  }
+  
+  // Min/Max quantities
+  if (service.min) {
+    details.push(`الحد الأدنى: ${service.min}`);
+  }
+  if (service.max) {
+    details.push(`الحد الأقصى: ${service.max}`);
+  }
+  
+  // Average time/speed
+  if (service.average_time) {
+    details.push(`متوسط الوقت: ${service.average_time}`);
+  }
+  
+  // Quality
+  if (service.quality) {
+    details.push(`الجودة: ${service.quality}`);
+  }
+  
+  // Speed indicator
+  if (service.speed) {
+    details.push(`السرعة: ${service.speed}`);
+  }
+  
+  if (details.length > 0) {
+    parts.push('');
+    parts.push(details.join(' | '));
+  }
+  
+  // Add feature flags
+  const features: string[] = [];
+  if (service.refill === true || service.refill === 'true') {
+    features.push('✓ إعادة التعبئة متاحة');
+  }
+  if (service.cancel === true || service.cancel === 'true') {
+    features.push('✓ قابل للإلغاء');
+  }
+  if (service.dripfeed === true || service.dripfeed === 'true') {
+    features.push('✓ التنقيط متاح');
+  }
+  
+  if (features.length > 0) {
+    parts.push('');
+    parts.push(features.join(' | '));
+  }
+  
+  return parts.join('\n');
+};
+
+// Enhance service object with parsed data
+const enhanceService = (service: any) => {
+  return {
+    ...service,
+    formatted_description: formatServiceDescription(service),
+    parsed: {
+      type: service.type || 'Default',
+      min: parseInt(service.min) || 1,
+      max: parseInt(service.max) || 1000,
+      rate: parseFloat(service.rate) || 0,
+      refill: service.refill === true || service.refill === 'true',
+      cancel: service.cancel === true || service.cancel === 'true',
+      dripfeed: service.dripfeed === true || service.dripfeed === 'true',
+      average_time: service.average_time || null,
+      quality: service.quality || null,
+      speed: service.speed || null,
+      desc: service.desc || service.description || '',
+    }
+  };
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -86,16 +176,25 @@ serve(async (req) => {
 
     // If categories_only is true, return only categories with counts (much smaller response)
     if (categories_only) {
-      const categoryMap = new Map<string, number>();
+      const categoryMap = new Map<string, { count: number; hasRefill: boolean; hasCancel: boolean }>();
       if (Array.isArray(allServices)) {
         allServices.forEach((service: any) => {
-          const count = categoryMap.get(service.category) || 0;
-          categoryMap.set(service.category, count + 1);
+          const existing = categoryMap.get(service.category) || { count: 0, hasRefill: false, hasCancel: false };
+          categoryMap.set(service.category, {
+            count: existing.count + 1,
+            hasRefill: existing.hasRefill || service.refill === true || service.refill === 'true',
+            hasCancel: existing.hasCancel || service.cancel === true || service.cancel === 'true',
+          });
         });
       }
       
       const categories = Array.from(categoryMap.entries())
-        .map(([name, count]) => ({ name, count }))
+        .map(([name, data]) => ({ 
+          name, 
+          count: data.count,
+          hasRefill: data.hasRefill,
+          hasCancel: data.hasCancel,
+        }))
         .sort((a, b) => a.name.localeCompare(b.name));
 
       console.log(`Returning ${categories.length} categories only (not full services)`);
@@ -125,14 +224,19 @@ serve(async (req) => {
       console.log(`Filtered to ${filteredServices.length} services for ${selected_categories.length} categories`);
     }
 
+    // Enhance all services with formatted descriptions and parsed data
+    const enhancedServices = Array.isArray(filteredServices) 
+      ? filteredServices.map(enhanceService)
+      : [];
+
     // Extract unique categories from filtered services
-    const categories = Array.isArray(filteredServices) 
-      ? [...new Set(filteredServices.map((s: any) => s.category))]
+    const categories = Array.isArray(enhancedServices) 
+      ? [...new Set(enhancedServices.map((s: any) => s.category))]
       : [];
 
     return new Response(
       JSON.stringify({ 
-        services: filteredServices,
+        services: enhancedServices,
         categories,
         services_count: servicesCount,
         provider: {
