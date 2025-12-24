@@ -14,7 +14,8 @@ import {
   RefreshCw,
   Send,
   Bot,
-  UserCircle
+  UserCircle,
+  XCircle
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -64,6 +65,7 @@ interface OrderDetailsDialogProps {
   open: boolean;
   onClose: () => void;
   onSave: (orderId: string, status: string, adminNotes: string) => void;
+  onCancel?: (order: Order) => void;
   saving: boolean;
 }
 
@@ -79,6 +81,7 @@ const OrderDetailsDialog = ({
   open,
   onClose,
   onSave,
+  onCancel,
   saving,
 }: OrderDetailsDialogProps) => {
   const [newStatus, setNewStatus] = useState(order?.status || "");
@@ -129,6 +132,7 @@ const OrderDetailsDialog = ({
   if (!order) return null;
 
   const config = getStatusConfig(order.status);
+  const canCancel = !['cancelled', 'refunded', 'completed'].includes(order.status);
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -393,8 +397,18 @@ const OrderDetailsDialog = ({
         {/* Footer */}
         <div className="p-4 border-t border-border/50 flex gap-2">
           <Button variant="outline" onClick={onClose} className="flex-1">
-            إلغاء
+            إغلاق
           </Button>
+          {canCancel && onCancel && (
+            <Button 
+              variant="destructive"
+              onClick={() => onCancel(order)} 
+              className="flex-1 gap-2"
+            >
+              <XCircle className="w-4 h-4" />
+              إلغاء واسترداد
+            </Button>
+          )}
           <Button 
             onClick={() => onSave(order.id, newStatus, adminNotes)} 
             disabled={saving}
