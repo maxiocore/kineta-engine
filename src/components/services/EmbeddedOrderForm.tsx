@@ -377,6 +377,8 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
 
       if (error) throw error;
 
+      const orderId = createdOrder.id;
+
       // Deduct balance
       await supabase.from("user_balances")
         .update({ 
@@ -385,6 +387,18 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
           updated_at: new Date().toISOString()
         })
         .eq("user_id", user.id);
+
+      // Create balance log with order reference for proper tracking
+      await supabase.from("balance_logs").insert({
+        user_id: user.id,
+        action_type: 'order',
+        amount: -finalPrice,
+        balance_before: balanceData.balance,
+        balance_after: balanceData.balance - finalPrice,
+        reference_type: 'order',
+        reference_id: orderId,
+        notes: `خصم للطلب رقم ${orderNumber}`
+      });
 
       // Deduct points if used
       if (usePoints && actualPointsToUse > 0) {
