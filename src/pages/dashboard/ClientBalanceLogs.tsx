@@ -425,7 +425,7 @@ const ClientBalanceLogs = () => {
     currentBalance: 0,
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const fetchLogs = useCallback(async () => {
     if (!user) return;
@@ -668,16 +668,16 @@ const ClientBalanceLogs = () => {
   }, [logs, searchTerm, filterType]);
 
   // Pagination
-  const totalPages = Math.ceil(filteredLogs.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
   const paginatedLogs = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredLogs.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredLogs, currentPage, ITEMS_PER_PAGE]);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredLogs.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredLogs, currentPage, itemsPerPage]);
 
-  // Reset to first page when filters change
+  // Reset to first page when filters or items per page change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filterType]);
+  }, [searchTerm, filterType, itemsPerPage]);
 
   const getActionInfo = (actionType: string) => {
     return actionTypeLabels[actionType] || {
@@ -1356,10 +1356,27 @@ const ClientBalanceLogs = () => {
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center justify-between pt-6 border-t border-border/50 mt-6"
+                      className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-border/50 mt-6"
                     >
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-muted-foreground">عرض</span>
+                        <Select value={itemsPerPage.toString()} onValueChange={(val) => setItemsPerPage(Number(val))}>
+                          <SelectTrigger className="w-20 h-9 bg-background/50">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="25">25</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <span className="text-sm text-muted-foreground">
+                          من {filteredLogs.length} عملية
+                        </span>
+                      </div>
+                      
                       <div className="text-sm text-muted-foreground">
-                        عرض {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredLogs.length)} من {filteredLogs.length} عملية
+                        صفحة {currentPage} من {totalPages}
                       </div>
                       
                       <div className="flex items-center gap-1">
