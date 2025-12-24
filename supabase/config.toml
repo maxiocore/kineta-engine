@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.get-exchange-rate]
 verify_jwt = false
+
+[functions.tamara-payment]
+verify_jwt = false
