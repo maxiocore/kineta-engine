@@ -182,6 +182,7 @@ const ClientOrderDetails = () => {
     if (user && orderId) {
       fetchOrder();
       fetchOrderHistory();
+      fetchProviderStatus();
 
       // Realtime subscription
       const channel = supabase
@@ -198,7 +199,15 @@ const ClientOrderDetails = () => {
         })
         .subscribe();
 
-      return () => { supabase.removeChannel(channel); };
+      // Auto-refresh provider status every 30 seconds
+      const providerStatusInterval = setInterval(() => {
+        fetchProviderStatus();
+      }, 30000);
+
+      return () => { 
+        supabase.removeChannel(channel);
+        clearInterval(providerStatusInterval);
+      };
     }
   }, [user, orderId]);
 
