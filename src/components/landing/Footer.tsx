@@ -1,5 +1,5 @@
 import { motion, useInView } from "framer-motion";
-import { Mail, MapPin, Phone, ArrowLeft, Sparkles, Send } from "lucide-react";
+import { Mail, MapPin, Phone, ArrowLeft, Sparkles, Send, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
@@ -7,9 +7,9 @@ import { useRef } from "react";
 
 const footerLinks = {
   "الخدمات": [
-    { label: "التحليلات الذكية", href: "/services" },
-    { label: "إدارة الحملات", href: "/services" },
-    { label: "تحسين SEO", href: "/services" },
+    { label: "التسويق الرقمي", href: "/services" },
+    { label: "البرمجة والتطوير", href: "/services" },
+    { label: "التصميم الإبداعي", href: "/services" },
     { label: "إدارة السوشيال", href: "/services" },
   ],
   "الشركة": [
@@ -23,7 +23,6 @@ const footerLinks = {
     { label: "تتبع الطلب", href: "/track-order" },
     { label: "الأسئلة الشائعة", href: "/pricing" },
     { label: "سياسة الخصوصية", href: "#" },
-    { label: "الشروط والأحكام", href: "#" },
   ],
 };
 
@@ -73,40 +72,48 @@ const Footer = () => {
   return (
     <footer ref={containerRef} className="relative pt-32 pb-8 overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/30 to-secondary/50" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/20 to-secondary/40" />
       
       {/* Decorative Elements */}
-      <motion.div
-        className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full"
-        style={{
-          background: "radial-gradient(circle, hsl(var(--primary) / 0.05) 0%, transparent 60%)",
-          filter: "blur(100px)",
-        }}
-      />
-      <motion.div
-        className="absolute bottom-0 right-1/4 w-[600px] h-[600px] rounded-full"
-        style={{
-          background: "radial-gradient(circle, hsl(var(--accent) / 0.05) 0%, transparent 60%)",
-          filter: "blur(100px)",
-        }}
-      />
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full"
+          style={{
+            background: "radial-gradient(circle, hsl(var(--primary) / 0.04) 0%, transparent 50%)",
+            filter: "blur(100px)",
+          }}
+        />
+        <motion.div
+          className="absolute bottom-0 right-1/4 w-[700px] h-[700px] rounded-full"
+          style={{
+            background: "radial-gradient(circle, hsl(var(--accent) / 0.03) 0%, transparent 50%)",
+            filter: "blur(120px)",
+          }}
+        />
+      </div>
 
       <div className="container px-4 relative z-10">
         {/* Newsletter Section */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 40 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          className="relative -mt-48 mb-20"
+          className="relative -mt-48 mb-24"
         >
-          <div className="p-10 md:p-14 rounded-[2rem] bg-background/60 border border-border/50 backdrop-blur-2xl overflow-hidden">
-            {/* Inner Glow */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rounded-[2rem]" />
+          <div className="relative p-10 md:p-14 rounded-[2.5rem] bg-card/60 backdrop-blur-2xl border border-border/50 overflow-hidden">
+            {/* Inner Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
+            <motion.div
+              className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px"
+              style={{
+                background: "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.4), transparent)",
+              }}
+            />
             
-            <div className="relative flex flex-col lg:flex-row items-center justify-between gap-8">
+            <div className="relative flex flex-col lg:flex-row items-center justify-between gap-10">
               <div className="text-center lg:text-right">
                 <motion.div
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/10 border border-primary/20 mb-6"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={isInView ? { opacity: 1, scale: 1 } : {}}
                   transition={{ delay: 0.2 }}
@@ -114,23 +121,23 @@ const Footer = () => {
                   <Sparkles className="w-4 h-4 text-primary" />
                   <span className="text-sm font-semibold text-primary">النشرة البريدية</span>
                 </motion.div>
-                <h3 className="text-2xl md:text-3xl font-bold mb-3">
-                  ابقَ على اطلاع
+                <h3 className="text-3xl md:text-4xl font-bold mb-4">
+                  ابقَ على <span className="text-primary">اطلاع</span>
                 </h3>
-                <p className="text-muted-foreground max-w-md">
-                  احصل على أحدث النصائح التسويقية وتحديثات خدماتنا مباشرة إلى بريدك
+                <p className="text-muted-foreground max-w-md text-lg">
+                  احصل على أحدث النصائح والتحديثات مباشرة إلى بريدك
                 </p>
               </div>
               <div className="w-full lg:w-auto">
-                <div className="flex gap-3 flex-col sm:flex-row">
+                <div className="flex gap-4 flex-col sm:flex-row">
                   <Input
                     type="email"
                     placeholder="بريدك الإلكتروني"
-                    className="w-full sm:w-80 h-14 bg-secondary/50 border-border/50 rounded-xl text-base"
+                    className="w-full sm:w-80 h-14 bg-secondary/50 border-border/50 rounded-2xl text-base px-6"
                     dir="ltr"
                   />
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button className="h-14 px-8 bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-lg shadow-primary/30 rounded-xl text-base whitespace-nowrap">
+                    <Button className="h-14 px-10 bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-lg shadow-primary/30 rounded-2xl text-base font-semibold whitespace-nowrap">
                       <Send className="w-5 h-5 ml-2" />
                       اشترك الآن
                     </Button>
@@ -142,7 +149,7 @@ const Footer = () => {
         </motion.div>
 
         {/* Main Footer Content */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
+        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-12 mb-20">
           {/* Brand Column */}
           <motion.div 
             className="lg:col-span-2"
@@ -150,52 +157,39 @@ const Footer = () => {
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.2 }}
           >
-            <Link to="/" className="flex items-center gap-3 mb-6 group">
+            <Link to="/" className="flex items-center gap-4 mb-8 group">
               <motion.div 
-                className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30"
+                className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-xl shadow-primary/30"
                 whileHover={{ scale: 1.05, rotate: 5 }}
               >
-                <span className="font-bold text-2xl text-primary-foreground">M</span>
+                <span className="font-bold text-3xl text-primary-foreground">M</span>
               </motion.div>
               <div className="flex flex-col">
-                <span className="font-bold text-xl">MaxioCore</span>
-                <span className="text-sm text-muted-foreground">حلول رقمية متكاملة</span>
+                <span className="font-bold text-2xl">MaxioCore</span>
+                <span className="text-muted-foreground">حلول رقمية متكاملة</span>
               </div>
             </Link>
-            <p className="text-muted-foreground mb-8 max-w-sm leading-relaxed text-base">
-              شريكك الموثوق في رحلة التحول الرقمي. نقدم حلول متكاملة في التسويق والبرمجة والتصميم
-              تساعدك على النمو والتميز.
+            <p className="text-muted-foreground mb-10 max-w-sm leading-relaxed text-lg">
+              شريكك الموثوق في رحلة التحول الرقمي. نقدم حلول متكاملة تساعدك على النمو والتميز.
             </p>
-            <div className="space-y-4">
-              <motion.a 
-                href="mailto:info@maxiocore.com" 
-                className="flex items-center gap-4 text-muted-foreground hover:text-primary transition-colors group"
-                whileHover={{ x: -5 }}
-              >
-                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <Mail className="w-5 h-5 text-primary" />
-                </div>
-                <span>info@maxiocore.com</span>
-              </motion.a>
-              <motion.a 
-                href="tel:+966551234567" 
-                className="flex items-center gap-4 text-muted-foreground hover:text-primary transition-colors group"
-                whileHover={{ x: -5 }}
-              >
-                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <Phone className="w-5 h-5 text-primary" />
-                </div>
-                <span dir="ltr">+966 55 123 4567</span>
-              </motion.a>
-              <motion.div 
-                className="flex items-center gap-4 text-muted-foreground"
-                whileHover={{ x: -5 }}
-              >
-                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-primary" />
-                </div>
-                <span>الرياض، المملكة العربية السعودية</span>
-              </motion.div>
+            <div className="space-y-5">
+              {[
+                { icon: Mail, text: "info@maxiocore.com", href: "mailto:info@maxiocore.com" },
+                { icon: Phone, text: "+966 55 123 4567", href: "tel:+966551234567", dir: "ltr" },
+                { icon: MapPin, text: "الرياض، المملكة العربية السعودية" },
+              ].map((item) => (
+                <motion.a 
+                  key={item.text}
+                  href={item.href}
+                  className="flex items-center gap-4 text-muted-foreground hover:text-primary transition-colors group"
+                  whileHover={{ x: -5 }}
+                >
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <item.icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <span dir={item.dir}>{item.text}</span>
+                </motion.a>
+              ))}
             </div>
           </motion.div>
 
@@ -207,13 +201,13 @@ const Footer = () => {
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.3 + categoryIndex * 0.1 }}
             >
-              <h4 className="font-bold text-lg mb-6">{category}</h4>
-              <ul className="space-y-4">
+              <h4 className="font-bold text-xl mb-8">{category}</h4>
+              <ul className="space-y-5">
                 {links.map((link) => (
                   <li key={link.label}>
                     <Link
                       to={link.href}
-                      className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-2 group"
+                      className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-2 group text-base"
                     >
                       <ArrowLeft className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                       {link.label}
@@ -227,13 +221,15 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <motion.div 
-          className="pt-8 border-t border-border/30 flex flex-col md:flex-row items-center justify-between gap-6"
+          className="pt-10 border-t border-border/30 flex flex-col md:flex-row items-center justify-between gap-6"
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ delay: 0.6 }}
         >
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} MaxioCore. جميع الحقوق محفوظة.
+          <p className="text-muted-foreground flex items-center gap-2">
+            © {new Date().getFullYear()} MaxioCore. صنع بـ 
+            <Heart className="w-4 h-4 text-red-500 fill-red-500" />
+            في السعودية
           </p>
           <div className="flex items-center gap-3">
             {socialLinks.map((social) => (
@@ -242,8 +238,8 @@ const Footer = () => {
                 href={social.href} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-11 h-11 rounded-xl bg-secondary/50 border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition-all"
-                whileHover={{ scale: 1.1, y: -2 }}
+                className="w-12 h-12 rounded-xl bg-secondary/50 border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition-all"
+                whileHover={{ scale: 1.1, y: -3 }}
                 whileTap={{ scale: 0.95 }}
               >
                 {social.icon}
