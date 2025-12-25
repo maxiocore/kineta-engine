@@ -36,6 +36,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
+import { notifyDepositPending } from '@/lib/adminNotifyService';
 
 interface PaymentMethod {
   id: string;
@@ -370,6 +371,14 @@ const ClientDeposit = () => {
     toast({
       title: 'تم إرسال طلب الإيداع بنجاح',
       description: 'سيتم مراجعة طلبك وإضافة الرصيد خلال 24 ساعة',
+    });
+
+    // Notify admins about new deposit
+    notifyDepositPending({
+      amount: numericAmount,
+      userName: profile?.full_name || '',
+      userEmail: user?.email || '',
+      paymentMethod: selectedMethod.name,
     });
 
     setAmount('');

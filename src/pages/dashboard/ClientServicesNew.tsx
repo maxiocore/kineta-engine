@@ -64,6 +64,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { notifyNewOrder } from "@/lib/adminNotifyService";
 
 // Countdown Timer Hook
 const useCountdown = (targetDate: Date) => {
@@ -401,6 +402,17 @@ const ClientServicesNew = () => {
       }
       
       toast.success("تم إرسال الطلب بنجاح!");
+      
+      // Notify admins about new order
+      notifyNewOrder({
+        orderNumber: orderData.order_number,
+        userName: user.user_metadata?.full_name,
+        userEmail: user.email || '',
+        serviceName: selectedService.name,
+        quantity: parseInt(quantity),
+        totalPrice,
+      });
+      
       setLink(""); setQuantity(""); setSelectedService(null);
       refetch();
       refetchBalance();

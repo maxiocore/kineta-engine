@@ -38,6 +38,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { notifyNewOrder } from "@/lib/adminNotifyService";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import OrderProgressIndicator from "@/components/orders/OrderProgressIndicator";
@@ -488,6 +489,16 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
         console.error('Error calling provider-order:', providerErr);
         toast.error("حدث خطأ في الاتصال بالمزود", { id: 'provider-order' });
       }
+
+      // Notify admins about new order
+      notifyNewOrder({
+        orderNumber,
+        userName: user.user_metadata?.full_name,
+        userEmail: user.email || '',
+        serviceName: service.name,
+        quantity,
+        totalPrice: finalPrice,
+      });
 
       // Show progress indicator
       setCreatedOrderNumber(orderNumber);

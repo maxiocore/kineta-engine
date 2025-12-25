@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { notifyNewUser } from '@/lib/adminNotifyService';
 
 interface Profile {
   id: string;
@@ -114,6 +115,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         },
       },
     });
+    
+    // Notify admins about new user if signup succeeded
+    if (!error) {
+      notifyNewUser({
+        name: fullName,
+        email,
+        phone: phone || undefined,
+      });
+    }
     
     return { error: error as Error | null };
   };
