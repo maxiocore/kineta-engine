@@ -1204,7 +1204,7 @@ ${order.link ? `الرابط: ${order.link}` : ''}
                               </p>
                             </div>
                             <div className="p-3 rounded-xl bg-white/80 dark:bg-white/5 border border-purple-200/50 dark:border-purple-800/50 text-center">
-                              <p className="text-xs text-muted-foreground mb-1">حالة المزود</p>
+                              <p className="text-xs text-muted-foreground mb-1">حالة الطلب</p>
                               <p className="font-bold text-sm text-purple-600 dark:text-purple-400">
                                 {providerStatus.status || '-'}
                               </p>
