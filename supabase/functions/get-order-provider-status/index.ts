@@ -145,19 +145,34 @@ serve(async (req) => {
     }
 
     // Return provider status with all details
+    const startCount = result.start_count !== undefined ? parseInt(result.start_count) : null;
+    const remains = result.remains !== undefined ? parseInt(result.remains) : null;
+
+    // Update order with start_count and remains if available
+    if (startCount !== null || remains !== null) {
+      const updateData: any = {};
+      if (startCount !== null) updateData.start_count = startCount;
+      if (remains !== null) updateData.remains = remains;
+      
+      await supabase
+        .from('orders')
+        .update(updateData)
+        .eq('id', orderId);
+    }
+
     const providerStatus = {
       success: true,
       hasExternalOrder: true,
       externalOrderId: order.external_order_id,
       providerName,
       status: result.status || null,
-      startCount: result.start_count !== undefined ? parseInt(result.start_count) : null,
-      remains: result.remains !== undefined ? parseInt(result.remains) : null,
+      startCount,
+      remains,
       charge: result.charge !== undefined ? parseFloat(result.charge) : null,
       currency: result.currency || 'USD',
       // Calculate delivered count
-      delivered: result.start_count !== undefined && result.remains !== undefined 
-        ? parseInt(result.start_count) + (order.quantity || 0) - parseInt(result.remains)
+      delivered: startCount !== null && remains !== null 
+        ? startCount + (order.quantity || 0) - remains
         : null,
       orderedQuantity: order.quantity,
     };
