@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.tamara-payment]
 verify_jwt = false
+
+[functions.get-order-provider-status]
+verify_jwt = true
