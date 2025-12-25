@@ -1143,7 +1143,7 @@ ${order.link ? `الرابط: ${order.link}` : ''}
                     <div className="flex items-center justify-between">
                       <CardTitle className="flex items-center gap-2">
                         <TrendingUp className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
-                        بيانات المزود
+                        بيانات الحساب
                       </CardTitle>
                       <Button
                         variant="outline"
