@@ -38,6 +38,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { notifyNewTicket, notifyTicketReply } from "@/lib/adminNotifyService";
 import { z } from "zod";
 import { FileAttachment, AttachmentDisplay } from "@/components/support/FileAttachment";
 
@@ -264,6 +265,15 @@ const ClientSupport = () => {
         description: "سيتم الرد عليك في أقرب وقت",
       });
       
+      // Notify admins about new ticket
+      notifyNewTicket({
+        userName: user.user_metadata?.full_name,
+        userEmail: user.email || '',
+        subject: newTicket.subject.trim(),
+        priority: newTicket.priority,
+        description: newTicket.description.trim(),
+      });
+      
       setNewTicket({ subject: "", description: "", priority: "medium" });
       setViewMode("list");
       fetchTickets();
@@ -299,6 +309,15 @@ const ClientSupport = () => {
       }]);
       
       if (error) throw error;
+      
+      // Notify admins about ticket reply
+      notifyTicketReply({
+        ticketNumber: selectedTicket.ticket_number || '',
+        userName: user.user_metadata?.full_name,
+        userEmail: user.email || '',
+        subject: selectedTicket.subject,
+        message: newMessage.trim(),
+      });
       
       setNewMessage("");
       setMessageAttachments([]);
