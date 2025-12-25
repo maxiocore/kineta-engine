@@ -1,17 +1,23 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Sparkles, ChevronLeft } from "lucide-react";
+import { Menu, X, Sparkles, ChevronLeft, Home, Briefcase, Share2, Users, CreditCard, MessageCircle, LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import ThemeToggle from "@/components/ThemeToggle";
 
-const navItems = [
-  { label: "الرئيسية", href: "/" },
-  { label: "خدماتنا", href: "/our-services" },
-  { label: "SMM Panel", href: "/services" },
-  { label: "من نحن", href: "/about" },
-  { label: "الأسعار", href: "/pricing" },
-  { label: "تواصل معنا", href: "/contact" },
+interface NavItem {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+}
+
+const navItems: NavItem[] = [
+  { label: "الرئيسية", href: "/", icon: Home },
+  { label: "خدماتنا", href: "/our-services", icon: Briefcase },
+  { label: "SMM Panel", href: "/services", icon: Share2 },
+  { label: "من نحن", href: "/about", icon: Users },
+  { label: "الأسعار", href: "/pricing", icon: CreditCard },
+  { label: "تواصل معنا", href: "/contact", icon: MessageCircle },
 ];
 
 const Header = () => {
@@ -208,8 +214,7 @@ const Header = () => {
                   </motion.button>
                 </div>
 
-                {/* Navigation Links */}
-                <nav className="flex-1 space-y-1">
+                <nav className="flex-1 space-y-2">
                   {navItems.map((item, index) => (
                     <motion.div
                       key={item.label}
@@ -220,13 +225,22 @@ const Header = () => {
                       <Link
                         to={item.href}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex items-center justify-between px-4 py-4 rounded-xl transition-all ${
+                        className={`flex items-center justify-between px-4 py-3.5 rounded-xl transition-all ${
                           isActive(item.href)
                             ? "bg-gradient-to-l from-primary to-accent text-primary-foreground font-semibold shadow-lg"
                             : "text-foreground hover:bg-secondary/50"
                         }`}
                       >
-                        <span className="text-base">{item.label}</span>
+                        <div className="flex items-center gap-3">
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+                            isActive(item.href) 
+                              ? "bg-white/20" 
+                              : "bg-secondary/70"
+                          }`}>
+                            <item.icon className={`w-4.5 h-4.5 ${isActive(item.href) ? 'text-primary-foreground' : 'text-primary'}`} />
+                          </div>
+                          <span className="text-base">{item.label}</span>
+                        </div>
                         <ChevronLeft className={`w-5 h-5 ${isActive(item.href) ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
                       </Link>
                     </motion.div>
