@@ -29,7 +29,7 @@ const contactInfo = [
   {
     icon: Mail,
     title: "راسلنا",
-    value: "info@marketpro.sa",
+    value: "info@maxiocore.com",
     description: "نرد خلال 24 ساعة",
   },
   {

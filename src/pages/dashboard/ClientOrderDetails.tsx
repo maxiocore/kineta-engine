@@ -804,8 +804,8 @@ const ClientOrderDetails = () => {
                     تم الإنشاء تلقائياً بتاريخ ${format(new Date(), 'dd/MM/yyyy')} الساعة ${format(new Date(), 'HH:mm')} • لا تحتاج إلى توقيع أو ختم
                   </p>
                   <div style="margin-top: 12px; display: flex; gap: 15px;">
-                    <span style="color: #64748B; font-size: 10px;">📧 support@marketo.sa</span>
-                    <span style="color: #64748B; font-size: 10px;">🌐 www.marketo.sa</span>
+                    <span style="color: #64748B; font-size: 10px;">📧 info@maxiocore.com</span>
+                    <span style="color: #64748B; font-size: 10px;">🌐 www.maxiocore.com</span>
                   </div>
                 </td>
                 <td style="text-align: left; vertical-align: middle;">
