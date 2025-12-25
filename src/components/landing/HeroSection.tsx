@@ -1,12 +1,12 @@
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowLeft, Sparkles, Play, Shield, Zap, Clock, Star, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Sparkles, Play, Shield, Zap, Clock, Star, Code2, Palette, Share2, Rocket, Globe, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { useRef } from "react";
-import GlobalServiceSearch from "@/components/GlobalServiceSearch";
+import { useRef, useState } from "react";
 
 const HeroSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [activeService, setActiveService] = useState(0);
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end start"]
@@ -15,36 +15,73 @@ const HeroSection = () => {
   const y = useTransform(scrollYProgress, [0, 1], [0, 150]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
-  const features = [
-    { icon: Shield, text: "أمان متقدم" },
-    { icon: Zap, text: "سرعة فائقة" },
-    { icon: Clock, text: "دعم 24/7" },
-    { icon: Star, text: "نتائج مضمونة" },
+  const services = [
+    { 
+      icon: Share2, 
+      title: "التسويق الرقمي",
+      subtitle: "خدمات السوشيال ميديا",
+      description: "زيادة متابعين، تفاعل، مشاهدات لجميع منصات التواصل",
+      color: "from-blue-500 to-cyan-500",
+      bgColor: "bg-blue-500/10",
+      features: ["انستقرام", "تيك توك", "يوتيوب", "تويتر"]
+    },
+    { 
+      icon: Code2, 
+      title: "البرمجة والتطوير",
+      subtitle: "حلول تقنية متكاملة",
+      description: "مواقع، تطبيقات، أنظمة إدارة، وحلول برمجية احترافية",
+      color: "from-emerald-500 to-teal-500",
+      bgColor: "bg-emerald-500/10",
+      features: ["مواقع ويب", "تطبيقات", "لوحات تحكم", "API"]
+    },
+    { 
+      icon: Palette, 
+      title: "التصميم الإبداعي",
+      subtitle: "هوية بصرية مميزة",
+      description: "شعارات، هوية بصرية، تصاميم سوشيال ميديا احترافية",
+      color: "from-purple-500 to-pink-500",
+      bgColor: "bg-purple-500/10",
+      features: ["شعارات", "هوية بصرية", "بوسترات", "بنرات"]
+    },
   ];
 
   const stats = [
-    { value: "+500", label: "عميل راضي" },
-    { value: "+1000", label: "مشروع منجز" },
-    { value: "98%", label: "نسبة الرضا" },
-    { value: "+5", label: "سنوات خبرة" },
+    { value: "+500", label: "عميل راضي", icon: "👥" },
+    { value: "+1000", label: "مشروع منجز", icon: "🎯" },
+    { value: "98%", label: "نسبة الرضا", icon: "⭐" },
+    { value: "+5", label: "سنوات خبرة", icon: "🏆" },
   ];
 
   return (
     <section ref={containerRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background */}
+      {/* Animated Background */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-secondary/20" />
+        
+        {/* Animated Mesh Gradient */}
+        <motion.div
+          className="absolute top-0 left-0 w-full h-full"
+          animate={{
+            background: [
+              "radial-gradient(circle at 20% 20%, hsl(var(--primary) / 0.15) 0%, transparent 50%)",
+              "radial-gradient(circle at 80% 80%, hsl(var(--primary) / 0.15) 0%, transparent 50%)",
+              "radial-gradient(circle at 50% 50%, hsl(var(--primary) / 0.15) 0%, transparent 50%)",
+            ]
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
         
         {/* Animated Gradient Orbs */}
         <motion.div
           className="absolute top-[5%] right-[5%] w-[300px] sm:w-[400px] md:w-[500px] h-[300px] sm:h-[400px] md:h-[500px] rounded-full"
           animate={{
             scale: [1, 1.1, 1],
-            opacity: [0.1, 0.15, 0.1],
+            opacity: [0.1, 0.18, 0.1],
+            rotate: [0, 180, 360],
           }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
           style={{
-            background: "radial-gradient(circle, hsl(var(--primary) / 0.2) 0%, transparent 70%)",
+            background: "radial-gradient(circle, hsl(var(--primary) / 0.25) 0%, transparent 70%)",
             filter: "blur(60px)",
           }}
         />
@@ -52,43 +89,52 @@ const HeroSection = () => {
           className="absolute bottom-[10%] left-[5%] w-[350px] sm:w-[450px] md:w-[600px] h-[350px] sm:h-[450px] md:h-[600px] rounded-full"
           animate={{
             scale: [1, 1.15, 1],
-            opacity: [0.08, 0.12, 0.08],
+            opacity: [0.08, 0.15, 0.08],
+            rotate: [360, 180, 0],
           }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 1 }}
           style={{
-            background: "radial-gradient(circle, hsl(var(--accent) / 0.15) 0%, transparent 70%)",
+            background: "radial-gradient(circle, hsl(var(--accent) / 0.2) 0%, transparent 70%)",
             filter: "blur(80px)",
           }}
         />
         
         {/* Grid Pattern */}
         <div 
-          className="absolute inset-0 opacity-[0.02]"
+          className="absolute inset-0 opacity-[0.03]"
           style={{
             backgroundImage: `linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)`,
-            backgroundSize: "50px 50px",
+            backgroundSize: "60px 60px",
           }}
         />
 
-        {/* Floating Particles - Hidden on very small screens */}
+        {/* Floating Particles */}
         <div className="hidden sm:block">
-          {[...Array(12)].map((_, i) => (
+          {[...Array(20)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute w-1 h-1 rounded-full bg-primary/40"
+              className="absolute rounded-full"
               style={{
-                left: `${10 + Math.random() * 80}%`,
-                top: `${10 + Math.random() * 80}%`,
+                left: `${5 + Math.random() * 90}%`,
+                top: `${5 + Math.random() * 90}%`,
+                width: `${4 + Math.random() * 8}px`,
+                height: `${4 + Math.random() * 8}px`,
+                background: i % 3 === 0 
+                  ? "hsl(var(--primary) / 0.4)" 
+                  : i % 3 === 1 
+                    ? "hsl(var(--accent) / 0.4)"
+                    : "hsl(var(--warning) / 0.4)",
               }}
               animate={{
-                y: [0, -20, 0],
-                opacity: [0.2, 0.6, 0.2],
-                scale: [1, 1.3, 1],
+                y: [0, -30, 0],
+                x: [0, Math.random() * 20 - 10, 0],
+                opacity: [0.2, 0.7, 0.2],
+                scale: [1, 1.5, 1],
               }}
               transition={{
-                duration: 3 + Math.random() * 3,
+                duration: 4 + Math.random() * 4,
                 repeat: Infinity,
-                delay: Math.random() * 2,
+                delay: Math.random() * 3,
               }}
             />
           ))}
@@ -99,7 +145,7 @@ const HeroSection = () => {
         style={{ y, opacity }}
         className="container relative z-10 px-4 pt-24 sm:pt-28 md:pt-32 pb-16 md:pb-20"
       >
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -108,21 +154,23 @@ const HeroSection = () => {
             className="flex justify-center mb-6 sm:mb-8"
           >
             <motion.div 
-              className="inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-full bg-gradient-to-l from-primary/15 to-accent/15 border border-primary/25 backdrop-blur-sm"
-              whileHover={{ scale: 1.03, borderColor: "hsl(var(--primary) / 0.4)" }}
+              className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 rounded-full bg-gradient-to-l from-primary/15 via-accent/10 to-primary/15 border border-primary/25 backdrop-blur-sm"
+              whileHover={{ scale: 1.03, borderColor: "hsl(var(--primary) / 0.5)" }}
+              animate={{ boxShadow: ["0 0 20px hsl(var(--primary) / 0.1)", "0 0 40px hsl(var(--primary) / 0.2)", "0 0 20px hsl(var(--primary) / 0.1)"] }}
+              transition={{ duration: 3, repeat: Infinity }}
             >
               <motion.div
                 animate={{ rotate: 360 }}
-                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
               >
-                <Sparkles className="w-4 h-4 text-primary" />
+                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               </motion.div>
-              <span className="text-xs sm:text-sm font-semibold bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
-                الشريك الأول للتسويق الرقمي في السعودية
+              <span className="text-xs sm:text-sm font-bold bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
+                منصة الخدمات الرقمية المتكاملة
               </span>
               <motion.div
-                className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-success"
-                animate={{ scale: [1, 1.3, 1] }}
+                className="w-2 h-2 rounded-full bg-success"
+                animate={{ scale: [1, 1.4, 1], opacity: [1, 0.7, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               />
             </motion.div>
@@ -135,30 +183,38 @@ const HeroSection = () => {
             transition={{ duration: 0.7, delay: 0.1 }}
             className="text-center mb-6 sm:mb-8"
           >
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-[1.2] tracking-tight px-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-[1.25] tracking-tight px-2">
               <motion.span 
-                className="block mb-1 sm:mb-2"
+                className="block mb-2 sm:mb-3"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.15 }}
               >
-                نُحوّل أفكارك إلى
+                كل ما تحتاجه لـ
               </motion.span>
-              <motion.span 
+              <motion.div 
                 className="relative inline-block"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
               >
                 <span className="bg-gradient-to-l from-primary via-accent to-primary bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient_5s_ease-in-out_infinite]">
-                  نجاحات رقمية
+                  نجاحك الرقمي
                 </span>
                 <motion.div
-                  className="absolute -bottom-1 sm:-bottom-2 left-0 right-0 h-0.5 sm:h-1 bg-gradient-to-l from-primary to-accent rounded-full"
+                  className="absolute -bottom-1 sm:-bottom-2 left-0 right-0 h-1 sm:h-1.5 bg-gradient-to-l from-primary via-accent to-primary rounded-full"
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
                   transition={{ duration: 0.6, delay: 0.6 }}
                 />
+              </motion.div>
+              <motion.span 
+                className="block mt-2 sm:mt-3 text-xl sm:text-2xl md:text-3xl lg:text-4xl text-muted-foreground font-medium"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                في مكان واحد
               </motion.span>
             </h1>
           </motion.div>
@@ -167,28 +223,93 @@ const HeroSection = () => {
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-center text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-6 sm:mb-8 px-4 leading-relaxed"
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="text-center text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto mb-8 sm:mb-10 px-4 leading-relaxed"
           >
-            نقدم حلولاً تسويقية متكاملة لتعزيز تواجدك الرقمي وزيادة مبيعاتك
+            منصة متكاملة تجمع خدمات <span className="text-primary font-semibold">التسويق الرقمي</span>، 
+            <span className="text-emerald-500 font-semibold"> البرمجة والتطوير</span>، 
+            و<span className="text-purple-500 font-semibold">التصميم الإبداعي</span> لتحقيق أهدافك
           </motion.p>
 
-          {/* Search Bar */}
+          {/* Interactive Service Cards */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="max-w-md sm:max-w-lg mx-auto mb-6 sm:mb-8 px-4"
+            transition={{ duration: 0.7, delay: 0.6 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto mb-10 sm:mb-12 px-2"
           >
-            <GlobalServiceSearch />
+            {services.map((service, index) => (
+              <motion.div
+                key={service.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 + index * 0.1 }}
+                whileHover={{ y: -8, scale: 1.02 }}
+                onHoverStart={() => setActiveService(index)}
+                className={`group relative cursor-pointer`}
+              >
+                <div className={`relative p-5 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all duration-500 backdrop-blur-xl overflow-hidden ${
+                  activeService === index 
+                    ? 'bg-gradient-to-br ' + service.color + '/10 border-primary/40 shadow-xl shadow-primary/10' 
+                    : 'bg-background/60 border-border/50 hover:border-primary/30'
+                }`}>
+                  {/* Glow Effect */}
+                  <motion.div
+                    className={`absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-20 blur-2xl transition-opacity duration-500`}
+                  />
+                  
+                  {/* Icon */}
+                  <motion.div 
+                    className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br ${service.color} p-3 mb-4 shadow-lg`}
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                  >
+                    <service.icon className="w-full h-full text-white" />
+                  </motion.div>
+
+                  <h3 className="text-lg sm:text-xl font-bold mb-1 group-hover:text-primary transition-colors">
+                    {service.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-primary/80 font-medium mb-2">
+                    {service.subtitle}
+                  </p>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-4 line-clamp-2">
+                    {service.description}
+                  </p>
+
+                  {/* Features Tags */}
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                    {service.features.map((feature, i) => (
+                      <motion.span
+                        key={feature}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.9 + index * 0.1 + i * 0.05 }}
+                        className={`text-[10px] sm:text-xs px-2 py-1 rounded-full ${service.bgColor} border border-current/10 font-medium`}
+                      >
+                        {feature}
+                      </motion.span>
+                    ))}
+                  </div>
+
+                  {/* Arrow */}
+                  <motion.div 
+                    className="absolute bottom-4 left-4 sm:bottom-5 sm:left-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    animate={{ x: [0, -5, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    <ArrowLeft className="w-5 h-5 text-primary" />
+                  </motion.div>
+                </div>
+              </motion.div>
+            ))}
           </motion.div>
 
           {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-8 sm:mb-12 px-4"
+            transition={{ duration: 0.6, delay: 0.9 }}
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-10 sm:mb-14 px-4"
           >
             <Link to="/auth?mode=signup" className="w-full sm:w-auto">
               <motion.div 
@@ -198,16 +319,15 @@ const HeroSection = () => {
               >
                 <Button 
                   size="lg" 
-                  className="group w-full sm:w-auto px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base font-semibold bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-xl shadow-primary/30 hover:shadow-primary/50 transition-all duration-300 rounded-xl"
+                  className="group w-full sm:w-auto px-8 sm:px-10 py-6 sm:py-7 text-base sm:text-lg font-bold bg-gradient-to-l from-primary via-accent to-primary bg-[length:200%_auto] text-primary-foreground shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all duration-500 rounded-xl sm:rounded-2xl animate-[gradient_5s_ease-in-out_infinite]"
                 >
-                  <span className="flex items-center justify-center gap-2">
-                    ابدأ رحلتك الآن
-                    <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 group-hover:-translate-x-1 transition-transform duration-300" />
-                  </span>
+                  <Rocket className="ml-2 w-5 h-5 group-hover:rotate-12 transition-transform" />
+                  ابدأ الآن مجاناً
+                  <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform duration-300" />
                 </Button>
               </motion.div>
             </Link>
-            <Link to="/services" className="w-full sm:w-auto">
+            <Link to="/our-services" className="w-full sm:w-auto">
               <motion.div 
                 whileHover={{ scale: 1.02, y: -2 }} 
                 whileTap={{ scale: 0.98 }}
@@ -216,42 +336,20 @@ const HeroSection = () => {
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="group w-full sm:w-auto px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base border-2 border-border/50 hover:border-primary/50 bg-background/50 backdrop-blur-sm hover:bg-secondary/50 transition-all duration-300 rounded-xl"
+                  className="group w-full sm:w-auto px-8 sm:px-10 py-6 sm:py-7 text-base sm:text-lg font-semibold border-2 border-border/50 hover:border-primary/50 bg-background/50 backdrop-blur-sm hover:bg-secondary/50 transition-all duration-300 rounded-xl sm:rounded-2xl"
                 >
-                  <Play className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                  <Globe className="ml-2 w-5 h-5 group-hover:scale-110 transition-transform" />
                   استكشف خدماتنا
                 </Button>
               </motion.div>
             </Link>
           </motion.div>
 
-          {/* Features Pills */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.7 }}
-            className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-10 sm:mb-16 px-2"
-          >
-            {features.map((feature, index) => (
-              <motion.div
-                key={feature.text}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 + index * 0.08 }}
-                whileHover={{ scale: 1.05, y: -2 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-secondary/50 border border-border/40 backdrop-blur-sm"
-              >
-                <feature.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
-                <span className="text-xs sm:text-sm font-medium">{feature.text}</span>
-              </motion.div>
-            ))}
-          </motion.div>
-
           {/* Stats Grid */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.9 }}
+            transition={{ duration: 0.7, delay: 1 }}
             className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto px-2"
           >
             {stats.map((stat, index) => (
@@ -259,19 +357,20 @@ const HeroSection = () => {
                 key={stat.label}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1 + index * 0.1, type: "spring" }}
-                whileHover={{ scale: 1.03, y: -3 }}
+                transition={{ delay: 1.1 + index * 0.1, type: "spring" }}
+                whileHover={{ scale: 1.05, y: -5 }}
                 className="group relative"
               >
-                <div className="relative text-center p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-secondary/30 border border-border/40 hover:border-primary/30 backdrop-blur-sm transition-all duration-300 overflow-hidden">
+                <div className="relative text-center p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-gradient-to-br from-secondary/40 to-secondary/20 border border-border/40 hover:border-primary/40 backdrop-blur-sm transition-all duration-500 overflow-hidden">
                   <motion.div
-                    className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   />
+                  <span className="text-xl sm:text-2xl mb-2 block">{stat.icon}</span>
                   <motion.p 
                     className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-l from-primary via-accent to-primary bg-clip-text text-transparent mb-1"
                     initial={{ scale: 0.5 }}
                     animate={{ scale: 1 }}
-                    transition={{ delay: 1.1 + index * 0.1, type: "spring", stiffness: 200 }}
+                    transition={{ delay: 1.2 + index * 0.1, type: "spring", stiffness: 200 }}
                   >
                     {stat.value}
                   </motion.p>
@@ -281,68 +380,57 @@ const HeroSection = () => {
             ))}
           </motion.div>
 
-          {/* Trust Badge - Hidden on very small screens */}
+          {/* Coming Soon Badge */}
           <motion.div
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.3 }}
-            className="hidden sm:flex mt-12 sm:mt-16 justify-center"
+            transition={{ delay: 1.4 }}
+            className="flex justify-center mt-10 sm:mt-14"
           >
-            <div className="inline-flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full bg-secondary/30 border border-border/30 backdrop-blur-sm">
-              <div className="flex -space-x-2.5 space-x-reverse">
-                {[1, 2, 3, 4].map((i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ x: 15, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 1.4 + i * 0.08 }}
-                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 border-2 border-background flex items-center justify-center"
-                  >
-                    <span className="text-[10px] sm:text-xs font-bold text-foreground/80">{String.fromCharCode(64 + i)}</span>
-                  </motion.div>
-                ))}
-              </div>
-              <div className="h-6 w-px bg-border/50" />
-              <div className="flex items-center gap-1">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 1.5 + i * 0.04, type: "spring" }}
-                  >
-                    <Star className="w-4 h-4 fill-warning text-warning" />
-                  </motion.div>
-                ))}
-              </div>
-              <span className="text-xs sm:text-sm font-medium text-muted-foreground">موثوق من +500 شركة</span>
-            </div>
+            <motion.div 
+              className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-l from-warning/10 to-warning/5 border border-warning/30 backdrop-blur-sm"
+              animate={{ 
+                boxShadow: ["0 0 20px hsl(var(--warning) / 0.1)", "0 0 30px hsl(var(--warning) / 0.2)", "0 0 20px hsl(var(--warning) / 0.1)"]
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <motion.span
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+                className="text-xl"
+              >
+                🚀
+              </motion.span>
+              <span className="text-sm sm:text-base font-semibold text-warning">
+                قريباً... المزيد من الأقسام والخدمات الجديدة!
+              </span>
+            </motion.div>
           </motion.div>
         </div>
       </motion.div>
 
-      {/* Scroll Indicator - Hidden on mobile */}
+      {/* Scroll Indicator */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.5 }}
+        transition={{ delay: 1.6 }}
         className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 hidden sm:block"
       >
         <motion.div
-          animate={{ y: [0, 8, 0] }}
+          animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
-          className="w-5 h-8 sm:w-6 sm:h-10 rounded-full border-2 border-border/50 flex items-start justify-center p-1"
+          className="w-6 h-10 rounded-full border-2 border-primary/30 flex items-start justify-center p-1.5"
         >
           <motion.div
-            animate={{ y: [0, 10, 0] }}
+            animate={{ y: [0, 12, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
-            className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-primary"
+            className="w-1.5 h-1.5 rounded-full bg-primary"
           />
         </motion.div>
       </motion.div>
 
       {/* Bottom Gradient */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background via-background/50 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent" />
 
       <style>{`
         @keyframes gradient {
