@@ -76,11 +76,11 @@ const Header = () => {
                 whileHover={{ scale: 1.05, rotate: 5 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <span className="font-bold text-lg md:text-xl text-primary-foreground relative z-10">م</span>
+                <span className="font-bold text-lg md:text-xl text-primary-foreground relative z-10">M</span>
               </motion.div>
               <div className="flex flex-col">
-                <span className="font-bold text-base md:text-lg leading-tight">ماركت برو</span>
-                <span className="text-[9px] md:text-[10px] text-muted-foreground leading-tight hidden sm:block">حلول تسويقية متكاملة</span>
+                <span className="font-bold text-base md:text-lg leading-tight">MaxioCore</span>
+                <span className="text-[9px] md:text-[10px] text-muted-foreground leading-tight hidden sm:block">حلول رقمية متكاملة</span>
               </div>
             </Link>
 
@@ -201,9 +201,9 @@ const Header = () => {
                 <div className="flex items-center justify-between mb-8">
                   <Link to="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30">
-                      <span className="font-bold text-lg text-primary-foreground">م</span>
+                      <span className="font-bold text-lg text-primary-foreground">M</span>
                     </div>
-                    <span className="font-bold text-lg">ماركت برو</span>
+                    <span className="font-bold text-lg">MaxioCore</span>
                   </Link>
                   <motion.button
                     onClick={() => setIsMobileMenuOpen(false)}

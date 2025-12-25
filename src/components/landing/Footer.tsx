@@ -155,27 +155,27 @@ const Footer = () => {
                 className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30"
                 whileHover={{ scale: 1.05, rotate: 5 }}
               >
-                <span className="font-bold text-2xl text-primary-foreground">م</span>
+                <span className="font-bold text-2xl text-primary-foreground">M</span>
               </motion.div>
               <div className="flex flex-col">
-                <span className="font-bold text-xl">ماركت برو</span>
-                <span className="text-sm text-muted-foreground">حلول تسويقية متكاملة</span>
+                <span className="font-bold text-xl">MaxioCore</span>
+                <span className="text-sm text-muted-foreground">حلول رقمية متكاملة</span>
               </div>
             </Link>
             <p className="text-muted-foreground mb-8 max-w-sm leading-relaxed text-base">
-              شريكك الموثوق في رحلة التحول الرقمي. نقدم حلول تسويقية مبتكرة
-              تساعدك على النمو والتميز في السوق السعودي.
+              شريكك الموثوق في رحلة التحول الرقمي. نقدم حلول متكاملة في التسويق والبرمجة والتصميم
+              تساعدك على النمو والتميز.
             </p>
             <div className="space-y-4">
               <motion.a 
-                href="mailto:info@marketpro.sa" 
+                href="mailto:info@maxiocore.com" 
                 className="flex items-center gap-4 text-muted-foreground hover:text-primary transition-colors group"
                 whileHover={{ x: -5 }}
               >
                 <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                   <Mail className="w-5 h-5 text-primary" />
                 </div>
-                <span>info@marketpro.sa</span>
+                <span>info@maxiocore.com</span>
               </motion.a>
               <motion.a 
                 href="tel:+966551234567" 
@@ -233,7 +233,7 @@ const Footer = () => {
           transition={{ delay: 0.6 }}
         >
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} ماركت برو. جميع الحقوق محفوظة.
+            © {new Date().getFullYear()} MaxioCore. جميع الحقوق محفوظة.
           </p>
           <div className="flex items-center gap-3">
             {socialLinks.map((social) => (
