@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.notify-order-status]
 verify_jwt = false
+
+[functions.notify-deposit-success]
+verify_jwt = false

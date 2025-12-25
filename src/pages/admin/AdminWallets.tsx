@@ -243,6 +243,17 @@ const AdminWallets = () => {
         .update({ status, ...(status === "completed" && { completed_at: new Date().toISOString() }) })
         .eq("id", depositId);
       if (error) throw error;
+      
+      // Send email notification if deposit is completed
+      if (status === "completed") {
+        try {
+          await supabase.functions.invoke('notify-deposit-success', {
+            body: { depositId }
+          });
+        } catch (e) {
+          console.error("Failed to send deposit notification:", e);
+        }
+      }
     },
     onSuccess: () => {
       toast.success("تم تحديث حالة الإيداع بنجاح");

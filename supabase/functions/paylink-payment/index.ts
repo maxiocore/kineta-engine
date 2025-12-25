@@ -305,6 +305,21 @@ serve(async (req) => {
           // Note: Balance is updated automatically by the database trigger (update_balance_on_deposit)
           console.log("Deposit completed:", deposit.id);
 
+          // Send email notification to client
+          try {
+            await fetch(`${SUPABASE_URL}/functions/v1/notify-deposit-success`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+              },
+              body: JSON.stringify({ depositId: deposit.id }),
+            });
+            console.log("Deposit notification sent for:", deposit.id);
+          } catch (notifyError) {
+            console.error("Failed to send deposit notification:", notifyError);
+          }
+
           return new Response(
             JSON.stringify({
               success: true,
@@ -395,6 +410,21 @@ serve(async (req) => {
 
           // Note: Balance is updated automatically by the database trigger (update_balance_on_deposit)
           console.log("Deposit completed via webhook:", deposit.id);
+
+          // Send email notification to client
+          try {
+            await fetch(`${SUPABASE_URL}/functions/v1/notify-deposit-success`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+              },
+              body: JSON.stringify({ depositId: deposit.id }),
+            });
+            console.log("Deposit notification sent via webhook for:", deposit.id);
+          } catch (notifyError) {
+            console.error("Failed to send deposit notification:", notifyError);
+          }
         }
 
         return new Response(
