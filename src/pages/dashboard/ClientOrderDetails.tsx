@@ -56,6 +56,22 @@ interface OrderStatusHistory {
   notes: string | null;
 }
 
+interface ProviderStatus {
+  success: boolean;
+  hasExternalOrder: boolean;
+  externalOrderId?: string;
+  providerName?: string;
+  status?: string;
+  startCount?: number | null;
+  remains?: number | null;
+  charge?: number | null;
+  currency?: string;
+  delivered?: number | null;
+  orderedQuantity?: number | null;
+  error?: string;
+  message?: string;
+}
+
 const getStatusConfig = (status: string) => {
   switch (status) {
     case "pending": 
@@ -159,6 +175,8 @@ const ClientOrderDetails = () => {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [copiedLink, setCopiedLink] = useState(false);
   const [showAllHistory, setShowAllHistory] = useState(false);
+  const [providerStatus, setProviderStatus] = useState<ProviderStatus | null>(null);
+  const [loadingProviderStatus, setLoadingProviderStatus] = useState(false);
 
   useEffect(() => {
     if (user && orderId) {
@@ -216,6 +234,27 @@ const ClientOrderDetails = () => {
     
     if (!error && data) setOrderHistory(data);
     setLoadingHistory(false);
+  };
+
+  const fetchProviderStatus = async () => {
+    if (!orderId) return;
+    setLoadingProviderStatus(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('get-order-provider-status', {
+        body: { orderId }
+      });
+      
+      if (error) {
+        console.error('Error fetching provider status:', error);
+        setProviderStatus({ success: false, hasExternalOrder: false, error: error.message });
+      } else {
+        setProviderStatus(data);
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      setProviderStatus({ success: false, hasExternalOrder: false, error: 'فشل في جلب البيانات' });
+    }
+    setLoadingProviderStatus(false);
   };
 
   const copyToClipboard = (text: string) => {
@@ -1083,6 +1122,99 @@ ${order.link ? `الرابط: ${order.link}` : ''}
               </Card>
             </motion.div>
 
+            {/* Provider Status Card */}
+            {order.external_order_id && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+              >
+                <Card className="border-cyan-200 dark:border-cyan-800 bg-gradient-to-br from-cyan-50/50 to-blue-50/50 dark:from-cyan-950/20 dark:to-blue-950/20">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+                        بيانات المزود
+                      </CardTitle>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={fetchProviderStatus}
+                        disabled={loadingProviderStatus}
+                        className="gap-2 h-8 rounded-lg text-xs"
+                      >
+                        {loadingProviderStatus ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <RefreshCw className="w-3 h-3" />
+                        )}
+                        تحديث
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {!providerStatus && !loadingProviderStatus && (
+                      <div className="text-center py-4">
+                        <Button
+                          variant="outline"
+                          onClick={fetchProviderStatus}
+                          className="gap-2"
+                        >
+                          <TrendingUp className="w-4 h-4" />
+                          جلب بيانات المزود
+                        </Button>
+                      </div>
+                    )}
+
+                    {loadingProviderStatus && (
+                      <div className="flex items-center justify-center py-6">
+                        <Loader2 className="w-8 h-8 animate-spin text-cyan-600" />
+                      </div>
+                    )}
+
+                    {providerStatus && !loadingProviderStatus && (
+                      <>
+                        {providerStatus.success && providerStatus.hasExternalOrder ? (
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div className="p-3 rounded-xl bg-white/80 dark:bg-white/5 border border-cyan-200/50 dark:border-cyan-800/50 text-center">
+                              <p className="text-xs text-muted-foreground mb-1">عدد البدء</p>
+                              <p className="font-bold text-lg text-cyan-600 dark:text-cyan-400">
+                                {providerStatus.startCount?.toLocaleString() ?? '-'}
+                              </p>
+                            </div>
+                            <div className="p-3 rounded-xl bg-white/80 dark:bg-white/5 border border-emerald-200/50 dark:border-emerald-800/50 text-center">
+                              <p className="text-xs text-muted-foreground mb-1">تم التسليم</p>
+                              <p className="font-bold text-lg text-emerald-600 dark:text-emerald-400">
+                                {providerStatus.delivered?.toLocaleString() ?? '-'}
+                              </p>
+                            </div>
+                            <div className="p-3 rounded-xl bg-white/80 dark:bg-white/5 border border-amber-200/50 dark:border-amber-800/50 text-center">
+                              <p className="text-xs text-muted-foreground mb-1">المتبقي</p>
+                              <p className="font-bold text-lg text-amber-600 dark:text-amber-400">
+                                {providerStatus.remains?.toLocaleString() ?? '-'}
+                              </p>
+                            </div>
+                            <div className="p-3 rounded-xl bg-white/80 dark:bg-white/5 border border-purple-200/50 dark:border-purple-800/50 text-center">
+                              <p className="text-xs text-muted-foreground mb-1">حالة المزود</p>
+                              <p className="font-bold text-sm text-purple-600 dark:text-purple-400">
+                                {providerStatus.status || '-'}
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center py-4 text-muted-foreground">
+                            <p className="text-sm">
+                              {providerStatus.error || providerStatus.message || 'لا تتوفر بيانات من المزود'}
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
             {/* Service Info */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -1107,7 +1239,7 @@ ${order.link ? `الرابط: ${order.link}` : ''}
                       <p className="font-medium">{order.service?.category}</p>
                     </div>
                     <div className="p-4 rounded-xl bg-muted/50">
-                      <p className="text-xs text-muted-foreground mb-1">الكمية</p>
+                      <p className="text-xs text-muted-foreground mb-1">عدد البدء</p>
                       <p className="font-medium">{order.quantity?.toLocaleString() || "-"}</p>
                     </div>
                     <div className="p-4 rounded-xl bg-muted/50">
