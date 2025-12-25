@@ -1,8 +1,11 @@
-import { Bell } from "lucide-react";
+import { Bell, FileText, Loader2, Send } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import SettingsCard from "./SettingsCard";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 interface NotificationSettingsProps {
   settings: Record<string, any>;
@@ -38,6 +41,32 @@ const notificationOptions = [
 ];
 
 const NotificationSettings = ({ settings, saving, onToggle }: NotificationSettingsProps) => {
+  const { toast } = useToast();
+  const [sendingReport, setSendingReport] = useState(false);
+
+  const handleSendWeeklyReport = async () => {
+    setSendingReport(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('weekly-admin-report');
+      
+      if (error) throw error;
+      
+      toast({
+        title: "تم الإرسال",
+        description: `تم إرسال التقرير الأسبوعي إلى ${data.sentCount} أدمن`,
+      });
+    } catch (error: any) {
+      console.error('Error sending weekly report:', error);
+      toast({
+        title: "خطأ",
+        description: "فشل في إرسال التقرير الأسبوعي",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingReport(false);
+    }
+  };
+
   return (
     <SettingsCard
       icon={Bell}
@@ -74,6 +103,42 @@ const NotificationSettings = ({ settings, saving, onToggle }: NotificationSettin
             </div>
           </motion.div>
         ))}
+        
+        {/* Weekly Report Button */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.6 }}
+          className="pt-4 mt-4 border-t border-border/50"
+        >
+          <div className="flex items-center justify-between py-3 px-3 rounded-lg bg-primary/5 border border-primary/20">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20">
+                <FileText className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium text-sm">التقرير الأسبوعي</p>
+                <p className="text-xs text-muted-foreground">إرسال تقرير إحصائي شامل للأدمن</p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              onClick={handleSendWeeklyReport}
+              disabled={sendingReport}
+              className="gap-2"
+            >
+              {sendingReport ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+              إرسال الآن
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2 px-3">
+            يُرسل هذا التقرير تلقائياً كل يوم أحد صباحاً
+          </p>
+        </motion.div>
       </div>
     </SettingsCard>
   );
