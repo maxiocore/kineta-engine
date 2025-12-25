@@ -152,17 +152,54 @@ const AdminOrders = () => {
 
   const handleUpdateOrder = async (orderId: string, status: string, adminNotes: string) => {
     setUpdating(true);
+    const currentOrder = orders.find(o => o.id === orderId);
+    const oldStatus = currentOrder?.status;
+    
     const { error } = await supabase.from("orders").update({ status: status as any, admin_notes: adminNotes, updated_at: new Date().toISOString() }).eq("id", orderId);
     if (error) toast.error("خطأ في تحديث الطلب");
-    else { toast.success("تم تحديث الطلب بنجاح"); setSelectedOrder(null); fetchOrders(); }
+    else { 
+      // Send email notification to client if status changed
+      if (oldStatus !== status) {
+        try {
+          await supabase.functions.invoke('notify-order-status', {
+            body: { orderId, oldStatus, newStatus: status }
+          });
+        } catch (e) {
+          console.error("Failed to send status notification:", e);
+        }
+      }
+      toast.success("تم تحديث الطلب بنجاح"); 
+      setSelectedOrder(null); 
+      fetchOrders(); 
+    }
     setUpdating(false);
   };
 
   const handleBulkStatusUpdate = async (status: string) => {
     if (selectedIds.length === 0) return;
+    
+    // Get old statuses before update
+    const ordersToUpdate = orders.filter(o => selectedIds.includes(o.id));
+    
     const { error } = await supabase.from("orders").update({ status: status as any, updated_at: new Date().toISOString() }).in("id", selectedIds);
     if (error) toast.error("خطأ في تحديث الطلبات");
-    else { toast.success(`تم تحديث ${selectedIds.length} طلب`); setSelectedIds([]); fetchOrders(); }
+    else { 
+      // Send email notifications to clients
+      for (const order of ordersToUpdate) {
+        if (order.status !== status) {
+          try {
+            await supabase.functions.invoke('notify-order-status', {
+              body: { orderId: order.id, oldStatus: order.status, newStatus: status }
+            });
+          } catch (e) {
+            console.error("Failed to send status notification:", e);
+          }
+        }
+      }
+      toast.success(`تم تحديث ${selectedIds.length} طلب`); 
+      setSelectedIds([]); 
+      fetchOrders(); 
+    }
   };
 
   const openOrderDetails = async (order: Order) => { setSelectedOrder(order); await fetchOrderHistory(order.id); };
