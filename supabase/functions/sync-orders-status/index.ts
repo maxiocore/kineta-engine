@@ -152,9 +152,14 @@ serve(async (req) => {
             external_status: externalStatus?.toLowerCase() || order.external_status,
           };
 
+          // Track if status will change for notification
+          const oldStatus = order.status;
+          let newStatus = oldStatus;
+
           // Only update internal status if we have a valid mapping and it's different
           if (mappedStatus && mappedStatus !== order.status) {
             updateData.status = mappedStatus;
+            newStatus = mappedStatus;
           }
 
           // Add start_count and remains if available
@@ -175,6 +180,28 @@ serve(async (req) => {
             errorCount++;
           } else {
             syncedCount++;
+            
+            // Send email notification to client if status changed
+            if (oldStatus !== newStatus) {
+              try {
+                await fetch(`${supabaseUrl}/functions/v1/notify-order-status`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${supabaseServiceKey}`,
+                  },
+                  body: JSON.stringify({ 
+                    orderId: order.id, 
+                    oldStatus, 
+                    newStatus 
+                  }),
+                });
+                console.log(`Notification sent for order ${order.id}: ${oldStatus} -> ${newStatus}`);
+              } catch (notifyError) {
+                console.error(`Failed to send notification for order ${order.id}:`, notifyError);
+              }
+            }
+            
             results.push({
               orderId: order.id,
               externalOrderId: order.external_order_id,
