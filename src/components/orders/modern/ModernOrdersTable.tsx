@@ -310,12 +310,21 @@ const OrderTableRow = memo(({ order, index, onClick }: {
         </div>
       </TableCell>
 
+      {/* Delivered/Executed */}
+      <TableCell className="py-3.5 px-4 text-center">
+        <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
+          {order.start_count !== null && order.remains !== null && order.quantity
+            ? Math.max(0, (order.quantity || 0) - (order.remains || 0)).toLocaleString()
+            : '-'}
+        </span>
+      </TableCell>
+
       {/* Remaining */}
       <TableCell className="py-3.5 px-4 text-center">
         <span className="text-sm text-foreground tabular-nums">
           {order.remains !== null && order.remains !== undefined 
             ? order.remains.toLocaleString() 
-            : '0'}
+            : '-'}
         </span>
       </TableCell>
 
@@ -345,7 +354,7 @@ const TableSkeleton = () => (
   <>
     {[...Array(5)].map((_, i) => (
       <TableRow key={i} className="border-b border-border/50">
-        {[...Array(9)].map((_, j) => (
+        {[...Array(10)].map((_, j) => (
           <TableCell key={j} className="py-4">
             <Skeleton className="h-6 w-full" />
           </TableCell>
@@ -480,7 +489,8 @@ export const ModernOrdersTable = memo(({
               <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">الثمن</TableHead>
               <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">عدد البدء</TableHead>
               <TableHead className="text-primary-foreground/95 font-semibold text-right py-3.5 px-4 text-sm">الخدمة</TableHead>
-              <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">العدد المتبقي</TableHead>
+              <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">المنفذ</TableHead>
+              <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">المتبقي</TableHead>
               <TableHead className="text-primary-foreground/95 font-semibold text-right py-3.5 px-4 text-sm">حالة الطلب</TableHead>
             </TableRow>
           </TableHeader>
@@ -560,7 +570,8 @@ export const ModernOrdersTable = memo(({
                 >
                   الخدمة
                 </SortableHeader>
-                <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 whitespace-nowrap text-sm">العدد المتبقي</TableHead>
+                <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 whitespace-nowrap text-sm">المنفذ</TableHead>
+                <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 whitespace-nowrap text-sm">المتبقي</TableHead>
                 <SortableHeader 
                   field="status" 
                   currentSort={sortField} 
