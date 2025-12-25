@@ -266,7 +266,7 @@ export const ModernOrderCard = memo(({ order, index, onClick, onReorder }: Moder
               <Package className="w-4 h-4 text-primary" />
             </div>
             <div className="text-right">
-              <p className="text-[10px] text-muted-foreground">الكمية</p>
+              <p className="text-[10px] text-muted-foreground">عدد البدء</p>
               <p className="font-bold text-sm">{order.quantity?.toLocaleString() || 1}</p>
             </div>
           </div>
