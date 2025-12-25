@@ -73,7 +73,7 @@ const About = () => {
                 من نحن
               </span>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                نحن <span className="bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">ماركت برو</span>
+                نحن <span className="bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">MaxioCore</span>
               </h1>
               <p className="text-lg text-muted-foreground">
                 شركة رائدة في مجال التسويق الرقمي، نساعد الشركات على النمو والتميز في العالم الرقمي منذ عام 2019

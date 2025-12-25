@@ -221,9 +221,9 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                     transition={{ duration: 0.5 }}
                     className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center"
                   >
-                    <span className="font-display font-bold text-xl text-primary-foreground">م</span>
+                    <span className="font-display font-bold text-xl text-primary-foreground">M</span>
                   </motion.div>
-                  <span className="font-display font-bold text-lg">ماركت برو</span>
+                  <span className="font-display font-bold text-lg">MaxioCore</span>
                 </Link>
               </motion.div>
             )}
@@ -507,9 +507,9 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
             transition={{ duration: 0.5 }}
             className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-primary flex items-center justify-center"
           >
-            <span className="font-bold text-sm sm:text-base text-primary-foreground">م</span>
+            <span className="font-bold text-sm sm:text-base text-primary-foreground">M</span>
           </motion.div>
-          <span className="font-bold text-sm sm:text-base hidden xs:block">ماركت برو</span>
+          <span className="font-bold text-sm sm:text-base hidden xs:block">MaxioCore</span>
         </Link>
         <div className="flex items-center gap-2">
           <motion.div

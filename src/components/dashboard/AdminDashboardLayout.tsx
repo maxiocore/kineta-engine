@@ -149,7 +149,7 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
               <h1 className="font-bold text-lg">لوحة الأدمن</h1>
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <Sparkles className="w-3 h-3" />
-                ماركت برو
+                MaxioCore
               </span>
             </div>
           </Link>
@@ -265,7 +265,7 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
               <span className="font-bold text-sm block leading-tight">لوحة الأدمن</span>
               <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                 <Sparkles className="w-2.5 h-2.5" />
-                ماركت برو
+                MaxioCore
               </span>
             </div>
           </div>
@@ -307,7 +307,7 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                     <span className="font-bold text-sm block">لوحة التحكم</span>
                     <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                       <Sparkles className="w-2.5 h-2.5" />
-                      ماركت برو
+                      MaxioCore
                     </span>
                   </div>
                 </div>

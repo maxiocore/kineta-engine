@@ -161,9 +161,9 @@ const Auth = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 mb-8">
             <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
-              <span className="font-display font-bold text-xl text-primary-foreground">م</span>
+              <span className="font-display font-bold text-xl text-primary-foreground">M</span>
             </div>
-            <span className="font-display font-bold text-xl">ماركت برو</span>
+            <span className="font-display font-bold text-xl">MaxioCore</span>
           </Link>
 
           {/* Header */}
@@ -371,7 +371,7 @@ const Auth = () => {
               انضم لأكثر من 10,000 مسوّق
             </h2>
             <p className="text-muted-foreground mb-6">
-              "ماركت برو غيّرت استراتيجيتنا التسويقية بالكامل. النتائج تتحدث عن نفسها."
+              "MaxioCore غيّرت استراتيجيتنا الرقمية بالكامل. النتائج تتحدث عن نفسها."
             </p>
             <div className="flex items-center justify-center gap-1">
               {Array.from({ length: 5 }).map((_, i) => (

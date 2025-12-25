@@ -60,8 +60,8 @@ const ClientReferrals = () => {
     if (navigator.share && link) {
       try {
         await navigator.share({
-          title: 'انضم إلى ماركت برو',
-          text: `انضم إلى ماركت برو واحصل على خدمات التواصل الاجتماعي بأفضل الأسعار! استخدم كود الإحالة: ${referralCode?.code}`,
+          title: 'انضم إلى MaxioCore',
+          text: `انضم إلى MaxioCore واحصل على خدمات رقمية متكاملة بأفضل الأسعار! استخدم كود الإحالة: ${referralCode?.code}`,
           url: link,
         });
       } catch (error) {
