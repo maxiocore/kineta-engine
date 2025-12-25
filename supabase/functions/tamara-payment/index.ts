@@ -332,6 +332,21 @@ serve(async (req) => {
 
           console.log("Tamara deposit completed:", deposit.id);
 
+          // Send email notification to client
+          try {
+            await fetch(`${SUPABASE_URL}/functions/v1/notify-deposit-success`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+              },
+              body: JSON.stringify({ depositId: deposit.id }),
+            });
+            console.log("Deposit notification sent for Tamara:", deposit.id);
+          } catch (notifyError) {
+            console.error("Failed to send deposit notification:", notifyError);
+          }
+
           return new Response(
             JSON.stringify({
               success: true,
@@ -414,6 +429,21 @@ serve(async (req) => {
           }
 
           console.log("Deposit completed via Tamara webhook:", deposit.id);
+
+          // Send email notification to client
+          try {
+            await fetch(`${SUPABASE_URL}/functions/v1/notify-deposit-success`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+              },
+              body: JSON.stringify({ depositId: deposit.id }),
+            });
+            console.log("Deposit notification sent via Tamara webhook:", deposit.id);
+          } catch (notifyError) {
+            console.error("Failed to send deposit notification:", notifyError);
+          }
         }
 
         return new Response(
