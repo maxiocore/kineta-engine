@@ -38,6 +38,8 @@ interface Order {
   quantity: number | null;
   external_status: string | null;
   external_order_id: string | null;
+  start_count?: number | null;
+  remains?: number | null;
   service: {
     name: string;
     category: string;
