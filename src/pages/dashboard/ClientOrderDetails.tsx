@@ -72,6 +72,41 @@ interface ProviderStatus {
   message?: string;
 }
 
+// ترجمة حالة الطلب من الإنجليزية إلى العربية
+const translateProviderStatus = (status: string | undefined): string => {
+  if (!status) return '-';
+  const statusMap: Record<string, string> = {
+    'Pending': 'قيد الانتظار',
+    'pending': 'قيد الانتظار',
+    'In progress': 'قيد التنفيذ',
+    'in_progress': 'قيد التنفيذ',
+    'In Progress': 'قيد التنفيذ',
+    'Processing': 'قيد المعالجة',
+    'processing': 'قيد المعالجة',
+    'Completed': 'مكتمل',
+    'completed': 'مكتمل',
+    'Partial': 'جزئي',
+    'partial': 'جزئي',
+    'Cancelled': 'ملغي',
+    'cancelled': 'ملغي',
+    'Canceled': 'ملغي',
+    'canceled': 'ملغي',
+    'Refunded': 'مسترد',
+    'refunded': 'مسترد',
+    'Failed': 'فشل',
+    'failed': 'فشل',
+    'Error': 'خطأ',
+    'error': 'خطأ',
+    'Active': 'نشط',
+    'active': 'نشط',
+    'Running': 'قيد التشغيل',
+    'running': 'قيد التشغيل',
+    'Started': 'بدأ',
+    'started': 'بدأ',
+  };
+  return statusMap[status] || status;
+};
+
 const getStatusConfig = (status: string) => {
   switch (status) {
     case "pending": 
@@ -1206,7 +1241,7 @@ ${order.link ? `الرابط: ${order.link}` : ''}
                             <div className="p-3 rounded-xl bg-white/80 dark:bg-white/5 border border-purple-200/50 dark:border-purple-800/50 text-center">
                               <p className="text-xs text-muted-foreground mb-1">حالة الطلب</p>
                               <p className="font-bold text-sm text-purple-600 dark:text-purple-400">
-                                {providerStatus.status || '-'}
+                                {translateProviderStatus(providerStatus.status)}
                               </p>
                             </div>
                           </div>
