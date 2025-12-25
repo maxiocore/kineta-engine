@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 
 const emailSchema = z.string().email("البريد الإلكتروني غير صالح");
@@ -106,6 +107,22 @@ const Auth = () => {
             });
           }
         } else {
+          // Send welcome email
+          try {
+            const { data: { user: newUser } } = await supabase.auth.getUser();
+            if (newUser) {
+              await supabase.functions.invoke('send-welcome-email', {
+                body: {
+                  userId: newUser.id,
+                  email: formData.email,
+                  name: formData.name
+                }
+              });
+            }
+          } catch (emailError) {
+            console.error('Error sending welcome email:', emailError);
+          }
+          
           toast({
             title: "تم إنشاء الحساب!",
             description: "تم تسجيل حسابك بنجاح. سيتم توجيهك للوحة التحكم.",
