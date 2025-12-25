@@ -45,6 +45,8 @@ interface Order {
   external_order_id: string | null;
   external_status: string | null;
   discount_amount: number | null;
+  start_count: number | null;
+  remains: number | null;
   service: Service;
 }
 
@@ -127,7 +129,7 @@ const ClientOrders = () => {
       .select(`
         id, order_number, status, total_price, notes, admin_notes, 
         created_at, updated_at, link, quantity, external_order_id, 
-        external_status, discount_amount, 
+        external_status, discount_amount, start_count, remains,
         service:services(id, name, price, category, description, features)
       `)
       .eq("user_id", user?.id)

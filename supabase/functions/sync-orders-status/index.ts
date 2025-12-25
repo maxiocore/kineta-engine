@@ -159,7 +159,10 @@ serve(async (req) => {
 
           // Add start_count and remains if available
           if (result.start_count !== undefined) {
-            updateData.admin_notes = `Start: ${result.start_count}, Remains: ${result.remains || 0}, Charge: ${result.charge || 0}`;
+            updateData.start_count = parseInt(result.start_count) || 0;
+          }
+          if (result.remains !== undefined) {
+            updateData.remains = parseInt(result.remains) || 0;
           }
 
           const { error: updateError } = await supabase

@@ -294,9 +294,13 @@ const OrderTableRow = memo(({ order, index, onClick }: {
         </span>
       </TableCell>
 
-      {/* Start Count (placeholder) */}
+      {/* Start Count */}
       <TableCell className="py-3.5 px-4 text-center">
-        <span className="text-sm text-muted-foreground/50">-</span>
+        <span className="text-sm text-foreground tabular-nums">
+          {order.start_count !== null && order.start_count !== undefined 
+            ? order.start_count.toLocaleString() 
+            : '-'}
+        </span>
       </TableCell>
 
       {/* Service Name */}
@@ -306,9 +310,13 @@ const OrderTableRow = memo(({ order, index, onClick }: {
         </div>
       </TableCell>
 
-      {/* Remaining (placeholder) */}
+      {/* Remaining */}
       <TableCell className="py-3.5 px-4 text-center">
-        <span className="text-sm text-muted-foreground/60 tabular-nums">0</span>
+        <span className="text-sm text-foreground tabular-nums">
+          {order.remains !== null && order.remains !== undefined 
+            ? order.remains.toLocaleString() 
+            : '0'}
+        </span>
       </TableCell>
 
       {/* Status */}
