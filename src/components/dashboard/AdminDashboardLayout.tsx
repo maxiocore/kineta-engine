@@ -29,6 +29,7 @@ import {
   Mail,
   FileText,
   Building2,
+  MessageSquareText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -64,6 +65,7 @@ const adminNavItems: NavItem[] = [
   { label: "التحديات", href: "/admin/challenges", icon: Target },
   { label: "المكافآت", href: "/admin/rewards", icon: Sparkles },
   { label: "الدعم الفني", href: "/admin/support", icon: HeadphonesIcon },
+  { label: "رسائل التواصل", href: "/admin/contact-messages", icon: MessageSquareText },
   { label: "الإشعارات", href: "/admin/notifications", icon: Bell },
   { label: "البريد", href: "/admin/emails", icon: Mail },
   { label: "سجل العمليات", href: "/admin/logs", icon: FileText },
