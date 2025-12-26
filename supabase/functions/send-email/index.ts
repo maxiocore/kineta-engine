@@ -27,6 +27,7 @@ type EmailType =
   | 'tier_upgrade'
   | 'challenge_completed'
   | 'refund_processed'
+  | 'package_inquiry'
   | 'custom';
 
 interface EmailRequest {
@@ -972,6 +973,76 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           
           <div style="text-align: center;">
             <a href="#" class="cta-button">استفد من العرض الآن</a>
+          </div>
+        `
+      };
+
+    case 'package_inquiry':
+      return {
+        subject: `🎯 طلب باقة جديد: ${data.packageName} - ${data.categoryName}`,
+        content: `
+          <div style="text-align: center;">
+            <div class="success-icon">📋</div>
+          </div>
+          <div class="greeting">طلب باقة جديد! 🎯</div>
+          <div class="message">
+            تم استلام طلب باقة جديد من العميل. يرجى المتابعة في أقرب وقت.
+          </div>
+          
+          <div class="highlight-box">
+            <div class="highlight-value">${data.packageName}</div>
+            <div class="highlight-label">${data.categoryName}</div>
+          </div>
+          
+          <div class="info-card">
+            <h3 style="color: #1e293b; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">📧 معلومات العميل</h3>
+            <div class="info-row">
+              <span class="info-label">الاسم الكامل</span>
+              <span class="info-value">${data.clientName}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">البريد الإلكتروني</span>
+              <span class="info-value">${data.clientEmail}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">رقم الجوال</span>
+              <span class="info-value">${data.clientPhone}</span>
+            </div>
+            ${data.companyName ? `
+            <div class="info-row">
+              <span class="info-label">اسم الشركة</span>
+              <span class="info-value">${data.companyName}</span>
+            </div>
+            ` : ''}
+          </div>
+          
+          <div class="info-card">
+            <h3 style="color: #1e293b; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">📦 تفاصيل الباقة</h3>
+            <div class="info-row">
+              <span class="info-label">القسم</span>
+              <span class="info-value">${data.categoryName}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">اسم الباقة</span>
+              <span class="info-value">${data.packageName}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">السعر</span>
+              <span class="info-value" style="color: #6366f1; font-size: 18px;">${data.packagePrice} ر.س / ${data.packagePeriod}</span>
+            </div>
+          </div>
+          
+          ${data.message ? `
+          <div class="info-card">
+            <h3 style="color: #1e293b; margin-bottom: 15px;">💬 رسالة العميل</h3>
+            <p style="color: #475569; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">${data.message}</p>
+          </div>
+          ` : ''}
+          
+          <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 20px; border-radius: 12px; text-align: center; margin-top: 25px;">
+            <p style="color: #92400e; font-size: 16px; margin: 0; font-weight: 600;">
+              ⏰ يرجى التواصل مع العميل في أقرب وقت ممكن
+            </p>
           </div>
         `
       };

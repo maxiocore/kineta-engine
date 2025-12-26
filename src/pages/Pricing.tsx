@@ -14,14 +14,25 @@ import {
   Shield,
   TrendingUp,
   X,
-  Minus,
-  Table
+  Table,
+  User,
+  Mail,
+  Phone,
+  Building,
+  MessageSquare,
+  Send,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "@/hooks/use-toast";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
+import { supabase } from "@/integrations/supabase/client";
 
 // Comparison data for each category
 const comparisonData = {
@@ -286,17 +297,139 @@ const serviceCategories = [
   },
 ];
 
+interface PackageFormData {
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+  message: string;
+}
+
 const Pricing = () => {
   const [activeCategory, setActiveCategory] = useState("social");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<{
+    categoryName: string;
+    categoryColor: string;
+    packageName: string;
+    packagePrice: string;
+    packagePeriod: string;
+  } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState<PackageFormData>({
+    name: "",
+    email: "",
+    phone: "",
+    company: "",
+    message: "",
+  });
 
   const currentCategory = serviceCategories.find(cat => cat.id === activeCategory);
+
+  const handlePackageSelect = (pkg: typeof serviceCategories[0]["packages"][0], category: typeof serviceCategories[0]) => {
+    setSelectedPackage({
+      categoryName: category.name,
+      categoryColor: category.color,
+      packageName: pkg.name,
+      packagePrice: pkg.price,
+      packagePeriod: pkg.period,
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name || !formData.email || !formData.phone) {
+      toast({
+        title: "خطأ",
+        description: "يرجى ملء جميع الحقول المطلوبة",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Send email to admin
+      const { error: emailError } = await supabase.functions.invoke('send-email', {
+        body: {
+          to: 'info@maxiocore.com',
+          type: 'package_inquiry',
+          data: {
+            clientName: formData.name,
+            clientEmail: formData.email,
+            clientPhone: formData.phone,
+            companyName: formData.company,
+            message: formData.message,
+            categoryName: selectedPackage?.categoryName,
+            packageName: selectedPackage?.packageName,
+            packagePrice: selectedPackage?.packagePrice,
+            packagePeriod: selectedPackage?.packagePeriod,
+          },
+        },
+      });
+
+      if (emailError) throw emailError;
+
+      // Send confirmation email to client
+      await supabase.functions.invoke('send-email', {
+        body: {
+          to: formData.email,
+          type: 'custom',
+          data: {
+            title: `شكراً لاهتمامك بباقة ${selectedPackage?.packageName}! 🎉`,
+            message: `
+              <p>مرحباً ${formData.name}،</p>
+              <p>تم استلام طلبك لباقة <strong>${selectedPackage?.packageName}</strong> من قسم <strong>${selectedPackage?.categoryName}</strong>.</p>
+              <p>سيتواصل معك فريقنا المختص خلال 24 ساعة لمناقشة التفاصيل وتلبية احتياجاتك.</p>
+            `,
+            customHtml: `
+              <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 12px; padding: 25px; margin-top: 20px; border-right: 4px solid #6366f1;">
+                <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                  <span style="color: #64748b;">الباقة</span>
+                  <span style="color: #1e293b; font-weight: 700;">${selectedPackage?.packageName}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                  <span style="color: #64748b;">القسم</span>
+                  <span style="color: #1e293b; font-weight: 700;">${selectedPackage?.categoryName}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 12px 0;">
+                  <span style="color: #64748b;">السعر</span>
+                  <span style="color: #6366f1; font-weight: 700; font-size: 18px;">${selectedPackage?.packagePrice} ر.س${selectedPackage?.packagePeriod ? ` / ${selectedPackage?.packagePeriod}` : ''}</span>
+                </div>
+              </div>
+            `,
+          },
+        },
+      });
+
+      toast({
+        title: "تم الإرسال بنجاح! ✅",
+        description: "سيتواصل معك فريقنا في أقرب وقت. تم إرسال تأكيد لبريدك الإلكتروني.",
+      });
+
+      setIsDialogOpen(false);
+      setFormData({ name: "", email: "", phone: "", company: "", message: "" });
+    } catch (error: any) {
+      console.error("Error submitting form:", error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء إرسال الطلب. يرجى المحاولة مرة أخرى.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div dir="rtl" className="min-h-screen bg-background overflow-hidden">
       <Header />
       <main className="pt-24">
         {/* Hero Section */}
-        <section className="py-16 md:py-24 relative">
+        <section className="py-12 md:py-20 relative">
           {/* Animated Background */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/15 via-transparent to-transparent" />
@@ -306,7 +439,7 @@ const Pricing = () => {
                 opacity: [0.2, 0.4, 0.2],
               }}
               transition={{ duration: 10, repeat: Infinity }}
-              className="absolute top-10 left-[10%] w-[400px] h-[400px] bg-gradient-to-br from-cyan-500/30 to-blue-600/20 rounded-full blur-[100px]"
+              className="absolute top-10 left-[10%] w-[300px] md:w-[400px] h-[300px] md:h-[400px] bg-gradient-to-br from-cyan-500/30 to-blue-600/20 rounded-full blur-[100px]"
             />
             <motion.div
               animate={{
@@ -314,7 +447,7 @@ const Pricing = () => {
                 opacity: [0.3, 0.5, 0.3],
               }}
               transition={{ duration: 8, repeat: Infinity }}
-              className="absolute bottom-10 right-[5%] w-[500px] h-[500px] bg-gradient-to-tr from-purple-500/30 to-primary/20 rounded-full blur-[120px]"
+              className="absolute bottom-10 right-[5%] w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-gradient-to-tr from-purple-500/30 to-primary/20 rounded-full blur-[120px]"
             />
           </div>
           
@@ -329,7 +462,7 @@ const Pricing = () => {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: "spring" }}
-                className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-l from-primary/20 to-cyan-500/20 border border-primary/30 backdrop-blur-sm mb-6"
+                className="inline-flex items-center gap-2 px-4 md:px-5 py-2 rounded-full bg-gradient-to-l from-primary/20 to-cyan-500/20 border border-primary/30 backdrop-blur-sm mb-6"
               >
                 <Sparkles className="w-4 h-4 text-primary" />
                 <span className="text-sm font-medium text-primary">باقات وعروض حصرية</span>
@@ -339,7 +472,7 @@ const Pricing = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
+                className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6"
               >
                 باقات{" "}
                 <span className="bg-gradient-to-l from-cyan-400 via-primary to-purple-500 bg-clip-text text-transparent">
@@ -351,7 +484,7 @@ const Pricing = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="text-lg md:text-xl text-muted-foreground mb-10"
+                className="text-base md:text-xl text-muted-foreground mb-8"
               >
                 اكتشف باقاتنا المتنوعة في التسويق والتصميم والبرمجة، واختر ما يناسب احتياجاتك
               </motion.p>
@@ -360,13 +493,13 @@ const Pricing = () => {
         </section>
 
         {/* Category Tabs */}
-        <section className="py-8 relative z-10">
+        <section className="py-6 md:py-8 relative z-10">
           <div className="container px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="flex flex-wrap justify-center gap-3 md:gap-4"
+              className="flex flex-wrap justify-center gap-2 md:gap-4"
             >
               {serviceCategories.map((category, index) => {
                 const Icon = category.icon;
@@ -380,7 +513,7 @@ const Pricing = () => {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setActiveCategory(category.id)}
                     className={`
-                      relative flex items-center gap-2 px-4 md:px-6 py-3 md:py-4 rounded-2xl font-medium text-sm md:text-base
+                      relative flex items-center gap-2 px-3 md:px-6 py-2.5 md:py-4 rounded-xl md:rounded-2xl font-medium text-xs md:text-base
                       transition-all duration-300 overflow-hidden
                       ${activeCategory === category.id
                         ? 'text-white shadow-xl'
@@ -395,8 +528,8 @@ const Pricing = () => {
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
                     )}
-                    <span className="relative z-10 flex items-center gap-2">
-                      <Icon className="w-5 h-5" />
+                    <span className="relative z-10 flex items-center gap-1.5 md:gap-2">
+                      <Icon className="w-4 h-4 md:w-5 md:h-5" />
                       <span className="hidden sm:inline">{category.name}</span>
                     </span>
                   </motion.button>
@@ -414,24 +547,24 @@ const Pricing = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="py-6"
+            className="py-4 md:py-6"
           >
             <div className="container px-4">
               <div className="text-center">
                 <motion.div
-                  className={`inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-l ${currentCategory?.color} mb-4`}
+                  className={`inline-flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2 md:py-3 rounded-xl md:rounded-2xl bg-gradient-to-l ${currentCategory?.color} mb-3 md:mb-4`}
                 >
-                  {currentCategory && <currentCategory.icon className="w-6 h-6 text-white" />}
-                  <span className="text-white font-bold text-lg">{currentCategory?.name}</span>
+                  {currentCategory && <currentCategory.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />}
+                  <span className="text-white font-bold text-sm md:text-lg">{currentCategory?.name}</span>
                 </motion.div>
-                <p className="text-muted-foreground text-lg">{currentCategory?.description}</p>
+                <p className="text-muted-foreground text-sm md:text-lg">{currentCategory?.description}</p>
               </div>
             </div>
           </motion.section>
         </AnimatePresence>
 
         {/* Pricing Cards */}
-        <section className="py-12 md:py-16">
+        <section className="py-8 md:py-16">
           <div className="container px-4">
             <AnimatePresence mode="wait">
               <motion.div
@@ -440,7 +573,7 @@ const Pricing = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -50 }}
                 transition={{ duration: 0.4 }}
-                className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto"
+                className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 max-w-6xl mx-auto"
               >
                 {currentCategory?.packages.map((pkg, index) => (
                   <motion.div
@@ -449,7 +582,7 @@ const Pricing = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.15 }}
                     whileHover={{ y: -10, scale: 1.02 }}
-                    className={`relative p-6 md:p-8 rounded-3xl border transition-all duration-300 ${
+                    className={`relative p-5 md:p-8 rounded-2xl md:rounded-3xl border transition-all duration-300 ${
                       pkg.popular
                         ? `bg-gradient-to-b ${currentCategory.color.replace('from-', 'from-').replace('to-', 'to-')}/10 via-card to-card border-primary/40 shadow-2xl shadow-primary/20`
                         : "bg-card/80 backdrop-blur-xl border-border/50 hover:border-primary/40"
@@ -459,66 +592,65 @@ const Pricing = () => {
                       <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="absolute -top-4 left-1/2 -translate-x-1/2"
+                        className="absolute -top-3 md:-top-4 left-1/2 -translate-x-1/2"
                       >
-                        <Badge className={`bg-gradient-to-l ${currentCategory.color} text-white border-0 gap-1.5 px-4 py-1.5 shadow-lg`}>
-                          <Star className="w-3.5 h-3.5 fill-current" />
+                        <Badge className={`bg-gradient-to-l ${currentCategory.color} text-white border-0 gap-1 md:gap-1.5 px-3 md:px-4 py-1 md:py-1.5 shadow-lg text-xs md:text-sm`}>
+                          <Star className="w-3 h-3 md:w-3.5 md:h-3.5 fill-current" />
                           الأكثر طلباً
                         </Badge>
                       </motion.div>
                     )}
 
-                    <div className="text-center mb-8">
+                    <div className="text-center mb-6 md:mb-8">
                       <motion.div
                         whileHover={{ rotate: 360, scale: 1.1 }}
                         transition={{ duration: 0.5 }}
-                        className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${currentCategory.color} flex items-center justify-center mx-auto mb-4 shadow-lg`}
+                        className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br ${currentCategory.color} flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-lg`}
                       >
-                        {index === 0 && <Shield className="w-8 h-8 text-white" />}
-                        {index === 1 && <Crown className="w-8 h-8 text-white" />}
-                        {index === 2 && <TrendingUp className="w-8 h-8 text-white" />}
+                        {index === 0 && <Shield className="w-6 h-6 md:w-8 md:h-8 text-white" />}
+                        {index === 1 && <Crown className="w-6 h-6 md:w-8 md:h-8 text-white" />}
+                        {index === 2 && <TrendingUp className="w-6 h-6 md:w-8 md:h-8 text-white" />}
                       </motion.div>
-                      <h3 className="text-2xl font-bold mb-4">{pkg.name}</h3>
+                      <h3 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">{pkg.name}</h3>
                       
                       <div className="flex items-baseline justify-center gap-1">
-                        <span className={`text-4xl md:text-5xl font-bold bg-gradient-to-l ${currentCategory.color} bg-clip-text text-transparent`}>
+                        <span className={`text-3xl md:text-5xl font-bold bg-gradient-to-l ${currentCategory.color} bg-clip-text text-transparent`}>
                           {pkg.price}
                         </span>
                         {pkg.period && (
-                          <span className="text-sm text-muted-foreground">ر.س / {pkg.period}</span>
+                          <span className="text-xs md:text-sm text-muted-foreground">ر.س / {pkg.period}</span>
                         )}
                       </div>
                     </div>
 
-                    <ul className="space-y-4 mb-8">
+                    <ul className="space-y-3 md:space-y-4 mb-6 md:mb-8">
                       {pkg.features.map((feature, idx) => (
                         <motion.li
                           key={feature}
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.3 + idx * 0.05 }}
-                          className="flex items-center gap-3 text-sm"
+                          className="flex items-center gap-2 md:gap-3 text-xs md:text-sm"
                         >
-                          <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${currentCategory.color} flex items-center justify-center shrink-0`}>
-                            <CheckCircle className="w-3.5 h-3.5 text-white" />
+                          <div className={`w-4 h-4 md:w-5 md:h-5 rounded-full bg-gradient-to-br ${currentCategory.color} flex items-center justify-center shrink-0`}>
+                            <CheckCircle className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-white" />
                           </div>
                           <span>{feature}</span>
                         </motion.li>
                       ))}
                     </ul>
 
-                    <Link to="/contact">
-                      <Button
-                        className={`w-full gap-2 h-12 rounded-xl text-base ${
-                          pkg.popular
-                            ? `bg-gradient-to-l ${currentCategory.color} hover:opacity-90 shadow-lg`
-                            : "bg-secondary hover:bg-secondary/80"
-                        }`}
-                      >
-                        اطلب الآن
-                        <ArrowLeft className="w-4 h-4" />
-                      </Button>
-                    </Link>
+                    <Button
+                      onClick={() => handlePackageSelect(pkg, currentCategory)}
+                      className={`w-full gap-2 h-10 md:h-12 rounded-xl text-sm md:text-base ${
+                        pkg.popular
+                          ? `bg-gradient-to-l ${currentCategory.color} hover:opacity-90 shadow-lg`
+                          : "bg-secondary hover:bg-secondary/80"
+                      }`}
+                    >
+                      اطلب الآن
+                      <ArrowLeft className="w-4 h-4" />
+                    </Button>
                   </motion.div>
                 ))}
               </motion.div>
@@ -527,7 +659,7 @@ const Pricing = () => {
         </section>
 
         {/* Comparison Table Section */}
-        <section className="py-16 md:py-24 relative overflow-hidden">
+        <section className="py-12 md:py-24 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/20 to-background" />
           
           <div className="container px-4 relative z-10">
@@ -535,24 +667,24 @@ const Pricing = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-center mb-12"
+              className="text-center mb-8 md:mb-12"
             >
               <motion.div
                 initial={{ scale: 0 }}
                 whileInView={{ scale: 1 }}
                 viewport={{ once: true }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4 md:mb-6"
               >
                 <Table className="w-4 h-4 text-primary" />
                 <span className="text-sm text-primary font-medium">مقارنة تفصيلية</span>
               </motion.div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              <h2 className="text-2xl md:text-4xl font-bold mb-3 md:mb-4">
                 قارن بين{" "}
                 <span className={`bg-gradient-to-l ${currentCategory?.color} bg-clip-text text-transparent`}>
                   الباقات
                 </span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-lg">
                 اختر الباقة المناسبة لاحتياجاتك من خلال المقارنة التفصيلية
               </p>
             </motion.div>
@@ -639,78 +771,12 @@ const Pricing = () => {
                   {/* Table Footer - CTA */}
                   <div className="grid grid-cols-4 bg-muted/30 border-t border-border/30">
                     <div className="p-5"></div>
-                    {currentCategory?.packages.map((pkg, index) => (
+                    {currentCategory?.packages.map((pkg) => (
                       <div key={pkg.name} className="p-5 text-center border-l border-border/30 last:border-l-0">
-                        <Link to="/contact">
-                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Button
-                              className={`w-full gap-2 ${
-                                pkg.popular
-                                  ? `bg-gradient-to-l ${currentCategory.color} hover:opacity-90 shadow-lg text-white`
-                                  : "bg-secondary hover:bg-secondary/80"
-                              }`}
-                            >
-                              اختر الباقة
-                              <ArrowLeft className="w-4 h-4" />
-                            </Button>
-                          </motion.div>
-                        </Link>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Mobile Comparison Cards */}
-                <div className="md:hidden space-y-6">
-                  {currentCategory?.packages.map((pkg, pkgIndex) => (
-                    <motion.div
-                      key={pkg.name}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: pkgIndex * 0.1 }}
-                      className={`rounded-2xl border overflow-hidden ${
-                        pkg.popular
-                          ? 'border-primary/50 shadow-xl shadow-primary/10'
-                          : 'border-border/50'
-                      }`}
-                    >
-                      {/* Card Header */}
-                      <div className={`p-5 bg-gradient-to-l ${currentCategory.color} text-white text-center`}>
-                        <h3 className="font-bold text-xl">{pkg.name}</h3>
-                        <div className="text-2xl font-bold mt-2">
-                          {pkg.price} <span className="text-sm font-normal opacity-90">ر.س / {pkg.period}</span>
-                        </div>
-                        {pkg.popular && (
-                          <Badge className="mt-2 bg-white/20 text-white border-0">الأكثر طلباً</Badge>
-                        )}
-                      </div>
-
-                      {/* Card Features */}
-                      <div className="bg-card/80 backdrop-blur-xl divide-y divide-border/30">
-                        {comparisonData[activeCategory as keyof typeof comparisonData]?.features.map((feature, idx) => (
-                          <div key={feature.name} className="flex items-center justify-between p-4">
-                            <span className="text-sm text-muted-foreground">{feature.name}</span>
-                            <span className="font-medium">
-                              {typeof feature.values[pkgIndex] === 'boolean' ? (
-                                feature.values[pkgIndex] ? (
-                                  <CheckCircle className="w-5 h-5 text-green-500" />
-                                ) : (
-                                  <X className="w-5 h-5 text-muted-foreground/30" />
-                                )
-                              ) : (
-                                <span className="text-sm">{feature.values[pkgIndex]}</span>
-                              )}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Card CTA */}
-                      <div className="p-5 bg-muted/30">
-                        <Link to="/contact">
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                           <Button
-                            className={`w-full gap-2 h-12 ${
+                            onClick={() => handlePackageSelect(pkg, currentCategory)}
+                            className={`w-full gap-2 ${
                               pkg.popular
                                 ? `bg-gradient-to-l ${currentCategory.color} hover:opacity-90 shadow-lg text-white`
                                 : "bg-secondary hover:bg-secondary/80"
@@ -719,7 +785,71 @@ const Pricing = () => {
                             اختر الباقة
                             <ArrowLeft className="w-4 h-4" />
                           </Button>
-                        </Link>
+                        </motion.div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Mobile Comparison Cards */}
+                <div className="md:hidden space-y-4">
+                  {currentCategory?.packages.map((pkg, pkgIndex) => (
+                    <motion.div
+                      key={pkg.name}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: pkgIndex * 0.1 }}
+                      className={`rounded-xl border overflow-hidden ${
+                        pkg.popular
+                          ? 'border-primary/50 shadow-xl shadow-primary/10'
+                          : 'border-border/50'
+                      }`}
+                    >
+                      {/* Card Header */}
+                      <div className={`p-4 bg-gradient-to-l ${currentCategory.color} text-white text-center`}>
+                        <h3 className="font-bold text-lg">{pkg.name}</h3>
+                        <div className="text-xl font-bold mt-1">
+                          {pkg.price} <span className="text-xs font-normal opacity-90">ر.س / {pkg.period}</span>
+                        </div>
+                        {pkg.popular && (
+                          <Badge className="mt-2 bg-white/20 text-white border-0 text-xs">الأكثر طلباً</Badge>
+                        )}
+                      </div>
+
+                      {/* Card Features */}
+                      <div className="bg-card/80 backdrop-blur-xl divide-y divide-border/30">
+                        {comparisonData[activeCategory as keyof typeof comparisonData]?.features.slice(0, 5).map((feature, idx) => (
+                          <div key={feature.name} className="flex items-center justify-between p-3">
+                            <span className="text-xs text-muted-foreground">{feature.name}</span>
+                            <span className="font-medium text-xs">
+                              {typeof feature.values[pkgIndex] === 'boolean' ? (
+                                feature.values[pkgIndex] ? (
+                                  <CheckCircle className="w-4 h-4 text-green-500" />
+                                ) : (
+                                  <X className="w-4 h-4 text-muted-foreground/30" />
+                                )
+                              ) : (
+                                <span>{feature.values[pkgIndex]}</span>
+                              )}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Card CTA */}
+                      <div className="p-4 bg-muted/30">
+                        <Button
+                          onClick={() => handlePackageSelect(pkg, currentCategory)}
+                          className={`w-full gap-2 h-10 ${
+                            pkg.popular
+                              ? `bg-gradient-to-l ${currentCategory.color} hover:opacity-90 shadow-lg text-white`
+                              : "bg-secondary hover:bg-secondary/80"
+                          }`}
+                        >
+                          اختر الباقة
+                          <ArrowLeft className="w-4 h-4" />
+                        </Button>
                       </div>
                     </motion.div>
                   ))}
@@ -730,7 +860,7 @@ const Pricing = () => {
         </section>
 
         {/* Features Grid */}
-        <section className="py-16 md:py-24 relative overflow-hidden">
+        <section className="py-12 md:py-24 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-muted/30 via-background to-background" />
           
           <div className="container px-4 relative z-10">
@@ -738,20 +868,20 @@ const Pricing = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-center mb-12"
+              className="text-center mb-8 md:mb-12"
             >
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              <h2 className="text-2xl md:text-4xl font-bold mb-3 md:mb-4">
                 لماذا تختار{" "}
                 <span className="bg-gradient-to-l from-primary to-cyan-400 bg-clip-text text-transparent">
                   خدماتنا؟
                 </span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-lg">
                 نقدم لك أفضل الحلول الرقمية بجودة عالية وأسعار منافسة
               </p>
             </motion.div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
               {[
                 { icon: Zap, title: "سرعة التنفيذ", desc: "نلتزم بالمواعيد ونسلم في الوقت المحدد" },
                 { icon: Star, title: "جودة عالية", desc: "معايير جودة صارمة في كل مشروع" },
@@ -765,13 +895,13 @@ const Pricing = () => {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
                   whileHover={{ y: -5 }}
-                  className="p-6 rounded-2xl bg-card/60 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all"
+                  className="p-4 md:p-6 rounded-xl md:rounded-2xl bg-card/60 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center mb-4">
-                    <feature.icon className="w-6 h-6 text-white" />
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-gradient-to-br from-primary to-cyan-500 flex items-center justify-center mb-3 md:mb-4">
+                    <feature.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
                   </div>
-                  <h3 className="font-bold text-lg mb-2">{feature.title}</h3>
-                  <p className="text-muted-foreground text-sm">{feature.desc}</p>
+                  <h3 className="font-bold text-sm md:text-lg mb-1 md:mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground text-xs md:text-sm">{feature.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -779,24 +909,24 @@ const Pricing = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 md:py-24">
+        <section className="py-12 md:py-24">
           <div className="container px-4">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="relative max-w-4xl mx-auto text-center p-10 md:p-16 rounded-[2.5rem] overflow-hidden"
+              className="relative max-w-4xl mx-auto text-center p-8 md:p-16 rounded-2xl md:rounded-[2.5rem] overflow-hidden"
             >
               {/* Background */}
               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-purple-500/10 to-cyan-500/20" />
               <div className="absolute inset-0 backdrop-blur-xl" />
-              <div className="absolute inset-[1px] rounded-[2.5rem] bg-gradient-to-br from-card/90 to-card/70" />
+              <div className="absolute inset-[1px] rounded-2xl md:rounded-[2.5rem] bg-gradient-to-br from-card/90 to-card/70" />
               
               {/* Floating Elements */}
               {[...Array(6)].map((_, i) => (
                 <motion.div
                   key={i}
-                  className="absolute w-3 h-3 bg-primary/30 rounded-full"
+                  className="absolute w-2 md:w-3 h-2 md:h-3 bg-primary/30 rounded-full"
                   style={{
                     top: `${20 + Math.random() * 60}%`,
                     right: `${10 + Math.random() * 80}%`,
@@ -817,31 +947,41 @@ const Pricing = () => {
                 <motion.div
                   animate={{ rotate: [0, 10, -10, 0] }}
                   transition={{ duration: 4, repeat: Infinity }}
-                  className="inline-block mb-6"
+                  className="inline-block mb-4 md:mb-6"
                 >
-                  <Sparkles className="w-12 h-12 text-primary" />
+                  <Sparkles className="w-10 h-10 md:w-12 md:h-12 text-primary" />
                 </motion.div>
                 
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
+                <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6">
                   جاهز للبدء في{" "}
                   <span className="bg-gradient-to-l from-primary via-purple-400 to-cyan-400 bg-clip-text text-transparent">
                     رحلة النجاح؟
                   </span>
                 </h2>
                 
-                <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+                <p className="text-sm md:text-lg text-muted-foreground mb-6 md:mb-8 max-w-2xl mx-auto">
                   تواصل معنا الآن واحصل على استشارة مجانية لتحديد الباقة المناسبة لاحتياجاتك
                 </p>
                 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Link to="/contact">
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Button className="bg-gradient-to-l from-primary to-cyan-500 hover:opacity-90 text-white gap-2 h-14 px-8 rounded-2xl text-lg shadow-xl shadow-primary/30">
-                        احصل على استشارة مجانية
-                        <ArrowLeft className="w-5 h-5" />
-                      </Button>
-                    </motion.div>
-                  </Link>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4">
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button 
+                      onClick={() => {
+                        setSelectedPackage({
+                          categoryName: "استشارة عامة",
+                          categoryColor: "from-primary to-cyan-500",
+                          packageName: "استشارة مجانية",
+                          packagePrice: "مجاني",
+                          packagePeriod: "",
+                        });
+                        setIsDialogOpen(true);
+                      }}
+                      className="bg-gradient-to-l from-primary to-cyan-500 hover:opacity-90 text-white gap-2 h-12 md:h-14 px-6 md:px-8 rounded-xl md:rounded-2xl text-base md:text-lg shadow-xl shadow-primary/30"
+                    >
+                      احصل على استشارة مجانية
+                      <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
+                    </Button>
+                  </motion.div>
                 </div>
               </div>
             </motion.div>
@@ -849,6 +989,145 @@ const Pricing = () => {
         </section>
       </main>
       <Footer />
+
+      {/* Package Request Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
+          <DialogHeader className="text-right">
+            <DialogTitle className="text-xl md:text-2xl font-bold flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${selectedPackage?.categoryColor || 'from-primary to-cyan-500'} flex items-center justify-center`}>
+                <Send className="w-5 h-5 text-white" />
+              </div>
+              طلب باقة
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Package Info */}
+          {selectedPackage && (
+            <div className={`p-4 rounded-xl bg-gradient-to-l ${selectedPackage.categoryColor}/10 border border-primary/20 mb-4`}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">الباقة المختارة</span>
+                <Badge className={`bg-gradient-to-l ${selectedPackage.categoryColor} text-white border-0`}>
+                  {selectedPackage.categoryName}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-lg">{selectedPackage.packageName}</span>
+                <span className={`font-bold text-xl bg-gradient-to-l ${selectedPackage.categoryColor} bg-clip-text text-transparent`}>
+                  {selectedPackage.packagePrice} {selectedPackage.packagePeriod && `ر.س / ${selectedPackage.packagePeriod}`}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Name */}
+            <div className="space-y-2">
+              <Label htmlFor="name" className="flex items-center gap-2 text-sm font-medium">
+                <User className="w-4 h-4 text-primary" />
+                الاسم الكامل <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="أدخل اسمك الكامل"
+                className="text-right"
+                required
+              />
+            </div>
+
+            {/* Email */}
+            <div className="space-y-2">
+              <Label htmlFor="email" className="flex items-center gap-2 text-sm font-medium">
+                <Mail className="w-4 h-4 text-primary" />
+                البريد الإلكتروني <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="example@email.com"
+                className="text-right"
+                dir="ltr"
+                required
+              />
+            </div>
+
+            {/* Phone */}
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium">
+                <Phone className="w-4 h-4 text-primary" />
+                رقم الجوال <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                placeholder="05xxxxxxxx"
+                className="text-right"
+                dir="ltr"
+                required
+              />
+            </div>
+
+            {/* Company */}
+            <div className="space-y-2">
+              <Label htmlFor="company" className="flex items-center gap-2 text-sm font-medium">
+                <Building className="w-4 h-4 text-primary" />
+                اسم الشركة <span className="text-muted-foreground text-xs">(اختياري)</span>
+              </Label>
+              <Input
+                id="company"
+                value={formData.company}
+                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                placeholder="اسم شركتك أو مشروعك"
+                className="text-right"
+              />
+            </div>
+
+            {/* Message */}
+            <div className="space-y-2">
+              <Label htmlFor="message" className="flex items-center gap-2 text-sm font-medium">
+                <MessageSquare className="w-4 h-4 text-primary" />
+                رسالة إضافية <span className="text-muted-foreground text-xs">(اختياري)</span>
+              </Label>
+              <Textarea
+                id="message"
+                value={formData.message}
+                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                placeholder="أخبرنا المزيد عن احتياجاتك..."
+                className="text-right min-h-[100px] resize-none"
+              />
+            </div>
+
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full h-12 bg-gradient-to-l from-primary to-cyan-500 hover:opacity-90 text-white gap-2 rounded-xl text-base shadow-lg"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  جاري الإرسال...
+                </>
+              ) : (
+                <>
+                  <Send className="w-5 h-5" />
+                  إرسال الطلب
+                </>
+              )}
+            </Button>
+
+            <p className="text-xs text-muted-foreground text-center">
+              سيتواصل معك فريقنا خلال 24 ساعة عبر الجوال أو البريد الإلكتروني
+            </p>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
