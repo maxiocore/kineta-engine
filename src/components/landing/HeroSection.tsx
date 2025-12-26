@@ -155,12 +155,12 @@ const HeroSection = () => {
             style={{
               width: el.size,
               height: el.size,
-              right: `${el.x}%`,
+              left: `${el.x}%`,
               top: `${el.y}%`,
             }}
             animate={{
               y: [0, -40, 0],
-              x: [0, -20, 0],
+              x: [0, 20, 0],
               opacity: [0.2, 0.6, 0.2],
               scale: [1, 1.2, 1],
             }}
@@ -222,7 +222,7 @@ const HeroSection = () => {
                 }}
                 transition={{ duration: 5, repeat: Infinity }}
               />
-              <div className="relative flex items-center gap-3 px-6 py-3 rounded-full bg-background/80 backdrop-blur-xl border border-primary/20 flex-row-reverse">
+              <div className="relative flex items-center gap-3 px-6 py-3 rounded-full bg-background/80 backdrop-blur-xl border border-primary/20">
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
@@ -249,7 +249,7 @@ const HeroSection = () => {
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold leading-[1.1] tracking-tight">
               <motion.span 
                 className="block mb-4"
-                initial={{ opacity: 0, x: 30 }}
+                initial={{ opacity: 0, x: -30 }}
                 animate={isInView ? { opacity: 1, x: 0 } : {}}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
@@ -257,7 +257,7 @@ const HeroSection = () => {
               </motion.span>
               <motion.span 
                 className="relative inline-block"
-                initial={{ opacity: 0, x: -30 }}
+                initial={{ opacity: 0, x: 30 }}
                 animate={isInView ? { opacity: 1, x: 0 } : {}}
                 transition={{ duration: 0.6, delay: 0.3 }}
               >
@@ -265,7 +265,7 @@ const HeroSection = () => {
                   متكاملة
                 </span>
                 <motion.svg
-                  className="absolute -bottom-4 right-0 w-full"
+                  className="absolute -bottom-4 left-0 w-full"
                   viewBox="0 0 300 12"
                   fill="none"
                   initial={{ pathLength: 0, opacity: 0 }}
@@ -283,7 +283,7 @@ const HeroSection = () => {
                     transition={{ duration: 1, delay: 0.6 }}
                   />
                   <defs>
-                    <linearGradient id="gradient" x1="100%" y1="0%" x2="0%" y2="0%">
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="hsl(var(--primary))" />
                       <stop offset="50%" stopColor="hsl(var(--accent))" />
                       <stop offset="100%" stopColor="hsl(var(--primary))" />
@@ -386,11 +386,11 @@ const HeroSection = () => {
 
                   {/* Arrow */}
                   <motion.div 
-                    className="absolute bottom-4 sm:bottom-6 md:bottom-8 right-4 sm:right-6 md:right-8 opacity-0 group-hover:opacity-100 transition-all hidden sm:block"
-                    animate={{ x: [0, 5, 0] }}
+                    className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-4 sm:left-6 md:left-8 opacity-0 group-hover:opacity-100 transition-all hidden sm:block"
+                    animate={{ x: [0, -5, 0] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
                   >
-                    <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 text-primary rotate-180" />
+                    <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                   </motion.div>
                 </div>
               </motion.div>
@@ -402,7 +402,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.7 }}
-            className="flex flex-col sm:flex-row gap-3 xs:gap-4 justify-center items-center mb-12 xs:mb-14 sm:mb-16 px-4 flex-row-reverse"
+            className="flex flex-col sm:flex-row gap-3 xs:gap-4 justify-center items-center mb-12 xs:mb-14 sm:mb-16 px-4"
           >
             <Link to="/auth?mode=signup">
               <motion.div
@@ -420,7 +420,7 @@ const HeroSection = () => {
                     }}
                     transition={{ duration: 3, repeat: Infinity }}
                   />
-                  <span className="relative z-10 flex items-center justify-center gap-2 xs:gap-3 text-primary-foreground flex-row-reverse">
+                  <span className="relative z-10 flex items-center justify-center gap-2 xs:gap-3 text-primary-foreground">
                     ابدأ الآن مجاناً
                     <Rocket className="w-4 h-4 xs:w-5 xs:h-5 group-hover:-rotate-12 transition-transform" />
                   </span>
@@ -435,7 +435,7 @@ const HeroSection = () => {
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="group px-6 xs:px-8 sm:px-10 py-5 xs:py-6 sm:py-7 text-sm xs:text-base sm:text-lg font-semibold border-2 rounded-xl xs:rounded-2xl bg-background/50 backdrop-blur-sm hover:bg-primary/5 hover:border-primary/50 transition-all w-full sm:w-auto gap-2 flex-row-reverse"
+                  className="group px-6 xs:px-8 sm:px-10 py-5 xs:py-6 sm:py-7 text-sm xs:text-base sm:text-lg font-semibold border-2 rounded-xl xs:rounded-2xl bg-background/50 backdrop-blur-sm hover:bg-primary/5 hover:border-primary/50 transition-all w-full sm:w-auto gap-2"
                 >
                   شاهد كيف نعمل
                   <Play className="w-4 h-4 xs:w-5 xs:h-5 group-hover:scale-110 transition-transform" />
