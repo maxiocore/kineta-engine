@@ -23,6 +23,7 @@ import DevelopmentServices from "./pages/DevelopmentServices";
 import DesignServices from "./pages/DesignServices";
 import SocialMediaServices from "./pages/SocialMediaServices";
 import DigitalMarketingServices from "./pages/DigitalMarketingServices";
+import Careers from "./pages/Careers";
 
 // Client Dashboard
 import ClientDashboard from "./pages/dashboard/ClientDashboard";
@@ -86,6 +87,7 @@ import AdminChallenges from "./pages/admin/AdminChallenges";
 import AdminSyncSettings from "./pages/admin/AdminSyncSettings";
 import AdminContactMessages from "./pages/admin/AdminContactMessages";
 import AdminDigitalMarketing from "./pages/admin/AdminDigitalMarketing";
+import AdminCareers from "./pages/admin/AdminCareers";
 
 const queryClient = new QueryClient();
 
@@ -113,6 +115,7 @@ const App = () => (
                   <Route path="/design-services" element={<DesignServices />} />
                   <Route path="/social-media-services" element={<SocialMediaServices />} />
                   <Route path="/digital-marketing-services" element={<DigitalMarketingServices />} />
+                  <Route path="/careers" element={<Careers />} />
                   <Route path="/auth" element={<Auth />} />
                   
                   {/* Client Dashboard Routes */}
@@ -377,6 +380,11 @@ const App = () => (
                   <Route path="/admin/contact-messages" element={
                     <ProtectedRoute requireAdmin>
                       <AdminContactMessages />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/careers" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminCareers />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/reports" element={
