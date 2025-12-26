@@ -10,20 +10,28 @@ const useRealStats = () => {
   return useQuery({
     queryKey: ["landing-real-stats"],
     queryFn: async () => {
-      const [ordersResult, usersResult, servicesResult] = await Promise.all([
-        supabase.from("orders").select("id, status", { count: "exact" }),
-        supabase.from("profiles").select("id", { count: "exact" }),
-        supabase.from("services").select("id", { count: "exact" }).eq("status", "active"),
-      ]);
-
-      const completedOrders = ordersResult.data?.filter(o => o.status === "completed").length || 0;
+      const { data, error } = await supabase.rpc("get_public_stats");
+      
+      if (error) throw error;
+      
+      const stats = data as {
+        total_orders: number;
+        completed_orders: number;
+        total_users: number;
+        total_services: number;
+        total_deposits: number;
+      };
+      
+      const satisfactionRate = stats.total_orders > 0 
+        ? Math.min(98, Math.round((stats.completed_orders / stats.total_orders) * 100)) 
+        : 98;
       
       return {
-        totalOrders: ordersResult.count || 0,
-        completedOrders,
-        totalUsers: usersResult.count || 0,
-        totalServices: servicesResult.count || 0,
-        satisfactionRate: completedOrders > 0 ? Math.min(98, Math.round((completedOrders / (ordersResult.count || 1)) * 100)) : 98,
+        totalOrders: stats.total_orders || 0,
+        completedOrders: stats.completed_orders || 0,
+        totalUsers: stats.total_users || 0,
+        totalServices: stats.total_services || 0,
+        satisfactionRate,
       };
     },
     staleTime: 1000 * 60 * 5,
