@@ -32,7 +32,7 @@ interface FeaturedOffer {
 }
 
 interface FeaturedOffersSectionProps {
-  category: 'design' | 'dev' | 'smm';
+  category: 'design' | 'dev' | 'smm' | 'digital';
 }
 
 const FeaturedOffersSection = ({ category }: FeaturedOffersSectionProps) => {
