@@ -62,7 +62,7 @@ const contactInfo = [
     icon: Clock,
     title: "ساعات العمل",
     value: "الأحد - الخميس",
-    description: "9:00 ص - 6:00 م",
+    description: "9:00 ص - 7:00 م",
     gradient: "from-amber-500 to-orange-600",
   },
 ];
@@ -530,27 +530,114 @@ const Contact = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={formInView ? { opacity: 1, y: 0 } : {}}
                   transition={{ delay: 0.8 }}
-                  className="p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20"
+                  className="p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 overflow-hidden"
                 >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                      <Clock className="w-5 h-5 text-white" />
-                    </div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <motion.div 
+                      animate={{ rotate: [0, 360] }}
+                      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                      className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg"
+                    >
+                      <Clock className="w-6 h-6 text-white" />
+                    </motion.div>
                     <div>
-                      <h3 className="font-bold">ساعات العمل</h3>
+                      <h3 className="font-bold text-lg">ساعات العمل</h3>
                       <p className="text-sm text-muted-foreground">متاحون لخدمتك</p>
                     </div>
                   </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between items-center py-2 border-b border-border/30">
-                      <span className="text-muted-foreground">الأحد - الخميس</span>
-                      <span className="font-medium">9:00 ص - 6:00 م</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-muted-foreground">الجمعة - السبت</span>
-                      <span className="text-rose-500 font-medium">مغلق</span>
-                    </div>
+                  
+                  <div className="space-y-3 text-sm">
+                    {/* Sunday - Thursday */}
+                    <motion.div 
+                      initial={{ x: -20, opacity: 0 }}
+                      animate={formInView ? { x: 0, opacity: 1 } : {}}
+                      transition={{ delay: 0.9 }}
+                      whileHover={{ scale: 1.02, x: 5 }}
+                      className="flex justify-between items-center py-3 px-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-2">
+                        <motion.div 
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                          className="w-2 h-2 rounded-full bg-emerald-500"
+                        />
+                        <span className="font-medium">الأحد - الخميس</span>
+                      </div>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition-transform">
+                        9:00 ص - 7:00 م
+                      </span>
+                    </motion.div>
+                    
+                    {/* Saturday */}
+                    <motion.div 
+                      initial={{ x: -20, opacity: 0 }}
+                      animate={formInView ? { x: 0, opacity: 1 } : {}}
+                      transition={{ delay: 1.0 }}
+                      whileHover={{ scale: 1.02, x: 5 }}
+                      className="flex justify-between items-center py-3 px-4 rounded-xl bg-amber-500/10 border border-amber-500/20 cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-2">
+                        <motion.div 
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                          className="w-2 h-2 rounded-full bg-amber-500"
+                        />
+                        <span className="font-medium">السبت</span>
+                      </div>
+                      <span className="font-bold text-amber-600 dark:text-amber-400 group-hover:scale-105 transition-transform">
+                        2:00 م - 6:00 م
+                      </span>
+                    </motion.div>
+                    
+                    {/* Friday - Closed */}
+                    <motion.div 
+                      initial={{ x: -20, opacity: 0 }}
+                      animate={formInView ? { x: 0, opacity: 1 } : {}}
+                      transition={{ delay: 1.1 }}
+                      whileHover={{ scale: 1.02, x: 5 }}
+                      className="flex justify-between items-center py-3 px-4 rounded-xl bg-rose-500/10 border border-rose-500/20 cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-rose-500" />
+                        <span className="font-medium">الجمعة</span>
+                      </div>
+                      <span className="font-bold text-rose-500 group-hover:scale-105 transition-transform">
+                        إجازة
+                      </span>
+                    </motion.div>
                   </div>
+                  
+                  {/* 24/7 Support Banner */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={formInView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ delay: 1.2 }}
+                    className="mt-4 p-3 rounded-xl bg-gradient-to-r from-cyan-500/20 via-primary/20 to-accent/20 border border-primary/30 relative overflow-hidden"
+                  >
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                      animate={{ x: ['-100%', '200%'] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                    />
+                    <div className="relative flex items-center justify-center gap-3">
+                      <motion.div
+                        animate={{ 
+                          scale: [1, 1.1, 1],
+                          boxShadow: ['0 0 0px hsl(var(--primary))', '0 0 20px hsl(var(--primary))', '0 0 0px hsl(var(--primary))']
+                        }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-primary flex items-center justify-center"
+                      >
+                        <Headphones className="w-4 h-4 text-white" />
+                      </motion.div>
+                      <div className="text-center">
+                        <p className="font-bold text-sm bg-gradient-to-l from-cyan-500 to-primary bg-clip-text text-transparent">
+                          الدعم الفني متاح 24/7
+                        </p>
+                        <p className="text-xs text-muted-foreground">على مدار الساعة طوال أيام الأسبوع</p>
+                      </div>
+                    </div>
+                  </motion.div>
                 </motion.div>
               </motion.div>
             </div>
