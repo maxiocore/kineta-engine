@@ -180,6 +180,130 @@ const SortableHeader = ({ field, currentSort, direction, onSort, children, class
   );
 };
 
+// Mobile Card Component
+const OrderCard = memo(({ order, index, onClick }: { 
+  order: Order; 
+  index: number; 
+  onClick: () => void 
+}) => {
+  const [copied, setCopied] = useState(false);
+  const statusConfig = getStatusConfig(order.status);
+  const StatusIcon = statusConfig.icon;
+
+  const copyOrderNumber = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(order.order_number);
+    setCopied(true);
+    toast.success("تم نسخ رقم الطلب");
+    setTimeout(() => setCopied(false), 2000);
+  }, [order.order_number]);
+
+  const copyLink = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (order.link) {
+      navigator.clipboard.writeText(order.link);
+      toast.success("تم نسخ الرابط");
+    }
+  }, [order.link]);
+
+  const executed = order.start_count !== null && order.remains !== null && order.quantity
+    ? Math.max(0, (order.quantity || 0) - (order.remains || 0))
+    : null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.03, duration: 0.2 }}
+      onClick={onClick}
+      className="bg-card border border-border/50 rounded-xl p-3 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all duration-200"
+    >
+      {/* Header: Order Number & Status */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={copyOrderNumber}
+            className="p-1.5 rounded-md hover:bg-accent/20 transition-colors"
+          >
+            {copied ? (
+              <Check className="w-3.5 h-3.5 text-emerald-500" />
+            ) : (
+              <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+            )}
+          </motion.button>
+          <code className="text-xs font-mono text-primary font-bold">
+            {order.order_number}
+          </code>
+        </div>
+        <Badge 
+          className={cn(
+            "text-[10px] font-medium px-2 py-1 rounded-md gap-1",
+            statusConfig.bgColor,
+            statusConfig.textColor
+          )}
+        >
+          <StatusIcon className={cn(
+            "w-2.5 h-2.5",
+            statusConfig.animate && "animate-spin"
+          )} style={statusConfig.animate ? { animationDuration: '2s' } : {}} />
+          {statusConfig.label}
+        </Badge>
+      </div>
+
+      {/* Service Name */}
+      <div className="mb-2">
+        <p className="text-sm font-medium text-foreground line-clamp-2">
+          {order.service?.name}
+        </p>
+      </div>
+
+      {/* Link */}
+      {order.link && (
+        <div 
+          className="mb-2 text-xs text-muted-foreground truncate cursor-pointer hover:text-primary transition-colors"
+          onClick={copyLink}
+        >
+          {order.link}
+        </div>
+      )}
+
+      {/* Date */}
+      <div className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
+        <Clock className="w-3 h-3" />
+        <span>{format(new Date(order.created_at), "yyyy-MM-dd HH:mm", { locale: ar })}</span>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-4 gap-2 pt-2 border-t border-border/50">
+        <div className="text-center">
+          <p className="text-[10px] text-muted-foreground">الكمية</p>
+          <p className="text-sm font-semibold">{order.quantity?.toLocaleString() || 1}</p>
+        </div>
+        <div className="text-center">
+          <p className="text-[10px] text-muted-foreground">السعر</p>
+          <p className="text-sm font-semibold">{order.total_price.toFixed(2)}</p>
+        </div>
+        <div className="text-center">
+          <p className="text-[10px] text-muted-foreground">المنفذ</p>
+          <p className="text-sm font-semibold text-emerald-500">
+            {executed !== null ? executed.toLocaleString() : '-'}
+          </p>
+        </div>
+        <div className="text-center">
+          <p className="text-[10px] text-muted-foreground">المتبقي</p>
+          <p className="text-sm font-semibold">
+            {order.remains !== null ? order.remains.toLocaleString() : '-'}
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
+
+OrderCard.displayName = "OrderCard";
+
 const OrderTableRow = memo(({ order, index, onClick }: { 
   order: Order; 
   index: number; 
@@ -350,6 +474,30 @@ const OrderTableRow = memo(({ order, index, onClick }: {
 
 OrderTableRow.displayName = "OrderTableRow";
 
+// Mobile Cards Skeleton
+const CardsSkeleton = () => (
+  <div className="grid gap-3">
+    {[...Array(5)].map((_, i) => (
+      <div key={i} className="bg-card border border-border/50 rounded-xl p-3">
+        <div className="flex items-center justify-between mb-3">
+          <Skeleton className="h-5 w-28" />
+          <Skeleton className="h-6 w-20 rounded-md" />
+        </div>
+        <Skeleton className="h-4 w-full mb-2" />
+        <Skeleton className="h-3 w-32 mb-3" />
+        <div className="grid grid-cols-4 gap-2 pt-2 border-t border-border/50">
+          {[...Array(4)].map((_, j) => (
+            <div key={j} className="text-center">
+              <Skeleton className="h-3 w-12 mx-auto mb-1" />
+              <Skeleton className="h-5 w-10 mx-auto" />
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
 const TableSkeleton = () => (
   <>
     {[...Array(5)].map((_, i) => (
@@ -478,26 +626,34 @@ export const ModernOrdersTable = memo(({
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-border/40 overflow-hidden bg-card shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-primary hover:bg-primary border-none">
-              <TableHead className="text-primary-foreground/95 font-semibold text-right py-3.5 px-4 text-sm">الرقم</TableHead>
-              <TableHead className="text-primary-foreground/95 font-semibold text-right py-3.5 px-4 text-sm">تاريخ الطلب</TableHead>
-              <TableHead className="text-primary-foreground/95 font-semibold text-right py-3.5 px-4 text-sm">الرابط</TableHead>
-              <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">الكمية</TableHead>
-              <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">الثمن</TableHead>
-              <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">عدد البدء</TableHead>
-              <TableHead className="text-primary-foreground/95 font-semibold text-right py-3.5 px-4 text-sm">الخدمة</TableHead>
-              <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">المنفذ</TableHead>
-              <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">المتبقي</TableHead>
-              <TableHead className="text-primary-foreground/95 font-semibold text-right py-3.5 px-4 text-sm">حالة الطلب</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableSkeleton />
-          </TableBody>
-        </Table>
+      <div dir="rtl">
+        {/* Mobile: Cards Skeleton */}
+        <div className="md:hidden">
+          <CardsSkeleton />
+        </div>
+        
+        {/* Desktop: Table Skeleton */}
+        <div className="hidden md:block rounded-xl border border-border/40 overflow-hidden bg-card shadow-sm">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-primary hover:bg-primary border-none">
+                <TableHead className="text-primary-foreground/95 font-semibold text-right py-3.5 px-4 text-sm">الرقم</TableHead>
+                <TableHead className="text-primary-foreground/95 font-semibold text-right py-3.5 px-4 text-sm">تاريخ الطلب</TableHead>
+                <TableHead className="text-primary-foreground/95 font-semibold text-right py-3.5 px-4 text-sm">الرابط</TableHead>
+                <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">الكمية</TableHead>
+                <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">الثمن</TableHead>
+                <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">عدد البدء</TableHead>
+                <TableHead className="text-primary-foreground/95 font-semibold text-right py-3.5 px-4 text-sm">الخدمة</TableHead>
+                <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">المنفذ</TableHead>
+                <TableHead className="text-primary-foreground/95 font-semibold text-center py-3.5 px-4 text-sm">المتبقي</TableHead>
+                <TableHead className="text-primary-foreground/95 font-semibold text-right py-3.5 px-4 text-sm">حالة الطلب</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableSkeleton />
+            </TableBody>
+          </Table>
+        </div>
       </div>
     );
   }
@@ -507,20 +663,38 @@ export const ModernOrdersTable = memo(({
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col items-center justify-center py-20 text-center"
+        className="flex flex-col items-center justify-center py-12 md:py-20 text-center"
+        dir="rtl"
       >
-        <div className="w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-          <Clock className="w-10 h-10 text-muted-foreground" />
+        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-muted/50 flex items-center justify-center mb-3 md:mb-4">
+          <Clock className="w-8 h-8 md:w-10 md:h-10 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-bold text-foreground mb-2">{emptyTitle}</h3>
-        <p className="text-muted-foreground text-sm">{emptyDescription}</p>
+        <h3 className="text-base md:text-lg font-bold text-foreground mb-1 md:mb-2">{emptyTitle}</h3>
+        <p className="text-muted-foreground text-xs md:text-sm">{emptyDescription}</p>
       </motion.div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-xl border border-border/40 overflow-hidden bg-card shadow-sm">
+    <div className="space-y-3 md:space-y-4" dir="rtl">
+      {/* Mobile: Cards View */}
+      <div className="md:hidden">
+        <div className="grid gap-3">
+          <AnimatePresence mode="popLayout">
+            {paginatedOrders.map((order, index) => (
+              <OrderCard
+                key={order.id}
+                order={order}
+                index={index}
+                onClick={() => onViewOrder(order)}
+              />
+            ))}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Desktop: Table View */}
+      <div className="hidden md:block rounded-xl border border-border/40 overflow-hidden bg-card shadow-sm">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -603,15 +777,14 @@ export const ModernOrdersTable = memo(({
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2"
-          dir="rtl"
+          className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-1"
         >
           {/* Page Info & Size Selector */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between sm:justify-start gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">عرض</span>
+              <span className="text-xs md:text-sm text-muted-foreground">عرض</span>
               <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
-                <SelectTrigger className="w-[70px] h-9">
+                <SelectTrigger className="w-[60px] md:w-[70px] h-8 md:h-9 text-xs md:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -622,46 +795,53 @@ export const ModernOrdersTable = memo(({
                   ))}
                 </SelectContent>
               </Select>
-              <span className="text-sm text-muted-foreground">من أصل {orders.length}</span>
+              <span className="text-xs md:text-sm text-muted-foreground">من {orders.length}</span>
             </div>
             
-            <div className="text-sm text-muted-foreground">
-              صفحة {currentPage} من {totalPages}
+            <div className="text-xs md:text-sm text-muted-foreground">
+              {currentPage} / {totalPages}
             </div>
           </div>
 
           {/* Page Numbers */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center justify-center gap-1">
             <Button
               variant="outline"
               size="icon"
-              className="h-9 w-9"
+              className="h-8 w-8 md:h-9 md:w-9"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
 
-            {getPageNumbers().map((page, index) => (
-              typeof page === 'number' ? (
-                <Button
-                  key={index}
-                  variant={currentPage === page ? "default" : "outline"}
-                  size="icon"
-                  className="h-9 w-9"
-                  onClick={() => handlePageChange(page)}
-                >
-                  {page}
-                </Button>
-              ) : (
-                <span key={index} className="px-2 text-muted-foreground">...</span>
-              )
-            ))}
+            <div className="hidden sm:flex items-center gap-1">
+              {getPageNumbers().map((page, index) => (
+                typeof page === 'number' ? (
+                  <Button
+                    key={index}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="icon"
+                    className="h-8 w-8 md:h-9 md:w-9 text-xs md:text-sm"
+                    onClick={() => handlePageChange(page)}
+                  >
+                    {page}
+                  </Button>
+                ) : (
+                  <span key={index} className="px-1.5 text-muted-foreground text-sm">...</span>
+                )
+              ))}
+            </div>
+
+            {/* Mobile: Simple page indicator */}
+            <div className="sm:hidden px-3 text-sm font-medium">
+              {currentPage}
+            </div>
 
             <Button
               variant="outline"
               size="icon"
-              className="h-9 w-9"
+              className="h-8 w-8 md:h-9 md:w-9"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
             >
