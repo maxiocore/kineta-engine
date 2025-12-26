@@ -107,55 +107,55 @@ export const ModernOrdersStats = ({ stats, totalSpent, todaySpent = 0, previousM
   ];
 
   return (
-    <div className="space-y-4" dir="rtl">
-      {/* Top Stats Row - 5 Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div className="space-y-3 md:space-y-4" dir="rtl">
+      {/* Top Stats Row - 5 Cards - Responsive Grid */}
+      <div className="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-5 gap-2 md:gap-3">
         {mainStats.map((stat, index) => (
           <motion.div
             key={stat.label}
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{ opacity: 0, y: 15, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ 
-              delay: index * 0.05,
+              delay: index * 0.04,
               type: "spring",
               stiffness: 400,
               damping: 30
             }}
-            whileHover={{ y: -4, scale: 1.02 }}
+            whileHover={{ y: -2 }}
             className={cn(
-              "relative overflow-hidden rounded-2xl bg-card border p-4 group hover:shadow-lg transition-all duration-300",
+              "relative overflow-hidden rounded-lg md:rounded-xl bg-card border p-3 md:p-4 group hover:shadow-md transition-all duration-300",
               `bg-gradient-to-br ${stat.gradient}`,
               stat.borderColor
             )}
           >
             {/* Background Glow */}
             <motion.div 
-              className="absolute -top-8 -left-8 w-20 h-20 rounded-full blur-2xl opacity-30 group-hover:opacity-50 transition-opacity bg-gradient-to-br from-current"
+              className="absolute -top-8 -left-8 w-16 h-16 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity bg-gradient-to-br from-current"
             />
             
-            <div className="relative flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-[11px] text-muted-foreground font-medium mb-0.5 leading-tight">{stat.label}</p>
+            <div className="relative flex items-center justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] md:text-xs text-muted-foreground font-medium mb-0.5 leading-tight truncate">{stat.label}</p>
                 <motion.p 
-                  className="text-2xl font-bold tracking-tight"
+                  className="text-lg md:text-2xl font-bold tracking-tight"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: index * 0.08 + 0.2 }}
+                  transition={{ delay: index * 0.06 + 0.15 }}
                 >
-                  <AnimatedNumber value={stat.value} delay={index * 80 + 100} />
+                  <AnimatedNumber value={stat.value} delay={index * 60 + 80} />
                 </motion.p>
               </div>
               
               <motion.div 
                 className={cn(
-                  "w-10 h-10 rounded-xl flex items-center justify-center shadow-lg",
+                  "w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center shadow-md flex-shrink-0",
                   stat.iconBg
                 )}
                 whileHover={{ rotate: [0, -5, 5, 0] }}
                 transition={{ duration: 0.4 }}
               >
                 <stat.icon className={cn(
-                  "w-5 h-5 text-white",
+                  "w-4 h-4 md:w-5 md:h-5 text-white",
                   stat.animate && stats.in_progress > 0 && "animate-spin"
                 )} style={stat.animate ? { animationDuration: '2s' } : {}} />
               </motion.div>
@@ -164,42 +164,42 @@ export const ModernOrdersStats = ({ stats, totalSpent, todaySpent = 0, previousM
         ))}
       </div>
 
-      {/* Bottom Row - Financial Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {/* Bottom Row - Financial Cards - Responsive Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
         {/* Total Spent Card */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25, type: "spring" }}
-          whileHover={{ y: -4 }}
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/5 border border-violet-500/30 p-4 group hover:shadow-lg transition-all duration-300"
+          transition={{ delay: 0.2, type: "spring" }}
+          whileHover={{ y: -2 }}
+          className="relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-violet-500/10 to-purple-500/5 border border-violet-500/30 p-3 md:p-4 group hover:shadow-md transition-all duration-300"
         >
           <motion.div 
-            className="absolute -top-12 -left-12 w-24 h-24 rounded-full bg-gradient-to-br from-violet-500/20 to-purple-500/20 blur-3xl"
+            className="absolute -top-10 -left-10 w-20 h-20 rounded-full bg-gradient-to-br from-violet-500/15 to-purple-500/15 blur-2xl"
           />
           
-          <div className="relative flex items-center gap-3">
+          <div className="relative flex items-center gap-2 md:gap-3">
             <motion.div 
-              className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-lg"
+              className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md"
               whileHover={{ rotate: [0, -5, 5, 0] }}
             >
-              <Wallet className="w-6 h-6 text-white" />
+              <Wallet className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </motion.div>
-            <div className="flex-1">
-              <p className="text-xs text-muted-foreground font-medium">إجمالي الإنفاق</p>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-xl font-bold text-foreground">
-                  <AnimatedNumber value={totalSpent} delay={350} decimals={2} />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] md:text-xs text-muted-foreground font-medium">إجمالي الإنفاق</p>
+              <div className="flex items-baseline gap-1">
+                <span className="text-base md:text-xl font-bold text-foreground">
+                  <AnimatedNumber value={totalSpent} delay={300} decimals={2} />
                 </span>
-                <span className="text-xs text-muted-foreground">ر.س</span>
+                <span className="text-[10px] md:text-xs text-muted-foreground">ر.س</span>
               </div>
             </div>
             {spendingChange !== 0 && (
               <div className={cn(
-                "flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium",
+                "hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] md:text-xs font-medium",
                 spendingChange > 0 ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"
               )}>
-                <TrendingUp className={cn("w-3 h-3", spendingChange < 0 && "rotate-180")} />
+                <TrendingUp className={cn("w-2.5 h-2.5 md:w-3 md:h-3", spendingChange < 0 && "rotate-180")} />
                 {Math.abs(spendingChange)}%
               </div>
             )}
@@ -208,30 +208,30 @@ export const ModernOrdersStats = ({ stats, totalSpent, todaySpent = 0, previousM
 
         {/* Today Spent Card */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, type: "spring" }}
-          whileHover={{ y: -4 }}
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-500/10 to-blue-500/5 border border-cyan-500/30 p-4 group hover:shadow-lg transition-all duration-300"
+          transition={{ delay: 0.25, type: "spring" }}
+          whileHover={{ y: -2 }}
+          className="relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/5 border border-cyan-500/30 p-3 md:p-4 group hover:shadow-md transition-all duration-300"
         >
           <motion.div 
-            className="absolute -top-12 -right-12 w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 blur-3xl"
+            className="absolute -top-10 -right-10 w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500/15 to-blue-500/15 blur-2xl"
           />
           
-          <div className="relative flex items-center gap-3">
+          <div className="relative flex items-center gap-2 md:gap-3">
             <motion.div 
-              className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-lg"
+              className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-md"
               whileHover={{ rotate: [0, -5, 5, 0] }}
             >
-              <Calendar className="w-6 h-6 text-white" />
+              <Calendar className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </motion.div>
-            <div className="flex-1">
-              <p className="text-xs text-muted-foreground font-medium">إنفاق اليوم</p>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-xl font-bold text-foreground">
-                  <AnimatedNumber value={todaySpent} delay={400} decimals={2} />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] md:text-xs text-muted-foreground font-medium">إنفاق اليوم</p>
+              <div className="flex items-baseline gap-1">
+                <span className="text-base md:text-xl font-bold text-foreground">
+                  <AnimatedNumber value={todaySpent} delay={350} decimals={2} />
                 </span>
-                <span className="text-xs text-muted-foreground">ر.س</span>
+                <span className="text-[10px] md:text-xs text-muted-foreground">ر.س</span>
               </div>
             </div>
           </div>
@@ -239,51 +239,51 @@ export const ModernOrdersStats = ({ stats, totalSpent, todaySpent = 0, previousM
 
         {/* Completion Rate Card */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, type: "spring" }}
-          whileHover={{ y: -4 }}
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500/10 to-green-500/5 border border-emerald-500/30 p-4 group hover:shadow-lg transition-all duration-300"
+          transition={{ delay: 0.3, type: "spring" }}
+          whileHover={{ y: -2 }}
+          className="relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-emerald-500/10 to-green-500/5 border border-emerald-500/30 p-3 md:p-4 group hover:shadow-md transition-all duration-300"
         >
           <motion.div 
-            className="absolute -top-12 -right-12 w-24 h-24 rounded-full bg-gradient-to-br from-emerald-500/20 to-green-500/20 blur-3xl"
+            className="absolute -top-10 -right-10 w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500/15 to-green-500/15 blur-2xl"
           />
           
-          <div className="relative flex items-center gap-3">
+          <div className="relative flex items-center gap-2 md:gap-3">
             <motion.div 
-              className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-lg"
+              className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md"
               whileHover={{ rotate: [0, -5, 5, 0] }}
             >
-              <Target className="w-6 h-6 text-white" />
+              <Target className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </motion.div>
-            <div className="flex-1">
-              <p className="text-xs text-muted-foreground font-medium">معدل الإنجاز</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] md:text-xs text-muted-foreground font-medium">معدل الإنجاز</p>
               <motion.p 
-                className="text-xl font-bold text-emerald-500"
+                className="text-base md:text-xl font-bold text-emerald-500"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
+                transition={{ delay: 0.35 }}
               >
-                <AnimatedNumber value={completionRate} delay={450} />%
+                <AnimatedNumber value={completionRate} delay={400} />%
               </motion.p>
             </div>
             
             {/* Circular Progress */}
-            <div className="relative w-10 h-10">
+            <div className="relative w-8 h-8 md:w-10 md:h-10 flex-shrink-0">
               <svg className="w-full h-full -rotate-90">
                 <circle
-                  cx="20"
-                  cy="20"
-                  r="16"
+                  cx="50%"
+                  cy="50%"
+                  r="40%"
                   fill="none"
                   stroke="hsl(var(--muted))"
                   strokeWidth="3"
                   className="opacity-30"
                 />
                 <motion.circle
-                  cx="20"
-                  cy="20"
-                  r="16"
+                  cx="50%"
+                  cy="50%"
+                  r="40%"
                   fill="none"
                   stroke="url(#emeraldGradient)"
                   strokeWidth="3"
@@ -291,7 +291,7 @@ export const ModernOrdersStats = ({ stats, totalSpent, todaySpent = 0, previousM
                   strokeDasharray={`${completionRate} 100`}
                   initial={{ strokeDasharray: "0 100" }}
                   animate={{ strokeDasharray: `${completionRate} 100` }}
-                  transition={{ duration: 1.2, delay: 0.5, ease: "easeOut" }}
+                  transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
                 />
                 <defs>
                   <linearGradient id="emeraldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
