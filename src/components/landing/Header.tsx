@@ -4,7 +4,7 @@ import { Menu, X, Sparkles, ChevronLeft, Home, Briefcase, Share2, Users, CreditC
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import ThemeToggle from "@/components/ThemeToggle";
-import maxioCoreLogo from "@/assets/maxiocore-logo-transparent.png";
+
 interface NavItem {
   label: string;
   href: string;
@@ -68,14 +68,15 @@ const Header = () => {
         <div className="container px-4 md:px-6">
           <div className="flex items-center justify-between gap-4">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-3 group shrink-0">
-              <motion.img 
-                src={maxioCoreLogo}
-                alt="MaxioCore"
-                className="h-8 md:h-10 w-auto"
-                whileHover={{ scale: 1.05 }}
+            <Link to="/" className="flex items-center shrink-0 group">
+              <motion.span 
+                className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
+                whileHover={{ scale: 1.03 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
-              />
+                style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
+              >
+                MaxioCore
+              </motion.span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -190,12 +191,13 @@ const Header = () => {
               <div className="flex flex-col min-h-full p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
-                  <Link to="/" className="flex items-center gap-2.5" onClick={() => setIsMobileMenuOpen(false)}>
-                    <img 
-                      src={maxioCoreLogo}
-                      alt="MaxioCore"
-                      className="h-8 w-auto"
-                    />
+                  <Link to="/" className="flex items-center" onClick={() => setIsMobileMenuOpen(false)}>
+                    <span 
+                      className="text-xl font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
+                      style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
+                    >
+                      MaxioCore
+                    </span>
                   </Link>
                   <button
                     onClick={() => setIsMobileMenuOpen(false)}
