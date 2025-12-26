@@ -1,5 +1,5 @@
 import { motion, useInView } from "framer-motion";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { 
   Target, 
   Users, 
@@ -24,12 +24,19 @@ import {
   Palette,
   BarChart3,
   Headphones,
-  ChevronLeft
+  ChevronLeft,
+  Brain,
+  Cpu,
+  PenTool,
+  Layers,
+  ShoppingBag,
+  CheckCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
+import { supabase } from "@/integrations/supabase/client";
 
 const values = [
   {
@@ -67,30 +74,58 @@ const milestones = [
 ];
 
 const services = [
-  { icon: BarChart3, title: "التسويق الرقمي", description: "استراتيجيات تسويقية متكاملة" },
-  { icon: Palette, title: "التصميم الإبداعي", description: "تصاميم احترافية ومبتكرة" },
-  { icon: Code, title: "تطوير المواقع", description: "حلول برمجية متقدمة" },
-  { icon: Headphones, title: "دعم متواصل", description: "خدمة عملاء على مدار الساعة" },
+  { icon: BarChart3, title: "التسويق الرقمي", description: "استراتيجيات تسويقية متكاملة", gradient: "from-blue-500 to-cyan-500" },
+  { icon: Palette, title: "التصميم الإبداعي", description: "تصاميم احترافية ومبتكرة", gradient: "from-purple-500 to-pink-500" },
+  { icon: Code, title: "تطوير المواقع", description: "حلول برمجية متقدمة", gradient: "from-emerald-500 to-teal-500" },
+  { icon: Headphones, title: "دعم متواصل", description: "خدمة عملاء على مدار الساعة", gradient: "from-amber-500 to-orange-500" },
 ];
 
-const achievements = [
-  { value: "500+", label: "عميل راضي", icon: Users, color: "from-cyan-500 to-blue-600" },
-  { value: "1000+", label: "مشروع منجز", icon: Rocket, color: "from-emerald-500 to-teal-600" },
-  { value: "50+", label: "جائزة وشهادة", icon: Award, color: "from-amber-500 to-orange-600" },
-  { value: "5+", label: "سنوات خبرة", icon: TrendingUp, color: "from-pink-500 to-rose-600" },
-];
-
-const team = [
-  { name: "أحمد محمد", role: "المدير التنفيذي", initial: "أ", gradient: "from-cyan-500 to-blue-600" },
-  { name: "سارة أحمد", role: "مديرة التسويق", initial: "س", gradient: "from-pink-500 to-rose-600" },
-  { name: "خالد العلي", role: "مدير العمليات", initial: "خ", gradient: "from-emerald-500 to-teal-600" },
-  { name: "نورة السعيد", role: "مديرة الإبداع", initial: "ن", gradient: "from-amber-500 to-orange-600" },
+// Creative minds without names - only roles with improved icons
+const creativeMinds = [
+  { role: "المدير التنفيذي", icon: Brain, gradient: "from-violet-500 to-purple-600" },
+  { role: "مدير التسويق", icon: TrendingUp, gradient: "from-cyan-500 to-blue-600" },
+  { role: "مدير التقنية", icon: Cpu, gradient: "from-emerald-500 to-teal-600" },
+  { role: "المدير الإبداعي", icon: PenTool, gradient: "from-pink-500 to-rose-600" },
+  { role: "مدير المشاريع", icon: Layers, gradient: "from-amber-500 to-orange-600" },
+  { role: "مطور أول", icon: Code, gradient: "from-indigo-500 to-blue-600" },
 ];
 
 const About = () => {
-  const [activeTimeline, setActiveTimeline] = useState(5);
+  const [activeTimeline, setActiveTimeline] = useState(0);
   const statsRef = useRef(null);
   const statsInView = useInView(statsRef, { once: true, margin: "-50px" });
+  
+  // Real statistics from database
+  const [stats, setStats] = useState({
+    totalOrders: 0,
+    completedOrders: 0,
+    totalUsers: 0,
+    totalServices: 0
+  });
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_public_stats');
+        if (error) throw error;
+        if (data && typeof data === 'object' && !Array.isArray(data)) {
+          const statsData = data as Record<string, number>;
+          setStats({
+            totalOrders: statsData.total_orders || 0,
+            completedOrders: statsData.completed_orders || 0,
+            totalUsers: statsData.total_users || 0,
+            totalServices: statsData.total_services || 0
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setIsLoadingStats(false);
+      }
+    };
+    fetchStats();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background overflow-hidden" dir="rtl">
@@ -186,11 +221,16 @@ const About = () => {
           </div>
         </section>
 
-        {/* Stats Section */}
+        {/* Real Stats Section */}
         <section ref={statsRef} className="py-16 md:py-20 bg-secondary/30">
           <div className="container px-4">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {achievements.map((item, index) => (
+              {[
+                { value: stats.completedOrders, label: "طلب مكتمل", icon: CheckCircle, color: "from-emerald-500 to-teal-600" },
+                { value: stats.totalUsers, label: "عميل سعيد", icon: Users, color: "from-blue-500 to-cyan-600" },
+                { value: stats.totalServices, label: "خدمة متاحة", icon: ShoppingBag, color: "from-violet-500 to-purple-600" },
+                { value: stats.totalOrders, label: "إجمالي الطلبات", icon: Globe, color: "from-amber-500 to-orange-600" },
+              ].map((item, index) => (
                 <motion.div
                   key={item.label}
                   initial={{ opacity: 0, y: 30 }}
@@ -205,7 +245,11 @@ const About = () => {
                   </div>
                   
                   <div className={`text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-l ${item.color} bg-clip-text text-transparent mb-2`}>
-                    {item.value}
+                    {isLoadingStats ? (
+                      <span className="animate-pulse">...</span>
+                    ) : (
+                      <>{item.value.toLocaleString()}+</>
+                    )}
                   </div>
                   <p className="text-sm md:text-base text-muted-foreground font-medium">{item.label}</p>
                 </motion.div>
@@ -240,8 +284,8 @@ const About = () => {
                   transition={{ delay: index * 0.1 }}
                   className="p-6 rounded-2xl bg-card border border-border/50 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 text-center group"
                 >
-                  <div className="w-14 h-14 rounded-xl bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center mx-auto mb-4 transition-colors">
-                    <service.icon className="w-7 h-7 text-primary" />
+                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${service.gradient} flex items-center justify-center mx-auto mb-4 shadow-lg`}>
+                    <service.icon className="w-7 h-7 text-white" />
                   </div>
                   <h3 className="font-bold text-lg mb-2">{service.title}</h3>
                   <p className="text-sm text-muted-foreground">{service.description}</p>
@@ -287,11 +331,11 @@ const About = () => {
                 
                 <div className="flex items-center gap-4 mt-8 p-5 rounded-2xl bg-card border border-border/50">
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0">
-                    <Building2 className="w-7 h-7 text-white" />
+                    <MapPin className="w-7 h-7 text-white" />
                   </div>
                   <div>
                     <p className="font-bold text-lg">المقر الرئيسي</p>
-                    <p className="text-muted-foreground">الرياض، المملكة العربية السعودية</p>
+                    <p className="text-muted-foreground">جدة، المملكة العربية السعودية</p>
                   </div>
                 </div>
               </motion.div>
@@ -460,7 +504,7 @@ const About = () => {
           </div>
         </section>
 
-        {/* Team Section */}
+        {/* Creative Minds Section - Without Names */}
         <section className="py-16 md:py-24">
           <div className="container px-4">
             <motion.div
@@ -470,30 +514,34 @@ const About = () => {
               className="text-center mb-12 md:mb-16"
             >
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
-                <Users className="w-4 h-4 text-primary" />
+                <Brain className="w-4 h-4 text-primary" />
                 <span className="text-sm text-primary font-medium">فريق القيادة</span>
               </div>
               <h2 className="text-3xl md:text-4xl font-bold mb-4">العقول المبدعة</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                فريق من الخبراء والمتخصصين يعملون معاً لتحقيق رؤيتنا
+                فريق من المحترفين يعملون بشغف لتحقيق أهدافكم
               </p>
             </motion.div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-              {team.map((member, index) => (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
+              {creativeMinds.map((member, index) => (
                 <motion.div
-                  key={member.name}
+                  key={member.role}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
+                  whileHover={{ scale: 1.05, y: -5 }}
                   className="p-6 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-all duration-300 text-center group"
                 >
-                  <div className={`w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br ${member.gradient} flex items-center justify-center mx-auto mb-4 shadow-xl text-white text-3xl md:text-4xl font-bold`}>
-                    {member.initial}
-                  </div>
-                  <h3 className="font-bold text-lg mb-1">{member.name}</h3>
-                  <p className="text-sm text-muted-foreground">{member.role}</p>
+                  <motion.div 
+                    className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br ${member.gradient} flex items-center justify-center mx-auto mb-4 shadow-xl`}
+                    whileHover={{ rotate: [0, -5, 5, 0] }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <member.icon className="w-8 h-8 md:w-10 md:h-10 text-white" />
+                  </motion.div>
+                  <p className="font-bold text-sm md:text-base">{member.role}</p>
                 </motion.div>
               ))}
             </div>
