@@ -16,9 +16,7 @@ const HeroSection = () => {
     offset: ["start start", "end start"]
   });
 
-  const y = useTransform(scrollYProgress, [0, 1], [0, 200]);
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.9]);
+  const y = useTransform(scrollYProgress, [0, 1], [0, 100]);
 
   const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 };
   const mouseX = useSpring(0, springConfig);
@@ -163,7 +161,7 @@ const HeroSection = () => {
       <motion.div 
         ref={heroRef}
         className="container relative z-10 px-4 pt-24 pb-16"
-        style={{ y, opacity, scale }}
+        style={{ y }}
       >
         <div className="max-w-6xl mx-auto">
           {/* Animated Badge */}
