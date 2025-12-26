@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const emailSchema = z.string().email("البريد الإلكتروني غير صالح");
 const passwordSchema = z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل");
@@ -23,6 +24,7 @@ const features = [
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [isSignUp, setIsSignUp] = useState(searchParams.get("mode") === "signup");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -170,9 +172,9 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-background relative overflow-hidden">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-background relative overflow-hidden">
       {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-background to-accent/5" />
         <motion.div
           className="absolute -top-1/2 -left-1/2 w-full h-full rounded-full opacity-20"
@@ -192,16 +194,32 @@ const Auth = () => {
         />
       </div>
 
-      {/* Right Panel - Form */}
-      <div className="flex-1 flex items-center justify-center p-6 md:p-8 relative z-10">
+      {/* Mobile Header - Only visible on mobile */}
+      <motion.div 
+        className="lg:hidden relative z-20 pt-6 pb-4 px-4 text-center"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <Link to="/" className="inline-flex items-center justify-center">
+          <motion.span 
+            className="text-2xl font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
+            style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
+          >
+            MaxioCore
+          </motion.span>
+        </Link>
+      </motion.div>
+
+      {/* Form Panel */}
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 md:p-8 relative z-10 min-h-0 lg:min-h-screen">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="w-full max-w-md"
         >
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 mb-10 group">
+          {/* Desktop Logo - Hidden on mobile */}
+          <Link to="/" className="hidden lg:flex items-center gap-3 mb-8 group">
             <motion.span 
               className="text-2xl md:text-3xl font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
               whileHover={{ scale: 1.03 }}
@@ -214,37 +232,37 @@ const Auth = () => {
 
           {/* Card Container */}
           <motion.div
-            className="relative p-8 md:p-10 rounded-3xl bg-card/50 backdrop-blur-xl border border-border/50 shadow-2xl"
+            className="relative p-5 sm:p-6 md:p-8 lg:p-10 rounded-2xl sm:rounded-3xl bg-card/50 backdrop-blur-xl border border-border/50 shadow-2xl"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.1 }}
           >
             {/* Gradient Border Effect */}
-            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/20 via-transparent to-accent/20 opacity-50 pointer-events-none" />
+            <div className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-primary/20 via-transparent to-accent/20 opacity-50 pointer-events-none" />
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
             
             <div className="relative z-10">
               {/* Header */}
-              <div className="text-center mb-8">
+              <div className="text-center mb-6 sm:mb-8">
                 <motion.div
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
+                  className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 border border-primary/20 mb-4 sm:mb-6"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <Sparkles className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-primary">
+                  <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+                  <span className="text-xs sm:text-sm font-medium text-primary">
                     {isSignUp ? "انضم إلينا اليوم" : "أهلاً بعودتك"}
                   </span>
                 </motion.div>
-                <h1 className="text-2xl md:text-3xl font-bold mb-3">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3">
                   {isSignUp ? (
                     <>إنشاء <span className="text-transparent bg-clip-text bg-gradient-to-l from-primary to-accent">حساب جديد</span></>
                   ) : (
                     <>تسجيل <span className="text-transparent bg-clip-text bg-gradient-to-l from-primary to-accent">الدخول</span></>
                   )}
                 </h1>
-                <p className="text-muted-foreground">
+                <p className="text-sm sm:text-base text-muted-foreground">
                   {isSignUp 
                     ? "ابدأ رحلتك نحو النجاح التسويقي" 
                     : "سجل دخولك للوصول إلى لوحة التحكم"}
@@ -252,7 +270,7 @@ const Auth = () => {
               </div>
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
                 <AnimatePresence mode="wait">
                   {isSignUp && (
                     <motion.div
@@ -260,45 +278,45 @@ const Auth = () => {
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="space-y-5"
+                      className="space-y-4 sm:space-y-5"
                     >
                       <div>
-                        <Label htmlFor="name" className="text-sm font-medium">الاسم الكامل</Label>
-                        <div className="relative mt-2">
-                          <User className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Label htmlFor="name" className="text-xs sm:text-sm font-medium">الاسم الكامل</Label>
+                        <div className="relative mt-1.5 sm:mt-2">
+                          <User className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                           <Input
                             id="name"
                             type="text"
                             placeholder="محمد أحمد"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="pr-12 bg-secondary/30 border-border/50 h-13 text-right rounded-xl focus:border-primary/50 focus:ring-primary/20 transition-all"
+                            className="pr-10 sm:pr-12 bg-secondary/30 border-border/50 h-11 sm:h-12 text-sm sm:text-base text-right rounded-xl focus:border-primary/50 focus:ring-primary/20 transition-all"
                             required={isSignUp}
                           />
                         </div>
                         {errors.name && (
-                          <p className="text-sm text-destructive mt-1.5">{errors.name}</p>
+                          <p className="text-xs sm:text-sm text-destructive mt-1">{errors.name}</p>
                         )}
                       </div>
 
                       <div>
-                        <Label htmlFor="phone" className="text-sm font-medium">
+                        <Label htmlFor="phone" className="text-xs sm:text-sm font-medium">
                           رقم الجوال <span className="text-muted-foreground text-xs">(اختياري)</span>
                         </Label>
-                        <div className="relative mt-2">
-                          <Phone className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <div className="relative mt-1.5 sm:mt-2">
+                          <Phone className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                           <Input
                             id="phone"
                             type="tel"
                             placeholder="0512345678"
                             value={formData.phone}
                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            className="pr-12 bg-secondary/30 border-border/50 h-13 rounded-xl focus:border-primary/50 focus:ring-primary/20 transition-all"
+                            className="pr-10 sm:pr-12 bg-secondary/30 border-border/50 h-11 sm:h-12 text-sm sm:text-base rounded-xl focus:border-primary/50 focus:ring-primary/20 transition-all"
                             dir="ltr"
                           />
                         </div>
                         {errors.phone && (
-                          <p className="text-sm text-destructive mt-1.5">{errors.phone}</p>
+                          <p className="text-xs sm:text-sm text-destructive mt-1">{errors.phone}</p>
                         )}
                       </div>
                     </motion.div>
@@ -306,56 +324,56 @@ const Auth = () => {
                 </AnimatePresence>
 
                 <div>
-                  <Label htmlFor="email" className="text-sm font-medium">البريد الإلكتروني</Label>
-                  <div className="relative mt-2">
-                    <Mail className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Label htmlFor="email" className="text-xs sm:text-sm font-medium">البريد الإلكتروني</Label>
+                  <div className="relative mt-1.5 sm:mt-2">
+                    <Mail className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                     <Input
                       id="email"
                       type="email"
                       placeholder="you@example.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="pr-12 bg-secondary/30 border-border/50 h-13 rounded-xl focus:border-primary/50 focus:ring-primary/20 transition-all"
+                      className="pr-10 sm:pr-12 bg-secondary/30 border-border/50 h-11 sm:h-12 text-sm sm:text-base rounded-xl focus:border-primary/50 focus:ring-primary/20 transition-all"
                       dir="ltr"
                       required
                     />
                   </div>
                   {errors.email && (
-                    <p className="text-sm text-destructive mt-1.5">{errors.email}</p>
+                    <p className="text-xs sm:text-sm text-destructive mt-1">{errors.email}</p>
                   )}
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="text-sm font-medium">كلمة المرور</Label>
+                    <Label htmlFor="password" className="text-xs sm:text-sm font-medium">كلمة المرور</Label>
                     {!isSignUp && (
-                      <a href="#" className="text-sm text-primary hover:text-primary/80 transition-colors">
+                      <a href="#" className="text-xs sm:text-sm text-primary hover:text-primary/80 transition-colors">
                         نسيت كلمة المرور؟
                       </a>
                     )}
                   </div>
-                  <div className="relative mt-2">
-                    <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <div className="relative mt-1.5 sm:mt-2">
+                    <Lock className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      className="pr-12 pl-12 bg-secondary/30 border-border/50 h-13 rounded-xl focus:border-primary/50 focus:ring-primary/20 transition-all"
+                      className="pr-10 sm:pr-12 pl-10 sm:pl-12 bg-secondary/30 border-border/50 h-11 sm:h-12 text-sm sm:text-base rounded-xl focus:border-primary/50 focus:ring-primary/20 transition-all"
                       dir="ltr"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {showPassword ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="text-sm text-destructive mt-1.5">{errors.password}</p>
+                    <p className="text-xs sm:text-sm text-destructive mt-1">{errors.password}</p>
                   )}
                 </div>
 
@@ -363,14 +381,14 @@ const Auth = () => {
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full h-13 bg-gradient-to-l from-primary to-accent hover:opacity-90 text-lg font-semibold rounded-xl shadow-lg shadow-primary/25 transition-all"
+                    className="w-full h-11 sm:h-12 bg-gradient-to-l from-primary to-accent hover:opacity-90 text-sm sm:text-base lg:text-lg font-semibold rounded-xl shadow-lg shadow-primary/25 transition-all"
                   >
                     {isLoading ? (
                       <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                     ) : (
                       <>
                         {isSignUp ? "إنشاء الحساب" : "تسجيل الدخول"}
-                        <ArrowLeft className="w-5 h-5 me-2" />
+                        <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 me-2" />
                       </>
                     )}
                   </Button>
@@ -378,7 +396,7 @@ const Auth = () => {
               </form>
 
               {/* Toggle */}
-              <p className="mt-6 text-center text-muted-foreground">
+              <p className="mt-4 sm:mt-6 text-center text-xs sm:text-sm text-muted-foreground">
                 {isSignUp ? "لديك حساب بالفعل؟" : "ليس لديك حساب؟"}{" "}
                 <button
                   onClick={() => setIsSignUp(!isSignUp)}
@@ -389,17 +407,17 @@ const Auth = () => {
               </p>
 
               {/* Divider */}
-              <div className="flex items-center gap-4 my-6">
+              <div className="flex items-center gap-3 sm:gap-4 my-4 sm:my-6">
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-                <span className="text-sm text-muted-foreground">أو تابع باستخدام</span>
+                <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">أو تابع باستخدام</span>
                 <div className="flex-1 h-px bg-gradient-to-l from-transparent via-border to-transparent" />
               </div>
 
               {/* Social Buttons */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button variant="outline" className="w-full h-12 bg-secondary/30 border-border/50 hover:bg-secondary/50 rounded-xl transition-all">
-                    <svg className="w-5 h-5 ms-2" viewBox="0 0 24 24">
+                  <Button variant="outline" className="w-full h-10 sm:h-11 md:h-12 bg-secondary/30 border-border/50 hover:bg-secondary/50 rounded-xl transition-all text-xs sm:text-sm">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 ms-1.5 sm:ms-2" viewBox="0 0 24 24">
                       <path fill="#EA4335" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                       <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                       <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -409,8 +427,8 @@ const Auth = () => {
                   </Button>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button variant="outline" className="w-full h-12 bg-secondary/30 border-border/50 hover:bg-secondary/50 rounded-xl transition-all">
-                    <svg className="w-5 h-5 ms-2" fill="currentColor" viewBox="0 0 24 24">
+                  <Button variant="outline" className="w-full h-10 sm:h-11 md:h-12 bg-secondary/30 border-border/50 hover:bg-secondary/50 rounded-xl transition-all text-xs sm:text-sm">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 ms-1.5 sm:ms-2" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                     </svg>
                     جيت هب
@@ -422,23 +440,23 @@ const Auth = () => {
 
           {/* Back to Home */}
           <motion.div 
-            className="mt-6 text-center"
+            className="mt-4 sm:mt-6 text-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
             <Link 
               to="/" 
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="inline-flex items-center gap-2 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              <ArrowLeft className="w-4 h-4 rotate-180" />
+              <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 rotate-180" />
               العودة للصفحة الرئيسية
             </Link>
           </motion.div>
         </motion.div>
       </div>
 
-      {/* Left Panel - Visual */}
+      {/* Visual Panel - Hidden on mobile/tablet */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-bl from-primary/10 via-background to-accent/10" />
         
@@ -483,34 +501,34 @@ const Auth = () => {
         />
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col items-center justify-center p-12 w-full">
+        <div className="relative z-10 flex flex-col items-center justify-center p-8 xl:p-12 w-full">
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative p-10 rounded-3xl bg-card/30 backdrop-blur-xl border border-border/30 max-w-md text-center shadow-2xl"
+            className="relative p-8 xl:p-10 rounded-3xl bg-card/30 backdrop-blur-xl border border-border/30 max-w-md text-center shadow-2xl"
           >
             {/* Glow Effect */}
             <div className="absolute -inset-px rounded-3xl bg-gradient-to-br from-primary/30 via-transparent to-accent/30 opacity-50 blur-sm" />
             
             <div className="relative z-10">
               <motion.div 
-                className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-accent mx-auto mb-8 flex items-center justify-center shadow-xl shadow-primary/30"
+                className="w-16 h-16 xl:w-20 xl:h-20 rounded-2xl bg-gradient-to-br from-primary to-accent mx-auto mb-6 xl:mb-8 flex items-center justify-center shadow-xl shadow-primary/30"
                 animate={{ rotate: [0, 5, -5, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               >
-                <Sparkles className="w-10 h-10 text-primary-foreground" />
+                <Sparkles className="w-8 h-8 xl:w-10 xl:h-10 text-primary-foreground" />
               </motion.div>
               
-              <h2 className="text-2xl md:text-3xl font-bold mb-4">
+              <h2 className="text-xl xl:text-2xl 2xl:text-3xl font-bold mb-3 xl:mb-4">
                 انضم لأكثر من <span className="text-transparent bg-clip-text bg-gradient-to-l from-primary to-accent">10,000</span> مسوّق
               </h2>
-              <p className="text-muted-foreground mb-8 text-lg">
+              <p className="text-muted-foreground mb-6 xl:mb-8 text-sm xl:text-base 2xl:text-lg">
                 "MaxioCore غيّرت استراتيجيتنا الرقمية بالكامل. النتائج تتحدث عن نفسها."
               </p>
               
               {/* Features */}
-              <div className="space-y-4 mb-8">
+              <div className="space-y-3 xl:space-y-4 mb-6 xl:mb-8">
                 {features.map((feature, index) => (
                   <motion.div
                     key={index}
@@ -519,10 +537,10 @@ const Auth = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 + index * 0.1 }}
                   >
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                      <feature.icon className="w-5 h-5 text-primary" />
+                    <div className="w-9 h-9 xl:w-10 xl:h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <feature.icon className="w-4 h-4 xl:w-5 xl:h-5 text-primary" />
                     </div>
-                    <span className="text-foreground font-medium">{feature.text}</span>
+                    <span className="text-sm xl:text-base text-foreground font-medium">{feature.text}</span>
                   </motion.div>
                 ))}
               </div>
@@ -532,7 +550,7 @@ const Auth = () => {
                 {Array.from({ length: 5 }).map((_, i) => (
                   <motion.svg 
                     key={i} 
-                    className="w-6 h-6 fill-yellow-400 text-yellow-400" 
+                    className="w-5 h-5 xl:w-6 xl:h-6 fill-yellow-400 text-yellow-400" 
                     viewBox="0 0 20 20"
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -542,11 +560,34 @@ const Auth = () => {
                   </motion.svg>
                 ))}
               </div>
-              <p className="text-sm text-muted-foreground">تقييم 4.9/5 من أكثر من 2,000 مراجعة</p>
+              <p className="text-xs xl:text-sm text-muted-foreground">تقييم 4.9/5 من أكثر من 2,000 مراجعة</p>
             </div>
           </motion.div>
         </div>
       </div>
+
+      {/* Mobile Features Section - Only visible on mobile */}
+      <motion.div 
+        className="lg:hidden relative z-10 px-4 pb-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
+        <div className="flex items-center justify-center gap-4 flex-wrap">
+          {features.map((feature, index) => (
+            <motion.div
+              key={index}
+              className="flex items-center gap-2 px-3 py-2 rounded-full bg-secondary/30 border border-border/30"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5 + index * 0.1 }}
+            >
+              <feature.icon className="w-3.5 h-3.5 text-primary" />
+              <span className="text-xs text-muted-foreground">{feature.text}</span>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
     </div>
   );
 };
