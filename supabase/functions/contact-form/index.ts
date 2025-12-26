@@ -136,69 +136,76 @@ const handler = async (req: Request): Promise<Response> => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>رسالة جديدة من صفحة التواصل</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif; background-color: #f0f4f8; direction: rtl; text-align: right;">
-  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; background-color: #f0f4f8;">
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background-color: #f8fafc; direction: rtl;">
+  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background-color: #f8fafc;">
     <tr>
-      <td align="center" style="padding: 30px 15px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);">
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
           
           <!-- Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); padding: 35px 30px; text-align: center;">
-              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
-                <tr>
-                  <td align="center">
-                    <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.2); border-radius: 18px; margin: 0 auto 15px; line-height: 70px;">
-                      <span style="font-size: 36px;">📩</span>
-                    </div>
-                    <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">
-                      رسالة جديدة من صفحة التواصل
-                    </h1>
-                  </td>
-                </tr>
-              </table>
+            <td style="background-color: #0f172a; padding: 32px 40px; text-align: center;">
+              <h1 style="margin: 0 0 8px; color: #ffffff; font-size: 22px; font-weight: 700;">
+                📩 رسالة جديدة
+              </h1>
+              <p style="margin: 0; color: #94a3b8; font-size: 14px;">
+                من صفحة التواصل - MaxioCore
+              </p>
             </td>
           </tr>
           
           <!-- Content -->
           <tr>
-            <td style="padding: 30px; direction: rtl; text-align: right;">
+            <td style="padding: 32px 40px;">
               
-              <!-- Sender Info Card -->
-              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 14px; border-right: 4px solid #6366f1; margin-bottom: 20px;">
+              <!-- Sender Info -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 24px;">
                 <tr>
-                  <td style="padding: 22px;">
-                    <h3 style="margin: 0 0 15px; color: #1e293b; font-size: 16px; font-weight: 700; text-align: right;">معلومات المرسل:</h3>
-                    <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                  <td style="padding-bottom: 16px;">
+                    <h3 style="margin: 0 0 16px; color: #0f172a; font-size: 16px; font-weight: 600; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                      👤 معلومات المرسل
+                    </h3>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
                       <tr>
-                        <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 14px;">الاسم</td>
-                        <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 14px; font-weight: 600;">${name}</td>
+                        <td style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0;">
+                          <span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 4px;">الاسم</span>
+                          <span style="color: #0f172a; font-size: 15px; font-weight: 600;">${name}</span>
+                        </td>
                       </tr>
                       <tr>
-                        <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 14px;">البريد الإلكتروني</td>
-                        <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; text-align: left;">
-                          <a href="mailto:${email}" style="color: #6366f1; text-decoration: none; font-size: 14px;">${email}</a>
+                        <td style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0;">
+                          <span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 4px;">البريد الإلكتروني</span>
+                          <a href="mailto:${email}" style="color: #0ea5e9; font-size: 15px; text-decoration: none; font-weight: 500;">${email}</a>
                         </td>
                       </tr>
                       ${phone ? `
                       <tr>
-                        <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 14px;">رقم الجوال</td>
-                        <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 14px;" dir="ltr">${phone}</td>
+                        <td style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0;">
+                          <span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 4px;">رقم الجوال</span>
+                          <span style="color: #0f172a; font-size: 15px; font-weight: 500;" dir="ltr">${phone}</span>
+                        </td>
                       </tr>
                       ` : ''}
                       ${company ? `
                       <tr>
-                        <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 14px;">الشركة</td>
-                        <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 14px;">${company}</td>
+                        <td style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0;">
+                          <span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 4px;">الشركة</span>
+                          <span style="color: #0f172a; font-size: 15px; font-weight: 500;">${company}</span>
+                        </td>
                       </tr>
                       ` : ''}
                       ${subject ? `
                       <tr>
-                        <td style="padding: 10px 0; text-align: right; color: #64748b; font-size: 14px;">الموضوع</td>
-                        <td style="padding: 10px 0; text-align: left; color: #1e293b; font-size: 14px; font-weight: 600;">${subject}</td>
+                        <td style="padding: 16px 20px;">
+                          <span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 4px;">الموضوع</span>
+                          <span style="color: #0f172a; font-size: 15px; font-weight: 600;">${subject}</span>
+                        </td>
                       </tr>
                       ` : ''}
                     </table>
@@ -206,23 +213,31 @@ const handler = async (req: Request): Promise<Response> => {
                 </tr>
               </table>
               
-              <!-- Message Card -->
-              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 14px; border-right: 4px solid #f59e0b;">
+              <!-- Message -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                 <tr>
-                  <td style="padding: 22px;">
-                    <h3 style="margin: 0 0 12px; color: #92400e; font-size: 16px; font-weight: 700; text-align: right;">الرسالة:</h3>
-                    <p style="margin: 0; color: #78350f; font-size: 15px; line-height: 1.8; white-space: pre-wrap; text-align: right;">${message}</p>
+                  <td style="padding-bottom: 16px;">
+                    <h3 style="margin: 0 0 16px; color: #0f172a; font-size: 16px; font-weight: 600; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                      💬 نص الرسالة
+                    </h3>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px;">
+                      <p style="margin: 0; color: #166534; font-size: 15px; line-height: 1.8; white-space: pre-wrap;">${message}</p>
+                    </div>
                   </td>
                 </tr>
               </table>
               
               <!-- Timestamp -->
-              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-top: 25px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-top: 24px;">
                 <tr>
-                  <td align="center">
-                    <p style="margin: 0; color: #64748b; font-size: 12px;">
-                      تم الإرسال في: ${new Date().toLocaleString('ar-SA', { timeZone: 'Asia/Riyadh' })}
-                    </p>
+                  <td align="center" style="padding-top: 16px; border-top: 1px solid #e2e8f0;">
+                    <span style="color: #94a3b8; font-size: 12px;">
+                      🕐 تم الإرسال: ${new Date().toLocaleString('ar-SA', { timeZone: 'Asia/Riyadh', dateStyle: 'full', timeStyle: 'short' })}
+                    </span>
                   </td>
                 </tr>
               </table>
@@ -232,16 +247,10 @@ const handler = async (req: Request): Promise<Response> => {
           
           <!-- Footer -->
           <tr>
-            <td style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 20px 30px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
-                <tr>
-                  <td align="center">
-                    <p style="margin: 0; font-size: 12px; color: #64748b;">
-                      © ${new Date().getFullYear()} MaxioCore. جميع الحقوق محفوظة.
-                    </p>
-                  </td>
-                </tr>
-              </table>
+            <td style="background-color: #f1f5f9; padding: 20px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
+              <p style="margin: 0; font-size: 12px; color: #64748b;">
+                © ${new Date().getFullYear()} MaxioCore - جميع الحقوق محفوظة
+              </p>
             </td>
           </tr>
         </table>
