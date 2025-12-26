@@ -10,6 +10,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { useIsMobile } from "@/hooks/use-mobile";
+import Header from "@/components/landing/Header";
+import Footer from "@/components/landing/Footer";
 
 const emailSchema = z.string().email("البريد الإلكتروني غير صالح");
 const passwordSchema = z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل");
@@ -196,7 +198,9 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-background relative overflow-hidden">
+    <>
+      <Header />
+      <div className="min-h-screen flex flex-col lg:flex-row bg-background relative overflow-hidden pt-16 sm:pt-20">
       {/* Animated Background with Particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-background to-accent/5" />
@@ -756,6 +760,8 @@ const Auth = () => {
         </div>
       </motion.div>
     </div>
+      <Footer />
+    </>
   );
 };
 
