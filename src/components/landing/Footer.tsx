@@ -93,51 +93,53 @@ const Footer = () => {
       </div>
 
       <div className="container px-4 relative z-10">
-        {/* Newsletter Section */}
+        {/* Newsletter Section - Centered & Modern */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
           className="relative -mt-48 mb-24"
         >
-          <div className="relative p-10 md:p-14 rounded-[2.5rem] bg-card/60 backdrop-blur-2xl border border-border/50 overflow-hidden">
+          <div className="relative p-8 md:p-12 rounded-3xl bg-gradient-to-br from-card/80 via-card/60 to-card/80 backdrop-blur-2xl border border-border/50 overflow-hidden shadow-2xl">
             {/* Inner Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
             <motion.div
               className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px"
               style={{
-                background: "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.4), transparent)",
+                background: "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.5), transparent)",
               }}
             />
             
-            <div className="relative flex flex-col lg:flex-row items-center justify-between gap-10">
-              <div className="text-center lg:text-right">
-                <motion.div
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/10 border border-primary/20 mb-6"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                  transition={{ delay: 0.2 }}
-                >
-                  <Sparkles className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-semibold text-primary">النشرة البريدية</span>
-                </motion.div>
+            <div className="relative flex flex-col items-center text-center gap-8">
+              <motion.div
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/15 border border-primary/30"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                transition={{ delay: 0.2 }}
+              >
+                <Sparkles className="w-4 h-4 text-primary" />
+                <span className="text-sm font-semibold text-primary">النشرة البريدية</span>
+              </motion.div>
+              
+              <div>
                 <h3 className="text-3xl md:text-4xl font-bold mb-4">
-                  ابقَ على <span className="text-primary">اطلاع</span>
+                  ابقَ على <span className="text-transparent bg-clip-text bg-gradient-to-l from-primary to-accent">اطلاع</span>
                 </h3>
-                <p className="text-muted-foreground max-w-md text-lg">
+                <p className="text-muted-foreground max-w-md mx-auto text-lg">
                   احصل على أحدث النصائح والتحديثات مباشرة إلى بريدك
                 </p>
               </div>
-              <div className="w-full lg:w-auto">
-                <div className="flex gap-4 flex-col sm:flex-row">
+              
+              <div className="w-full max-w-lg">
+                <div className="flex gap-3 flex-col sm:flex-row">
                   <Input
                     type="email"
                     placeholder="بريدك الإلكتروني"
-                    className="w-full sm:w-80 h-14 bg-secondary/50 border-border/50 rounded-2xl text-base px-6"
+                    className="flex-1 h-14 bg-background/50 border-border/50 rounded-2xl text-base px-6 text-center sm:text-right"
                     dir="ltr"
                   />
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button className="h-14 px-10 bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-lg shadow-primary/30 rounded-2xl text-base font-semibold whitespace-nowrap">
+                    <Button className="h-14 px-8 w-full sm:w-auto bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-lg shadow-primary/30 rounded-2xl text-base font-semibold whitespace-nowrap">
                       <Send className="w-5 h-5 ml-2" />
                       اشترك الآن
                     </Button>
@@ -159,14 +161,14 @@ const Footer = () => {
           >
             <Link to="/" className="flex items-center gap-4 mb-8 group">
               <motion.div 
-                className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-xl shadow-primary/30"
+                className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary via-accent to-primary flex items-center justify-center shadow-xl shadow-primary/30"
                 whileHover={{ scale: 1.05, rotate: 5 }}
               >
-                <span className="font-bold text-3xl text-primary-foreground">M</span>
+                <span className="font-bold text-2xl text-primary-foreground">M</span>
               </motion.div>
               <div className="flex flex-col">
-                <span className="font-bold text-2xl">MaxioCore</span>
-                <span className="text-muted-foreground">حلول رقمية متكاملة</span>
+                <span className="font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-l from-primary via-accent to-primary">MaxioCore</span>
+                <span className="text-muted-foreground text-sm">حلول رقمية متكاملة</span>
               </div>
             </Link>
             <p className="text-muted-foreground mb-10 max-w-sm leading-relaxed text-lg">
@@ -226,11 +228,22 @@ const Footer = () => {
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ delay: 0.6 }}
         >
-          <p className="text-muted-foreground flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <motion.div 
+              className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+            >
+              <span className="font-bold text-lg text-primary-foreground">M</span>
+            </motion.div>
+            <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-l from-primary to-accent">MaxioCore</span>
+          </div>
+          
+          <p className="text-muted-foreground flex items-center gap-2 text-sm">
             © {new Date().getFullYear()} MaxioCore. صنع بـ 
-            <Heart className="w-4 h-4 text-red-500 fill-red-500" />
+            <Heart className="w-4 h-4 text-red-500 fill-red-500 animate-pulse" />
             في السعودية
           </p>
+          
           <div className="flex items-center gap-3">
             {socialLinks.map((social) => (
               <motion.a 
@@ -238,7 +251,7 @@ const Footer = () => {
                 href={social.href} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-12 h-12 rounded-xl bg-secondary/50 border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition-all"
+                className="w-11 h-11 rounded-xl bg-secondary/50 border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition-all"
                 whileHover={{ scale: 1.1, y: -3 }}
                 whileTap={{ scale: 0.95 }}
               >
