@@ -223,7 +223,12 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                   >
                     <span className="font-display font-bold text-xl text-primary-foreground">M</span>
                   </motion.div>
-                  <span className="font-display font-bold text-lg">MaxioCore</span>
+                  <span 
+                    className="text-lg font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
+                    style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
+                  >
+                    MaxioCore
+                  </span>
                 </Link>
               </motion.div>
             )}
@@ -509,7 +514,12 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
           >
             <span className="font-bold text-sm sm:text-base text-primary-foreground">M</span>
           </motion.div>
-          <span className="font-bold text-sm sm:text-base hidden xs:block">MaxioCore</span>
+          <span 
+            className="font-bold text-sm sm:text-base bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent hidden xs:block"
+            style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
+          >
+            MaxioCore
+          </span>
         </Link>
         <div className="flex items-center gap-2">
           <motion.div
