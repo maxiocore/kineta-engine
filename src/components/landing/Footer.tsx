@@ -98,7 +98,7 @@ const Footer = () => {
           initial={{ opacity: 0, y: 40 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          className="relative -mt-48 mb-24"
+          className="relative -mt-20 md:-mt-32 mb-16 md:mb-24"
         >
           <div className="relative p-8 md:p-12 rounded-3xl bg-gradient-to-br from-card/80 via-card/60 to-card/80 backdrop-blur-2xl border border-border/50 overflow-hidden shadow-2xl">
             {/* Inner Gradient */}
