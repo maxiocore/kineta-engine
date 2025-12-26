@@ -12,13 +12,76 @@ import {
   Star,
   Zap,
   Shield,
-  TrendingUp
+  TrendingUp,
+  X,
+  Minus,
+  Table
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
+
+// Comparison data for each category
+const comparisonData = {
+  social: {
+    features: [
+      { name: "عدد المنصات", values: ["منصة واحدة", "3 منصات", "جميع المنصات"] },
+      { name: "عدد المنشورات", values: ["10 شهرياً", "20 شهرياً", "40 شهرياً"] },
+      { name: "تصميم المحتوى", values: ["بسيط", "احترافي", "احترافي + فيديو"] },
+      { name: "الريلز والستوريز", values: [false, true, true] },
+      { name: "التقارير", values: ["شهرية", "أسبوعية", "يومية"] },
+      { name: "الحملات الإعلانية", values: [false, false, true] },
+      { name: "التحليلات المتقدمة", values: [false, false, true] },
+      { name: "مدير حساب مخصص", values: [false, false, true] },
+      { name: "الدعم الفني", values: ["بريد", "واتساب", "24/7"] },
+      { name: "وقت الاستجابة", values: ["48 ساعة", "24 ساعة", "4 ساعات"] },
+    ],
+  },
+  design: {
+    features: [
+      { name: "عدد التصاميم", values: ["تصميم واحد", "هوية كاملة", "باقة متكاملة"] },
+      { name: "المراجعات", values: ["3 مراجعات", "5 مراجعات", "غير محدودة"] },
+      { name: "تصميم الشعار", values: [false, true, true] },
+      { name: "بطاقات الأعمال", values: [false, true, true] },
+      { name: "الأوراق الرسمية", values: [false, true, true] },
+      { name: "ملف الهوية البصرية", values: [false, true, true] },
+      { name: "تصميم موقع UI", values: [false, false, true] },
+      { name: "قوالب سوشيال ميديا", values: [false, false, true] },
+      { name: "المطبوعات", values: [false, false, true] },
+      { name: "مدة التسليم", values: ["3 أيام", "أسبوع", "2 أسبوع"] },
+    ],
+  },
+  marketing: {
+    features: [
+      { name: "الاستراتيجية التسويقية", values: ["أساسية", "شاملة", "360 درجة"] },
+      { name: "إعلانات جوجل", values: [true, true, true] },
+      { name: "إعلانات السوشيال", values: [false, true, true] },
+      { name: "تحسين SEO", values: ["أساسي", "متقدم", "متقدم + محلي"] },
+      { name: "تسويق المحتوى", values: [false, true, true] },
+      { name: "تسويق المؤثرين", values: [false, false, true] },
+      { name: "الميزانية الإعلانية", values: ["2,000 ر.س", "5,000 ر.س", "15,000 ر.س"] },
+      { name: "التقارير", values: ["شهرية", "أسبوعية", "يومية"] },
+      { name: "فريق مخصص", values: [false, false, true] },
+      { name: "الاستشارات", values: ["شهرية", "أسبوعية", "حسب الطلب"] },
+    ],
+  },
+  development: {
+    features: [
+      { name: "نوع المشروع", values: ["موقع تعريفي", "متجر إلكتروني", "نظام مخصص"] },
+      { name: "عدد الصفحات", values: ["5 صفحات", "غير محدود", "حسب الطلب"] },
+      { name: "التصميم المتجاوب", values: [true, true, true] },
+      { name: "نظام إدارة المحتوى", values: [false, true, true] },
+      { name: "بوابات الدفع", values: [false, true, true] },
+      { name: "تطبيق موبايل", values: [false, true, true] },
+      { name: "تكامل الأنظمة", values: [false, false, true] },
+      { name: "تحسين SEO", values: ["أساسي", "متقدم", "متقدم"] },
+      { name: "مدة الدعم", values: ["شهر", "3 أشهر", "سنة"] },
+      { name: "التدريب", values: [false, true, true] },
+    ],
+  },
+};
 
 const serviceCategories = [
   {
@@ -458,6 +521,209 @@ const Pricing = () => {
                     </Link>
                   </motion.div>
                 ))}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </section>
+
+        {/* Comparison Table Section */}
+        <section className="py-16 md:py-24 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/20 to-background" />
+          
+          <div className="container px-4 relative z-10">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                whileInView={{ scale: 1 }}
+                viewport={{ once: true }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
+              >
+                <Table className="w-4 h-4 text-primary" />
+                <span className="text-sm text-primary font-medium">مقارنة تفصيلية</span>
+              </motion.div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                قارن بين{" "}
+                <span className={`bg-gradient-to-l ${currentCategory?.color} bg-clip-text text-transparent`}>
+                  الباقات
+                </span>
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+                اختر الباقة المناسبة لاحتياجاتك من خلال المقارنة التفصيلية
+              </p>
+            </motion.div>
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeCategory + "-table"}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -30 }}
+                transition={{ duration: 0.4 }}
+                className="max-w-5xl mx-auto"
+              >
+                {/* Desktop Table */}
+                <div className="hidden md:block overflow-hidden rounded-3xl border border-border/50 bg-card/60 backdrop-blur-xl">
+                  {/* Table Header */}
+                  <div className={`grid grid-cols-4 bg-gradient-to-l ${currentCategory?.color} text-white`}>
+                    <div className="p-5 font-bold text-lg border-l border-white/20">المميزات</div>
+                    {currentCategory?.packages.map((pkg, index) => (
+                      <motion.div
+                        key={pkg.name}
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className={`p-5 text-center border-l border-white/20 last:border-l-0 ${pkg.popular ? 'bg-white/10' : ''}`}
+                      >
+                        <div className="font-bold text-lg">{pkg.name}</div>
+                        <div className="text-sm opacity-90 mt-1">
+                          {pkg.price} {pkg.period && `ر.س / ${pkg.period}`}
+                        </div>
+                        {pkg.popular && (
+                          <Badge className="mt-2 bg-white/20 text-white border-0 text-xs">
+                            الأكثر طلباً
+                          </Badge>
+                        )}
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* Table Body */}
+                  <div className="divide-y divide-border/30">
+                    {comparisonData[activeCategory as keyof typeof comparisonData]?.features.map((feature, rowIndex) => (
+                      <motion.div
+                        key={feature.name}
+                        initial={{ opacity: 0, x: 30 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: rowIndex * 0.05 }}
+                        className={`grid grid-cols-4 ${rowIndex % 2 === 0 ? 'bg-muted/20' : ''} hover:bg-primary/5 transition-colors`}
+                      >
+                        <div className="p-4 font-medium text-foreground border-l border-border/30 flex items-center">
+                          {feature.name}
+                        </div>
+                        {feature.values.map((value, colIndex) => (
+                          <div
+                            key={colIndex}
+                            className={`p-4 text-center border-l border-border/30 last:border-l-0 flex items-center justify-center ${
+                              currentCategory?.packages[colIndex]?.popular ? 'bg-primary/5' : ''
+                            }`}
+                          >
+                            {typeof value === 'boolean' ? (
+                              value ? (
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  className="w-7 h-7 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg"
+                                >
+                                  <CheckCircle className="w-4 h-4 text-white" />
+                                </motion.div>
+                              ) : (
+                                <div className="w-7 h-7 rounded-full bg-muted/50 flex items-center justify-center">
+                                  <X className="w-4 h-4 text-muted-foreground/50" />
+                                </div>
+                              )
+                            ) : (
+                              <span className="text-sm font-medium">{value}</span>
+                            )}
+                          </div>
+                        ))}
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* Table Footer - CTA */}
+                  <div className="grid grid-cols-4 bg-muted/30 border-t border-border/30">
+                    <div className="p-5"></div>
+                    {currentCategory?.packages.map((pkg, index) => (
+                      <div key={pkg.name} className="p-5 text-center border-l border-border/30 last:border-l-0">
+                        <Link to="/contact">
+                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <Button
+                              className={`w-full gap-2 ${
+                                pkg.popular
+                                  ? `bg-gradient-to-l ${currentCategory.color} hover:opacity-90 shadow-lg text-white`
+                                  : "bg-secondary hover:bg-secondary/80"
+                              }`}
+                            >
+                              اختر الباقة
+                              <ArrowLeft className="w-4 h-4" />
+                            </Button>
+                          </motion.div>
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Mobile Comparison Cards */}
+                <div className="md:hidden space-y-6">
+                  {currentCategory?.packages.map((pkg, pkgIndex) => (
+                    <motion.div
+                      key={pkg.name}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: pkgIndex * 0.1 }}
+                      className={`rounded-2xl border overflow-hidden ${
+                        pkg.popular
+                          ? 'border-primary/50 shadow-xl shadow-primary/10'
+                          : 'border-border/50'
+                      }`}
+                    >
+                      {/* Card Header */}
+                      <div className={`p-5 bg-gradient-to-l ${currentCategory.color} text-white text-center`}>
+                        <h3 className="font-bold text-xl">{pkg.name}</h3>
+                        <div className="text-2xl font-bold mt-2">
+                          {pkg.price} <span className="text-sm font-normal opacity-90">ر.س / {pkg.period}</span>
+                        </div>
+                        {pkg.popular && (
+                          <Badge className="mt-2 bg-white/20 text-white border-0">الأكثر طلباً</Badge>
+                        )}
+                      </div>
+
+                      {/* Card Features */}
+                      <div className="bg-card/80 backdrop-blur-xl divide-y divide-border/30">
+                        {comparisonData[activeCategory as keyof typeof comparisonData]?.features.map((feature, idx) => (
+                          <div key={feature.name} className="flex items-center justify-between p-4">
+                            <span className="text-sm text-muted-foreground">{feature.name}</span>
+                            <span className="font-medium">
+                              {typeof feature.values[pkgIndex] === 'boolean' ? (
+                                feature.values[pkgIndex] ? (
+                                  <CheckCircle className="w-5 h-5 text-green-500" />
+                                ) : (
+                                  <X className="w-5 h-5 text-muted-foreground/30" />
+                                )
+                              ) : (
+                                <span className="text-sm">{feature.values[pkgIndex]}</span>
+                              )}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Card CTA */}
+                      <div className="p-5 bg-muted/30">
+                        <Link to="/contact">
+                          <Button
+                            className={`w-full gap-2 h-12 ${
+                              pkg.popular
+                                ? `bg-gradient-to-l ${currentCategory.color} hover:opacity-90 shadow-lg text-white`
+                                : "bg-secondary hover:bg-secondary/80"
+                            }`}
+                          >
+                            اختر الباقة
+                            <ArrowLeft className="w-4 h-4" />
+                          </Button>
+                        </Link>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
               </motion.div>
             </AnimatePresence>
           </div>
