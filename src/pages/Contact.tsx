@@ -31,6 +31,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
+import { supabase } from "@/integrations/supabase/client";
 
 const contactInfo = [
   {
@@ -111,12 +112,32 @@ const Contact = () => {
 
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    toast.success("تم إرسال رسالتك بنجاح! سنتواصل معك قريباً");
-    setFormData({ name: "", email: "", phone: "", company: "", subject: "", message: "" });
-    setIsSubmitting(false);
+    try {
+      const { data, error } = await supabase.functions.invoke('contact-form', {
+        body: {
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim() || undefined,
+          company: formData.company.trim() || undefined,
+          subject: formData.subject.trim() || undefined,
+          message: formData.message.trim(),
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success("تم إرسال رسالتك بنجاح! سنتواصل معك قريباً");
+        setFormData({ name: "", email: "", phone: "", company: "", subject: "", message: "" });
+      } else {
+        throw new Error(data?.error || "حدث خطأ غير متوقع");
+      }
+    } catch (error: any) {
+      console.error("Error submitting contact form:", error);
+      toast.error(error.message || "حدث خطأ أثناء إرسال الرسالة");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
