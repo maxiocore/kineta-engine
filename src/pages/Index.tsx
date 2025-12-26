@@ -1,7 +1,7 @@
 import Header from "@/components/landing/Header";
 import HeroSection from "@/components/landing/HeroSection";
 import ServicesSection from "@/components/landing/ServicesSection";
-import StatsSection from "@/components/landing/StatsSection";
+import WhyUsSection from "@/components/landing/WhyUsSection";
 import HowItWorksSection from "@/components/landing/HowItWorksSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import CTASection from "@/components/landing/CTASection";
@@ -16,7 +16,7 @@ const Index = () => {
         <section id="services">
           <ServicesSection />
         </section>
-        <StatsSection />
+        <WhyUsSection />
         <section id="how-it-works">
           <HowItWorksSection />
         </section>
