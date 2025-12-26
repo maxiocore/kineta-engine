@@ -24,6 +24,8 @@ import DesignServices from "./pages/DesignServices";
 import SocialMediaServices from "./pages/SocialMediaServices";
 import DigitalMarketingServices from "./pages/DigitalMarketingServices";
 import Careers from "./pages/Careers";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 
 // Client Dashboard
 import ClientDashboard from "./pages/dashboard/ClientDashboard";
@@ -116,6 +118,8 @@ const App = () => (
                   <Route path="/social-media-services" element={<SocialMediaServices />} />
                   <Route path="/digital-marketing-services" element={<DigitalMarketingServices />} />
                   <Route path="/careers" element={<Careers />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route path="/terms-of-service" element={<TermsOfService />} />
                   <Route path="/auth" element={<Auth />} />
                   
                   {/* Client Dashboard Routes */}

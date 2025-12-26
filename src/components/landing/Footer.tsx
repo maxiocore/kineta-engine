@@ -21,8 +21,8 @@ const footerLinks = {
   "الدعم": [
     { label: "الأسعار", href: "/pricing" },
     { label: "تتبع الطلب", href: "/track-order" },
-    { label: "الأسئلة الشائعة", href: "/pricing" },
-    { label: "سياسة الخصوصية", href: "#" },
+    { label: "سياسة الخصوصية", href: "/privacy-policy" },
+    { label: "شروط الاستخدام", href: "/terms-of-service" },
   ],
 };
 
