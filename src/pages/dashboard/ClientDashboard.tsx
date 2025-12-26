@@ -864,214 +864,253 @@ const ClientDashboard = () => {
         dir="rtl"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="space-y-3 sm:space-y-4 md:space-y-6 px-1 sm:px-0"
+        className="space-y-4 sm:space-y-5 md:space-y-6 px-1 sm:px-0"
       >
-        {/* Header with Refresh */}
-        <div className="flex flex-row-reverse items-start sm:items-center justify-between gap-2 sm:gap-3">
-          <div className="flex-1 min-w-0">
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-0.5 sm:mb-1 truncate"
-            >
-              مرحباً، {profile?.full_name || "عزيزي العميل"}! 👋
-            </motion.h1>
-            <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-muted-foreground text-[10px] sm:text-xs md:text-sm">
-              <span>نظرة عامة على حسابك</span>
-              <span className="hidden sm:inline">•</span>
-              <span className="hidden sm:flex items-center gap-1">
-                <Activity className="w-3 h-3" />
-                {formatDistanceToNow(lastUpdated, { locale: ar, addSuffix: true })}
-              </span>
-              <Badge variant="outline" className="text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0 h-4 sm:h-5">
-                <span className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-green-500 animate-pulse ml-0.5 sm:ml-1" />
-                لحظي
-              </Badge>
-            </div>
-          </div>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => fetchDashboardData(false)}
-            disabled={refreshing}
-            className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3 shrink-0"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline text-xs sm:text-sm">تحديث</span>
-          </Button>
-        </div>
-
-        {/* Quick Stats Bar */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
+        {/* Header Section - Compact & Modern */}
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 sm:gap-2 md:gap-3"
+          className="bg-gradient-to-l from-primary/5 via-transparent to-accent/5 rounded-2xl p-3 sm:p-4 md:p-5 border border-border/30"
         >
-          {quickStats.map((stat, index) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.05 }}
-              className={`flex items-center gap-1.5 sm:gap-2 md:gap-3 p-2 sm:p-2.5 md:p-3 rounded-lg sm:rounded-xl ${stat.bgColor} border border-border/30`}
-            >
-              <stat.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 ${stat.color} shrink-0`} />
-              <div className="min-w-0 flex-1">
-                <p className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground truncate">{stat.label}</p>
-                <p className={`text-xs sm:text-sm md:text-base font-bold ${stat.color} truncate`}>{stat.value}</p>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold mb-0.5 truncate">
+                مرحباً، {profile?.full_name || "عزيزي العميل"}! 👋
+              </h1>
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-muted-foreground text-[10px] sm:text-xs">
+                <span>نظرة عامة على حسابك</span>
+                <span className="hidden sm:flex items-center gap-1">
+                  <Activity className="w-3 h-3" />
+                  {formatDistanceToNow(lastUpdated, { locale: ar, addSuffix: true })}
+                </span>
+                <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-success/10 border-success/30 text-success">
+                  <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse ml-1" />
+                  مباشر
+                </Badge>
               </div>
-            </motion.div>
-          ))}
+            </div>
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={() => fetchDashboardData(false)}
+              disabled={refreshing}
+              className="h-8 w-8 sm:h-9 sm:w-9 shrink-0 rounded-xl"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
         </motion.div>
 
-        {/* Enhanced Monthly Goal Card */}
-        <MonthlyGoalCard
-          completedThisMonth={stats.completedThisMonth}
-          monthlyGoal={stats.monthlyGoal}
-          onEditGoal={openGoalDialog}
-          currentStreak={currentAchievement?.goal_achieved ? 1 : 0}
-          bonusPoints={currentAchievement?.bonus_points_awarded || 0}
-          isGoalAchieved={stats.completedThisMonth >= stats.monthlyGoal && stats.monthlyGoal > 0}
-        />
+        {/* ============ قسم 1: الأرصدة والمحفظة ============ */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-1 h-5 rounded-full bg-primary" />
+            <h2 className="text-sm sm:text-base font-semibold text-foreground">المحفظة والأرصدة</h2>
+          </div>
+          
+          {/* Quick Stats - Compact Row */}
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+            {quickStats.map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className={`flex flex-col items-center p-2 sm:p-3 rounded-xl ${stat.bgColor} border border-border/30 hover:border-primary/30 transition-all`}
+              >
+                <stat.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${stat.color} mb-1`} />
+                <p className={`text-xs sm:text-sm font-bold ${stat.color} truncate w-full text-center`}>{stat.value}</p>
+                <p className="text-[8px] sm:text-[10px] text-muted-foreground truncate w-full text-center">{stat.label}</p>
+              </motion.div>
+            ))}
+          </div>
 
-        <AnimatePresence>
-          {tips.length > 0 && (
-            <PersonalizedTips tips={tips} onDismiss={dismissTip} />
-          )}
-        </AnimatePresence>
+          {/* Balance Summary */}
+          <BalanceSummary 
+            balance={balanceData.balance}
+            totalDeposited={balanceData.totalDeposited}
+            totalSpent={balanceData.totalSpent}
+          />
+        </section>
 
-        {/* Balance Summary - Enhanced */}
-        <BalanceSummary 
-          balance={balanceData.balance}
-          totalDeposited={balanceData.totalDeposited}
-          totalSpent={balanceData.totalSpent}
-        />
+        {/* ============ قسم 2: الهدف الشهري والنصائح ============ */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-1 h-5 rounded-full bg-warning" />
+            <h2 className="text-sm sm:text-base font-semibold text-foreground">الأهداف والإنجازات</h2>
+          </div>
+          
+          <MonthlyGoalCard
+            completedThisMonth={stats.completedThisMonth}
+            monthlyGoal={stats.monthlyGoal}
+            onEditGoal={openGoalDialog}
+            currentStreak={currentAchievement?.goal_achieved ? 1 : 0}
+            bonusPoints={currentAchievement?.bonus_points_awarded || 0}
+            isGoalAchieved={stats.completedThisMonth >= stats.monthlyGoal && stats.monthlyGoal > 0}
+          />
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-1.5 sm:gap-2 md:gap-3 lg:grid-cols-4 lg:gap-4">
-          {statsData.map((stat, index) => (
-            <motion.div
-              key={stat.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + index * 0.05 }}
-            >
-              <Link to={stat.link}>
-                <Card className="card-elevated border-border/30 hover:border-primary/30 hover:shadow-lg transition-all cursor-pointer group h-full">
-                  <CardContent className="p-2 sm:p-3 md:p-4">
-                    <div className="flex items-start justify-between mb-1.5 sm:mb-2 md:mb-3">
-                      <div className={`w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-gradient-to-br ${stat.color} p-1 sm:p-1.5 md:p-2 shadow-lg group-hover:scale-110 transition-transform`}>
+          <AnimatePresence>
+            {tips.length > 0 && (
+              <PersonalizedTips tips={tips} onDismiss={dismissTip} />
+            )}
+          </AnimatePresence>
+        </section>
+
+        {/* ============ قسم 3: إحصائيات الطلبات ============ */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-1 h-5 rounded-full bg-success" />
+            <h2 className="text-sm sm:text-base font-semibold text-foreground">إحصائيات الطلبات</h2>
+          </div>
+          
+          {/* Stats Cards - Compact Grid */}
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+            {statsData.map((stat, index) => (
+              <motion.div
+                key={stat.title}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 + index * 0.05 }}
+              >
+                <Link to={stat.link}>
+                  <Card className="border-border/30 hover:border-primary/30 hover:shadow-md transition-all cursor-pointer group h-full overflow-hidden">
+                    <CardContent className="p-2 sm:p-3 relative">
+                      <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-5 group-hover:opacity-10 transition-opacity`} />
+                      <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br ${stat.color} p-1 sm:p-1.5 shadow-sm mb-1.5 group-hover:scale-110 transition-transform`}>
                         <stat.icon className="w-full h-full text-primary-foreground" />
                       </div>
-                      <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                    <motion.p 
-                      className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-0.5"
-                      key={stat.value}
-                      initial={{ scale: 1.2, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                    >
-                      {stat.value}
-                    </motion.p>
-                    <p className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground">{stat.title}</p>
-                  </CardContent>
-                </Card>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
+                      <motion.p 
+                        className="text-lg sm:text-xl md:text-2xl font-bold"
+                        key={stat.value}
+                        initial={{ scale: 1.1, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                      >
+                        {stat.value}
+                      </motion.p>
+                      <p className="text-[8px] sm:text-[10px] text-muted-foreground leading-tight">{stat.title}</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
 
-        {/* Two Column Layout: Spending Chart & Order Status Chart */}
-        <div className="grid grid-cols-1 gap-2 sm:gap-3 lg:grid-cols-2 lg:gap-4">
-          <SpendingChart 
-            data={spendingData}
-            totalSpent={thisMonthSpent}
-            percentageChange={percentageChange}
+          {/* Charts Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <SpendingChart 
+              data={spendingData}
+              totalSpent={thisMonthSpent}
+              percentageChange={percentageChange}
+            />
+            <OrderStatusChart statusData={stats.statusData} />
+          </div>
+        </section>
+
+        {/* ============ قسم 4: تتبع الطلب الحالي ============ */}
+        {latestOrderForTracker && (
+          <section className="space-y-3">
+            <div className="flex items-center gap-2 px-1">
+              <div className="w-1 h-5 rounded-full bg-accent" />
+              <h2 className="text-sm sm:text-base font-semibold text-foreground">تتبع الطلب النشط</h2>
+            </div>
+            <LatestOrderTracker order={latestOrderForTracker} />
+          </section>
+        )}
+
+        {/* ============ قسم 5: الخدمات والإشعارات والمكافآت ============ */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-1 h-5 rounded-full bg-purple-500" />
+            <h2 className="text-sm sm:text-base font-semibold text-foreground">المفضلات والإشعارات</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <FavoriteServices services={favoriteServices} />
+            <SmartNotifications 
+              notifications={notifications} 
+              onMarkAsRead={markNotificationAsRead}
+            />
+            <div className="md:col-span-2 lg:col-span-1">
+              <RewardPointsCard />
+            </div>
+          </div>
+        </section>
+
+        {/* ============ قسم 6: الإحالة والتقويم ============ */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-1 h-5 rounded-full bg-cyan-500" />
+            <h2 className="text-sm sm:text-base font-semibold text-foreground">الإحالات والنشاط</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <ReferralCard 
+              code={referralData.code || "INVITE123"}
+              totalReferrals={referralData.totalReferrals}
+              totalEarnings={referralData.totalEarnings}
+            />
+            <OrderCalendar orderDates={orderDates} />
+          </div>
+        </section>
+
+        {/* ============ قسم 7: الإنجازات والشارات ============ */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-1 h-5 rounded-full bg-yellow-500" />
+            <h2 className="text-sm sm:text-base font-semibold text-foreground">الإنجازات والشارات</h2>
+          </div>
+          
+          <AchievementsHistory 
+            achievements={achievements} 
+            loading={achievementsLoading} 
           />
-          <OrderStatusChart statusData={stats.statusData} />
-        </div>
 
-        {/* Latest Order Tracker */}
-        <LatestOrderTracker order={latestOrderForTracker} />
-
-        {/* Three Column Layout: Favorites, Notifications, Rewards */}
-        <div className="grid grid-cols-1 gap-2 sm:gap-3 md:grid-cols-2 lg:grid-cols-3 lg:gap-4">
-          <FavoriteServices services={favoriteServices} />
-          <SmartNotifications 
-            notifications={notifications} 
-            onMarkAsRead={markNotificationAsRead}
-          />
-          <RewardPointsCard />
-        </div>
-
-        {/* Two Column Layout: Referral & Calendar */}
-        <div className="grid grid-cols-1 gap-2 sm:gap-3 lg:grid-cols-2 lg:gap-4">
-          <ReferralCard 
-            code={referralData.code || "INVITE123"}
-            totalReferrals={referralData.totalReferrals}
-            totalEarnings={referralData.totalEarnings}
-          />
-          <OrderCalendar orderDates={orderDates} />
-        </div>
-
-        {/* Achievements History */}
-        <AchievementsHistory 
-          achievements={achievements} 
-          loading={achievementsLoading} 
-        />
-
-        {/* User Badges */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card className="card-elevated border-border/30">
-            <CardHeader className="flex flex-row items-center justify-between py-2 sm:py-3 md:py-4 px-3 sm:px-4 md:px-6">
-              <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base md:text-lg">
-                <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-primary" />
+          {/* User Badges - Compact */}
+          <Card className="border-border/30">
+            <CardHeader className="flex flex-row items-center justify-between py-2.5 px-3 sm:px-4">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                <Award className="w-4 h-4 text-primary" />
                 شاراتي
               </CardTitle>
               <Link to="/dashboard/badges">
-                <Button variant="ghost" size="sm" className="gap-0.5 sm:gap-1 text-[10px] sm:text-xs md:text-sm h-7 sm:h-8 px-2 sm:px-3">
+                <Button variant="ghost" size="sm" className="gap-1 text-xs h-7 px-2">
                   عرض الكل
-                  <ChevronLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
+                  <ChevronLeft className="w-3 h-3" />
                 </Button>
               </Link>
             </CardHeader>
-            <CardContent className="pt-0 px-3 sm:px-4 md:px-6 pb-3 sm:pb-4">
+            <CardContent className="pt-0 px-3 sm:px-4 pb-3">
               {badgesLoading ? (
-                <div className="flex items-center justify-center py-4 sm:py-6">
-                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin text-primary" />
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
                 </div>
               ) : earnedBadges.length === 0 ? (
-                <div className="text-center py-4 sm:py-6">
-                  <Award className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-1.5 sm:mb-2 text-muted-foreground/30" />
-                  <p className="text-muted-foreground text-xs sm:text-sm">لم تحصل على شارات بعد</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">أكمل طلباتك للحصول على شاراتك الأولى!</p>
+                <div className="text-center py-4">
+                  <Award className="w-8 h-8 mx-auto mb-1.5 text-muted-foreground/30" />
+                  <p className="text-muted-foreground text-xs">لم تحصل على شارات بعد</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">أكمل طلباتك للحصول على شاراتك الأولى!</p>
                 </div>
               ) : (
-                <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {earnedBadges.slice(0, 5).map((badge, index) => (
                     <motion.div
                       key={badge.id}
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: index * 0.1 }}
-                      className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg bg-gradient-to-br from-primary/10 to-transparent border border-primary/20"
+                      className="flex items-center gap-1 px-2 py-1 rounded-lg bg-gradient-to-br from-primary/10 to-transparent border border-primary/20"
                     >
-                      <span className="text-sm sm:text-base md:text-lg">{badge.icon}</span>
-                      <span className="font-medium text-[10px] sm:text-xs md:text-sm">{badge.name_ar}</span>
-                      <Badge variant="secondary" className="text-[8px] sm:text-[10px] px-0.5 sm:px-1 h-4">
+                      <span className="text-sm">{badge.icon}</span>
+                      <span className="font-medium text-[10px] sm:text-xs">{badge.name_ar}</span>
+                      <Badge variant="secondary" className="text-[8px] px-1 h-4">
                         {badge.tier}
                       </Badge>
                     </motion.div>
                   ))}
                   {earnedBadges.length > 5 && (
                     <Link to="/dashboard/badges">
-                      <div className="flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg bg-secondary/50 border border-border hover:border-primary/30 transition-colors cursor-pointer">
-                        <span className="text-[10px] sm:text-xs text-muted-foreground">+{earnedBadges.length - 5} المزيد</span>
+                      <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-secondary/50 border border-border hover:border-primary/30 transition-colors cursor-pointer">
+                        <span className="text-[10px] text-muted-foreground">+{earnedBadges.length - 5} المزيد</span>
                       </div>
                     </Link>
                   )}
@@ -1079,62 +1118,63 @@ const ClientDashboard = () => {
               )}
             </CardContent>
           </Card>
-        </motion.div>
+        </section>
 
-        {/* Recent Orders */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-        >
-          <Card className="card-elevated border-border/30">
-            <CardHeader className="flex flex-row items-center justify-between py-2 sm:py-3 md:py-4 px-3 sm:px-4 md:px-6">
-              <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base md:text-lg">
-                <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-primary" />
-                آخر الطلبات
+        {/* ============ قسم 8: آخر الطلبات ============ */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-1 h-5 rounded-full bg-orange-500" />
+            <h2 className="text-sm sm:text-base font-semibold text-foreground">آخر الطلبات</h2>
+          </div>
+          
+          <Card className="border-border/30">
+            <CardHeader className="flex flex-row items-center justify-between py-2.5 px-3 sm:px-4">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                <Package className="w-4 h-4 text-primary" />
+                الطلبات الأخيرة
               </CardTitle>
               <Link to="/dashboard/orders">
-                <Button variant="ghost" size="sm" className="gap-0.5 sm:gap-1 text-[10px] sm:text-xs md:text-sm h-7 sm:h-8 px-2 sm:px-3">
+                <Button variant="ghost" size="sm" className="gap-1 text-xs h-7 px-2">
                   عرض الكل
-                  <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
+                  <Eye className="w-3 h-3" />
                 </Button>
               </Link>
             </CardHeader>
-            <CardContent className="pt-0 px-3 sm:px-4 md:px-6 pb-3 sm:pb-4">
+            <CardContent className="pt-0 px-3 sm:px-4 pb-3">
               {recentOrders.length === 0 ? (
-                <div className="text-center py-6 sm:py-8">
-                  <ShoppingBag className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 text-muted-foreground/30" />
-                  <p className="text-muted-foreground text-xs sm:text-sm">لا توجد طلبات بعد</p>
+                <div className="text-center py-6">
+                  <ShoppingBag className="w-10 h-10 mx-auto mb-2 text-muted-foreground/30" />
+                  <p className="text-muted-foreground text-xs">لا توجد طلبات بعد</p>
                   <Link to="/dashboard/services">
-                    <Button variant="outline" size="sm" className="mt-2 sm:mt-3 h-8 text-xs sm:text-sm">
+                    <Button variant="outline" size="sm" className="mt-2 h-8 text-xs">
                       تصفح الخدمات
                     </Button>
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-1.5 sm:space-y-2">
+                <div className="space-y-1.5">
                   {recentOrders.map((order, index) => (
                     <motion.div
                       key={order.id}
-                      initial={{ opacity: 0, x: -20 }}
+                      initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="flex items-center justify-between p-2 sm:p-2.5 md:p-3 rounded-md sm:rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors gap-2"
+                      transition={{ delay: index * 0.03 }}
+                      className="flex items-center justify-between p-2 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors gap-2"
                     >
-                      <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 min-w-0 flex-1">
-                        <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-md sm:rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                          <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-primary" />
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-[11px] sm:text-xs md:text-sm truncate">{order.service?.name || "خدمة"}</p>
-                          <p className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground truncate">{order.order_number}</p>
+                          <p className="font-medium text-[11px] sm:text-xs truncate">{order.service?.name || "خدمة"}</p>
+                          <p className="text-[9px] sm:text-[10px] text-muted-foreground truncate">{order.order_number}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 shrink-0">
-                        <span className={`px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] md:text-xs font-medium whitespace-nowrap ${getStatusColor(order.status)}`}>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className={`px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-medium whitespace-nowrap ${getStatusColor(order.status)}`}>
                           {statusLabels[order.status] || order.status}
                         </span>
-                        <span className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground hidden sm:block whitespace-nowrap">
+                        <span className="text-[9px] text-muted-foreground hidden sm:block whitespace-nowrap">
                           {format(new Date(order.created_at), "d MMM", { locale: ar })}
                         </span>
                       </div>
@@ -1144,23 +1184,28 @@ const ClientDashboard = () => {
               )}
             </CardContent>
           </Card>
-        </motion.div>
+        </section>
 
-        {/* Quick Actions / Support CTA */}
+        {/* ============ قسم 9: الدعم الفني ============ */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.3 }}
         >
-          <Card className="card-elevated border-border/30 bg-gradient-to-l from-primary/5 to-accent/5">
-            <CardContent className="p-3 sm:p-4 md:p-6">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3">
-                <div className="text-center sm:text-right">
-                  <h3 className="text-base sm:text-lg md:text-xl font-bold mb-0.5 sm:mb-1">هل تحتاج مساعدة؟</h3>
-                  <p className="text-muted-foreground text-xs sm:text-sm">فريق الدعم متاح على مدار الساعة</p>
+          <Card className="border-border/30 bg-gradient-to-l from-primary/5 via-transparent to-accent/5 overflow-hidden">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="text-center sm:text-right flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <Settings2 className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-bold">هل تحتاج مساعدة؟</h3>
+                    <p className="text-muted-foreground text-[10px] sm:text-xs">فريق الدعم متاح على مدار الساعة</p>
+                  </div>
                 </div>
                 <Link to="/dashboard/support" className="w-full sm:w-auto">
-                  <Button className="bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-lg w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm">
+                  <Button className="bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-lg w-full sm:w-auto h-9 text-xs">
                     تواصل مع الدعم
                   </Button>
                 </Link>
