@@ -44,7 +44,7 @@ const StatsSection = () => {
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
 
   return (
-    <section ref={containerRef} className="py-32 relative overflow-hidden" dir="rtl">
+    <section ref={containerRef} className="py-32 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/10 to-background" />
       
@@ -54,8 +54,8 @@ const StatsSection = () => {
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px]"
           style={{
             background: `
-              radial-gradient(circle at 70% 30%, hsl(var(--primary) / 0.08) 0%, transparent 30%),
-              radial-gradient(circle at 30% 70%, hsl(var(--accent) / 0.06) 0%, transparent 30%)
+              radial-gradient(circle at 30% 30%, hsl(var(--primary) / 0.08) 0%, transparent 30%),
+              radial-gradient(circle at 70% 70%, hsl(var(--accent) / 0.06) 0%, transparent 30%)
             `,
           }}
           animate={{
@@ -95,21 +95,21 @@ const StatsSection = () => {
           className="text-center mb-20"
         >
           <motion.div 
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/10 border border-primary/20 mb-8 flex-row-reverse"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/10 border border-primary/20 mb-8"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={isInView ? { opacity: 1, scale: 1 } : {}}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-sm font-semibold text-primary">إنجازاتنا</span>
             <Target className="w-4 h-4 text-primary" />
+            <span className="text-sm font-semibold text-primary">إنجازاتنا</span>
           </motion.div>
           
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
             أرقام{" "}
             <span className="relative inline-block">
-              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">نفتخر</span>
+              <span className="bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">نفتخر</span>
               <motion.div
-                className="absolute -bottom-3 right-0 left-0 h-1.5 bg-gradient-to-r from-primary to-accent rounded-full"
+                className="absolute -bottom-3 left-0 right-0 h-1.5 bg-gradient-to-l from-primary to-accent rounded-full"
                 initial={{ scaleX: 0 }}
                 animate={isInView ? { scaleX: 1 } : {}}
                 transition={{ duration: 0.8, delay: 0.4 }}
@@ -138,12 +138,12 @@ const StatsSection = () => {
               >
                 {/* Gradient Background */}
                 <motion.div
-                  className={`absolute inset-0 bg-gradient-to-bl ${stat.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}
+                  className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}
                 />
                 
                 {/* Glow Effect */}
                 <motion.div
-                  className={`absolute -top-20 -left-20 w-40 h-40 bg-gradient-to-bl ${stat.color} rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500`}
+                  className={`absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br ${stat.color} rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500`}
                 />
 
                 {/* Icon */}
@@ -156,7 +156,7 @@ const StatsSection = () => {
                 </motion.div>
 
                 {/* Counter */}
-                <div className="mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                <div className="mb-4 bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
                   <Counter value={stat.value} suffix={stat.suffix} inView={isInView} />
                 </div>
 
@@ -167,7 +167,7 @@ const StatsSection = () => {
 
                 {/* Bottom Line */}
                 <motion.div
-                  className={`absolute bottom-0 right-0 left-0 h-1 bg-gradient-to-l ${stat.color}`}
+                  className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${stat.color}`}
                   initial={{ scaleX: 0 }}
                   whileHover={{ scaleX: 1 }}
                   transition={{ duration: 0.4 }}
@@ -184,10 +184,10 @@ const StatsSection = () => {
           transition={{ delay: 1 }}
           className="flex justify-center mt-16"
         >
-          <div className="flex items-center gap-6 text-muted-foreground flex-row-reverse">
-            <div className="h-px w-16 bg-gradient-to-l from-transparent to-border" />
-            <span className="text-sm">نتائج موثقة ومحققة</span>
+          <div className="flex items-center gap-6 text-muted-foreground">
             <div className="h-px w-16 bg-gradient-to-r from-transparent to-border" />
+            <span className="text-sm">نتائج موثقة ومحققة</span>
+            <div className="h-px w-16 bg-gradient-to-l from-transparent to-border" />
           </div>
         </motion.div>
       </div>

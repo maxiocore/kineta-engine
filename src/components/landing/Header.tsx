@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Sparkles, ChevronRight, Home, Briefcase, Users, CreditCard, MessageCircle, LucideIcon, Zap } from "lucide-react";
+import { Menu, X, Sparkles, ChevronLeft, Home, Briefcase, Share2, Users, CreditCard, MessageCircle, LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -63,14 +63,13 @@ const Header = () => {
             ? "bg-background/95 backdrop-blur-xl border-b border-border/50 py-2 xs:py-2.5 sm:py-3 shadow-sm" 
             : "py-2.5 xs:py-3 sm:py-4 md:py-5"
         }`}
-        dir="rtl"
       >
         <div className="container px-3 xs:px-4 sm:px-6">
           <div className="flex items-center justify-between gap-2 xs:gap-3 sm:gap-4">
             {/* Logo */}
             <Link to="/" className="flex items-center shrink-0 group">
               <motion.span 
-                className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
+                className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
                 whileHover={{ scale: 1.03 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
@@ -100,7 +99,7 @@ const Header = () => {
                   {isActive(item.href) && (
                     <motion.div
                       layoutId="activeNavIndicator"
-                      className="absolute bottom-0 right-2 left-2 h-0.5 bg-primary rounded-full"
+                      className="absolute bottom-0 left-2 right-2 h-0.5 bg-primary rounded-full"
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}
@@ -109,15 +108,8 @@ const Header = () => {
             </nav>
 
             {/* Desktop CTA */}
-            <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0 flex-row-reverse">
-              <Link to="/auth?mode=signup">
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button size="sm" className="bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-brand hover:shadow-lg transition-shadow px-4 xl:px-5 text-sm gap-2">
-                    ابدأ الآن
-                    <Sparkles className="w-4 h-4" />
-                  </Button>
-                </motion.div>
-              </Link>
+            <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
+              <ThemeToggle />
               <Link to="/auth">
                 <Button 
                   variant="ghost" 
@@ -127,11 +119,19 @@ const Header = () => {
                   تسجيل الدخول
                 </Button>
               </Link>
-              <ThemeToggle />
+              <Link to="/auth?mode=signup">
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button size="sm" className="bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-brand hover:shadow-lg transition-shadow px-4 xl:px-5 text-sm">
+                    <Sparkles className="w-4 h-4 ml-1.5 xl:ml-2" />
+                    ابدأ الآن
+                  </Button>
+                </motion.div>
+              </Link>
             </div>
 
             {/* Mobile Actions */}
-            <div className="flex items-center gap-1.5 xs:gap-2 lg:hidden flex-row-reverse">
+            <div className="flex items-center gap-1.5 xs:gap-2 lg:hidden">
+              <ThemeToggle />
               <motion.button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="relative p-2 xs:p-2.5 rounded-lg xs:rounded-xl bg-secondary/80 hover:bg-secondary transition-colors"
@@ -162,7 +162,6 @@ const Header = () => {
                   )}
                 </AnimatePresence>
               </motion.button>
-              <ThemeToggle />
             </div>
           </div>
         </div>
@@ -186,26 +185,25 @@ const Header = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed top-0 right-0 bottom-0 w-[85%] xs:w-[80%] max-w-sm bg-background border-r border-border z-50 lg:hidden overflow-y-auto"
-              dir="rtl"
+              className="fixed top-0 right-0 bottom-0 w-[85%] xs:w-[80%] max-w-sm bg-background border-l border-border z-50 lg:hidden overflow-y-auto"
             >
               <div className="flex flex-col min-h-full p-4 xs:p-5 sm:p-6">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6 xs:mb-8 flex-row-reverse">
+                <div className="flex items-center justify-between mb-6 xs:mb-8">
+                  <Link to="/" className="flex items-center" onClick={() => setIsMobileMenuOpen(false)}>
+                    <span 
+                      className="text-lg xs:text-xl font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
+                      style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
+                    >
+                      MaxioCore
+                    </span>
+                  </Link>
                   <button
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="p-1.5 xs:p-2 rounded-lg xs:rounded-xl bg-secondary/80 hover:bg-secondary transition-colors"
                   >
                     <X className="w-4 h-4 xs:w-5 xs:h-5" />
                   </button>
-                  <Link to="/" className="flex items-center" onClick={() => setIsMobileMenuOpen(false)}>
-                    <span 
-                      className="text-lg xs:text-xl font-bold bg-gradient-to-r from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
-                      style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
-                    >
-                      MaxioCore
-                    </span>
-                  </Link>
                 </div>
 
                 {/* Navigation */}
@@ -213,7 +211,7 @@ const Header = () => {
                   {navItems.map((item, index) => (
                     <motion.div
                       key={item.label}
-                      initial={{ opacity: 0, x: -20 }}
+                      initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 + 0.1 }}
                     >
@@ -236,7 +234,7 @@ const Header = () => {
                           </div>
                           <span className="text-sm xs:text-base">{item.label}</span>
                         </div>
-                        <ChevronRight className={`w-4 h-4 xs:w-5 xs:h-5 ${isActive(item.href) ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+                        <ChevronLeft className={`w-4 h-4 xs:w-5 xs:h-5 ${isActive(item.href) ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
                       </Link>
                     </motion.div>
                   ))}
@@ -255,9 +253,9 @@ const Header = () => {
                     </Button>
                   </Link>
                   <Link to="/auth?mode=signup" onClick={() => setIsMobileMenuOpen(false)} className="block">
-                    <Button className="w-full py-4 xs:py-5 rounded-lg xs:rounded-xl bg-gradient-to-r from-primary to-accent shadow-brand text-sm xs:text-base gap-2">
+                    <Button className="w-full py-4 xs:py-5 rounded-lg xs:rounded-xl bg-gradient-to-l from-primary to-accent shadow-brand text-sm xs:text-base">
+                      <Sparkles className="w-3.5 h-3.5 xs:w-4 xs:h-4 ml-1.5 xs:ml-2" />
                       ابدأ الآن مجاناً
-                      <Zap className="w-3.5 h-3.5 xs:w-4 xs:h-4" />
                     </Button>
                   </Link>
                 </motion.div>
