@@ -19,6 +19,7 @@ import Pricing from "./pages/Pricing";
 import TrackOrder from "./pages/TrackOrder";
 import OurServices from "./pages/OurServices";
 import CategoryDetails from "./pages/CategoryDetails";
+import DevelopmentServices from "./pages/DevelopmentServices";
 
 // Client Dashboard
 import ClientDashboard from "./pages/dashboard/ClientDashboard";
@@ -105,6 +106,7 @@ const App = () => (
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/pricing" element={<Pricing />} />
                   <Route path="/track-order" element={<TrackOrder />} />
+                  <Route path="/development-services" element={<DevelopmentServices />} />
                   <Route path="/auth" element={<Auth />} />
                   
                   {/* Client Dashboard Routes */}
