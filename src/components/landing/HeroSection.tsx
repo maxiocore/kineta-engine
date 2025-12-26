@@ -48,7 +48,7 @@ const HeroSection = () => {
     { 
       icon: Share2, 
       title: "التسويق الرقمي",
-      desc: "زيادة متابعين وتفاعل",
+      desc: "نمو رقمي مضمون",
       color: "from-cyan-500 via-blue-500 to-indigo-500",
       glow: "cyan"
     },
