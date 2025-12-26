@@ -136,6 +136,18 @@ const serviceTypes = [
     features: ["كود نظيف", "تقنيات حديثة", "دعم فني", "أمان عالي"],
     link: "/dashboard/dev-services",
   },
+  {
+    id: "digital",
+    name: "خدمات رقمية",
+    nameEn: "Digital Services",
+    description: "حلول رقمية متكاملة تشمل SEO والتسويق الإلكتروني وإدارة المحتوى",
+    icon: Zap,
+    gradient: "from-blue-500 via-indigo-500 to-violet-500",
+    hoverGradient: "group-hover:from-blue-400 group-hover:via-indigo-400 group-hover:to-violet-400",
+    keywords: ["digital", "seo", "marketing", "content", "رقمية", "تسويق", "محتوى", "إعلانات"],
+    features: ["تحسين محركات البحث", "إدارة الإعلانات", "تحليل البيانات", "استراتيجية رقمية"],
+    link: "/dashboard/digital-services",
+  },
 ];
 
 // Animation variants
