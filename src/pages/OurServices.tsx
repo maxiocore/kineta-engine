@@ -177,18 +177,10 @@ const LiveIndicator = () => (
 );
 
 // Animated Counter Component
-const AnimatedCounter = ({ value, suffix = "", duration = 2 }: { value: number; suffix?: string; duration?: number }) => {
+const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: number }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
   const count = useMotionValue(0);
-  const rounded = useTransform(count, (latest) => {
-    if (latest >= 1000000) {
-      return `${(latest / 1000000).toFixed(1)}M`;
-    } else if (latest >= 1000) {
-      return `${(latest / 1000).toFixed(latest >= 10000 ? 0 : 1)}K`;
-    }
-    return Math.round(latest).toLocaleString('ar-SA');
-  });
   const [displayValue, setDisplayValue] = useState("0");
 
   useEffect(() => {
@@ -202,7 +194,7 @@ const AnimatedCounter = ({ value, suffix = "", duration = 2 }: { value: number; 
           } else if (latest >= 1000) {
             setDisplayValue(`${(latest / 1000).toFixed(latest >= 10000 ? 0 : 1)}K`);
           } else {
-            setDisplayValue(Math.round(latest).toLocaleString('ar-SA'));
+            setDisplayValue(Math.round(latest).toLocaleString('en-US'));
           }
         }
       });
@@ -211,19 +203,20 @@ const AnimatedCounter = ({ value, suffix = "", duration = 2 }: { value: number; 
   }, [isInView, value, duration, count]);
 
   return (
-    <span ref={ref} className="tabular-nums">
-      {displayValue}{suffix}
+    <span ref={ref} className="tabular-nums font-mono">
+      {displayValue}
     </span>
   );
 };
 
-// Enhanced Stats Card Component
-const EnhancedStatsCard = ({ 
+// Modern Stats Card Component
+const ModernStatsCard = ({ 
   icon: Icon, 
   value, 
   label, 
   sublabel,
-  gradient, 
+  gradient,
+  accentColor,
   index,
   isLoading 
 }: { 
@@ -231,7 +224,8 @@ const EnhancedStatsCard = ({
   value: number; 
   label: string; 
   sublabel?: string;
-  gradient: string; 
+  gradient: string;
+  accentColor: string;
   index: number;
   isLoading?: boolean;
 }) => {
@@ -241,64 +235,101 @@ const EnhancedStatsCard = ({
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 40, scale: 0.9 }}
-      animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
-      transition={{ delay: index * 0.15, duration: 0.6, type: "spring", bounce: 0.3 }}
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ delay: index * 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className="group relative"
     >
-      <Card className="relative overflow-hidden border-2 border-border/30 bg-card/60 backdrop-blur-xl hover:border-primary/40 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10">
-        {/* Animated gradient background */}
-        <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card to-secondary/30 border border-border/40 p-6 sm:p-8 hover:border-primary/30 transition-all duration-500">
+        {/* Animated background gradient */}
+        <motion.div 
+          className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-700`}
+        />
         
-        {/* Decorative circles */}
-        <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br ${gradient} opacity-10 blur-2xl group-hover:opacity-20 transition-opacity`} />
+        {/* Floating orbs */}
+        <motion.div
+          className={`absolute -top-20 -right-20 w-40 h-40 rounded-full ${accentColor} opacity-20 blur-3xl`}
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.1, 0.2, 0.1]
+          }}
+          transition={{ duration: 4, repeat: Infinity, delay: index * 0.5 }}
+        />
         
-        <CardContent className="p-6 sm:p-8 relative z-10">
-          {/* Icon with glow effect */}
-          <motion.div 
-            className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-5 shadow-xl relative`}
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            transition={{ type: "spring", stiffness: 400 }}
-          >
-            {/* Glow effect */}
-            <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${gradient} blur-xl opacity-50 group-hover:opacity-80 transition-opacity`} />
-            <Icon className="w-8 h-8 sm:w-10 sm:h-10 text-white relative z-10" />
-          </motion.div>
+        <div className="relative z-10">
+          {/* Top row - Icon and live dot */}
+          <div className="flex items-start justify-between mb-6">
+            <motion.div 
+              className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg`}
+              whileHover={{ scale: 1.05, rotate: -5 }}
+              transition={{ type: "spring", stiffness: 400 }}
+            >
+              <Icon className="w-7 h-7 text-white" />
+            </motion.div>
+            
+            {/* Animated pulse */}
+            <motion.div
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/20"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={isInView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ delay: index * 0.1 + 0.5 }}
+            >
+              <motion.div
+                className="w-2 h-2 rounded-full bg-success"
+                animate={{ scale: [1, 1.3, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              />
+              <span className="text-[10px] font-medium text-success">LIVE</span>
+            </motion.div>
+          </div>
           
-          {/* Value with animated counter */}
+          {/* Value */}
           {isLoading ? (
-            <Skeleton className="h-12 w-32 mb-2" />
+            <div className="space-y-2 mb-4">
+              <Skeleton className="h-14 w-28" />
+              <Skeleton className="h-5 w-20" />
+            </div>
           ) : (
             <motion.div 
-              className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-2"
-              initial={{ scale: 0.5, opacity: 0 }}
+              className="mb-4"
+              initial={{ scale: 0.8, opacity: 0 }}
               animate={isInView ? { scale: 1, opacity: 1 } : {}}
-              transition={{ delay: index * 0.15 + 0.3, type: "spring", stiffness: 200 }}
+              transition={{ delay: index * 0.1 + 0.2, type: "spring" }}
             >
-              <AnimatedCounter value={value} suffix="+" duration={2.5} />
+              <div className="text-4xl sm:text-5xl font-bold text-foreground tracking-tight" dir="ltr">
+                <AnimatedCounter value={value} duration={2} />
+              </div>
             </motion.div>
           )}
           
-          {/* Label */}
-          <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-1">
-            {label}
-          </h3>
+          {/* Labels */}
+          <div className="space-y-1">
+            <h3 className="text-base font-semibold text-foreground">
+              {label}
+            </h3>
+            {sublabel && (
+              <p className="text-sm text-muted-foreground">
+                {sublabel}
+              </p>
+            )}
+          </div>
           
-          {/* Sublabel */}
-          {sublabel && (
-            <p className="text-sm text-muted-foreground">
-              {sublabel}
-            </p>
-          )}
-          
-          {/* Live indicator dot */}
+          {/* Bottom progress bar */}
           <motion.div
-            className="absolute top-4 left-4 w-3 h-3 rounded-full bg-success"
-            animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
-            transition={{ duration: 2, repeat: Infinity, delay: index * 0.2 }}
-          />
-        </CardContent>
-      </Card>
+            className="mt-6 h-1 rounded-full bg-border/50 overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : {}}
+            transition={{ delay: index * 0.1 + 0.6 }}
+          >
+            <motion.div
+              className={`h-full rounded-full bg-gradient-to-r ${gradient}`}
+              initial={{ width: "0%" }}
+              animate={isInView ? { width: "100%" } : {}}
+              transition={{ delay: index * 0.1 + 0.8, duration: 1.5, ease: "easeOut" }}
+            />
+          </motion.div>
+        </div>
+      </div>
     </motion.div>
   );
 };
@@ -499,35 +530,39 @@ const OurServices = () => {
     );
   }, [categories, searchQuery]);
 
-  // Enhanced stats data with real values
+  // Modern stats data with real values
   const statsData = [
     { 
       icon: Users, 
       value: stats?.total_users || 0, 
       label: "عميل سعيد", 
       sublabel: "يثقون بخدماتنا",
-      gradient: "from-blue-500 via-cyan-500 to-teal-500" 
+      gradient: "from-blue-500 to-cyan-400",
+      accentColor: "bg-blue-500"
     },
     { 
       icon: ShoppingCart, 
       value: stats?.completed_orders || 0, 
       label: "طلب مكتمل", 
       sublabel: "تم تنفيذه بنجاح",
-      gradient: "from-pink-500 via-rose-500 to-red-500" 
+      gradient: "from-violet-500 to-purple-400",
+      accentColor: "bg-violet-500"
     },
     { 
       icon: Award, 
       value: stats?.total_services || 0, 
       label: "خدمة متاحة", 
       sublabel: "جاهزة للطلب",
-      gradient: "from-amber-500 via-orange-500 to-red-500" 
+      gradient: "from-amber-500 to-orange-400",
+      accentColor: "bg-amber-500"
     },
     { 
       icon: Wallet, 
       value: stats?.total_deposits || 0, 
       label: "عملية إيداع", 
       sublabel: "تمت بنجاح",
-      gradient: "from-emerald-500 via-green-500 to-teal-500" 
+      gradient: "from-emerald-500 to-green-400",
+      accentColor: "bg-emerald-500"
     },
   ];
 
@@ -596,31 +631,47 @@ const OurServices = () => {
               </div>
             </motion.div>
             
-            {/* Enhanced Stats Section */}
+            {/* Modern Stats Section */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="mt-20"
+              transition={{ delay: 0.4 }}
+              className="mt-24"
             >
               {/* Stats Header */}
-              <div className="text-center mb-10">
-                <Badge variant="outline" className="gap-2 mb-4">
-                  <Activity className="w-4 h-4 text-primary" />
-                  إحصائيات حية
-                </Badge>
-                <h2 className="text-2xl sm:text-3xl font-bold mb-2">
-                  أرقام <span className="text-primary">تتحدث</span> عنا
-                </h2>
-                <p className="text-muted-foreground max-w-lg mx-auto">
-                  إحصائيات حقيقية يتم تحديثها لحظياً من قاعدة البيانات
-                </p>
+              <div className="text-center mb-12">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <Badge variant="outline" className="gap-2 mb-4 px-4 py-2">
+                    <Activity className="w-4 h-4 text-primary" />
+                    إحصائيات لحظية
+                  </Badge>
+                </motion.div>
+                <motion.h2 
+                  className="text-3xl sm:text-4xl font-bold mb-3"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  أرقامنا تتحدث
+                </motion.h2>
+                <motion.p 
+                  className="text-muted-foreground max-w-lg mx-auto text-lg"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7 }}
+                >
+                  بيانات حقيقية من قاعدة البيانات
+                </motion.p>
               </div>
               
               {/* Stats Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 {statsData.map((stat, index) => (
-                  <EnhancedStatsCard 
+                  <ModernStatsCard 
                     key={index} 
                     {...stat} 
                     index={index} 
