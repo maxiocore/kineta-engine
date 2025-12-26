@@ -60,8 +60,8 @@ const tabs = [
 export const OrdersTypeTabs = ({ activeType, onTypeChange, counts }: OrdersTypeTabsProps) => {
   return (
     <div className="w-full" dir="rtl">
-      {/* Mobile: Scrollable horizontal tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide sm:grid sm:grid-cols-4 sm:gap-3 sm:overflow-visible">
+      {/* Responsive Grid - 2 columns on mobile, 4 on desktop */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
         {tabs.map((tab, index) => {
           const isActive = activeType === tab.id;
           const TabIcon = tab.icon;
@@ -73,11 +73,11 @@ export const OrdersTypeTabs = ({ activeType, onTypeChange, counts }: OrdersTypeT
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              whileHover={{ scale: 1.02, y: -2 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onTypeChange(tab.id)}
               className={cn(
-                "relative flex-shrink-0 min-w-[140px] sm:min-w-0 flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all duration-300",
+                "relative flex flex-col items-center gap-1.5 md:gap-2 p-3 md:p-4 rounded-xl md:rounded-2xl border transition-all duration-300",
                 isActive 
                   ? "border-transparent shadow-lg" 
                   : "border-border/50 bg-card/50 hover:bg-card hover:border-primary/20"
@@ -87,37 +87,37 @@ export const OrdersTypeTabs = ({ activeType, onTypeChange, counts }: OrdersTypeT
               {isActive && (
                 <motion.div
                   layoutId="activeTab"
-                  className={cn("absolute inset-0 rounded-2xl", tab.activeColor)}
+                  className={cn("absolute inset-0 rounded-xl md:rounded-2xl", tab.activeColor)}
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
               )}
               
               {/* Content */}
-              <div className="relative z-10 flex flex-col items-center gap-2">
+              <div className="relative z-10 flex flex-col items-center gap-1 md:gap-2">
                 <motion.div 
                   className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                    "w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center transition-colors",
                     isActive ? "bg-white/20" : tab.bg
                   )}
                   whileHover={{ rotate: [0, -5, 5, 0] }}
                   transition={{ duration: 0.4 }}
                 >
                   <TabIcon className={cn(
-                    "w-5 h-5",
+                    "w-4 h-4 md:w-5 md:h-5",
                     isActive ? "text-white" : `text-${tab.gradient.split('-')[1]}-500`
                   )} />
                 </motion.div>
                 
                 <div className="text-center">
                   <p className={cn(
-                    "text-sm font-semibold whitespace-nowrap",
+                    "text-xs md:text-sm font-semibold whitespace-nowrap",
                     isActive ? "text-white" : "text-foreground"
                   )}>
                     {tab.label}
                   </p>
                   <motion.span 
                     className={cn(
-                      "text-lg font-bold",
+                      "text-base md:text-lg font-bold",
                       isActive ? "text-white" : "text-primary"
                     )}
                     key={count}
@@ -133,11 +133,11 @@ export const OrdersTypeTabs = ({ activeType, onTypeChange, counts }: OrdersTypeT
               {isActive && (
                 <motion.div
                   className={cn(
-                    "absolute -inset-1 rounded-2xl opacity-30 blur-xl -z-10",
+                    "absolute -inset-1 rounded-xl md:rounded-2xl opacity-20 blur-lg -z-10",
                     tab.activeColor
                   )}
                   initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.3 }}
+                  animate={{ opacity: 0.2 }}
                 />
               )}
             </motion.button>

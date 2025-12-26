@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { 
-  ShoppingBag, Sparkles, Plus, Share2, Palette, Code
+  ShoppingBag, Plus, Share2, Palette, Code, Grid3X3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
@@ -277,70 +277,98 @@ const ClientOrders = () => {
   return (
     <ClientDashboardLayout>
       <motion.div 
-        className="space-y-5 pb-8 px-1" 
+        className="space-y-4 md:space-y-6 pb-8" 
         dir="rtl"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        {/* Compact Header */}
+        {/* Modern Header with Gradient */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-primary/10 via-primary/5 to-accent/5 p-5 md:p-6 border border-border/50"
+          className="relative overflow-hidden rounded-xl md:rounded-2xl bg-gradient-to-l from-primary/15 via-primary/5 to-transparent p-4 md:p-6 border border-primary/20"
         >
-          {/* Background Effects */}
-          <div className="absolute top-0 left-0 w-24 h-24 bg-primary/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-32 h-32 bg-accent/20 rounded-full blur-3xl" />
+          {/* Decorative Background */}
+          <div className="absolute top-0 left-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 right-1/2 w-40 h-40 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
           
-          <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
+          <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            {/* Title Section */}
+            <div className="flex items-center gap-3 md:gap-4">
               <motion.div 
                 className="relative"
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 400 }}
               >
-                <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30">
-                  <ShoppingBag className="w-6 h-6 md:w-7 md:h-7 text-white" />
-                </div>
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center shadow-sm">
-                  <Sparkles className="w-2.5 h-2.5 text-white" />
+                <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/25">
+                  <ShoppingBag className="w-6 h-6 md:w-8 md:h-8 text-white" />
                 </div>
               </motion.div>
               
-              <div>
-                <h1 className="text-xl md:text-2xl font-bold text-foreground">طلباتي</h1>
-                <p className="text-xs md:text-sm text-muted-foreground">
+              <div className="flex flex-col">
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">طلباتي</h1>
+                <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
                   إدارة ومتابعة جميع طلباتك
                 </p>
               </div>
             </div>
 
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button 
-                onClick={() => navigate('/dashboard/our-services')} 
-                className="gap-2 rounded-xl shadow-lg shadow-primary/20"
+            {/* Action Button & Quick Stats */}
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              {/* Quick Type Counts - Mobile */}
+              <div className="flex items-center gap-1.5 sm:hidden">
+                <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/10 border border-primary/20">
+                  <Grid3X3 className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-xs font-bold text-primary">{typeCounts.all}</span>
+                </div>
+                <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-pink-500/10 border border-pink-500/20">
+                  <Share2 className="w-3 h-3 text-pink-500" />
+                  <span className="text-xs font-bold text-pink-500">{typeCounts.social}</span>
+                </div>
+                <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-violet-500/10 border border-violet-500/20">
+                  <Palette className="w-3 h-3 text-violet-500" />
+                  <span className="text-xs font-bold text-violet-500">{typeCounts.design}</span>
+                </div>
+                <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                  <Code className="w-3 h-3 text-emerald-500" />
+                  <span className="text-xs font-bold text-emerald-500">{typeCounts.dev}</span>
+                </div>
+              </div>
+
+              {/* New Order Button */}
+              <motion.div 
+                whileHover={{ scale: 1.02 }} 
+                whileTap={{ scale: 0.98 }}
+                className="mr-auto sm:mr-0"
               >
-                <Plus className="w-4 h-4" />
-                طلب جديد
-              </Button>
-            </motion.div>
+                <Button 
+                  onClick={() => navigate('/dashboard/our-services')} 
+                  className="gap-2 rounded-lg md:rounded-xl text-sm md:text-base px-3 md:px-5 py-2 md:py-2.5 h-auto shadow-lg shadow-primary/20"
+                >
+                  <Plus className="w-4 h-4 md:w-5 md:h-5" />
+                  <span>طلب جديد</span>
+                </Button>
+              </motion.div>
+            </div>
           </div>
 
-          {/* Quick Type Icons */}
-          <div className="relative mt-4 flex items-center gap-3">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-pink-500/10 border border-pink-500/20">
-                <Share2 className="w-3.5 h-3.5 text-pink-500" />
-                <span className="font-semibold text-pink-500">{typeCounts.social}</span>
-              </div>
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-violet-500/10 border border-violet-500/20">
-                <Palette className="w-3.5 h-3.5 text-violet-500" />
-                <span className="font-semibold text-violet-500">{typeCounts.design}</span>
-              </div>
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                <Code className="w-3.5 h-3.5 text-emerald-500" />
-                <span className="font-semibold text-emerald-500">{typeCounts.dev}</span>
-              </div>
+          {/* Desktop Quick Type Stats */}
+          <div className="relative mt-4 hidden sm:flex items-center gap-2">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
+              <Grid3X3 className="w-4 h-4 text-primary" />
+              <span className="text-sm font-bold text-primary">{typeCounts.all}</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-500/10 border border-pink-500/20">
+              <Share2 className="w-4 h-4 text-pink-500" />
+              <span className="text-sm font-bold text-pink-500">{typeCounts.social}</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/10 border border-violet-500/20">
+              <Palette className="w-4 h-4 text-violet-500" />
+              <span className="text-sm font-bold text-violet-500">{typeCounts.design}</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+              <Code className="w-4 h-4 text-emerald-500" />
+              <span className="text-sm font-bold text-emerald-500">{typeCounts.dev}</span>
             </div>
           </div>
         </motion.div>
