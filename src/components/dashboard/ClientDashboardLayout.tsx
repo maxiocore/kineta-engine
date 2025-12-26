@@ -215,20 +215,15 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                 exit={{ opacity: 0, scale: 0.8 }}
                 transition={{ duration: 0.2 }}
               >
-                <Link to="/" className="flex items-center gap-2">
-                  <motion.div 
-                    whileHover={{ rotate: 360 }}
-                    transition={{ duration: 0.5 }}
-                    className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center"
-                  >
-                    <span className="font-display font-bold text-xl text-primary-foreground">M</span>
-                  </motion.div>
-                  <span 
-                    className="text-lg font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
+                <Link to="/" className="flex items-center">
+                  <motion.span 
+                    className="text-xl font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
                     style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
+                    whileHover={{ scale: 1.03 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 20 }}
                   >
                     MaxioCore
-                  </span>
+                  </motion.span>
                 </Link>
               </motion.div>
             )}
@@ -506,20 +501,15 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
             <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
           </Button>
         </motion.div>
-        <Link to="/" className="flex items-center gap-2">
-          <motion.div 
-            whileHover={{ rotate: 360 }}
-            transition={{ duration: 0.5 }}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-primary flex items-center justify-center"
-          >
-            <span className="font-bold text-sm sm:text-base text-primary-foreground">M</span>
-          </motion.div>
-          <span 
-            className="font-bold text-sm sm:text-base bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent hidden xs:block"
+        <Link to="/" className="flex items-center">
+          <motion.span 
+            className="font-bold text-base sm:text-lg bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
             style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
+            whileHover={{ scale: 1.03 }}
+            transition={{ type: "spring", stiffness: 400, damping: 20 }}
           >
             MaxioCore
-          </span>
+          </motion.span>
         </Link>
         <div className="flex items-center gap-2">
           <motion.div
