@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Star, TrendingUp, ChevronLeft } from "lucide-react";
+import { Star, TrendingUp, ChevronRight, Trophy, Medal, Award } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -18,29 +18,45 @@ interface MobileTopServicesProps {
 const MobileTopServices = ({ services }: MobileTopServicesProps) => {
   const max = Math.max(...services.map(s => s.revenue), 1);
   
+  const getRankIcon = (index: number) => {
+    switch (index) {
+      case 0: return <Trophy className="w-3.5 h-3.5 text-yellow-500" />;
+      case 1: return <Medal className="w-3.5 h-3.5 text-gray-400" />;
+      case 2: return <Award className="w-3.5 h-3.5 text-amber-600" />;
+      default: return <span className="text-[10px] font-bold text-muted-foreground">{index + 1}</span>;
+    }
+  };
+  
   const getRankColor = (index: number) => {
     switch (index) {
-      case 0: return "from-yellow-500 to-amber-600";
-      case 1: return "from-slate-400 to-slate-500";
-      case 2: return "from-amber-600 to-orange-700";
-      default: return "from-muted to-muted-foreground/30";
+      case 0: return "from-yellow-500/20 to-amber-600/10 border-yellow-500/30";
+      case 1: return "from-slate-400/20 to-slate-500/10 border-slate-400/30";
+      case 2: return "from-amber-600/20 to-orange-700/10 border-amber-600/30";
+      default: return "from-muted/20 to-muted-foreground/10 border-border/50";
     }
   };
 
   return (
-    <div className="bg-card rounded-xl border border-border/40 overflow-hidden">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-card rounded-xl border border-border/40 overflow-hidden"
+      dir="rtl"
+    >
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-border/30">
-        <div className="flex items-center gap-2">
-          <Star className="w-4 h-4 text-warning" />
+      <div className="flex items-center justify-between p-3 border-b border-border/30 flex-row-reverse">
+        <div className="flex items-center gap-2 flex-row-reverse">
+          <div className="p-1.5 rounded-lg bg-warning/10">
+            <Star className="w-4 h-4 text-warning" />
+          </div>
           <span className="text-sm font-semibold">أفضل الخدمات</span>
         </div>
         <Link 
           to="/admin/services"
-          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors flex-row-reverse"
         >
           عرض الكل
-          <ChevronLeft className="w-3 h-3" />
+          <ChevronRight className="w-3 h-3" />
         </Link>
       </div>
       
@@ -58,36 +74,42 @@ const MobileTopServices = ({ services }: MobileTopServicesProps) => {
             return (
               <motion.div
                 key={service.id}
-                initial={{ opacity: 0, x: 10 }}
+                initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="p-3"
+                whileTap={{ scale: 0.99 }}
+                className={cn(
+                  "p-3 cursor-pointer transition-colors",
+                  "hover:bg-secondary/20 active:bg-secondary/40"
+                )}
               >
-                <div className="flex items-center gap-2 mb-1.5">
+                <div className="flex items-center gap-2 mb-1.5 flex-row-reverse">
                   {/* Rank Badge */}
                   <div className={cn(
-                    "w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold text-white",
-                    `bg-gradient-to-br ${getRankColor(index)}`
+                    "w-7 h-7 rounded-lg flex items-center justify-center border bg-gradient-to-bl",
+                    getRankColor(index)
                   )}>
-                    {index + 1}
+                    {getRankIcon(index)}
                   </div>
                   
                   {/* Service Info */}
                   <div className="flex-1 min-w-0 text-right">
                     <p className="text-xs font-medium truncate">{service.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{service.orders} طلب</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {service.orders.toLocaleString('ar-SA')} طلب
+                    </p>
                   </div>
                   
                   {/* Revenue & Trend */}
                   <div className="text-left shrink-0">
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 flex-row-reverse justify-end">
                       <span className="text-xs font-bold text-success">
                         {service.revenue.toLocaleString("ar-SA")}
                       </span>
                       <span className="text-[9px] text-muted-foreground">ر.س</span>
                     </div>
                     {service.trend && service.trend > 0 && (
-                      <div className="flex items-center gap-0.5 text-[9px] text-success justify-end">
+                      <div className="flex items-center gap-0.5 text-[9px] text-success justify-start flex-row-reverse">
                         <TrendingUp className="w-2.5 h-2.5" />
                         {service.trend}%
                       </div>
@@ -96,13 +118,13 @@ const MobileTopServices = ({ services }: MobileTopServicesProps) => {
                 </div>
                 
                 {/* Progress Bar */}
-                <div className="h-1 rounded-full bg-secondary overflow-hidden mr-8">
+                <div className="h-1 rounded-full bg-secondary overflow-hidden mr-9">
                   <motion.div
                     className={cn(
                       "h-full rounded-full",
-                      index === 0 ? "bg-gradient-to-l from-yellow-500 to-amber-500" :
-                      index === 1 ? "bg-gradient-to-l from-slate-400 to-slate-500" :
-                      index === 2 ? "bg-gradient-to-l from-amber-600 to-orange-600" :
+                      index === 0 ? "bg-gradient-to-r from-yellow-500 to-amber-500" :
+                      index === 1 ? "bg-gradient-to-r from-slate-400 to-slate-500" :
+                      index === 2 ? "bg-gradient-to-r from-amber-600 to-orange-600" :
                       "bg-primary"
                     )}
                     initial={{ width: 0 }}
@@ -115,7 +137,7 @@ const MobileTopServices = ({ services }: MobileTopServicesProps) => {
           })
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

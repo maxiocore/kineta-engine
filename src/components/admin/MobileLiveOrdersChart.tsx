@@ -7,7 +7,8 @@ import {
   CheckCircle,
   XCircle,
   Zap,
-  TrendingUp
+  TrendingUp,
+  Package
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -94,33 +95,49 @@ const MobileLiveOrdersChart = () => {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "completed": return "مكتمل";
+      case "pending": return "قيد الانتظار";
+      case "in_progress": return "قيد التنفيذ";
+      case "cancelled": return "ملغي";
+      default: return status;
+    }
+  };
+
   const completionRate = todayStats.total > 0 
     ? Math.round((todayStats.completed / todayStats.total) * 100) 
     : 0;
 
   return (
-    <div className="bg-card rounded-xl border border-border/40 p-3 overflow-hidden relative">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-card rounded-xl border border-border/40 p-3 overflow-hidden relative"
+      dir="rtl"
+    >
       {/* Subtle animated background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-bl from-primary/5 to-transparent pointer-events-none" />
+      <div className="absolute top-0 left-0 w-20 h-20 bg-primary/5 rounded-full blur-2xl" />
       
       <div className="relative z-10">
         {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between mb-3 flex-row-reverse">
+          <div className="flex items-center gap-2 flex-row-reverse">
             <div className="p-1.5 rounded-lg bg-primary/10">
               <Activity className="w-4 h-4 text-primary" />
             </div>
-            <div>
+            <div className="text-right">
               <span className="text-sm font-semibold">الطلبات المباشرة</span>
               <p className="text-[9px] text-muted-foreground">
-                {format(lastUpdate, "HH:mm", { locale: ar })}
+                آخر تحديث: {format(lastUpdate, "HH:mm", { locale: ar })}
               </p>
             </div>
           </div>
           <motion.div
             animate={{ scale: isLive ? [1, 1.1, 1] : 1 }}
             transition={{ duration: 2, repeat: isLive ? Infinity : 0 }}
-            className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-success/10 border border-success/20"
+            className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-success/10 border border-success/20 flex-row-reverse"
           >
             <Zap className="w-2.5 h-2.5 text-success" />
             <span className="text-[9px] text-success font-medium">مباشر</span>
@@ -129,30 +146,42 @@ const MobileLiveOrdersChart = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-4 gap-1.5 mb-3">
-          <div className="p-1.5 rounded-lg bg-secondary/40 text-center">
-            <p className="text-base font-bold">{todayStats.total}</p>
+          <motion.div 
+            whileTap={{ scale: 0.95 }}
+            className="p-1.5 rounded-lg bg-secondary/40 text-center border border-border/20"
+          >
+            <p className="text-base font-bold">{todayStats.total.toLocaleString('ar-SA')}</p>
             <p className="text-[9px] text-muted-foreground">إجمالي</p>
-          </div>
-          <div className="p-1.5 rounded-lg bg-warning/10 text-center">
-            <p className="text-base font-bold text-warning">{todayStats.pending}</p>
+          </motion.div>
+          <motion.div 
+            whileTap={{ scale: 0.95 }}
+            className="p-1.5 rounded-lg bg-warning/10 text-center border border-warning/20"
+          >
+            <p className="text-base font-bold text-warning">{todayStats.pending.toLocaleString('ar-SA')}</p>
             <p className="text-[9px] text-muted-foreground">معلق</p>
-          </div>
-          <div className="p-1.5 rounded-lg bg-success/10 text-center">
-            <p className="text-base font-bold text-success">{todayStats.completed}</p>
+          </motion.div>
+          <motion.div 
+            whileTap={{ scale: 0.95 }}
+            className="p-1.5 rounded-lg bg-success/10 text-center border border-success/20"
+          >
+            <p className="text-base font-bold text-success">{todayStats.completed.toLocaleString('ar-SA')}</p>
             <p className="text-[9px] text-muted-foreground">مكتمل</p>
-          </div>
-          <div className="p-1.5 rounded-lg bg-primary/10 text-center">
-            <p className="text-xs font-bold text-primary">{todayStats.revenue.toLocaleString()}</p>
+          </motion.div>
+          <motion.div 
+            whileTap={{ scale: 0.95 }}
+            className="p-1.5 rounded-lg bg-primary/10 text-center border border-primary/20"
+          >
+            <p className="text-xs font-bold text-primary">{todayStats.revenue.toLocaleString('ar-SA')}</p>
             <p className="text-[9px] text-muted-foreground">ر.س</p>
-          </div>
+          </motion.div>
         </div>
 
         {/* Completion Progress */}
-        <div className="mb-3 p-2 rounded-lg bg-secondary/30">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+        <div className="mb-3 p-2 rounded-lg bg-secondary/30 border border-border/20">
+          <div className="flex items-center justify-between mb-1.5 flex-row-reverse">
+            <span className="text-[10px] text-muted-foreground flex items-center gap-1 flex-row-reverse">
               <TrendingUp className="w-3 h-3" />
-              معدل الإكمال
+              معدل الإكمال اليوم
             </span>
             <span className="text-xs font-semibold">{completionRate}%</span>
           </div>
@@ -161,10 +190,10 @@ const MobileLiveOrdersChart = () => {
 
         {/* Recent Orders */}
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-medium flex items-center gap-1">
-              <ShoppingCart className="w-3 h-3" />
-              آخر الطلبات
+          <div className="flex items-center justify-between mb-2 flex-row-reverse">
+            <span className="text-[10px] font-medium flex items-center gap-1 flex-row-reverse">
+              <Package className="w-3 h-3" />
+              آخر الطلبات اليوم
             </span>
             <Badge variant="secondary" className="text-[9px] h-4 px-1">
               {recentOrders.length}
@@ -179,28 +208,32 @@ const MobileLiveOrdersChart = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -5 }}
                   transition={{ delay: index * 0.03 }}
-                  className="flex items-center justify-between p-1.5 rounded-md bg-secondary/20 border border-border/10"
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center justify-between p-2 rounded-lg bg-secondary/20 border border-border/10 cursor-pointer hover:bg-secondary/40 transition-colors flex-row-reverse"
                 >
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-row-reverse">
                     {getStatusIcon(order.status)}
                     <span className="text-[10px] font-medium">{order.order_number}</span>
+                    <Badge variant="outline" className="text-[8px] h-4 px-1">
+                      {getStatusLabel(order.status)}
+                    </Badge>
                   </div>
                   <span className="text-[10px] text-muted-foreground">
-                    {Number(order.total_price).toLocaleString()} ر.س
+                    {Number(order.total_price).toLocaleString('ar-SA')} ر.س
                   </span>
                 </motion.div>
               ))}
             </AnimatePresence>
             {recentOrders.length === 0 && (
-              <div className="text-center py-3 text-muted-foreground">
-                <ShoppingCart className="w-5 h-5 mx-auto mb-1 opacity-30" />
-                <p className="text-[10px]">لا توجد طلبات</p>
+              <div className="text-center py-4 text-muted-foreground">
+                <ShoppingCart className="w-6 h-6 mx-auto mb-1 opacity-30" />
+                <p className="text-[10px]">لا توجد طلبات اليوم</p>
               </div>
             )}
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
