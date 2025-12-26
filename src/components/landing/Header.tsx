@@ -14,7 +14,6 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: "الرئيسية", href: "/", icon: Home },
   { label: "خدماتنا", href: "/our-services", icon: Briefcase },
-  { label: "SMM Panel", href: "/services", icon: Share2 },
   { label: "من نحن", href: "/about", icon: Users },
   { label: "الأسعار", href: "/pricing", icon: CreditCard },
   { label: "تواصل معنا", href: "/contact", icon: MessageCircle },
