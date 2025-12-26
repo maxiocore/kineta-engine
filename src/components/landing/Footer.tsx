@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { useRef } from "react";
+import logoImage from "@/assets/maxiocore-logo-transparent.png";
 
 const footerLinks = {
   "الخدمات": [
@@ -161,10 +162,10 @@ const Footer = () => {
           >
             <Link to="/" className="flex items-center gap-4 mb-8 group">
               <motion.div 
-                className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary via-accent to-primary flex items-center justify-center shadow-xl shadow-primary/30"
+                className="w-14 h-14 rounded-2xl overflow-hidden shadow-xl shadow-primary/30"
                 whileHover={{ scale: 1.05, rotate: 5 }}
               >
-                <span className="font-bold text-2xl text-primary-foreground">M</span>
+                <img src={logoImage} alt="MaxioCore" className="w-full h-full object-contain" />
               </motion.div>
               <div className="flex flex-col">
                 <span className="font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-l from-primary via-accent to-primary">MaxioCore</span>
@@ -230,10 +231,10 @@ const Footer = () => {
         >
           <div className="flex items-center gap-3">
             <motion.div 
-              className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20"
+              className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-primary/20"
               whileHover={{ scale: 1.1, rotate: 5 }}
             >
-              <span className="font-bold text-lg text-primary-foreground">M</span>
+              <img src={logoImage} alt="MaxioCore" className="w-full h-full object-contain" />
             </motion.div>
             <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-l from-primary to-accent">MaxioCore</span>
           </div>
