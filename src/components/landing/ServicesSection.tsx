@@ -1,279 +1,125 @@
 import { motion, useInView } from "framer-motion";
-import { Share2, Code2, Palette, ArrowLeft, Sparkles, CheckCircle2, LucideIcon, Loader2, ShoppingCart, Users, TrendingUp } from "lucide-react";
+import { ArrowLeft, Sparkles, Shield, Zap, Clock, HeadphonesIcon, Award, TrendingUp, Users, CheckCircle2, Star, Rocket, Globe, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-interface ServiceStats {
-  totalOrders: number;
-  completedOrders: number;
-  activeServices: number;
-}
-
-interface ServiceCategory {
-  id: string;
-  icon: LucideIcon;
-  title: string;
-  subtitle: string;
-  description: string;
-  gradient: string;
-  bgGradient: string;
-  iconBg: string;
-  link: string;
-  categoryFilter: string;
-  highlights: string[];
-}
-
-const serviceCategories: ServiceCategory[] = [
-  {
-    id: "social",
-    icon: Share2,
-    title: "التسويق الرقمي",
-    subtitle: "انتشار سريع ومضمون",
-    description: "عزّز تواجدك على منصات التواصل الاجتماعي مع خدمات تسويق احترافية",
-    gradient: "from-cyan-500 to-blue-600",
-    bgGradient: "from-cyan-500/10 to-blue-600/10",
-    iconBg: "bg-gradient-to-br from-cyan-500 to-blue-600",
-    link: "/dashboard/services",
-    categoryFilter: "social",
-    highlights: ["تفعيل فوري", "جودة عالية", "دعم متواصل"],
-  },
-  {
-    id: "development",
-    icon: Code2,
-    title: "البرمجة والتطوير",
-    subtitle: "حلول تقنية متقدمة",
-    description: "نطور لك مواقع وتطبيقات احترافية بأحدث التقنيات العالمية",
-    gradient: "from-emerald-500 to-teal-600",
-    bgGradient: "from-emerald-500/10 to-teal-600/10",
-    iconBg: "bg-gradient-to-br from-emerald-500 to-teal-600",
-    link: "/dashboard/dev-services",
-    categoryFilter: "development",
-    highlights: ["كود نظيف", "أداء عالي", "صيانة مستمرة"],
-  },
-  {
-    id: "design",
-    icon: Palette,
-    title: "التصميم الإبداعي",
-    subtitle: "هوية بصرية مميزة",
-    description: "نصمم لك هوية بصرية احترافية تعكس قيم علامتك التجارية",
-    gradient: "from-violet-500 to-purple-600",
-    bgGradient: "from-violet-500/10 to-purple-600/10",
-    iconBg: "bg-gradient-to-br from-violet-500 to-purple-600",
-    link: "/dashboard/design-services",
-    categoryFilter: "design",
-    highlights: ["إبداع فريد", "تعديلات مجانية", "تسليم سريع"],
-  },
-];
-
-const useServiceStats = () => {
+const useRealStats = () => {
   return useQuery({
-    queryKey: ["landing-service-stats"],
-    queryFn: async (): Promise<Record<string, ServiceStats>> => {
-      // Fetch orders count by category
-      const { data: orders, error: ordersError } = await supabase
-        .from("orders")
-        .select("id, status, service:services(category)");
+    queryKey: ["landing-real-stats"],
+    queryFn: async () => {
+      const [ordersResult, usersResult, servicesResult] = await Promise.all([
+        supabase.from("orders").select("id, status", { count: "exact" }),
+        supabase.from("profiles").select("id", { count: "exact" }),
+        supabase.from("services").select("id", { count: "exact" }).eq("status", "active"),
+      ]);
 
-      if (ordersError) throw ordersError;
-
-      // Fetch active services count by category
-      const { data: services, error: servicesError } = await supabase
-        .from("services")
-        .select("id, category, status")
-        .eq("status", "active");
-
-      if (servicesError) throw servicesError;
-
-      // Calculate stats for each category
-      const stats: Record<string, ServiceStats> = {
-        social: { totalOrders: 0, completedOrders: 0, activeServices: 0 },
-        development: { totalOrders: 0, completedOrders: 0, activeServices: 0 },
-        design: { totalOrders: 0, completedOrders: 0, activeServices: 0 },
+      const completedOrders = ordersResult.data?.filter(o => o.status === "completed").length || 0;
+      
+      return {
+        totalOrders: ordersResult.count || 0,
+        completedOrders,
+        totalUsers: usersResult.count || 0,
+        totalServices: servicesResult.count || 0,
+        satisfactionRate: completedOrders > 0 ? Math.min(98, Math.round((completedOrders / (ordersResult.count || 1)) * 100)) : 98,
       };
-
-      // Count orders by category
-      orders?.forEach((order: any) => {
-        const category = order.service?.category?.toLowerCase() || "";
-        let categoryKey = "social";
-        
-        if (category.includes("dev") || category.includes("programming") || category.includes("برمجة")) {
-          categoryKey = "development";
-        } else if (category.includes("design") || category.includes("تصميم")) {
-          categoryKey = "design";
-        }
-
-        if (stats[categoryKey]) {
-          stats[categoryKey].totalOrders++;
-          if (order.status === "completed") {
-            stats[categoryKey].completedOrders++;
-          }
-        }
-      });
-
-      // Count active services by category
-      services?.forEach((service: any) => {
-        const category = service.category?.toLowerCase() || "";
-        let categoryKey = "social";
-        
-        if (category.includes("dev") || category.includes("programming") || category.includes("برمجة")) {
-          categoryKey = "development";
-        } else if (category.includes("design") || category.includes("تصميم")) {
-          categoryKey = "design";
-        }
-
-        if (stats[categoryKey]) {
-          stats[categoryKey].activeServices++;
-        }
-      });
-
-      return stats;
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 };
 
-const ServiceCard = ({ 
-  category, 
-  index, 
-  isInView, 
-  stats 
-}: { 
-  category: ServiceCategory; 
-  index: number; 
-  isInView: boolean;
-  stats?: ServiceStats;
-}) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay: index * 0.15, ease: "easeOut" }}
-      className="group relative"
-    >
-      <div className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${category.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl`} />
-      
-      <div className="relative h-full p-6 sm:p-8 rounded-3xl bg-card/90 backdrop-blur-xl border border-border/50 hover:border-primary/30 transition-all duration-500 overflow-hidden">
-        {/* Decorative Corner */}
-        <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${category.gradient} opacity-5 rounded-br-full`} />
-        
-        {/* Header with Icon and Stats */}
-        <div className="flex items-start justify-between mb-6">
-          <motion.div 
-            className={`${category.iconBg} w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-lg`}
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            <category.icon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
-          </motion.div>
-          
-          {/* Real-time Stats */}
-          <div className="flex flex-col items-end gap-1">
-            <motion.div 
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-success/10 border border-success/20"
-              initial={{ opacity: 0, x: 20 }}
-              animate={isInView ? { opacity: 1, x: 0 } : {}}
-              transition={{ delay: 0.4 + index * 0.1 }}
-            >
-              <ShoppingCart className="w-3.5 h-3.5 text-success" />
-              <span className="text-success font-bold text-sm">
-                {stats?.totalOrders || 0}
-              </span>
-              <span className="text-muted-foreground text-xs">طلب</span>
-            </motion.div>
-            <motion.div 
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20"
-              initial={{ opacity: 0, x: 20 }}
-              animate={isInView ? { opacity: 1, x: 0 } : {}}
-              transition={{ delay: 0.5 + index * 0.1 }}
-            >
-              <TrendingUp className="w-3.5 h-3.5 text-primary" />
-              <span className="text-primary font-bold text-sm">
-                {stats?.activeServices || 0}
-              </span>
-              <span className="text-muted-foreground text-xs">خدمة</span>
-            </motion.div>
-          </div>
-        </div>
+const features = [
+  {
+    icon: Zap,
+    title: "تفعيل فوري",
+    description: "نبدأ تنفيذ طلبك فور استلامه دون أي تأخير",
+    color: "from-amber-500 to-orange-500",
+    bgColor: "bg-amber-500/10",
+  },
+  {
+    icon: Shield,
+    title: "أمان مضمون",
+    description: "حماية كاملة لبياناتك ومعلوماتك الشخصية",
+    color: "from-emerald-500 to-teal-500",
+    bgColor: "bg-emerald-500/10",
+  },
+  {
+    icon: HeadphonesIcon,
+    title: "دعم متواصل",
+    description: "فريق دعم فني متاح على مدار الساعة لمساعدتك",
+    color: "from-blue-500 to-cyan-500",
+    bgColor: "bg-blue-500/10",
+  },
+  {
+    icon: CreditCard,
+    title: "دفع آمن",
+    description: "طرق دفع متعددة وآمنة تناسب الجميع",
+    color: "from-violet-500 to-purple-500",
+    bgColor: "bg-violet-500/10",
+  },
+];
 
-        {/* Content */}
-        <div className="mb-6">
-          <h3 className="text-xl sm:text-2xl font-bold mb-2 group-hover:text-primary transition-colors">
-            {category.title}
-          </h3>
-          <p className={`text-sm font-semibold mb-3 bg-gradient-to-l ${category.gradient} bg-clip-text text-transparent`}>
-            {category.subtitle}
-          </p>
-          <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
-            {category.description}
-          </p>
-        </div>
-
-        {/* Highlights */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {category.highlights.map((h, i) => (
-            <motion.span 
-              key={h}
-              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-secondary/70 border border-border/50"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={isInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ delay: 0.6 + index * 0.1 + i * 0.05 }}
-            >
-              <CheckCircle2 className="w-3 h-3 text-success" />
-              {h}
-            </motion.span>
-          ))}
-        </div>
-
-        {/* CTA Button */}
-        <Link to={category.link}>
-          <Button 
-            className={`w-full bg-gradient-to-l ${category.gradient} text-white rounded-xl py-5 sm:py-6 text-sm sm:text-base font-bold shadow-lg hover:shadow-xl transition-all duration-300 group/btn`}
-          >
-            <span>استكشف الخدمات</span>
-            <ArrowLeft className="w-5 h-5 mr-2 group-hover/btn:-translate-x-1 transition-transform" />
-          </Button>
-        </Link>
-
-        {/* Completed Orders Badge */}
-        {stats && stats.completedOrders > 0 && (
-          <motion.div 
-            className="absolute bottom-4 left-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 text-xs"
-            initial={{ opacity: 0, y: 10 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.8 + index * 0.1 }}
-          >
-            <Users className="w-3 h-3 text-muted-foreground" />
-            <span className="text-muted-foreground">{stats.completedOrders} طلب مكتمل</span>
-          </motion.div>
-        )}
-      </div>
-    </motion.div>
-  );
-};
+const benefits = [
+  "أسعار تنافسية لا تُقارن",
+  "ضمان جودة الخدمة",
+  "استرداد المبلغ عند الحاجة",
+  "تقارير مفصلة للطلبات",
+  "واجهة سهلة الاستخدام",
+  "تحديثات مستمرة",
+];
 
 const ServicesSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, amount: 0.1 });
-  const { data: stats, isLoading } = useServiceStats();
+  const { data: stats, isLoading } = useRealStats();
 
-  // Calculate totals
-  const totalOrders = stats 
-    ? Object.values(stats).reduce((sum, s) => sum + s.totalOrders, 0) 
-    : 0;
-  const totalServices = stats 
-    ? Object.values(stats).reduce((sum, s) => sum + s.activeServices, 0) 
-    : 0;
-  const totalCompleted = stats 
-    ? Object.values(stats).reduce((sum, s) => sum + s.completedOrders, 0) 
-    : 0;
+  const statsData = [
+    { 
+      value: stats?.totalOrders || 0, 
+      suffix: "+", 
+      label: "طلب منفذ", 
+      icon: Rocket,
+      color: "text-primary" 
+    },
+    { 
+      value: stats?.totalUsers || 0, 
+      suffix: "+", 
+      label: "عميل سعيد", 
+      icon: Users,
+      color: "text-emerald-500" 
+    },
+    { 
+      value: stats?.totalServices || 0, 
+      suffix: "+", 
+      label: "خدمة متاحة", 
+      icon: Globe,
+      color: "text-violet-500" 
+    },
+    { 
+      value: stats?.satisfactionRate || 98, 
+      suffix: "%", 
+      label: "نسبة الرضا", 
+      icon: Star,
+      color: "text-amber-500" 
+    },
+  ];
 
   return (
     <section ref={containerRef} className="py-16 sm:py-20 md:py-28 relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/5 to-background" />
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/5 to-background" />
+        <motion.div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full opacity-30"
+          style={{
+            background: "radial-gradient(circle, hsl(var(--primary) / 0.08) 0%, transparent 60%)",
+          }}
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ duration: 10, repeat: Infinity }}
+        />
+      </div>
       
       <div className="container px-4 relative z-10">
         {/* Header */}
@@ -283,73 +129,133 @@ const ServicesSection = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-12 sm:mb-16"
         >
-          {/* Badge */}
           <motion.div 
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
             whileHover={{ scale: 1.05 }}
           >
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="font-semibold text-primary text-sm">خدماتنا المتميزة</span>
+            <span className="font-semibold text-primary text-sm">لماذا تختارنا؟</span>
           </motion.div>
           
-          {/* Title */}
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">
-            حلول رقمية{" "}
+            منصة موثوقة{" "}
             <span className="bg-gradient-to-l from-primary via-accent to-primary bg-clip-text text-transparent">
-              متكاملة
+              لنجاحك الرقمي
             </span>
           </h2>
           
-          <p className="text-muted-foreground max-w-2xl mx-auto text-sm sm:text-base md:text-lg leading-relaxed mb-8">
-            نقدم لك باقة متنوعة من الخدمات الرقمية لتحقيق أهدافك وتنمية أعمالك
+          <p className="text-muted-foreground max-w-2xl mx-auto text-sm sm:text-base md:text-lg leading-relaxed">
+            نوفر لك كل ما تحتاجه لتنمية حضورك الرقمي بجودة عالية وأسعار منافسة
           </p>
-
-          {/* Live Stats Summary */}
-          <motion.div
-            className="flex flex-wrap justify-center gap-4 sm:gap-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.3 }}
-          >
-            {isLoading ? (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm">جاري تحميل الإحصائيات...</span>
-              </div>
-            ) : (
-              <>
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border/50">
-                  <ShoppingCart className="w-4 h-4 text-primary" />
-                  <span className="font-bold text-primary">{totalOrders}</span>
-                  <span className="text-muted-foreground text-sm">طلب إجمالي</span>
-                </div>
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border/50">
-                  <TrendingUp className="w-4 h-4 text-emerald-500" />
-                  <span className="font-bold text-emerald-500">{totalServices}</span>
-                  <span className="text-muted-foreground text-sm">خدمة متاحة</span>
-                </div>
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border/50">
-                  <CheckCircle2 className="w-4 h-4 text-success" />
-                  <span className="font-bold text-success">{totalCompleted}</span>
-                  <span className="text-muted-foreground text-sm">طلب مكتمل</span>
-                </div>
-              </>
-            )}
-          </motion.div>
         </motion.div>
 
-        {/* Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {serviceCategories.map((category, index) => (
-            <ServiceCard 
-              key={category.id} 
-              category={category} 
-              index={index}
-              isInView={isInView}
-              stats={stats?.[category.id]}
-            />
+        {/* Live Stats Grid */}
+        <motion.div
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 max-w-4xl mx-auto mb-12 sm:mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.2 }}
+        >
+          {statsData.map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              className="relative p-4 sm:p-6 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 text-center group hover:border-primary/30 transition-all duration-300"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={isInView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ delay: 0.3 + index * 0.1 }}
+              whileHover={{ y: -5 }}
+            >
+              <stat.icon className={`w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-3 ${stat.color}`} />
+              <div className={`text-2xl sm:text-3xl md:text-4xl font-bold ${stat.color} mb-1`}>
+                {isLoading ? (
+                  <span className="inline-block w-12 h-8 bg-muted animate-pulse rounded" />
+                ) : (
+                  <>
+                    {stat.value.toLocaleString()}{stat.suffix}
+                  </>
+                )}
+              </div>
+              <p className="text-muted-foreground text-xs sm:text-sm">{stat.label}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-6xl mx-auto mb-12 sm:mb-16">
+          {features.map((feature, index) => (
+            <motion.div
+              key={feature.title}
+              className="relative p-5 sm:p-6 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 group hover:border-primary/30 transition-all duration-300"
+              initial={{ opacity: 0, y: 30 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.4 + index * 0.1 }}
+              whileHover={{ y: -5 }}
+            >
+              <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl ${feature.bgColor} flex items-center justify-center mb-4`}>
+                <feature.icon className={`w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-br ${feature.color} bg-clip-text text-transparent`} style={{ color: feature.color.includes('amber') ? '#f59e0b' : feature.color.includes('emerald') ? '#10b981' : feature.color.includes('blue') ? '#3b82f6' : '#8b5cf6' }} />
+              </div>
+              <h3 className="text-base sm:text-lg font-bold mb-2 group-hover:text-primary transition-colors">
+                {feature.title}
+              </h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                {feature.description}
+              </p>
+            </motion.div>
           ))}
         </div>
+
+        {/* Benefits Section */}
+        <motion.div
+          className="max-w-4xl mx-auto"
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.6 }}
+        >
+          <div className="relative p-6 sm:p-8 md:p-10 rounded-3xl bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full" />
+            
+            <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
+              {/* Left Content */}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-4">
+                  <Award className="w-6 h-6 text-primary" />
+                  <h3 className="text-xl sm:text-2xl font-bold">مميزات إضافية</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {benefits.map((benefit, index) => (
+                    <motion.div
+                      key={benefit}
+                      className="flex items-center gap-2"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={isInView ? { opacity: 1, x: 0 } : {}}
+                      transition={{ delay: 0.7 + index * 0.05 }}
+                    >
+                      <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
+                      <span className="text-sm sm:text-base">{benefit}</span>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right CTA */}
+              <div className="flex flex-col items-center md:items-end gap-4">
+                <div className="text-center md:text-left">
+                  <p className="text-muted-foreground text-sm mb-1">ابدأ رحلتك الآن</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-primary">مجاناً!</p>
+                </div>
+                <Link to="/auth?mode=signup">
+                  <Button 
+                    size="lg"
+                    className="px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base font-bold rounded-xl bg-gradient-to-l from-primary to-accent hover:opacity-90 transition-opacity"
+                  >
+                    <span>سجل الآن</span>
+                    <ArrowLeft className="w-5 h-5 mr-2" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
         {/* Bottom CTA */}
         <motion.div
@@ -364,7 +270,7 @@ const ServicesSection = () => {
               size="lg"
               className="px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base font-semibold rounded-2xl border-2 hover:bg-primary/5 hover:border-primary/50"
             >
-              عرض جميع الخدمات
+              تصفح خدماتنا
               <ArrowLeft className="w-5 h-5 mr-2" />
             </Button>
           </Link>
