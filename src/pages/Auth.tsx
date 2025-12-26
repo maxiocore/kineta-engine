@@ -200,10 +200,14 @@ const Auth = () => {
   return (
     <>
       <Header />
-      <div className="min-h-screen flex flex-col lg:flex-row bg-background relative overflow-hidden pt-16 sm:pt-20">
+      <div className="min-h-screen flex flex-col lg:flex-row bg-gradient-to-br from-background via-secondary/30 to-background dark:from-background dark:via-background dark:to-background relative overflow-hidden pt-16 sm:pt-20">
       {/* Animated Background with Particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-background to-accent/5" />
+        {/* Light mode enhanced gradient */}
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/8 via-background to-accent/8 dark:from-primary/5 dark:via-background dark:to-accent/5" />
+        
+        {/* Grid pattern for light mode */}
+        <div className="absolute inset-0 bg-[linear-gradient(hsl(var(--primary)/0.03)_1px,transparent_1px),linear-gradient(90deg,hsl(var(--primary)/0.03)_1px,transparent_1px)] bg-[size:40px_40px] dark:opacity-50" />
         
         {/* Floating Particles */}
         <FloatingParticle delay={0} duration={4} x="10%" y="20%" size={8} />
@@ -214,17 +218,17 @@ const Auth = () => {
         <FloatingParticle delay={3} duration={4} x="20%" y="80%" size={9} />
         
         <motion.div
-          className="absolute -top-1/2 -left-1/2 w-full h-full rounded-full opacity-20"
+          className="absolute -top-1/2 -left-1/2 w-full h-full rounded-full opacity-30 dark:opacity-20"
           style={{
-            background: "radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, transparent 50%)",
+            background: "radial-gradient(circle, hsl(var(--primary) / 0.2) 0%, transparent 50%)",
           }}
           animate={{ rotate: 360 }}
           transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
         />
         <motion.div
-          className="absolute -bottom-1/2 -right-1/2 w-full h-full rounded-full opacity-20"
+          className="absolute -bottom-1/2 -right-1/2 w-full h-full rounded-full opacity-30 dark:opacity-20"
           style={{
-            background: "radial-gradient(circle, hsl(var(--accent) / 0.15) 0%, transparent 50%)",
+            background: "radial-gradient(circle, hsl(var(--accent) / 0.2) 0%, transparent 50%)",
           }}
           animate={{ rotate: -360 }}
           transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
@@ -272,17 +276,17 @@ const Auth = () => {
 
           {/* Card Container */}
           <motion.div
-            className="relative p-5 sm:p-6 md:p-8 lg:p-10 rounded-2xl sm:rounded-3xl bg-card/50 backdrop-blur-xl border border-border/50 shadow-2xl overflow-hidden"
+            className="relative p-5 sm:p-6 md:p-8 lg:p-10 rounded-2xl sm:rounded-3xl bg-card/80 dark:bg-card/50 backdrop-blur-xl border border-border shadow-xl dark:shadow-2xl overflow-hidden"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.1 }}
-            whileHover={{ boxShadow: "0 25px 50px -12px hsl(var(--primary) / 0.15)" }}
+            whileHover={{ boxShadow: "0 25px 50px -12px hsl(var(--primary) / 0.2)" }}
           >
             {/* Animated Border Gradient */}
             <motion.div 
               className="absolute inset-0 rounded-2xl sm:rounded-3xl pointer-events-none"
               style={{
-                background: "linear-gradient(90deg, hsl(var(--primary) / 0.3), hsl(var(--accent) / 0.3), hsl(var(--primary) / 0.3))",
+                background: "linear-gradient(90deg, hsl(var(--primary) / 0.4), hsl(var(--accent) / 0.4), hsl(var(--primary) / 0.4))",
                 backgroundSize: "200% 100%",
               }}
               animate={{
@@ -290,19 +294,19 @@ const Auth = () => {
               }}
               transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
             />
-            <div className="absolute inset-[1px] rounded-2xl sm:rounded-3xl bg-card/95 backdrop-blur-xl" />
+            <div className="absolute inset-[1px] rounded-2xl sm:rounded-3xl bg-card dark:bg-card/95 backdrop-blur-xl" />
             
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
             
             <div className="relative z-10">
               {/* Header with Animation */}
               <div className="text-center mb-6 sm:mb-8">
                 <motion.div
-                  className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 border border-primary/20 mb-4 sm:mb-6"
+                  className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/15 dark:bg-primary/10 border border-primary/30 dark:border-primary/20 mb-4 sm:mb-6"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  whileHover={{ scale: 1.05, backgroundColor: "hsl(var(--primary) / 0.15)" }}
+                  whileHover={{ scale: 1.05, backgroundColor: "hsl(var(--primary) / 0.2)" }}
                 >
                   <motion.div
                     animate={{ rotate: [0, 15, -15, 0] }}
@@ -377,7 +381,7 @@ const Auth = () => {
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             onFocus={() => setFocusedField('name')}
                             onBlur={() => setFocusedField(null)}
-                            className="pr-10 sm:pr-12 bg-secondary/30 border-border/50 h-11 sm:h-12 text-sm sm:text-base text-right rounded-xl focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+                            className="pr-10 sm:pr-12 bg-background dark:bg-secondary/30 border-border h-11 sm:h-12 text-sm sm:text-base text-right rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 placeholder:text-muted-foreground/60"
                             required={isSignUp}
                           />
                         </div>
@@ -416,7 +420,7 @@ const Auth = () => {
                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                             onFocus={() => setFocusedField('phone')}
                             onBlur={() => setFocusedField(null)}
-                            className="pr-10 sm:pr-12 bg-secondary/30 border-border/50 h-11 sm:h-12 text-sm sm:text-base rounded-xl focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+                            className="pr-10 sm:pr-12 bg-background dark:bg-secondary/30 border-border h-11 sm:h-12 text-sm sm:text-base rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 placeholder:text-muted-foreground/60"
                             dir="ltr"
                           />
                         </div>
@@ -456,7 +460,7 @@ const Auth = () => {
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       onFocus={() => setFocusedField('email')}
                       onBlur={() => setFocusedField(null)}
-                      className="pr-10 sm:pr-12 bg-secondary/30 border-border/50 h-11 sm:h-12 text-sm sm:text-base rounded-xl focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+                      className="pr-10 sm:pr-12 bg-background dark:bg-secondary/30 border-border h-11 sm:h-12 text-sm sm:text-base rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 placeholder:text-muted-foreground/60"
                       dir="ltr"
                       required
                     />
@@ -506,7 +510,7 @@ const Auth = () => {
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       onFocus={() => setFocusedField('password')}
                       onBlur={() => setFocusedField(null)}
-                      className="pr-10 sm:pr-12 pl-10 sm:pl-12 bg-secondary/30 border-border/50 h-11 sm:h-12 text-sm sm:text-base rounded-xl focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+                      className="pr-10 sm:pr-12 pl-10 sm:pl-12 bg-background dark:bg-secondary/30 border-border h-11 sm:h-12 text-sm sm:text-base rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 placeholder:text-muted-foreground/60"
                       dir="ltr"
                       required
                     />
@@ -539,7 +543,7 @@ const Auth = () => {
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="relative w-full h-11 sm:h-12 overflow-hidden bg-gradient-to-l from-primary to-accent hover:opacity-90 text-sm sm:text-base lg:text-lg font-semibold rounded-xl shadow-lg shadow-primary/25 transition-all group"
+                    className="relative w-full h-11 sm:h-12 overflow-hidden bg-gradient-to-l from-primary to-accent hover:opacity-90 text-sm sm:text-base lg:text-lg font-semibold rounded-xl shadow-lg shadow-primary/30 transition-all group"
                   >
                     {/* Button Shine Effect */}
                     <motion.div
