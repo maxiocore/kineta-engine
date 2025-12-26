@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Users, ShoppingCart, Ticket, Filter, ChevronLeft } from "lucide-react";
+import { Clock, Users, ShoppingCart, Ticket, Filter, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -72,9 +72,9 @@ const ActivityFeedCard = ({ activities }: ActivityFeedCardProps) => {
   });
 
   return (
-    <Card className="border-border/50 h-full overflow-hidden bg-gradient-to-br from-card to-card/80">
+    <Card className="border-border/50 h-full overflow-hidden bg-gradient-to-bl from-card to-card/80" dir="rtl">
       <CardHeader className="pb-2 px-4 sm:px-6 pt-4 sm:pt-5">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-row-reverse">
           <CardTitle className="text-sm sm:text-base flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-primary/10">
               <Clock className="w-4 h-4 text-primary" />
@@ -86,13 +86,13 @@ const ActivityFeedCard = ({ activities }: ActivityFeedCardProps) => {
           </Badge>
         </div>
         {/* Filter Buttons */}
-        <div className="flex gap-1.5 mt-3 overflow-x-auto pb-1">
+        <div className="flex gap-1.5 mt-3 overflow-x-auto pb-1 flex-row-reverse">
           {filterOptions.map((option) => (
             <Button
               key={option.id}
               variant={filter === option.id ? "default" : "outline"}
               size="sm"
-              className="h-7 text-[10px] sm:text-xs px-2 sm:px-3 gap-1 shrink-0"
+              className="h-7 text-[10px] sm:text-xs px-2 sm:px-3 gap-1 shrink-0 flex-row-reverse"
               onClick={() => setFilter(option.id)}
             >
               <option.icon className="w-3 h-3" />
@@ -117,17 +117,18 @@ const ActivityFeedCard = ({ activities }: ActivityFeedCardProps) => {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ delay: index * 0.05 }}
+                      whileHover={{ x: 2 }}
                       className={cn(
-                        "flex items-start gap-3 p-3 rounded-xl border transition-all hover:bg-secondary/30 cursor-pointer group",
+                        "flex items-start gap-3 p-3 rounded-xl border transition-all hover:bg-secondary/30 cursor-pointer group flex-row-reverse",
                         config.border,
-                        "bg-gradient-to-r from-transparent to-secondary/10"
+                        "bg-gradient-to-l from-transparent to-secondary/10"
                       )}
                     >
                       <div className={cn("p-2 rounded-lg shrink-0", config.bg)}>
                         <IconComponent className={cn("w-4 h-4", config.color)} />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0 text-right">
+                        <div className="flex items-start justify-between gap-2 flex-row-reverse">
                           <p className="text-sm font-medium truncate">{activity.message}</p>
                           {activity.isNew && (
                             <Badge
@@ -145,7 +146,7 @@ const ActivityFeedCard = ({ activities }: ActivityFeedCardProps) => {
                         )}
                         <p className="text-[10px] text-muted-foreground mt-1">{activity.time}</p>
                       </div>
-                      <ChevronLeft className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                      <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                     </motion.div>
                   );
                 })}
