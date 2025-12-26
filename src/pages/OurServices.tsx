@@ -473,16 +473,11 @@ const OurServices = () => {
             </motion.div>
             
             {/* Stats Grid */}
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto"
-            >
+            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
               {statsData.map((stat, index) => (
                 <StatsCard key={index} {...stat} index={index} />
               ))}
-            </motion.div>
+            </div>
           </div>
         </section>
 
@@ -523,9 +518,8 @@ const OurServices = () => {
           </div>
         </section>
 
-        {/* Categories Section */}
-        {categories.length > 0 && (
-          <section className="py-16 sm:py-24">
+        {/* Categories Section - Always show */}
+        <section className="py-16 sm:py-24">
             <div className="container px-4">
               {/* Section Header */}
               <motion.div
@@ -610,7 +604,6 @@ const OurServices = () => {
               )}
             </div>
           </section>
-        )}
 
         {/* CTA Section */}
         <section className="py-16 sm:py-24 bg-gradient-to-br from-primary/10 via-background to-accent/10">
