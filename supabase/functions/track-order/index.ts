@@ -21,7 +21,18 @@ serve(async (req) => {
       );
     }
 
-    console.log('Tracking order:', orderNumber);
+    // Convert Arabic numerals to Western numerals
+    const arabicToWestern = (str: string): string => {
+      const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+      let result = str;
+      arabicNumerals.forEach((arabic, index) => {
+        result = result.replace(new RegExp(arabic, 'g'), index.toString());
+      });
+      return result;
+    };
+
+    const normalizedOrderNumber = arabicToWestern(orderNumber.trim()).toUpperCase();
+    console.log('Tracking order:', orderNumber, '-> normalized:', normalizedOrderNumber);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -46,7 +57,7 @@ serve(async (req) => {
           features
         )
       `)
-      .eq('order_number', orderNumber.trim().toUpperCase())
+      .eq('order_number', normalizedOrderNumber)
       .maybeSingle();
 
     if (orderError) {
