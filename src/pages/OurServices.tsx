@@ -426,39 +426,25 @@ const OurServices = () => {
   
   // Refs for parallax sections
   const containerRef = useRef<HTMLDivElement>(null);
-  const heroRef = useRef(null);
-  const serviceTypesRef = useRef(null);
-  const categoriesRef = useRef(null);
-  const ctaRef = useRef(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const serviceTypesRef = useRef<HTMLDivElement>(null);
+  const categoriesRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
   
-  // Main scroll progress
-  const { scrollYProgress: mainScrollProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
+  // Track if component is mounted
+  const [isMounted, setIsMounted] = useState(false);
   
-  // Hero section parallax
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+  
+  // Main scroll progress - use window scroll when not mounted
+  const { scrollYProgress: mainScrollProgress } = useScroll();
+  
+  // Hero section parallax - only use target when mounted
   const { scrollYProgress } = useScroll({
-    target: heroRef,
+    target: isMounted && heroRef.current ? heroRef : undefined,
     offset: ["start start", "end start"]
-  });
-  
-  // Service types section parallax
-  const { scrollYProgress: serviceTypesScrollProgress } = useScroll({
-    target: serviceTypesRef,
-    offset: ["start end", "end start"]
-  });
-  
-  // Categories section parallax
-  const { scrollYProgress: categoriesScrollProgress } = useScroll({
-    target: categoriesRef,
-    offset: ["start end", "end start"]
-  });
-  
-  // CTA section parallax
-  const { scrollYProgress: ctaScrollProgress } = useScroll({
-    target: ctaRef,
-    offset: ["start end", "end start"]
   });
   
   // Hero transforms
@@ -472,17 +458,11 @@ const OurServices = () => {
   const bgLayer2Y = useTransform(mainScrollProgress, [0, 1], [0, -250]);
   const bgLayer3Y = useTransform(mainScrollProgress, [0, 1], [0, -550]);
   
-  // Service types parallax
-  const serviceTypesY = useTransform(serviceTypesScrollProgress, [0, 1], [100, -100]);
-  const serviceTypesOpacity = useTransform(serviceTypesScrollProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0.5]);
-  
-  // Categories parallax
-  const categoriesY = useTransform(categoriesScrollProgress, [0, 1], [80, -80]);
-  const categoriesScale = useTransform(categoriesScrollProgress, [0, 0.5, 1], [0.95, 1, 0.98]);
-  
-  // CTA parallax
-  const ctaY = useTransform(ctaScrollProgress, [0, 1], [60, -40]);
-  const ctaRotate = useTransform(ctaScrollProgress, [0, 0.5, 1], [-2, 0, 2]);
+  // Service types and categories parallax - simplified to avoid hydration issues
+  const serviceTypesY = useTransform(mainScrollProgress, [0, 1], [50, -50]);
+  const serviceTypesOpacity = useTransform(mainScrollProgress, [0, 0.3, 0.7, 1], [0.8, 1, 1, 0.8]);
+  const categoriesY = useTransform(mainScrollProgress, [0, 1], [30, -30]);
+  const categoriesScale = useTransform(mainScrollProgress, [0, 0.5, 1], [0.98, 1, 0.99]);
 
   // Fetch categories
   const { data: initialCategories, isLoading } = useQuery({
