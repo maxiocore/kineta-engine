@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, User, ArrowLeft, Eye, EyeOff, Sparkles, Phone, Shield, Zap, CheckCircle2, Star } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, ArrowLeft, Eye, EyeOff, Sparkles, Phone, Shield, Zap, CheckCircle2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -560,14 +560,14 @@ const Auth = () => {
                         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                       />
                     ) : (
-                      <span className="relative flex items-center justify-center gap-2">
-                        {isSignUp ? "إنشاء الحساب" : "تسجيل الدخول"}
+                      <span className="relative flex items-center justify-center gap-2 flex-row-reverse">
                         <motion.div
-                          animate={{ x: [0, -5, 0] }}
+                          animate={{ x: [0, 5, 0] }}
                           transition={{ duration: 1.5, repeat: Infinity }}
                         >
                           <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                         </motion.div>
+                        {isSignUp ? "إنشاء الحساب" : "تسجيل الدخول"}
                       </span>
                     )}
                   </Button>
@@ -600,7 +600,7 @@ const Auth = () => {
             </div>
           </motion.div>
 
-          {/* Back to Home */}
+          {/* Back to Home - RTL Optimized */}
           <motion.div 
             className="mt-4 sm:mt-6 text-center"
             initial={{ opacity: 0 }}
@@ -609,11 +609,11 @@ const Auth = () => {
           >
             <Link to="/">
               <motion.span 
-                className="inline-flex items-center gap-2 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="inline-flex items-center justify-center gap-2 text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors group"
                 whileHover={{ x: 5 }}
               >
-                <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 rotate-180" />
-                العودة للصفحة الرئيسية
+                <span>العودة للصفحة الرئيسية</span>
+                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-1" />
               </motion.span>
             </Link>
           </motion.div>
