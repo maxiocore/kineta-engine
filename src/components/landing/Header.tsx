@@ -4,7 +4,7 @@ import { Menu, X, Sparkles, ChevronLeft, Home, Briefcase, Share2, Users, CreditC
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import ThemeToggle from "@/components/ThemeToggle";
-
+import maxioCoreLogo from "@/assets/maxiocore-logo-transparent.png";
 interface NavItem {
   label: string;
   href: string;
@@ -69,17 +69,13 @@ const Header = () => {
           <div className="flex items-center justify-between gap-4">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 group shrink-0">
-              <motion.div 
-                className="relative w-10 h-10 md:w-11 md:h-11 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-brand"
+              <motion.img 
+                src={maxioCoreLogo}
+                alt="MaxioCore"
+                className="h-8 md:h-10 w-auto"
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
-              >
-                <span className="font-bold text-lg md:text-xl text-primary-foreground">M</span>
-              </motion.div>
-              <div className="flex flex-col">
-                <span className="font-bold text-lg md:text-xl tracking-tight">MaxioCore</span>
-                <span className="text-[10px] md:text-xs text-muted-foreground leading-tight hidden sm:block">حلول رقمية متكاملة</span>
-              </div>
+              />
             </Link>
 
             {/* Desktop Navigation */}
@@ -195,10 +191,11 @@ const Header = () => {
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                   <Link to="/" className="flex items-center gap-2.5" onClick={() => setIsMobileMenuOpen(false)}>
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-brand">
-                      <span className="font-bold text-lg text-primary-foreground">M</span>
-                    </div>
-                    <span className="font-bold text-lg">MaxioCore</span>
+                    <img 
+                      src={maxioCoreLogo}
+                      alt="MaxioCore"
+                      className="h-8 w-auto"
+                    />
                   </Link>
                   <button
                     onClick={() => setIsMobileMenuOpen(false)}
