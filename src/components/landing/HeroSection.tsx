@@ -307,7 +307,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 40 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.5 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-14"
+            className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 max-w-6xl mx-auto mb-14"
           >
             {services.map((service, index) => (
               <motion.div
@@ -322,7 +322,7 @@ const HeroSection = () => {
                 <motion.div
                   className={`absolute -inset-1 rounded-3xl bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-30 blur-2xl transition-all duration-500`}
                 />
-                <div className="relative p-8 rounded-3xl bg-card/60 backdrop-blur-xl border border-border/50 group-hover:border-primary/30 transition-all duration-500 overflow-hidden">
+                <div className="relative p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl bg-card/60 backdrop-blur-xl border border-border/50 group-hover:border-primary/30 transition-all duration-500 overflow-hidden">
                   {/* Shimmer Effect */}
                   <motion.div
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -337,27 +337,27 @@ const HeroSection = () => {
                   
                   {/* Icon */}
                   <motion.div 
-                    className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${service.color} p-4 mb-6 shadow-xl`}
+                    className={`relative w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br ${service.color} p-2 sm:p-3 md:p-4 mb-3 sm:mb-4 md:mb-6 shadow-xl`}
                     whileHover={{ scale: 1.1, rotate: 10 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
                     <service.icon className="w-full h-full text-white" />
                   </motion.div>
 
-                  <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">
+                  <h3 className="text-sm sm:text-base md:text-xl font-bold mb-1 sm:mb-2 group-hover:text-primary transition-colors line-clamp-1">
                     {service.title}
                   </h3>
-                  <p className="text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">
                     {service.desc}
                   </p>
 
                   {/* Arrow */}
                   <motion.div 
-                    className="absolute bottom-8 left-8 opacity-0 group-hover:opacity-100 transition-all"
+                    className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-4 sm:left-6 md:left-8 opacity-0 group-hover:opacity-100 transition-all hidden sm:block"
                     animate={{ x: [0, -5, 0] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
                   >
-                    <ArrowLeft className="w-5 h-5 text-primary" />
+                    <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                   </motion.div>
                 </div>
               </motion.div>
