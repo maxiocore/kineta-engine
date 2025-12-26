@@ -7,6 +7,7 @@ interface QuickStat {
   value: number | string;
   icon: React.ComponentType<{ className?: string }>;
   color: string;
+  bgGradient: string;
 }
 
 interface QuickStatsRowProps {
@@ -25,27 +26,31 @@ const QuickStatsRow = ({
   const stats: QuickStat[] = [
     {
       label: "رصيد المستخدمين",
-      value: `${totalBalance.toLocaleString()} ر.س`,
+      value: `${totalBalance.toLocaleString('ar-SA')} ر.س`,
       icon: Wallet,
-      color: "text-primary bg-primary/10",
+      color: "text-primary",
+      bgGradient: "from-primary/20 to-primary/5",
     },
     {
       label: "إجمالي الإيداعات",
-      value: `${totalDeposits.toLocaleString()} ر.س`,
+      value: `${totalDeposits.toLocaleString('ar-SA')} ر.س`,
       icon: CreditCard,
-      color: "text-success bg-success/10",
+      color: "text-success",
+      bgGradient: "from-success/20 to-success/5",
     },
     {
-      label: "تذاكر مفتوحة",
-      value: openTickets,
+      label: "تذاكر الدعم المفتوحة",
+      value: openTickets.toLocaleString('ar-SA'),
       icon: TicketCheck,
-      color: "text-warning bg-warning/10",
+      color: "text-warning",
+      bgGradient: "from-warning/20 to-warning/5",
     },
     {
       label: "رسائل جديدة",
-      value: pendingMessages,
+      value: pendingMessages.toLocaleString('ar-SA'),
       icon: MessageSquare,
-      color: "text-accent bg-accent/10",
+      color: "text-accent",
+      bgGradient: "from-accent/20 to-accent/5",
     },
   ];
 
@@ -55,20 +60,30 @@ const QuickStatsRow = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
       className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3"
+      dir="rtl"
     >
       {stats.map((stat, index) => (
         <motion.div
           key={stat.label}
-          initial={{ opacity: 0, x: -10 }}
+          initial={{ opacity: 0, x: 10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 * index }}
-          className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-xl bg-card/50 border border-border/30 hover:border-border/50 transition-colors"
+          whileHover={{ scale: 1.02, y: -2 }}
+          className={cn(
+            "flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-xl",
+            "bg-gradient-to-l border border-border/30 hover:border-border/50",
+            "transition-all duration-300 cursor-pointer group",
+            stat.bgGradient
+          )}
         >
-          <div className={cn("p-2 rounded-lg", stat.color)}>
+          <div className={cn(
+            "p-2 rounded-lg bg-background/50 group-hover:scale-110 transition-transform",
+            stat.color
+          )}>
             <stat.icon className="w-4 h-4" />
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs sm:text-sm font-semibold truncate">{stat.value}</p>
+          <div className="min-w-0 flex-1 text-right">
+            <p className="text-xs sm:text-sm font-bold truncate">{stat.value}</p>
             <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{stat.label}</p>
           </div>
         </motion.div>

@@ -34,11 +34,11 @@ const getRankIcon = (index: number) => {
 const getRankBg = (index: number) => {
   switch (index) {
     case 0:
-      return "bg-gradient-to-br from-yellow-500/20 to-orange-500/10 border-yellow-500/30";
+      return "bg-gradient-to-l from-yellow-500/20 to-orange-500/10 border-yellow-500/30";
     case 1:
-      return "bg-gradient-to-br from-gray-400/20 to-gray-500/10 border-gray-400/30";
+      return "bg-gradient-to-l from-gray-400/20 to-gray-500/10 border-gray-400/30";
     case 2:
-      return "bg-gradient-to-br from-amber-600/20 to-amber-700/10 border-amber-600/30";
+      return "bg-gradient-to-l from-amber-600/20 to-amber-700/10 border-amber-600/30";
     default:
       return "bg-secondary/50 border-border/50";
   }
@@ -49,9 +49,9 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
   const maxRevenue = Math.max(...services.map((s) => s.revenue), 1);
 
   return (
-    <Card className="border-border/50 h-full overflow-hidden bg-gradient-to-br from-card to-card/80">
+    <Card className="border-border/50 h-full overflow-hidden bg-gradient-to-bl from-card to-card/80" dir="rtl">
       <CardHeader className="pb-3 px-4 sm:px-6 pt-4 sm:pt-5">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-row-reverse">
           <CardTitle className="text-sm sm:text-base flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-warning/10">
               <Star className="w-4 h-4 text-warning" />
@@ -61,7 +61,7 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
           <Button
             variant="ghost"
             size="sm"
-            className="text-xs h-8 gap-1.5 hover:bg-primary/10"
+            className="text-xs h-8 gap-1.5 hover:bg-primary/10 flex-row-reverse"
             onClick={() => navigate("/admin/services")}
           >
             <Eye className="w-3.5 h-3.5" />
@@ -74,34 +74,35 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
           services.map((service, index) => (
             <motion.div
               key={service.id}
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
+              whileHover={{ scale: 1.01, x: -2 }}
               className={cn(
-                "relative p-3 rounded-xl border transition-all hover:scale-[1.01]",
+                "relative p-3 rounded-xl border transition-all cursor-pointer",
                 getRankBg(index)
               )}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-row-reverse">
                 <div className="w-8 h-8 rounded-lg bg-background/50 flex items-center justify-center border border-border/50">
                   {getRankIcon(index)}
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 text-right">
                   <p className="text-sm font-medium truncate">{service.name}</p>
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-2 mt-1 justify-end flex-row-reverse">
                     <span className="text-[10px] sm:text-xs text-muted-foreground">
-                      {service.orders} طلب
+                      {service.orders.toLocaleString('ar-SA')} طلب
                     </span>
                     {service.trend > 0 && (
-                      <span className="flex items-center gap-0.5 text-[10px] text-success">
+                      <span className="flex items-center gap-0.5 text-[10px] text-success flex-row-reverse">
                         <TrendingUp className="w-2.5 h-2.5" />
                         {service.trend}%
                       </span>
                     )}
                   </div>
                 </div>
-                <div className="text-left">
-                  <p className="text-sm font-bold">{service.revenue.toLocaleString()}</p>
+                <div className="text-right">
+                  <p className="text-sm font-bold">{service.revenue.toLocaleString('ar-SA')}</p>
                   <p className="text-[10px] text-muted-foreground">ر.س</p>
                 </div>
               </div>
