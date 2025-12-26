@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { motion, AnimatePresence, useInView } from "framer-motion";
+import { motion, AnimatePresence, useInView, useMotionValue, useTransform, animate } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -44,6 +44,9 @@ import {
   TrendingUp,
   ArrowUpRight,
   Play,
+  ShoppingCart,
+  Wallet,
+  Activity,
 } from "lucide-react";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
@@ -173,34 +176,129 @@ const LiveIndicator = () => (
   </motion.div>
 );
 
-// Stats Card Component
-const StatsCard = ({ icon: Icon, value, label, color, index }: { icon: any; value: string; label: string; color: string; index: number }) => {
+// Animated Counter Component
+const AnimatedCounter = ({ value, suffix = "", duration = 2 }: { value: number; suffix?: string; duration?: number }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+  const count = useMotionValue(0);
+  const rounded = useTransform(count, (latest) => {
+    if (latest >= 1000000) {
+      return `${(latest / 1000000).toFixed(1)}M`;
+    } else if (latest >= 1000) {
+      return `${(latest / 1000).toFixed(latest >= 10000 ? 0 : 1)}K`;
+    }
+    return Math.round(latest).toLocaleString('ar-SA');
+  });
+  const [displayValue, setDisplayValue] = useState("0");
+
+  useEffect(() => {
+    if (isInView) {
+      const controls = animate(count, value, {
+        duration,
+        ease: "easeOut",
+        onUpdate: (latest) => {
+          if (latest >= 1000000) {
+            setDisplayValue(`${(latest / 1000000).toFixed(1)}M`);
+          } else if (latest >= 1000) {
+            setDisplayValue(`${(latest / 1000).toFixed(latest >= 10000 ? 0 : 1)}K`);
+          } else {
+            setDisplayValue(Math.round(latest).toLocaleString('ar-SA'));
+          }
+        }
+      });
+      return controls.stop;
+    }
+  }, [isInView, value, duration, count]);
+
+  return (
+    <span ref={ref} className="tabular-nums">
+      {displayValue}{suffix}
+    </span>
+  );
+};
+
+// Enhanced Stats Card Component
+const EnhancedStatsCard = ({ 
+  icon: Icon, 
+  value, 
+  label, 
+  sublabel,
+  gradient, 
+  index,
+  isLoading 
+}: { 
+  icon: any; 
+  value: number; 
+  label: string; 
+  sublabel?: string;
+  gradient: string; 
+  index: number;
+  isLoading?: boolean;
+}) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
   
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ delay: index * 0.1, duration: 0.5 }}
-      className="text-center p-4"
+      initial={{ opacity: 0, y: 40, scale: 0.9 }}
+      animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
+      transition={{ delay: index * 0.15, duration: 0.6, type: "spring", bounce: 0.3 }}
+      className="group relative"
     >
-      <motion.div 
-        className={`w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center mb-3 shadow-lg`}
-        whileHover={{ scale: 1.1, rotate: 5 }}
-      >
-        <Icon className="w-7 h-7 text-white" />
-      </motion.div>
-      <motion.p 
-        className="text-2xl sm:text-3xl font-bold text-foreground mb-1"
-        initial={{ scale: 0 }}
-        animate={isInView ? { scale: 1 } : {}}
-        transition={{ delay: index * 0.1 + 0.2, type: "spring" }}
-      >
-        {value}
-      </motion.p>
-      <p className="text-sm text-muted-foreground">{label}</p>
+      <Card className="relative overflow-hidden border-2 border-border/30 bg-card/60 backdrop-blur-xl hover:border-primary/40 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10">
+        {/* Animated gradient background */}
+        <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
+        
+        {/* Decorative circles */}
+        <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br ${gradient} opacity-10 blur-2xl group-hover:opacity-20 transition-opacity`} />
+        
+        <CardContent className="p-6 sm:p-8 relative z-10">
+          {/* Icon with glow effect */}
+          <motion.div 
+            className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-5 shadow-xl relative`}
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ type: "spring", stiffness: 400 }}
+          >
+            {/* Glow effect */}
+            <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${gradient} blur-xl opacity-50 group-hover:opacity-80 transition-opacity`} />
+            <Icon className="w-8 h-8 sm:w-10 sm:h-10 text-white relative z-10" />
+          </motion.div>
+          
+          {/* Value with animated counter */}
+          {isLoading ? (
+            <Skeleton className="h-12 w-32 mb-2" />
+          ) : (
+            <motion.div 
+              className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-2"
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={isInView ? { scale: 1, opacity: 1 } : {}}
+              transition={{ delay: index * 0.15 + 0.3, type: "spring", stiffness: 200 }}
+            >
+              <AnimatedCounter value={value} suffix="+" duration={2.5} />
+            </motion.div>
+          )}
+          
+          {/* Label */}
+          <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-1">
+            {label}
+          </h3>
+          
+          {/* Sublabel */}
+          {sublabel && (
+            <p className="text-sm text-muted-foreground">
+              {sublabel}
+            </p>
+          )}
+          
+          {/* Live indicator dot */}
+          <motion.div
+            className="absolute top-4 left-4 w-3 h-3 rounded-full bg-success"
+            animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
+            transition={{ duration: 2, repeat: Infinity, delay: index * 0.2 }}
+          />
+        </CardContent>
+      </Card>
     </motion.div>
   );
 };
@@ -401,13 +499,39 @@ const OurServices = () => {
     );
   }, [categories, searchQuery]);
 
-  // Stats data with real values
+  // Enhanced stats data with real values
   const statsData = [
-    { icon: Users, value: stats ? `${(stats.total_users / 1000).toFixed(0)}K+` : "50K+", label: "عميل سعيد", color: "from-blue-500 to-cyan-500" },
-    { icon: Heart, value: stats ? `${(stats.completed_orders / 1000).toFixed(0)}K+` : "1M+", label: "طلب مكتمل", color: "from-pink-500 to-rose-500" },
-    { icon: Award, value: stats ? `${stats.total_services}+` : "850+", label: "خدمة متاحة", color: "from-amber-500 to-orange-500" },
-    { icon: Star, value: "4.9", label: "تقييم العملاء", color: "from-purple-500 to-violet-500" },
+    { 
+      icon: Users, 
+      value: stats?.total_users || 0, 
+      label: "عميل سعيد", 
+      sublabel: "يثقون بخدماتنا",
+      gradient: "from-blue-500 via-cyan-500 to-teal-500" 
+    },
+    { 
+      icon: ShoppingCart, 
+      value: stats?.completed_orders || 0, 
+      label: "طلب مكتمل", 
+      sublabel: "تم تنفيذه بنجاح",
+      gradient: "from-pink-500 via-rose-500 to-red-500" 
+    },
+    { 
+      icon: Award, 
+      value: stats?.total_services || 0, 
+      label: "خدمة متاحة", 
+      sublabel: "جاهزة للطلب",
+      gradient: "from-amber-500 via-orange-500 to-red-500" 
+    },
+    { 
+      icon: Wallet, 
+      value: stats?.total_deposits || 0, 
+      label: "عملية إيداع", 
+      sublabel: "تمت بنجاح",
+      gradient: "from-emerald-500 via-green-500 to-teal-500" 
+    },
   ];
+
+  const isStatsLoading = !stats;
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
@@ -472,12 +596,39 @@ const OurServices = () => {
               </div>
             </motion.div>
             
-            {/* Stats Grid */}
-            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-              {statsData.map((stat, index) => (
-                <StatsCard key={index} {...stat} index={index} />
-              ))}
-            </div>
+            {/* Enhanced Stats Section */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-20"
+            >
+              {/* Stats Header */}
+              <div className="text-center mb-10">
+                <Badge variant="outline" className="gap-2 mb-4">
+                  <Activity className="w-4 h-4 text-primary" />
+                  إحصائيات حية
+                </Badge>
+                <h2 className="text-2xl sm:text-3xl font-bold mb-2">
+                  أرقام <span className="text-primary">تتحدث</span> عنا
+                </h2>
+                <p className="text-muted-foreground max-w-lg mx-auto">
+                  إحصائيات حقيقية يتم تحديثها لحظياً من قاعدة البيانات
+                </p>
+              </div>
+              
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {statsData.map((stat, index) => (
+                  <EnhancedStatsCard 
+                    key={index} 
+                    {...stat} 
+                    index={index} 
+                    isLoading={isStatsLoading}
+                  />
+                ))}
+              </div>
+            </motion.div>
           </div>
         </section>
 
