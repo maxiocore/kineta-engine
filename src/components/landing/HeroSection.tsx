@@ -66,6 +66,13 @@ const HeroSection = () => {
       color: "from-violet-500 via-purple-500 to-fuchsia-500",
       glow: "violet"
     },
+    { 
+      icon: Globe, 
+      title: "خدمات رقمية",
+      desc: "حلول متكاملة ومتنوعة",
+      color: "from-amber-500 via-orange-500 to-red-500",
+      glow: "amber"
+    },
   ];
 
   const features = [
@@ -300,7 +307,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 40 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.5 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-14"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-14"
           >
             {services.map((service, index) => (
               <motion.div
