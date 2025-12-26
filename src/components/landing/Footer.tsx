@@ -15,7 +15,7 @@ const footerLinks = {
   "الشركة": [
     { label: "من نحن", href: "/about" },
     { label: "فريق العمل", href: "/about" },
-    { label: "الوظائف", href: "/contact" },
+    { label: "الوظائف", href: "/careers" },
     { label: "تواصل معنا", href: "/contact" },
   ],
   "الدعم": [

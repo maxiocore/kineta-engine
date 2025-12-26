@@ -911,6 +911,152 @@ export type Database = {
           },
         ]
       }
+      job_applications: {
+        Row: {
+          admin_notes: string | null
+          available_start_date: string | null
+          cover_letter: string | null
+          created_at: string
+          current_company: string | null
+          email: string
+          expected_salary: string | null
+          full_name: string
+          id: string
+          job_id: string | null
+          linkedin_url: string | null
+          phone: string | null
+          portfolio_url: string | null
+          resume_url: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          years_of_experience: number | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          available_start_date?: string | null
+          cover_letter?: string | null
+          created_at?: string
+          current_company?: string | null
+          email: string
+          expected_salary?: string | null
+          full_name: string
+          id?: string
+          job_id?: string | null
+          linkedin_url?: string | null
+          phone?: string | null
+          portfolio_url?: string | null
+          resume_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          years_of_experience?: number | null
+        }
+        Update: {
+          admin_notes?: string | null
+          available_start_date?: string | null
+          cover_letter?: string | null
+          created_at?: string
+          current_company?: string | null
+          email?: string
+          expected_salary?: string | null
+          full_name?: string
+          id?: string
+          job_id?: string | null
+          linkedin_url?: string | null
+          phone?: string | null
+          portfolio_url?: string | null
+          resume_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          years_of_experience?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_postings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_postings: {
+        Row: {
+          benefits: Json | null
+          benefits_ar: Json | null
+          created_at: string
+          department: string
+          department_ar: string
+          description: string | null
+          description_ar: string | null
+          display_order: number | null
+          employment_type: string
+          id: string
+          is_active: boolean
+          is_featured: boolean
+          location: string
+          location_ar: string
+          requirements: Json | null
+          requirements_ar: Json | null
+          salary_range: string | null
+          salary_range_ar: string | null
+          title: string
+          title_ar: string
+          updated_at: string
+        }
+        Insert: {
+          benefits?: Json | null
+          benefits_ar?: Json | null
+          created_at?: string
+          department: string
+          department_ar: string
+          description?: string | null
+          description_ar?: string | null
+          display_order?: number | null
+          employment_type?: string
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          location?: string
+          location_ar?: string
+          requirements?: Json | null
+          requirements_ar?: Json | null
+          salary_range?: string | null
+          salary_range_ar?: string | null
+          title: string
+          title_ar: string
+          updated_at?: string
+        }
+        Update: {
+          benefits?: Json | null
+          benefits_ar?: Json | null
+          created_at?: string
+          department?: string
+          department_ar?: string
+          description?: string | null
+          description_ar?: string | null
+          display_order?: number | null
+          employment_type?: string
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          location?: string
+          location_ar?: string
+          requirements?: Json | null
+          requirements_ar?: Json | null
+          salary_range?: string | null
+          salary_range_ar?: string | null
+          title?: string
+          title_ar?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       monthly_achievements: {
         Row: {
           achieved_at: string | null
