@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { useRef } from "react";
-import logoImage from "@/assets/maxiocore-logo-transparent.png";
 
 const footerLinks = {
   "الخدمات": [
@@ -160,17 +159,15 @@ const Footer = () => {
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.2 }}
           >
-            <Link to="/" className="flex items-center gap-4 mb-8 group">
-              <motion.div 
-                className="w-14 h-14 rounded-2xl overflow-hidden shadow-xl shadow-primary/30"
-                whileHover={{ scale: 1.05, rotate: 5 }}
+            <Link to="/" className="flex items-center gap-3 mb-8 group">
+              <motion.span 
+                className="text-2xl md:text-3xl font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
+                whileHover={{ scale: 1.03 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
               >
-                <img src={logoImage} alt="MaxioCore" className="w-full h-full object-contain" />
-              </motion.div>
-              <div className="flex flex-col">
-                <span className="font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-l from-primary via-accent to-primary">MaxioCore</span>
-                <span className="text-muted-foreground text-sm">حلول رقمية متكاملة</span>
-              </div>
+                MaxioCore
+              </motion.span>
             </Link>
             <p className="text-muted-foreground mb-10 max-w-sm leading-relaxed text-lg">
               شريكك الموثوق في رحلة التحول الرقمي. نقدم حلول متكاملة تساعدك على النمو والتميز.
@@ -229,15 +226,16 @@ const Footer = () => {
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ delay: 0.6 }}
         >
-          <div className="flex items-center gap-3">
-            <motion.div 
-              className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-primary/20"
-              whileHover={{ scale: 1.1, rotate: 5 }}
+          <Link to="/" className="flex items-center">
+            <motion.span 
+              className="text-xl font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
+              whileHover={{ scale: 1.03 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+              style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
             >
-              <img src={logoImage} alt="MaxioCore" className="w-full h-full object-contain" />
-            </motion.div>
-            <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-l from-primary to-accent">MaxioCore</span>
-          </div>
+              MaxioCore
+            </motion.span>
+          </Link>
           
           <p className="text-muted-foreground flex items-center gap-2 text-sm">
             © {new Date().getFullYear()} MaxioCore. صنع بـ 
