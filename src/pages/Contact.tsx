@@ -51,10 +51,10 @@ const contactInfo = [
     action: "mailto:info@maxiocore.com"
   },
   {
-    icon: MapPin,
-    title: "زرنا",
-    value: "جدة، حي الروضة",
-    description: "المملكة العربية السعودية",
+    icon: Globe,
+    title: "موقعنا",
+    value: "جدة، السعودية",
+    description: "خدماتنا أونلاين بالكامل",
     gradient: "from-emerald-500 to-teal-600",
   },
   {
@@ -449,8 +449,8 @@ const Contact = () => {
                         <MapPin className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-bold text-sm">المقر الرئيسي</p>
-                        <p className="text-xs text-muted-foreground">جدة، حي الروضة، المملكة العربية السعودية</p>
+                        <p className="font-bold text-sm">موقعنا</p>
+                        <p className="text-xs text-muted-foreground">جدة، المملكة العربية السعودية - خدماتنا أونلاين</p>
                       </div>
                     </div>
                   </div>
