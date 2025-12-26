@@ -63,12 +63,7 @@ const values = [
 ];
 
 const milestones = [
-  { year: "2019", title: "البداية", description: "تأسيس الشركة برؤية طموحة وفريق من 3 أشخاص", icon: Rocket, color: "from-cyan-500 to-blue-600" },
-  { year: "2020", title: "النمو", description: "توسيع الفريق إلى 10 متخصصين وإضافة خدمات جديدة", icon: TrendingUp, color: "from-emerald-500 to-teal-600" },
-  { year: "2021", title: "التوسع", description: "الوصول لأكثر من 200 عميل وفتح أسواق جديدة", icon: Globe, color: "from-violet-500 to-purple-600" },
-  { year: "2022", title: "الريادة", description: "الحصول على جوائز التميز والاعتراف الصناعي", icon: Trophy, color: "from-amber-500 to-orange-600" },
-  { year: "2023", title: "الابتكار", description: "إطلاق منتجات رقمية مبتكرة وحلول متقدمة", icon: Lightbulb, color: "from-pink-500 to-rose-600" },
-  { year: "2024", title: "المستقبل", description: "نحو آفاق جديدة مع أكثر من 500 عميل", icon: Star, color: "from-primary to-accent" },
+  { year: "2025", title: "الإطلاق", description: "إطلاق الموقع رسمياً في 23 ديسمبر 2025", icon: Rocket, color: "from-primary to-accent" },
 ];
 
 const services = [
@@ -163,7 +158,7 @@ const About = () => {
                 <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
                   شركة رائدة في مجال التسويق الرقمي والحلول الإبداعية، نساعد الشركات على 
                   <span className="text-primary font-semibold"> النمو </span>
-                  والتميز في العالم الرقمي منذ عام 2019
+                  والتميز في العالم الرقمي - تم إطلاقنا في ديسمبر 2025
                 </p>
               </motion.div>
 
@@ -280,7 +275,7 @@ const About = () => {
                 
                 <div className="space-y-5 text-muted-foreground text-base md:text-lg leading-relaxed">
                   <p>
-                    بدأت رحلتنا في عام 2019 برؤية واضحة: تقديم حلول تسويقية رقمية متميزة للشركات في المملكة العربية السعودية والعالم العربي.
+                    انطلقت رحلتنا في ديسمبر 2025 برؤية واضحة: تقديم حلول تسويقية رقمية متميزة للشركات في المملكة العربية السعودية والعالم العربي.
                   </p>
                   <p>
                     من فريق صغير مكون من 3 أشخاص، نمونا لنصبح فريقاً من أكثر من 25 متخصصاً في مختلف مجالات التسويق الرقمي والتصميم والبرمجة.
@@ -331,9 +326,9 @@ const About = () => {
                   <div className="absolute inset-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 backdrop-blur-sm flex items-center justify-center border border-primary/20">
                     <div className="text-center">
                       <span className="text-5xl md:text-6xl font-bold bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
-                        2019
+                        2025
                       </span>
-                      <p className="text-sm text-muted-foreground mt-2">سنة التأسيس</p>
+                      <p className="text-sm text-muted-foreground mt-2">سنة الإطلاق</p>
                     </div>
                   </div>
 
