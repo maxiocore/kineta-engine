@@ -21,6 +21,7 @@ import OurServices from "./pages/OurServices";
 import CategoryDetails from "./pages/CategoryDetails";
 import DevelopmentServices from "./pages/DevelopmentServices";
 import DesignServices from "./pages/DesignServices";
+import SocialMediaServices from "./pages/SocialMediaServices";
 
 // Client Dashboard
 import ClientDashboard from "./pages/dashboard/ClientDashboard";
@@ -109,6 +110,7 @@ const App = () => (
                   <Route path="/track-order" element={<TrackOrder />} />
                   <Route path="/development-services" element={<DevelopmentServices />} />
                   <Route path="/design-services" element={<DesignServices />} />
+                  <Route path="/social-media-services" element={<SocialMediaServices />} />
                   <Route path="/auth" element={<Auth />} />
                   
                   {/* Client Dashboard Routes */}
