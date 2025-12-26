@@ -38,11 +38,13 @@ const useRealStats = () => {
 
 const AnimatedCounter = ({ value, suffix = "" }: { value: number; suffix?: string }) => {
   const [count, setCount] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true });
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(containerRef, { once: true });
 
   useEffect(() => {
-    if (isInView) {
+    if (isInView && !hasAnimated) {
+      setHasAnimated(true);
       let start = 0;
       const duration = 2000;
       const increment = value / (duration / 16);
@@ -59,9 +61,9 @@ const AnimatedCounter = ({ value, suffix = "" }: { value: number; suffix?: strin
 
       return () => clearInterval(timer);
     }
-  }, [isInView, value]);
+  }, [isInView, value, hasAnimated]);
 
-  return <span ref={ref}>{count.toLocaleString("ar-SA")}{suffix}</span>;
+  return <div ref={containerRef} className="inline">{count.toLocaleString("ar-SA")}{suffix}</div>;
 };
 
 const HeroSection = () => {
