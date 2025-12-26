@@ -139,7 +139,8 @@ const ClientServicesHome = () => {
   const [servicesCount, setServicesCount] = useState({
     social: 0,
     design: 0,
-    dev: 0
+    dev: 0,
+    digital: 0
   });
   const [globalStats, setGlobalStats] = useState({
     totalServices: 0,
@@ -188,6 +189,12 @@ const ClientServicesHome = () => {
         .eq('status', 'active')
         .or('category.ilike.%dev%,category.ilike.%برمجة%,category.ilike.%تطوير%,name.ilike.%موقع%,name.ilike.%تطبيق%,name.ilike.%برمجة%');
 
+      const { count: digitalCount } = await supabase
+        .from('services')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active')
+        .or('category.ilike.%marketing%,category.ilike.%تسويق%,category.ilike.%digital%,category.ilike.%رقمي%,name.ilike.%seo%,name.ilike.%إعلان%,name.ilike.%حملة%,name.ilike.%تسويق%');
+
       // Fetch global stats
       const { count: totalServicesCount } = await supabase
         .from('services')
@@ -216,7 +223,8 @@ const ClientServicesHome = () => {
       setServicesCount({
         social: socialCount || 0,
         design: designCount || 0,
-        dev: devCount || 0
+        dev: devCount || 0,
+        digital: digitalCount || 0
       });
 
       setGlobalStats({
@@ -384,6 +392,25 @@ const ClientServicesHome = () => {
         { icon: TrendingUp, label: 'SEO', color: 'from-lime-500 to-green-600' },
       ],
       features: ['تقنيات حديثة', 'دعم فني', 'سيو متقدم']
+    },
+    {
+      id: 'digital',
+      title: 'التسويق الرقمي',
+      subtitle: 'Digital Marketing',
+      description: 'حلول تسويقية متكاملة لنمو أعمالك',
+      icon: BarChart3,
+      path: '/dashboard/digital-services',
+      gradient: 'from-blue-500 via-indigo-500 to-violet-500',
+      bgGradient: 'from-blue-500/20 via-indigo-500/10 to-transparent',
+      shadowColor: 'shadow-blue-500/25',
+      count: servicesCount.digital,
+      platforms: [
+        { icon: TrendingUp, label: 'SEO', color: 'from-blue-500 to-indigo-600' },
+        { icon: Target, label: 'إعلانات', color: 'from-indigo-500 to-violet-600' },
+        { icon: BarChart3, label: 'تحليلات', color: 'from-violet-500 to-purple-600' },
+        { icon: MessageCircle, label: 'محتوى', color: 'from-cyan-500 to-blue-600' },
+      ],
+      features: ['استهداف دقيق', 'نتائج مضمونة', 'تقارير مفصلة']
     }
   ];
 
@@ -394,7 +421,7 @@ const ClientServicesHome = () => {
     { icon: Award, title: 'أعلى جودة', desc: 'معايير احترافية', color: 'from-purple-500 to-pink-600' },
   ];
 
-  const totalServices = servicesCount.social + servicesCount.design + servicesCount.dev;
+  const totalServices = servicesCount.social + servicesCount.design + servicesCount.dev + servicesCount.digital;
 
   if (isLoading) {
     return (
