@@ -36,29 +36,29 @@ function getEmailTemplate(
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>تأكيد عملية الإيداع</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Tajawal', Arial, sans-serif; background-color: #f0f2f5; direction: rtl;">
-  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+<body style="margin: 0; padding: 0; font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif; background-color: #f0f4f8; direction: rtl; text-align: right;">
+  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; background-color: #f0f4f8;">
     <tr>
-      <td align="center" style="padding: 40px 20px;">
-        <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); overflow: hidden;">
+      <td align="center" style="padding: 30px 15px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);">
           
           <!-- Header with Bank Style -->
           <tr>
-            <td style="background: linear-gradient(135deg, #1a365d 0%, #2c5282 50%, #2b6cb0 100%); padding: 0;">
-              <table role="presentation" style="width: 100%; border-collapse: collapse;">
+            <td style="background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #3b82f6 100%); padding: 35px 30px; text-align: center;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                 <tr>
-                  <td style="padding: 35px 30px 25px; text-align: center;">
+                  <td align="center">
                     <!-- Success Icon -->
-                    <div style="width: 80px; height: 80px; margin: 0 auto 20px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);">
-                      <span style="font-size: 40px; line-height: 80px;">✓</span>
+                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 50%; margin: 0 auto 20px; line-height: 80px; box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);">
+                      <span style="font-size: 40px;">✓</span>
                     </div>
-                    <h1 style="margin: 0; color: #ffffff; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">
+                    <h1 style="margin: 0; color: #ffffff; font-size: 26px; font-weight: 700;">
                       تم إيداع رصيدك بنجاح
                     </h1>
-                    <p style="margin: 10px 0 0; color: rgba(255,255,255,0.85); font-size: 15px;">
+                    <p style="margin: 10px 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">
                       إيصال المعاملة المالية
                     </p>
                   </td>
@@ -70,15 +70,15 @@ function getEmailTemplate(
           <!-- Amount Display Card -->
           <tr>
             <td style="padding: 30px 30px 20px;">
-              <table role="presentation" style="width: 100%; border-collapse: collapse; background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%); border-radius: 16px; border: 2px solid #e2e8f0;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 16px; border: 2px solid #e2e8f0;">
                 <tr>
-                  <td style="padding: 25px; text-align: center;">
-                    <p style="margin: 0 0 8px; color: #718096; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">المبلغ المضاف للرصيد</p>
-                    <p style="margin: 0; color: #22543d; font-size: 42px; font-weight: 800; letter-spacing: -1px;">
+                  <td style="padding: 28px; text-align: center;">
+                    <p style="margin: 0 0 10px; color: #64748b; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">المبلغ المضاف للرصيد</p>
+                    <p style="margin: 0; color: #166534; font-size: 42px; font-weight: 800; letter-spacing: -1px;">
                       $${totalCredited.toFixed(2)}
                     </p>
                     ${bonusAmount && bonusAmount > 0 ? `
-                    <p style="margin: 10px 0 0; color: #38a169; font-size: 14px; font-weight: 600;">
+                    <p style="margin: 12px 0 0; color: #22c55e; font-size: 14px; font-weight: 600;">
                       🎁 يشمل مكافأة إيداع: $${bonusAmount.toFixed(2)}
                     </p>
                     ` : ''}
@@ -91,10 +91,10 @@ function getEmailTemplate(
           <!-- Transaction Details -->
           <tr>
             <td style="padding: 0 30px 25px;">
-              <table role="presentation" style="width: 100%; border-collapse: collapse;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                 <tr>
                   <td style="padding-bottom: 15px;">
-                    <h3 style="margin: 0; color: #2d3748; font-size: 16px; font-weight: 700; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
+                    <h3 style="margin: 0; color: #1e293b; font-size: 16px; font-weight: 700; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; text-align: right;">
                       📋 تفاصيل المعاملة
                     </h3>
                   </td>
@@ -102,81 +102,34 @@ function getEmailTemplate(
               </table>
               
               <!-- Details Grid -->
-              <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f8fafc; border-radius: 12px; overflow: hidden;">
-                <!-- Row 1: Transaction ID -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 14px; border-right: 4px solid #3b82f6; overflow: hidden;">
                 ${transactionId ? `
                 <tr>
-                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0;">
-                    <table role="presentation" style="width: 100%;">
-                      <tr>
-                        <td style="color: #718096; font-size: 13px;">رقم المعاملة</td>
-                        <td style="text-align: left; color: #2d3748; font-size: 14px; font-weight: 600; font-family: monospace;">${transactionId}</td>
-                      </tr>
-                    </table>
-                  </td>
+                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 13px;">رقم المعاملة</td>
+                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 14px; font-weight: 600; font-family: monospace;" dir="ltr">${transactionId}</td>
                 </tr>
                 ` : ''}
-                
-                <!-- Row 2: Date -->
                 <tr>
-                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0;">
-                    <table role="presentation" style="width: 100%;">
-                      <tr>
-                        <td style="color: #718096; font-size: 13px;">تاريخ المعاملة</td>
-                        <td style="text-align: left; color: #2d3748; font-size: 14px; font-weight: 500;">${formattedDate}</td>
-                      </tr>
-                    </table>
-                  </td>
+                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 13px;">تاريخ المعاملة</td>
+                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 14px; font-weight: 500;">${formattedDate}</td>
                 </tr>
-                
-                <!-- Row 3: Payment Method -->
                 <tr>
-                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0;">
-                    <table role="presentation" style="width: 100%;">
-                      <tr>
-                        <td style="color: #718096; font-size: 13px;">طريقة الدفع</td>
-                        <td style="text-align: left; color: #2d3748; font-size: 14px; font-weight: 500;">${paymentMethod}</td>
-                      </tr>
-                    </table>
-                  </td>
+                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 13px;">طريقة الدفع</td>
+                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 14px; font-weight: 500;">${paymentMethod}</td>
                 </tr>
-                
-                <!-- Row 4: Original Amount -->
                 <tr>
-                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0;">
-                    <table role="presentation" style="width: 100%;">
-                      <tr>
-                        <td style="color: #718096; font-size: 13px;">المبلغ المدفوع</td>
-                        <td style="text-align: left; color: #2d3748; font-size: 14px; font-weight: 600;">$${amount.toFixed(2)}</td>
-                      </tr>
-                    </table>
-                  </td>
+                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 13px;">المبلغ المدفوع</td>
+                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 14px; font-weight: 600;">$${amount.toFixed(2)}</td>
                 </tr>
-                
                 ${bonusAmount && bonusAmount > 0 ? `
-                <!-- Row 5: Bonus -->
-                <tr>
-                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; background-color: #f0fff4;">
-                    <table role="presentation" style="width: 100%;">
-                      <tr>
-                        <td style="color: #276749; font-size: 13px;">🎁 المكافأة</td>
-                        <td style="text-align: left; color: #22543d; font-size: 14px; font-weight: 700;">+$${bonusAmount.toFixed(2)}</td>
-                      </tr>
-                    </table>
-                  </td>
+                <tr style="background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%);">
+                  <td style="padding: 15px 20px; border-bottom: 1px solid #bbf7d0; text-align: right; color: #166534; font-size: 13px;">🎁 المكافأة</td>
+                  <td style="padding: 15px 20px; border-bottom: 1px solid #bbf7d0; text-align: left; color: #166534; font-size: 14px; font-weight: 700;">+$${bonusAmount.toFixed(2)}</td>
                 </tr>
                 ` : ''}
-                
-                <!-- Row 6: New Balance -->
-                <tr>
-                  <td style="padding: 18px 20px; background: linear-gradient(135deg, #ebf8ff 0%, #e6fffa 100%);">
-                    <table role="presentation" style="width: 100%;">
-                      <tr>
-                        <td style="color: #2c5282; font-size: 14px; font-weight: 600;">💰 رصيدك الجديد</td>
-                        <td style="text-align: left; color: #2c5282; font-size: 18px; font-weight: 800;">$${newBalance.toFixed(2)}</td>
-                      </tr>
-                    </table>
-                  </td>
+                <tr style="background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);">
+                  <td style="padding: 18px 20px; text-align: right; color: #1e40af; font-size: 14px; font-weight: 600;">💰 رصيدك الجديد</td>
+                  <td style="padding: 18px 20px; text-align: left; color: #1e40af; font-size: 20px; font-weight: 800;">$${newBalance.toFixed(2)}</td>
                 </tr>
               </table>
             </td>
@@ -185,10 +138,10 @@ function getEmailTemplate(
           <!-- Security Notice -->
           <tr>
             <td style="padding: 0 30px 25px;">
-              <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #fffbeb; border-radius: 10px; border: 1px solid #fbd38d;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: #fef3c7; border-radius: 12px; border-right: 4px solid #f59e0b;">
                 <tr>
-                  <td style="padding: 15px 20px;">
-                    <p style="margin: 0; font-size: 13px; color: #744210; line-height: 1.6;">
+                  <td style="padding: 16px 20px; text-align: right; direction: rtl;">
+                    <p style="margin: 0; font-size: 13px; color: #92400e; line-height: 1.7;">
                       🔒 <strong>ملاحظة أمنية:</strong> هذا إيصال رسمي لعملية الإيداع. إذا لم تقم بهذه العملية، يرجى التواصل معنا فوراً.
                     </p>
                   </td>
@@ -200,17 +153,17 @@ function getEmailTemplate(
           <!-- CTA Buttons -->
           <tr>
             <td style="padding: 0 30px 30px; text-align: center;">
-              <table role="presentation" style="width: 100%; border-collapse: collapse;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                 <tr>
                   <td style="padding: 5px;">
-                    <a href="https://maxiocore.com/dashboard" style="display: inline-block; width: 100%; padding: 16px 30px; background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%); color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 16px; box-sizing: border-box; text-align: center;">
+                    <a href="https://maxiocore.com/dashboard" style="display: block; width: 100%; padding: 16px 30px; background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; text-align: center; box-sizing: border-box;">
                       🏦 الذهاب للوحة التحكم
                     </a>
                   </td>
                 </tr>
                 <tr>
                   <td style="padding: 10px 5px 5px;">
-                    <a href="https://maxiocore.com/dashboard/services" style="display: inline-block; width: 100%; padding: 14px 30px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 15px; box-sizing: border-box; text-align: center;">
+                    <a href="https://maxiocore.com/dashboard/services" style="display: block; width: 100%; padding: 14px 30px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 15px; text-align: center; box-sizing: border-box;">
                       🛒 تصفح الخدمات
                     </a>
                   </td>
@@ -221,10 +174,10 @@ function getEmailTemplate(
           
           <!-- Footer -->
           <tr>
-            <td style="background-color: #1a365d; padding: 25px 30px;">
-              <table role="presentation" style="width: 100%; border-collapse: collapse;">
+            <td style="background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); padding: 25px 30px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                 <tr>
-                  <td style="text-align: center;">
+                  <td align="center">
                     <p style="margin: 0 0 10px; font-size: 14px; color: rgba(255,255,255,0.9);">
                       شكراً لثقتك بنا، ${customerName || 'عميلنا العزيز'}
                     </p>

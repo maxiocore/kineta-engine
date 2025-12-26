@@ -130,46 +130,132 @@ const handler = async (req: Request): Promise<Response> => {
     // Send email notification to admins
     if (adminEmails.length > 0 && RESEND_API_KEY) {
       try {
-        const emailHtml = `
-          <!DOCTYPE html>
-          <html dir="rtl" lang="ar">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          </head>
-          <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;">
-            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-              <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 30px; text-align: center;">
-                <h1 style="color: #ffffff; margin: 0; font-size: 24px;">📩 رسالة جديدة من صفحة التواصل</h1>
-              </div>
-              <div style="padding: 30px;">
-                <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                  <h3 style="color: #374151; margin: 0 0 15px 0; font-size: 16px;">معلومات المرسل:</h3>
-                  <p style="margin: 8px 0; color: #4b5563;"><strong>الاسم:</strong> ${name}</p>
-                  <p style="margin: 8px 0; color: #4b5563;"><strong>البريد الإلكتروني:</strong> <a href="mailto:${email}" style="color: #6366f1;">${email}</a></p>
-                  ${phone ? `<p style="margin: 8px 0; color: #4b5563;"><strong>رقم الجوال:</strong> <span dir="ltr">${phone}</span></p>` : ''}
-                  ${company ? `<p style="margin: 8px 0; color: #4b5563;"><strong>الشركة:</strong> ${company}</p>` : ''}
-                  ${subject ? `<p style="margin: 8px 0; color: #4b5563;"><strong>الموضوع:</strong> ${subject}</p>` : ''}
-                </div>
-                <div style="background-color: #fef3c7; border-right: 4px solid #f59e0b; border-radius: 8px; padding: 20px;">
-                  <h3 style="color: #92400e; margin: 0 0 10px 0; font-size: 16px;">الرسالة:</h3>
-                  <p style="color: #78350f; margin: 0; line-height: 1.6; white-space: pre-wrap;">${message}</p>
-                </div>
-                <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-                  <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-                    تم الإرسال في: ${new Date().toLocaleString('ar-SA', { timeZone: 'Asia/Riyadh' })}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </body>
-          </html>
+        const adminEmailHtml = `
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>رسالة جديدة من صفحة التواصل</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif; background-color: #f0f4f8; direction: rtl; text-align: right;">
+  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; background-color: #f0f4f8;">
+    <tr>
+      <td align="center" style="padding: 30px 15px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); padding: 35px 30px; text-align: center;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                <tr>
+                  <td align="center">
+                    <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.2); border-radius: 18px; margin: 0 auto 15px; line-height: 70px;">
+                      <span style="font-size: 36px;">📩</span>
+                    </div>
+                    <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">
+                      رسالة جديدة من صفحة التواصل
+                    </h1>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding: 30px; direction: rtl; text-align: right;">
+              
+              <!-- Sender Info Card -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 14px; border-right: 4px solid #6366f1; margin-bottom: 20px;">
+                <tr>
+                  <td style="padding: 22px;">
+                    <h3 style="margin: 0 0 15px; color: #1e293b; font-size: 16px; font-weight: 700; text-align: right;">معلومات المرسل:</h3>
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                      <tr>
+                        <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 14px;">الاسم</td>
+                        <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 14px; font-weight: 600;">${name}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 14px;">البريد الإلكتروني</td>
+                        <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; text-align: left;">
+                          <a href="mailto:${email}" style="color: #6366f1; text-decoration: none; font-size: 14px;">${email}</a>
+                        </td>
+                      </tr>
+                      ${phone ? `
+                      <tr>
+                        <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 14px;">رقم الجوال</td>
+                        <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 14px;" dir="ltr">${phone}</td>
+                      </tr>
+                      ` : ''}
+                      ${company ? `
+                      <tr>
+                        <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 14px;">الشركة</td>
+                        <td style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 14px;">${company}</td>
+                      </tr>
+                      ` : ''}
+                      ${subject ? `
+                      <tr>
+                        <td style="padding: 10px 0; text-align: right; color: #64748b; font-size: 14px;">الموضوع</td>
+                        <td style="padding: 10px 0; text-align: left; color: #1e293b; font-size: 14px; font-weight: 600;">${subject}</td>
+                      </tr>
+                      ` : ''}
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Message Card -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 14px; border-right: 4px solid #f59e0b;">
+                <tr>
+                  <td style="padding: 22px;">
+                    <h3 style="margin: 0 0 12px; color: #92400e; font-size: 16px; font-weight: 700; text-align: right;">الرسالة:</h3>
+                    <p style="margin: 0; color: #78350f; font-size: 15px; line-height: 1.8; white-space: pre-wrap; text-align: right;">${message}</p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Timestamp -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-top: 25px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                <tr>
+                  <td align="center">
+                    <p style="margin: 0; color: #64748b; font-size: 12px;">
+                      تم الإرسال في: ${new Date().toLocaleString('ar-SA', { timeZone: 'Asia/Riyadh' })}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 20px 30px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                <tr>
+                  <td align="center">
+                    <p style="margin: 0; font-size: 12px; color: #64748b;">
+                      © ${new Date().getFullYear()} MaxioCore. جميع الحقوق محفوظة.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
         `;
 
         await sendEmail(
           adminEmails,
           `📩 رسالة جديدة من ${name}${subject ? ` - ${subject}` : ''}`,
-          emailHtml
+          adminEmailHtml
         );
         console.log("Admin notification email sent successfully");
       } catch (emailErr) {
@@ -181,41 +267,85 @@ const handler = async (req: Request): Promise<Response> => {
     if (RESEND_API_KEY) {
       try {
         const confirmationHtml = `
-          <!DOCTYPE html>
-          <html dir="rtl" lang="ar">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          </head>
-          <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;">
-            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-              <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; text-align: center;">
-                <h1 style="color: #ffffff; margin: 0; font-size: 24px;">✅ تم استلام رسالتك بنجاح</h1>
-              </div>
-              <div style="padding: 30px;">
-                <p style="color: #374151; font-size: 16px; line-height: 1.8;">
-                  مرحباً <strong>${name}</strong>،
-                </p>
-                <p style="color: #4b5563; font-size: 15px; line-height: 1.8;">
-                  شكراً لتواصلك معنا. لقد استلمنا رسالتك وسيقوم فريقنا بالرد عليك في أقرب وقت ممكن خلال 24 ساعة.
-                </p>
-                <div style="background-color: #f0fdf4; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                  <h3 style="color: #166534; margin: 0 0 10px 0; font-size: 14px;">ملخص رسالتك:</h3>
-                  <p style="color: #15803d; margin: 0; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${message.substring(0, 200)}${message.length > 200 ? '...' : ''}</p>
-                </div>
-                <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">
-                  مع أطيب التحيات،<br>
-                  <strong>فريق MaxioCore</strong>
-                </p>
-              </div>
-              <div style="background-color: #f9fafb; padding: 20px; text-align: center;">
-                <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-                  هذا البريد الإلكتروني تم إرساله تلقائياً، يرجى عدم الرد عليه مباشرة.
-                </p>
-              </div>
-            </div>
-          </body>
-          </html>
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>تم استلام رسالتك</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif; background-color: #f0f4f8; direction: rtl; text-align: right;">
+  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; background-color: #f0f4f8;">
+    <tr>
+      <td align="center" style="padding: 30px 15px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #15803d 100%); padding: 35px 30px; text-align: center;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                <tr>
+                  <td align="center">
+                    <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.2); border-radius: 18px; margin: 0 auto 15px; line-height: 70px;">
+                      <span style="font-size: 36px;">✅</span>
+                    </div>
+                    <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">
+                      تم استلام رسالتك بنجاح
+                    </h1>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding: 30px; direction: rtl; text-align: right;">
+              <p style="margin: 0 0 15px; color: #1e293b; font-size: 18px; font-weight: 600;">
+                مرحباً <strong>${name}</strong>،
+              </p>
+              <p style="margin: 0 0 25px; color: #475569; font-size: 16px; line-height: 1.8;">
+                شكراً لتواصلك معنا. لقد استلمنا رسالتك وسيقوم فريقنا بالرد عليك في أقرب وقت ممكن خلال 24 ساعة.
+              </p>
+              
+              <!-- Message Summary -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%); border-radius: 14px; border-right: 4px solid #22c55e; margin-bottom: 25px;">
+                <tr>
+                  <td style="padding: 22px;">
+                    <h3 style="margin: 0 0 12px; color: #166534; font-size: 14px; font-weight: 700; text-align: right;">ملخص رسالتك:</h3>
+                    <p style="margin: 0; color: #15803d; font-size: 14px; line-height: 1.7; text-align: right; white-space: pre-wrap;">${message.substring(0, 200)}${message.length > 200 ? '...' : ''}</p>
+                  </td>
+                </tr>
+              </table>
+              
+              <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.8;">
+                مع أطيب التحيات،<br>
+                <strong style="color: #1e293b;">فريق MaxioCore</strong>
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 20px 30px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                <tr>
+                  <td align="center">
+                    <p style="margin: 0; font-size: 12px; color: #64748b;">
+                      هذا البريد الإلكتروني تم إرساله تلقائياً، يرجى عدم الرد عليه مباشرة.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
         `;
 
         await sendEmail(
