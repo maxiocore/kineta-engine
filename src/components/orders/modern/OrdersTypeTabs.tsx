@@ -2,11 +2,11 @@ import React from "react";
 import { motion } from "framer-motion";
 import { 
   Share2, Palette, Code, LayoutGrid, 
-  Instagram, Brush, Terminal
+  Instagram, Brush, Terminal, Megaphone, TrendingUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type OrderType = "all" | "social" | "design" | "dev";
+export type OrderType = "all" | "social" | "design" | "dev" | "marketing";
 
 interface OrdersTypeTabsProps {
   activeType: OrderType;
@@ -16,6 +16,7 @@ interface OrdersTypeTabsProps {
     social: number;
     design: number;
     dev: number;
+    marketing: number;
   };
 }
 
@@ -36,6 +37,15 @@ const tabs = [
     gradient: "from-pink-500 to-rose-500",
     bg: "bg-pink-500/10",
     activeColor: "bg-gradient-to-br from-pink-500 to-rose-500 text-white"
+  },
+  { 
+    id: "marketing" as OrderType, 
+    label: "التسويق الرقمي", 
+    icon: Megaphone,
+    subIcon: TrendingUp,
+    gradient: "from-orange-500 to-amber-500",
+    bg: "bg-orange-500/10",
+    activeColor: "bg-gradient-to-br from-orange-500 to-amber-500 text-white"
   },
   { 
     id: "design" as OrderType, 
@@ -61,7 +71,8 @@ export const OrdersTypeTabs = ({ activeType, onTypeChange, counts }: OrdersTypeT
   return (
     <div className="w-full" dir="rtl">
       {/* Responsive Grid - 2 columns on mobile, 4 on desktop */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
+      {/* Responsive Grid - 2-3 columns on mobile, 5 on desktop */}
+      <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-5 gap-2 md:gap-3">
         {tabs.map((tab, index) => {
           const isActive = activeType === tab.id;
           const TabIcon = tab.icon;

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { 
-  ShoppingBag, Plus, Share2, Palette, Code, Grid3X3
+  ShoppingBag, Plus, Share2, Palette, Code, Grid3X3, Megaphone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
@@ -65,6 +65,12 @@ const socialCategories = [
   'likes', 'views', 'comments', 'shares', 'subscribers'
 ];
 
+const marketingCategories = [
+  'marketing', 'digital', 'seo', 'sem', 'ppc', 'ads', 'advertising',
+  'google ads', 'facebook ads', 'campaign', 'email marketing', 'content',
+  'analytics', 'conversion', 'lead', 'funnel', 'automation', 'تسويق'
+];
+
 const designCategories = [
   'design', 'graphic', 'logo', 'banner', 'poster', 'branding',
   'ui', 'ux', 'illustration', 'motion', 'video', 'animation'
@@ -78,6 +84,7 @@ const devCategories = [
 const getOrderType = (category: string): OrderType => {
   const lowerCategory = category?.toLowerCase() || '';
   
+  if (marketingCategories.some(c => lowerCategory.includes(c))) return 'marketing';
   if (socialCategories.some(c => lowerCategory.includes(c))) return 'social';
   if (designCategories.some(c => lowerCategory.includes(c))) return 'design';
   if (devCategories.some(c => lowerCategory.includes(c))) return 'dev';
@@ -169,7 +176,13 @@ const ClientOrders = () => {
 
   // Filter orders by type
   const ordersByType = useMemo(() => {
-    const result = { all: orders, social: [] as Order[], design: [] as Order[], dev: [] as Order[] };
+    const result = { 
+      all: orders, 
+      social: [] as Order[], 
+      marketing: [] as Order[],
+      design: [] as Order[], 
+      dev: [] as Order[] 
+    };
     
     orders.forEach(order => {
       const type = getOrderType(order.service?.category);
@@ -242,6 +255,7 @@ const ClientOrders = () => {
   const typeCounts = useMemo(() => ({
     all: orders.length,
     social: ordersByType.social.length,
+    marketing: ordersByType.marketing.length,
     design: ordersByType.design.length,
     dev: ordersByType.dev.length,
   }), [orders, ordersByType]);
@@ -253,6 +267,11 @@ const ClientOrders = () => {
         return { 
           title: "لا توجد طلبات مواقع تواصل", 
           description: "ابدأ بطلب خدمات التواصل الاجتماعي" 
+        };
+      case 'marketing':
+        return { 
+          title: "لا توجد طلبات تسويق رقمي", 
+          description: "ابدأ حملتك التسويقية الآن" 
         };
       case 'design':
         return { 
@@ -316,22 +335,26 @@ const ClientOrders = () => {
             {/* Action Button & Quick Stats */}
             <div className="flex items-center gap-3 w-full sm:w-auto">
               {/* Quick Type Counts - Mobile */}
-              <div className="flex items-center gap-1.5 sm:hidden">
-                <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/10 border border-primary/20">
-                  <Grid3X3 className="w-3.5 h-3.5 text-primary" />
-                  <span className="text-xs font-bold text-primary">{typeCounts.all}</span>
+              <div className="flex items-center gap-1 sm:hidden flex-wrap">
+                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-primary/10 border border-primary/20">
+                  <Grid3X3 className="w-3 h-3 text-primary" />
+                  <span className="text-[10px] font-bold text-primary">{typeCounts.all}</span>
                 </div>
-                <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-pink-500/10 border border-pink-500/20">
-                  <Share2 className="w-3 h-3 text-pink-500" />
-                  <span className="text-xs font-bold text-pink-500">{typeCounts.social}</span>
+                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-pink-500/10 border border-pink-500/20">
+                  <Share2 className="w-2.5 h-2.5 text-pink-500" />
+                  <span className="text-[10px] font-bold text-pink-500">{typeCounts.social}</span>
                 </div>
-                <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-violet-500/10 border border-violet-500/20">
-                  <Palette className="w-3 h-3 text-violet-500" />
-                  <span className="text-xs font-bold text-violet-500">{typeCounts.design}</span>
+                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20">
+                  <Megaphone className="w-2.5 h-2.5 text-orange-500" />
+                  <span className="text-[10px] font-bold text-orange-500">{typeCounts.marketing}</span>
                 </div>
-                <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                  <Code className="w-3 h-3 text-emerald-500" />
-                  <span className="text-xs font-bold text-emerald-500">{typeCounts.dev}</span>
+                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-violet-500/10 border border-violet-500/20">
+                  <Palette className="w-2.5 h-2.5 text-violet-500" />
+                  <span className="text-[10px] font-bold text-violet-500">{typeCounts.design}</span>
+                </div>
+                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+                  <Code className="w-2.5 h-2.5 text-emerald-500" />
+                  <span className="text-[10px] font-bold text-emerald-500">{typeCounts.dev}</span>
                 </div>
               </div>
 
@@ -353,7 +376,7 @@ const ClientOrders = () => {
           </div>
 
           {/* Desktop Quick Type Stats */}
-          <div className="relative mt-4 hidden sm:flex items-center gap-2">
+          <div className="relative mt-4 hidden sm:flex items-center gap-2 flex-wrap">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
               <Grid3X3 className="w-4 h-4 text-primary" />
               <span className="text-sm font-bold text-primary">{typeCounts.all}</span>
@@ -361,6 +384,10 @@ const ClientOrders = () => {
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-500/10 border border-pink-500/20">
               <Share2 className="w-4 h-4 text-pink-500" />
               <span className="text-sm font-bold text-pink-500">{typeCounts.social}</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
+              <Megaphone className="w-4 h-4 text-orange-500" />
+              <span className="text-sm font-bold text-orange-500">{typeCounts.marketing}</span>
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/10 border border-violet-500/20">
               <Palette className="w-4 h-4 text-violet-500" />
@@ -422,7 +449,7 @@ const ClientOrders = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          {activeType === 'social' || activeType === 'all' ? (
+          {activeType === 'social' || activeType === 'all' || activeType === 'marketing' ? (
             <ModernOrdersTable
               orders={filteredOrders}
               loading={loading}
