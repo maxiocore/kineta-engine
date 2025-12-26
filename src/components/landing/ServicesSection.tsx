@@ -1,8 +1,16 @@
-import { motion, useInView, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { Share2, Code2, Palette, ArrowLeft, Sparkles, CheckCircle2, LucideIcon, Zap, Star, Users, TrendingUp, Rocket, Target, Award, Globe } from "lucide-react";
+import { motion, useInView } from "framer-motion";
+import { Share2, Code2, Palette, ArrowLeft, Sparkles, CheckCircle2, LucideIcon, Loader2, ShoppingCart, Users, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { useRef, useState } from "react";
+import { useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+interface ServiceStats {
+  totalOrders: number;
+  completedOrders: number;
+  activeServices: number;
+}
 
 interface ServiceCategory {
   id: string;
@@ -11,11 +19,11 @@ interface ServiceCategory {
   subtitle: string;
   description: string;
   gradient: string;
-  glowColor: string;
+  bgGradient: string;
+  iconBg: string;
   link: string;
+  categoryFilter: string;
   highlights: string[];
-  badge?: string;
-  stats: { value: string; label: string };
 }
 
 const serviceCategories: ServiceCategory[] = [
@@ -23,220 +31,224 @@ const serviceCategories: ServiceCategory[] = [
     id: "social",
     icon: Share2,
     title: "التسويق الرقمي",
-    subtitle: "انتشار واسع وسريع",
-    description: "نقدم لك أفضل حلول التسويق الرقمي لتعزيز تواجدك على جميع منصات التواصل الاجتماعي بنتائج مضمونة.",
-    gradient: "from-cyan-500 via-blue-500 to-indigo-500",
-    glowColor: "cyan",
+    subtitle: "انتشار سريع ومضمون",
+    description: "عزّز تواجدك على منصات التواصل الاجتماعي مع خدمات تسويق احترافية",
+    gradient: "from-cyan-500 to-blue-600",
+    bgGradient: "from-cyan-500/10 to-blue-600/10",
+    iconBg: "bg-gradient-to-br from-cyan-500 to-blue-600",
     link: "/dashboard/services",
-    badge: "🔥 الأكثر طلباً",
-    highlights: ["تفعيل فوري", "ضمان الجودة", "أسعار منافسة", "دعم 24/7"],
-    stats: { value: "+50K", label: "طلب ناجح" }
+    categoryFilter: "social",
+    highlights: ["تفعيل فوري", "جودة عالية", "دعم متواصل"],
   },
   {
     id: "development",
     icon: Code2,
     title: "البرمجة والتطوير",
-    subtitle: "تقنيات متطورة",
-    description: "نبني لك مواقع وتطبيقات احترافية بأحدث التقنيات العالمية مع ضمان الأداء العالي والتوافق الكامل.",
-    gradient: "from-emerald-500 via-green-500 to-teal-500",
-    glowColor: "emerald",
+    subtitle: "حلول تقنية متقدمة",
+    description: "نطور لك مواقع وتطبيقات احترافية بأحدث التقنيات العالمية",
+    gradient: "from-emerald-500 to-teal-600",
+    bgGradient: "from-emerald-500/10 to-teal-600/10",
+    iconBg: "bg-gradient-to-br from-emerald-500 to-teal-600",
     link: "/dashboard/dev-services",
-    highlights: ["React & Next.js", "تطبيقات موبايل", "APIs متقدمة", "صيانة مستمرة"],
-    stats: { value: "+300", label: "مشروع مكتمل" }
+    categoryFilter: "development",
+    highlights: ["كود نظيف", "أداء عالي", "صيانة مستمرة"],
   },
   {
     id: "design",
     icon: Palette,
     title: "التصميم الإبداعي",
-    subtitle: "هوية فريدة ومميزة",
-    description: "نصمم لك هوية بصرية احترافية تعكس قيم علامتك التجارية وتجذب عملاءك المستهدفين بأسلوب إبداعي.",
-    gradient: "from-violet-500 via-purple-500 to-fuchsia-500",
-    glowColor: "violet",
+    subtitle: "هوية بصرية مميزة",
+    description: "نصمم لك هوية بصرية احترافية تعكس قيم علامتك التجارية",
+    gradient: "from-violet-500 to-purple-600",
+    bgGradient: "from-violet-500/10 to-purple-600/10",
+    iconBg: "bg-gradient-to-br from-violet-500 to-purple-600",
     link: "/dashboard/design-services",
-    highlights: ["شعارات مميزة", "هوية متكاملة", "تصاميم سوشيال", "ملفات مفتوحة"],
-    stats: { value: "+2K", label: "تصميم إبداعي" }
+    categoryFilter: "design",
+    highlights: ["إبداع فريد", "تعديلات مجانية", "تسليم سريع"],
   },
 ];
 
-const ServiceCard = ({ category, index, isInView }: { category: ServiceCategory; index: number; isInView: boolean }) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
-  
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), { stiffness: 150, damping: 20 });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), { stiffness: 150, damping: 20 });
+const useServiceStats = () => {
+  return useQuery({
+    queryKey: ["landing-service-stats"],
+    queryFn: async (): Promise<Record<string, ServiceStats>> => {
+      // Fetch orders count by category
+      const { data: orders, error: ordersError } = await supabase
+        .from("orders")
+        .select("id, status, service:services(category)");
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    mouseX.set(x);
-    mouseY.set(y);
-  };
+      if (ordersError) throw ordersError;
 
-  const handleMouseLeave = () => {
-    mouseX.set(0);
-    mouseY.set(0);
-    setIsHovered(false);
-  };
+      // Fetch active services count by category
+      const { data: services, error: servicesError } = await supabase
+        .from("services")
+        .select("id, category, status")
+        .eq("status", "active");
 
+      if (servicesError) throw servicesError;
+
+      // Calculate stats for each category
+      const stats: Record<string, ServiceStats> = {
+        social: { totalOrders: 0, completedOrders: 0, activeServices: 0 },
+        development: { totalOrders: 0, completedOrders: 0, activeServices: 0 },
+        design: { totalOrders: 0, completedOrders: 0, activeServices: 0 },
+      };
+
+      // Count orders by category
+      orders?.forEach((order: any) => {
+        const category = order.service?.category?.toLowerCase() || "";
+        let categoryKey = "social";
+        
+        if (category.includes("dev") || category.includes("programming") || category.includes("برمجة")) {
+          categoryKey = "development";
+        } else if (category.includes("design") || category.includes("تصميم")) {
+          categoryKey = "design";
+        }
+
+        if (stats[categoryKey]) {
+          stats[categoryKey].totalOrders++;
+          if (order.status === "completed") {
+            stats[categoryKey].completedOrders++;
+          }
+        }
+      });
+
+      // Count active services by category
+      services?.forEach((service: any) => {
+        const category = service.category?.toLowerCase() || "";
+        let categoryKey = "social";
+        
+        if (category.includes("dev") || category.includes("programming") || category.includes("برمجة")) {
+          categoryKey = "development";
+        } else if (category.includes("design") || category.includes("تصميم")) {
+          categoryKey = "design";
+        }
+
+        if (stats[categoryKey]) {
+          stats[categoryKey].activeServices++;
+        }
+      });
+
+      return stats;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+};
+
+const ServiceCard = ({ 
+  category, 
+  index, 
+  isInView, 
+  stats 
+}: { 
+  category: ServiceCategory; 
+  index: number; 
+  isInView: boolean;
+  stats?: ServiceStats;
+}) => {
   return (
     <motion.div
-      ref={cardRef}
-      initial={{ opacity: 0, y: 60, scale: 0.9 }}
-      animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
-      transition={{ duration: 0.8, delay: index * 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={handleMouseLeave}
-      className="group relative perspective-1000"
+      initial={{ opacity: 0, y: 40 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay: index * 0.15, ease: "easeOut" }}
+      className="group relative"
     >
-      {/* Glow Effect */}
-      <motion.div
-        className={`absolute -inset-3 rounded-[2rem] bg-gradient-to-br ${category.gradient} blur-3xl transition-all duration-700`}
-        animate={{ opacity: isHovered ? 0.4 : 0 }}
-      />
+      <div className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${category.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl`} />
       
-      {/* Card */}
-      <div className="relative h-full rounded-[2rem] bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-2xl border border-border/40 hover:border-primary/50 transition-all duration-500 overflow-hidden">
-        {/* Top Gradient Bar */}
-        <div className={`h-1.5 w-full bg-gradient-to-l ${category.gradient}`} />
+      <div className="relative h-full p-6 sm:p-8 rounded-3xl bg-card/90 backdrop-blur-xl border border-border/50 hover:border-primary/30 transition-all duration-500 overflow-hidden">
+        {/* Decorative Corner */}
+        <div className={`absolute top-0 left-0 w-24 h-24 bg-gradient-to-br ${category.gradient} opacity-5 rounded-br-full`} />
         
-        <div className="p-6 sm:p-8">
-          {/* Animated Mesh Background */}
-          <motion.div
-            className="absolute inset-0 opacity-[0.03]"
-            style={{
-              backgroundImage: `
-                linear-gradient(45deg, hsl(var(--primary)) 25%, transparent 25%),
-                linear-gradient(-45deg, hsl(var(--primary)) 25%, transparent 25%),
-                linear-gradient(45deg, transparent 75%, hsl(var(--primary)) 75%),
-                linear-gradient(-45deg, transparent 75%, hsl(var(--primary)) 75%)
-              `,
-              backgroundSize: "20px 20px",
-            }}
-            animate={{
-              backgroundPosition: isHovered ? ["0px 0px", "20px 20px"] : "0px 0px",
-            }}
-            transition={{ duration: 3, repeat: isHovered ? Infinity : 0 }}
-          />
-
-          {/* Badge & Stats Row */}
-          <div className="flex items-center justify-between mb-6">
-            {category.badge && (
-              <motion.span 
-                className="px-4 py-2 rounded-full bg-gradient-to-l from-warning/20 to-amber-500/10 text-warning text-xs sm:text-sm font-bold border border-warning/30"
-                initial={{ opacity: 0, x: -20 }}
-                animate={isInView ? { opacity: 1, x: 0 } : {}}
-                transition={{ delay: 0.5 + index * 0.1 }}
-                whileHover={{ scale: 1.05 }}
-              >
-                {category.badge}
-              </motion.span>
-            )}
-            <motion.div
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/20"
+        {/* Header with Icon and Stats */}
+        <div className="flex items-start justify-between mb-6">
+          <motion.div 
+            className={`${category.iconBg} w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-lg`}
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <category.icon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+          </motion.div>
+          
+          {/* Real-time Stats */}
+          <div className="flex flex-col items-end gap-1">
+            <motion.div 
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-success/10 border border-success/20"
               initial={{ opacity: 0, x: 20 }}
               animate={isInView ? { opacity: 1, x: 0 } : {}}
-              transition={{ delay: 0.6 + index * 0.1 }}
+              transition={{ delay: 0.4 + index * 0.1 }}
             >
-              <TrendingUp className="w-4 h-4 text-success" />
-              <span className="text-success font-bold text-sm">{category.stats.value}</span>
-              <span className="text-muted-foreground text-xs hidden sm:inline">{category.stats.label}</span>
+              <ShoppingCart className="w-3.5 h-3.5 text-success" />
+              <span className="text-success font-bold text-sm">
+                {stats?.totalOrders || 0}
+              </span>
+              <span className="text-muted-foreground text-xs">طلب</span>
             </motion.div>
-          </div>
-
-          {/* Icon with Animation */}
-          <motion.div 
-            className="relative mb-6"
-            style={{ transform: "translateZ(50px)" }}
-          >
-            <motion.div
-              className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br ${category.gradient} p-5 sm:p-6 shadow-2xl`}
-              whileHover={{ scale: 1.1, rotate: 12 }}
-              transition={{ type: "spring", stiffness: 400, damping: 15 }}
+            <motion.div 
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20"
+              initial={{ opacity: 0, x: 20 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ delay: 0.5 + index * 0.1 }}
             >
-              <motion.div
-                className="absolute inset-0 rounded-2xl"
-                style={{
-                  background: "linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 50%)",
-                }}
-              />
-              <category.icon className="w-full h-full text-white relative z-10" />
+              <TrendingUp className="w-3.5 h-3.5 text-primary" />
+              <span className="text-primary font-bold text-sm">
+                {stats?.activeServices || 0}
+              </span>
+              <span className="text-muted-foreground text-xs">خدمة</span>
             </motion.div>
-            
-            {/* Floating Particles */}
-            {isHovered && (
-              <>
-                <motion.div
-                  className={`absolute -top-2 -right-2 w-3 h-3 rounded-full bg-gradient-to-br ${category.gradient}`}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1, y: [-5, 5, -5] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
-                <motion.div
-                  className={`absolute -bottom-1 -left-1 w-2 h-2 rounded-full bg-gradient-to-br ${category.gradient}`}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 0.7, x: [-3, 3, -3] }}
-                  transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
-                />
-              </>
-            )}
-          </motion.div>
-
-          {/* Content */}
-          <div style={{ transform: "translateZ(30px)" }}>
-            <motion.h3 
-              className="text-xl sm:text-2xl font-bold mb-2 group-hover:text-primary transition-colors duration-300"
-              animate={{ x: isHovered ? 5 : 0 }}
-            >
-              {category.title}
-            </motion.h3>
-            <p className={`text-sm font-semibold mb-4 bg-gradient-to-l ${category.gradient} bg-clip-text text-transparent`}>
-              {category.subtitle}
-            </p>
-            <p className="text-muted-foreground leading-relaxed mb-6 text-sm sm:text-base">
-              {category.description}
-            </p>
-
-            {/* Highlights with Stagger Animation */}
-            <div className="grid grid-cols-2 gap-2 mb-8">
-              {category.highlights.map((h, i) => (
-                <motion.span 
-                  key={h} 
-                  className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-secondary/60 border border-border/50 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ delay: 0.8 + index * 0.1 + i * 0.08 }}
-                  whileHover={{ scale: 1.02, x: 3 }}
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
-                  <span className="truncate">{h}</span>
-                </motion.span>
-              ))}
-            </div>
-
-            {/* CTA Button */}
-            <Link to={category.link}>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button className={`w-full bg-gradient-to-l ${category.gradient} text-white rounded-xl py-5 sm:py-6 text-sm sm:text-base font-bold shadow-lg hover:shadow-2xl transition-all duration-300 group/btn`}>
-                  <span>اكتشف المزيد</span>
-                  <motion.div
-                    className="mr-2"
-                    animate={{ x: isHovered ? -8 : 0 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
-                    <ArrowLeft className="w-5 h-5 group-hover/btn:-translate-x-1 transition-transform" />
-                  </motion.div>
-                </Button>
-              </motion.div>
-            </Link>
           </div>
         </div>
+
+        {/* Content */}
+        <div className="mb-6">
+          <h3 className="text-xl sm:text-2xl font-bold mb-2 group-hover:text-primary transition-colors">
+            {category.title}
+          </h3>
+          <p className={`text-sm font-semibold mb-3 bg-gradient-to-l ${category.gradient} bg-clip-text text-transparent`}>
+            {category.subtitle}
+          </p>
+          <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+            {category.description}
+          </p>
+        </div>
+
+        {/* Highlights */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {category.highlights.map((h, i) => (
+            <motion.span 
+              key={h}
+              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-secondary/70 border border-border/50"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={isInView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ delay: 0.6 + index * 0.1 + i * 0.05 }}
+            >
+              <CheckCircle2 className="w-3 h-3 text-success" />
+              {h}
+            </motion.span>
+          ))}
+        </div>
+
+        {/* CTA Button */}
+        <Link to={category.link}>
+          <Button 
+            className={`w-full bg-gradient-to-l ${category.gradient} text-white rounded-xl py-5 sm:py-6 text-sm sm:text-base font-bold shadow-lg hover:shadow-xl transition-all duration-300 group/btn`}
+          >
+            <span>استكشف الخدمات</span>
+            <ArrowLeft className="w-5 h-5 mr-2 group-hover/btn:-translate-x-1 transition-transform" />
+          </Button>
+        </Link>
+
+        {/* Completed Orders Badge */}
+        {stats && stats.completedOrders > 0 && (
+          <motion.div 
+            className="absolute bottom-4 left-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 text-xs"
+            initial={{ opacity: 0, y: 10 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.8 + index * 0.1 }}
+          >
+            <Users className="w-3 h-3 text-muted-foreground" />
+            <span className="text-muted-foreground">{stats.completedOrders} طلب مكتمل</span>
+          </motion.div>
+        )}
       </div>
     </motion.div>
   );
@@ -245,156 +257,116 @@ const ServiceCard = ({ category, index, isInView }: { category: ServiceCategory;
 const ServicesSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, amount: 0.1 });
+  const { data: stats, isLoading } = useServiceStats();
 
-  const features = [
-    { icon: Rocket, text: "تنفيذ سريع", color: "text-cyan-500" },
-    { icon: Target, text: "نتائج مضمونة", color: "text-emerald-500" },
-    { icon: Award, text: "جودة عالية", color: "text-violet-500" },
-    { icon: Globe, text: "تغطية شاملة", color: "text-amber-500" },
-  ];
+  // Calculate totals
+  const totalOrders = stats 
+    ? Object.values(stats).reduce((sum, s) => sum + s.totalOrders, 0) 
+    : 0;
+  const totalServices = stats 
+    ? Object.values(stats).reduce((sum, s) => sum + s.activeServices, 0) 
+    : 0;
+  const totalCompleted = stats 
+    ? Object.values(stats).reduce((sum, s) => sum + s.completedOrders, 0) 
+    : 0;
 
   return (
-    <section ref={containerRef} className="py-20 md:py-32 relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/5 to-background" />
-        
-        {/* Animated Gradient Orbs */}
-        <motion.div
-          className="absolute top-1/4 right-1/4 w-[500px] h-[500px] rounded-full"
-          style={{
-            background: "radial-gradient(circle, hsl(var(--primary) / 0.08) 0%, transparent 60%)",
-          }}
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 50, 0],
-            y: [0, -30, 0],
-          }}
-          transition={{ duration: 12, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] rounded-full"
-          style={{
-            background: "radial-gradient(circle, hsl(var(--accent) / 0.06) 0%, transparent 60%)",
-          }}
-          animate={{
-            scale: [1, 1.3, 1],
-            x: [0, -40, 0],
-            y: [0, 40, 0],
-          }}
-          transition={{ duration: 15, repeat: Infinity, delay: 2 }}
-        />
-      </div>
+    <section ref={containerRef} className="py-16 sm:py-20 md:py-28 relative overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/5 to-background" />
       
       <div className="container px-4 relative z-10">
-        {/* Header Section */}
+        {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-16 md:mb-20"
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12 sm:mb-16"
         >
           {/* Badge */}
           <motion.div 
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/10 border border-primary/20 mb-8"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
             whileHover={{ scale: 1.05 }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.2 }}
           >
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-            >
-              <Sparkles className="w-5 h-5 text-primary" />
-            </motion.div>
-            <span className="font-semibold text-primary">حلول رقمية شاملة</span>
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="font-semibold text-primary text-sm">خدماتنا المتميزة</span>
           </motion.div>
           
-          {/* Main Title */}
-          <motion.h2 
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight"
-            initial={{ opacity: 0, y: 30 }}
+          {/* Title */}
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">
+            حلول رقمية{" "}
+            <span className="bg-gradient-to-l from-primary via-accent to-primary bg-clip-text text-transparent">
+              متكاملة
+            </span>
+          </h2>
+          
+          <p className="text-muted-foreground max-w-2xl mx-auto text-sm sm:text-base md:text-lg leading-relaxed mb-8">
+            نقدم لك باقة متنوعة من الخدمات الرقمية لتحقيق أهدافك وتنمية أعمالك
+          </p>
+
+          {/* Live Stats Summary */}
+          <motion.div
+            className="flex flex-wrap justify-center gap-4 sm:gap-6"
+            initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.3 }}
           >
-            خدمات متكاملة{" "}
-            <span className="relative inline-block">
-              <span className="bg-gradient-to-l from-primary via-accent to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
-                لنجاحك الرقمي
-              </span>
-              <motion.div
-                className="absolute -bottom-2 left-0 right-0 h-1 rounded-full bg-gradient-to-l from-primary via-accent to-primary"
-                initial={{ scaleX: 0 }}
-                animate={isInView ? { scaleX: 1 } : {}}
-                transition={{ duration: 0.8, delay: 0.6 }}
-              />
-            </span>
-          </motion.h2>
-          
-          {/* Subtitle */}
-          <motion.p 
-            className="text-muted-foreground max-w-2xl mx-auto text-base sm:text-lg md:text-xl leading-relaxed mb-10"
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ delay: 0.4 }}
-          >
-            نقدم لك باقة متنوعة من الخدمات الرقمية المتميزة التي تساعدك على تحقيق أهدافك وتنمية أعمالك
-          </motion.p>
-
-          {/* Feature Pills */}
-          <motion.div
-            className="flex flex-wrap justify-center gap-3 sm:gap-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.5 }}
-          >
-            {features.map((feature, i) => (
-              <motion.div
-                key={feature.text}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                transition={{ delay: 0.6 + i * 0.1 }}
-                whileHover={{ scale: 1.05, y: -2 }}
-              >
-                <feature.icon className={`w-4 h-4 ${feature.color}`} />
-                <span className="text-sm font-medium">{feature.text}</span>
-              </motion.div>
-            ))}
+            {isLoading ? (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-sm">جاري تحميل الإحصائيات...</span>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border/50">
+                  <ShoppingCart className="w-4 h-4 text-primary" />
+                  <span className="font-bold text-primary">{totalOrders}</span>
+                  <span className="text-muted-foreground text-sm">طلب إجمالي</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border/50">
+                  <TrendingUp className="w-4 h-4 text-emerald-500" />
+                  <span className="font-bold text-emerald-500">{totalServices}</span>
+                  <span className="text-muted-foreground text-sm">خدمة متاحة</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border/50">
+                  <CheckCircle2 className="w-4 h-4 text-success" />
+                  <span className="font-bold text-success">{totalCompleted}</span>
+                  <span className="text-muted-foreground text-sm">طلب مكتمل</span>
+                </div>
+              </>
+            )}
           </motion.div>
         </motion.div>
 
-        {/* Service Cards Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-7xl mx-auto">
+        {/* Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {serviceCategories.map((category, index) => (
             <ServiceCard 
               key={category.id} 
               category={category} 
               index={index}
               isInView={isInView}
+              stats={stats?.[category.id]}
             />
           ))}
         </div>
 
         {/* Bottom CTA */}
         <motion.div
-          className="text-center mt-16"
-          initial={{ opacity: 0, y: 30 }}
+          className="text-center mt-12 sm:mt-16"
+          initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 1.2 }}
+          transition={{ delay: 0.8 }}
         >
           <Link to="/our-services">
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button 
-                variant="outline" 
-                size="lg"
-                className="px-8 py-6 text-base font-semibold rounded-2xl border-2 hover:bg-primary/5 hover:border-primary/50 transition-all duration-300"
-              >
-                <span>عرض جميع الخدمات</span>
-                <ArrowLeft className="w-5 h-5 mr-2" />
-              </Button>
-            </motion.div>
+            <Button 
+              variant="outline" 
+              size="lg"
+              className="px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base font-semibold rounded-2xl border-2 hover:bg-primary/5 hover:border-primary/50"
+            >
+              عرض جميع الخدمات
+              <ArrowLeft className="w-5 h-5 mr-2" />
+            </Button>
           </Link>
         </motion.div>
       </div>
