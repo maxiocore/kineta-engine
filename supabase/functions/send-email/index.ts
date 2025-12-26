@@ -38,7 +38,7 @@ interface EmailRequest {
   customContent?: string;
 }
 
-// Base email wrapper with RTL Arabic styling
+// Enhanced RTL Email wrapper with IBM Plex Sans Arabic font
 function getEmailWrapper(content: string, title: string): string {
   return `
 <!DOCTYPE html>
@@ -46,291 +46,86 @@ function getEmailWrapper(content: string, title: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>${title}</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
-    
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
-      background-color: #f4f7fa;
-      direction: rtl;
-      text-align: right;
-      line-height: 1.8;
-    }
-    
-    .email-container {
-      max-width: 600px;
-      margin: 0 auto;
-      background: #ffffff;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    }
-    
-    .email-header {
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
-      padding: 40px 30px;
-      text-align: center;
-    }
-    
-    .logo {
-      font-size: 32px;
-      font-weight: 700;
-      color: #ffffff;
-      letter-spacing: 2px;
-      margin-bottom: 10px;
-    }
-    
-    .header-subtitle {
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 16px;
-    }
-    
-    .email-body {
-      padding: 40px 30px;
-    }
-    
-    .greeting {
-      font-size: 24px;
-      font-weight: 700;
-      color: #1e293b;
-      margin-bottom: 20px;
-    }
-    
-    .message {
-      font-size: 16px;
-      color: #475569;
-      margin-bottom: 30px;
-    }
-    
-    .info-card {
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-      border-radius: 12px;
-      padding: 25px;
-      margin-bottom: 25px;
-      border-right: 4px solid #6366f1;
-    }
-    
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    
-    .info-row:last-child {
-      border-bottom: none;
-    }
-    
-    .info-label {
-      font-size: 14px;
-      color: #64748b;
-      font-weight: 600;
-    }
-    
-    .info-value {
-      font-size: 16px;
-      color: #1e293b;
-      font-weight: 700;
-    }
-    
-    .highlight-box {
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      border-radius: 12px;
-      padding: 25px;
-      text-align: center;
-      margin-bottom: 25px;
-    }
-    
-    .highlight-value {
-      font-size: 36px;
-      font-weight: 700;
-      color: #ffffff;
-      margin-bottom: 5px;
-    }
-    
-    .highlight-label {
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.9);
-    }
-    
-    .status-badge {
-      display: inline-block;
-      padding: 8px 20px;
-      border-radius: 50px;
-      font-size: 14px;
-      font-weight: 600;
-    }
-    
-    .status-pending {
-      background: #fef3c7;
-      color: #92400e;
-    }
-    
-    .status-completed {
-      background: #dcfce7;
-      color: #166534;
-    }
-    
-    .status-cancelled {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-    
-    .status-processing {
-      background: #dbeafe;
-      color: #1e40af;
-    }
-    
-    .cta-button {
-      display: inline-block;
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      color: #ffffff;
-      padding: 15px 40px;
-      border-radius: 50px;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 16px;
-      margin-top: 20px;
-      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
-    }
-    
-    .email-footer {
-      background: #1e293b;
-      padding: 30px;
-      text-align: center;
-    }
-    
-    .footer-logo {
-      font-size: 24px;
-      font-weight: 700;
-      color: #ffffff;
-      margin-bottom: 15px;
-    }
-    
-    .footer-links {
-      margin-bottom: 20px;
-    }
-    
-    .footer-links a {
-      color: #94a3b8;
-      text-decoration: none;
-      margin: 0 15px;
-      font-size: 14px;
-    }
-    
-    .footer-contact {
-      color: #64748b;
-      font-size: 13px;
-      margin-bottom: 15px;
-    }
-    
-    .footer-contact a {
-      color: #6366f1;
-      text-decoration: none;
-    }
-    
-    .copyright {
-      color: #64748b;
-      font-size: 12px;
-    }
-    
-    .divider {
-      height: 1px;
-      background: linear-gradient(to left, transparent, #e2e8f0, transparent);
-      margin: 30px 0;
-    }
-    
-    .success-icon {
-      width: 80px;
-      height: 80px;
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-      font-size: 40px;
-    }
-    
-    .warning-icon {
-      width: 80px;
-      height: 80px;
-      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-      font-size: 40px;
-    }
-    
-    @media only screen and (max-width: 600px) {
-      .email-container {
-        margin: 0;
-        border-radius: 0;
-      }
-      
-      .email-header {
-        padding: 30px 20px;
-      }
-      
-      .email-body {
-        padding: 30px 20px;
-      }
-      
-      .greeting {
-        font-size: 20px;
-      }
-      
-      .highlight-value {
-        font-size: 28px;
-      }
-      
-      .info-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
-      }
-    }
-  </style>
+  <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <![endif]-->
 </head>
-<body>
-  <div style="padding: 20px;">
-    <div class="email-container">
-      <div class="email-header">
-        <div class="logo">MaxioCore</div>
-        <div class="header-subtitle">منصة الخدمات الرقمية المتكاملة</div>
-      </div>
-      
-      <div class="email-body">
-        ${content}
-      </div>
-      
-      <div class="email-footer">
-        <div class="footer-logo">MaxioCore</div>
-        <div class="footer-links">
-          <a href="#">الرئيسية</a>
-          <a href="#">خدماتنا</a>
-          <a href="#">الدعم الفني</a>
-          <a href="#">اتصل بنا</a>
-        </div>
-        <div class="footer-contact">
-          📧 <a href="mailto:info@maxiocore.com">info@maxiocore.com</a>
-        </div>
-        <div class="copyright">
-          © ${new Date().getFullYear()} MaxioCore. جميع الحقوق محفوظة.
-        </div>
-      </div>
-    </div>
-  </div>
+<body style="margin: 0; padding: 0; font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif; background-color: #f0f4f8; direction: rtl; text-align: right; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;">
+  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; background-color: #f0f4f8;">
+    <tr>
+      <td align="center" style="padding: 30px 15px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header Section -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); padding: 35px 30px; text-align: center;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                <tr>
+                  <td align="center">
+                    <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.2); border-radius: 18px; margin: 0 auto 15px; line-height: 70px;">
+                      <span style="font-size: 36px; font-weight: 800; color: #ffffff;">M</span>
+                    </div>
+                    <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: 1px;">MaxioCore</h1>
+                    <p style="margin: 8px 0 0; font-size: 14px; color: rgba(255, 255, 255, 0.9);">منصة الخدمات الرقمية المتكاملة</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 35px 30px; direction: rtl; text-align: right;">
+              ${content}
+            </td>
+          </tr>
+          
+          <!-- Footer Section -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 30px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                <tr>
+                  <td align="center">
+                    <p style="margin: 0 0 15px; font-size: 20px; font-weight: 700; color: #ffffff;">MaxioCore</p>
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
+                      <tr>
+                        <td style="padding: 0 12px;">
+                          <a href="#" style="color: #94a3b8; text-decoration: none; font-size: 13px;">الرئيسية</a>
+                        </td>
+                        <td style="padding: 0 12px; border-right: 1px solid #475569; border-left: 1px solid #475569;">
+                          <a href="#" style="color: #94a3b8; text-decoration: none; font-size: 13px;">خدماتنا</a>
+                        </td>
+                        <td style="padding: 0 12px;">
+                          <a href="#" style="color: #94a3b8; text-decoration: none; font-size: 13px;">الدعم الفني</a>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="margin: 0 0 8px; font-size: 13px; color: #64748b;">
+                      📧 <a href="mailto:info@maxiocore.com" style="color: #8b5cf6; text-decoration: none;">info@maxiocore.com</a>
+                    </p>
+                    <div style="border-top: 1px solid #334155; margin-top: 20px; padding-top: 20px;">
+                      <p style="margin: 0; font-size: 12px; color: #475569;">
+                        © ${new Date().getFullYear()} MaxioCore. جميع الحقوق محفوظة.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
   `;
@@ -351,11 +146,98 @@ function getStatusText(status: string): string {
   return statusMap[status] || status;
 }
 
-function getStatusClass(status: string): string {
-  if (['completed'].includes(status)) return 'status-completed';
-  if (['cancelled', 'refunded'].includes(status)) return 'status-cancelled';
-  if (['processing', 'in_progress', 'confirmed'].includes(status)) return 'status-processing';
-  return 'status-pending';
+function getStatusColor(status: string): string {
+  if (['completed'].includes(status)) return '#22c55e';
+  if (['cancelled', 'refunded'].includes(status)) return '#ef4444';
+  if (['processing', 'in_progress', 'confirmed'].includes(status)) return '#3b82f6';
+  return '#f59e0b';
+}
+
+// Reusable RTL Components
+function createInfoCard(rows: Array<{ label: string; value: string; valueColor?: string; isStatus?: boolean; statusColor?: string }>): string {
+  const rowsHtml = rows.map((row, index) => `
+    <tr>
+      <td style="padding: 14px 0; ${index < rows.length - 1 ? 'border-bottom: 1px solid #e2e8f0;' : ''} text-align: right; color: #64748b; font-size: 14px; font-weight: 500;">
+        ${row.label}
+      </td>
+      <td style="padding: 14px 0; ${index < rows.length - 1 ? 'border-bottom: 1px solid #e2e8f0;' : ''} text-align: left; font-size: 15px; font-weight: 600; ${row.valueColor ? `color: ${row.valueColor};` : 'color: #1e293b;'}">
+        ${row.isStatus ? `<span style="display: inline-block; padding: 6px 16px; background-color: ${row.statusColor || '#f1f5f9'}; color: ${row.valueColor || '#1e293b'}; border-radius: 50px; font-size: 13px; font-weight: 600;">${row.value}</span>` : row.value}
+      </td>
+    </tr>
+  `).join('');
+
+  return `
+    <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 14px; border-right: 4px solid #6366f1; margin-bottom: 25px; direction: rtl;">
+      <tr>
+        <td style="padding: 20px 25px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+            ${rowsHtml}
+          </table>
+        </td>
+      </tr>
+    </table>
+  `;
+}
+
+function createHighlightBox(value: string, label: string, gradient?: string): string {
+  return `
+    <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: ${gradient || 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'}; border-radius: 14px; margin-bottom: 25px;">
+      <tr>
+        <td style="padding: 28px; text-align: center;">
+          <p style="margin: 0; font-size: 40px; font-weight: 800; color: #ffffff; letter-spacing: -1px;">${value}</p>
+          <p style="margin: 8px 0 0; font-size: 14px; color: rgba(255, 255, 255, 0.9);">${label}</p>
+        </td>
+      </tr>
+    </table>
+  `;
+}
+
+function createIconCircle(emoji: string, bgGradient?: string): string {
+  return `
+    <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 20px;">
+      <tr>
+        <td align="center">
+          <div style="width: 80px; height: 80px; background: ${bgGradient || 'linear-gradient(135deg, #10b981 0%, #059669 100%)'}; border-radius: 50%; line-height: 80px; text-align: center; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);">
+            <span style="font-size: 40px;">${emoji}</span>
+          </div>
+        </td>
+      </tr>
+    </table>
+  `;
+}
+
+function createCTAButton(text: string, href: string = "#"): string {
+  return `
+    <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-top: 25px;">
+      <tr>
+        <td align="center">
+          <a href="${href}" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; padding: 16px 45px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 8px 25px rgba(99, 102, 241, 0.35);">
+            ${text}
+          </a>
+        </td>
+      </tr>
+    </table>
+  `;
+}
+
+function createGreeting(text: string): string {
+  return `<h2 style="margin: 0 0 15px; font-size: 24px; font-weight: 700; color: #1e293b; text-align: right; direction: rtl;">${text}</h2>`;
+}
+
+function createMessage(text: string): string {
+  return `<p style="margin: 0 0 25px; font-size: 16px; color: #475569; line-height: 1.8; text-align: right; direction: rtl;">${text}</p>`;
+}
+
+function createNoticeBox(text: string, bgColor: string = '#fef3c7', textColor: string = '#92400e', borderColor: string = '#f59e0b'): string {
+  return `
+    <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: ${bgColor}; border-radius: 12px; border-right: 4px solid ${borderColor}; margin: 20px 0;">
+      <tr>
+        <td style="padding: 18px 22px; text-align: right; direction: rtl;">
+          <p style="margin: 0; font-size: 14px; color: ${textColor}; line-height: 1.7;">${text}</p>
+        </td>
+      </tr>
+    </table>
+  `;
 }
 
 // Email templates
@@ -365,25 +247,22 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       return {
         subject: `مرحباً بك في MaxioCore - ${data.name}`,
         content: `
-          <div style="text-align: center;">
-            <div class="success-icon">👋</div>
-          </div>
-          <div class="greeting">مرحباً ${data.name}! 🎉</div>
-          <div class="message">
-            نحن سعداء جداً بانضمامك إلى عائلة MaxioCore! منصتنا توفر لك أفضل خدمات التسويق الرقمي والبرمجة والتصميم بأعلى جودة وأفضل الأسعار.
-          </div>
+          ${createIconCircle('👋', 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)')}
+          ${createGreeting(`مرحباً ${data.name}! 🎉`)}
+          ${createMessage('نحن سعداء جداً بانضمامك إلى عائلة MaxioCore! منصتنا توفر لك أفضل خدمات التسويق الرقمي والبرمجة والتصميم بأعلى جودة وأفضل الأسعار.')}
           
-          <div class="info-card">
-            <h3 style="color: #1e293b; margin-bottom: 15px;">🚀 ابدأ رحلتك معنا</h3>
-            <p style="color: #64748b; margin-bottom: 10px;">✅ تصفح خدماتنا المتنوعة</p>
-            <p style="color: #64748b; margin-bottom: 10px;">✅ اشحن رصيدك واحصل على مكافآت</p>
-            <p style="color: #64748b; margin-bottom: 10px;">✅ استمتع بنظام النقاط والكاش باك</p>
-            <p style="color: #64748b;">✅ ادعُ أصدقاءك واكسب عمولات</p>
-          </div>
+          ${createInfoCard([
+            { label: '🚀 ابدأ رحلتك معنا', value: '', valueColor: '#6366f1' }
+          ])}
           
-          <div style="text-align: center;">
-            <a href="#" class="cta-button">استكشف خدماتنا الآن</a>
-          </div>
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 25px;">
+            <tr><td style="padding: 10px 0; color: #475569; font-size: 15px; text-align: right;">✅ تصفح خدماتنا المتنوعة</td></tr>
+            <tr><td style="padding: 10px 0; color: #475569; font-size: 15px; text-align: right;">✅ اشحن رصيدك واحصل على مكافآت</td></tr>
+            <tr><td style="padding: 10px 0; color: #475569; font-size: 15px; text-align: right;">✅ استمتع بنظام النقاط والكاش باك</td></tr>
+            <tr><td style="padding: 10px 0; color: #475569; font-size: 15px; text-align: right;">✅ ادعُ أصدقاءك واكسب عمولات</td></tr>
+          </table>
+          
+          ${createCTAButton('استكشف خدماتنا الآن')}
         `
       };
 
@@ -391,101 +270,58 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       return {
         subject: `تم استلام طلبك #${data.orderNumber} - MaxioCore`,
         content: `
-          <div style="text-align: center;">
-            <div class="success-icon">📦</div>
-          </div>
-          <div class="greeting">شكراً لطلبك! 🎉</div>
-          <div class="message">
-            تم استلام طلبك بنجاح وسيتم البدء في معالجته قريباً.
-          </div>
+          ${createIconCircle('📦', 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)')}
+          ${createGreeting('شكراً لطلبك! 🎉')}
+          ${createMessage('تم استلام طلبك بنجاح وسيتم البدء في معالجته قريباً.')}
           
-          <div class="info-card">
-            <div class="info-row">
-              <span class="info-label">رقم الطلب</span>
-              <span class="info-value">${data.orderNumber}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">اسم الخدمة</span>
-              <span class="info-value">${data.serviceName}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">الكمية</span>
-              <span class="info-value">${data.quantity || 1}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">المبلغ الإجمالي</span>
-              <span class="info-value">$${data.totalPrice}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">الحالة</span>
-              <span class="status-badge status-pending">قيد الانتظار</span>
-            </div>
-          </div>
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.orderNumber },
+            { label: 'اسم الخدمة', value: data.serviceName },
+            { label: 'الكمية', value: String(data.quantity || 1) },
+            { label: 'المبلغ الإجمالي', value: `$${data.totalPrice}`, valueColor: '#22c55e' },
+            { label: 'الحالة', value: 'قيد الانتظار', isStatus: true, statusColor: '#fef3c7', valueColor: '#92400e' }
+          ])}
           
-          ${data.link ? `
-          <div class="info-card">
-            <div class="info-row">
-              <span class="info-label">الرابط</span>
-              <span class="info-value" style="word-break: break-all; font-size: 12px;">${data.link}</span>
-            </div>
-          </div>
-          ` : ''}
+          ${data.link ? createNoticeBox(`🔗 الرابط: ${data.link}`, '#f0f9ff', '#0369a1', '#0ea5e9') : ''}
           
-          <div style="text-align: center;">
-            <a href="#" class="cta-button">تتبع طلبك</a>
-          </div>
+          ${createCTAButton('تتبع طلبك')}
         `
       };
 
     case 'order_status_changed':
+      const statusColor = getStatusColor(data.newStatus);
+      const statusBgColor = data.newStatus === 'completed' ? '#dcfce7' : 
+                            data.newStatus === 'cancelled' || data.newStatus === 'refunded' ? '#fee2e2' :
+                            data.newStatus === 'processing' || data.newStatus === 'in_progress' ? '#dbeafe' : '#fef3c7';
+      
       return {
         subject: `تحديث حالة طلبك #${data.orderNumber} - ${getStatusText(data.newStatus)}`,
         content: `
-          <div style="text-align: center;">
-            <div class="${data.newStatus === 'completed' ? 'success-icon' : 'warning-icon'}">
-              ${data.newStatus === 'completed' ? '✅' : data.newStatus === 'cancelled' ? '❌' : '🔄'}
-            </div>
-          </div>
-          <div class="greeting">تحديث حالة الطلب</div>
-          <div class="message">
-            تم تحديث حالة طلبك رقم <strong>${data.orderNumber}</strong>
-          </div>
+          ${createIconCircle(
+            data.newStatus === 'completed' ? '✅' : data.newStatus === 'cancelled' ? '❌' : '🔄',
+            data.newStatus === 'completed' ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' :
+            data.newStatus === 'cancelled' ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' :
+            'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'
+          )}
+          ${createGreeting('تحديث حالة الطلب')}
+          ${createMessage(`تم تحديث حالة طلبك رقم <strong>${data.orderNumber}</strong>`)}
           
-          <div class="highlight-box">
-            <div class="highlight-value">${getStatusText(data.newStatus)}</div>
-            <div class="highlight-label">الحالة الجديدة</div>
-          </div>
+          ${createHighlightBox(getStatusText(data.newStatus), 'الحالة الجديدة', 
+            data.newStatus === 'completed' ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' :
+            data.newStatus === 'cancelled' ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' :
+            'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
+          )}
           
-          <div class="info-card">
-            <div class="info-row">
-              <span class="info-label">رقم الطلب</span>
-              <span class="info-value">${data.orderNumber}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">اسم الخدمة</span>
-              <span class="info-value">${data.serviceName || 'غير محدد'}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">الحالة السابقة</span>
-              <span class="info-value">${getStatusText(data.oldStatus)}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">الحالة الجديدة</span>
-              <span class="status-badge ${getStatusClass(data.newStatus)}">${getStatusText(data.newStatus)}</span>
-            </div>
-          </div>
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.orderNumber },
+            { label: 'اسم الخدمة', value: data.serviceName || 'غير محدد' },
+            { label: 'الحالة السابقة', value: getStatusText(data.oldStatus) },
+            { label: 'الحالة الجديدة', value: getStatusText(data.newStatus), isStatus: true, statusColor: statusBgColor, valueColor: statusColor }
+          ])}
           
-          ${data.newStatus === 'completed' ? `
-          <div style="background: #dcfce7; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 25px;">
-            <p style="color: #166534; font-size: 16px; margin: 0;">
-              🎉 تهانينا! تم إكمال طلبك بنجاح
-            </p>
-          </div>
-          ` : ''}
+          ${data.newStatus === 'completed' ? createNoticeBox('🎉 تهانينا! تم إكمال طلبك بنجاح', '#dcfce7', '#166534', '#22c55e') : ''}
           
-          <div style="text-align: center;">
-            <a href="#" class="cta-button">عرض تفاصيل الطلب</a>
-          </div>
+          ${createCTAButton('عرض تفاصيل الطلب')}
         `
       };
 
@@ -493,47 +329,21 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       return {
         subject: `تم إيداع $${data.amount} في رصيدك - MaxioCore`,
         content: `
-          <div style="text-align: center;">
-            <div class="success-icon">💰</div>
-          </div>
-          <div class="greeting">تم شحن رصيدك بنجاح! 🎉</div>
-          <div class="message">
-            تم إضافة المبلغ إلى رصيدك وأصبح متاحاً للاستخدام الآن.
-          </div>
+          ${createIconCircle('💰', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          ${createGreeting('تم شحن رصيدك بنجاح! 🎉')}
+          ${createMessage('تم إضافة المبلغ إلى رصيدك وأصبح متاحاً للاستخدام الآن.')}
           
-          <div class="highlight-box">
-            <div class="highlight-value">$${data.amount}</div>
-            <div class="highlight-label">المبلغ المُضاف</div>
-          </div>
+          ${createHighlightBox(`$${data.amount}`, 'المبلغ المُضاف', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           
-          <div class="info-card">
-            <div class="info-row">
-              <span class="info-label">المبلغ الأصلي</span>
-              <span class="info-value">$${data.originalAmount}</span>
-            </div>
-            ${data.bonusAmount ? `
-            <div class="info-row">
-              <span class="info-label">البونص 🎁</span>
-              <span class="info-value" style="color: #10b981;">+$${data.bonusAmount}</span>
-            </div>
-            ` : ''}
-            <div class="info-row">
-              <span class="info-label">طريقة الدفع</span>
-              <span class="info-value">${data.paymentMethod || 'غير محدد'}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">رقم العملية</span>
-              <span class="info-value">${data.transactionId || '-'}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">الرصيد الجديد</span>
-              <span class="info-value" style="color: #6366f1;">$${data.newBalance}</span>
-            </div>
-          </div>
+          ${createInfoCard([
+            { label: 'المبلغ الأصلي', value: `$${data.originalAmount}` },
+            ...(data.bonusAmount ? [{ label: 'البونص 🎁', value: `+$${data.bonusAmount}`, valueColor: '#22c55e' }] : []),
+            { label: 'طريقة الدفع', value: data.paymentMethod || 'غير محدد' },
+            { label: 'رقم العملية', value: data.transactionId || '-' },
+            { label: 'الرصيد الجديد', value: `$${data.newBalance}`, valueColor: '#6366f1' }
+          ])}
           
-          <div style="text-align: center;">
-            <a href="#" class="cta-button">استخدم رصيدك الآن</a>
-          </div>
+          ${createCTAButton('استخدم رصيدك الآن')}
         `
       };
 
@@ -541,33 +351,18 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       return {
         subject: `طلب إيداع قيد المراجعة - MaxioCore`,
         content: `
-          <div style="text-align: center;">
-            <div class="warning-icon">⏳</div>
-          </div>
-          <div class="greeting">تم استلام طلب الإيداع</div>
-          <div class="message">
-            طلب الإيداع الخاص بك قيد المراجعة وسيتم معالجته في أقرب وقت ممكن.
-          </div>
+          ${createIconCircle('⏳', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          ${createGreeting('تم استلام طلب الإيداع')}
+          ${createMessage('طلب الإيداع الخاص بك قيد المراجعة وسيتم معالجته في أقرب وقت ممكن.')}
           
-          <div class="highlight-box">
-            <div class="highlight-value">$${data.amount}</div>
-            <div class="highlight-label">المبلغ المطلوب إيداعه</div>
-          </div>
+          ${createHighlightBox(`$${data.amount}`, 'المبلغ المطلوب إيداعه', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
           
-          <div class="info-card">
-            <div class="info-row">
-              <span class="info-label">طريقة الدفع</span>
-              <span class="info-value">${data.paymentMethod || 'غير محدد'}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">الحالة</span>
-              <span class="status-badge status-pending">قيد المراجعة</span>
-            </div>
-          </div>
+          ${createInfoCard([
+            { label: 'طريقة الدفع', value: data.paymentMethod || 'غير محدد' },
+            { label: 'الحالة', value: 'قيد المراجعة', isStatus: true, statusColor: '#fef3c7', valueColor: '#92400e' }
+          ])}
           
-          <p style="color: #64748b; font-size: 14px;">
-            ⏰ سيتم إشعارك فور اكتمال عملية الإيداع.
-          </p>
+          ${createNoticeBox('⏰ سيتم إشعارك فور اكتمال عملية الإيداع.', '#f0f9ff', '#0369a1', '#0ea5e9')}
         `
       };
 
@@ -575,39 +370,20 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       return {
         subject: `🎯 حصلت على ${data.points} نقطة! - MaxioCore`,
         content: `
-          <div style="text-align: center;">
-            <div class="success-icon">⭐</div>
-          </div>
-          <div class="greeting">تهانينا! لقد كسبت نقاطاً 🎯</div>
-          <div class="message">
-            ${data.description || 'تم إضافة نقاط جديدة إلى رصيدك'}
-          </div>
+          ${createIconCircle('⭐', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          ${createGreeting('تهانينا! لقد كسبت نقاطاً 🎯')}
+          ${createMessage(data.description || 'تم إضافة نقاط جديدة إلى رصيدك')}
           
-          <div class="highlight-box">
-            <div class="highlight-value">+${data.points}</div>
-            <div class="highlight-label">نقطة مكتسبة</div>
-          </div>
+          ${createHighlightBox(`+${data.points}`, 'نقطة مكتسبة', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
           
-          <div class="info-card">
-            <div class="info-row">
-              <span class="info-label">رصيد النقاط الحالي</span>
-              <span class="info-value">${data.totalPoints} نقطة</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">المستوى الحالي</span>
-              <span class="info-value">${data.tierName || 'برونزي'}</span>
-            </div>
-          </div>
+          ${createInfoCard([
+            { label: 'رصيد النقاط الحالي', value: `${data.totalPoints} نقطة` },
+            { label: 'المستوى الحالي', value: data.tierName || 'برونزي' }
+          ])}
           
-          <div style="background: #fef3c7; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 25px;">
-            <p style="color: #92400e; font-size: 14px; margin: 0;">
-              💡 تذكر: كل 100 نقطة = 1 ريال خصم على طلباتك!
-            </p>
-          </div>
+          ${createNoticeBox('💡 تذكر: كل 100 نقطة = 1 ريال خصم على طلباتك!', '#fef3c7', '#92400e', '#f59e0b')}
           
-          <div style="text-align: center;">
-            <a href="#" class="cta-button">استبدل نقاطك</a>
-          </div>
+          ${createCTAButton('استبدل نقاطك')}
         `
       };
 
@@ -615,29 +391,16 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       return {
         subject: `تم استخدام ${data.points} نقطة - MaxioCore`,
         content: `
-          <div style="text-align: center;">
-            <div class="success-icon">🎁</div>
-          </div>
-          <div class="greeting">تم استخدام نقاطك!</div>
-          <div class="message">
-            تم استخدام نقاطك للحصول على خصم على طلبك.
-          </div>
+          ${createIconCircle('🎁', 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)')}
+          ${createGreeting('تم استخدام نقاطك!')}
+          ${createMessage('تم استخدام نقاطك للحصول على خصم على طلبك.')}
           
-          <div class="highlight-box">
-            <div class="highlight-value">-${data.points}</div>
-            <div class="highlight-label">نقطة مستخدمة</div>
-          </div>
+          ${createHighlightBox(`-${data.points}`, 'نقطة مستخدمة', 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)')}
           
-          <div class="info-card">
-            <div class="info-row">
-              <span class="info-label">قيمة الخصم</span>
-              <span class="info-value" style="color: #10b981;">$${data.discountValue}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">رصيد النقاط المتبقي</span>
-              <span class="info-value">${data.remainingPoints} نقطة</span>
-            </div>
-          </div>
+          ${createInfoCard([
+            { label: 'قيمة الخصم', value: `$${data.discountValue}`, valueColor: '#22c55e' },
+            { label: 'رصيد النقاط المتبقي', value: `${data.remainingPoints} نقطة` }
+          ])}
         `
       };
 
@@ -645,37 +408,19 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       return {
         subject: `🎉 حصلت على كاش باك $${data.amount}! - MaxioCore`,
         content: `
-          <div style="text-align: center;">
-            <div class="success-icon">💵</div>
-          </div>
-          <div class="greeting">مبروك! كسبت كاش باك 🎉</div>
-          <div class="message">
-            تم إضافة مكافأة الكاش باك إلى محفظتك من عملية الإيداع الأخيرة.
-          </div>
+          ${createIconCircle('💵', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          ${createGreeting('مبروك! كسبت كاش باك 🎉')}
+          ${createMessage('تم إضافة مكافأة الكاش باك إلى محفظتك من عملية الإيداع الأخيرة.')}
           
-          <div class="highlight-box">
-            <div class="highlight-value">+$${data.amount}</div>
-            <div class="highlight-label">كاش باك مكتسب</div>
-          </div>
+          ${createHighlightBox(`+$${data.amount}`, 'كاش باك مكتسب', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           
-          <div class="info-card">
-            <div class="info-row">
-              <span class="info-label">قيمة الإيداع</span>
-              <span class="info-value">$${data.depositAmount}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">نسبة الكاش باك</span>
-              <span class="info-value">${data.percentage}%</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">رصيد الكاش باك الحالي</span>
-              <span class="info-value" style="color: #10b981;">$${data.totalCashback}</span>
-            </div>
-          </div>
+          ${createInfoCard([
+            { label: 'قيمة الإيداع', value: `$${data.depositAmount}` },
+            { label: 'نسبة الكاش باك', value: `${data.percentage}%` },
+            { label: 'رصيد الكاش باك الحالي', value: `$${data.totalCashback}`, valueColor: '#22c55e' }
+          ])}
           
-          <div style="text-align: center;">
-            <a href="#" class="cta-button">سحب الكاش باك</a>
-          </div>
+          ${createCTAButton('سحب الكاش باك')}
         `
       };
 
@@ -683,29 +428,16 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       return {
         subject: `تم سحب الكاش باك $${data.amount} - MaxioCore`,
         content: `
-          <div style="text-align: center;">
-            <div class="success-icon">✅</div>
-          </div>
-          <div class="greeting">تم سحب الكاش باك بنجاح!</div>
-          <div class="message">
-            تم تحويل الكاش باك إلى رصيدك الرئيسي وأصبح متاحاً للاستخدام.
-          </div>
+          ${createIconCircle('✅', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          ${createGreeting('تم سحب الكاش باك بنجاح!')}
+          ${createMessage('تم تحويل الكاش باك إلى رصيدك الرئيسي وأصبح متاحاً للاستخدام.')}
           
-          <div class="highlight-box">
-            <div class="highlight-value">$${data.amount}</div>
-            <div class="highlight-label">تم تحويله للرصيد الرئيسي</div>
-          </div>
+          ${createHighlightBox(`$${data.amount}`, 'تم تحويله للرصيد الرئيسي', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           
-          <div class="info-card">
-            <div class="info-row">
-              <span class="info-label">رصيد الكاش باك المتبقي</span>
-              <span class="info-value">$${data.remainingCashback}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">الرصيد الرئيسي الجديد</span>
-              <span class="info-value" style="color: #6366f1;">$${data.newBalance}</span>
-            </div>
-          </div>
+          ${createInfoCard([
+            { label: 'رصيد الكاش باك المتبقي', value: `$${data.remainingCashback}` },
+            { label: 'الرصيد الرئيسي الجديد', value: `$${data.newBalance}`, valueColor: '#6366f1' }
+          ])}
         `
       };
 
@@ -713,41 +445,20 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       return {
         subject: `طلب سحب بنكي قيد المراجعة - MaxioCore`,
         content: `
-          <div style="text-align: center;">
-            <div class="warning-icon">🏦</div>
-          </div>
-          <div class="greeting">تم استلام طلب السحب البنكي</div>
-          <div class="message">
-            طلب السحب البنكي الخاص بك قيد المراجعة وسيتم معالجته خلال 1-3 أيام عمل.
-          </div>
+          ${createIconCircle('🏦', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          ${createGreeting('تم استلام طلب السحب البنكي')}
+          ${createMessage('طلب السحب البنكي الخاص بك قيد المراجعة وسيتم معالجته خلال 1-3 أيام عمل.')}
           
-          <div class="highlight-box">
-            <div class="highlight-value">$${data.amount}</div>
-            <div class="highlight-label">المبلغ المطلوب سحبه</div>
-          </div>
+          ${createHighlightBox(`$${data.amount}`, 'المبلغ المطلوب سحبه', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
           
-          <div class="info-card">
-            <div class="info-row">
-              <span class="info-label">اسم البنك</span>
-              <span class="info-value">${data.bankName}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">اسم صاحب الحساب</span>
-              <span class="info-value">${data.accountHolderName}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">رقم الآيبان</span>
-              <span class="info-value">${data.iban}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">الحالة</span>
-              <span class="status-badge status-pending">قيد المراجعة</span>
-            </div>
-          </div>
+          ${createInfoCard([
+            { label: 'اسم البنك', value: data.bankName },
+            { label: 'اسم صاحب الحساب', value: data.accountHolderName },
+            { label: 'رقم الآيبان', value: data.iban },
+            { label: 'الحالة', value: 'قيد المراجعة', isStatus: true, statusColor: '#fef3c7', valueColor: '#92400e' }
+          ])}
           
-          <p style="color: #64748b; font-size: 14px;">
-            ⏰ سيتم إشعارك فور اكتمال عملية التحويل.
-          </p>
+          ${createNoticeBox('⏰ سيتم إشعارك فور اكتمال عملية التحويل.', '#f0f9ff', '#0369a1', '#0ea5e9')}
         `
       };
 
@@ -755,37 +466,19 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       return {
         subject: `✅ تم تحويل $${data.amount} إلى حسابك البنكي - MaxioCore`,
         content: `
-          <div style="text-align: center;">
-            <div class="success-icon">🎉</div>
-          </div>
-          <div class="greeting">تم التحويل بنجاح!</div>
-          <div class="message">
-            تم تحويل المبلغ إلى حسابك البنكي بنجاح.
-          </div>
+          ${createIconCircle('🎉', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          ${createGreeting('تم التحويل بنجاح!')}
+          ${createMessage('تم تحويل المبلغ إلى حسابك البنكي بنجاح.')}
           
-          <div class="highlight-box">
-            <div class="highlight-value">$${data.amount}</div>
-            <div class="highlight-label">تم تحويله</div>
-          </div>
+          ${createHighlightBox(`$${data.amount}`, 'تم تحويله', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           
-          <div class="info-card">
-            <div class="info-row">
-              <span class="info-label">اسم البنك</span>
-              <span class="info-value">${data.bankName}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">رقم الآيبان</span>
-              <span class="info-value">${data.iban}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">الحالة</span>
-              <span class="status-badge status-completed">مكتمل</span>
-            </div>
-          </div>
+          ${createInfoCard([
+            { label: 'اسم البنك', value: data.bankName },
+            { label: 'رقم الآيبان', value: data.iban },
+            { label: 'الحالة', value: 'مكتمل', isStatus: true, statusColor: '#dcfce7', valueColor: '#166534' }
+          ])}
           
-          <p style="color: #64748b; font-size: 14px;">
-            💡 قد يستغرق ظهور المبلغ في حسابك 1-2 يوم عمل حسب البنك.
-          </p>
+          ${createNoticeBox('💡 قد يستغرق ظهور المبلغ في حسابك 1-2 يوم عمل حسب البنك.', '#f0f9ff', '#0369a1', '#0ea5e9')}
         `
       };
 
@@ -793,42 +486,20 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       return {
         subject: `❌ تم رفض طلب السحب البنكي - MaxioCore`,
         content: `
-          <div style="text-align: center;">
-            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 40px;">❌</div>
-          </div>
-          <div class="greeting">تم رفض طلب السحب</div>
-          <div class="message">
-            نأسف لإبلاغك بأنه تم رفض طلب السحب البنكي الخاص بك.
-          </div>
+          ${createIconCircle('❌', 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)')}
+          ${createGreeting('تم رفض طلب السحب')}
+          ${createMessage('نأسف لإبلاغك بأنه تم رفض طلب السحب البنكي الخاص بك.')}
           
-          <div class="info-card">
-            <div class="info-row">
-              <span class="info-label">المبلغ</span>
-              <span class="info-value">$${data.amount}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">اسم البنك</span>
-              <span class="info-value">${data.bankName}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">الحالة</span>
-              <span class="status-badge status-cancelled">مرفوض</span>
-            </div>
-            ${data.reason ? `
-            <div class="info-row">
-              <span class="info-label">سبب الرفض</span>
-              <span class="info-value">${data.reason}</span>
-            </div>
-            ` : ''}
-          </div>
+          ${createInfoCard([
+            { label: 'المبلغ', value: `$${data.amount}` },
+            { label: 'اسم البنك', value: data.bankName },
+            { label: 'الحالة', value: 'مرفوض', isStatus: true, statusColor: '#fee2e2', valueColor: '#991b1b' },
+            ...(data.reason ? [{ label: 'سبب الرفض', value: data.reason }] : [])
+          ])}
           
-          <p style="color: #64748b; font-size: 14px;">
-            📞 إذا كان لديك أي استفسار، يرجى التواصل مع الدعم الفني.
-          </p>
+          ${createNoticeBox('📞 إذا كان لديك أي استفسار، يرجى التواصل مع الدعم الفني.', '#fef3c7', '#92400e', '#f59e0b')}
           
-          <div style="text-align: center;">
-            <a href="#" class="cta-button">تواصل معنا</a>
-          </div>
+          ${createCTAButton('تواصل معنا')}
         `
       };
 
@@ -836,28 +507,23 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       return {
         subject: `🎉 مبروك! لقد ترقيت إلى ${data.tierName} - MaxioCore`,
         content: `
-          <div style="text-align: center;">
-            <div class="success-icon">🏆</div>
-          </div>
-          <div class="greeting">مبروك الترقية! 🎉</div>
-          <div class="message">
-            لقد وصلت إلى مستوى جديد! استمتع بالمزايا الحصرية الجديدة.
-          </div>
+          ${createIconCircle('🏆', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          ${createGreeting('مبروك الترقية! 🎉')}
+          ${createMessage('لقد وصلت إلى مستوى جديد! استمتع بالمزايا الحصرية الجديدة.')}
           
-          <div class="highlight-box" style="background: linear-gradient(135deg, ${data.tierColor || '#6366f1'} 0%, ${data.tierColor || '#8b5cf6'} 100%);">
-            <div class="highlight-value">${data.tierName}</div>
-            <div class="highlight-label">مستواك الجديد</div>
-          </div>
+          ${createHighlightBox(data.tierName, 'مستواك الجديد', `linear-gradient(135deg, ${data.tierColor || '#6366f1'} 0%, ${data.tierColor || '#8b5cf6'} 100%)`)}
           
-          <div class="info-card">
-            <h3 style="color: #1e293b; margin-bottom: 15px;">✨ مميزاتك الجديدة</h3>
-            <p style="color: #64748b; margin-bottom: 10px;">⭐ مضاعف النقاط: ${data.multiplier}x</p>
-            ${data.benefits?.map((b: string) => `<p style="color: #64748b; margin-bottom: 10px;">✅ ${b}</p>`).join('') || ''}
-          </div>
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 14px; border-right: 4px solid #6366f1; margin-bottom: 25px;">
+            <tr>
+              <td style="padding: 25px;">
+                <h3 style="margin: 0 0 15px; color: #1e293b; font-size: 16px; text-align: right;">✨ مميزاتك الجديدة</h3>
+                <p style="margin: 0 0 10px; color: #475569; font-size: 14px; text-align: right;">⭐ مضاعف النقاط: ${data.multiplier}x</p>
+                ${data.benefits?.map((b: string) => `<p style="margin: 0 0 10px; color: #475569; font-size: 14px; text-align: right;">✅ ${b}</p>`).join('') || ''}
+              </td>
+            </tr>
+          </table>
           
-          <div style="text-align: center;">
-            <a href="#" class="cta-button">استمتع بمميزاتك</a>
-          </div>
+          ${createCTAButton('استمتع بمميزاتك')}
         `
       };
 
@@ -865,33 +531,18 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       return {
         subject: `🏆 أكملت تحدي "${data.challengeTitle}"! - MaxioCore`,
         content: `
-          <div style="text-align: center;">
-            <div class="success-icon">🎯</div>
-          </div>
-          <div class="greeting">تحدي مكتمل! 🏆</div>
-          <div class="message">
-            أحسنت! لقد أكملت التحدي وحصلت على المكافأة.
-          </div>
+          ${createIconCircle('🎯', 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)')}
+          ${createGreeting('تحدي مكتمل! 🏆')}
+          ${createMessage('أحسنت! لقد أكملت التحدي وحصلت على المكافأة.')}
           
-          <div class="highlight-box">
-            <div class="highlight-value">+${data.rewardPoints}</div>
-            <div class="highlight-label">نقطة مكافأة</div>
-          </div>
+          ${createHighlightBox(`+${data.rewardPoints}`, 'نقطة مكافأة', 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)')}
           
-          <div class="info-card">
-            <div class="info-row">
-              <span class="info-label">اسم التحدي</span>
-              <span class="info-value">${data.challengeTitle}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">النوع</span>
-              <span class="info-value">${data.challengeType === 'daily' ? 'يومي' : 'أسبوعي'}</span>
-            </div>
-          </div>
+          ${createInfoCard([
+            { label: 'اسم التحدي', value: data.challengeTitle },
+            { label: 'النوع', value: data.challengeType === 'daily' ? 'يومي' : 'أسبوعي' }
+          ])}
           
-          <div style="text-align: center;">
-            <a href="#" class="cta-button">شاهد التحديات الجديدة</a>
-          </div>
+          ${createCTAButton('شاهد التحديات الجديدة')}
         `
       };
 
@@ -899,33 +550,17 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       return {
         subject: `تم استرداد $${data.amount} إلى رصيدك - MaxioCore`,
         content: `
-          <div style="text-align: center;">
-            <div class="success-icon">↩️</div>
-          </div>
-          <div class="greeting">تم استرداد الرصيد</div>
-          <div class="message">
-            تم استرداد مبلغ الطلب إلى رصيدك بنجاح.
-          </div>
+          ${createIconCircle('↩️', 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)')}
+          ${createGreeting('تم استرداد الرصيد')}
+          ${createMessage('تم استرداد مبلغ الطلب إلى رصيدك بنجاح.')}
           
-          <div class="highlight-box">
-            <div class="highlight-value">+$${data.amount}</div>
-            <div class="highlight-label">تم استرداده</div>
-          </div>
+          ${createHighlightBox(`+$${data.amount}`, 'تم استرداده', 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)')}
           
-          <div class="info-card">
-            <div class="info-row">
-              <span class="info-label">رقم الطلب</span>
-              <span class="info-value">${data.orderNumber}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">سبب الاسترداد</span>
-              <span class="info-value">${data.reason || 'إلغاء الطلب'}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">الرصيد الجديد</span>
-              <span class="info-value" style="color: #6366f1;">$${data.newBalance}</span>
-            </div>
-          </div>
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.orderNumber },
+            { label: 'سبب الاسترداد', value: data.reason || 'إلغاء الطلب' },
+            { label: 'الرصيد الجديد', value: `$${data.newBalance}`, valueColor: '#6366f1' }
+          ])}
         `
       };
 
@@ -933,47 +568,20 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       return {
         subject: `🔥 عرض خاص: ${data.offerTitle} - MaxioCore`,
         content: `
-          <div style="text-align: center;">
-            <div class="success-icon">🎁</div>
-          </div>
-          <div class="greeting">عرض حصري لك! 🔥</div>
-          <div class="message">
-            ${data.offerDescription || 'لا تفوت هذا العرض المميز!'}
-          </div>
+          ${createIconCircle('🎁', 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)')}
+          ${createGreeting('عرض حصري لك! 🔥')}
+          ${createMessage(data.offerDescription || 'لا تفوت هذا العرض المميز!')}
           
-          <div class="highlight-box">
-            <div class="highlight-value">${data.discountPercentage}%</div>
-            <div class="highlight-label">خصم</div>
-          </div>
+          ${createHighlightBox(`${data.discountPercentage}%`, 'خصم', 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)')}
           
-          <div class="info-card">
-            <div class="info-row">
-              <span class="info-label">اسم العرض</span>
-              <span class="info-value">${data.offerTitle}</span>
-            </div>
-            ${data.originalPrice ? `
-            <div class="info-row">
-              <span class="info-label">السعر الأصلي</span>
-              <span class="info-value" style="text-decoration: line-through; color: #94a3b8;">$${data.originalPrice}</span>
-            </div>
-            ` : ''}
-            ${data.offerPrice ? `
-            <div class="info-row">
-              <span class="info-label">سعر العرض</span>
-              <span class="info-value" style="color: #10b981;">$${data.offerPrice}</span>
-            </div>
-            ` : ''}
-            ${data.endDate ? `
-            <div class="info-row">
-              <span class="info-label">ينتهي في</span>
-              <span class="info-value">${data.endDate}</span>
-            </div>
-            ` : ''}
-          </div>
+          ${createInfoCard([
+            { label: 'اسم العرض', value: data.offerTitle },
+            ...(data.originalPrice ? [{ label: 'السعر الأصلي', value: `$${data.originalPrice}`, valueColor: '#94a3b8' }] : []),
+            ...(data.offerPrice ? [{ label: 'سعر العرض', value: `$${data.offerPrice}`, valueColor: '#22c55e' }] : []),
+            ...(data.endDate ? [{ label: 'ينتهي في', value: data.endDate }] : [])
+          ])}
           
-          <div style="text-align: center;">
-            <a href="#" class="cta-button">استفد من العرض الآن</a>
-          </div>
+          ${createCTAButton('استفد من العرض الآن')}
         `
       };
 
@@ -981,69 +589,51 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       return {
         subject: `🎯 طلب باقة جديد: ${data.packageName} - ${data.categoryName}`,
         content: `
-          <div style="text-align: center;">
-            <div class="success-icon">📋</div>
-          </div>
-          <div class="greeting">طلب باقة جديد! 🎯</div>
-          <div class="message">
-            تم استلام طلب باقة جديد من العميل. يرجى المتابعة في أقرب وقت.
-          </div>
+          ${createIconCircle('📋', 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)')}
+          ${createGreeting('طلب باقة جديد! 🎯')}
+          ${createMessage('تم استلام طلب باقة جديد من العميل. يرجى المتابعة في أقرب وقت.')}
           
-          <div class="highlight-box">
-            <div class="highlight-value">${data.packageName}</div>
-            <div class="highlight-label">${data.categoryName}</div>
-          </div>
+          ${createHighlightBox(data.packageName, data.categoryName)}
           
-          <div class="info-card">
-            <h3 style="color: #1e293b; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">📧 معلومات العميل</h3>
-            <div class="info-row">
-              <span class="info-label">الاسم الكامل</span>
-              <span class="info-value">${data.clientName}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">البريد الإلكتروني</span>
-              <span class="info-value">${data.clientEmail}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">رقم الجوال</span>
-              <span class="info-value">${data.clientPhone}</span>
-            </div>
-            ${data.companyName ? `
-            <div class="info-row">
-              <span class="info-label">اسم الشركة</span>
-              <span class="info-value">${data.companyName}</span>
-            </div>
-            ` : ''}
-          </div>
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 14px; border-right: 4px solid #6366f1; margin-bottom: 25px;">
+            <tr>
+              <td style="padding: 25px;">
+                <h3 style="margin: 0 0 20px; color: #1e293b; font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; text-align: right;">📧 معلومات العميل</h3>
+                ${createInfoCard([
+                  { label: 'الاسم الكامل', value: data.clientName },
+                  { label: 'البريد الإلكتروني', value: data.clientEmail },
+                  { label: 'رقم الجوال', value: data.clientPhone },
+                  ...(data.companyName ? [{ label: 'اسم الشركة', value: data.companyName }] : [])
+                ])}
+              </td>
+            </tr>
+          </table>
           
-          <div class="info-card">
-            <h3 style="color: #1e293b; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">📦 تفاصيل الباقة</h3>
-            <div class="info-row">
-              <span class="info-label">القسم</span>
-              <span class="info-value">${data.categoryName}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">اسم الباقة</span>
-              <span class="info-value">${data.packageName}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">السعر</span>
-              <span class="info-value" style="color: #6366f1; font-size: 18px;">${data.packagePrice} ر.س / ${data.packagePeriod}</span>
-            </div>
-          </div>
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 14px; border-right: 4px solid #8b5cf6; margin-bottom: 25px;">
+            <tr>
+              <td style="padding: 25px;">
+                <h3 style="margin: 0 0 20px; color: #1e293b; font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; text-align: right;">📦 تفاصيل الباقة</h3>
+                ${createInfoCard([
+                  { label: 'القسم', value: data.categoryName },
+                  { label: 'اسم الباقة', value: data.packageName },
+                  { label: 'السعر', value: `${data.packagePrice} ر.س / ${data.packagePeriod}`, valueColor: '#6366f1' }
+                ])}
+              </td>
+            </tr>
+          </table>
           
           ${data.message ? `
-          <div class="info-card">
-            <h3 style="color: #1e293b; margin-bottom: 15px;">💬 رسالة العميل</h3>
-            <p style="color: #475569; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">${data.message}</p>
-          </div>
+            <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: #fff; border-radius: 14px; border: 1px solid #e2e8f0; margin-bottom: 25px;">
+              <tr>
+                <td style="padding: 25px;">
+                  <h3 style="margin: 0 0 15px; color: #1e293b; font-size: 16px; text-align: right;">💬 رسالة العميل</h3>
+                  <p style="margin: 0; color: #475569; font-size: 15px; line-height: 1.8; text-align: right;">${data.message}</p>
+                </td>
+              </tr>
+            </table>
           ` : ''}
           
-          <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 20px; border-radius: 12px; text-align: center; margin-top: 25px;">
-            <p style="color: #92400e; font-size: 16px; margin: 0; font-weight: 600;">
-              ⏰ يرجى التواصل مع العميل في أقرب وقت ممكن
-            </p>
-          </div>
+          ${createNoticeBox('⏰ يرجى التواصل مع العميل في أقرب وقت ممكن', '#fef3c7', '#92400e', '#f59e0b')}
         `
       };
 
@@ -1051,8 +641,8 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       return {
         subject: data.subject || 'رسالة من MaxioCore',
         content: `
-          <div class="greeting">${data.title || 'مرحباً'}</div>
-          <div class="message">${data.message || ''}</div>
+          ${createGreeting(data.title || 'مرحباً')}
+          ${createMessage(data.message || '')}
           ${data.customHtml || ''}
         `
       };
@@ -1061,8 +651,8 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       return {
         subject: 'إشعار من MaxioCore',
         content: `
-          <div class="greeting">مرحباً</div>
-          <div class="message">لديك إشعار جديد من MaxioCore.</div>
+          ${createGreeting('مرحباً')}
+          ${createMessage('لديك إشعار جديد من MaxioCore.')}
         `
       };
   }

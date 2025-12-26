@@ -48,141 +48,219 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailHtml = `
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html dir="rtl" lang="ar">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>مرحباً بك في MaxioCore</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0a0a0f; color: #ffffff;">
-  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-    
-    <!-- Header with Logo -->
-    <div style="text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); border-radius: 20px 20px 0 0;">
-      <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 20px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
-        <span style="font-size: 40px; font-weight: bold; color: white;">M</span>
-      </div>
-      <h1 style="margin: 0; font-size: 32px; font-weight: bold; color: white;">🎉 مرحباً بك في MaxioCore!</h1>
-      <p style="margin: 15px 0 0; font-size: 16px; color: rgba(255,255,255,0.9);">رحلة نجاحك الرقمي تبدأ الآن</p>
-    </div>
-    
-    <!-- Main Content -->
-    <div style="background: linear-gradient(180deg, #13131a 0%, #1a1a24 100%); padding: 40px 30px; border-radius: 0 0 20px 20px; border: 1px solid rgba(99, 102, 241, 0.2); border-top: none;">
-      
-      <!-- Welcome Message -->
-      <div style="text-align: center; margin-bottom: 35px;">
-        <h2 style="margin: 0 0 15px; font-size: 24px; color: #ffffff;">أهلاً بك ${name}! 👋</h2>
-        <p style="margin: 0; font-size: 16px; color: #a0a0b0; line-height: 1.8;">
-          يسعدنا انضمامك إلى عائلة MaxioCore. أنت الآن جزء من مجتمع يضم آلاف المسوقين الناجحين.
-        </p>
-      </div>
-      
-      <!-- Account Info Card -->
-      <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 25px; margin-bottom: 30px;">
-        <h3 style="margin: 0 0 20px; font-size: 18px; color: #8b5cf6; display: flex; align-items: center; gap: 10px;">
-          <span style="font-size: 24px;">📋</span> معلومات حسابك
-        </h3>
-        <table style="width: 100%; border-collapse: collapse;">
+<body style="margin: 0; padding: 0; font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif; background-color: #f0f4f8; direction: rtl; text-align: right;">
+  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; background-color: #f0f4f8;">
+    <tr>
+      <td align="center" style="padding: 30px 15px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header with Logo -->
           <tr>
-            <td style="padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); color: #a0a0b0; font-size: 14px;">الاسم</td>
-            <td style="padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); color: #ffffff; font-size: 14px; text-align: left;">${name}</td>
-          </tr>
-          <tr>
-            <td style="padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); color: #a0a0b0; font-size: 14px;">البريد الإلكتروني</td>
-            <td style="padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); color: #ffffff; font-size: 14px; text-align: left;" dir="ltr">${email}</td>
-          </tr>
-          <tr>
-            <td style="padding: 12px 0; color: #a0a0b0; font-size: 14px;">تاريخ التسجيل</td>
-            <td style="padding: 12px 0; color: #ffffff; font-size: 14px; text-align: left;">${currentDate}</td>
-          </tr>
-          ${referralCode ? `
-          <tr>
-            <td style="padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.1); color: #a0a0b0; font-size: 14px;">كود الإحالة الخاص بك</td>
-            <td style="padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.1); text-align: left;">
-              <span style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 6px 16px; border-radius: 8px; font-weight: bold; font-size: 14px;">${referralCode.code}</span>
+            <td style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); padding: 40px 30px; text-align: center;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                <tr>
+                  <td align="center">
+                    <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 20px; margin: 0 auto 20px; line-height: 80px;">
+                      <span style="font-size: 42px; font-weight: 800; color: white;">M</span>
+                    </div>
+                    <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: white;">🎉 مرحباً بك في MaxioCore!</h1>
+                    <p style="margin: 12px 0 0; font-size: 15px; color: rgba(255,255,255,0.9);">رحلة نجاحك الرقمي تبدأ الآن</p>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
-          ` : ''}
+          
+          <!-- Main Content -->
+          <tr>
+            <td style="padding: 35px 30px; direction: rtl; text-align: right;">
+              
+              <!-- Welcome Message -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 30px;">
+                <tr>
+                  <td align="center">
+                    <h2 style="margin: 0 0 12px; font-size: 24px; color: #1e293b; font-weight: 700;">أهلاً بك ${name}! 👋</h2>
+                    <p style="margin: 0; font-size: 16px; color: #475569; line-height: 1.8;">
+                      يسعدنا انضمامك إلى عائلة MaxioCore. أنت الآن جزء من مجتمع يضم آلاف المسوقين الناجحين.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Account Info Card -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 16px; border-right: 4px solid #6366f1; margin-bottom: 25px;">
+                <tr>
+                  <td style="padding: 25px;">
+                    <h3 style="margin: 0 0 18px; font-size: 16px; color: #6366f1; text-align: right;">
+                      📋 معلومات حسابك
+                    </h3>
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                      <tr>
+                        <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 14px;">الاسم</td>
+                        <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 14px; font-weight: 600;">${name}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 14px;">البريد الإلكتروني</td>
+                        <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 14px;" dir="ltr">${email}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 12px 0; ${referralCode ? 'border-bottom: 1px solid #e2e8f0;' : ''} text-align: right; color: #64748b; font-size: 14px;">تاريخ التسجيل</td>
+                        <td style="padding: 12px 0; ${referralCode ? 'border-bottom: 1px solid #e2e8f0;' : ''} text-align: left; color: #1e293b; font-size: 14px;">${currentDate}</td>
+                      </tr>
+                      ${referralCode ? `
+                      <tr>
+                        <td style="padding: 12px 0; text-align: right; color: #64748b; font-size: 14px;">كود الإحالة الخاص بك</td>
+                        <td style="padding: 12px 0; text-align: left;">
+                          <span style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 8px 18px; border-radius: 8px; font-weight: 700; font-size: 14px;">${referralCode.code}</span>
+                        </td>
+                      </tr>
+                      ` : ''}
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Features Grid -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 25px;">
+                <tr>
+                  <td align="center" style="padding-bottom: 20px;">
+                    <h3 style="margin: 0; font-size: 18px; color: #1e293b; font-weight: 700;">
+                      ✨ ما يمكنك فعله الآن
+                    </h3>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Feature 1 -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%); border-radius: 14px; border-right: 4px solid #22c55e; margin-bottom: 12px;">
+                <tr>
+                  <td style="padding: 18px 20px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                      <tr>
+                        <td style="width: 50px; vertical-align: top;">
+                          <span style="font-size: 28px;">💰</span>
+                        </td>
+                        <td style="text-align: right;">
+                          <h4 style="margin: 0 0 5px; font-size: 16px; color: #166534; font-weight: 600;">اشحن رصيدك</h4>
+                          <p style="margin: 0; font-size: 13px; color: #475569;">ابدأ بشحن رصيدك واستفد من عروض الكاش باك</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Feature 2 -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%); border-radius: 14px; border-right: 4px solid #3b82f6; margin-bottom: 12px;">
+                <tr>
+                  <td style="padding: 18px 20px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                      <tr>
+                        <td style="width: 50px; vertical-align: top;">
+                          <span style="font-size: 28px;">🚀</span>
+                        </td>
+                        <td style="text-align: right;">
+                          <h4 style="margin: 0 0 5px; font-size: 16px; color: #1e40af; font-weight: 600;">استكشف الخدمات</h4>
+                          <p style="margin: 0; font-size: 13px; color: #475569;">أكثر من 500 خدمة تسويقية لجميع المنصات</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Feature 3 -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(249, 115, 22, 0.05) 100%); border-radius: 14px; border-right: 4px solid #f97316; margin-bottom: 12px;">
+                <tr>
+                  <td style="padding: 18px 20px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                      <tr>
+                        <td style="width: 50px; vertical-align: top;">
+                          <span style="font-size: 28px;">🎯</span>
+                        </td>
+                        <td style="text-align: right;">
+                          <h4 style="margin: 0 0 5px; font-size: 16px; color: #c2410c; font-weight: 600;">أكمل التحديات</h4>
+                          <p style="margin: 0; font-size: 13px; color: #475569;">اجمع النقاط واصعد في المستويات للحصول على مكافآت</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Feature 4 -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(168, 85, 247, 0.05) 100%); border-radius: 14px; border-right: 4px solid #a855f7; margin-bottom: 25px;">
+                <tr>
+                  <td style="padding: 18px 20px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                      <tr>
+                        <td style="width: 50px; vertical-align: top;">
+                          <span style="font-size: 28px;">👥</span>
+                        </td>
+                        <td style="text-align: right;">
+                          <h4 style="margin: 0 0 5px; font-size: 16px; color: #7c3aed; font-weight: 600;">ادعُ أصدقاءك</h4>
+                          <p style="margin: 0; font-size: 13px; color: #475569;">احصل على عمولات من كل طلب يقوم به من تدعوهم</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- CTA Button -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin: 30px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="${dashboardUrl}" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; text-decoration: none; padding: 18px 55px; border-radius: 14px; font-size: 18px; font-weight: 700; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);">
+                      🚀 ابدأ الآن
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Support Note -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 12px; margin-bottom: 15px;">
+                <tr>
+                  <td style="padding: 18px; text-align: center;">
+                    <p style="margin: 0; font-size: 14px; color: #475569;">
+                      💬 فريق الدعم متاح على مدار الساعة لمساعدتك
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 25px 30px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                <tr>
+                  <td align="center">
+                    <p style="margin: 0 0 10px; font-size: 14px; color: rgba(255,255,255,0.9);">
+                      مع تحيات فريق MaxioCore
+                    </p>
+                    <p style="margin: 0; font-size: 12px; color: #64748b;">
+                      هذه الرسالة آلية، لا تحتاج للرد عليها
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
         </table>
-      </div>
-      
-      <!-- Features Grid -->
-      <div style="margin-bottom: 30px;">
-        <h3 style="margin: 0 0 20px; font-size: 18px; color: #ffffff; text-align: center;">
-          ✨ ما يمكنك فعله الآن
-        </h3>
-        <div style="display: grid; gap: 15px;">
-          
-          <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; padding: 20px;">
-            <div style="display: flex; align-items: center; gap: 15px;">
-              <span style="font-size: 28px;">💰</span>
-              <div>
-                <h4 style="margin: 0 0 5px; font-size: 16px; color: #22c55e;">اشحن رصيدك</h4>
-                <p style="margin: 0; font-size: 13px; color: #a0a0b0;">ابدأ بشحن رصيدك واستفد من عروض الكاش باك</p>
-              </div>
-            </div>
-          </div>
-          
-          <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px;">
-            <div style="display: flex; align-items: center; gap: 15px;">
-              <span style="font-size: 28px;">🚀</span>
-              <div>
-                <h4 style="margin: 0 0 5px; font-size: 16px; color: #3b82f6;">استكشف الخدمات</h4>
-                <p style="margin: 0; font-size: 13px; color: #a0a0b0;">أكثر من 500 خدمة تسويقية لجميع المنصات</p>
-              </div>
-            </div>
-          </div>
-          
-          <div style="background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 12px; padding: 20px;">
-            <div style="display: flex; align-items: center; gap: 15px;">
-              <span style="font-size: 28px;">🎯</span>
-              <div>
-                <h4 style="margin: 0 0 5px; font-size: 16px; color: #f97316;">أكمل التحديات</h4>
-                <p style="margin: 0; font-size: 13px; color: #a0a0b0;">اجمع النقاط واصعد في المستويات للحصول على مكافآت</p>
-              </div>
-            </div>
-          </div>
-          
-          <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 20px;">
-            <div style="display: flex; align-items: center; gap: 15px;">
-              <span style="font-size: 28px;">👥</span>
-              <div>
-                <h4 style="margin: 0 0 5px; font-size: 16px; color: #a855f7;">ادعُ أصدقاءك</h4>
-                <p style="margin: 0; font-size: 13px; color: #a0a0b0;">احصل على عمولات من كل طلب يقوم به من تدعوهم</p>
-              </div>
-            </div>
-          </div>
-          
-        </div>
-      </div>
-      
-      <!-- CTA Button -->
-      <div style="text-align: center; margin: 35px 0;">
-        <a href="${dashboardUrl}" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; text-decoration: none; padding: 16px 50px; border-radius: 12px; font-size: 18px; font-weight: bold; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);">
-          🚀 ابدأ الآن
-        </a>
-      </div>
-      
-      <!-- Support Note -->
-      <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px;">
-        <p style="margin: 0; font-size: 14px; color: #a0a0b0;">
-          💬 فريق الدعم متاح على مدار الساعة لمساعدتك
-        </p>
-      </div>
-      
-    </div>
-    
-    <!-- Footer -->
-    <div style="text-align: center; padding: 30px 20px;">
-      <p style="margin: 0 0 10px; font-size: 14px; color: #a0a0b0;">
-        مع تحيات فريق MaxioCore
-      </p>
-      <p style="margin: 0; font-size: 12px; color: #606070;">
-        هذه الرسالة آلية، لا تحتاج للرد عليها
-      </p>
-    </div>
-    
-  </div>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
     `;
