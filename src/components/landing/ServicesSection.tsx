@@ -115,12 +115,12 @@ const ServicesSection = () => {
   ];
 
   return (
-    <section ref={containerRef} className="py-16 sm:py-20 md:py-28 relative overflow-hidden">
+    <section ref={containerRef} className="py-12 xs:py-14 sm:py-20 md:py-28 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/5 to-background" />
         <motion.div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full opacity-30"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] sm:w-[600px] md:w-[800px] h-[400px] sm:h-[600px] md:h-[800px] rounded-full opacity-30"
           style={{
             background: "radial-gradient(circle, hsl(var(--primary) / 0.08) 0%, transparent 60%)",
           }}
@@ -129,37 +129,37 @@ const ServicesSection = () => {
         />
       </div>
       
-      <div className="container px-4 relative z-10">
+      <div className="container px-3 xs:px-4 sm:px-6 relative z-10">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12 sm:mb-16"
+          className="text-center mb-8 xs:mb-10 sm:mb-16"
         >
           <motion.div 
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
+            className="inline-flex items-center gap-1.5 xs:gap-2 px-3 xs:px-4 py-1.5 xs:py-2 rounded-full bg-primary/10 border border-primary/20 mb-4 xs:mb-6"
             whileHover={{ scale: 1.05 }}
           >
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="font-semibold text-primary text-sm">لماذا تختارنا؟</span>
+            <Sparkles className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-primary" />
+            <span className="font-semibold text-primary text-xs xs:text-sm">لماذا تختارنا؟</span>
           </motion.div>
           
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">
+          <h2 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 xs:mb-4 sm:mb-6 px-2">
             منصة موثوقة{" "}
             <span className="bg-gradient-to-l from-primary via-accent to-primary bg-clip-text text-transparent">
               لنجاحك الرقمي
             </span>
           </h2>
           
-          <p className="text-muted-foreground max-w-2xl mx-auto text-sm sm:text-base md:text-lg leading-relaxed">
+          <p className="text-muted-foreground max-w-2xl mx-auto text-xs xs:text-sm sm:text-base md:text-lg leading-relaxed px-4">
             نوفر لك كل ما تحتاجه لتنمية حضورك الرقمي بجودة عالية وأسعار منافسة
           </p>
         </motion.div>
 
         {/* Live Stats Grid */}
         <motion.div
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 max-w-4xl mx-auto mb-12 sm:mb-16"
+          className="grid grid-cols-2 gap-2.5 xs:gap-3 sm:gap-4 md:gap-6 max-w-4xl mx-auto mb-8 xs:mb-10 sm:mb-16"
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.2 }}
@@ -167,45 +167,45 @@ const ServicesSection = () => {
           {statsData.map((stat, index) => (
             <motion.div
               key={stat.label}
-              className="relative p-4 sm:p-6 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 text-center group hover:border-primary/30 transition-all duration-300"
+              className="relative p-3 xs:p-4 sm:p-6 rounded-xl xs:rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 text-center group hover:border-primary/30 transition-all duration-300"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={isInView ? { opacity: 1, scale: 1 } : {}}
               transition={{ delay: 0.3 + index * 0.1 }}
               whileHover={{ y: -5 }}
             >
-              <stat.icon className={`w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-3 ${stat.color}`} />
-              <div className={`text-2xl sm:text-3xl md:text-4xl font-bold ${stat.color} mb-1`}>
+              <stat.icon className={`w-5 h-5 xs:w-6 xs:h-6 sm:w-8 sm:h-8 mx-auto mb-1.5 xs:mb-2 sm:mb-3 ${stat.color}`} />
+              <div className={`text-lg xs:text-xl sm:text-3xl md:text-4xl font-bold ${stat.color} mb-0.5 xs:mb-1`}>
                 {isLoading ? (
-                  <span className="inline-block w-12 h-8 bg-muted animate-pulse rounded" />
+                  <span className="inline-block w-10 xs:w-12 h-6 xs:h-8 bg-muted animate-pulse rounded" />
                 ) : (
                   <>
                     {stat.value.toLocaleString()}{stat.suffix}
                   </>
                 )}
               </div>
-              <p className="text-muted-foreground text-xs sm:text-sm">{stat.label}</p>
+              <p className="text-muted-foreground text-[10px] xs:text-xs sm:text-sm">{stat.label}</p>
             </motion.div>
           ))}
         </motion.div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-6xl mx-auto mb-12 sm:mb-16">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 xs:gap-3 sm:gap-4 md:gap-6 max-w-6xl mx-auto mb-8 xs:mb-10 sm:mb-16">
           {features.map((feature, index) => (
             <motion.div
               key={feature.title}
-              className="relative p-5 sm:p-6 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 group hover:border-primary/30 transition-all duration-300"
+              className="relative p-3 xs:p-4 sm:p-6 rounded-xl xs:rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 group hover:border-primary/30 transition-all duration-300"
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.4 + index * 0.1 }}
               whileHover={{ y: -5 }}
             >
-              <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl ${feature.bgColor} flex items-center justify-center mb-4`}>
-                <feature.icon className={`w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-br ${feature.color} bg-clip-text text-transparent`} style={{ color: feature.color.includes('amber') ? '#f59e0b' : feature.color.includes('emerald') ? '#10b981' : feature.color.includes('blue') ? '#3b82f6' : '#8b5cf6' }} />
+              <div className={`w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 rounded-lg xs:rounded-xl ${feature.bgColor} flex items-center justify-center mb-2.5 xs:mb-3 sm:mb-4`}>
+                <feature.icon className={`w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 bg-gradient-to-br ${feature.color} bg-clip-text text-transparent`} style={{ color: feature.color.includes('amber') ? '#f59e0b' : feature.color.includes('emerald') ? '#10b981' : feature.color.includes('blue') ? '#3b82f6' : '#8b5cf6' }} />
               </div>
-              <h3 className="text-base sm:text-lg font-bold mb-2 group-hover:text-primary transition-colors">
+              <h3 className="text-sm xs:text-base sm:text-lg font-bold mb-1 xs:mb-2 group-hover:text-primary transition-colors">
                 {feature.title}
               </h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
+              <p className="text-muted-foreground text-[10px] xs:text-xs sm:text-sm leading-relaxed line-clamp-3">
                 {feature.description}
               </p>
             </motion.div>
@@ -219,45 +219,45 @@ const ServicesSection = () => {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.6 }}
         >
-          <div className="relative p-6 sm:p-8 md:p-10 rounded-3xl bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full" />
+          <div className="relative p-4 xs:p-5 sm:p-8 md:p-10 rounded-2xl xs:rounded-3xl bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20">
+            <div className="absolute top-0 right-0 w-20 xs:w-24 sm:w-32 h-20 xs:h-24 sm:h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full" />
             
-            <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
+            <div className="flex flex-col gap-4 xs:gap-5 sm:gap-6 md:flex-row md:items-center md:gap-10">
               {/* Left Content */}
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-4">
-                  <Award className="w-6 h-6 text-primary" />
-                  <h3 className="text-xl sm:text-2xl font-bold">مميزات إضافية</h3>
+                <div className="flex items-center gap-1.5 xs:gap-2 mb-3 xs:mb-4">
+                  <Award className="w-5 h-5 xs:w-6 xs:h-6 text-primary" />
+                  <h3 className="text-lg xs:text-xl sm:text-2xl font-bold">مميزات إضافية</h3>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 xs:gap-3">
                   {benefits.map((benefit, index) => (
                     <motion.div
                       key={benefit}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-1.5 xs:gap-2"
                       initial={{ opacity: 0, x: -20 }}
                       animate={isInView ? { opacity: 1, x: 0 } : {}}
                       transition={{ delay: 0.7 + index * 0.05 }}
                     >
-                      <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
-                      <span className="text-sm sm:text-base">{benefit}</span>
+                      <CheckCircle2 className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-success shrink-0" />
+                      <span className="text-xs xs:text-sm sm:text-base">{benefit}</span>
                     </motion.div>
                   ))}
                 </div>
               </div>
 
               {/* Right CTA */}
-              <div className="flex flex-col items-center md:items-end gap-4">
-                <div className="text-center md:text-left">
-                  <p className="text-muted-foreground text-sm mb-1">ابدأ رحلتك الآن</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-primary">مجاناً!</p>
+              <div className="flex flex-row xs:flex-col items-center justify-between xs:justify-center xs:items-center md:items-end gap-3 xs:gap-4 pt-3 xs:pt-0 border-t xs:border-t-0 border-border/30">
+                <div className="text-center xs:text-right md:text-left">
+                  <p className="text-muted-foreground text-xs xs:text-sm mb-0.5 xs:mb-1">ابدأ رحلتك الآن</p>
+                  <p className="text-xl xs:text-2xl sm:text-3xl font-bold text-primary">مجاناً!</p>
                 </div>
                 <Link to="/auth?mode=signup">
                   <Button 
                     size="lg"
-                    className="px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base font-bold rounded-xl bg-gradient-to-l from-primary to-accent hover:opacity-90 transition-opacity"
+                    className="px-4 xs:px-6 sm:px-8 py-4 xs:py-5 sm:py-6 text-xs xs:text-sm sm:text-base font-bold rounded-lg xs:rounded-xl bg-gradient-to-l from-primary to-accent hover:opacity-90 transition-opacity"
                   >
                     <span>سجل الآن</span>
-                    <ArrowLeft className="w-5 h-5 mr-2" />
+                    <ArrowLeft className="w-4 h-4 xs:w-5 xs:h-5 mr-1.5 xs:mr-2" />
                   </Button>
                 </Link>
               </div>
@@ -267,7 +267,7 @@ const ServicesSection = () => {
 
         {/* Bottom CTA */}
         <motion.div
-          className="text-center mt-12 sm:mt-16"
+          className="text-center mt-8 xs:mt-10 sm:mt-16"
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.8 }}
@@ -276,10 +276,10 @@ const ServicesSection = () => {
             <Button 
               variant="outline" 
               size="lg"
-              className="px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base font-semibold rounded-2xl border-2 hover:bg-primary/5 hover:border-primary/50"
+              className="px-5 xs:px-6 sm:px-8 py-4 xs:py-5 sm:py-6 text-xs xs:text-sm sm:text-base font-semibold rounded-xl xs:rounded-2xl border-2 hover:bg-primary/5 hover:border-primary/50"
             >
               تصفح خدماتنا
-              <ArrowLeft className="w-5 h-5 mr-2" />
+              <ArrowLeft className="w-4 h-4 xs:w-5 xs:h-5 mr-1.5 xs:mr-2" />
             </Button>
           </Link>
         </motion.div>
