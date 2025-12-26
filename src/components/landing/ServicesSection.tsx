@@ -115,7 +115,7 @@ const ServicesSection = () => {
   ];
 
   return (
-    <section ref={containerRef} className="py-12 xs:py-14 sm:py-20 md:py-28 relative overflow-hidden">
+    <section ref={containerRef} className="py-12 xs:py-14 sm:py-20 md:py-28 relative overflow-hidden" dir="rtl">
       {/* Background */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/5 to-background" />
@@ -138,16 +138,16 @@ const ServicesSection = () => {
           className="text-center mb-8 xs:mb-10 sm:mb-16"
         >
           <motion.div 
-            className="inline-flex items-center gap-1.5 xs:gap-2 px-3 xs:px-4 py-1.5 xs:py-2 rounded-full bg-primary/10 border border-primary/20 mb-4 xs:mb-6"
+            className="inline-flex items-center gap-1.5 xs:gap-2 px-3 xs:px-4 py-1.5 xs:py-2 rounded-full bg-primary/10 border border-primary/20 mb-4 xs:mb-6 flex-row-reverse"
             whileHover={{ scale: 1.05 }}
           >
-            <Sparkles className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-primary" />
             <span className="font-semibold text-primary text-xs xs:text-sm">لماذا تختارنا؟</span>
+            <Sparkles className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-primary" />
           </motion.div>
           
           <h2 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 xs:mb-4 sm:mb-6 px-2">
             منصة موثوقة{" "}
-            <span className="bg-gradient-to-l from-primary via-accent to-primary bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
               لنجاحك الرقمي
             </span>
           </h2>
@@ -233,13 +233,13 @@ const ServicesSection = () => {
                   {benefits.map((benefit, index) => (
                     <motion.div
                       key={benefit}
-                      className="flex items-center gap-1.5 xs:gap-2"
-                      initial={{ opacity: 0, x: -20 }}
+                      className="flex items-center gap-1.5 xs:gap-2 flex-row-reverse"
+                      initial={{ opacity: 0, x: 20 }}
                       animate={isInView ? { opacity: 1, x: 0 } : {}}
                       transition={{ delay: 0.7 + index * 0.05 }}
                     >
-                      <CheckCircle2 className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-success shrink-0" />
                       <span className="text-xs xs:text-sm sm:text-base">{benefit}</span>
+                      <CheckCircle2 className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-success shrink-0" />
                     </motion.div>
                   ))}
                 </div>
@@ -254,10 +254,10 @@ const ServicesSection = () => {
                 <Link to="/auth?mode=signup">
                   <Button 
                     size="lg"
-                    className="px-4 xs:px-6 sm:px-8 py-4 xs:py-5 sm:py-6 text-xs xs:text-sm sm:text-base font-bold rounded-lg xs:rounded-xl bg-gradient-to-l from-primary to-accent hover:opacity-90 transition-opacity"
+                    className="px-4 xs:px-6 sm:px-8 py-4 xs:py-5 sm:py-6 text-xs xs:text-sm sm:text-base font-bold rounded-lg xs:rounded-xl bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity gap-2 flex-row-reverse"
                   >
-                    <span>سجل الآن</span>
-                    <ArrowLeft className="w-4 h-4 xs:w-5 xs:h-5 mr-1.5 xs:mr-2" />
+                    سجل الآن
+                    <ArrowLeft className="w-4 h-4 xs:w-5 xs:h-5 rotate-180" />
                   </Button>
                 </Link>
               </div>
@@ -276,10 +276,10 @@ const ServicesSection = () => {
             <Button 
               variant="outline" 
               size="lg"
-              className="px-5 xs:px-6 sm:px-8 py-4 xs:py-5 sm:py-6 text-xs xs:text-sm sm:text-base font-semibold rounded-xl xs:rounded-2xl border-2 hover:bg-primary/5 hover:border-primary/50"
+              className="px-5 xs:px-6 sm:px-8 py-4 xs:py-5 sm:py-6 text-xs xs:text-sm sm:text-base font-semibold rounded-xl xs:rounded-2xl border-2 hover:bg-primary/5 hover:border-primary/50 gap-2 flex-row-reverse"
             >
               تصفح خدماتنا
-              <ArrowLeft className="w-4 h-4 xs:w-5 xs:h-5 mr-1.5 xs:mr-2" />
+              <ArrowLeft className="w-4 h-4 xs:w-5 xs:h-5 rotate-180" />
             </Button>
           </Link>
         </motion.div>
