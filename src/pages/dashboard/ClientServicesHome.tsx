@@ -133,8 +133,6 @@ const ClientServicesHome = () => {
   
   const { scrollYProgress } = useScroll();
   const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
-  const heroScale = useTransform(scrollYProgress, [0, 0.3], [1, 0.95]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0.8]);
   
   const [servicesCount, setServicesCount] = useState({
     social: 0,
@@ -150,6 +148,7 @@ const ClientServicesHome = () => {
     completedOrders: 0
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [activeFeatureIndex, setActiveFeatureIndex] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -167,8 +166,10 @@ const ClientServicesHome = () => {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  const fetchCounts = async () => {
-    setIsLoading(true);
+  const fetchCounts = async (showLoading = true) => {
+    if (showLoading && isInitialLoad) {
+      setIsLoading(true);
+    }
     try {
       // Fetch service counts
       const { count: socialCount } = await supabase
@@ -270,16 +271,17 @@ const ClientServicesHome = () => {
       setLastUpdated(new Date());
     } finally {
       setIsLoading(false);
+      setIsInitialLoad(false);
     }
   };
 
   // Initial fetch and auto-refresh every 30 seconds
   useEffect(() => {
-    fetchCounts();
+    fetchCounts(true);
     
-    // Auto-refresh interval
+    // Auto-refresh interval - don't show loading on auto refresh
     const intervalId = setInterval(() => {
-      fetchCounts();
+      fetchCounts(false);
     }, 30000); // 30 seconds
 
     return () => clearInterval(intervalId);
@@ -297,8 +299,8 @@ const ClientServicesHome = () => {
           table: 'orders'
         },
         () => {
-          // Refetch stats when orders change
-          fetchCounts();
+          // Refetch stats when orders change - don't show loading
+          fetchCounts(false);
         }
       )
       .on(
@@ -309,8 +311,8 @@ const ClientServicesHome = () => {
           table: 'services'
         },
         () => {
-          // Refetch stats when services change
-          fetchCounts();
+          // Refetch stats when services change - don't show loading
+          fetchCounts(false);
         }
       )
       .subscribe();
@@ -466,54 +468,55 @@ const ClientServicesHome = () => {
           {/* Hero Section */}
           <motion.section
             ref={heroRef}
-            style={{ scale: heroScale, opacity: heroOpacity }}
-            className="relative mb-8 sm:mb-12"
+            className="relative mb-6 sm:mb-8"
           >
             <motion.div
-              initial={{ opacity: 0, y: -40 }}
+              initial={{ opacity: 0, y: -30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-card via-card/95 to-card/90 backdrop-blur-2xl border border-border/50 p-6 sm:p-8 lg:p-10"
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-card via-card/95 to-card/90 backdrop-blur-xl border border-border/50 p-4 sm:p-6"
             >
               {/* Hero Background Elements */}
               <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-primary/15 via-primary/5 to-transparent rounded-full blur-3xl" />
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-purple-500/10 to-transparent rounded-full blur-2xl" />
+                <div className="absolute top-0 right-0 w-48 sm:w-64 h-48 sm:h-64 bg-gradient-to-bl from-primary/15 via-primary/5 to-transparent rounded-full blur-2xl" />
+                <div className="absolute bottom-0 left-0 w-40 sm:w-48 h-40 sm:h-48 bg-gradient-to-tr from-purple-500/10 to-transparent rounded-full blur-xl" />
                 
-                {/* Floating Shapes */}
-                {[...Array(5)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    animate={{
-                      y: [0, -20, 0],
-                      rotate: [0, 360],
-                      scale: [1, 1.1, 1]
-                    }}
-                    transition={{
-                      duration: 6 + i * 2,
-                      repeat: Infinity,
-                      delay: i * 0.5
-                    }}
-                    className={cn(
-                      "absolute w-4 h-4 rounded-full opacity-20",
-                      i % 2 === 0 ? "bg-primary" : "bg-purple-500"
-                    )}
-                    style={{
-                      top: `${20 + i * 15}%`,
-                      left: `${10 + i * 20}%`,
-                    }}
-                  />
-                ))}
+                {/* Floating Shapes - Hidden on mobile for performance */}
+                {/* Floating Shapes - Hidden on mobile for performance */}
+                <div className="hidden sm:block">
+                  {[...Array(3)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      animate={{
+                        y: [0, -15, 0],
+                        scale: [1, 1.05, 1]
+                      }}
+                      transition={{
+                        duration: 5 + i * 2,
+                        repeat: Infinity,
+                        delay: i * 0.5
+                      }}
+                      className={cn(
+                        "absolute w-3 h-3 rounded-full opacity-15",
+                        i % 2 === 0 ? "bg-primary" : "bg-purple-500"
+                      )}
+                      style={{
+                        top: `${25 + i * 20}%`,
+                        left: `${15 + i * 25}%`,
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
 
               <div className="relative z-10">
                 {/* Header Content */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-8">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 mb-4 sm:mb-6">
                   <motion.div 
                     variants={slideInRight}
                     initial="hidden"
                     animate="visible"
-                    className="flex items-center gap-4 sm:gap-5"
+                    className="flex items-center gap-3 sm:gap-4"
                   >
                     {/* Animated Icon */}
                     <motion.div
@@ -523,9 +526,9 @@ const ClientServicesHome = () => {
                       transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
                       className="relative"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary to-purple-600 rounded-2xl blur-xl opacity-50" />
-                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-purple-600 flex items-center justify-center shadow-2xl">
-                        <Layers className="w-8 h-8 sm:w-10 sm:h-10 text-primary-foreground" />
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary to-purple-600 rounded-xl blur-lg opacity-40" />
+                      <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-primary via-primary/90 to-purple-600 flex items-center justify-center shadow-xl">
+                        <Layers className="w-6 h-6 sm:w-7 sm:h-7 text-primary-foreground" />
                       </div>
                     </motion.div>
                     
@@ -533,23 +536,23 @@ const ClientServicesHome = () => {
                       <motion.h1 
                         initial={{ opacity: 0, x: 30 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-l from-foreground via-foreground to-foreground/70 bg-clip-text"
+                        transition={{ delay: 0.2 }}
+                        className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-l from-foreground via-foreground to-foreground/70 bg-clip-text"
                       >
                         خدماتنا المتميزة
                       </motion.h1>
                       <motion.div
                         initial={{ opacity: 0, x: 30 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.4 }}
-                        className="flex items-center gap-3 mt-2"
+                        transition={{ delay: 0.3 }}
+                        className="flex flex-wrap items-center gap-2 mt-1.5"
                       >
-                        <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 text-xs sm:text-sm">
-                          <Sparkles className="w-3.5 h-3.5 text-primary" />
-                          {totalServices}+ خدمة متاحة
+                        <Badge variant="secondary" className="gap-1 px-2 py-1 text-[10px] sm:text-xs">
+                          <Sparkles className="w-3 h-3 text-primary" />
+                          {totalServices}+ خدمة
                         </Badge>
-                        <Badge variant="outline" className="gap-1.5 px-3 py-1.5 text-xs sm:text-sm text-emerald-500 border-emerald-500/30">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
+                        <Badge variant="outline" className="gap-1 px-2 py-1 text-[10px] sm:text-xs text-emerald-500 border-emerald-500/30">
+                          <CheckCircle2 className="w-3 h-3" />
                           متاح الآن
                         </Badge>
                       </motion.div>
@@ -558,20 +561,20 @@ const ClientServicesHome = () => {
 
                   {/* Quick Action Button */}
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
+                    initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.5 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    transition={{ delay: 0.4 }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
                   >
                     <Button
                       onClick={() => navigate('/dashboard/orders')}
                       variant="outline"
-                      size="lg"
-                      className="h-12 sm:h-14 px-5 sm:px-6 rounded-2xl gap-2 border-border/50 bg-background/50 backdrop-blur-sm hover:bg-background hover:border-primary/50 transition-all duration-300 group"
+                      size="sm"
+                      className="h-9 sm:h-10 px-3 sm:px-4 rounded-xl gap-1.5 border-border/50 bg-background/50 backdrop-blur-sm hover:bg-background hover:border-primary/50 transition-all duration-300 group"
                     >
-                      <span className="text-sm sm:text-base font-medium">طلباتي</span>
-                      <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 group-hover:-translate-x-1 transition-transform" />
+                      <span className="text-xs sm:text-sm font-medium">طلباتي</span>
+                      <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:-translate-x-1 transition-transform" />
                     </Button>
                   </motion.div>
                 </div>
@@ -581,7 +584,7 @@ const ClientServicesHome = () => {
                   variants={containerVariants}
                   initial="hidden"
                   animate="visible"
-                  className="grid grid-cols-3 gap-3 sm:gap-4"
+                  className="grid grid-cols-3 gap-2 sm:gap-3"
                 >
                   {[
                     { value: servicesCount.social, label: 'تواصل اجتماعي', icon: Globe, gradient: 'from-blue-500 to-cyan-500' },
@@ -591,18 +594,18 @@ const ClientServicesHome = () => {
                     <motion.div
                       key={stat.label}
                       variants={itemVariants}
-                      whileHover={{ scale: 1.03, y: -4 }}
+                      whileHover={{ scale: 1.02, y: -2 }}
                       className="group relative"
                     >
-                      <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} rounded-2xl blur-xl opacity-0 group-hover:opacity-20 transition-opacity duration-500`} />
-                      <div className="relative p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 group-hover:border-border transition-all duration-300">
-                        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center mb-3 shadow-lg`}>
-                          <stat.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                      <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} rounded-xl blur-lg opacity-0 group-hover:opacity-15 transition-opacity duration-500`} />
+                      <div className="relative p-3 sm:p-4 rounded-xl bg-gradient-to-br from-muted/50 via-muted/30 to-transparent border border-border/50 group-hover:border-border transition-all duration-300">
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br ${stat.gradient} flex items-center justify-center mb-2 shadow-md`}>
+                          <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                         </div>
-                        <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
+                        <div className="text-lg sm:text-2xl font-bold text-foreground mb-0.5">
                           {stat.value}
                         </div>
-                        <div className="text-xs sm:text-sm text-muted-foreground">
+                        <div className="text-[10px] sm:text-xs text-muted-foreground">
                           {stat.label}
                         </div>
                       </div>
@@ -613,84 +616,89 @@ const ClientServicesHome = () => {
             </motion.div>
           </motion.section>
 
-          {/* Main Services Grid - Moved to Top */}
+          {/* Main Services Grid */}
           <motion.section
             ref={sectionsRef}
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="mb-8 sm:mb-12 space-y-5 sm:space-y-6"
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mb-6 sm:mb-8 space-y-4"
           >
             <motion.h2 
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3"
+              transition={{ duration: 0.4, delay: 0.3 }}
+              className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-2"
             >
-              <Crown className="w-6 h-6 text-primary" />
+              <Crown className="w-5 h-5 text-primary" />
               اختر نوع الخدمة
             </motion.h2>
 
-            <div className="grid gap-5 sm:gap-6 grid-cols-1 lg:grid-cols-3">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
               {sections.map((section, index) => (
                 <motion.div
                   key={section.id}
-                  initial={{ opacity: 0, y: 30 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ 
-                    duration: 0.4, 
-                    delay: 0.3 + index * 0.1
+                    duration: 0.3, 
+                    delay: 0.2 + index * 0.08
                   }}
                   className="group"
                 >
                   <Link to={section.path} className="block h-full">
-                    <Card className="h-full relative overflow-hidden border border-border/50 bg-card hover:border-border transition-colors duration-300">
-                      <CardContent className="p-5 sm:p-6 lg:p-7 flex flex-col h-full min-h-[320px] sm:min-h-[360px]">
+                    <Card className="h-full relative overflow-hidden border border-border/50 bg-card hover:border-primary/30 hover:shadow-lg transition-all duration-300">
+                      <CardContent className="p-4 sm:p-5 flex flex-col h-full min-h-[240px] sm:min-h-[280px]">
                         {/* Header */}
-                        <div className="flex items-start justify-between mb-5">
+                        <div className="flex items-start justify-between mb-3 sm:mb-4">
                           {/* Icon */}
-                          <div className={`p-4 rounded-2xl bg-gradient-to-br ${section.gradient} shadow-lg`}>
-                            <section.icon className="w-7 h-7 text-white" />
+                          <div className={`p-2.5 sm:p-3 rounded-xl bg-gradient-to-br ${section.gradient} shadow-lg`}>
+                            <section.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                           </div>
                           
                           {/* Counter Badge */}
-                          <Badge className={`bg-gradient-to-l ${section.gradient} text-white border-0 shadow-lg px-3 py-1.5 text-sm font-bold`}>
-                            {section.count}+
+                          <Badge className={`bg-gradient-to-l ${section.gradient} text-white border-0 shadow-md px-2 sm:px-2.5 py-1 text-xs font-bold`}>
+                            +{section.count}
                           </Badge>
                         </div>
 
                         {/* Title & Description */}
-                        <div className="mb-5">
-                          <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
+                        <div className="mb-3 sm:mb-4">
+                          <h3 className="text-base sm:text-lg font-bold text-foreground mb-1">
                             {section.title}
                           </h3>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
+                          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2">
                             {section.description}
                           </p>
                         </div>
 
                         {/* Platforms Grid */}
-                        <div className="flex-1 mb-5">
-                          <div className="flex flex-wrap gap-2">
-                            {section.platforms.map((platform) => (
+                        <div className="flex-1 mb-3 sm:mb-4">
+                          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                            {section.platforms.slice(0, 4).map((platform) => (
                               <div
                                 key={platform.label}
-                                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${platform.color} flex items-center justify-center shadow-md`}
+                                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br ${platform.color} flex items-center justify-center shadow-sm`}
                               >
-                                <platform.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                                <platform.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                               </div>
                             ))}
+                            {section.platforms.length > 4 && (
+                              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-muted/80 flex items-center justify-center text-xs font-medium text-muted-foreground">
+                                +{section.platforms.length - 4}
+                              </div>
+                            )}
                           </div>
                         </div>
 
                         {/* Features List */}
-                        <div className="space-y-2 mb-5">
+                        <div className="space-y-1 sm:space-y-1.5 mb-3 sm:mb-4">
                           {section.features.map((feat) => (
                             <div
                               key={feat}
-                              className="flex items-center gap-2 text-sm text-muted-foreground"
+                              className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground"
                             >
-                              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                              <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-500 flex-shrink-0" />
                               <span>{feat}</span>
                             </div>
                           ))}
@@ -699,12 +707,12 @@ const ClientServicesHome = () => {
                         {/* CTA Button */}
                         <Button 
                           className={cn(
-                            "w-full h-12 rounded-xl font-semibold text-sm gap-2",
+                            "w-full h-9 sm:h-10 rounded-lg font-semibold text-xs sm:text-sm gap-1.5",
                             `bg-gradient-to-l ${section.gradient} hover:opacity-90 text-white`
                           )}
                         >
                           <span>استعراض الخدمات</span>
-                          <ArrowUpLeft className="w-4 h-4" />
+                          <ArrowUpLeft className="w-3.5 h-3.5" />
                         </Button>
                       </CardContent>
                     </Card>
@@ -715,33 +723,32 @@ const ClientServicesHome = () => {
           </motion.section>
 
           <motion.section
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="mb-8 sm:mb-12"
+            transition={{ delay: 0.4 }}
+            className="mb-6 sm:mb-8"
           >
             {/* Last Updated Indicator */}
             {lastUpdated && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex items-center justify-end gap-2 mb-3"
+                className="flex items-center justify-start gap-2 mb-2"
               >
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-muted/50 border border-border/50">
                   <motion.div
                     animate={{ scale: [1, 1.2, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
-                    className="w-2 h-2 rounded-full bg-emerald-500"
+                    className="w-1.5 h-1.5 rounded-full bg-emerald-500"
                   />
-                  <span className="text-xs text-muted-foreground">
-                    آخر تحديث: {lastUpdated.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">
+                    آخر تحديث: {lastUpdated.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
                   </span>
-                  <Clock className="w-3 h-3 text-muted-foreground" />
                 </div>
               </motion.div>
             )}
             
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
               {[
                 { 
                   value: globalStats.totalServices, 
@@ -774,33 +781,33 @@ const ClientServicesHome = () => {
               ].map((stat, i) => (
                 <motion.div
                   key={stat.label}
-                  initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ delay: 0.6 + i * 0.1 }}
-                  whileHover={{ scale: 1.02, y: -4 }}
+                  transition={{ delay: 0.5 + i * 0.08 }}
+                  whileHover={{ scale: 1.02, y: -2 }}
                   className="group cursor-pointer"
                 >
-                  <div className="relative overflow-hidden rounded-2xl bg-card border border-border/50 p-5 sm:p-6 hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-lg">
+                  <div className="relative overflow-hidden rounded-xl bg-card border border-border/50 p-3 sm:p-4 hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-md">
                     {/* Subtle Background Glow */}
-                    <div className={`absolute -top-10 -left-10 w-24 h-24 ${stat.bgColor} opacity-10 rounded-full blur-2xl group-hover:opacity-20 transition-opacity duration-500`} />
+                    <div className={`absolute -top-8 -right-8 w-20 h-20 ${stat.bgColor} opacity-10 rounded-full blur-xl group-hover:opacity-15 transition-opacity duration-500`} />
                     
-                    <div className="relative z-10 flex flex-row-reverse items-start justify-between gap-3">
+                    <div className="relative z-10 flex flex-row-reverse items-center justify-between gap-2">
                       {/* Icon Container */}
                       <motion.div 
-                        whileHover={{ rotate: [0, -10, 10, 0] }}
-                        transition={{ duration: 0.5 }}
-                        className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl ${stat.bgColor} flex items-center justify-center shadow-lg`}
+                        whileHover={{ rotate: [0, -5, 5, 0] }}
+                        transition={{ duration: 0.4 }}
+                        className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${stat.bgColor} flex items-center justify-center shadow-md`}
                       >
-                        <stat.icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                        <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                       </motion.div>
                       
                       {/* Content */}
                       <div className="flex-1 text-right">
-                        <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-1">
-                          {stat.suffix && <span className="text-primary">{stat.suffix}</span>}
+                        <div className="text-xl sm:text-2xl font-bold text-foreground">
+                          {stat.suffix && <span className="text-primary text-sm">{stat.suffix}</span>}
                           <AnimatedCounter value={stat.value} />
                         </div>
-                        <div className="text-sm sm:text-base text-muted-foreground font-medium">
+                        <div className="text-[10px] sm:text-xs text-muted-foreground">
                           {stat.label}
                         </div>
                       </div>
