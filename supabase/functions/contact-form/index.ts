@@ -281,74 +281,100 @@ const handler = async (req: Request): Promise<Response> => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>تم استلام رسالتك</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif; background-color: #f0f4f8; direction: rtl; text-align: right;">
-  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; background-color: #f0f4f8;">
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background-color: #f8fafc; direction: rtl;">
+  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background-color: #f8fafc;">
     <tr>
-      <td align="center" style="padding: 30px 15px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);">
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
           
           <!-- Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #15803d 100%); padding: 35px 30px; text-align: center;">
-              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
-                <tr>
-                  <td align="center">
-                    <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.2); border-radius: 18px; margin: 0 auto 15px; line-height: 70px;">
-                      <span style="font-size: 36px;">✅</span>
-                    </div>
-                    <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">
-                      تم استلام رسالتك بنجاح
-                    </h1>
-                  </td>
-                </tr>
-              </table>
+            <td style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 40px; text-align: center;">
+              <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 50%; margin: 0 auto 16px; line-height: 80px;">
+                <span style="font-size: 40px;">✅</span>
+              </div>
+              <h1 style="margin: 0 0 8px; color: #ffffff; font-size: 24px; font-weight: 700;">
+                تم استلام رسالتك بنجاح!
+              </h1>
+              <p style="margin: 0; color: rgba(255,255,255,0.9); font-size: 15px;">
+                شكراً لتواصلك مع MaxioCore
+              </p>
             </td>
           </tr>
           
           <!-- Content -->
           <tr>
-            <td style="padding: 30px; direction: rtl; text-align: right;">
-              <p style="margin: 0 0 15px; color: #1e293b; font-size: 18px; font-weight: 600;">
-                مرحباً <strong>${name}</strong>،
-              </p>
-              <p style="margin: 0 0 25px; color: #475569; font-size: 16px; line-height: 1.8;">
-                شكراً لتواصلك معنا. لقد استلمنا رسالتك وسيقوم فريقنا بالرد عليك في أقرب وقت ممكن خلال 24 ساعة.
+            <td style="padding: 32px 40px;">
+              
+              <!-- Greeting -->
+              <p style="margin: 0 0 20px; color: #0f172a; font-size: 18px; font-weight: 600;">
+                مرحباً ${name} 👋
               </p>
               
-              <!-- Message Summary -->
-              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%); border-radius: 14px; border-right: 4px solid #22c55e; margin-bottom: 25px;">
+              <p style="margin: 0 0 24px; color: #475569; font-size: 15px; line-height: 1.8;">
+                شكراً لتواصلك معنا! لقد استلمنا رسالتك وسيقوم فريقنا المختص بمراجعتها والرد عليك في أقرب وقت ممكن.
+              </p>
+              
+              <!-- Message Summary Box -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 24px;">
                 <tr>
-                  <td style="padding: 22px;">
-                    <h3 style="margin: 0 0 12px; color: #166534; font-size: 14px; font-weight: 700; text-align: right;">ملخص رسالتك:</h3>
-                    <p style="margin: 0; color: #15803d; font-size: 14px; line-height: 1.7; text-align: right; white-space: pre-wrap;">${message.substring(0, 200)}${message.length > 200 ? '...' : ''}</p>
+                  <td style="padding-bottom: 12px;">
+                    <h3 style="margin: 0; color: #0f172a; font-size: 15px; font-weight: 600;">
+                      📝 ملخص رسالتك:
+                    </h3>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; border-right: 4px solid #10b981;">
+                      <p style="margin: 0; color: #166534; font-size: 14px; line-height: 1.8; white-space: pre-wrap;">${message.substring(0, 250)}${message.length > 250 ? '...' : ''}</p>
+                    </div>
                   </td>
                 </tr>
               </table>
               
-              <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.8;">
+              <!-- Response Time Notice -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background-color: #eff6ff; border-radius: 12px; border: 1px solid #bfdbfe; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 16px 20px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="vertical-align: top; padding-left: 12px;">
+                          <span style="font-size: 24px;">⏰</span>
+                        </td>
+                        <td>
+                          <p style="margin: 0; color: #1e40af; font-size: 14px; font-weight: 600;">وقت الرد المتوقع</p>
+                          <p style="margin: 4px 0 0; color: #3b82f6; font-size: 13px;">سنقوم بالرد عليك خلال 24 ساعة عمل</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Signature -->
+              <p style="margin: 0; color: #64748b; font-size: 14px; line-height: 1.7;">
                 مع أطيب التحيات،<br>
-                <strong style="color: #1e293b;">فريق MaxioCore</strong>
+                <strong style="color: #0f172a;">فريق MaxioCore</strong>
               </p>
+              
             </td>
           </tr>
           
           <!-- Footer -->
           <tr>
-            <td style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 20px 30px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
-                <tr>
-                  <td align="center">
-                    <p style="margin: 0; font-size: 12px; color: #64748b;">
-                      هذا البريد الإلكتروني تم إرساله تلقائياً، يرجى عدم الرد عليه مباشرة.
-                    </p>
-                  </td>
-                </tr>
-              </table>
+            <td style="background-color: #f1f5f9; padding: 24px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
+              <p style="margin: 0 0 8px; font-size: 13px; color: #64748b;">
+                هذا البريد الإلكتروني تم إرساله تلقائياً، يرجى عدم الرد عليه مباشرة.
+              </p>
+              <p style="margin: 0; font-size: 12px; color: #94a3b8;">
+                © ${new Date().getFullYear()} MaxioCore - جميع الحقوق محفوظة
+              </p>
             </td>
           </tr>
+          
         </table>
       </td>
     </tr>
