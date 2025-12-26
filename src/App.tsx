@@ -81,6 +81,7 @@ import AdminPaymentsHub from "./pages/admin/AdminPaymentsHub";
 import AdminChallenges from "./pages/admin/AdminChallenges";
 import AdminSyncSettings from "./pages/admin/AdminSyncSettings";
 import AdminContactMessages from "./pages/admin/AdminContactMessages";
+import AdminDigitalMarketing from "./pages/admin/AdminDigitalMarketing";
 
 const queryClient = new QueryClient();
 
@@ -268,6 +269,11 @@ const App = () => (
                   <Route path="/admin/services" element={
                     <ProtectedRoute requireAdmin>
                       <AdminServices />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/digital-marketing" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminDigitalMarketing />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/categories" element={
