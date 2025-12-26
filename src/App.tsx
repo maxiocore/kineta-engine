@@ -79,6 +79,7 @@ import AdminTamaraPayments from "./pages/admin/AdminTamaraPayments";
 import AdminPaymentsHub from "./pages/admin/AdminPaymentsHub";
 import AdminChallenges from "./pages/admin/AdminChallenges";
 import AdminSyncSettings from "./pages/admin/AdminSyncSettings";
+import AdminContactMessages from "./pages/admin/AdminContactMessages";
 
 const queryClient = new QueryClient();
 
@@ -351,6 +352,11 @@ const App = () => (
                   <Route path="/admin/support" element={
                     <ProtectedRoute requireAdmin>
                       <AdminSupport />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/contact-messages" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminContactMessages />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/reports" element={
