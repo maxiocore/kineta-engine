@@ -7,7 +7,7 @@ import { useRef } from "react";
 
 const footerLinks = {
   "الخدمات": [
-    { label: "التسويق الرقمي", href: "/services" },
+    { label: "التسويق الرقمي", href: "/digital-marketing-services" },
     { label: "البرمجة والتطوير", href: "/development-services" },
     { label: "التصميم الإبداعي", href: "/design-services" },
     { label: "إدارة السوشيال", href: "/social-media-services" },
