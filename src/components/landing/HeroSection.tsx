@@ -3,6 +3,38 @@ import { ArrowLeft, Sparkles, Code2, Palette, Share2, Rocket, Globe, Zap, Shield
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useRef, useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+const useRealStats = () => {
+  return useQuery({
+    queryKey: ["hero-real-stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_public_stats");
+      
+      if (error) throw error;
+      
+      const stats = data as {
+        total_orders: number;
+        completed_orders: number;
+        total_users: number;
+        total_services: number;
+        total_deposits: number;
+      };
+      
+      const satisfactionRate = stats.total_orders > 0 
+        ? Math.min(98, Math.round((stats.completed_orders / stats.total_orders) * 100)) 
+        : 98;
+      
+      return {
+        totalUsers: stats.total_users || 0,
+        completedOrders: stats.completed_orders || 0,
+        satisfactionRate,
+      };
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+};
 
 const HeroSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -10,6 +42,7 @@ const HeroSection = () => {
   const isInView = useInView(heroRef, { once: true });
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [activeFeature, setActiveFeature] = useState(0);
+  const { data: stats, isLoading } = useRealStats();
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -369,7 +402,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.7 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16"
+            className="flex flex-col sm:flex-row gap-3 xs:gap-4 justify-center items-center mb-12 xs:mb-14 sm:mb-16 px-4"
           >
             <Link to="/auth?mode=signup">
               <motion.div
@@ -378,7 +411,7 @@ const HeroSection = () => {
               >
                 <Button 
                   size="lg" 
-                  className="group relative px-10 py-7 text-lg font-semibold overflow-hidden rounded-2xl"
+                  className="group relative px-6 xs:px-8 sm:px-10 py-5 xs:py-6 sm:py-7 text-sm xs:text-base sm:text-lg font-semibold overflow-hidden rounded-xl xs:rounded-2xl w-full sm:w-auto"
                 >
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-l from-primary via-accent to-primary bg-[length:200%_100%]"
@@ -387,10 +420,10 @@ const HeroSection = () => {
                     }}
                     transition={{ duration: 3, repeat: Infinity }}
                   />
-                  <span className="relative z-10 flex items-center gap-3 text-primary-foreground">
-                    <Rocket className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                  <span className="relative z-10 flex items-center justify-center gap-2 xs:gap-3 text-primary-foreground">
+                    <Rocket className="w-4 h-4 xs:w-5 xs:h-5 group-hover:rotate-12 transition-transform" />
                     ابدأ الآن مجاناً
-                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                    <ArrowLeft className="w-4 h-4 xs:w-5 xs:h-5 group-hover:-translate-x-1 transition-transform" />
                   </span>
                 </Button>
               </motion.div>
@@ -403,9 +436,9 @@ const HeroSection = () => {
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="group px-10 py-7 text-lg font-semibold border-2 rounded-2xl bg-background/50 backdrop-blur-sm hover:bg-primary/5 hover:border-primary/50 transition-all"
+                  className="group px-6 xs:px-8 sm:px-10 py-5 xs:py-6 sm:py-7 text-sm xs:text-base sm:text-lg font-semibold border-2 rounded-xl xs:rounded-2xl bg-background/50 backdrop-blur-sm hover:bg-primary/5 hover:border-primary/50 transition-all w-full sm:w-auto"
                 >
-                  <Play className="w-5 h-5 ml-3 group-hover:scale-110 transition-transform" />
+                  <Play className="w-4 h-4 xs:w-5 xs:h-5 ml-2 xs:ml-3 group-hover:scale-110 transition-transform" />
                   شاهد كيف نعمل
                 </Button>
               </motion.div>
@@ -417,12 +450,12 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.8 }}
-            className="flex flex-wrap justify-center gap-8 md:gap-16"
+            className="flex flex-wrap justify-center gap-6 xs:gap-8 md:gap-16"
           >
             {[
-              { value: "+500", label: "عميل سعيد", icon: Users, color: "text-primary" },
-              { value: "+1000", label: "مشروع ناجح", icon: Award, color: "text-emerald-500" },
-              { value: "98%", label: "معدل الرضا", icon: TrendingUp, color: "text-violet-500" },
+              { value: stats?.totalUsers || 0, suffix: "+", label: "عميل سعيد", icon: Users, color: "text-primary" },
+              { value: stats?.completedOrders || 0, suffix: "+", label: "مشروع ناجح", icon: Award, color: "text-emerald-500" },
+              { value: stats?.satisfactionRate || 98, suffix: "%", label: "معدل الرضا", icon: TrendingUp, color: "text-violet-500" },
             ].map((stat, index) => (
               <motion.div
                 key={stat.label}
@@ -432,13 +465,19 @@ const HeroSection = () => {
                 whileHover={{ scale: 1.05 }}
                 className="text-center group"
               >
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <stat.icon className={`w-6 h-6 ${stat.color} opacity-70 group-hover:opacity-100 transition-opacity`} />
-                  <span className={`text-3xl md:text-4xl font-bold ${stat.color}`}>
-                    {stat.value}
+                <div className="flex items-center justify-center gap-1.5 xs:gap-2 mb-1 xs:mb-2">
+                  <stat.icon className={`w-5 h-5 xs:w-6 xs:h-6 ${stat.color} opacity-70 group-hover:opacity-100 transition-opacity`} />
+                  <span className={`text-2xl xs:text-3xl md:text-4xl font-bold ${stat.color}`}>
+                    {isLoading ? (
+                      <span className="inline-block w-12 h-8 bg-muted animate-pulse rounded" />
+                    ) : (
+                      <>
+                        {stat.value.toLocaleString()}{stat.suffix}
+                      </>
+                    )}
                   </span>
                 </div>
-                <span className="text-muted-foreground text-sm">{stat.label}</span>
+                <span className="text-muted-foreground text-xs xs:text-sm">{stat.label}</span>
               </motion.div>
             ))}
           </motion.div>
