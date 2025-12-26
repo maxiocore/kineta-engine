@@ -9,7 +9,7 @@ const footerLinks = {
   "الخدمات": [
     { label: "التسويق الرقمي", href: "/services" },
     { label: "البرمجة والتطوير", href: "/development-services" },
-    { label: "التصميم الإبداعي", href: "/services" },
+    { label: "التصميم الإبداعي", href: "/design-services" },
     { label: "إدارة السوشيال", href: "/services" },
   ],
   "الشركة": [
