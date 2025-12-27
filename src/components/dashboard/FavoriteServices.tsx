@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { translateCategory } from "@/lib/categoryTranslation";
 import { Heart, Star, ArrowLeft, ShoppingBag } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,7 +60,7 @@ const FavoriteServices = ({ services }: FavoriteServicesProps) => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-[11px] sm:text-xs md:text-sm truncate">{service.name}</p>
-                  <p className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground truncate">{service.category}</p>
+                  <p className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground truncate">{translateCategory(service.category)}</p>
                 </div>
                 <div className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs text-muted-foreground shrink-0">
                   <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-warning fill-warning" />

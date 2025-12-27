@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "sonner";
+import { translateCategory } from "@/lib/categoryTranslation";
 
 interface Service {
   id: string;
@@ -159,7 +160,7 @@ const ClientFavorites = () => {
                   <CardContent className="p-4 h-full flex flex-col">
                     <div className="flex items-start justify-between mb-3">
                       <Badge variant="outline" className="text-xs">
-                        {service.category}
+                        {translateCategory(service.category)}
                       </Badge>
                       <Button
                         variant="ghost"
