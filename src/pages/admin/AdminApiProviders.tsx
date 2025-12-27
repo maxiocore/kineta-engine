@@ -37,13 +37,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from '@/components/ui/sheet';
 import { toast } from 'sonner';
 import { 
   Plus, 
@@ -92,6 +85,13 @@ import {
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AdvancedServicesFetcher } from '@/components/admin/providers/AdvancedServicesFetcher';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 
 // Provider categories
 const PROVIDER_CATEGORIES = [
