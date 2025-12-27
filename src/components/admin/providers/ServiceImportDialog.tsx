@@ -521,7 +521,7 @@ export const ServiceImportDialog = ({
           </div>
 
           {/* قائمة الأقسام والخدمات */}
-          <ScrollArea className="flex-1">
+          <div className="flex-1 overflow-y-auto">
             <div className="p-4 space-y-2">
               {isLoading ? (
                 <div className="flex items-center justify-center py-20">
@@ -606,7 +606,7 @@ export const ServiceImportDialog = ({
                 })
               )}
             </div>
-          </ScrollArea>
+          </div>
         </div>
 
         {/* الفوتر */}
