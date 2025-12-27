@@ -650,6 +650,107 @@ const translateName = (name: string): string => {
   return translateText(name);
 };
 
+// ترجمة اسم القسم بالكامل
+const translateCategoryName = (categoryName: string): string => {
+  // قائمة بأسماء الأقسام المعروفة وترجماتها
+  const categoryTranslations: Record<string, string> = {
+    // تويتر/إكس
+    'twitter': 'تويتر',
+    'x (twitter)': 'تويتر',
+    'x twitter': 'تويتر',
+    'twitter followers': 'تويتر - متابعين',
+    'twitter likes': 'تويتر - لايكات',
+    'twitter retweets': 'تويتر - ريتويت',
+    'twitter views': 'تويتر - مشاهدات',
+    'twitter comments': 'تويتر - تعليقات',
+    // انستقرام
+    'instagram': 'انستقرام',
+    'instagram followers': 'انستقرام - متابعين',
+    'instagram likes': 'انستقرام - لايكات',
+    'instagram views': 'انستقرام - مشاهدات',
+    'instagram comments': 'انستقرام - تعليقات',
+    'instagram reels': 'انستقرام - ريلز',
+    'instagram story': 'انستقرام - ستوري',
+    // فيسبوك
+    'facebook': 'فيسبوك',
+    'facebook followers': 'فيسبوك - متابعين',
+    'facebook likes': 'فيسبوك - لايكات',
+    'facebook page': 'فيسبوك - صفحات',
+    'facebook views': 'فيسبوك - مشاهدات',
+    // يوتيوب
+    'youtube': 'يوتيوب',
+    'youtube subscribers': 'يوتيوب - مشتركين',
+    'youtube views': 'يوتيوب - مشاهدات',
+    'youtube likes': 'يوتيوب - لايكات',
+    'youtube comments': 'يوتيوب - تعليقات',
+    'youtube watch': 'يوتيوب - ساعات مشاهدة',
+    // تيك توك
+    'tiktok': 'تيك توك',
+    'tik tok': 'تيك توك',
+    'tiktok followers': 'تيك توك - متابعين',
+    'tiktok likes': 'تيك توك - لايكات',
+    'tiktok views': 'تيك توك - مشاهدات',
+    // تليجرام
+    'telegram': 'تليجرام',
+    'telegram members': 'تليجرام - أعضاء',
+    'telegram views': 'تليجرام - مشاهدات',
+    // سبوتيفاي
+    'spotify': 'سبوتيفاي',
+    'spotify followers': 'سبوتيفاي - متابعين',
+    'spotify plays': 'سبوتيفاي - تشغيلات',
+    // لينكد إن
+    'linkedin': 'لينكد إن',
+    'linkedin followers': 'لينكد إن - متابعين',
+    // أخرى
+    'soundcloud': 'ساوند كلاود',
+    'website traffic': 'زيارات المواقع',
+    'seo': 'سيو',
+    'reviews': 'تقييمات',
+    'other': 'أخرى',
+  };
+
+  const lowerCategory = categoryName.toLowerCase().trim();
+  
+  // البحث عن ترجمة مباشرة
+  for (const [en, ar] of Object.entries(categoryTranslations)) {
+    if (lowerCategory.includes(en)) {
+      return ar;
+    }
+  }
+  
+  // إذا لم نجد ترجمة، نترجم النص كاملاً
+  return translateText(categoryName);
+};
+
+// اكتشاف القسم المناسب من قاعدة البيانات
+const detectCategoryFromName = (categoryName: string, dbCategories: any[]): string | null => {
+  const lowerCategory = categoryName.toLowerCase();
+  
+  const platformMap: Record<string, string[]> = {
+    'twitter': ['twitter', 'x (', 'x twitter', 'تويتر'],
+    'instagram': ['instagram', 'ig', 'انستقرام', 'انستا'],
+    'facebook': ['facebook', 'fb', 'فيسبوك'],
+    'youtube': ['youtube', 'yt', 'يوتيوب'],
+    'tiktok': ['tiktok', 'tik tok', 'تيك توك'],
+    'telegram': ['telegram', 'tg', 'تليجرام', 'تيليجرام'],
+    'linkedin': ['linkedin', 'لينكد'],
+    'spotify': ['spotify', 'سبوتيفاي'],
+    'soundcloud': ['soundcloud', 'ساوند كلاود'],
+    'website-traffic': ['traffic', 'website', 'seo', 'زيارات'],
+  };
+  
+  for (const [slug, keywords] of Object.entries(platformMap)) {
+    if (keywords.some(k => lowerCategory.includes(k))) {
+      const category = dbCategories.find(c => c.slug === slug);
+      if (category) {
+        return category.id;
+      }
+    }
+  }
+  
+  return null;
+};
+
 const hasRefill = (s: ProviderService): boolean => 
   s.refill === true || s.refill === 'true' || s.refill === '1';
 
@@ -900,14 +1001,22 @@ export const ServiceImportDialog = ({
             cancel: hasCancel(service),
           };
 
+          // تحديد القسم الصحيح - إما المحدد يدوياً أو الكشف التلقائي
+          const detectedCategoryId = targetCategory || detectCategoryFromName(service.category, dbCategories);
+          
+          // ترجمة اسم القسم إذا كانت الترجمة التلقائية مفعّلة
+          const translatedCategory = autoTranslate 
+            ? translateCategoryName(service.category) 
+            : service.category;
+
           const serviceData = {
             name: autoTranslate ? translateName(service.name) : service.name,
             description: service.desc || null,
             price: finalPrice,
             external_service_id: String(service.service),
             provider_id: المزود.id,
-            category: service.category,
-            category_id: targetCategory || null,
+            category: translatedCategory,
+            category_id: detectedCategoryId || null,
             features: features,
             status: 'active' as const,
           };
