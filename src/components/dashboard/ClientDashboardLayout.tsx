@@ -28,6 +28,9 @@ import {
   FileCode,
   Coins,
   Target,
+  Share2,
+  Megaphone,
+  MonitorSmartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -45,7 +48,18 @@ interface NavItem {
 
 const clientNavItems: NavItem[] = [
   { label: "نظرة عامة", href: "/dashboard", icon: LayoutDashboard },
-  { label: "خدماتنا", href: "/dashboard/our-services", icon: Layers },
+  { 
+    label: "خدماتنا", 
+    href: "/dashboard/our-services", 
+    icon: Layers,
+    children: [
+      { label: "جميع الخدمات", href: "/dashboard/our-services", icon: Layers },
+      { label: "خدمات التواصل الاجتماعي", href: "/dashboard/social-services", icon: Share2 },
+      { label: "خدمات التصميم", href: "/dashboard/design-services", icon: Palette },
+      { label: "خدمات البرمجة", href: "/dashboard/dev-services", icon: FileCode },
+      { label: "التسويق الرقمي", href: "/dashboard/digital-services", icon: Megaphone },
+    ]
+  },
   { label: "الطلبات", href: "/dashboard/orders", icon: ShoppingBag },
   { label: "المفضلة", href: "/dashboard/favorites", icon: Heart },
   { label: "الإحالات", href: "/dashboard/referrals", icon: Gift },
