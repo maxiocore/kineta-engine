@@ -534,15 +534,14 @@ const SocialMediaServices = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            className="w-full"
+            className="w-full overflow-hidden"
           >
-            <ScrollArea className="w-full" dir="rtl">
-              <div className="flex flex-row-reverse gap-2 pb-2">
+            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent pb-2">
+              <div className="flex gap-2 min-w-max">
                 {socialNetworks.map((network) => {
                   const Icon = network.icon;
                   const CustomIcon = (network as any).customIcon;
                   const isSelected = selectedNetwork === network.id;
-                  const count = networkCounts[network.id] || 0;
                   
                   return (
                     <button
@@ -579,8 +578,7 @@ const SocialMediaServices = () => {
                   );
                 })}
               </div>
-              <ScrollBar orientation="horizontal" className="h-1.5" />
-            </ScrollArea>
+            </div>
           </motion.div>
 
           {/* Services List */}
@@ -612,27 +610,30 @@ const SocialMediaServices = () => {
               Object.entries(groupedServices).map(([catId, catServices]) => (
                 <Collapsible 
                   key={catId}
-                  open={expandedCategories.has(catId) || expandedCategories.size === 0}
+                  defaultOpen={true}
+                  open={expandedCategories.size === 0 || expandedCategories.has(catId)}
                   onOpenChange={() => toggleCategory(catId)}
                 >
                   <CollapsibleTrigger asChild>
-                    <button className="w-full flex items-center justify-between p-4 bg-card border border-border rounded-xl hover:bg-muted/50 transition-colors">
+                    <button className="w-full flex items-center justify-between p-4 bg-card/80 backdrop-blur border border-border rounded-xl hover:bg-muted/50 transition-colors">
                       <ChevronDown className={cn(
-                        "w-5 h-5 text-muted-foreground transition-transform",
-                        (expandedCategories.has(catId) || expandedCategories.size === 0) && "rotate-180"
+                        "w-5 h-5 text-muted-foreground transition-transform duration-200",
+                        (expandedCategories.size === 0 || expandedCategories.has(catId)) && "rotate-180"
                       )} />
                       <div className="flex items-center gap-3">
-                        <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                        <Badge variant="secondary" className="text-xs px-2.5 py-1 bg-primary/10 text-primary">
                           {catServices.length}
                         </Badge>
-                        <span className="font-semibold text-sm">{getCategoryName(catId)}</span>
-                        <Layers className="w-5 h-5 text-primary" />
+                        <span className="font-bold text-base">{getCategoryName(catId)}</span>
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Layers className="w-4 h-4 text-primary" />
+                        </div>
                       </div>
                     </button>
                   </CollapsibleTrigger>
                   
-                  <CollapsibleContent>
-                    <div className="mt-2 space-y-2">
+                  <CollapsibleContent className="data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
+                    <div className="mt-3 space-y-3">
                       {catServices.map((service) => {
                         const features = parseFeatures(service.features);
                         const isFav = favorites.includes(service.id);
@@ -641,76 +642,79 @@ const SocialMediaServices = () => {
                         return (
                           <div
                             key={service.id}
-                            className="w-full bg-card border border-border rounded-xl p-4 hover:border-primary/40 transition-colors"
+                            className="w-full bg-card border border-border rounded-xl overflow-hidden hover:border-primary/50 hover:shadow-md transition-all"
                           >
-                            {/* Service Header */}
-                            <div className="flex items-start justify-between gap-3 mb-3">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleFavorite(service.id);
-                                }}
-                                className={cn(
-                                  "shrink-0 p-2 rounded-lg transition-colors",
-                                  isFav 
-                                    ? "bg-rose-500/10 text-rose-500" 
-                                    : "bg-muted text-muted-foreground hover:text-rose-500"
-                                )}
-                              >
-                                <Heart className={cn("w-4 h-4", isFav && "fill-current")} />
-                              </button>
-                              <h4 className="font-medium text-sm text-foreground leading-relaxed text-right flex-1">
-                                {service.name}
-                              </h4>
-                            </div>
-                            
-                            {/* Service Meta */}
-                            <div className="flex flex-wrap items-center justify-end gap-3 text-xs text-muted-foreground mb-3">
-                              {(service.refill_enabled || features.refill) && (
-                                <Badge variant="secondary" className="text-[10px] px-2 py-0.5 bg-green-500/10 text-green-600 border-0">
-                                  تعويض
-                                  <RefreshCw className="w-3 h-3 mr-1" />
-                                </Badge>
-                              )}
-                              {service.refill_days && (
-                                <span className="flex items-center gap-1">
-                                  {service.refill_days} يوم
-                                  <Clock className="w-3 h-3" />
-                                </span>
-                              )}
-                              <span className="flex items-center gap-1">
-                                {features.min.toLocaleString()} - {features.max.toLocaleString()}
-                                <Target className="w-3 h-3" />
-                              </span>
-                              {service.external_service_id && (
+                            {/* Service Content */}
+                            <div className="p-4">
+                              {/* Top Row: Title + Favorite */}
+                              <div className="flex items-start gap-3 mb-4">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    copyServiceId(service.external_service_id!);
+                                    toggleFavorite(service.id);
                                   }}
-                                  className="flex items-center gap-1 hover:text-foreground transition-colors"
+                                  className={cn(
+                                    "shrink-0 p-2 rounded-lg transition-all",
+                                    isFav 
+                                      ? "bg-rose-500/15 text-rose-500" 
+                                      : "bg-muted/60 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10"
+                                  )}
                                 >
-                                  #{service.external_service_id}
-                                  <Copy className="w-3 h-3" />
+                                  <Heart className={cn("w-4 h-4", isFav && "fill-current")} />
                                 </button>
-                              )}
-                            </div>
+                                <h4 className="font-semibold text-sm text-foreground leading-relaxed flex-1 text-right">
+                                  {service.name}
+                                </h4>
+                              </div>
+                              
+                              {/* Meta Row */}
+                              <div className="flex flex-wrap items-center justify-end gap-2 text-xs text-muted-foreground mb-4">
+                                {service.external_service_id && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      copyServiceId(service.external_service_id!);
+                                    }}
+                                    className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 hover:bg-muted transition-colors"
+                                  >
+                                    <Copy className="w-3 h-3" />
+                                    <span dir="ltr">#{service.external_service_id}</span>
+                                  </button>
+                                )}
+                                <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
+                                  <Target className="w-3 h-3" />
+                                  <span dir="ltr">{features.min.toLocaleString()} - {features.max.toLocaleString()}</span>
+                                </span>
+                                {service.refill_days && (
+                                  <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
+                                    <Clock className="w-3 h-3" />
+                                    {service.refill_days} يوم
+                                  </span>
+                                )}
+                                {(service.refill_enabled || features.refill) && (
+                                  <Badge className="text-[10px] px-2 py-1 bg-green-500/15 text-green-600 border-0 gap-1">
+                                    <RefreshCw className="w-3 h-3" />
+                                    تعويض
+                                  </Badge>
+                                )}
+                              </div>
 
-                            {/* Price & Action */}
-                            <div className="flex items-center justify-between pt-3 border-t border-border">
-                              <Button
-                                size="sm"
-                                onClick={() => handleSelectService(service)}
-                                className="rounded-lg gap-2"
-                              >
-                                اطلب الآن
-                                <ShoppingCart className="w-4 h-4" />
-                              </Button>
-                              <div className="text-left">
-                                <p className="text-lg font-bold text-primary" dir="ltr">
-                                  {pricePerK.toFixed(2)} ر.س
-                                </p>
-                                <p className="text-[10px] text-muted-foreground text-right">لكل 1000</p>
+                              {/* Bottom Row: Price + Order Button */}
+                              <div className="flex items-center justify-between pt-4 border-t border-border/50">
+                                <Button
+                                  size="default"
+                                  onClick={() => handleSelectService(service)}
+                                  className="rounded-lg gap-2 px-5"
+                                >
+                                  <ShoppingCart className="w-4 h-4" />
+                                  اطلب الآن
+                                </Button>
+                                <div className="text-left">
+                                  <p className="text-xl font-bold text-primary" dir="ltr">
+                                    {pricePerK.toFixed(2)} <span className="text-sm">ر.س</span>
+                                  </p>
+                                  <p className="text-[11px] text-muted-foreground text-right">لكل 1000</p>
+                                </div>
                               </div>
                             </div>
                           </div>
