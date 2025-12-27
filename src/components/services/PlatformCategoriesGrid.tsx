@@ -126,20 +126,47 @@ const PlatformCategoriesGrid = ({
         const mainCats: MainCategory[] = [];
         const subCats: SubCategory[] = [];
 
+        // Known platform slugs that should be main categories
+        const mainPlatformSlugs = [
+          'instagram', 'facebook', 'youtube', 'twitter', 'tiktok', 
+          'telegram', 'linkedin', 'spotify', 'soundcloud', 'snapchat',
+          'website-traffic', 'tiktok', 'twitch', 'discord', 'pinterest'
+        ];
+
         data.forEach(cat => {
-          if (!cat.parent_id) {
-            // Skip social-media-services umbrella category
-            if (cat.slug === 'social-media') return;
-            // Skip snapchat sub-categories that are incorrectly marked as main
-            if (cat.slug.includes('-followers') || cat.slug.includes('-views') || 
-                cat.slug.includes('-likes') || cat.slug.includes('-members')) return;
-            
-            mainCats.push({
-              ...cat,
-              subcategories: []
-            });
-          } else {
+          // If it has a parent_id, it's definitely a subcategory
+          if (cat.parent_id) {
             subCats.push(cat as SubCategory);
+          } else {
+            // It's a main category if it's in the known platforms list
+            // or if it doesn't have parent and is not a service type slug
+            const isMainPlatform = mainPlatformSlugs.includes(cat.slug);
+            const isServiceTypeSlug = cat.slug.includes('-followers') || 
+                                       cat.slug.includes('-likes') || 
+                                       cat.slug.includes('-views') ||
+                                       cat.slug.includes('-members') ||
+                                       cat.slug.includes('-subscribers') ||
+                                       cat.slug.includes('-comments') ||
+                                       cat.slug.includes('-retweets') ||
+                                       cat.slug.includes('-shares');
+            
+            // Skip the umbrella social-media category
+            if (cat.slug === 'social-media') return;
+            
+            // If it's a main platform, add it as main category
+            if (isMainPlatform && !isServiceTypeSlug) {
+              mainCats.push({
+                ...cat,
+                subcategories: []
+              });
+            } else if (!isServiceTypeSlug && !cat.slug.includes('-')) {
+              // Also include other non-service-type categories as main
+              mainCats.push({
+                ...cat,
+                subcategories: []
+              });
+            }
+            // Skip orphaned service-type categories without parents
           }
         });
 
@@ -166,11 +193,17 @@ const PlatformCategoriesGrid = ({
   };
 
   const getPlatformCount = (platform: MainCategory): number => {
-    // Count services for main category and all its subcategories
+    // Count services for main category
     let count = serviceCounts[platform.slug] || 0;
-    platform.subcategories.forEach(sub => {
-      count += serviceCounts[sub.slug] || 0;
-    });
+    
+    // If this is the total count including subcategories, return it
+    // Otherwise, add counts from all subcategories
+    if (count === 0 && platform.subcategories.length > 0) {
+      platform.subcategories.forEach(sub => {
+        count += serviceCounts[sub.slug] || 0;
+      });
+    }
+    
     return count;
   };
 
