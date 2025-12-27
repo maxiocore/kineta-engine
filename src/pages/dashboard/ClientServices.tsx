@@ -54,7 +54,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { translateCategory } from "@/lib/categoryTranslation";
 
 interface Service {
   id: string;
@@ -301,7 +300,7 @@ const CategorySection = ({
                 <Package className="w-6 h-6 text-primary" />
               </div>
               <div className="text-right">
-                <h3 className="font-bold text-lg">{translateCategory(category)}</h3>
+                <h3 className="font-bold text-lg">{category}</h3>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-sm text-muted-foreground">{services.length} خدمة</span>
                   <div className="w-1 h-1 rounded-full bg-muted-foreground/30" />

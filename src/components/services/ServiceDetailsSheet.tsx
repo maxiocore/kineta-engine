@@ -1,5 +1,4 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { translateCategory } from "@/lib/categoryTranslation";
 import {
   Sheet,
   SheetContent,
@@ -162,7 +161,7 @@ const ServiceDetailsSheet = ({
                       )}
                       <Badge className="gap-1.5 px-3 py-1.5 bg-accent/15 text-accent border-accent/30">
                         <Package className="w-3.5 h-3.5" />
-                        {translateCategory(service.category)}
+                        {service.category}
                       </Badge>
                     </div>
                   </div>
