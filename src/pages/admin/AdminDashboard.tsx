@@ -384,6 +384,7 @@ const AdminDashboard = () => {
       iconBg: "bg-gradient-to-br from-primary to-blue-600",
       trend: stats.usersTrend,
       onClick: () => navigate("/admin/users"),
+      subtitle: `${stats.verifiedUsers} مستخدم موثق`,
     },
     {
       title: "الطلبات المعلقة",
@@ -393,6 +394,7 @@ const AdminDashboard = () => {
       iconBg: "bg-gradient-to-br from-warning to-orange-600",
       trend: stats.ordersTrend,
       onClick: () => navigate("/admin/orders"),
+      subtitle: `من إجمالي ${stats.totalOrders} طلب`,
     },
     {
       title: "الطلبات المكتملة",
@@ -401,6 +403,7 @@ const AdminDashboard = () => {
       gradient: "from-success/20 to-success/5",
       iconBg: "bg-gradient-to-br from-success to-emerald-600",
       onClick: () => navigate("/admin/orders"),
+      subtitle: "طلبات تم تنفيذها بنجاح",
     },
     {
       title: "الإيرادات الشهرية",
@@ -411,6 +414,7 @@ const AdminDashboard = () => {
       suffix: " ر.س",
       trend: stats.revenueTrend,
       onClick: () => navigate("/admin/reports"),
+      subtitle: "إيرادات الشهر الحالي",
     },
   ];
 
