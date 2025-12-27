@@ -34,6 +34,7 @@ interface ServicesCategorySectionProps {
   categoryName: string;
   categoryNameAr: string;
   categoryColor?: string;
+  parentCategoryName?: string;
   services: Service[];
   isExpanded: boolean;
   onToggle: () => void;
@@ -48,6 +49,7 @@ const ServicesCategorySection = ({
   categoryName,
   categoryNameAr,
   categoryColor = "from-primary to-primary/70",
+  parentCategoryName,
   services,
   isExpanded,
   onToggle,
@@ -118,9 +120,16 @@ const ServicesCategorySection = ({
               
               {/* Info */}
               <div className="text-right">
-                <h3 className="font-bold text-base sm:text-lg group-hover:text-primary transition-colors">
-                  {categoryNameAr}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-base sm:text-lg group-hover:text-primary transition-colors">
+                    {categoryNameAr}
+                  </h3>
+                  {parentCategoryName && (
+                    <Badge variant="outline" className="text-xs font-normal">
+                      {parentCategoryName}
+                    </Badge>
+                  )}
+                </div>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-sm text-muted-foreground">{services.length} خدمة</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
