@@ -1036,10 +1036,10 @@ const AdminServiceImport = () => {
                                             {service.service}
                                           </Badge>
                                           <Badge variant="outline" className="text-xs">
-                                            Min: {parseInt(service.min).toLocaleString()}
+                                            الحد الأدنى: {parseInt(service.min).toLocaleString()}
                                           </Badge>
                                           <Badge variant="outline" className="text-xs">
-                                            Max: {parseInt(service.max).toLocaleString()}
+                                            الحد الأقصى: {parseInt(service.max).toLocaleString()}
                                           </Badge>
                                           {service.refill && (
                                             <Badge className="text-xs bg-purple-500/20 text-purple-600 border-0">
@@ -1170,7 +1170,7 @@ const AdminServiceImport = () => {
                   </div>
                   <div>
                     <Label className="text-muted-foreground text-xs">النوع</Label>
-                    <p className="font-medium mt-1">{selectedServiceDetails.type || 'Default'}</p>
+                    <p className="font-medium mt-1">{selectedServiceDetails.type || 'افتراضي'}</p>
                   </div>
                 </div>
                 
