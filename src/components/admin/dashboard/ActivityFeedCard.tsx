@@ -1,5 +1,14 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Users, ShoppingCart, Ticket, Filter, ChevronRight } from "lucide-react";
+import { 
+  Clock, 
+  Users, 
+  ShoppingCart, 
+  Ticket, 
+  Filter, 
+  ArrowLeft,
+  Sparkles,
+  CheckCircle
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +44,7 @@ const getActivityConfig = (type: string) => {
         color: "text-primary",
         bg: "bg-primary/10",
         border: "border-primary/20",
+        glow: "shadow-primary/5",
       };
     case "user":
       return {
@@ -42,6 +52,7 @@ const getActivityConfig = (type: string) => {
         color: "text-success",
         bg: "bg-success/10",
         border: "border-success/20",
+        glow: "shadow-success/5",
       };
     case "ticket":
       return {
@@ -49,6 +60,7 @@ const getActivityConfig = (type: string) => {
         color: "text-warning",
         bg: "bg-warning/10",
         border: "border-warning/20",
+        glow: "shadow-warning/5",
       };
     default:
       return {
@@ -56,6 +68,7 @@ const getActivityConfig = (type: string) => {
         color: "text-muted-foreground",
         bg: "bg-muted",
         border: "border-border",
+        glow: "",
       };
   }
 };
@@ -72,27 +85,40 @@ const ActivityFeedCard = ({ activities }: ActivityFeedCardProps) => {
   });
 
   return (
-    <Card className="border-border/50 h-full overflow-hidden bg-gradient-to-bl from-card to-card/80" dir="rtl">
+    <Card className="border-border/50 h-full overflow-hidden bg-gradient-to-bl from-card to-card/80 relative" dir="rtl">
+      {/* Background decorations */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl" />
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent/5 rounded-full blur-xl" />
+
       <CardHeader className="pb-2 px-4 sm:px-6 pt-4 sm:pt-5">
-        <div className="flex items-center justify-between flex-row-reverse">
+        <div className="flex items-center justify-between">
           <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-primary/10">
+            <motion.div 
+              className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20"
+              animate={{ rotate: [0, 5, -5, 0] }}
+              transition={{ duration: 4, repeat: Infinity }}
+            >
               <Clock className="w-4 h-4 text-primary" />
-            </div>
-            النشاط الأخير
+            </motion.div>
+            <span>النشاط الأخير</span>
           </CardTitle>
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="secondary" className="text-xs px-2 py-1">
+            <Sparkles className="w-3 h-3 ml-1" />
             {filteredActivities.length} نشاط
           </Badge>
         </div>
+
         {/* Filter Buttons */}
-        <div className="flex gap-1.5 mt-3 overflow-x-auto pb-1 flex-row-reverse">
+        <div className="flex gap-1.5 mt-3 overflow-x-auto pb-1 scrollbar-hide">
           {filterOptions.map((option) => (
             <Button
               key={option.id}
               variant={filter === option.id ? "default" : "outline"}
               size="sm"
-              className="h-7 text-[10px] sm:text-xs px-2 sm:px-3 gap-1 shrink-0 flex-row-reverse"
+              className={cn(
+                "h-7 text-[10px] sm:text-xs px-2 sm:px-3 gap-1 shrink-0 transition-all",
+                filter === option.id && "shadow-md"
+              )}
               onClick={() => setFilter(option.id)}
             >
               <option.icon className="w-3 h-3" />
@@ -101,11 +127,12 @@ const ActivityFeedCard = ({ activities }: ActivityFeedCardProps) => {
           ))}
         </div>
       </CardHeader>
+
       <CardContent className="px-4 sm:px-6 pb-4 sm:pb-5">
         <ScrollArea className="h-[300px] sm:h-[320px] -mx-2 px-2">
           <AnimatePresence mode="popLayout">
             {filteredActivities.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {filteredActivities.map((activity, index) => {
                   const config = getActivityConfig(activity.type);
                   const IconComponent = config.icon;
@@ -113,49 +140,78 @@ const ActivityFeedCard = ({ activities }: ActivityFeedCardProps) => {
                   return (
                     <motion.div
                       key={activity.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
+                      initial={{ opacity: 0, y: 10, x: 20 }}
+                      animate={{ opacity: 1, y: 0, x: 0 }}
+                      exit={{ opacity: 0, y: -10, x: -20 }}
                       transition={{ delay: index * 0.05 }}
-                      whileHover={{ x: 2 }}
+                      whileHover={{ x: -4, scale: 1.01 }}
                       className={cn(
-                        "flex items-start gap-3 p-3 rounded-xl border transition-all hover:bg-secondary/30 cursor-pointer group flex-row-reverse",
+                        "relative flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer group",
                         config.border,
-                        "bg-gradient-to-l from-transparent to-secondary/10"
+                        config.glow,
+                        "bg-gradient-to-l from-transparent to-secondary/10",
+                        "hover:shadow-md hover:bg-secondary/20"
                       )}
                     >
-                      <div className={cn("p-2 rounded-lg shrink-0", config.bg)}>
+                      {/* Icon */}
+                      <motion.div 
+                        className={cn("p-2.5 rounded-xl shrink-0", config.bg)}
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                      >
                         <IconComponent className={cn("w-4 h-4", config.color)} />
-                      </div>
+                      </motion.div>
+
+                      {/* Content */}
                       <div className="flex-1 min-w-0 text-right">
-                        <div className="flex items-start justify-between gap-2 flex-row-reverse">
-                          <p className="text-sm font-medium truncate">{activity.message}</p>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{activity.message}</p>
+                            {activity.details && (
+                              <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                                {activity.details}
+                              </p>
+                            )}
+                          </div>
                           {activity.isNew && (
                             <Badge
                               variant="secondary"
-                              className="shrink-0 text-[8px] px-1.5 py-0.5 bg-primary/10 text-primary border-0"
+                              className="shrink-0 text-[9px] px-1.5 py-0.5 bg-primary/10 text-primary border-0"
                             >
                               جديد
                             </Badge>
                           )}
                         </div>
-                        {activity.details && (
-                          <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                            {activity.details}
-                          </p>
-                        )}
-                        <p className="text-[10px] text-muted-foreground mt-1">{activity.time}</p>
+                        <p className="text-[10px] text-muted-foreground mt-1.5 flex items-center gap-1">
+                          <Clock className="w-2.5 h-2.5" />
+                          {activity.time}
+                        </p>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+
+                      {/* Hover indicator */}
+                      <ArrowLeft className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 self-center" />
+
+                      {/* New indicator dot */}
+                      {activity.isNew && (
+                        <motion.div
+                          className="absolute -top-1 -left-1 w-3 h-3 bg-primary rounded-full"
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                        />
+                      )}
                     </motion.div>
                   );
                 })}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                <Clock className="w-10 h-10 mb-3 opacity-30" />
-                <p className="text-sm">لا يوجد نشاط حتى الآن</p>
-              </div>
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center py-16 text-muted-foreground"
+              >
+                <CheckCircle className="w-12 h-12 mb-3 opacity-20" />
+                <p className="text-sm font-medium">لا يوجد نشاط حتى الآن</p>
+                <p className="text-xs mt-1">ستظهر الأنشطة الجديدة هنا</p>
+              </motion.div>
             )}
           </AnimatePresence>
         </ScrollArea>
