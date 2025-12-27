@@ -86,7 +86,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Info,
-  ExternalLink
+  ExternalLink,
+  Check
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
@@ -162,6 +163,13 @@ const AdminApiProviders = () => {
   const [selectedServiceCategory, setSelectedServiceCategory] = useState<string>('all');
   const [importProgress, setImportProgress] = useState<{ current: number; total: number; status: string } | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  
+  // Import options state
+  const [selectedServicesForImport, setSelectedServicesForImport] = useState<Set<string | number>>(new Set());
+  const [selectedCategoriesForImport, setSelectedCategoriesForImport] = useState<Set<string>>(new Set());
+  const [targetCategoryId, setTargetCategoryId] = useState<string>('');
+  const [importMode, setImportMode] = useState<'all' | 'selected' | 'categories'>('all');
+  const [showImportOptions, setShowImportOptions] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -427,40 +435,162 @@ const AdminApiProviders = () => {
     }
   };
 
+  // Toggle service selection for import
+  const toggleServiceSelection = (serviceId: string | number) => {
+    setSelectedServicesForImport(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(serviceId)) {
+        newSet.delete(serviceId);
+      } else {
+        newSet.add(serviceId);
+      }
+      return newSet;
+    });
+  };
+
+  // Toggle category selection for import
+  const toggleCategorySelection = (category: string) => {
+    setSelectedCategoriesForImport(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(category)) {
+        newSet.delete(category);
+      } else {
+        newSet.add(category);
+      }
+      return newSet;
+    });
+  };
+
+  // Select all visible services
+  const selectAllVisible = () => {
+    const newSet = new Set(selectedServicesForImport);
+    filteredServices.forEach(s => newSet.add(s.service));
+    setSelectedServicesForImport(newSet);
+  };
+
+  // Clear selection
+  const clearSelection = () => {
+    setSelectedServicesForImport(new Set());
+    setSelectedCategoriesForImport(new Set());
+  };
+
+  // Get services to import based on mode
+  const getServicesToImport = (): ProviderService[] => {
+    if (!fetchedServices) return [];
+    
+    switch (importMode) {
+      case 'selected':
+        return fetchedServices.services.filter(s => selectedServicesForImport.has(s.service));
+      case 'categories':
+        return fetchedServices.services.filter(s => selectedCategoriesForImport.has(s.category));
+      case 'all':
+      default:
+        return filteredServices;
+    }
+  };
+
   // Import services to database
   const handleImportServices = async () => {
     if (!fetchedServices || !fetchingProvider) return;
 
+    const servicesToImport = getServicesToImport();
+    if (servicesToImport.length === 0) {
+      toast.error('لا توجد خدمات محددة للاستيراد');
+      return;
+    }
+
     setIsImporting(true);
-    setImportProgress({ current: 0, total: filteredServices.length, status: 'جاري التحضير...' });
+    setImportProgress({ current: 0, total: servicesToImport.length, status: 'جاري التحضير...' });
 
     try {
-      // Call the sync-services-advanced function with full details
-      const { data, error } = await supabase.functions.invoke('sync-services-advanced', {
-        body: {
-          provider_id: fetchingProvider.id,
-          update_prices: true,
-          update_descriptions: true,
-          translate_names: true,
-          delete_removed: false,
+      let imported = 0;
+      let updated = 0;
+      let errors = 0;
+
+      for (let i = 0; i < servicesToImport.length; i++) {
+        const service = servicesToImport[i];
+        setImportProgress({ 
+          current: i + 1, 
+          total: servicesToImport.length, 
+          status: `جاري معالجة: ${service.name.slice(0, 30)}...` 
+        });
+
+        try {
+          // Check if service exists
+          const { data: existingService } = await supabase
+            .from('services')
+            .select('id')
+            .eq('external_service_id', String(service.service))
+            .eq('provider_id', fetchingProvider.id)
+            .single();
+
+          // Calculate price with profit margin
+          const basePrice = parseFloat(service.rate) || 0;
+          const priceWithMargin = basePrice * (1 + (fetchingProvider.profit_margin / 100));
+
+          // Prepare features
+          const features = {
+            min: parseInt(service.min) || 0,
+            max: parseInt(service.max) || 0,
+            type: service.type || 'default',
+            refill: service.refill === true || service.refill === 'true',
+            cancel: service.cancel === true || service.cancel === 'true',
+            dripfeed: service.dripfeed === true || service.dripfeed === 'true',
+            average_time: service.average_time || null,
+          };
+
+          const serviceData = {
+            name: translateServiceName(service.name),
+            description: service.desc || null,
+            price: priceWithMargin,
+            external_service_id: String(service.service),
+            provider_id: fetchingProvider.id,
+            category: targetCategoryId ? 'custom' : service.category,
+            category_id: targetCategoryId || null,
+            features,
+            status: 'active' as const,
+          };
+
+          if (existingService) {
+            // Update existing service
+            await supabase
+              .from('services')
+              .update(serviceData)
+              .eq('id', existingService.id);
+            updated++;
+          } else {
+            // Insert new service
+            await supabase
+              .from('services')
+              .insert(serviceData);
+            imported++;
+          }
+        } catch (err) {
+          console.error('Error importing service:', service.service, err);
+          errors++;
         }
-      });
+      }
 
-      if (error) throw error;
-
-      toast.success(data.message || 'تم استيراد الخدمات بنجاح');
-      queryClient.invalidateQueries({ queryKey: ['api-providers'] });
-      queryClient.invalidateQueries({ queryKey: ['services'] });
-      
-      // Update provider services count
+      // Update provider last sync
       await supabase
         .from('api_providers')
         .update({ 
           last_sync_at: new Date().toISOString(),
-          services_count: fetchedServices.totalServices 
         })
         .eq('id', fetchingProvider.id);
 
+      queryClient.invalidateQueries({ queryKey: ['api-providers'] });
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+
+      toast.success(
+        `تم الاستيراد بنجاح!\n${imported} خدمة جديدة | ${updated} تحديث | ${errors} أخطاء`,
+        { duration: 5000 }
+      );
+
+      // Reset selections
+      setSelectedServicesForImport(new Set());
+      setSelectedCategoriesForImport(new Set());
+      setShowImportOptions(false);
     } catch (error) {
       console.error('Error importing services:', error);
       toast.error('فشل في استيراد الخدمات: ' + (error instanceof Error ? error.message : 'خطأ غير معروف'));
@@ -1045,21 +1175,161 @@ const AdminApiProviders = () => {
                         className="pr-10"
                       />
                     </div>
-                    <Select value={selectedServiceCategory} onValueChange={setSelectedServiceCategory}>
-                      <SelectTrigger>
-                        <Layers className="h-4 w-4 ml-2" />
-                        <SelectValue placeholder="جميع الأقسام" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">جميع الأقسام ({fetchedServices.totalServices})</SelectItem>
-                        {fetchedServices.categories.map((cat) => (
-                          <SelectItem key={cat.name} value={cat.name}>
-                            {cat.name} ({cat.count})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-2">
+                      <Select value={selectedServiceCategory} onValueChange={setSelectedServiceCategory}>
+                        <SelectTrigger className="flex-1">
+                          <Layers className="h-4 w-4 ml-2" />
+                          <SelectValue placeholder="جميع الأقسام" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">جميع الأقسام ({fetchedServices.totalServices})</SelectItem>
+                          {fetchedServices.categories.map((cat) => (
+                            <SelectItem key={cat.name} value={cat.name}>
+                              {cat.name} ({cat.count})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setShowImportOptions(!showImportOptions)}
+                        className={showImportOptions ? 'bg-primary/10 border-primary' : ''}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {/* Selection Actions */}
+                    {importMode === 'selected' && (
+                      <div className="flex items-center justify-between gap-2 text-sm">
+                        <span className="text-muted-foreground">
+                          {selectedServicesForImport.size} خدمة محددة
+                        </span>
+                        <div className="flex gap-2">
+                          <Button variant="ghost" size="sm" onClick={selectAllVisible}>
+                            تحديد الكل
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={clearSelection}>
+                            إلغاء التحديد
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Import Options Panel */}
+                  <AnimatePresence>
+                    {showImportOptions && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden border-b"
+                      >
+                        <div className="p-4 bg-muted/20 space-y-4">
+                          <h4 className="text-sm font-semibold flex items-center gap-2">
+                            <Download className="h-4 w-4" />
+                            خيارات الاستيراد
+                          </h4>
+
+                          {/* Import Mode */}
+                          <div className="space-y-2">
+                            <Label className="text-xs text-muted-foreground">وضع الاستيراد</Label>
+                            <div className="grid grid-cols-3 gap-2">
+                              <Button
+                                type="button"
+                                variant={importMode === 'all' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setImportMode('all')}
+                                className="text-xs"
+                              >
+                                كل المعروض
+                              </Button>
+                              <Button
+                                type="button"
+                                variant={importMode === 'selected' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setImportMode('selected')}
+                                className="text-xs"
+                              >
+                                خدمات محددة
+                              </Button>
+                              <Button
+                                type="button"
+                                variant={importMode === 'categories' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setImportMode('categories')}
+                                className="text-xs"
+                              >
+                                أقسام محددة
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Category Selection for Categories Mode */}
+                          {importMode === 'categories' && (
+                            <div className="space-y-2">
+                              <Label className="text-xs text-muted-foreground">
+                                اختر الأقسام للاستيراد ({selectedCategoriesForImport.size} محدد)
+                              </Label>
+                              <div className="max-h-32 overflow-y-auto space-y-1 p-2 rounded-lg bg-background border">
+                                {fetchedServices.categories.map((cat) => (
+                                  <label
+                                    key={cat.name}
+                                    className="flex items-center gap-2 p-2 rounded hover:bg-muted cursor-pointer"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedCategoriesForImport.has(cat.name)}
+                                      onChange={() => toggleCategorySelection(cat.name)}
+                                      className="rounded border-muted-foreground"
+                                    />
+                                    <span className="flex-1 text-sm">{cat.name}</span>
+                                    <Badge variant="secondary" className="text-[10px]">{cat.count}</Badge>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Target Category Selection */}
+                          <div className="space-y-2">
+                            <Label className="text-xs text-muted-foreground">
+                              القسم المستهدف في النظام (اختياري)
+                            </Label>
+                            <Select value={targetCategoryId} onValueChange={setTargetCategoryId}>
+                              <SelectTrigger>
+                                <FolderTree className="h-4 w-4 ml-2" />
+                                <SelectValue placeholder="احتفاظ بالقسم الأصلي" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="">احتفاظ بالقسم الأصلي من المزود</SelectItem>
+                                {categories.map((cat) => (
+                                  <SelectItem key={cat.id} value={cat.id}>
+                                    {cat.name_ar}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <p className="text-[10px] text-muted-foreground">
+                              اختر قسم لتحديد جميع الخدمات المستوردة إليه، أو اترك فارغاً للاحتفاظ بالتصنيف الأصلي
+                            </p>
+                          </div>
+
+                          {/* Summary */}
+                          <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">سيتم استيراد:</span>
+                              <span className="font-bold text-primary">
+                                {getServicesToImport().length} خدمة
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {/* Services List */}
                   <ScrollArea className="flex-1">
@@ -1070,9 +1340,23 @@ const AdminApiProviders = () => {
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.02 }}
-                          className="p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+                          className={`p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors cursor-pointer ${
+                            selectedServicesForImport.has(service.service) ? 'ring-2 ring-primary bg-primary/5' : ''
+                          }`}
+                          onClick={() => importMode === 'selected' && toggleServiceSelection(service.service)}
                         >
                           <div className="flex items-start justify-between gap-3">
+                            {importMode === 'selected' && (
+                              <div className="pt-1">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedServicesForImport.has(service.service)}
+                                  onChange={() => toggleServiceSelection(service.service)}
+                                  className="rounded border-muted-foreground"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
+                            )}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
                                 <Badge variant="outline" className="text-[10px] shrink-0">
@@ -1107,28 +1391,42 @@ const AdminApiProviders = () => {
                   </ScrollArea>
 
                   {/* Import Button */}
-                  <div className="p-4 border-t bg-background">
+                  <div className="p-4 border-t bg-background space-y-3">
                     {importProgress ? (
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
-                          <span>{importProgress.status}</span>
-                          <span>{importProgress.current} / {importProgress.total}</span>
+                          <span className="truncate flex-1">{importProgress.status}</span>
+                          <span className="shrink-0 mr-2">{importProgress.current} / {importProgress.total}</span>
                         </div>
                         <Progress value={(importProgress.current / importProgress.total) * 100} />
                       </div>
                     ) : (
-                      <Button 
-                        className="w-full gap-2" 
-                        onClick={handleImportServices}
-                        disabled={isImporting}
-                      >
-                        {isImporting ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Download className="h-4 w-4" />
-                        )}
-                        تحديث/استيراد الخدمات مع الترجمة
-                      </Button>
+                      <>
+                        <div className="flex items-center justify-between text-sm px-1">
+                          <span className="text-muted-foreground">
+                            {importMode === 'all' && `${filteredServices.length} خدمة`}
+                            {importMode === 'selected' && `${selectedServicesForImport.size} خدمة محددة`}
+                            {importMode === 'categories' && `${getServicesToImport().length} خدمة من ${selectedCategoriesForImport.size} قسم`}
+                          </span>
+                          {targetCategoryId && (
+                            <Badge variant="outline" className="text-[10px]">
+                              → {categories.find(c => c.id === targetCategoryId)?.name_ar}
+                            </Badge>
+                          )}
+                        </div>
+                        <Button 
+                          className="w-full gap-2" 
+                          onClick={handleImportServices}
+                          disabled={isImporting || getServicesToImport().length === 0}
+                        >
+                          {isImporting ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Download className="h-4 w-4" />
+                          )}
+                          استيراد {getServicesToImport().length} خدمة
+                        </Button>
+                      </>
                     )}
                   </div>
                 </>
