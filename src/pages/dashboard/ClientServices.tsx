@@ -60,6 +60,7 @@ interface Service {
   name: string;
   description: string | null;
   category: string;
+  category_id: string | null;
   price: number;
   status: string;
   features: any;
@@ -529,22 +530,40 @@ const ClientServices = () => {
     toast.success("تم تحديث الخدمات");
   };
 
-  const getCategorySlug = (categoryName: string) => {
+  const getCategorySlug = useCallback((service: Service) => {
+    // Use category_id to find the correct category slug
+    if (service.category_id) {
+      const category = categories.find(c => c.id === service.category_id);
+      if (category) {
+        return category.slug;
+      }
+    }
+    
+    // Fallback to text-based matching for services without category_id
+    const categoryText = service.category.toLowerCase();
     const slugMap: Record<string, string> = {
-      "Instagram": "instagram",
-      "Facebook": "facebook",
-      "Youtube": "youtube",
-      "Twitter": "twitter",
-      "TikTok": "tiktok",
-      "Telegram": "telegram",
-      "LinkedIn": "linkedin",
-      "Spotify": "spotify",
-      "SoundCloud": "soundcloud",
-      "Website Traffic": "website-traffic",
-      "Other": "other",
+      "instagram": "instagram",
+      "facebook": "facebook",
+      "youtube": "youtube",
+      "twitter": "twitter",
+      "x (": "twitter",
+      "tiktok": "tiktok",
+      "telegram": "telegram",
+      "linkedin": "linkedin",
+      "spotify": "spotify",
+      "soundcloud": "soundcloud",
+      "website": "website-traffic",
+      "traffic": "website-traffic",
     };
-    return slugMap[categoryName] || categoryName.toLowerCase().replace(/\s+/g, "-");
-  };
+    
+    for (const [key, slug] of Object.entries(slugMap)) {
+      if (categoryText.includes(key)) {
+        return slug;
+      }
+    }
+    
+    return "other";
+  }, [categories]);
 
   // Filter out design and development services from social media section
   const isDesignOrDevService = useCallback((service: Service) => {
@@ -565,11 +584,11 @@ const ClientServices = () => {
   const serviceCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     socialMediaServices.forEach(service => {
-      const slug = getCategorySlug(service.category);
+      const slug = getCategorySlug(service);
       counts[slug] = (counts[slug] || 0) + 1;
     });
     return counts;
-  }, [socialMediaServices]);
+  }, [socialMediaServices, getCategorySlug]);
 
   const filteredServices = useMemo(() => {
     return socialMediaServices.filter(service => {
@@ -579,23 +598,35 @@ const ClientServices = () => {
         (service.description?.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (service.external_service_id?.includes(searchQuery));
       
-      const categorySlug = getCategorySlug(service.category);
+      const categorySlug = getCategorySlug(service);
       const matchesCategory = selectedCategory === "all" || categorySlug === selectedCategory;
       
       return matchesSearch && matchesCategory;
     });
-  }, [socialMediaServices, searchQuery, selectedCategory]);
+  }, [socialMediaServices, searchQuery, selectedCategory, getCategorySlug]);
+
+  // Get category display name in Arabic
+  const getCategoryDisplayName = useCallback((service: Service) => {
+    if (service.category_id) {
+      const category = categories.find(c => c.id === service.category_id);
+      if (category) {
+        return category.name_ar;
+      }
+    }
+    return service.category;
+  }, [categories]);
 
   const groupedServices = useMemo(() => {
     const groups: Record<string, Service[]> = {};
     filteredServices.forEach(service => {
-      if (!groups[service.category]) {
-        groups[service.category] = [];
+      const displayName = getCategoryDisplayName(service);
+      if (!groups[displayName]) {
+        groups[displayName] = [];
       }
-      groups[service.category].push(service);
+      groups[displayName].push(service);
     });
     return groups;
-  }, [filteredServices]);
+  }, [filteredServices, getCategoryDisplayName]);
 
   // Initialize visible items per category
   useEffect(() => {
