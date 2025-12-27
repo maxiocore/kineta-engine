@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useMemo } from "react";
+import { translateCategory } from "@/lib/categoryTranslation";
 import { useQuery } from "@tanstack/react-query";
 import { 
   Search,
@@ -309,7 +310,7 @@ const Services = () => {
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-2">
                             <Badge variant="secondary" className="text-xs">
-                              {service.category}
+                              {translateCategory(service.category)}
                             </Badge>
                             <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20">
                               <Flame className="w-3 h-3 ml-1" />

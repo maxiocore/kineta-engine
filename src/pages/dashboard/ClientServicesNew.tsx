@@ -65,6 +65,7 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { notifyNewOrder } from "@/lib/adminNotifyService";
+import { translateCategory } from "@/lib/categoryTranslation";
 
 // Countdown Timer Hook
 const useCountdown = (targetDate: Date) => {
@@ -833,7 +834,7 @@ const ClientServicesNew = () => {
                             </div>
                             {/* Category name in the middle */}
                             <div className="flex-1 min-w-0 text-right">
-                              <p className="text-xs sm:text-sm font-medium truncate">{category}</p>
+                              <p className="text-xs sm:text-sm font-medium truncate">{translateCategory(category)}</p>
                             </div>
                             {/* Count on the left */}
                             <Badge variant={isSelected ? "secondary" : "outline"} className="text-[10px] shrink-0">
