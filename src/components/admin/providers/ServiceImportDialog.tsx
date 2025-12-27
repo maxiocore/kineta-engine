@@ -1191,7 +1191,7 @@ export const ServiceImportDialog = ({
                               >
                                 <Checkbox checked={isSelected} onCheckedChange={() => toggleService(service.service)} />
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm truncate">{service.name}</p>
+                                  <p className="text-sm truncate">{autoTranslate ? translateText(service.name) : service.name}</p>
                                   <p className="text-xs text-muted-foreground">
                                     ID: {service.service} • ${service.rate} • {service.min}-{service.max}
                                   </p>
