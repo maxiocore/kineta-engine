@@ -74,6 +74,10 @@ import {
   CircleDot,
   Target,
   Gauge,
+  Heart,
+  HeartOff,
+  Save,
+  BookmarkPlus,
 } from 'lucide-react';
 
 // Types
@@ -238,6 +242,9 @@ export const AdvancedServicesFetcher = ({
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [selectedServices, setSelectedServices] = useState<Set<string | number>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  
+  // Favorites state
+  const [favoriteCategories, setFavoriteCategories] = useState<Set<string>>(new Set());
 
   // Fetch system categories
   const { data: systemCategories = [] } = useQuery({
@@ -252,6 +259,29 @@ export const AdvancedServicesFetcher = ({
       return data;
     },
   });
+
+  // Fetch favorite categories for this provider
+  const { data: savedFavorites = [], refetch: refetchFavorites } = useQuery({
+    queryKey: ['favorite-import-categories', provider?.id],
+    queryFn: async () => {
+      if (!provider) return [];
+      const { data, error } = await supabase
+        .from('favorite_import_categories')
+        .select('*')
+        .eq('provider_id', provider.id);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!provider,
+  });
+
+  // Load favorites into state when data changes
+  useEffect(() => {
+    if (savedFavorites.length > 0) {
+      const favSet = new Set(savedFavorites.map((f: any) => f.category_name));
+      setFavoriteCategories(favSet);
+    }
+  }, [savedFavorites]);
 
   // Build category tree from services
   const buildCategoryTree = useCallback((services: ProviderService[]) => {
@@ -457,6 +487,131 @@ export const AdvancedServicesFetcher = ({
   const clearSelection = () => {
     setSelectedServices(new Set());
     setSelectedCategories(new Set());
+  };
+
+  // Select favorites
+  const selectFavorites = () => {
+    if (favoriteCategories.size === 0) {
+      toast.error('لا توجد أقسام مفضلة محفوظة');
+      return;
+    }
+    
+    const favServices = new Set<string | number>();
+    services.forEach(s => {
+      const { main } = extractSubcategory(s.category);
+      if (favoriteCategories.has(main)) {
+        favServices.add(s.service);
+      }
+    });
+    
+    setSelectedServices(favServices);
+    setSelectedCategories(favoriteCategories);
+    toast.success(`تم تحديد ${favServices.size} خدمة من الأقسام المفضلة`);
+  };
+
+  // Toggle favorite category
+  const toggleFavoriteCategory = async (categoryName: string) => {
+    if (!provider) return;
+    
+    const isFavorite = favoriteCategories.has(categoryName);
+    
+    try {
+      if (isFavorite) {
+        // Remove from favorites
+        await supabase
+          .from('favorite_import_categories')
+          .delete()
+          .eq('provider_id', provider.id)
+          .eq('category_name', categoryName);
+        
+        setFavoriteCategories(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(categoryName);
+          return newSet;
+        });
+        toast.success('تم إزالة القسم من المفضلة');
+      } else {
+        // Add to favorites
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast.error('يجب تسجيل الدخول');
+          return;
+        }
+        
+        await supabase
+          .from('favorite_import_categories')
+          .insert({
+            user_id: user.id,
+            provider_id: provider.id,
+            category_name: categoryName,
+            target_category_id: targetCategoryId || null,
+            auto_translate: autoTranslate,
+            apply_profit_margin: applyProfitMargin,
+          });
+        
+        setFavoriteCategories(prev => {
+          const newSet = new Set(prev);
+          newSet.add(categoryName);
+          return newSet;
+        });
+        toast.success('تم حفظ القسم في المفضلة');
+      }
+      
+      refetchFavorites();
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      toast.error('حدث خطأ');
+    }
+  };
+
+  // Save selected as favorites
+  const saveSelectedAsFavorites = async () => {
+    if (!provider || selectedCategories.size === 0) {
+      toast.error('يرجى تحديد أقسام أولاً');
+      return;
+    }
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('يجب تسجيل الدخول');
+        return;
+      }
+      
+      const categoriesToSave = Array.from(selectedCategories).filter(
+        cat => !favoriteCategories.has(cat)
+      );
+      
+      if (categoriesToSave.length === 0) {
+        toast.info('جميع الأقسام المحددة موجودة بالفعل في المفضلة');
+        return;
+      }
+      
+      const inserts = categoriesToSave.map(categoryName => ({
+        user_id: user.id,
+        provider_id: provider.id,
+        category_name: categoryName,
+        target_category_id: targetCategoryId || null,
+        auto_translate: autoTranslate,
+        apply_profit_margin: applyProfitMargin,
+      }));
+      
+      await supabase
+        .from('favorite_import_categories')
+        .upsert(inserts, { onConflict: 'user_id,provider_id,category_name' });
+      
+      setFavoriteCategories(prev => {
+        const newSet = new Set(prev);
+        categoriesToSave.forEach(cat => newSet.add(cat));
+        return newSet;
+      });
+      
+      refetchFavorites();
+      toast.success(`تم حفظ ${categoriesToSave.length} قسم في المفضلة`);
+    } catch (error) {
+      console.error('Error saving favorites:', error);
+      toast.error('حدث خطأ في الحفظ');
+    }
   };
 
   // Filter and sort
@@ -758,14 +913,35 @@ export const AdvancedServicesFetcher = ({
                 </div>
 
                 {/* Selection actions */}
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-2">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <Button variant="outline" size="sm" onClick={selectAll} className="text-xs h-8">
                       تحديد الكل
                     </Button>
                     <Button variant="outline" size="sm" onClick={clearSelection} className="text-xs h-8">
                       إلغاء التحديد
                     </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={selectFavorites}
+                      className="text-xs h-8 gap-1"
+                      disabled={favoriteCategories.size === 0}
+                    >
+                      <Heart className="h-3 w-3 text-pink-500" />
+                      المفضلة ({favoriteCategories.size})
+                    </Button>
+                    {selectedCategories.size > 0 && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={saveSelectedAsFavorites}
+                        className="text-xs h-8 gap-1 border-pink-500/30 text-pink-600 hover:bg-pink-500/10"
+                      >
+                        <BookmarkPlus className="h-3 w-3" />
+                        حفظ كمفضلة
+                      </Button>
+                    )}
                   </div>
                   <Badge variant="secondary" className="h-8 px-3">
                     {selectedServices.size} / {services.length} خدمة
@@ -861,6 +1037,32 @@ export const AdvancedServicesFetcher = ({
                                   </div>
                                 </div>
                               </div>
+
+                              {/* Favorite button */}
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 shrink-0"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleFavoriteCategory(categoryName);
+                                      }}
+                                    >
+                                      {favoriteCategories.has(categoryName) ? (
+                                        <Heart className="h-4 w-4 text-pink-500 fill-pink-500" />
+                                      ) : (
+                                        <Heart className="h-4 w-4 text-muted-foreground" />
+                                      )}
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    {favoriteCategories.has(categoryName) ? 'إزالة من المفضلة' : 'إضافة للمفضلة'}
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
 
                               {/* Quick select all in category */}
                               <Button

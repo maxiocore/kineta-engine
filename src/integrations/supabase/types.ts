@@ -831,6 +831,54 @@ export type Database = {
           },
         ]
       }
+      favorite_import_categories: {
+        Row: {
+          apply_profit_margin: boolean | null
+          auto_translate: boolean | null
+          category_name: string
+          created_at: string
+          id: string
+          provider_id: string
+          target_category_id: string | null
+          user_id: string
+        }
+        Insert: {
+          apply_profit_margin?: boolean | null
+          auto_translate?: boolean | null
+          category_name: string
+          created_at?: string
+          id?: string
+          provider_id: string
+          target_category_id?: string | null
+          user_id: string
+        }
+        Update: {
+          apply_profit_margin?: boolean | null
+          auto_translate?: boolean | null
+          category_name?: string
+          created_at?: string
+          id?: string
+          provider_id?: string
+          target_category_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorite_import_categories_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "api_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorite_import_categories_target_category_id_fkey"
+            columns: ["target_category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       featured_offers: {
         Row: {
           badge_color: string | null
