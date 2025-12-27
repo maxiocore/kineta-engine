@@ -72,6 +72,7 @@ import AdminBadges from "./pages/admin/AdminBadges";
 import AdminPaymentMethods from "./pages/admin/AdminPaymentMethods";
 import AdminRefills from "./pages/admin/AdminRefills";
 import AdminCategories from "./pages/admin/AdminCategories";
+import AdminSocialCategories from "./pages/admin/AdminSocialCategories";
 import AdminApiProviders from "./pages/admin/AdminApiProviders";
 import AdminProviderReports from "./pages/admin/AdminProviderReports";
 import AdminPriceComparison from "./pages/admin/AdminPriceComparison";
