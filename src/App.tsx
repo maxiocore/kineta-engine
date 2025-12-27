@@ -422,6 +422,11 @@ const App = () => (
                       <AdminSyncSettings />
                     </ProtectedRoute>
                   } />
+                  <Route path="/admin/social-categories" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminSocialCategories />
+                    </ProtectedRoute>
+                  } />
                   
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
