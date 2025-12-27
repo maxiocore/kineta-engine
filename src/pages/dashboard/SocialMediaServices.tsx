@@ -76,18 +76,63 @@ interface Category {
   display_order: number | null;
 }
 
+// أيقونات SVG مخصصة للمنصات
+const TikTokIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+  </svg>
+);
+
+const SpotifyIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+    <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+  </svg>
+);
+
+const DiscordIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+  </svg>
+);
+
+const TwitchIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+    <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/>
+  </svg>
+);
+
+const GoogleIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-5 h-5">
+    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+  </svg>
+);
+
+const ThreadsIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+    <path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.96-.065-1.182.408-2.256 1.332-3.023.857-.711 2.04-1.134 3.522-1.262 1.048-.09 2.015-.049 2.91.088-.058-.963-.27-1.685-.636-2.166-.453-.595-1.178-.897-2.156-.897h-.04c-.825.011-1.502.252-2.01.716-.322.294-.555.657-.708 1.078l-1.9-.723c.248-.64.623-1.2 1.116-1.67.882-.838 2.073-1.28 3.45-1.28h.06c1.636.013 2.915.563 3.802 1.636.78.943 1.182 2.254 1.2 3.903.013.13.013.26.013.39 1.157.457 2.074 1.19 2.677 2.154.815 1.305 1.05 2.943.66 4.61-.48 2.04-1.68 3.683-3.473 4.758-1.594.955-3.554 1.442-5.834 1.449z"/>
+  </svg>
+);
+
 const socialNetworks = [
-  { id: 'all', name: 'الكل', keywords: [], icon: Sparkles, color: 'bg-primary' },
-  { id: 'instagram', name: 'انستقرام', keywords: ['instagram', 'انستقرام', 'انستا', 'insta'], icon: Instagram, color: 'bg-gradient-to-br from-purple-600 to-pink-500' },
-  { id: 'facebook', name: 'فيسبوك', keywords: ['facebook', 'فيسبوك', 'فيس بوك', 'fb'], icon: Facebook, color: 'bg-blue-600' },
-  { id: 'youtube', name: 'يوتيوب', keywords: ['youtube', 'يوتيوب', 'يوتوب', 'yt'], icon: Youtube, color: 'bg-red-600' },
-  { id: 'twitter', name: 'X', keywords: ['twitter', 'تويتر', 'x ', ' x', 'اكس'], icon: Twitter, color: 'bg-sky-500' },
-  { id: 'tiktok', name: 'تيك توك', keywords: ['tiktok', 'تيك توك', 'تيكتوك', 'tik tok'], icon: Music2, color: 'bg-gray-900' },
-  { id: 'spotify', name: 'سبوتيفاي', keywords: ['spotify', 'سبوتيفاي', 'سبوتفاي'], icon: Radio, color: 'bg-green-600' },
-  { id: 'telegram', name: 'تيليجرام', keywords: ['telegram', 'تيليجرام', 'تلجرام', 'تليجرام'], icon: Send, color: 'bg-sky-500' },
-  { id: 'snapchat', name: 'سناب', keywords: ['snapchat', 'سناب شات', 'سناب', 'snap'], icon: Ghost, color: 'bg-yellow-400' },
-  { id: 'linkedin', name: 'لينكدإن', keywords: ['linkedin', 'لينكدان', 'لينكد ان', 'لينكدإن'], icon: Linkedin, color: 'bg-blue-700' },
-  { id: 'website', name: 'المواقع', keywords: ['website', 'زيار', 'visit', 'traffic', 'موقع', 'ويب'], icon: Globe, color: 'bg-emerald-600' },
+  { id: 'all', name: 'الكل', keywords: [], icon: Sparkles, color: 'bg-gradient-to-r from-orange-500 to-amber-500', iconColor: 'text-white' },
+  { id: 'facebook', name: 'فيسبوك', keywords: ['facebook', 'فيسبوك', 'فيس بوك', 'fb'], icon: Facebook, color: 'bg-[#1877F2]', iconColor: 'text-white' },
+  { id: 'instagram', name: 'انستقرام', keywords: ['instagram', 'انستقرام', 'انستا', 'insta'], icon: Instagram, color: 'bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#F77737]', iconColor: 'text-white' },
+  { id: 'tiktok', name: 'تيك توك', keywords: ['tiktok', 'تيك توك', 'تيكتوك', 'tik tok'], customIcon: TikTokIcon, color: 'bg-black', iconColor: 'text-white' },
+  { id: 'youtube', name: 'يوتيوب', keywords: ['youtube', 'يوتيوب', 'يوتوب', 'yt'], icon: Youtube, color: 'bg-[#FF0000]', iconColor: 'text-white' },
+  { id: 'twitter', name: 'تويتر', keywords: ['twitter', 'تويتر', 'x ', ' x', 'اكس'], icon: X, color: 'bg-black', iconColor: 'text-white' },
+  { id: 'spotify', name: 'سبوتيفاي', keywords: ['spotify', 'سبوتيفاي', 'سبوتفاي'], customIcon: SpotifyIcon, color: 'bg-[#1DB954]', iconColor: 'text-white' },
+  { id: 'snapchat', name: 'سناب شات', keywords: ['snapchat', 'سناب شات', 'سناب', 'snap'], icon: Ghost, color: 'bg-[#FFFC00]', iconColor: 'text-black' },
+  { id: 'telegram', name: 'تيليجرام', keywords: ['telegram', 'تيليجرام', 'تلجرام', 'تليجرام'], icon: Send, color: 'bg-[#0088CC]', iconColor: 'text-white' },
+  { id: 'discord', name: 'ديسكورد', keywords: ['discord', 'ديسكورد', 'دسكورد'], customIcon: DiscordIcon, color: 'bg-[#5865F2]', iconColor: 'text-white' },
+  { id: 'twitch', name: 'تويتش', keywords: ['twitch', 'تويتش', 'توتش'], customIcon: TwitchIcon, color: 'bg-[#9146FF]', iconColor: 'text-white' },
+  { id: 'website', name: 'زيارات', keywords: ['website', 'زيار', 'visit', 'traffic', 'موقع', 'ويب'], icon: Globe, color: 'bg-[#10B981]', iconColor: 'text-white' },
+  { id: 'reviews', name: 'تقييمات', keywords: ['review', 'تقييم', 'rating', 'google'], icon: Star, color: 'bg-[#F59E0B]', iconColor: 'text-white' },
+  { id: 'google', name: 'جوجل', keywords: ['google', 'جوجل', 'قوقل'], customIcon: GoogleIcon, color: 'bg-white border border-border', iconColor: '' },
+  { id: 'linkedin', name: 'لينكدإن', keywords: ['linkedin', 'لينكدان', 'لينكد ان', 'لينكدإن'], icon: Linkedin, color: 'bg-[#0A66C2]', iconColor: 'text-white' },
+  { id: 'threads', name: 'ثريدز', keywords: ['threads', 'ثريدز', 'ثردز'], customIcon: ThreadsIcon, color: 'bg-black', iconColor: 'text-white' },
 ];
 
 const SocialMediaServices = () => {
@@ -495,6 +540,7 @@ const SocialMediaServices = () => {
               <div className="flex gap-2 pb-2 px-0.5">
                 {socialNetworks.map((network) => {
                   const Icon = network.icon;
+                  const CustomIcon = (network as any).customIcon;
                   const isSelected = selectedNetwork === network.id;
                   const count = networkCounts[network.id] || 0;
                   
@@ -506,21 +552,28 @@ const SocialMediaServices = () => {
                         setSelectedCategory("");
                       }}
                       className={cn(
-                        "flex flex-col items-center gap-1.5 p-2 md:p-3 rounded-xl min-w-[60px] md:min-w-[72px] transition-all shrink-0 border",
+                        "flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 rounded-full transition-all shrink-0 border",
                         isSelected
-                          ? `${network.color} text-white border-transparent shadow-md`
-                          : "bg-card border-border hover:border-primary/30"
+                          ? `${network.color} ${network.iconColor} border-transparent shadow-lg scale-105`
+                          : "bg-card/80 backdrop-blur border-border/50 hover:border-primary/50 hover:bg-card"
                       )}
                     >
-                      <Icon className="w-5 h-5 md:w-6 md:h-6" />
-                      <span className="text-[10px] md:text-xs font-medium whitespace-nowrap">
-                        {network.name}
-                      </span>
-                      <span className={cn(
-                        "text-[9px] px-1.5 py-0.5 rounded-full",
-                        isSelected ? "bg-white/20" : "bg-muted"
+                      <div className={cn(
+                        "flex items-center justify-center w-6 h-6 rounded-full",
+                        !isSelected && network.color,
+                        !isSelected && network.iconColor
                       )}>
-                        {count}
+                        {CustomIcon ? (
+                          <CustomIcon />
+                        ) : Icon ? (
+                          <Icon className="w-4 h-4" />
+                        ) : null}
+                      </div>
+                      <span className={cn(
+                        "text-xs md:text-sm font-medium whitespace-nowrap",
+                        isSelected ? network.iconColor : "text-foreground"
+                      )}>
+                        {network.name}
                       </span>
                     </button>
                   );
