@@ -1,7 +1,8 @@
 import { useState, useMemo, useCallback } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useExchangeRate } from "@/hooks/useExchangeRate";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, 
   Heart,
@@ -16,36 +17,36 @@ import {
   Loader2,
   Ghost,
   Radio,
-  Package,
-  TrendingUp,
   Wallet,
   Star,
-  ShoppingCart,
   Sparkles,
   RefreshCw,
-  ChevronDown,
-  ChevronUp,
   Link as LinkIcon,
-  Hash,
   Zap,
   CheckCircle2,
-  AlertCircle,
+  ShoppingCart,
+  ArrowLeft,
+  Copy,
+  Info,
+  TrendingUp,
+  Package,
+  Crown,
+  Filter,
+  X,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -81,7 +82,7 @@ interface Category {
 }
 
 const socialNetworks = [
-  { id: 'all', name: 'الكل', keywords: [], icon: Sparkles, color: '#8B5CF6' },
+  { id: 'all', name: 'الكل', keywords: [], icon: Sparkles, color: 'hsl(var(--primary))' },
   { id: 'instagram', name: 'انستقرام', keywords: ['instagram', 'انستقرام', 'انستا', 'insta'], icon: Instagram, color: '#E4405F' },
   { id: 'facebook', name: 'فيسبوك', keywords: ['facebook', 'فيسبوك', 'فيس بوك', 'fb'], icon: Facebook, color: '#1877F2' },
   { id: 'youtube', name: 'يوتيوب', keywords: ['youtube', 'يوتيوب', 'يوتوب', 'yt'], icon: Youtube, color: '#FF0000' },
@@ -100,7 +101,6 @@ const SocialMediaServices = () => {
   const navigate = useNavigate();
   const { convertToSAR } = useExchangeRate();
   const isMobile = useIsMobile();
-  const queryClient = useQueryClient();
   
   const [selectedNetwork, setSelectedNetwork] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -109,8 +109,8 @@ const SocialMediaServices = () => {
   const [quantity, setQuantity] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [showOrderDialog, setShowOrderDialog] = useState(false);
-  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const [showOrderSheet, setShowOrderSheet] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   // جلب الرصيد
   const { data: userBalance, refetch: refetchBalance } = useQuery({
@@ -213,17 +213,6 @@ const SocialMediaServices = () => {
     return filtered;
   }, [selectedNetwork, selectedCategory, searchQuery, getServicesByNetwork]);
 
-  // تجميع الخدمات حسب الفئة
-  const groupedServices = useMemo(() => {
-    const grouped: Record<string, Service[]> = {};
-    filteredServices.forEach(service => {
-      const catId = service.category_id || 'other';
-      if (!grouped[catId]) grouped[catId] = [];
-      grouped[catId].push(service);
-    });
-    return grouped;
-  }, [filteredServices]);
-
   // تحليل الخصائص
   const parseFeatures = (features: any) => {
     const defaults = { min: 10, max: 100000, rate: 0, refill: false, cancel: false };
@@ -255,7 +244,7 @@ const SocialMediaServices = () => {
     setSelectedService(service);
     const features = parseFeatures(service.features);
     setQuantity(features.min.toString());
-    setShowOrderDialog(true);
+    setShowOrderSheet(true);
   };
 
   // إرسال الطلب
@@ -335,7 +324,7 @@ const SocialMediaServices = () => {
       setLink("");
       setQuantity("");
       setSelectedService(null);
-      setShowOrderDialog(false);
+      setShowOrderSheet(false);
       refetchBalance();
       
     } catch { 
@@ -351,24 +340,29 @@ const SocialMediaServices = () => {
     return cat?.name_ar || cat?.name || catId;
   };
 
-  // Toggle category
-  const toggleCategory = (catId: string) => {
-    setExpandedCategories(prev => 
-      prev.includes(catId) ? prev.filter(id => id !== catId) : [...prev, catId]
-    );
+  // نسخ الرابط
+  const copyServiceId = (id: string) => {
+    navigator.clipboard.writeText(id);
+    toast.success("تم نسخ رقم الخدمة");
   };
 
   // حالة التحميل
   if (isLoading) {
     return (
       <ClientDashboardLayout>
-        <div className="space-y-4 p-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
+        <div className="h-full flex flex-col">
+          <div className="p-4 space-y-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-20 rounded-2xl" />)}
+            </div>
+            <Skeleton className="h-12 rounded-2xl" />
+            <div className="flex gap-2 overflow-hidden">
+              {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-12 w-24 rounded-xl shrink-0" />)}
+            </div>
+            <div className="space-y-3">
+              {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-24 rounded-2xl" />)}
+            </div>
           </div>
-          <Skeleton className="h-14 rounded-xl" />
-          <Skeleton className="h-12 rounded-xl" />
-          {[1, 2, 3].map(i => <Skeleton key={i} className="h-40 rounded-xl" />)}
         </div>
       </ClientDashboardLayout>
     );
@@ -376,462 +370,417 @@ const SocialMediaServices = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="min-h-screen">
-        {/* Page Header */}
-        <div className="bg-gradient-to-l from-primary/10 via-accent/5 to-transparent border-b border-border/50 px-4 py-6 sm:px-6 sm:py-8">
-          <div className="max-w-7xl mx-auto">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">خدمات التواصل الاجتماعي</h1>
-            <p className="text-muted-foreground text-sm sm:text-base">اختر المنصة والخدمة المناسبة لزيادة تفاعلك</p>
-          </div>
-        </div>
-
-        <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            <Card 
-              className="cursor-pointer hover:shadow-lg transition-all hover:scale-[1.02] bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20"
-              onClick={() => navigate('/dashboard/deposit')}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                    <Wallet className="w-6 h-6 text-primary" />
+      <div className="h-full flex flex-col bg-background">
+        {/* Header Stats - Compact */}
+        <div className="shrink-0 border-b border-border/50 bg-gradient-to-l from-primary/5 via-transparent to-transparent">
+          <div className="p-3 sm:p-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+              {/* Balance Card */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-3 sm:p-4 text-primary-foreground cursor-pointer shadow-lg"
+                onClick={() => navigate('/dashboard/deposit')}
+              >
+                <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIi8+PC9zdmc+')] opacity-50" />
+                <div className="relative flex items-center gap-2 sm:gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                    <Wallet className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs text-muted-foreground">رصيدك</p>
-                    <p className="text-lg sm:text-xl font-bold text-primary">{(userBalance?.balance || 0).toFixed(2)} ر.س</p>
+                    <p className="text-xs opacity-80">الرصيد</p>
+                    <p className="text-lg sm:text-xl font-bold truncate">{(userBalance?.balance || 0).toFixed(2)} ر.س</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </motion.div>
 
-            <Card className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 border-blue-500/20">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-blue-500" />
+              {/* Orders Card */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="rounded-2xl bg-card border border-border/50 p-3 sm:p-4 shadow-sm"
+              >
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs text-muted-foreground">طلباتك</p>
-                    <p className="text-lg sm:text-xl font-bold text-blue-500">{userStats?.totalOrders || 0}</p>
+                    <p className="text-xs text-muted-foreground">طلباتي</p>
+                    <p className="text-lg sm:text-xl font-bold text-foreground">{userStats?.totalOrders || 0}</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </motion.div>
 
-            <Card className="bg-gradient-to-br from-amber-500/5 to-amber-500/10 border-amber-500/20">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                    <Star className="w-6 h-6 text-amber-500" />
+              {/* Favorites Card */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="rounded-2xl bg-card border border-border/50 p-3 sm:p-4 shadow-sm"
+              >
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                    <Star className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs text-muted-foreground">المفضلة</p>
-                    <p className="text-lg sm:text-xl font-bold text-amber-500">{favorites.length}</p>
+                    <p className="text-lg sm:text-xl font-bold text-foreground">{favorites.length}</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </motion.div>
 
-            <Card className="bg-gradient-to-br from-emerald-500/5 to-emerald-500/10 border-emerald-500/20">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                    <Package className="w-6 h-6 text-emerald-500" />
+              {/* Services Card */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="rounded-2xl bg-card border border-border/50 p-3 sm:p-4 shadow-sm"
+              >
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                    <Package className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs text-muted-foreground">الخدمات</p>
-                    <p className="text-lg sm:text-xl font-bold text-emerald-500">{socialMediaServices.length}</p>
+                    <p className="text-lg sm:text-xl font-bold text-foreground">{filteredServices.length}</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+
+        {/* Search & Filters */}
+        <div className="shrink-0 p-3 sm:p-4 space-y-3 border-b border-border/30">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Input
+              placeholder="ابحث برقم الخدمة أو الاسم..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pr-11 h-12 rounded-xl bg-muted/50 border-0 text-base"
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8"
+                onClick={() => setSearchQuery("")}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
           </div>
 
           {/* Platform Tabs */}
-          <Card>
-            <CardContent className="p-3 sm:p-4">
-              <ScrollArea className="w-full" dir="rtl">
-                <div className="flex gap-2 pb-2">
-                  {socialNetworks.map((network) => {
-                    const count = getServicesByNetwork(network.id).length;
-                    const isSelected = selectedNetwork === network.id;
-                    const IconComponent = network.icon;
-                    
-                    return (
-                      <button
-                        key={network.id}
-                        onClick={() => { setSelectedNetwork(network.id); setSelectedCategory(""); }}
-                        className={cn(
-                          "flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all whitespace-nowrap shrink-0",
-                          isSelected 
-                            ? "bg-primary text-primary-foreground shadow-lg scale-105" 
-                            : "bg-muted/50 hover:bg-muted border border-transparent hover:border-border"
-                        )}
-                      >
-                        <div 
-                          className={cn(
-                            "w-8 h-8 rounded-lg flex items-center justify-center",
-                            isSelected ? "bg-white/20" : ""
-                          )}
-                          style={{ backgroundColor: isSelected ? undefined : `${network.color}20` }}
-                        >
-                          <IconComponent 
-                            className="w-4 h-4" 
-                            style={{ color: isSelected ? 'currentColor' : network.color }} 
-                          />
-                        </div>
-                        <span className="text-sm font-medium">{network.name}</span>
-                        <Badge 
-                          variant={isSelected ? "secondary" : "outline"} 
-                          className={cn(
-                            "text-[10px] h-5 min-w-[24px] justify-center",
-                            isSelected && "bg-white/20 text-white border-white/30"
-                          )}
-                        >
-                          {count}
-                        </Badge>
-                      </button>
-                    );
-                  })}
-                </div>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
-            </CardContent>
-          </Card>
-
-          {/* Search & Category Filter */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                placeholder="ابحث عن خدمة... (اسم، رقم)"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pr-10 h-12 text-base"
-              />
+          <ScrollArea className="w-full -mx-1" dir="rtl">
+            <div className="flex gap-2 px-1 pb-2">
+              {socialNetworks.map((network) => {
+                const Icon = network.icon;
+                const count = getServicesByNetwork(network.id).length;
+                const isActive = selectedNetwork === network.id;
+                
+                return (
+                  <motion.button
+                    key={network.id}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      setSelectedNetwork(network.id);
+                      setSelectedCategory("");
+                    }}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2 rounded-xl transition-all shrink-0",
+                      "text-sm font-medium whitespace-nowrap",
+                      isActive
+                        ? "bg-primary text-primary-foreground shadow-md"
+                        : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                    )}
+                  >
+                    <Icon className="w-4 h-4" style={{ color: isActive ? undefined : network.color }} />
+                    <span>{network.name}</span>
+                    <Badge variant="secondary" className={cn(
+                      "h-5 px-1.5 text-[10px]",
+                      isActive ? "bg-primary-foreground/20 text-primary-foreground" : ""
+                    )}>
+                      {count}
+                    </Badge>
+                  </motion.button>
+                );
+              })}
             </div>
-            <ScrollArea className="w-full sm:w-auto sm:max-w-md" dir="rtl">
-              <div className="flex gap-2 pb-2">
+            <ScrollBar orientation="horizontal" className="invisible" />
+          </ScrollArea>
+
+          {/* Category Filter */}
+          {categoriesWithServices.length > 0 && (
+            <ScrollArea className="w-full -mx-1" dir="rtl">
+              <div className="flex gap-2 px-1 pb-1">
                 <Button
                   variant={!selectedCategory ? "default" : "outline"}
                   size="sm"
+                  className="shrink-0 rounded-lg h-8"
                   onClick={() => setSelectedCategory("")}
-                  className="shrink-0 h-10"
                 >
                   الكل
                 </Button>
-                {categoriesWithServices.map(cat => (
+                {categoriesWithServices.map((cat) => (
                   <Button
                     key={cat.id}
                     variant={selectedCategory === cat.id ? "default" : "outline"}
                     size="sm"
+                    className="shrink-0 rounded-lg h-8"
                     onClick={() => setSelectedCategory(cat.id)}
-                    className="shrink-0 whitespace-nowrap h-10"
                   >
-                    {cat.name_ar}
+                    {cat.name_ar || cat.name}
                   </Button>
                 ))}
               </div>
-              <ScrollBar orientation="horizontal" />
+              <ScrollBar orientation="horizontal" className="invisible" />
             </ScrollArea>
-          </div>
+          )}
+        </div>
 
-          {/* Services List */}
-          <div className="space-y-4">
-            {Object.entries(groupedServices).length === 0 ? (
-              <Card className="py-16">
-                <CardContent className="text-center">
-                  <Package className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">لا توجد خدمات</h3>
-                  <p className="text-muted-foreground">جرب تغيير البحث أو اختر منصة أخرى</p>
-                </CardContent>
-              </Card>
+        {/* Services List */}
+        <div className="flex-1 overflow-auto">
+          <div className="p-3 sm:p-4">
+            {filteredServices.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col items-center justify-center py-16 text-center"
+              >
+                <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <Search className="w-10 h-10 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">لا توجد خدمات</h3>
+                <p className="text-muted-foreground text-sm">جرب تغيير معايير البحث</p>
+              </motion.div>
             ) : (
-              Object.entries(groupedServices).map(([catId, catServices]) => {
-                const isExpanded = expandedCategories.includes(catId);
-                const displayServices = isExpanded ? catServices : catServices.slice(0, 5);
-                
-                return (
-                  <Card key={catId} className="overflow-hidden">
-                    <CardHeader className="py-4 px-4 sm:px-6 bg-muted/30 border-b">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                          <Hash className="w-5 h-5 text-primary" />
-                          {getCategoryName(catId)}
-                          <Badge variant="secondary" className="mr-2">
-                            {catServices.length} خدمة
-                          </Badge>
-                        </CardTitle>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      {/* Table Header - Desktop */}
-                      <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-muted/20 text-xs font-medium text-muted-foreground border-b">
-                        <div className="col-span-1">ID</div>
-                        <div className="col-span-5">الخدمة</div>
-                        <div className="col-span-2 text-center">الكمية</div>
-                        <div className="col-span-2 text-center">السعر / 1000</div>
-                        <div className="col-span-2 text-center">إجراء</div>
-                      </div>
-                      
-                      {/* Services */}
-                      <div className="divide-y divide-border">
-                        {displayServices.map((service) => {
-                          const features = parseFeatures(service.features);
-                          const isFavorite = favorites.includes(service.id);
-                          const pricePerK = convertToSAR(service.price);
-                          
-                          return (
-                            <div 
-                              key={service.id} 
-                              className="group hover:bg-muted/30 transition-colors"
-                            >
-                              {/* Desktop View */}
-                              <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-4 items-center">
-                                <div className="col-span-1">
-                                  <Badge variant="outline" className="font-mono text-xs">
-                                    {service.external_service_id || '-'}
-                                  </Badge>
-                                </div>
-                                <div className="col-span-5">
-                                  <div className="flex items-start gap-3">
-                                    <button
-                                      onClick={() => toggleFavorite(service.id)}
-                                      className="mt-1 shrink-0"
-                                    >
-                                      <Heart 
-                                        className={cn(
-                                          "w-4 h-4 transition-colors",
-                                          isFavorite ? "fill-red-500 text-red-500" : "text-muted-foreground hover:text-red-500"
-                                        )} 
-                                      />
-                                    </button>
-                                    <div className="min-w-0 flex-1">
-                                      <p className="font-medium text-sm leading-relaxed line-clamp-2">{service.name}</p>
-                                      <div className="flex items-center gap-2 mt-1">
-                                        {(service.refill_enabled || features.refill) && (
-                                          <Badge variant="outline" className="text-[10px] h-5 gap-1 text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30">
-                                            <RefreshCw className="w-3 h-3" />
-                                            إعادة تعبئة
-                                          </Badge>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="col-span-2 text-center">
-                                  <span className="text-sm text-muted-foreground">
-                                    {features.min.toLocaleString()} - {features.max.toLocaleString()}
-                                  </span>
-                                </div>
-                                <div className="col-span-2 text-center">
-                                  <span className="font-bold text-primary text-base">
-                                    {pricePerK.toFixed(2)} ر.س
-                                  </span>
-                                </div>
-                                <div className="col-span-2 text-center">
-                                  <Button 
-                                    size="sm"
-                                    onClick={() => handleSelectService(service)}
-                                    className="gap-1"
-                                  >
-                                    <ShoppingCart className="w-4 h-4" />
-                                    طلب
-                                  </Button>
-                                </div>
-                              </div>
-                              
-                              {/* Mobile View */}
-                              <div className="md:hidden p-4">
-                                <div className="flex items-start justify-between gap-3 mb-3">
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <Badge variant="outline" className="font-mono text-[10px] shrink-0">
-                                        {service.external_service_id || '-'}
-                                      </Badge>
-                                      {(service.refill_enabled || features.refill) && (
-                                        <Badge variant="outline" className="text-[10px] gap-1 text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30">
-                                          <RefreshCw className="w-2.5 h-2.5" />
-                                          تعبئة
-                                        </Badge>
-                                      )}
-                                    </div>
-                                    <p className="text-sm font-medium leading-relaxed">{service.name}</p>
-                                  </div>
+              <div className="space-y-2">
+                <AnimatePresence mode="popLayout">
+                  {filteredServices.map((service, index) => {
+                    const features = parseFeatures(service.features);
+                    const isFav = favorites.includes(service.id);
+                    const pricePerK = convertToSAR(service.price);
+                    
+                    return (
+                      <motion.div
+                        key={service.id}
+                        layout
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ delay: index * 0.02 }}
+                        className="group bg-card rounded-2xl border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all overflow-hidden"
+                      >
+                        <div className="p-3 sm:p-4">
+                          <div className="flex gap-3">
+                            {/* Service Info */}
+                            <div className="flex-1 min-w-0 space-y-2">
+                              {/* Header */}
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
                                   <button
-                                    onClick={() => toggleFavorite(service.id)}
-                                    className="shrink-0 p-2 -m-2"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      copyServiceId(service.external_service_id || service.id);
+                                    }}
+                                    className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-muted/50 hover:bg-muted text-xs text-muted-foreground transition-colors"
                                   >
-                                    <Heart 
-                                      className={cn(
-                                        "w-5 h-5 transition-colors",
-                                        isFavorite ? "fill-red-500 text-red-500" : "text-muted-foreground"
-                                      )} 
-                                    />
+                                    <span className="font-mono">{service.external_service_id || service.id.slice(0, 8)}</span>
+                                    <Copy className="w-3 h-3" />
                                   </button>
+                                  {features.refill && (
+                                    <Badge variant="secondary" className="shrink-0 gap-1 text-xs bg-emerald-500/10 text-emerald-600 border-0">
+                                      <RefreshCw className="w-3 h-3" />
+                                      تعويض
+                                    </Badge>
+                                  )}
                                 </div>
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                    <span>الكمية: {features.min.toLocaleString()} - {features.max.toLocaleString()}</span>
-                                  </div>
-                                  <div className="flex items-center gap-3">
-                                    <span className="font-bold text-primary">
-                                      {pricePerK.toFixed(2)} ر.س
-                                    </span>
-                                    <Button 
-                                      size="sm"
-                                      onClick={() => handleSelectService(service)}
-                                      className="h-8 px-3"
-                                    >
-                                      طلب
-                                    </Button>
-                                  </div>
-                                </div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleFavorite(service.id);
+                                  }}
+                                  className={cn(
+                                    "shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                                    isFav 
+                                      ? "bg-red-500/10 text-red-500" 
+                                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                                  )}
+                                >
+                                  <Heart className={cn("w-4 h-4", isFav && "fill-current")} />
+                                </button>
+                              </div>
+
+                              {/* Name */}
+                              <h3 className="font-medium text-sm sm:text-base text-foreground line-clamp-2 leading-relaxed">
+                                {service.name}
+                              </h3>
+
+                              {/* Meta */}
+                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Zap className="w-3 h-3" />
+                                  الحد الأدنى: {features.min.toLocaleString()}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <TrendingUp className="w-3 h-3" />
+                                  الحد الأقصى: {features.max.toLocaleString()}
+                                </span>
                               </div>
                             </div>
-                          );
-                        })}
-                      </div>
-                      
-                      {/* Show More */}
-                      {catServices.length > 5 && (
-                        <button
-                          onClick={() => toggleCategory(catId)}
-                          className="w-full py-3 text-sm font-medium text-primary hover:bg-muted/50 transition-colors flex items-center justify-center gap-2 border-t"
-                        >
-                          {isExpanded ? (
-                            <>
-                              <ChevronUp className="w-4 h-4" />
-                              عرض أقل
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown className="w-4 h-4" />
-                              عرض المزيد ({catServices.length - 5} خدمة)
-                            </>
-                          )}
-                        </button>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })
+
+                            {/* Price & Order */}
+                            <div className="shrink-0 flex flex-col items-end justify-between gap-2">
+                              <div className="text-left">
+                                <p className="text-[10px] text-muted-foreground">لكل 1000</p>
+                                <p className="text-lg sm:text-xl font-bold text-primary">
+                                  {pricePerK.toFixed(2)}
+                                  <span className="text-xs font-normal mr-1">ر.س</span>
+                                </p>
+                              </div>
+                              <Button
+                                size="sm"
+                                onClick={() => handleSelectService(service)}
+                                className="gap-1.5 rounded-xl h-9 px-4 shadow-sm"
+                              >
+                                <ShoppingCart className="w-4 h-4" />
+                                <span className="hidden sm:inline">طلب</span>
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
             )}
           </div>
         </div>
-      </div>
 
-      {/* Order Dialog */}
-      <Dialog open={showOrderDialog} onOpenChange={setShowOrderDialog}>
-        <DialogContent className="max-w-lg mx-4 sm:mx-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <ShoppingCart className="w-5 h-5 text-primary" />
-              طلب جديد
-            </DialogTitle>
-            <DialogDescription>
-              أدخل تفاصيل الطلب لإكمال العملية
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedService && (
-            <div className="space-y-5">
-              {/* Service Info */}
-              <div className="p-4 rounded-xl bg-muted/50 border">
-                <div className="flex items-start gap-3">
-                  <Badge variant="outline" className="font-mono shrink-0">
-                    {selectedService.external_service_id || '-'}
-                  </Badge>
-                  <p className="text-sm font-medium leading-relaxed flex-1">{selectedService.name}</p>
-                </div>
-                <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
-                  <span>الكمية: {parseFeatures(selectedService.features).min.toLocaleString()} - {parseFeatures(selectedService.features).max.toLocaleString()}</span>
-                  {(selectedService.refill_enabled || parseFeatures(selectedService.features).refill) && (
-                    <Badge variant="outline" className="text-[10px] gap-1 text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30">
-                      <RefreshCw className="w-3 h-3" />
-                      إعادة تعبئة
-                    </Badge>
-                  )}
-                </div>
-              </div>
-              
-              {/* Link Input */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <LinkIcon className="w-4 h-4" />
-                  الرابط
-                </Label>
-                <Input
-                  placeholder="https://..."
-                  value={link}
-                  onChange={(e) => setLink(e.target.value)}
-                  dir="ltr"
-                  className="h-11"
-                />
-              </div>
-              
-              {/* Quantity Input */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Hash className="w-4 h-4" />
-                  الكمية
-                </Label>
-                <Input
-                  type="number"
-                  placeholder="الكمية"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  min={parseFeatures(selectedService.features).min}
-                  max={parseFeatures(selectedService.features).max}
-                  className="h-11"
-                />
-              </div>
-              
-              {/* Price Summary */}
-              <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-muted-foreground">رصيدك الحالي</span>
-                  <span className="font-medium">{(userBalance?.balance || 0).toFixed(2)} ر.س</span>
-                </div>
-                <div className="flex items-center justify-between text-lg font-bold">
-                  <span>إجمالي الطلب</span>
-                  <span className="text-primary">{totalPrice.toFixed(2)} ر.س</span>
-                </div>
-                {userBalance && userBalance.balance < totalPrice && (
-                  <div className="flex items-center gap-2 mt-3 text-destructive text-sm">
-                    <AlertCircle className="w-4 h-4" />
-                    رصيدك غير كافي
+        {/* Order Sheet */}
+        <Sheet open={showOrderSheet} onOpenChange={setShowOrderSheet}>
+          <SheetContent side="bottom" className="h-auto max-h-[90vh] rounded-t-3xl p-0">
+            <div className="p-6 space-y-6">
+              <SheetHeader className="text-right">
+                <SheetTitle className="text-xl">طلب جديد</SheetTitle>
+                <SheetDescription>
+                  {selectedService?.name}
+                </SheetDescription>
+              </SheetHeader>
+
+              {selectedService && (
+                <div className="space-y-5">
+                  {/* Service Summary */}
+                  <div className="rounded-2xl bg-muted/50 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">رقم الخدمة</span>
+                      <button
+                        onClick={() => copyServiceId(selectedService.external_service_id || selectedService.id)}
+                        className="flex items-center gap-1 text-sm font-mono text-foreground hover:text-primary transition-colors"
+                      >
+                        {selectedService.external_service_id || selectedService.id.slice(0, 8)}
+                        <Copy className="w-3 h-3" />
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">السعر لكل 1000</span>
+                      <span className="font-bold text-primary">{convertToSAR(selectedService.price).toFixed(2)} ر.س</span>
+                    </div>
+                    {parseFeatures(selectedService.features).refill && (
+                      <div className="flex items-center gap-2 text-emerald-600">
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span className="text-sm">تعويض مجاني متاح</span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
-          )}
-          
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setShowOrderDialog(false)}>
-              إلغاء
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting || !link || !quantity || (userBalance && userBalance.balance < totalPrice)}
-              className="gap-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  جاري الإرسال...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  تأكيد الطلب
-                </>
+
+                  {/* Link Input */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">الرابط</Label>
+                    <div className="relative">
+                      <LinkIcon className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        placeholder="https://..."
+                        value={link}
+                        onChange={(e) => setLink(e.target.value)}
+                        className="pr-11 h-12 rounded-xl text-left dir-ltr"
+                        dir="ltr"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Quantity Input */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">الكمية</Label>
+                      <span className="text-xs text-muted-foreground">
+                        {parseFeatures(selectedService.features).min.toLocaleString()} - {parseFeatures(selectedService.features).max.toLocaleString()}
+                      </span>
+                    </div>
+                    <Input
+                      type="number"
+                      placeholder="أدخل الكمية"
+                      value={quantity}
+                      onChange={(e) => setQuantity(e.target.value)}
+                      className="h-12 rounded-xl text-center text-lg font-bold"
+                      min={parseFeatures(selectedService.features).min}
+                      max={parseFeatures(selectedService.features).max}
+                    />
+                  </div>
+
+                  {/* Price Summary */}
+                  <div className="rounded-2xl bg-primary/5 border border-primary/20 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-muted-foreground">رصيدك الحالي</span>
+                      <span className="font-bold">{(userBalance?.balance || 0).toFixed(2)} ر.س</span>
+                    </div>
+                    <div className="flex items-center justify-between text-lg">
+                      <span className="font-medium">إجمالي الطلب</span>
+                      <span className={cn(
+                        "text-2xl font-bold",
+                        totalPrice > (userBalance?.balance || 0) ? "text-destructive" : "text-primary"
+                      )}>
+                        {totalPrice.toFixed(2)} ر.س
+                      </span>
+                    </div>
+                    {totalPrice > (userBalance?.balance || 0) && (
+                      <p className="text-xs text-destructive mt-2 flex items-center gap-1">
+                        <Info className="w-3 h-3" />
+                        رصيدك غير كافي، يرجى شحن الرصيد
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Submit Button */}
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={isSubmitting || !link || !quantity || totalPrice > (userBalance?.balance || 0)}
+                    className="w-full h-14 rounded-xl text-lg font-bold gap-2 shadow-lg"
+                    size="lg"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        جاري الإرسال...
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="w-5 h-5" />
+                        تأكيد الطلب
+                      </>
+                    )}
+                  </Button>
+                </div>
               )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
     </ClientDashboardLayout>
   );
 };
