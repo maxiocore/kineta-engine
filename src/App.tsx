@@ -40,6 +40,7 @@ import ClientDeposit from "./pages/dashboard/ClientDeposit";
 import ClientDeposits from "./pages/dashboard/ClientDeposits";
 import ClientFavorites from "./pages/dashboard/ClientFavorites";
 import ClientServices from "./pages/dashboard/ClientServicesNew";
+import SocialMediaServicesDashboard from "./pages/dashboard/SocialMediaServices";
 import ClientReferrals from "./pages/dashboard/ClientReferrals";
 // ClientRewards merged into ClientRewardsHub
 import ClientBalanceLogs from "./pages/dashboard/ClientBalanceLogs";
@@ -217,6 +218,11 @@ const App = () => (
                   <Route path="/dashboard/digital-services" element={
                     <ProtectedRoute>
                       <ClientDigitalServices />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/social-services" element={
+                    <ProtectedRoute>
+                      <SocialMediaServicesDashboard />
                     </ProtectedRoute>
                   } />
                   <Route path="/dashboard/design-services/order" element={
