@@ -699,14 +699,29 @@ export const AdvancedServicesFetcher = ({
             average_time: service.average_time || null,
           };
 
+          // Find the appropriate category based on the original service category
+          const { main: mainCategory, sub: subCategory } = extractSubcategory(service.category);
+          
+          // If targetCategoryId is set, use it as the parent category
+          // Otherwise, try to find or use the original category
+          let finalCategoryId = targetCategoryId || null;
+          let finalCategoryName = service.category;
+          
+          // If we have a target category, append the subcategory info to the name
+          if (targetCategoryId && subCategory) {
+            finalCategoryName = subCategory;
+          } else if (targetCategoryId) {
+            finalCategoryName = mainCategory;
+          }
+
           const serviceData = {
             name: autoTranslate ? translateServiceName(service.name) : service.name,
             description: service.desc || null,
             price: finalPrice,
             external_service_id: String(service.service),
             provider_id: provider.id,
-            category: targetCategoryId ? 'custom' : service.category,
-            category_id: targetCategoryId || null,
+            category: finalCategoryName,
+            category_id: finalCategoryId,
             features,
             status: 'active' as const,
           };
@@ -1078,51 +1093,117 @@ export const AdvancedServicesFetcher = ({
                               </Button>
                             </div>
 
-                            {/* Expanded content - services list */}
+                            {/* Expanded content - subcategories and services */}
                             <CollapsibleContent>
-                              <div className="border-t bg-muted/20 p-2 space-y-1 max-h-64 overflow-y-auto">
-                                {categoryNode.services
-                                  .filter(s => !searchQuery || 
-                                    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                    String(s.service).includes(searchQuery)
-                                  )
-                                  .map(service => (
-                                    <div
-                                      key={service.service}
-                                      className={`flex items-center gap-3 p-2 rounded-lg hover:bg-background transition-colors cursor-pointer ${
-                                        selectedServices.has(service.service) ? 'bg-primary/10 border border-primary/20' : ''
-                                      }`}
-                                      onClick={() => toggleServiceSelect(service.service)}
-                                    >
-                                      <Checkbox
-                                        checked={selectedServices.has(service.service)}
-                                        onCheckedChange={() => toggleServiceSelect(service.service)}
-                                        className="data-[state=checked]:bg-primary"
-                                      />
-                                      <div className="flex-1 min-w-0">
-                                        <p className="text-sm truncate">{service.name}</p>
-                                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                                          <span className="font-mono">#{service.service}</span>
-                                          <span>•</span>
-                                          <span>${parseFloat(service.rate).toFixed(4)}</span>
-                                          <span>•</span>
-                                          <span>{service.min}-{service.max}</span>
+                              <div className="border-t bg-muted/20 p-2 space-y-2 max-h-80 overflow-y-auto">
+                                {/* Subcategories section */}
+                                {categoryNode.subcategories.size > 0 && (
+                                  <div className="space-y-1">
+                                    <p className="text-[10px] text-muted-foreground font-medium px-2 py-1">
+                                      الفئات الفرعية ({categoryNode.subcategories.size})
+                                    </p>
+                                    {Array.from(categoryNode.subcategories.entries()).map(([subName, subNode]) => {
+                                      const subKey = `${categoryName}::${subName}`;
+                                      const isSubSelected = subNode.services.every(s => selectedServices.has(s.service));
+                                      const isSubPartial = !isSubSelected && subNode.services.some(s => selectedServices.has(s.service));
+                                      
+                                      return (
+                                        <div
+                                          key={subKey}
+                                          className={`flex items-center gap-3 p-2 rounded-lg hover:bg-background transition-colors cursor-pointer mr-4 border-r-2 border-primary/20 ${
+                                            isSubSelected ? 'bg-primary/10 border-l border-t border-b border-primary/20' : ''
+                                          }`}
+                                          onClick={() => {
+                                            // Toggle all services in this subcategory
+                                            setSelectedServices(prev => {
+                                              const newSet = new Set(prev);
+                                              if (isSubSelected) {
+                                                subNode.services.forEach(s => newSet.delete(s.service));
+                                              } else {
+                                                subNode.services.forEach(s => newSet.add(s.service));
+                                              }
+                                              return newSet;
+                                            });
+                                          }}
+                                        >
+                                          <Checkbox
+                                            checked={isSubSelected}
+                                            className={`data-[state=checked]:bg-primary ${isSubPartial ? 'opacity-50' : ''}`}
+                                          />
+                                          <GitBranch className="h-3.5 w-3.5 text-primary/60" />
+                                          <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-sm font-medium truncate">{subName}</span>
+                                              <Badge variant="secondary" className="text-[9px] h-4 px-1.5">
+                                                {subNode.count}
+                                              </Badge>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                                              <span>${subNode.minPrice.toFixed(3)} - ${subNode.maxPrice.toFixed(3)}</span>
+                                              <div className="flex gap-0.5">
+                                                {subNode.hasRefill && <RefreshCw className="h-2.5 w-2.5 text-green-500" />}
+                                                {subNode.hasCancel && <X className="h-2.5 w-2.5 text-red-500" />}
+                                                {subNode.hasDripfeed && <Activity className="h-2.5 w-2.5 text-blue-500" />}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                                
+                                {/* Services section */}
+                                <div className="space-y-1">
+                                  <p className="text-[10px] text-muted-foreground font-medium px-2 py-1">
+                                    الخدمات ({categoryNode.services.filter(s => !searchQuery || 
+                                      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                      String(s.service).includes(searchQuery)
+                                    ).length})
+                                  </p>
+                                  {categoryNode.services
+                                    .filter(s => !searchQuery || 
+                                      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                      String(s.service).includes(searchQuery)
+                                    )
+                                    .map(service => (
+                                      <div
+                                        key={service.service}
+                                        className={`flex items-center gap-3 p-2 rounded-lg hover:bg-background transition-colors cursor-pointer ${
+                                          selectedServices.has(service.service) ? 'bg-primary/10 border border-primary/20' : ''
+                                        }`}
+                                        onClick={() => toggleServiceSelect(service.service)}
+                                      >
+                                        <Checkbox
+                                          checked={selectedServices.has(service.service)}
+                                          onCheckedChange={() => toggleServiceSelect(service.service)}
+                                          className="data-[state=checked]:bg-primary"
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-sm truncate">{service.name}</p>
+                                          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                                            <span className="font-mono">#{service.service}</span>
+                                            <span>•</span>
+                                            <span>${parseFloat(service.rate).toFixed(4)}</span>
+                                            <span>•</span>
+                                            <span>{service.min}-{service.max}</span>
+                                          </div>
+                                        </div>
+                                        <div className="flex gap-1">
+                                          {(service.refill === true || service.refill === 'true') && (
+                                            <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
+                                              <RefreshCw className="h-2.5 w-2.5 text-green-500" />
+                                            </div>
+                                          )}
+                                          {(service.cancel === true || service.cancel === 'true') && (
+                                            <div className="w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center">
+                                              <X className="h-2.5 w-2.5 text-red-500" />
+                                            </div>
+                                          )}
                                         </div>
                                       </div>
-                                      <div className="flex gap-1">
-                                        {(service.refill === true || service.refill === 'true') && (
-                                          <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
-                                            <RefreshCw className="h-2.5 w-2.5 text-green-500" />
-                                          </div>
-                                        )}
-                                        {(service.cancel === true || service.cancel === 'true') && (
-                                          <div className="w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center">
-                                            <X className="h-2.5 w-2.5 text-red-500" />
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  ))}
+                                    ))}
+                                </div>
                               </div>
                             </CollapsibleContent>
                           </div>
