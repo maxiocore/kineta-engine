@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { translateCategory } from "@/lib/categoryTranslation";
+import { translateCategory, translateServiceName } from "@/lib/categoryTranslation";
 import {
   Sheet,
   SheetContent,
@@ -151,7 +151,7 @@ const ServiceDetailsSheet = ({
                   
                   <div className="flex-1 text-right">
                     <SheetTitle className="text-xl sm:text-2xl font-bold leading-relaxed mb-2">
-                      {service.name}
+                      {translateServiceName(service.name)}
                     </SheetTitle>
                     <div className="flex flex-wrap gap-2 justify-end">
                       {service.external_service_id && (

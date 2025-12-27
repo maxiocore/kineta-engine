@@ -19,7 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "sonner";
-import { translateCategory } from "@/lib/categoryTranslation";
+import { translateCategory, translateServiceName } from "@/lib/categoryTranslation";
 
 interface Service {
   id: string;
@@ -172,7 +172,7 @@ const ClientFavorites = () => {
                       </Button>
                     </div>
                     
-                    <h3 className="font-semibold mb-2 line-clamp-2">{service.name}</h3>
+                    <h3 className="font-semibold mb-2 line-clamp-2">{translateServiceName(service.name)}</h3>
                     
                     {service.description && (
                       <p className="text-sm text-muted-foreground mb-3 line-clamp-2 flex-grow">
