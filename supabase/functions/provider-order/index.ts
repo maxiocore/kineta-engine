@@ -103,13 +103,41 @@ async function sendOrderToProvider(supabase: any, payload: OrderPayload): Promis
   }
 
   // Send order to provider API
-  console.log(`Sending to ${providerName}:`, { service: service.external_service_id, link, quantity, apiUrl });
+  console.log(`Sending to ${providerName}:`, { 
+    service: service.external_service_id, 
+    link, 
+    quantity, 
+    apiUrl 
+  });
+
+  // Validate required fields
+  if (!link || link.trim() === '') {
+    await supabase
+      .from('orders')
+      .update({ 
+        external_status: 'error',
+        admin_notes: 'الرابط مطلوب'
+      })
+      .eq('id', orderId);
+    return { success: false, error: 'Link is required' };
+  }
+
+  if (!quantity || quantity < 1) {
+    await supabase
+      .from('orders')
+      .update({ 
+        external_status: 'error',
+        admin_notes: 'الكمية يجب أن تكون أكبر من صفر'
+      })
+      .eq('id', orderId);
+    return { success: false, error: 'Invalid quantity' };
+  }
 
   const formData = new FormData();
   formData.append('key', apiKey);
   formData.append('action', 'add');
   formData.append('service', service.external_service_id);
-  formData.append('link', link);
+  formData.append('link', link.trim());
   formData.append('quantity', quantity.toString());
 
   try {

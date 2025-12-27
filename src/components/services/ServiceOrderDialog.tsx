@@ -287,10 +287,12 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
   };
 
   const features = getServiceFeatures();
-  const minQuantity = features.min || 10;
-  const maxQuantity = features.max || 1000000;
-  const ratePerHour = features.rate || 10000;
-  const guaranteed = features.refill !== false;
+  const minQuantity = parseInt(features.min) || 10;
+  const maxQuantity = parseInt(features.max) || 1000000;
+  const ratePerHour = parseInt(features.rate) || 10000;
+  const guaranteed = features.refill !== false && features.refill !== 'false';
+  const canCancel = features.cancel === true || features.cancel === 'true';
+  const serviceType = features.type || 'Default';
 
   // Calculate estimated delivery time
   const estimatedDeliveryTime = useMemo(() => {
@@ -373,10 +375,45 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
   };
 
   const onSubmit = async (data: OrderFormData) => {
-    if (!currentService || !userId) return;
+    if (!currentService || !userId) {
+      toast.error("يجب تسجيل الدخول لإتمام الطلب");
+      return;
+    }
 
-    if (data.quantity < minQuantity || data.quantity > maxQuantity) {
-      toast.error(`الكمية يجب أن تكون بين ${minQuantity} و ${maxQuantity}`);
+    // Validate quantity against min/max
+    if (data.quantity < minQuantity) {
+      toast.error(`الحد الأدنى للكمية هو ${minQuantity.toLocaleString()}`);
+      return;
+    }
+    
+    if (data.quantity > maxQuantity) {
+      toast.error(`الحد الأقصى للكمية هو ${maxQuantity.toLocaleString()}`);
+      return;
+    }
+
+    // Validate link format
+    const linkLower = data.link.toLowerCase();
+    if (!linkLower.startsWith('http://') && !linkLower.startsWith('https://')) {
+      toast.error("الرابط يجب أن يبدأ بـ http:// أو https://");
+      return;
+    }
+
+    // Check user balance before proceeding
+    const { data: balanceData, error: balanceError } = await supabase
+      .from("user_balances")
+      .select("balance")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (balanceError) {
+      console.error("Error checking balance:", balanceError);
+      toast.error("خطأ في التحقق من الرصيد");
+      return;
+    }
+
+    const userBalance = balanceData?.balance || 0;
+    if (userBalance < totalPrice) {
+      toast.error(`الرصيد غير كافي. رصيدك الحالي: $${userBalance.toFixed(2)}`);
       return;
     }
 
@@ -747,7 +784,7 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                       </div>
 
                       {/* Stats Grid */}
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-4 gap-2">
                         <motion.div 
                           className="bg-background/60 rounded-xl p-3 text-center border border-border/30"
                           whileHover={{ scale: 1.02, y: -2 }}
@@ -762,11 +799,21 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                           className="bg-background/60 rounded-xl p-3 text-center border border-border/30"
                           whileHover={{ scale: 1.02, y: -2 }}
                         >
-                          <div className="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center mx-auto mb-2">
-                            <Zap className="w-4 h-4 text-yellow-500" />
+                          <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center mx-auto mb-2">
+                            <Minus className="w-4 h-4 text-blue-500" />
                           </div>
                           <p className="text-[10px] text-muted-foreground">الحد الأدنى</p>
-                          <p className="text-sm font-bold">{minQuantity.toLocaleString('ar-SA')}</p>
+                          <p className="text-sm font-bold">{minQuantity.toLocaleString()}</p>
+                        </motion.div>
+                        <motion.div 
+                          className="bg-background/60 rounded-xl p-3 text-center border border-border/30"
+                          whileHover={{ scale: 1.02, y: -2 }}
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center mx-auto mb-2">
+                            <Plus className="w-4 h-4 text-purple-500" />
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">الحد الأقصى</p>
+                          <p className="text-sm font-bold">{maxQuantity.toLocaleString()}</p>
                         </motion.div>
                         <motion.div 
                           className="bg-background/60 rounded-xl p-3 text-center border border-border/30"
@@ -779,8 +826,28 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
                             <Shield className={cn("w-4 h-4", guaranteed ? "text-success" : "text-muted-foreground")} />
                           </div>
                           <p className="text-[10px] text-muted-foreground">الضمان</p>
-                          <p className={cn("text-sm font-bold", guaranteed && "text-success")}>{guaranteed ? "مضمون ✓" : "لا"}</p>
+                          <p className={cn("text-sm font-bold", guaranteed && "text-success")}>{guaranteed ? "✓" : "✗"}</p>
                         </motion.div>
+                      </div>
+
+                      {/* Additional Info Row */}
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
+                        <div className="flex items-center gap-4">
+                          <div className={cn(
+                            "flex items-center gap-1.5 text-xs",
+                            canCancel ? "text-success" : "text-muted-foreground"
+                          )}>
+                            <X className="w-3.5 h-3.5" />
+                            <span>{canCancel ? "يمكن الإلغاء" : "لا يمكن الإلغاء"}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Zap className="w-3.5 h-3.5 text-yellow-500" />
+                            <span>{serviceType}</span>
+                          </div>
+                        </div>
+                        <Badge variant="secondary" className="text-[10px]">
+                          #{currentService.external_service_id}
+                        </Badge>
                       </div>
                     </motion.div>
                   )}
