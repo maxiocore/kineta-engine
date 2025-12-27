@@ -1268,7 +1268,7 @@ const AdminApiProviders = () => {
                           </div>
 
                           {/* Category Selection for Categories Mode */}
-                          {importMode === 'categories' && (
+                          {importMode === 'categories' && fetchedServices && (
                             <div className="space-y-2">
                               <Label className="text-xs text-muted-foreground">
                                 اختر الأقسام للاستيراد ({selectedCategoriesForImport.size} محدد)
