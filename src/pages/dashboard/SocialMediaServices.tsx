@@ -436,108 +436,108 @@ const SocialMediaServices = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="w-full h-full overflow-x-hidden overflow-y-auto bg-background">
-        <div className="w-full max-w-full p-3 md:p-4 lg:p-6 space-y-4 md:space-y-6">
+      <div dir="rtl" className="w-full h-full overflow-x-hidden overflow-y-auto bg-background">
+        <div className="w-full max-w-full p-4 md:p-6 space-y-5">
           
-          {/* Stats Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
-            {/* Balance */}
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Balance Card */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               onClick={() => navigate('/dashboard/deposit')}
-              className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-xl p-3 md:p-4 cursor-pointer hover:shadow-lg transition-shadow"
+              className="bg-gradient-to-bl from-primary to-primary/80 text-primary-foreground rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all col-span-1"
             >
-              <div className="flex items-center gap-2 mb-1">
-                <Wallet className="w-4 h-4 md:w-5 md:h-5" />
-                <span className="text-xs opacity-80">رصيدك</span>
+              <div className="flex items-center justify-end gap-2 mb-2">
+                <span className="text-xs opacity-90">رصيدك</span>
+                <Wallet className="w-5 h-5" />
               </div>
-              <p className="text-lg md:text-xl font-bold">{(userBalance?.balance || 0).toFixed(2)}</p>
-              <p className="text-[10px] opacity-70">ريال سعودي</p>
+              <p className="text-xl font-bold text-left" dir="ltr">{(userBalance?.balance || 0).toFixed(2)}</p>
+              <p className="text-[11px] opacity-80 text-right">ريال سعودي</p>
             </motion.div>
 
-            {/* Orders */}
+            {/* Orders Card */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 }}
-              className="bg-card border border-border rounded-xl p-3 md:p-4"
+              className="bg-card border border-border rounded-xl p-4"
             >
-              <div className="flex items-center gap-2 mb-1">
-                <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />
+              <div className="flex items-center justify-end gap-2 mb-2">
                 <span className="text-xs text-muted-foreground">طلباتي</span>
+                <TrendingUp className="w-5 h-5 text-blue-500" />
               </div>
-              <p className="text-lg md:text-xl font-bold">{userStats?.totalOrders || 0}</p>
-              <p className="text-[10px] text-muted-foreground">طلب مكتمل</p>
+              <p className="text-xl font-bold">{userStats?.totalOrders || 0}</p>
+              <p className="text-[11px] text-muted-foreground">طلب مكتمل</p>
             </motion.div>
 
-            {/* Favorites */}
+            {/* Favorites Card */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-card border border-border rounded-xl p-3 md:p-4"
+              className="bg-card border border-border rounded-xl p-4"
             >
-              <div className="flex items-center gap-2 mb-1">
-                <Heart className="w-4 h-4 md:w-5 md:h-5 text-rose-500" />
+              <div className="flex items-center justify-end gap-2 mb-2">
                 <span className="text-xs text-muted-foreground">المفضلة</span>
+                <Heart className="w-5 h-5 text-rose-500" />
               </div>
-              <p className="text-lg md:text-xl font-bold">{favorites.length}</p>
-              <p className="text-[10px] text-muted-foreground">خدمة محفوظة</p>
+              <p className="text-xl font-bold">{favorites.length}</p>
+              <p className="text-[11px] text-muted-foreground">خدمة محفوظة</p>
             </motion.div>
 
-            {/* Services */}
+            {/* Services Count Card */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="bg-card border border-border rounded-xl p-3 md:p-4"
+              className="bg-card border border-border rounded-xl p-4"
             >
-              <div className="flex items-center gap-2 mb-1">
-                <Layers className="w-4 h-4 md:w-5 md:h-5 text-emerald-500" />
+              <div className="flex items-center justify-end gap-2 mb-2">
                 <span className="text-xs text-muted-foreground">الخدمات</span>
+                <Layers className="w-5 h-5 text-emerald-500" />
               </div>
-              <p className="text-lg md:text-xl font-bold">{filteredServices.length}</p>
-              <p className="text-[10px] text-muted-foreground">خدمة متاحة</p>
+              <p className="text-xl font-bold">{filteredServices.length}</p>
+              <p className="text-[11px] text-muted-foreground">خدمة متاحة</p>
             </motion.div>
           </div>
 
-          {/* Search */}
+          {/* Search Bar */}
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="relative w-full"
           >
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
               placeholder="ابحث عن خدمة بالاسم أو رقم الخدمة..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pr-10 pl-10 h-11 rounded-xl border-border bg-card"
+              className="w-full h-12 pr-12 pl-12 rounded-xl border-border bg-card text-sm"
             />
             {searchQuery && (
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setSearchQuery("")}
-                className="absolute left-2 top-1/2 -translate-y-1/2 h-7 w-7"
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-8 w-8"
               >
                 <X className="w-4 h-4" />
               </Button>
             )}
           </motion.div>
 
-          {/* Platform Tabs */}
+          {/* Platform Tabs - Horizontal Scrollable */}
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            className="w-full overflow-hidden"
+            className="w-full"
           >
-            <ScrollArea className="w-full">
-              <div className="flex gap-2 pb-2 px-0.5">
+            <ScrollArea className="w-full" dir="rtl">
+              <div className="flex flex-row-reverse gap-2 pb-2">
                 {socialNetworks.map((network) => {
                   const Icon = network.icon;
                   const CustomIcon = (network as any).customIcon;
@@ -552,10 +552,10 @@ const SocialMediaServices = () => {
                         setSelectedCategory("");
                       }}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 rounded-full transition-all shrink-0 border",
+                        "flex items-center gap-2 px-4 py-2.5 rounded-full transition-all shrink-0 border",
                         isSelected
-                          ? `${network.color} ${network.iconColor} border-transparent shadow-lg scale-105`
-                          : "bg-card/80 backdrop-blur border-border/50 hover:border-primary/50 hover:bg-card"
+                          ? `${network.color} ${network.iconColor} border-transparent shadow-md`
+                          : "bg-card border-border hover:border-primary/50 hover:bg-muted/50"
                       )}
                     >
                       <div className={cn(
@@ -570,7 +570,7 @@ const SocialMediaServices = () => {
                         ) : null}
                       </div>
                       <span className={cn(
-                        "text-xs md:text-sm font-medium whitespace-nowrap",
+                        "text-sm font-medium whitespace-nowrap",
                         isSelected ? network.iconColor : "text-foreground"
                       )}>
                         {network.name}
@@ -579,7 +579,7 @@ const SocialMediaServices = () => {
                   );
                 })}
               </div>
-              <ScrollBar orientation="horizontal" className="h-0" />
+              <ScrollBar orientation="horizontal" className="h-1.5" />
             </ScrollArea>
           </motion.div>
 
@@ -591,21 +591,21 @@ const SocialMediaServices = () => {
             className="space-y-3 w-full"
           >
             {filteredServices.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Search className="w-12 h-12 text-muted-foreground/30 mb-3" />
-                <h3 className="font-semibold text-foreground mb-1">لا توجد خدمات</h3>
-                <p className="text-sm text-muted-foreground">جرب البحث بكلمات مختلفة</p>
+              <div className="flex flex-col items-center justify-center py-16 text-center bg-card border border-border rounded-xl">
+                <Search className="w-14 h-14 text-muted-foreground/30 mb-4" />
+                <h3 className="font-semibold text-lg text-foreground mb-2">لا توجد خدمات</h3>
+                <p className="text-sm text-muted-foreground mb-4">جرب البحث بكلمات مختلفة</p>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="mt-3 rounded-lg"
+                  className="rounded-lg"
                   onClick={() => {
                     setSearchQuery("");
                     setSelectedCategory("");
                     setSelectedNetwork("all");
                   }}
                 >
-                  إعادة ضبط
+                  إعادة ضبط الفلاتر
                 </Button>
               </div>
             ) : (
@@ -616,18 +616,18 @@ const SocialMediaServices = () => {
                   onOpenChange={() => toggleCategory(catId)}
                 >
                   <CollapsibleTrigger asChild>
-                    <button className="w-full flex items-center justify-between p-3 bg-card border border-border rounded-xl hover:bg-muted/50 transition-colors">
-                      <div className="flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-primary" />
-                        <span className="font-medium text-sm">{getCategoryName(catId)}</span>
-                        <Badge variant="secondary" className="text-xs">
-                          {catServices.length}
-                        </Badge>
-                      </div>
+                    <button className="w-full flex items-center justify-between p-4 bg-card border border-border rounded-xl hover:bg-muted/50 transition-colors">
                       <ChevronDown className={cn(
-                        "w-4 h-4 transition-transform",
+                        "w-5 h-5 text-muted-foreground transition-transform",
                         (expandedCategories.has(catId) || expandedCategories.size === 0) && "rotate-180"
                       )} />
+                      <div className="flex items-center gap-3">
+                        <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                          {catServices.length}
+                        </Badge>
+                        <span className="font-semibold text-sm">{getCategoryName(catId)}</span>
+                        <Layers className="w-5 h-5 text-primary" />
+                      </div>
                     </button>
                   </CollapsibleTrigger>
                   
@@ -641,81 +641,76 @@ const SocialMediaServices = () => {
                         return (
                           <div
                             key={service.id}
-                            className="w-full bg-card border border-border rounded-xl p-3 hover:border-primary/30 transition-colors"
+                            className="w-full bg-card border border-border rounded-xl p-4 hover:border-primary/40 transition-colors"
                           >
-                            <div className="flex flex-col md:flex-row md:items-center gap-3">
-                              {/* Service Info */}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start gap-2 mb-1.5">
-                                  <h4 className="font-medium text-sm text-foreground leading-snug line-clamp-2 flex-1">
-                                    {service.name}
-                                  </h4>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleFavorite(service.id);
-                                    }}
-                                    className={cn(
-                                      "shrink-0 p-1.5 rounded-lg transition-colors",
-                                      isFav 
-                                        ? "bg-rose-500/10 text-rose-500" 
-                                        : "bg-muted text-muted-foreground hover:text-rose-500"
-                                    )}
-                                  >
-                                    <Heart className={cn("w-4 h-4", isFav && "fill-current")} />
-                                  </button>
-                                </div>
-                                
-                                {/* Meta Info */}
-                                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                  {service.external_service_id && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        copyServiceId(service.external_service_id!);
-                                      }}
-                                      className="flex items-center gap-1 hover:text-foreground transition-colors"
-                                    >
-                                      <Copy className="w-3 h-3" />
-                                      #{service.external_service_id}
-                                    </button>
-                                  )}
-                                  <span className="flex items-center gap-1">
-                                    <Target className="w-3 h-3" />
-                                    {features.min.toLocaleString()} - {features.max.toLocaleString()}
-                                  </span>
-                                  {service.refill_days && (
-                                    <span className="flex items-center gap-1">
-                                      <Clock className="w-3 h-3" />
-                                      {service.refill_days} يوم
-                                    </span>
-                                  )}
-                                  {(service.refill_enabled || features.refill) && (
-                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-green-500/10 text-green-600 border-0">
-                                      <RefreshCw className="w-2.5 h-2.5 ml-0.5" />
-                                      تعويض
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-
-                              {/* Price & Order */}
-                              <div className="flex items-center justify-between md:justify-end gap-3 pt-2 md:pt-0 border-t md:border-0 border-border">
-                                <div className="text-left md:text-right">
-                                  <p className="text-base md:text-lg font-bold text-primary">
-                                    {pricePerK.toFixed(2)} ر.س
-                                  </p>
-                                  <p className="text-[10px] text-muted-foreground">لكل 1000</p>
-                                </div>
-                                
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleSelectService(service)}
-                                  className="rounded-lg gap-1.5 shrink-0"
+                            {/* Service Header */}
+                            <div className="flex items-start justify-between gap-3 mb-3">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleFavorite(service.id);
+                                }}
+                                className={cn(
+                                  "shrink-0 p-2 rounded-lg transition-colors",
+                                  isFav 
+                                    ? "bg-rose-500/10 text-rose-500" 
+                                    : "bg-muted text-muted-foreground hover:text-rose-500"
+                                )}
+                              >
+                                <Heart className={cn("w-4 h-4", isFav && "fill-current")} />
+                              </button>
+                              <h4 className="font-medium text-sm text-foreground leading-relaxed text-right flex-1">
+                                {service.name}
+                              </h4>
+                            </div>
+                            
+                            {/* Service Meta */}
+                            <div className="flex flex-wrap items-center justify-end gap-3 text-xs text-muted-foreground mb-3">
+                              {(service.refill_enabled || features.refill) && (
+                                <Badge variant="secondary" className="text-[10px] px-2 py-0.5 bg-green-500/10 text-green-600 border-0">
+                                  تعويض
+                                  <RefreshCw className="w-3 h-3 mr-1" />
+                                </Badge>
+                              )}
+                              {service.refill_days && (
+                                <span className="flex items-center gap-1">
+                                  {service.refill_days} يوم
+                                  <Clock className="w-3 h-3" />
+                                </span>
+                              )}
+                              <span className="flex items-center gap-1">
+                                {features.min.toLocaleString()} - {features.max.toLocaleString()}
+                                <Target className="w-3 h-3" />
+                              </span>
+                              {service.external_service_id && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    copyServiceId(service.external_service_id!);
+                                  }}
+                                  className="flex items-center gap-1 hover:text-foreground transition-colors"
                                 >
-                                  <ShoppingCart className="w-4 h-4" />
-                                  اطلب
-                                </Button>
+                                  #{service.external_service_id}
+                                  <Copy className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Price & Action */}
+                            <div className="flex items-center justify-between pt-3 border-t border-border">
+                              <Button
+                                size="sm"
+                                onClick={() => handleSelectService(service)}
+                                className="rounded-lg gap-2"
+                              >
+                                اطلب الآن
+                                <ShoppingCart className="w-4 h-4" />
+                              </Button>
+                              <div className="text-left">
+                                <p className="text-lg font-bold text-primary" dir="ltr">
+                                  {pricePerK.toFixed(2)} ر.س
+                                </p>
+                                <p className="text-[10px] text-muted-foreground text-right">لكل 1000</p>
                               </div>
                             </div>
                           </div>
