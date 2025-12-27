@@ -617,6 +617,11 @@ const ClientServices = () => {
   }, [categories]);
 
   const groupedServices = useMemo(() => {
+    // Wait for categories to load before grouping
+    if (categories.length === 0) {
+      return {};
+    }
+    
     const groups: Record<string, Service[]> = {};
     filteredServices.forEach(service => {
       const displayName = getCategoryDisplayName(service);
@@ -626,7 +631,7 @@ const ClientServices = () => {
       groups[displayName].push(service);
     });
     return groups;
-  }, [filteredServices, getCategoryDisplayName]);
+  }, [filteredServices, getCategoryDisplayName, categories]);
 
   // Initialize visible items per category
   useEffect(() => {
