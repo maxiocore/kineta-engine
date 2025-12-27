@@ -54,7 +54,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { translateCategory } from "@/lib/categoryTranslation";
+import { translateCategory, translateServiceName } from "@/lib/categoryTranslation";
 
 interface Service {
   id: string;
@@ -172,7 +172,7 @@ const ServiceCard = ({
 
           {/* Service Name */}
           <h3 className="font-semibold text-sm sm:text-base leading-relaxed mb-3 line-clamp-2 group-hover:text-primary transition-colors duration-300">
-            {service.name}
+            {translateServiceName(service.name)}
           </h3>
 
           {/* Spacer */}
