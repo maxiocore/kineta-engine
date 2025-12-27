@@ -346,7 +346,7 @@ const translationDict: Record<string, string> = {
   'and': 'و', 'or': 'أو', 'for': 'لـ', 'from': 'من', 'to': 'إلى', 'per': 'لكل', 'via': 'عبر',
   'by': 'بواسطة', 'at': 'في', 'on': 'على', 'in': 'في', 'of': 'من', 'the': '',
   'is': 'هو', 'are': 'هم', 'can': 'يمكن', 'will': 'سوف', 'may': 'قد',
-  'minimum': 'الحد الأدنى', 'maximum': 'الحد الأقصى', 'min': 'الحد الأدنى', 'max': 'الحد الأقصى',
+  'minimum': 'الحد الأدنى', 'maximum': 'الحد الأقصى', 'min': 'الحد الأدنى',
   'average': 'متوسط', 'avg': 'متوسط',
   'working': 'يعمل', 'fixed': 'تم الإصلاح',
   'updated': 'محدث', 'latest': 'الأحدث',
