@@ -85,13 +85,7 @@ import {
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AdvancedServicesFetcher } from '@/components/admin/providers/AdvancedServicesFetcher';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+import { ServiceImportDialog } from '@/components/admin/providers/ServiceImportDialog';
 
 // Provider categories
 const PROVIDER_CATEGORIES = [
@@ -857,15 +851,15 @@ const AdminApiProviders = () => {
           </div>
         )}
 
-        {/* Advanced Services Fetcher */}
-        <AdvancedServicesFetcher
-          provider={fetchingProvider}
-          isOpen={isAdvancedFetcherOpen}
-          onClose={() => {
+        {/* حوار جلب الخدمات */}
+        <ServiceImportDialog
+          المزود={fetchingProvider}
+          مفتوح={isAdvancedFetcherOpen}
+          عند_الاغلاق={() => {
             setIsAdvancedFetcherOpen(false);
             setFetchingProvider(null);
           }}
-          onImportComplete={() => {
+          عند_اكتمال_الاستيراد={() => {
             queryClient.invalidateQueries({ queryKey: ['api-providers'] });
             queryClient.invalidateQueries({ queryKey: ['services'] });
           }}
