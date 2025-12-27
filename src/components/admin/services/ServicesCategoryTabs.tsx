@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { 
@@ -11,8 +12,10 @@ import {
   Globe,
   Layers,
   Sparkles,
+  Headphones,
   type LucideIcon
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ServicesCategoryTabsProps {
   selectedCategory: string;
@@ -23,10 +26,27 @@ interface ServicesCategoryTabsProps {
 
 interface CategoryItem {
   id: string;
+  slug: string;
   label: string;
   icon: LucideIcon;
   color: string;
 }
+
+// Map slugs to icons and colors
+const categoryIconMap: Record<string, { icon: LucideIcon; color: string }> = {
+  "instagram": { icon: Instagram, color: "from-pink-500 to-orange-400" },
+  "facebook": { icon: Facebook, color: "from-blue-600 to-blue-400" },
+  "youtube": { icon: Youtube, color: "from-red-600 to-red-400" },
+  "twitter": { icon: Twitter, color: "from-sky-500 to-sky-400" },
+  "tiktok": { icon: Sparkles, color: "from-pink-500 to-cyan-400" },
+  "telegram": { icon: MessageCircle, color: "from-sky-500 to-blue-500" },
+  "linkedin": { icon: Linkedin, color: "from-blue-700 to-blue-500" },
+  "spotify": { icon: Music, color: "from-green-500 to-green-400" },
+  "soundcloud": { icon: Headphones, color: "from-orange-500 to-orange-400" },
+  "website-traffic": { icon: Globe, color: "from-gray-500 to-gray-400" },
+  "social-media": { icon: Globe, color: "from-blue-500 to-purple-500" },
+  "other": { icon: Layers, color: "from-gray-500 to-slate-400" },
+};
 
 const ServicesCategoryTabs = ({
   selectedCategory,
@@ -34,18 +54,43 @@ const ServicesCategoryTabs = ({
   categoryCounts,
   totalCount,
 }: ServicesCategoryTabsProps) => {
-  const categories: CategoryItem[] = [
-    { id: "all", label: "الكل", icon: Layers, color: "from-primary to-accent" },
-    { id: "instagram", label: "Instagram", icon: Instagram, color: "from-pink-500 to-orange-400" },
-    { id: "facebook", label: "Facebook", icon: Facebook, color: "from-blue-600 to-blue-400" },
-    { id: "youtube", label: "Youtube", icon: Youtube, color: "from-red-600 to-red-400" },
-    { id: "twitter", label: "Twitter", icon: Twitter, color: "from-sky-500 to-sky-400" },
-    { id: "tiktok", label: "TikTok", icon: Sparkles, color: "from-pink-500 to-cyan-400" },
-    { id: "telegram", label: "Telegram", icon: MessageCircle, color: "from-sky-500 to-blue-500" },
-    { id: "linkedin", label: "LinkedIn", icon: Linkedin, color: "from-blue-700 to-blue-500" },
-    { id: "spotify", label: "Spotify", icon: Music, color: "from-green-500 to-green-400" },
-    { id: "website-traffic", label: "Traffic", icon: Globe, color: "from-gray-500 to-gray-400" },
-  ];
+  const [categories, setCategories] = useState<CategoryItem[]>([
+    { id: "all", slug: "all", label: "الكل", icon: Layers, color: "from-primary to-accent" }
+  ]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name, name_ar, slug')
+        .eq('is_active', true)
+        .order('display_order');
+
+      if (error) {
+        console.error('Error fetching categories:', error);
+        return;
+      }
+
+      if (data) {
+        const mappedCategories: CategoryItem[] = [
+          { id: "all", slug: "all", label: "الكل", icon: Layers, color: "from-primary to-accent" },
+          ...data.map(cat => {
+            const iconConfig = categoryIconMap[cat.slug] || { icon: Layers, color: "from-gray-500 to-gray-400" };
+            return {
+              id: cat.slug,
+              slug: cat.slug,
+              label: cat.name_ar || cat.name,
+              icon: iconConfig.icon,
+              color: iconConfig.color,
+            };
+          })
+        ];
+        setCategories(mappedCategories);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   return (
     <div className="w-full overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
