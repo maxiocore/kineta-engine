@@ -146,17 +146,16 @@ const SortableHeader = ({ field, currentSort, direction, onSort, children, class
   return (
     <TableHead 
       className={cn(
-        "text-primary-foreground/95 font-semibold py-3.5 px-4 whitespace-nowrap cursor-pointer hover:bg-primary/90 transition-all duration-200 select-none text-sm",
+        "text-primary-foreground/95 font-semibold py-3.5 px-3 md:px-4 whitespace-nowrap cursor-pointer hover:bg-primary/90 transition-all duration-200 select-none text-sm",
         align === 'center' ? 'text-center' : 'text-right',
         className
       )}
       onClick={() => onSort(field)}
     >
       <div className={cn(
-        "flex items-center gap-1.5",
+        "flex items-center gap-1.5 flex-row-reverse",
         align === 'center' && "justify-center"
       )}>
-        {children}
         <motion.div
           initial={false}
           animate={{ 
@@ -175,6 +174,7 @@ const SortableHeader = ({ field, currentSort, direction, onSort, children, class
             <ArrowUpDown className="w-3 h-3" />
           )}
         </motion.div>
+        {children}
       </div>
     </TableHead>
   );

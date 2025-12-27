@@ -50,6 +50,7 @@ interface NavItem {
 const adminNavItems: NavItem[] = [
   { label: "نظرة عامة", href: "/admin", icon: LayoutDashboard },
   { label: "المستخدمين", href: "/admin/users", icon: Users },
+  { label: "أقسام التواصل", href: "/admin/social-categories", icon: Layers },
   { label: "الأقسام", href: "/admin/categories", icon: Layers },
   { label: "الخدمات", href: "/admin/services", icon: Package },
   { label: "التسويق الرقمي", href: "/admin/digital-marketing", icon: BarChart3 },
