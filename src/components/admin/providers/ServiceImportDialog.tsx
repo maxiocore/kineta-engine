@@ -722,10 +722,12 @@ const translateCategoryName = (categoryName: string): string => {
   return translateText(categoryName);
 };
 
-// اكتشاف القسم المناسب من قاعدة البيانات
-const detectCategoryFromName = (categoryName: string, dbCategories: any[]): string | null => {
+// اكتشاف القسم الفرعي المناسب من قاعدة البيانات
+const detectSubcategoryFromName = (serviceName: string, categoryName: string, dbCategories: any[]): string | null => {
+  const lowerName = serviceName.toLowerCase();
   const lowerCategory = categoryName.toLowerCase();
   
+  // تحديد المنصة أولاً
   const platformMap: Record<string, string[]> = {
     'twitter': ['twitter', 'x (', 'x twitter', 'تويتر'],
     'instagram': ['instagram', 'ig', 'انستقرام', 'انستا'],
@@ -738,17 +740,61 @@ const detectCategoryFromName = (categoryName: string, dbCategories: any[]): stri
     'soundcloud': ['soundcloud', 'ساوند كلاود'],
     'website-traffic': ['traffic', 'website', 'seo', 'زيارات'],
   };
-  
-  for (const [slug, keywords] of Object.entries(platformMap)) {
-    if (keywords.some(k => lowerCategory.includes(k))) {
-      const category = dbCategories.find(c => c.slug === slug);
-      if (category) {
-        return category.id;
-      }
+
+  // تحديد نوع الخدمة
+  const serviceTypeMap: Record<string, string[]> = {
+    'followers': ['follower', 'followers', 'متابع', 'متابعين', 'subscriber', 'subscribers', 'مشترك', 'مشتركين'],
+    'likes': ['like', 'likes', 'لايك', 'لايكات', 'thumbs', 'اعجاب', 'إعجاب'],
+    'views': ['view', 'views', 'مشاهد', 'مشاهدات', 'watch', 'impression', 'impressions'],
+    'comments': ['comment', 'comments', 'تعليق', 'تعليقات', 'reply', 'replies'],
+    'retweets': ['retweet', 'retweets', 'ريتويت', 'share', 'shares', 'مشاركة', 'مشاركات', 'reposts'],
+    'reels': ['reel', 'reels', 'ريلز', 'ريل'],
+    'story': ['story', 'stories', 'ستوري', 'قصة', 'قصص'],
+    'shorts': ['short', 'shorts', 'شورتس', 'شورت'],
+    'members': ['member', 'members', 'عضو', 'أعضاء', 'اعضاء'],
+    'reactions': ['reaction', 'reactions', 'تفاعل', 'تفاعلات', 'emoji'],
+    'plays': ['play', 'plays', 'stream', 'streams', 'استماع', 'تشغيل', 'تشغيلات'],
+    'saves': ['save', 'saves', 'حفظ', 'bookmark'],
+  };
+
+  let detectedPlatform: string | null = null;
+  let detectedType: string | null = null;
+
+  // البحث عن المنصة
+  for (const [platform, keywords] of Object.entries(platformMap)) {
+    if (keywords.some(k => lowerCategory.includes(k) || lowerName.includes(k))) {
+      detectedPlatform = platform;
+      break;
     }
   }
-  
-  return null;
+
+  if (!detectedPlatform) return null;
+
+  // البحث عن نوع الخدمة
+  for (const [type, keywords] of Object.entries(serviceTypeMap)) {
+    if (keywords.some(k => lowerName.includes(k) || lowerCategory.includes(k))) {
+      detectedType = type;
+      break;
+    }
+  }
+
+  // بناء slug القسم الفرعي
+  if (detectedPlatform && detectedType) {
+    const subcategorySlug = `${detectedPlatform}-${detectedType}`;
+    const subcategory = dbCategories.find(c => c.slug === subcategorySlug);
+    if (subcategory) {
+      return subcategory.id;
+    }
+  }
+
+  // إذا لم نجد قسم فرعي، نرجع القسم الرئيسي
+  const mainCategory = dbCategories.find(c => c.slug === detectedPlatform && !c.parent_id);
+  return mainCategory?.id || null;
+};
+
+// للتوافق مع الكود القديم
+const detectCategoryFromName = (categoryName: string, dbCategories: any[]): string | null => {
+  return detectSubcategoryFromName('', categoryName, dbCategories);
 };
 
 const hasRefill = (s: ProviderService): boolean => 
@@ -1001,8 +1047,8 @@ export const ServiceImportDialog = ({
             cancel: hasCancel(service),
           };
 
-          // تحديد القسم الصحيح - إما المحدد يدوياً أو الكشف التلقائي
-          const detectedCategoryId = targetCategory || detectCategoryFromName(service.category, dbCategories);
+          // تحديد القسم الفرعي الصحيح - إما المحدد يدوياً أو الكشف التلقائي من اسم الخدمة
+          const detectedCategoryId = targetCategory || detectSubcategoryFromName(service.name, service.category, dbCategories);
           
           // ترجمة اسم القسم إذا كانت الترجمة التلقائية مفعّلة
           const translatedCategory = autoTranslate 
