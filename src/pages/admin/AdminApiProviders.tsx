@@ -350,7 +350,7 @@ const AdminApiProviders = () => {
     }
   };
 
-  // Fetch services from provider API
+  // Fetch services from provider API using edge function (avoids CORS issues)
   const handleFetchServices = async (provider: ApiProvider) => {
     setFetchingProvider(provider);
     setIsServicesSheetOpen(true);
@@ -360,33 +360,27 @@ const AdminApiProviders = () => {
     setServiceSearchQuery('');
 
     try {
-      const response = await fetch(provider.api_url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          key: provider.api_key,
-          action: 'services',
-        }),
+      // Use edge function to fetch services (avoids CORS)
+      const { data, error } = await supabase.functions.invoke('provider-services', {
+        body: { provider_id: provider.id }
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP Error: ${response.status}`);
+      if (error) {
+        throw new Error(error.message || 'فشل في الاتصال بالخادم');
       }
-
-      const data = await response.json();
 
       if (data.error) {
         throw new Error(data.error);
       }
 
-      if (!Array.isArray(data)) {
+      const servicesArray = data.services || [];
+      
+      if (!Array.isArray(servicesArray)) {
         throw new Error('استجابة غير صالحة من المزود');
       }
 
       // Process services
-      const services: ProviderService[] = data.map((s: any) => ({
+      const services: ProviderService[] = servicesArray.map((s: any) => ({
         service: s.service,
         name: s.name || '',
         category: s.category || 'Uncategorized',
@@ -394,7 +388,7 @@ const AdminApiProviders = () => {
         min: s.min || '0',
         max: s.max || '0',
         type: s.type,
-        desc: s.desc || s.description,
+        desc: s.desc || s.description || s.formatted_description,
         refill: s.refill,
         cancel: s.cancel,
         dripfeed: s.dripfeed,
@@ -412,9 +406,9 @@ const AdminApiProviders = () => {
         .sort((a, b) => b.count - a.count);
 
       // Calculate stats
-      const prices = services.map(s => parseFloat(s.rate) || 0);
-      const minPrice = Math.min(...prices);
-      const maxPrice = Math.max(...prices);
+      const prices = services.map(s => parseFloat(s.rate) || 0).filter(p => p > 0);
+      const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+      const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
 
       setFetchedServices({
         services,
