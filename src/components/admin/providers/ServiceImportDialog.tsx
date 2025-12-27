@@ -625,12 +625,12 @@ export const ServiceImportDialog = ({
               <Switch checked={applyMargin} onCheckedChange={setApplyMargin} id="margin" />
               <Label htmlFor="margin" className="text-sm">تطبيق الهامش</Label>
             </div>
-            <Select value={targetCategory} onValueChange={setTargetCategory}>
+            <Select value={targetCategory || "__none__"} onValueChange={(v) => setTargetCategory(v === "__none__" ? "" : v)}>
               <SelectTrigger className="h-9">
                 <SelectValue placeholder="الفئة المستهدفة" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">بدون فئة</SelectItem>
+                <SelectItem value="__none__">بدون فئة</SelectItem>
                 {dbCategories.map((cat: any) => (
                   <SelectItem key={cat.id} value={cat.id}>{cat.name_ar}</SelectItem>
                 ))}
