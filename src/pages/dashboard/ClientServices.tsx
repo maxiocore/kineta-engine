@@ -12,11 +12,24 @@ import {
   Grid3X3,
   ChevronUp,
   RefreshCw,
-  Sparkles
+  Sparkles,
+  ShoppingCart,
+  Link as LinkIcon,
+  Hash,
+  DollarSign,
+  Wallet,
+  Send,
+  Info,
+  CheckCircle2,
+  AlertCircle,
+  Shield,
+  Zap
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
@@ -33,6 +46,7 @@ import ServiceDetailsSheet from "@/components/services/ServiceDetailsSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useExchangeRate } from "@/hooks/useExchangeRate";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -71,6 +85,9 @@ const MAIN_SECTIONS = [
 const ClientServices = () => {
   const { user } = useAuth();
   const { favorites, toggleFavorite } = useFavorites();
+  const exchangeRateData = useExchangeRate();
+  const rate = exchangeRateData?.rate || 3.75;
+  
   const [services, setServices] = useState<Service[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,6 +101,43 @@ const ClientServices = () => {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  
+  // Order form state
+  const [orderLink, setOrderLink] = useState("");
+  const [orderQuantity, setOrderQuantity] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userBalance, setUserBalance] = useState(0);
+  
+  // Fetch user balance
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('user_balances')
+        .select('balance')
+        .eq('user_id', user.id)
+        .single();
+      if (data) setUserBalance(data.balance);
+    };
+    fetchBalance();
+    
+    // Realtime balance updates
+    const channel = supabase
+      .channel('balance-updates')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'user_balances',
+        filter: `user_id=eq.${user?.id}`
+      }, (payload: any) => {
+        if (payload.new?.balance !== undefined) {
+          setUserBalance(payload.new.balance);
+        }
+      })
+      .subscribe();
+    
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
 
   // Scroll to top button visibility
   useEffect(() => {
@@ -231,6 +285,31 @@ const ClientServices = () => {
   const socialMediaServices = useMemo(() => {
     return services.filter(service => !isDesignOrDevService(service));
   }, [services, isDesignOrDevService]);
+
+  // Build a map of main categories to their subcategory IDs
+  const categoryHierarchy = useMemo(() => {
+    const hierarchy: Record<string, { 
+      mainCategory: Category; 
+      subCategoryIds: string[] 
+    }> = {};
+    
+    // Find all main categories (no parent)
+    const mainCats = categories.filter(c => !c.parent_id);
+    
+    mainCats.forEach(main => {
+      // Find all subcategories for this main category
+      const subIds = categories
+        .filter(c => c.parent_id === main.id)
+        .map(c => c.id);
+      
+      hierarchy[main.id] = {
+        mainCategory: main,
+        subCategoryIds: subIds
+      };
+    });
+    
+    return hierarchy;
+  }, [categories]);
 
   // Service counts per category slug
   const serviceCounts = useMemo(() => {
