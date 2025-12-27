@@ -784,9 +784,11 @@ export const AdvancedServicesFetcher = ({
     }
   }, [isOpen]);
 
+  if (!provider) return null;
+
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="left" className="w-full sm:max-w-3xl p-0 overflow-hidden">
+      <SheetContent side="right" className="w-full sm:max-w-3xl p-0 overflow-hidden bg-background">
         <div className="flex flex-col h-full" dir="rtl">
           {/* Header */}
           <SheetHeader className="p-4 border-b bg-gradient-to-l from-primary/10 via-accent/5 to-background">
@@ -1317,5 +1319,3 @@ export const AdvancedServicesFetcher = ({
     </Sheet>
   );
 };
-
-export default AdvancedServicesFetcher;
