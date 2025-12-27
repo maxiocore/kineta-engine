@@ -83,36 +83,148 @@ interface Props {
 }
 
 // =============== الدوال المساعدة ===============
+const translationDict: Record<string, string> = {
+  // المنصات
+  'instagram': 'انستقرام',
+  'facebook': 'فيسبوك',
+  'twitter': 'تويتر',
+  'youtube': 'يوتيوب',
+  'tiktok': 'تيك توك',
+  'telegram': 'تيليجرام',
+  'snapchat': 'سناب شات',
+  'linkedin': 'لينكد إن',
+  'pinterest': 'بنترست',
+  'reddit': 'ريديت',
+  'whatsapp': 'واتساب',
+  'twitch': 'تويتش',
+  'spotify': 'سبوتيفاي',
+  'soundcloud': 'ساوند كلاود',
+  'discord': 'ديسكورد',
+  'threads': 'ثريدز',
+  'x.com': 'إكس',
+  'vk': 'فكونتاكتي',
+  'vkontakte': 'فكونتاكتي',
+  'weibo': 'ويبو',
+  'kwai': 'كواي',
+  'likee': 'لايكي',
+  'clubhouse': 'كلوب هاوس',
+  // الأنواع
+  'followers': 'متابعين',
+  'likes': 'لايكات',
+  'views': 'مشاهدات',
+  'comments': 'تعليقات',
+  'subscribers': 'مشتركين',
+  'shares': 'مشاركات',
+  'retweets': 'ريتويت',
+  'reposts': 'إعادة نشر',
+  'saves': 'حفظ',
+  'impressions': 'انطباعات',
+  'reach': 'وصول',
+  'engagement': 'تفاعل',
+  'live': 'بث مباشر',
+  'story': 'ستوري',
+  'stories': 'ستوريز',
+  'reel': 'ريل',
+  'reels': 'ريلز',
+  'post': 'منشور',
+  'posts': 'منشورات',
+  'video': 'فيديو',
+  'videos': 'فيديوهات',
+  'photo': 'صورة',
+  'photos': 'صور',
+  'watch': 'مشاهدة',
+  'hour': 'ساعة',
+  'hours': 'ساعات',
+  'members': 'أعضاء',
+  'member': 'عضو',
+  'reactions': 'تفاعلات',
+  'reaction': 'تفاعل',
+  'premium': 'مميز',
+  'real': 'حقيقي',
+  'bot': 'بوت',
+  'high': 'عالي',
+  'quality': 'جودة',
+  'fast': 'سريع',
+  'slow': 'بطيء',
+  'instant': 'فوري',
+  'organic': 'طبيعي',
+  'targeted': 'مستهدف',
+  'worldwide': 'عالمي',
+  'global': 'عالمي',
+  'arab': 'عربي',
+  'arabic': 'عربي',
+  'usa': 'أمريكي',
+  'uk': 'بريطاني',
+  'european': 'أوروبي',
+  'asian': 'آسيوي',
+  'female': 'إناث',
+  'male': 'ذكور',
+  'mixed': 'مختلط',
+  'random': 'عشوائي',
+  'active': 'نشط',
+  'cheap': 'رخيص',
+  'refill': 'تعبئة',
+  'guarantee': 'ضمان',
+  'guaranteed': 'مضمون',
+  'no drop': 'بدون نقص',
+  'non drop': 'بدون نقص',
+  'nondrop': 'بدون نقص',
+  'lifetime': 'مدى الحياة',
+  'days': 'أيام',
+  'day': 'يوم',
+  'minute': 'دقيقة',
+  'minutes': 'دقائق',
+  'emoji': 'إيموجي',
+  'custom': 'مخصص',
+  'auto': 'تلقائي',
+  'boost': 'تعزيز',
+  'promotion': 'ترويج',
+  'promote': 'ترويج',
+  'seo': 'سيو',
+  'traffic': 'زيارات',
+  'website': 'موقع',
+  'app': 'تطبيق',
+  'download': 'تحميل',
+  'downloads': 'تحميلات',
+  'install': 'تثبيت',
+  'installs': 'تثبيتات',
+  'reviews': 'مراجعات',
+  'review': 'مراجعة',
+  'rating': 'تقييم',
+  'ratings': 'تقييمات',
+  'stars': 'نجوم',
+  'star': 'نجمة',
+  'positive': 'إيجابي',
+  'negative': 'سلبي',
+  'channel': 'قناة',
+  'group': 'مجموعة',
+  'page': 'صفحة',
+  'profile': 'ملف شخصي',
+  'account': 'حساب',
+  'play': 'تشغيل',
+  'plays': 'تشغيلات',
+  'stream': 'بث',
+  'streams': 'بثوث',
+  'monthly': 'شهري',
+  'listeners': 'مستمعين',
+  'listener': 'مستمع',
+};
+
+const translateText = (text: string): string => {
+  let translated = text;
+  
+  // ترتيب حسب الطول (الأطول أولاً) لتجنب الاستبدال الجزئي
+  const sortedEntries = Object.entries(translationDict).sort((a, b) => b[0].length - a[0].length);
+  
+  for (const [en, ar] of sortedEntries) {
+    translated = translated.replace(new RegExp(`\\b${en}\\b`, 'gi'), ar);
+  }
+
+  return translated;
+};
+
 const translateName = (name: string): string => {
-  const platforms: Record<string, string> = {
-    'instagram': 'انستقرام',
-    'facebook': 'فيسبوك',
-    'twitter': 'تويتر',
-    'youtube': 'يوتيوب',
-    'tiktok': 'تيك توك',
-    'telegram': 'تيليجرام',
-    'snapchat': 'سناب شات',
-  };
-
-  const types: Record<string, string> = {
-    'followers': 'متابعين',
-    'likes': 'لايكات',
-    'views': 'مشاهدات',
-    'comments': 'تعليقات',
-    'subscribers': 'مشتركين',
-  };
-
-  let translated = name.toLowerCase();
-  
-  for (const [en, ar] of Object.entries(platforms)) {
-    translated = translated.replace(new RegExp(en, 'gi'), ar);
-  }
-  
-  for (const [en, ar] of Object.entries(types)) {
-    translated = translated.replace(new RegExp(en, 'gi'), ar);
-  }
-
-  return translated.charAt(0).toUpperCase() + translated.slice(1);
+  return translateText(name);
 };
 
 const hasRefill = (s: ProviderService): boolean => 
@@ -557,8 +669,8 @@ export const ServiceImportDialog = ({
                         />
                         <FolderTree className="h-4 w-4 text-primary shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{catName}</p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="font-medium truncate">{autoTranslate ? translateText(catName) : catName}</p>
+                          <p className="text-xs text-muted-foreground dir-ltr text-right">
                             {category.count} خدمة • ${category.minPrice.toFixed(4)} - ${category.maxPrice.toFixed(4)}
                           </p>
                         </div>
