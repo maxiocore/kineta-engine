@@ -317,28 +317,54 @@ const ClientServices = () => {
     };
   }, [categories]);
 
-  // Group services by category
+  // Group services by subcategory (not main category)
   const groupedServices = useMemo(() => {
     if (categories.length === 0) return {};
     
-    const groups: Record<string, { services: Service[]; nameAr: string; color: string }> = {};
+    const groups: Record<string, { 
+      services: Service[]; 
+      nameAr: string; 
+      color: string; 
+      parentName: string;
+      isSubcategory: boolean;
+      displayOrder: number;
+    }> = {};
     
     filteredServices.forEach(service => {
-      const info = getCategoryInfo(service);
-      const key = info.nameAr;
+      if (!service.category_id) return;
+      
+      const cat = categories.find(c => c.id === service.category_id);
+      if (!cat) return;
+      
+      // Use the exact category (which should be a subcategory) as the key
+      const key = cat.id;
+      let parentName = "";
+      
+      // If this is a subcategory, get the parent name
+      if (cat.parent_id) {
+        const parent = categories.find(c => c.id === cat.parent_id);
+        if (parent) {
+          parentName = parent.name_ar;
+        }
+      }
       
       if (!groups[key]) {
         groups[key] = {
           services: [],
-          nameAr: info.nameAr,
-          color: info.color
+          nameAr: cat.name_ar,
+          color: cat.color || "from-primary to-primary/70",
+          parentName,
+          isSubcategory: !!cat.parent_id,
+          displayOrder: categories.indexOf(cat)
         };
       }
       groups[key].services.push(service);
     });
 
-    return groups;
-  }, [filteredServices, getCategoryInfo, categories]);
+    // Sort groups by display order
+    const sortedEntries = Object.entries(groups).sort((a, b) => a[1].displayOrder - b[1].displayOrder);
+    return Object.fromEntries(sortedEntries);
+  }, [filteredServices, categories]);
 
   // Auto-expand all categories on load
   useEffect(() => {
@@ -670,6 +696,7 @@ const ClientServices = () => {
                         categoryName={categoryName}
                         categoryNameAr={data.nameAr}
                         categoryColor={data.color}
+                        parentCategoryName={data.parentName || undefined}
                         services={data.services}
                         isExpanded={expandedCategories.has(categoryName)}
                         onToggle={() => toggleCategory(categoryName)}
