@@ -283,6 +283,107 @@ const translationDict: Record<string, string> = {
   'wholesale': 'جملة', 'retail': 'تجزئة',
 };
 
+// أيقونات المنصات
+const platformIcons: Record<string, string> = {
+  'instagram': '📸', 'ig': '📸',
+  'facebook': '👤', 'fb': '👤',
+  'twitter': '🐦', 'tw': '🐦', 'x.com': '🐦',
+  'youtube': '▶️', 'yt': '▶️',
+  'tiktok': '🎵', 'tik tok': '🎵', 'tt': '🎵',
+  'telegram': '✈️', 'tg': '✈️',
+  'snapchat': '👻',
+  'linkedin': '💼',
+  'pinterest': '📌',
+  'reddit': '🤖',
+  'whatsapp': '💬',
+  'twitch': '🎮',
+  'spotify': '🎧',
+  'soundcloud': '☁️',
+  'discord': '🎯',
+  'threads': '🧵',
+  'google': '🔍', 'gmb': '🔍',
+  'apple': '🍎',
+  'amazon': '📦',
+  'reviews': '⭐',
+  'seo': '📊',
+  'traffic': '🌐',
+  'website': '🌐', 'web': '🌐',
+};
+
+// الكشف عن المنصة من النص
+const detectPlatform = (text: string): string | null => {
+  const lowerText = text.toLowerCase();
+  for (const [platform, icon] of Object.entries(platformIcons)) {
+    if (lowerText.includes(platform)) {
+      return icon;
+    }
+  }
+  return null;
+};
+
+// الكشف عن نوع الخدمة
+const detectServiceType = (text: string): { type: string; icon: string } => {
+  const lowerText = text.toLowerCase();
+  
+  if (lowerText.includes('follower')) return { type: 'متابعين', icon: '👥' };
+  if (lowerText.includes('like')) return { type: 'لايكات', icon: '❤️' };
+  if (lowerText.includes('view')) return { type: 'مشاهدات', icon: '👁️' };
+  if (lowerText.includes('comment')) return { type: 'تعليقات', icon: '💬' };
+  if (lowerText.includes('subscriber')) return { type: 'مشتركين', icon: '🔔' };
+  if (lowerText.includes('share')) return { type: 'مشاركات', icon: '🔄' };
+  if (lowerText.includes('retweet')) return { type: 'ريتويت', icon: '🔁' };
+  if (lowerText.includes('member')) return { type: 'أعضاء', icon: '👤' };
+  if (lowerText.includes('reaction')) return { type: 'تفاعلات', icon: '😊' };
+  if (lowerText.includes('play') || lowerText.includes('stream')) return { type: 'تشغيلات', icon: '▶️' };
+  if (lowerText.includes('save')) return { type: 'حفظ', icon: '📥' };
+  if (lowerText.includes('impression')) return { type: 'انطباعات', icon: '📈' };
+  if (lowerText.includes('reach')) return { type: 'وصول', icon: '📡' };
+  if (lowerText.includes('engagement')) return { type: 'تفاعل', icon: '🔥' };
+  if (lowerText.includes('watch') && lowerText.includes('hour')) return { type: 'ساعات مشاهدة', icon: '⏰' };
+  if (lowerText.includes('review') || lowerText.includes('rating')) return { type: 'تقييمات', icon: '⭐' };
+  if (lowerText.includes('vote')) return { type: 'تصويتات', icon: '🗳️' };
+  if (lowerText.includes('download') || lowerText.includes('install')) return { type: 'تحميلات', icon: '📲' };
+  
+  return { type: 'خدمة', icon: '✨' };
+};
+
+// الكشف عن الجودة
+const detectQuality = (text: string): { quality: string; badge: string } | null => {
+  const lowerText = text.toLowerCase();
+  
+  if (lowerText.includes('premium') || lowerText.includes('vip')) return { quality: 'مميز', badge: '👑' };
+  if (lowerText.includes('real') || lowerText.includes('genuine')) return { quality: 'حقيقي', badge: '✅' };
+  if (lowerText.includes('high quality') || lowerText.includes('hq')) return { quality: 'جودة عالية', badge: '💎' };
+  if (lowerText.includes('organic') || lowerText.includes('natural')) return { quality: 'طبيعي', badge: '🌿' };
+  if (lowerText.includes('instant') || lowerText.includes('fast')) return { quality: 'سريع', badge: '⚡' };
+  if (lowerText.includes('cheap') || lowerText.includes('low')) return { quality: 'اقتصادي', badge: '💰' };
+  if (lowerText.includes('targeted')) return { quality: 'مستهدف', badge: '🎯' };
+  if (lowerText.includes('no drop') || lowerText.includes('non drop')) return { quality: 'بدون نقص', badge: '🛡️' };
+  if (lowerText.includes('refill') || lowerText.includes('guarantee')) return { quality: 'مضمون', badge: '🔄' };
+  
+  return null;
+};
+
+// الكشف عن المنطقة/الجنسية
+const detectRegion = (text: string): { region: string; flag: string } | null => {
+  const lowerText = text.toLowerCase();
+  
+  if (lowerText.includes('arab') || lowerText.includes('arabic')) return { region: 'عربي', flag: '🇸🇦' };
+  if (lowerText.includes('saudi') || lowerText.includes('ksa')) return { region: 'سعودي', flag: '🇸🇦' };
+  if (lowerText.includes('egypt')) return { region: 'مصري', flag: '🇪🇬' };
+  if (lowerText.includes('uae') || lowerText.includes('emirati')) return { region: 'إماراتي', flag: '🇦🇪' };
+  if (lowerText.includes('usa') || lowerText.includes('american')) return { region: 'أمريكي', flag: '🇺🇸' };
+  if (lowerText.includes('uk') || lowerText.includes('british')) return { region: 'بريطاني', flag: '🇬🇧' };
+  if (lowerText.includes('indian') || lowerText.includes('india')) return { region: 'هندي', flag: '🇮🇳' };
+  if (lowerText.includes('turkish') || lowerText.includes('turkey')) return { region: 'تركي', flag: '🇹🇷' };
+  if (lowerText.includes('brazil')) return { region: 'برازيلي', flag: '🇧🇷' };
+  if (lowerText.includes('russia')) return { region: 'روسي', flag: '🇷🇺' };
+  if (lowerText.includes('worldwide') || lowerText.includes('global')) return { region: 'عالمي', flag: '🌍' };
+  if (lowerText.includes('mixed')) return { region: 'مختلط', flag: '🌐' };
+  
+  return null;
+};
+
 const translateText = (text: string): string => {
   let translated = text;
   
@@ -294,6 +395,49 @@ const translateText = (text: string): string => {
   }
 
   return translated;
+};
+
+// إعادة صياغة اسم الخدمة بشكل محسن
+const formatServiceName = (name: string): { formattedName: string; platformIcon: string; badges: string[] } => {
+  const platformIcon = detectPlatform(name) || '📦';
+  const serviceType = detectServiceType(name);
+  const quality = detectQuality(name);
+  const region = detectRegion(name);
+  
+  const badges: string[] = [];
+  
+  // بناء الاسم المحسن
+  let parts: string[] = [];
+  
+  // إضافة نوع الخدمة
+  parts.push(serviceType.type);
+  
+  // إضافة الجودة
+  if (quality) {
+    parts.push(`(${quality.quality})`);
+    badges.push(quality.badge);
+  }
+  
+  // إضافة المنطقة
+  if (region) {
+    parts.push(`- ${region.region}`);
+    badges.push(region.flag);
+  }
+  
+  // إضافة ميزات إضافية
+  const lowerName = name.toLowerCase();
+  if (lowerName.includes('drip') || lowerName.includes('gradual')) {
+    badges.push('📊');
+  }
+  if (lowerName.includes('lifetime') || lowerName.includes('permanent')) {
+    badges.push('♾️');
+  }
+  
+  return {
+    formattedName: parts.join(' '),
+    platformIcon,
+    badges
+  };
 };
 
 const translateName = (name: string): string => {
@@ -728,6 +872,8 @@ export const ServiceImportDialog = ({
                   const allSelected = category.services.every(s => selectedServices.has(s.service));
                   const someSelected = category.services.some(s => selectedServices.has(s.service));
 
+                  const categoryIcon = detectPlatform(catName) || '📁';
+
                   return (
                     <Card key={catName} className="overflow-hidden">
                       <div
@@ -740,7 +886,7 @@ export const ServiceImportDialog = ({
                           onCheckedChange={() => toggleCategory(catName)}
                           onClick={(e) => e.stopPropagation()}
                         />
-                        <FolderTree className="h-4 w-4 text-primary shrink-0" />
+                        <span className="text-xl shrink-0">{categoryIcon}</span>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate">{autoTranslate ? translateText(catName) : catName}</p>
                           <p className="text-xs text-muted-foreground dir-ltr text-right">
@@ -756,6 +902,7 @@ export const ServiceImportDialog = ({
                           {category.services.map(service => {
                             const isSelected = selectedServices.has(service.service);
                             const isExisting = existingServices.includes(String(service.service));
+                            const formatted = formatServiceName(service.name);
                             
                             return (
                               <div
@@ -766,8 +913,16 @@ export const ServiceImportDialog = ({
                                 onClick={() => toggleService(service.service)}
                               >
                                 <Checkbox checked={isSelected} onCheckedChange={() => toggleService(service.service)} />
+                                <span className="text-xl shrink-0">{formatted.platformIcon}</span>
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm truncate">{autoTranslate ? translateText(service.name) : service.name}</p>
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-sm font-medium truncate">
+                                      {autoTranslate ? translateText(service.name) : service.name}
+                                    </p>
+                                    {formatted.badges.length > 0 && (
+                                      <span className="text-xs shrink-0">{formatted.badges.slice(0, 3).join(' ')}</span>
+                                    )}
+                                  </div>
                                   <p className="text-xs text-muted-foreground">
                                     ID: {service.service} • ${service.rate} • {service.min}-{service.max}
                                   </p>
