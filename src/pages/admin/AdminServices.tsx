@@ -312,7 +312,7 @@ const AdminServices = () => {
       }
     });
 
-    return groups.filter(g => g.services.length > 0);
+    return groups;
   }, [enrichedServices]);
 
   // Get selected category
