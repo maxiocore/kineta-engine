@@ -87,6 +87,115 @@ const MAIN_SECTIONS = [
 
 const ITEMS_PER_PAGE = 20;
 
+// Category translation function
+const translateCategory = (category: string): string => {
+  // Direct translations for known category patterns
+  const translations: Record<string, string> = {
+    // Telegram categories
+    'Telegram': 'تيليجرام',
+    'Comments': 'تعليقات',
+    'Bot Accounts': 'حسابات بوت',
+    'Premium Accounts': 'حسابات مميزة',
+    'Premium': 'مميز',
+    'Vote': 'تصويت',
+    'Other': 'أخرى',
+    'Invite': 'دعوة',
+    'Report': 'إبلاغ',
+    'SPAM': 'سبام',
+    'TAG': 'إشارة',
+    'Members': 'أعضاء',
+    'Channel': 'قناة',
+    'Group': 'مجموعة',
+    'Targeted': 'مستهدف',
+    'High Quality': 'جودة عالية',
+    'Natural': 'طبيعي',
+    'account': 'حساب',
+    'crypto': 'كريبتو',
+    'thematics': 'موضوعات',
+    'Marketplace': 'سوق',
+    'No Drop': 'بدون نقص',
+    'Traffic': 'زيارات',
+    'Real User': 'مستخدم حقيقي',
+    'NEW': 'جديد',
+    'Post': 'منشور',
+    'Reactions': 'تفاعلات',
+    'Future posts': 'منشورات مستقبلية',
+    'Positive': 'إيجابية',
+    'Share': 'مشاركة',
+    'View': 'مشاهدة',
+    'Views': 'مشاهدات',
+    'Cheapest': 'أرخص',
+    'Boost': 'تعزيز',
+    'From Search': 'من البحث',
+    'Robot': 'روبوت',
+    'Bot Start': 'بدء بوت',
+    'SEO': 'سيو',
+    'Story': 'قصة',
+    // Instagram
+    'Instagram': 'انستقرام',
+    'Followers': 'متابعين',
+    'Likes': 'إعجابات',
+    'Reel': 'ريلز',
+    'IGTV': 'IGTV',
+    'Live': 'بث مباشر',
+    // Facebook
+    'Facebook': 'فيسبوك',
+    'Page': 'صفحة',
+    'Profile': 'ملف شخصي',
+    // YouTube
+    'YouTube': 'يوتيوب',
+    'Youtube': 'يوتيوب',
+    'Subscribers': 'مشتركين',
+    'Watch': 'مشاهدة',
+    'Hours': 'ساعات',
+    // Twitter
+    'Twitter': 'تويتر',
+    'Retweets': 'إعادة تغريد',
+    'Quote': 'اقتباس',
+    // TikTok
+    'TikTok': 'تيك توك',
+    'Tiktok': 'تيك توك',
+    // LinkedIn
+    'LinkedIn': 'لينكدإن',
+    'Connections': 'اتصالات',
+    // Spotify
+    'Spotify': 'سبوتيفاي',
+    'Plays': 'تشغيلات',
+    'Monthly Listeners': 'مستمعين شهريًا',
+    // SoundCloud
+    'SoundCloud': 'ساوند كلاود',
+    // General
+    'Accounts': 'حسابات',
+    'Service': 'خدمة',
+    'Services': 'خدمات',
+    'design': 'تصميم',
+    'Design': 'تصميم',
+    'development': 'تطوير',
+    'Development': 'تطوير',
+  };
+  
+  let translatedCategory = category;
+  
+  // Remove emojis and special characters for cleaner translation, but keep them
+  const cleanCategory = category.replace(/[❖💥🔥⩥👁️👍❤️🔥👎💩🤮🎉😁🐳🤡❤️‍🔥🕊✨\[\]]/g, '').trim();
+  
+  // Apply translations
+  Object.entries(translations).forEach(([eng, ar]) => {
+    const regex = new RegExp(eng, 'gi');
+    translatedCategory = translatedCategory.replace(regex, ar);
+  });
+  
+  // Clean up extra spaces and dashes
+  translatedCategory = translatedCategory
+    .replace(/\s*-\s*/g, ' - ')
+    .replace(/\s+/g, ' ')
+    .replace(/[❖💥🔥⩥👁️✨]/g, '')
+    .replace(/[\[\]]/g, '')
+    .trim();
+  
+  return translatedCategory || category;
+};
+
 // Service Card Component
 const ServiceCard = ({ 
   service, 
@@ -300,7 +409,7 @@ const CategorySection = ({
                 <Package className="w-6 h-6 text-primary" />
               </div>
               <div className="text-right">
-                <h3 className="font-bold text-lg">{category}</h3>
+                <h3 className="font-bold text-lg">{translateCategory(category)}</h3>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-sm text-muted-foreground">{services.length} خدمة</span>
                   <div className="w-1 h-1 rounded-full bg-muted-foreground/30" />
