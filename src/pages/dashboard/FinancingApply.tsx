@@ -304,7 +304,7 @@ export default function FinancingApply() {
 
                   <div className="flex items-start gap-2 p-4 rounded-lg border">
                     <Checkbox id="terms" checked={acceptTerms} onCheckedChange={c => setAcceptTerms(!!c)} />
-                    <Label htmlFor="terms" className="text-sm">أوافق على <Link to="/dashboard/financing/guide" className="text-primary underline">شروط وأحكام التمويل</Link> والسند التنفيذي</Label>
+                    <Label htmlFor="terms" className="text-sm">أوافق على <Link to="/dashboard/financing/guide" className="text-primary underline">شروط وأحكام التمويل</Link> والكمبيالة</Label>
                   </div>
                 </motion.div>
               )}

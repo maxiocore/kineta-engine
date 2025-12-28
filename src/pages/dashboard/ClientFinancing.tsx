@@ -400,7 +400,7 @@ export default function ClientFinancing() {
                       {(applications[0].status === "pending" || applications[0].status === "under_review") && "طلبك قيد المراجعة من فريقنا، سنقوم بإعلامك فور اتخاذ القرار عبر البريد الإلكتروني"}
                       {applications[0].status === "documents_required" && "مطلوب رفع بعض المستندات لإكمال مراجعة طلبك"}
                       {applications[0].status === "awaiting_contract" && "تمت الموافقة المبدئية على طلبك! يرجى مراجعة العقد وتوقيعه رقمياً"}
-                      {applications[0].status === "awaiting_signature" && "تم توقيع العقد، يرجى توقيع السند التنفيذي لإتمام عملية التمويل"}
+                      {applications[0].status === "awaiting_signature" && "تم توقيع العقد، يرجى توقيع الكمبيالة لإتمام عملية التمويل"}
                       {applications[0].status === "approved" && "تمت الموافقة على طلبك! سيتم إضافة الرصيد لحسابك وتفعيل التمويل قريباً"}
                       {applications[0].status === "rejected" && `عذراً، تم رفض الطلب. ${applications[0].rejection_reason || "يمكنك تقديم طلب جديد"}`}
                     </p>
@@ -430,7 +430,7 @@ export default function ClientFinancing() {
                       <Button asChild className="mb-4 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700">
                         <Link to={`/dashboard/financing/sign-promissory/${applications[0].id}`}>
                           <FileText className="h-4 w-4 ml-2" />
-                          توقيع السند التنفيذي
+                          توقيع الكمبيالة
                         </Link>
                       </Button>
                     )}

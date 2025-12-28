@@ -13,7 +13,6 @@ import { toast } from "sonner";
 import { 
   ArrowRight, 
   FileText, 
-  Landmark, 
   Check, 
   AlertTriangle, 
   PenTool,
@@ -24,6 +23,7 @@ import {
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import DigitalSignature from "@/components/financing/DigitalSignature";
+import { generateBillOfExchangePdf, type BillOfExchangeData } from "@/lib/billOfExchangePdf";
 
 export default function SignPromissoryNote() {
   const { applicationId } = useParams();
@@ -33,6 +33,7 @@ export default function SignPromissoryNote() {
   const [showSignature, setShowSignature] = useState(false);
   const [isSigned, setIsSigned] = useState(false);
   const [signatureData, setSignatureData] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const { data: application, isLoading, error } = useQuery({
     queryKey: ["financing-application-promissory", applicationId],
@@ -99,6 +100,40 @@ export default function SignPromissoryNote() {
     setIsSigned(true);
     setShowSignature(false);
     await signPromissoryMutation.mutateAsync(signature);
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!application) return;
+    
+    setIsDownloading(true);
+    try {
+      const amount = application.approved_amount || application.requested_amount;
+      const installmentAmount = application.financing_plans 
+        ? amount / application.financing_plans.installments_count 
+        : amount;
+
+      const pdfData: BillOfExchangeData = {
+        contractNumber: application.contract_number || "",
+        applicationNumber: application.application_number,
+        clientName: application.full_name,
+        clientNationalId: application.national_id,
+        clientPhone: application.phone,
+        clientAddress: application.address || "",
+        amount: amount,
+        installmentsCount: application.financing_plans?.installments_count || 1,
+        installmentAmount: installmentAmount,
+        signatureUrl: signatureData || application.promissory_note_url || undefined,
+        signedDate: format(new Date(), "dd/MM/yyyy", { locale: ar }),
+      };
+
+      await generateBillOfExchangePdf(pdfData);
+      toast.success("تم تحميل الكمبيالة بنجاح");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("حدث خطأ أثناء تحميل الكمبيالة");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   if (isLoading) {
@@ -371,6 +406,21 @@ export default function SignPromissoryNote() {
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3 justify-center pt-4">
+                {isSigned && (
+                  <Button
+                    onClick={handleDownloadPdf}
+                    disabled={isDownloading}
+                    size="lg"
+                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                  >
+                    {isDownloading ? (
+                      <Loader2 className="h-5 w-5 ml-2 animate-spin" />
+                    ) : (
+                      <Download className="h-5 w-5 ml-2" />
+                    )}
+                    تحميل الكمبيالة PDF
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   onClick={() => navigate("/dashboard/financing")}
