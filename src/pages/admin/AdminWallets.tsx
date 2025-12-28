@@ -332,20 +332,20 @@ const AdminWallets = () => {
         <FinancialReportsPanel />
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
           {/* Balances & Deposits Tabs */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 order-2 lg:order-1">
             <Tabs defaultValue="balances" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="balances" className="gap-2">
-                  <Wallet className="h-4 w-4" />
-                  الأرصدة
+              <TabsList className="grid w-full grid-cols-2 mb-3 sm:mb-4 h-9 sm:h-10">
+                <TabsTrigger value="balances" className="gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                  <Wallet className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">أرصدة</span> المستخدمين
                 </TabsTrigger>
-                <TabsTrigger value="deposits" className="gap-2 relative">
-                  <DollarSign className="h-4 w-4" />
+                <TabsTrigger value="deposits" className="gap-1.5 sm:gap-2 text-xs sm:text-sm relative">
+                  <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   الإيداعات
                   {pendingDeposits.length > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-destructive text-destructive-foreground text-[10px] sm:text-xs rounded-full flex items-center justify-center">
                       {pendingDeposits.length}
                     </span>
                   )}
@@ -354,31 +354,31 @@ const AdminWallets = () => {
 
               <TabsContent value="balances">
                 <Card>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between gap-4">
-                      <CardTitle className="text-base">أرصدة المستخدمين</CardTitle>
-                      <div className="relative w-64">
-                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+                      <CardTitle className="text-sm sm:text-base">أرصدة المستخدمين</CardTitle>
+                      <div className="relative w-full sm:w-64">
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                         <Input
-                          placeholder="بحث..."
+                          placeholder="بحث بالاسم أو البريد..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
-                          className="pr-10 h-9"
+                          className="pr-9 sm:pr-10 h-8 sm:h-9 text-xs sm:text-sm"
                         />
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <ScrollArea className="h-[500px] px-4 pb-4">
+                    <ScrollArea className="h-[400px] sm:h-[500px] px-2 sm:px-4 pb-3 sm:pb-4">
                       <div className="space-y-2">
                         {balancesLoading ? (
                           [...Array(5)].map((_, i) => (
-                            <div key={i} className="h-24 rounded-xl bg-muted animate-pulse" />
+                            <div key={i} className="h-20 sm:h-24 rounded-xl bg-muted animate-pulse" />
                           ))
                         ) : userBalances.length === 0 ? (
-                          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                            <Wallet className="h-12 w-12 mb-4 opacity-50" />
-                            <p>لا توجد أرصدة</p>
+                          <div className="flex flex-col items-center justify-center py-8 sm:py-12 text-muted-foreground">
+                            <Wallet className="h-10 w-10 sm:h-12 sm:w-12 mb-3 sm:mb-4 opacity-50" />
+                            <p className="text-sm">لا توجد أرصدة</p>
                           </div>
                         ) : (
                           userBalances.map((user, index) => (
@@ -400,17 +400,17 @@ const AdminWallets = () => {
 
               <TabsContent value="deposits">
                 <Card>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between gap-4">
-                      <CardTitle className="text-base">الإيداعات</CardTitle>
-                      <div className="flex gap-2">
+                  <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+                      <CardTitle className="text-sm sm:text-base">الإيداعات</CardTitle>
+                      <div className="flex flex-wrap gap-1.5 sm:gap-2">
                         {["all", "pending", "completed", "rejected"].map((status) => (
                           <Button
                             key={status}
                             size="sm"
                             variant={statusFilter === status ? "default" : "outline"}
                             onClick={() => setStatusFilter(status)}
-                            className="h-8"
+                            className="h-7 sm:h-8 px-2 sm:px-3 text-[10px] sm:text-xs"
                           >
                             {status === "all" ? "الكل" : status === "pending" ? "معلق" : status === "completed" ? "مكتمل" : "مرفوض"}
                           </Button>
@@ -419,16 +419,16 @@ const AdminWallets = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <ScrollArea className="h-[500px] px-4 pb-4">
+                    <ScrollArea className="h-[400px] sm:h-[500px] px-2 sm:px-4 pb-3 sm:pb-4">
                       <div className="space-y-2">
                         {depositsLoading ? (
                           [...Array(5)].map((_, i) => (
-                            <div key={i} className="h-24 rounded-xl bg-muted animate-pulse" />
+                            <div key={i} className="h-20 sm:h-24 rounded-xl bg-muted animate-pulse" />
                           ))
                         ) : deposits.length === 0 ? (
-                          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                            <DollarSign className="h-12 w-12 mb-4 opacity-50" />
-                            <p>لا توجد إيداعات</p>
+                          <div className="flex flex-col items-center justify-center py-8 sm:py-12 text-muted-foreground">
+                            <DollarSign className="h-10 w-10 sm:h-12 sm:w-12 mb-3 sm:mb-4 opacity-50" />
+                            <p className="text-sm">لا توجد إيداعات</p>
                           </div>
                         ) : (
                           deposits.map((deposit, index) => (
@@ -451,7 +451,7 @@ const AdminWallets = () => {
           </div>
 
           {/* Sidebar: Alerts + Analytics + Activities */}
-          <div className="lg:col-span-1 space-y-4">
+          <div className="lg:col-span-1 space-y-3 sm:space-y-4 order-1 lg:order-2">
             <SmartAlertsPanel />
             <AnalyticsAlertsPanel />
             <RecentActivities />
