@@ -59,13 +59,11 @@ const createPDFFromHTML = async (htmlContent: string, fileName: string) => {
 
 // Professional Arabic Bank Receipt Styles - 100% RTL
 const bankStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
-  
   * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+    font-family: 'Segoe UI', 'Arial', 'Tahoma', 'Helvetica Neue', sans-serif;
   }
   
   .receipt-page {
@@ -73,6 +71,7 @@ const bankStyles = `
     min-height: 297mm;
     background: #ffffff;
     direction: rtl;
+    text-align: right;
   }
   
   /* === HEADER SECTION === */
