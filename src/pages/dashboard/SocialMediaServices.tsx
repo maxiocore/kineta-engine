@@ -718,24 +718,24 @@ const PlatformSelector = ({
                     ))}
                   </div>
                 ) : subcategories.length > 0 ? (
-                  <div className="flex flex-wrap gap-2 sm:gap-3 justify-end">
+                  <div className="flex flex-wrap-reverse flex-row-reverse gap-2 sm:gap-3 justify-start" dir="rtl">
                     {/* All button - Primary style */}
                     <motion.button
-                      initial={{ opacity: 0, x: 20 }}
+                      initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0 }}
                       whileHover={{ scale: 1.03, y: -2 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => onSelect(activePlatform)}
                       className={cn(
-                        "px-4 py-2.5 rounded-xl border-2 transition-all duration-300 flex items-center gap-2.5 font-medium text-sm",
+                        "px-4 py-2.5 rounded-xl border-2 transition-all duration-300 flex flex-row-reverse items-center gap-2.5 font-medium text-sm",
                         selected === activePlatform
                           ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/30"
                           : "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20 hover:border-primary/50"
                       )}
                     >
-                      <span>الكل</span>
                       <Grid3X3 className="w-4 h-4" />
+                      <span>الكل</span>
                     </motion.button>
 
                     {/* Subcategories pills */}
@@ -745,26 +745,26 @@ const PlatformSelector = ({
                       return (
                         <motion.button
                           key={sub.id}
-                          initial={{ opacity: 0, x: 20 }}
+                          initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: (idx + 1) * 0.05 }}
                           whileHover={{ scale: 1.03, y: -2 }}
                           whileTap={{ scale: 0.97 }}
                           onClick={() => onSelect(sub.slug)}
                           className={cn(
-                            "px-4 py-2.5 rounded-xl border transition-all duration-300 flex items-center gap-2.5 text-sm",
+                            "px-4 py-2.5 rounded-xl border transition-all duration-300 flex flex-row-reverse items-center gap-2.5 text-sm",
                             isSubSelected
                               ? "bg-foreground/10 border-foreground/30 text-foreground font-semibold shadow-md"
                               : "bg-card border-border/50 text-muted-foreground hover:bg-muted/50 hover:border-border hover:text-foreground"
                           )}
                         >
-                          <span className="whitespace-nowrap">{sub.name_ar}</span>
                           <div className={cn(
                             "w-6 h-6 rounded-lg flex items-center justify-center transition-colors",
                             isSubSelected ? "bg-foreground/15" : "bg-muted/60"
                           )}>
                             <SubIcon />
                           </div>
+                          <span className="whitespace-nowrap">{sub.name_ar}</span>
                         </motion.button>
                       );
                     })}
