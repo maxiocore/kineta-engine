@@ -43,7 +43,10 @@ import {
   sendFinancingDocumentsRequiredEmail,
   sendFinancingUnderReviewEmail,
   sendFinancingPromissoryNoteEmail,
-  sendFinancingContractEmail
+  sendFinancingContractEmail,
+  sendFinancingPaymentClientEmail,
+  sendFinancingPaymentAdminEmail,
+  sendFinancingClearanceEmail
 } from "@/lib/emailService";
 import FinancingStatusCard from "@/components/financing/FinancingStatusCard";
 import {
@@ -542,6 +545,15 @@ export default function AdminFinancing() {
   // Mark installment as paid
   const markPaidMutation = useMutation({
     mutationFn: async (installmentId: string) => {
+      // Get installment details first
+      const { data: installmentData, error: fetchError } = await supabase
+        .from("financing_installments")
+        .select("*")
+        .eq("id", installmentId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
       const { error } = await supabase
         .from("financing_installments")
         .update({
@@ -552,25 +564,116 @@ export default function AdminFinancing() {
 
       if (error) throw error;
 
-      // Check if all installments are paid
-      const { data: remainingInstallments } = await supabase
+      // Get all installments to calculate totals
+      const { data: allInstallments } = await supabase
         .from("financing_installments")
-        .select("id")
+        .select("*")
         .eq("application_id", selectedApplication?.id)
-        .neq("status", "paid");
+        .order("installment_number", { ascending: true });
 
-      if (remainingInstallments?.length === 0) {
+      const paidInstallments = allInstallments?.filter(i => i.status === "paid" || i.id === installmentId) || [];
+      const remainingInstallments = allInstallments?.filter(i => i.status !== "paid" && i.id !== installmentId) || [];
+      const totalPaid = paidInstallments.reduce((sum, i) => sum + i.amount, 0);
+      const remainingAmount = remainingInstallments.reduce((sum, i) => sum + i.amount, 0);
+      const nextInstallment = remainingInstallments[0];
+      const isLastInstallment = remainingInstallments.length === 0;
+
+      // Send email to client
+      if (selectedApplication?.email) {
+        try {
+          await sendFinancingPaymentClientEmail(selectedApplication.email, {
+            name: selectedApplication.full_name,
+            applicationNumber: selectedApplication.application_number,
+            contractNumber: selectedApplication.contract_number || '',
+            installmentNumber: installmentData.installment_number,
+            totalInstallments: allInstallments?.length || 0,
+            amount: installmentData.amount,
+            paymentDate: new Date().toLocaleDateString('ar-SA'),
+            paymentMethod: 'الرصيد',
+            totalPaid: totalPaid,
+            remainingAmount: remainingAmount,
+            remainingInstallments: remainingInstallments.length,
+            nextDueDate: nextInstallment ? new Date(nextInstallment.due_date).toLocaleDateString('ar-SA') : undefined,
+          });
+        } catch (e) {
+          console.error("Error sending client payment email:", e);
+        }
+
+        // Send clearance email if this is the last installment
+        if (isLastInstallment) {
+          try {
+            await sendFinancingClearanceEmail(selectedApplication.email, {
+              name: selectedApplication.full_name,
+              nationalId: selectedApplication.national_id,
+              applicationNumber: selectedApplication.application_number,
+              contractNumber: selectedApplication.contract_number || '',
+              totalAmount: selectedApplication.approved_amount || selectedApplication.requested_amount,
+              totalInstallments: allInstallments?.length || 0,
+              lastPaymentDate: new Date().toLocaleDateString('ar-SA'),
+            });
+          } catch (e) {
+            console.error("Error sending clearance email:", e);
+          }
+        }
+      }
+
+      // Send email to admin
+      try {
+        // Get admin email from settings or use default
+        const { data: adminProfile } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("role", "admin")
+          .limit(1)
+          .single();
+
+        if (adminProfile) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("email")
+            .eq("id", adminProfile.user_id)
+            .single();
+
+          if (profile?.email) {
+            await sendFinancingPaymentAdminEmail(profile.email, {
+              clientName: selectedApplication?.full_name || '',
+              clientEmail: selectedApplication?.email || '',
+              clientPhone: selectedApplication?.phone,
+              applicationNumber: selectedApplication?.application_number || '',
+              contractNumber: selectedApplication?.contract_number || '',
+              installmentNumber: installmentData.installment_number,
+              totalInstallments: allInstallments?.length || 0,
+              amount: installmentData.amount,
+              paymentDate: new Date().toLocaleDateString('ar-SA'),
+              paymentMethod: 'الرصيد',
+              originalAmount: selectedApplication?.approved_amount || selectedApplication?.requested_amount || 0,
+              totalPaid: totalPaid,
+              remainingAmount: remainingAmount,
+            });
+          }
+        }
+      } catch (e) {
+        console.error("Error sending admin payment email:", e);
+      }
+
+      // Check if all installments are paid and update application status
+      if (isLastInstallment) {
         await supabase
           .from("financing_applications")
           .update({ status: "completed" })
           .eq("id", selectedApplication?.id);
       }
+
+      return { isLastInstallment };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["financing-installments"] });
       queryClient.invalidateQueries({ queryKey: ["financing-applications"] });
       queryClient.invalidateQueries({ queryKey: ["financing-stats"] });
       toast.success("تم تسجيل الدفعة بنجاح");
+      if (data?.isLastInstallment) {
+        toast.success("🎉 تم سداد جميع الأقساط! تم إرسال شهادة المخالصة للعميل");
+      }
     },
   });
 
