@@ -40,6 +40,7 @@ type EmailType =
   | 'financing_payment_admin'
   | 'financing_payment_reminder'
   | 'financing_payment_overdue'
+  | 'financing_clearance'
   | 'custom';
 
 interface EmailRequest {
@@ -1245,6 +1246,122 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           ${createCTAButton('ادفع الآن')}
           
           ${createMessage('في حال واجهت أي صعوبات في السداد، يرجى التواصل معنا على info@maxiocore.com')}
+        `
+      };
+
+    case 'financing_clearance':
+      const clearanceDate = new Date();
+      const cancellationDate = new Date();
+      cancellationDate.setDate(cancellationDate.getDate() + 5);
+      // Skip weekends for business days calculation
+      let businessDays = 0;
+      let checkDate = new Date(clearanceDate);
+      while (businessDays < 5) {
+        checkDate.setDate(checkDate.getDate() + 1);
+        const dayOfWeek = checkDate.getDay();
+        if (dayOfWeek !== 5 && dayOfWeek !== 6) { // Skip Friday and Saturday (weekend in Saudi)
+          businessDays++;
+        }
+      }
+      
+      return {
+        subject: `🎊 مخالصة نهائية - تهانينا! تم سداد كامل التمويل #${data.applicationNumber}`,
+        content: `
+          ${createIconCircle('🎊', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          ${createGreeting(`تهانينا ${data.name}! 🎉`)}
+          ${createMessage('يسعدنا إبلاغك بأنه تم سداد كامل مبلغ التمويل بنجاح. نشكرك على التزامك وثقتك بنا.')}
+          
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 14px; border: 3px solid #22c55e; margin-bottom: 25px;">
+            <tr>
+              <td style="padding: 30px;">
+                <div style="text-align: center; margin-bottom: 25px;">
+                  <div style="display: inline-block; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 50%; width: 100px; height: 100px; line-height: 100px; margin-bottom: 15px;">
+                    <span style="font-size: 50px;">✅</span>
+                  </div>
+                  <h2 style="margin: 0; color: #22c55e; font-size: 28px; font-weight: 800;">شهادة مخالصة نهائية</h2>
+                  <p style="margin: 10px 0 0; color: #94a3b8; font-size: 14px;">Clearance Certificate</p>
+                </div>
+                
+                <div style="background: rgba(34, 197, 94, 0.1); border-radius: 12px; padding: 25px; text-align: center; margin-bottom: 25px; border: 1px solid rgba(34, 197, 94, 0.3);">
+                  <p style="margin: 0 0 8px; color: #94a3b8; font-size: 14px;">إجمالي المبلغ المسدد</p>
+                  <p style="margin: 0; color: #22c55e; font-size: 42px; font-weight: 800;">${formatAmountArabic(data.totalAmount)} ر.س</p>
+                  <p style="margin: 10px 0 0; color: #64748b; font-size: 13px;">مسدد بالكامل ✓</p>
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                  <h3 style="margin: 0 0 15px; color: #22c55e; font-size: 18px; text-align: center;">📋 بيانات المخالصة</h3>
+                  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                    <tr>
+                      <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155; width: 45%;">رقم المخالصة:</td>
+                      <td style="padding: 12px 0; color: #22c55e; font-weight: bold; border-bottom: 1px solid #334155;">CLR-${Date.now()}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">اسم العميل:</td>
+                      <td style="padding: 12px 0; color: #fff; font-weight: bold; border-bottom: 1px solid #334155;">${data.name}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">رقم الهوية:</td>
+                      <td style="padding: 12px 0; color: #fff; border-bottom: 1px solid #334155;">${data.nationalId || '---'}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">رقم العقد:</td>
+                      <td style="padding: 12px 0; color: #fff; border-bottom: 1px solid #334155;">${data.contractNumber}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">رقم الطلب:</td>
+                      <td style="padding: 12px 0; color: #fff; border-bottom: 1px solid #334155;">${data.applicationNumber}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">مبلغ التمويل:</td>
+                      <td style="padding: 12px 0; color: #fff; border-bottom: 1px solid #334155;">${formatAmountArabic(data.totalAmount)} ر.س</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">عدد الأقساط:</td>
+                      <td style="padding: 12px 0; color: #fff; border-bottom: 1px solid #334155;">${data.totalInstallments} قسط</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">تاريخ آخر سداد:</td>
+                      <td style="padding: 12px 0; color: #fff; border-bottom: 1px solid #334155;">${data.lastPaymentDate || clearanceDate.toLocaleDateString('ar-SA')}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 12px 0; color: #94a3b8;">تاريخ المخالصة:</td>
+                      <td style="padding: 12px 0; color: #22c55e; font-weight: bold;">${clearanceDate.toLocaleDateString('ar-SA')}</td>
+                    </tr>
+                  </table>
+                </div>
+                
+                <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(99, 102, 241, 0.3);">
+                  <h3 style="margin: 0 0 15px; color: #a5b4fc; font-size: 16px; text-align: center;">📜 إلغاء السند التنفيذي (الكمبيالة)</h3>
+                  <p style="margin: 0; color: #e2e8f0; font-size: 15px; line-height: 1.8; text-align: center;">
+                    بموجب هذه المخالصة، نقر بأنه سيتم إلغاء السند التنفيذي (الكمبيالة) المسجل باسمكم خلال:
+                  </p>
+                  <p style="margin: 15px 0; text-align: center;">
+                    <span style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #fff; padding: 12px 30px; border-radius: 50px; font-size: 20px; font-weight: 700;">
+                      ٥ أيام عمل
+                    </span>
+                  </p>
+                  <p style="margin: 0; color: #94a3b8; font-size: 13px; text-align: center;">
+                    (التاريخ المتوقع للإلغاء: ${checkDate.toLocaleDateString('ar-SA')})
+                  </p>
+                </div>
+                
+                <div style="border: 2px solid #22c55e; border-radius: 12px; padding: 20px; background: rgba(34, 197, 94, 0.05);">
+                  <p style="margin: 0 0 10px; color: #22c55e; font-size: 16px; font-weight: bold; text-align: center;">✨ إقرار رسمي</p>
+                  <p style="margin: 0; color: #e2e8f0; font-size: 14px; line-height: 1.8; text-align: center;">
+                    تقر شركة ماكسيو كور للخدمات الرقمية بأن العميل المذكور أعلاه قد أوفى بكامل التزاماته المالية المترتبة عليه بموجب عقد التمويل، وأنه لا يوجد أي مستحقات مالية متبقية عليه.
+                  </p>
+                </div>
+              </td>
+            </tr>
+          </table>
+          
+          ${createNoticeBox('🎉 شكراً لثقتك بنا! نتطلع للتعامل معك مرة أخرى. يمكنك الآن التقدم بطلب تمويل جديد إذا رغبت في ذلك.', '#dcfce7', '#166534', '#22c55e')}
+          
+          ${createNoticeBox('📋 ملاحظة: سيتم إرسال نسخة من إلغاء السند التنفيذي إلى بريدك الإلكتروني خلال 5 أيام عمل. يرجى الاحتفاظ بهذه المخالصة كمرجع.', '#dbeafe', '#1d4ed8', '#3b82f6')}
+          
+          ${createCTAButton('تقدم بطلب تمويل جديد')}
+          
+          ${createMessage('للاستفسارات: info@maxiocore.com | واتساب: +966XXXXXXXXX')}
         `
       };
 
