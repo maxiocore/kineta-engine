@@ -74,6 +74,7 @@ interface FinancingApplication {
   approved_at?: string | null;
   rejection_reason: string | null;
   contract_number: string | null;
+  promissory_note_url: string | null;
   financing_plans?: {
     name_ar: string;
     installments_count: number;
@@ -169,7 +170,7 @@ export default function ClientFinancing() {
         .select(`
           id, application_number, plan_id, full_name, national_id, phone, email, address,
           requested_amount, approved_amount, status, submitted_at, approved_at,
-          rejection_reason, contract_number,
+          rejection_reason, contract_number, promissory_note_url,
           financing_plans (name_ar, installments_count)
         `)
         .eq("user_id", user.id)
@@ -400,7 +401,8 @@ export default function ClientFinancing() {
                       {(applications[0].status === "pending" || applications[0].status === "under_review") && "طلبك قيد المراجعة من فريقنا، سنقوم بإعلامك فور اتخاذ القرار عبر البريد الإلكتروني"}
                       {applications[0].status === "documents_required" && "مطلوب رفع بعض المستندات لإكمال مراجعة طلبك"}
                       {applications[0].status === "awaiting_contract" && "تمت الموافقة المبدئية على طلبك! يرجى مراجعة العقد وتوقيعه رقمياً"}
-                      {applications[0].status === "awaiting_signature" && "تم توقيع العقد، يرجى توقيع الكمبيالة لإتمام عملية التمويل"}
+                      {applications[0].status === "awaiting_signature" && !applications[0].promissory_note_url && "تم توقيع العقد، يرجى توقيع الكمبيالة لإتمام عملية التمويل"}
+                      {applications[0].status === "awaiting_signature" && applications[0].promissory_note_url && "تم توقيع الكمبيالة بنجاح، بانتظار تفعيل التمويل من الإدارة"}
                       {applications[0].status === "approved" && "تمت الموافقة على طلبك! سيتم إضافة الرصيد لحسابك وتفعيل التمويل قريباً"}
                       {applications[0].status === "rejected" && `عذراً، تم رفض الطلب. ${applications[0].rejection_reason || "يمكنك تقديم طلب جديد"}`}
                     </p>
@@ -425,14 +427,29 @@ export default function ClientFinancing() {
                       </Button>
                     )}
 
-                    {/* Sign Promissory Note Button for awaiting_signature status */}
-                    {applications[0].status === "awaiting_signature" && (
+                    {/* Sign Promissory Note Button for awaiting_signature status (only if not signed) */}
+                    {applications[0].status === "awaiting_signature" && !applications[0].promissory_note_url && (
                       <Button asChild className="mb-4 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700">
                         <Link to={`/dashboard/financing/sign-promissory/${applications[0].id}`}>
                           <FileText className="h-4 w-4 ml-2" />
                           توقيع الكمبيالة
                         </Link>
                       </Button>
+                    )}
+                    
+                    {/* Already signed - waiting for admin activation */}
+                    {applications[0].status === "awaiting_signature" && applications[0].promissory_note_url && (
+                      <div className="mb-4 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center">
+                            <CheckCircle2 className="h-5 w-5 text-white" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-emerald-400">تم توقيع الكمبيالة بنجاح</p>
+                            <p className="text-sm text-muted-foreground">بانتظار تفعيل التمويل من الإدارة</p>
+                          </div>
+                        </div>
+                      </div>
                     )}
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 p-4 bg-muted/30 rounded-xl">
