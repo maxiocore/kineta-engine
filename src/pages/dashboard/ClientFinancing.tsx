@@ -395,9 +395,9 @@ export default function ClientFinancing() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
-          <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-            <TabsList className="bg-muted/50 inline-flex w-max sm:w-auto gap-1 p-1 h-auto flex-row-reverse">
-              <TabsTrigger 
+          <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0" dir="rtl">
+            <TabsList className="bg-muted/50 inline-flex w-max sm:w-auto gap-1 p-1 h-auto">
+              <TabsTrigger
                 value="overview" 
                 className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap"
               >
