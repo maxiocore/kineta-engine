@@ -49,6 +49,10 @@ import ClientDevServices from "./pages/dashboard/ClientDevServices";
 import ClientDigitalServices from "./pages/dashboard/ClientDigitalServices";
 import ClientServicesHome from "./pages/dashboard/ClientServicesHome";
 import DesignServiceOrder from "./pages/dashboard/DesignServiceOrder";
+import ClientSocialOrders from "./pages/dashboard/ClientSocialOrders";
+import ClientMarketingOrders from "./pages/dashboard/ClientMarketingOrders";
+import ClientDesignOrders from "./pages/dashboard/ClientDesignOrders";
+import ClientDevOrders from "./pages/dashboard/ClientDevOrders";
 import ClientCashback from "./pages/dashboard/ClientCashback";
 import ClientChallenges from "./pages/dashboard/ClientChallenges";
 
@@ -133,6 +137,26 @@ const App = () => (
                   <Route path="/dashboard/orders" element={
                     <ProtectedRoute>
                       <ClientOrders />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/orders/social" element={
+                    <ProtectedRoute>
+                      <ClientSocialOrders />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/orders/marketing" element={
+                    <ProtectedRoute>
+                      <ClientMarketingOrders />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/orders/design" element={
+                    <ProtectedRoute>
+                      <ClientDesignOrders />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/orders/dev" element={
+                    <ProtectedRoute>
+                      <ClientDevOrders />
                     </ProtectedRoute>
                   } />
                   <Route path="/dashboard/orders/:orderId" element={
