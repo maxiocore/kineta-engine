@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 
@@ -22,12 +23,10 @@ interface FinancingContractData {
   contractDate: string;
 }
 
-// Format amount in Arabic style
 const formatAmountArabic = (amount: number): string => {
   return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 };
 
-// Format date in Arabic
 const formatDateArabic = (date: string | Date): string => {
   try {
     const d = new Date(date);
@@ -37,7 +36,6 @@ const formatDateArabic = (date: string | Date): string => {
   }
 };
 
-// Convert number to Arabic words
 const numberToArabicWords = (num: number): string => {
   const ones = ["", "واحد", "اثنان", "ثلاثة", "أربعة", "خمسة", "ستة", "سبعة", "ثمانية", "تسعة"];
   const tens = ["", "عشرة", "عشرون", "ثلاثون", "أربعون", "خمسون", "ستون", "سبعون", "ثمانون", "تسعون"];
@@ -69,403 +67,454 @@ const numberToArabicWords = (num: number): string => {
 };
 
 export async function generateFinancingContract(data: FinancingContractData): Promise<void> {
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4',
-  });
+  // Generate installments rows HTML
+  const installmentsRows = data.installments.map(inst => `
+    <tr>
+      <td style="padding: 10px 15px; text-align: center; border-bottom: 1px solid #e2e8f0; font-weight: 600;">${inst.number}</td>
+      <td style="padding: 10px 15px; text-align: center; border-bottom: 1px solid #e2e8f0;">${formatAmountArabic(inst.amount)} ر.س</td>
+      <td style="padding: 10px 15px; text-align: center; border-bottom: 1px solid #e2e8f0;">${formatDateArabic(inst.dueDate)}</td>
+      <td style="padding: 10px 15px; text-align: center; border-bottom: 1px solid #e2e8f0;">
+        <span style="background: #fef3c7; color: #92400e; padding: 3px 12px; border-radius: 12px; font-size: 11px;">قيد الانتظار</span>
+      </td>
+    </tr>
+  `).join('');
 
-  const pageWidth = 210;
-  const pageHeight = 297;
-  const margin = 15;
-  const contentWidth = pageWidth - (margin * 2);
-  let yPos = 0;
+  const contractHtml = `
+    <div id="contract-content" style="
+      width: 794px;
+      background: #ffffff;
+      font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+      direction: rtl;
+      text-align: right;
+      color: #1e293b;
+      line-height: 1.6;
+    ">
+      <!-- صفحة 1: المعلومات والبنود -->
+      <div style="min-height: 1123px; position: relative; page-break-after: always;">
+        <!-- Header -->
+        <div style="
+          background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+          padding: 25px 35px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border-bottom: 4px solid #f59e0b;
+        ">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="
+              width: 50px;
+              height: 50px;
+              background: linear-gradient(135deg, #f59e0b, #eab308);
+              border-radius: 10px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 24px;
+              font-weight: 900;
+              color: #1e293b;
+            ">M</div>
+            <div>
+              <div style="font-size: 20px; font-weight: 800; color: #f59e0b;">MaxioCore</div>
+              <div style="font-size: 11px; color: #94a3b8;">شركة علي صالح الشهري القابضة</div>
+            </div>
+          </div>
+          <div style="
+            background: rgba(245, 158, 11, 0.15);
+            padding: 10px 25px;
+            border-radius: 25px;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+          ">
+            <span style="font-size: 18px; font-weight: 700; color: #ffffff;">عقد التمويل</span>
+          </div>
+        </div>
 
-  // Colors
-  const primaryColor: [number, number, number] = [245, 158, 11]; // Amber
-  const darkColor: [number, number, number] = [30, 41, 59]; // Slate 800
-  const grayColor: [number, number, number] = [100, 116, 139]; // Slate 500
-  const lightGray: [number, number, number] = [248, 250, 252]; // Slate 50
-  const greenColor: [number, number, number] = [16, 185, 129]; // Emerald
+        <!-- Info Bar -->
+        <div style="
+          background: #f8fafc;
+          padding: 18px 35px;
+          display: flex;
+          justify-content: space-between;
+          border-bottom: 2px solid #e2e8f0;
+        ">
+          <div style="text-align: center;">
+            <div style="font-size: 10px; color: #64748b; font-weight: 600; margin-bottom: 3px;">رقم العقد</div>
+            <div style="font-size: 13px; font-weight: 700; color: #f59e0b;">${data.contractNumber}</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 10px; color: #64748b; font-weight: 600; margin-bottom: 3px;">رقم الطلب</div>
+            <div style="font-size: 13px; font-weight: 700; color: #1e293b;">${data.applicationNumber}</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 10px; color: #64748b; font-weight: 600; margin-bottom: 3px;">تاريخ العقد</div>
+            <div style="font-size: 13px; font-weight: 700; color: #1e293b;">${formatDateArabic(data.contractDate)}</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 10px; color: #64748b; font-weight: 600; margin-bottom: 3px;">مبلغ التمويل</div>
+            <div style="font-size: 13px; font-weight: 700; color: #f59e0b;">${formatAmountArabic(data.amount)} ر.س</div>
+          </div>
+        </div>
 
-  // Helper function to add new page if needed
-  const checkNewPage = (neededHeight: number) => {
-    if (yPos + neededHeight > pageHeight - margin) {
-      pdf.addPage();
-      yPos = margin;
-      return true;
-    }
-    return false;
-  };
+        <!-- Content -->
+        <div style="padding: 25px 35px;">
+          <!-- أطراف العقد -->
+          <div style="margin-bottom: 25px;">
+            <div style="
+              font-size: 14px;
+              font-weight: 700;
+              color: #1e293b;
+              padding-bottom: 10px;
+              border-bottom: 2px solid #e2e8f0;
+              margin-bottom: 15px;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            ">
+              <span style="
+                width: 22px;
+                height: 22px;
+                background: linear-gradient(135deg, #f59e0b, #eab308);
+                border-radius: 5px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 11px;
+              ">👥</span>
+              أطراف العقد
+            </div>
+            
+            <div style="display: flex; gap: 15px;">
+              <!-- الطرف الأول -->
+              <div style="
+                flex: 1;
+                padding: 18px;
+                border-radius: 10px;
+                border: 2px solid rgba(245, 158, 11, 0.3);
+                background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(234, 179, 8, 0.05));
+              ">
+                <div style="font-size: 13px; font-weight: 700; color: #f59e0b; margin-bottom: 12px;">الطرف الأول (الممول)</div>
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 11px; border-bottom: 1px dashed #e2e8f0;">
+                  <span style="color: #64748b;">اسم الشركة:</span>
+                  <span style="font-weight: 600; color: #1e293b;">شركة علي صالح الشهري القابضة</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 11px; border-bottom: 1px dashed #e2e8f0;">
+                  <span style="color: #64748b;">السجل التجاري:</span>
+                  <span style="font-weight: 600; color: #1e293b;">4030554749</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 11px;">
+                  <span style="color: #64748b;">العنوان:</span>
+                  <span style="font-weight: 600; color: #1e293b;">المملكة العربية السعودية</span>
+                </div>
+              </div>
+              
+              <!-- الطرف الثاني -->
+              <div style="
+                flex: 1;
+                padding: 18px;
+                border-radius: 10px;
+                border: 2px solid rgba(16, 185, 129, 0.3);
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(20, 184, 166, 0.05));
+              ">
+                <div style="font-size: 13px; font-weight: 700; color: #10b981; margin-bottom: 12px;">الطرف الثاني (المستفيد)</div>
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 11px; border-bottom: 1px dashed #e2e8f0;">
+                  <span style="color: #64748b;">الاسم الكامل:</span>
+                  <span style="font-weight: 600; color: #1e293b;">${data.clientName}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 11px; border-bottom: 1px dashed #e2e8f0;">
+                  <span style="color: #64748b;">رقم الهوية:</span>
+                  <span style="font-weight: 600; color: #1e293b;">${data.nationalId}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 11px; border-bottom: 1px dashed #e2e8f0;">
+                  <span style="color: #64748b;">رقم الجوال:</span>
+                  <span style="font-weight: 600; color: #1e293b;">${data.phone}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 11px;">
+                  <span style="color: #64748b;">البريد الإلكتروني:</span>
+                  <span style="font-weight: 600; color: #1e293b;">${data.email}</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
-  // Helper to draw rounded rectangle
-  const drawRoundedRect = (x: number, y: number, w: number, h: number, r: number, fill: [number, number, number], stroke?: [number, number, number]) => {
-    pdf.setFillColor(...fill);
-    if (stroke) {
-      pdf.setDrawColor(...stroke);
-      pdf.setLineWidth(0.3);
-    }
-    pdf.roundedRect(x, y, w, h, r, r, stroke ? 'FD' : 'F');
-  };
+          <!-- بنود العقد -->
+          <div style="margin-bottom: 25px;">
+            <div style="
+              font-size: 14px;
+              font-weight: 700;
+              color: #1e293b;
+              padding-bottom: 10px;
+              border-bottom: 2px solid #e2e8f0;
+              margin-bottom: 15px;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            ">
+              <span style="
+                width: 22px;
+                height: 22px;
+                background: linear-gradient(135deg, #f59e0b, #eab308);
+                border-radius: 5px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 11px;
+              ">📋</span>
+              بنود وشروط العقد
+            </div>
 
-  // ============= HEADER =============
-  // Dark header background
-  pdf.setFillColor(...darkColor);
-  pdf.rect(0, 0, pageWidth, 35, 'F');
-  
-  // Amber accent line
-  pdf.setFillColor(...primaryColor);
-  pdf.rect(0, 35, pageWidth, 2, 'F');
+            <div style="background: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-right: 4px solid #f59e0b;">
+              <span style="display: inline-block; background: #f59e0b; color: #ffffff; padding: 2px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; margin-left: 8px;">البند الأول</span>
+              <span style="font-size: 11px; line-height: 1.7; color: #334155;">
+                يوافق الطرف الأول على تمويل الطرف الثاني بمبلغ 
+                <span style="color: #10b981; font-weight: 700;">${formatAmountArabic(data.amount)} ر.س</span>
+                (فقط ${numberToArabicWords(Math.floor(data.amount))} ريال سعودي لا غير).
+              </span>
+            </div>
 
-  // Logo box
-  pdf.setFillColor(...primaryColor);
-  pdf.roundedRect(margin, 8, 18, 18, 3, 3, 'F');
-  pdf.setTextColor(...darkColor);
-  pdf.setFontSize(14);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('M', margin + 9, 20, { align: 'center' });
+            <div style="background: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-right: 4px solid #f59e0b;">
+              <span style="display: inline-block; background: #f59e0b; color: #ffffff; padding: 2px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; margin-left: 8px;">البند الثاني</span>
+              <span style="font-size: 11px; line-height: 1.7; color: #334155;">
+                يقر الطرف الثاني بأن التمويل سيُستخدم حصرياً لشراء خدمات من منصة ماكسيوكور، ولا يمكن سحبه نقداً أو تحويله لأي جهة أخرى.
+              </span>
+            </div>
 
-  // Company name
-  pdf.setTextColor(...primaryColor);
-  pdf.setFontSize(16);
-  pdf.text('MaxioCore', margin + 22, 15);
-  pdf.setTextColor(148, 163, 184);
-  pdf.setFontSize(9);
-  pdf.text('شركة علي صالح الشهري القابضة', margin + 22, 23);
+            <div style="background: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-right: 4px solid #f59e0b;">
+              <span style="display: inline-block; background: #f59e0b; color: #ffffff; padding: 2px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; margin-left: 8px;">البند الثالث</span>
+              <span style="font-size: 11px; line-height: 1.7; color: #334155;">
+                يلتزم الطرف الثاني بسداد مبلغ التمويل على 
+                <span style="color: #10b981; font-weight: 700;">${data.installmentsCount} أقساط شهرية</span>
+                متساوية، تُستحق في يوم 30 من كل شهر ميلادي.
+              </span>
+            </div>
 
-  // Contract title on the left (RTL)
-  pdf.setFillColor(245, 158, 11, 0.15);
-  pdf.setDrawColor(...primaryColor);
-  pdf.setLineWidth(0.5);
-  drawRoundedRect(pageWidth - margin - 45, 10, 40, 14, 7, [50, 55, 65], primaryColor);
-  pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(12);
-  pdf.text('عقد التمويل', pageWidth - margin - 25, 19, { align: 'center' });
+            <div style="background: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-right: 4px solid #f59e0b;">
+              <span style="display: inline-block; background: #f59e0b; color: #ffffff; padding: 2px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; margin-left: 8px;">البند الرابع</span>
+              <span style="font-size: 11px; line-height: 1.7; color: #334155;">
+                هذا التمويل بدون فوائد أو رسوم إضافية، بشرط الالتزام بمواعيد السداد المحددة في هذا العقد.
+              </span>
+            </div>
 
-  yPos = 42;
+            <div style="background: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-right: 4px solid #f59e0b;">
+              <span style="display: inline-block; background: #f59e0b; color: #ffffff; padding: 2px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; margin-left: 8px;">البند الخامس</span>
+              <span style="font-size: 11px; line-height: 1.7; color: #334155;">
+                في حال تأخر السداد لمدة تتجاوز 30 يوماً، يحق للطرف الأول اتخاذ الإجراءات القانونية اللازمة لتحصيل المستحقات.
+              </span>
+            </div>
 
-  // ============= INFO BAR =============
-  pdf.setFillColor(...lightGray);
-  pdf.rect(0, 37, pageWidth, 22, 'F');
-  pdf.setDrawColor(226, 232, 240);
-  pdf.setLineWidth(0.3);
-  pdf.line(0, 59, pageWidth, 59);
+            <div style="background: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-right: 4px solid #f59e0b;">
+              <span style="display: inline-block; background: #f59e0b; color: #ffffff; padding: 2px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; margin-left: 8px;">البند السادس</span>
+              <span style="font-size: 11px; line-height: 1.7; color: #334155;">
+                يقر الطرف الثاني بصحة جميع البيانات المقدمة ويتحمل المسؤولية الكاملة في حال تقديم بيانات غير صحيحة.
+              </span>
+            </div>
 
-  const infoItems = [
-    { label: 'رقم العقد', value: data.contractNumber, gold: true },
-    { label: 'رقم الطلب', value: data.applicationNumber, gold: false },
-    { label: 'تاريخ العقد', value: formatDateArabic(data.contractDate), gold: false },
-    { label: 'مبلغ التمويل', value: `${formatAmountArabic(data.amount)} ر.س`, gold: true },
-  ];
+            <div style="background: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-right: 4px solid #f59e0b;">
+              <span style="display: inline-block; background: #f59e0b; color: #ffffff; padding: 2px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; margin-left: 8px;">البند السابع</span>
+              <span style="font-size: 11px; line-height: 1.7; color: #334155;">
+                يخضع هذا العقد للأنظمة والقوانين المعمول بها في المملكة العربية السعودية، وأي نزاع ينشأ عنه يختص به القضاء السعودي.
+              </span>
+            </div>
+          </div>
 
-  const infoWidth = contentWidth / 4;
-  infoItems.forEach((item, index) => {
-    const x = pageWidth - margin - (index + 1) * infoWidth + infoWidth / 2;
-    pdf.setFontSize(8);
-    pdf.setTextColor(...grayColor);
-    pdf.text(item.label, x, 44, { align: 'center' });
-    pdf.setFontSize(10);
-    if (item.gold) {
-      pdf.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    } else {
-      pdf.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-    }
-    pdf.setFont('helvetica', 'bold');
-    pdf.text(item.value, x, 52, { align: 'center' });
-    pdf.setFont('helvetica', 'normal');
-  });
+          <!-- جدول الأقساط -->
+          <div style="margin-bottom: 25px;">
+            <div style="
+              font-size: 14px;
+              font-weight: 700;
+              color: #1e293b;
+              padding-bottom: 10px;
+              border-bottom: 2px solid #e2e8f0;
+              margin-bottom: 15px;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            ">
+              <span style="
+                width: 22px;
+                height: 22px;
+                background: linear-gradient(135deg, #f59e0b, #eab308);
+                border-radius: 5px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 11px;
+              ">📅</span>
+              جدول الأقساط
+            </div>
 
-  yPos = 65;
+            <div style="overflow: hidden; border-radius: 10px; border: 2px solid #e2e8f0;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr style="background: #1e293b;">
+                    <th style="padding: 12px 15px; font-size: 12px; font-weight: 600; color: #ffffff; text-align: center;">رقم القسط</th>
+                    <th style="padding: 12px 15px; font-size: 12px; font-weight: 600; color: #ffffff; text-align: center;">المبلغ</th>
+                    <th style="padding: 12px 15px; font-size: 12px; font-weight: 600; color: #ffffff; text-align: center;">تاريخ الاستحقاق</th>
+                    <th style="padding: 12px 15px; font-size: 12px; font-weight: 600; color: #ffffff; text-align: center;">الحالة</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${installmentsRows}
+                </tbody>
+                <tfoot>
+                  <tr style="background: #f59e0b;">
+                    <td style="padding: 12px 15px; font-size: 12px; font-weight: 700; color: #1e293b; text-align: center;">الإجمالي</td>
+                    <td style="padding: 12px 15px; font-size: 12px; font-weight: 700; color: #1e293b; text-align: center;">${formatAmountArabic(data.amount)} ر.س</td>
+                    <td colspan="2"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
 
-  // ============= PARTIES SECTION =============
-  // Section title
-  pdf.setFillColor(...primaryColor);
-  pdf.roundedRect(pageWidth - margin - 8, yPos, 6, 6, 1, 1, 'F');
-  pdf.setTextColor(...darkColor);
-  pdf.setFontSize(11);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('أطراف العقد', pageWidth - margin - 12, yPos + 5, { align: 'right' });
-  pdf.setFont('helvetica', 'normal');
-  
-  // Underline
-  pdf.setDrawColor(226, 232, 240);
-  pdf.setLineWidth(0.5);
-  pdf.line(margin, yPos + 10, pageWidth - margin, yPos + 10);
-  
-  yPos += 18;
+          <!-- التوقيعات -->
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e2e8f0;">
+            <div style="
+              font-size: 14px;
+              font-weight: 700;
+              color: #1e293b;
+              padding-bottom: 10px;
+              margin-bottom: 15px;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            ">
+              <span style="
+                width: 22px;
+                height: 22px;
+                background: linear-gradient(135deg, #f59e0b, #eab308);
+                border-radius: 5px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 11px;
+              ">✍️</span>
+              التوقيعات
+            </div>
 
-  // Party boxes
-  const partyBoxWidth = (contentWidth - 8) / 2;
-  const partyBoxHeight = 38;
+            <div style="display: flex; gap: 30px;">
+              <!-- توقيع الطرف الأول -->
+              <div style="
+                flex: 1;
+                text-align: center;
+                padding: 20px;
+                border: 2px dashed #e2e8f0;
+                border-radius: 10px;
+                min-height: 140px;
+              ">
+                <div style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 12px;">توقيع الطرف الأول</div>
+                <div style="
+                  width: 80px;
+                  height: 80px;
+                  border: 3px solid #10b981;
+                  border-radius: 50%;
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  justify-content: center;
+                  color: #10b981;
+                  font-size: 9px;
+                  font-weight: 700;
+                  text-align: center;
+                  margin: 0 auto;
+                  transform: rotate(-10deg);
+                ">
+                  <div>شركة علي صالح</div>
+                  <div>الشهري القابضة</div>
+                  <div style="font-size: 7px; margin-top: 2px;">4030554749</div>
+                </div>
+                <div style="font-size: 10px; color: #64748b; margin-top: 10px;">التاريخ: ${formatDateArabic(data.contractDate)}</div>
+              </div>
 
-  // First Party (Right side)
-  drawRoundedRect(pageWidth - margin - partyBoxWidth, yPos, partyBoxWidth, partyBoxHeight, 3, [255, 251, 235], primaryColor);
-  pdf.setTextColor(...primaryColor);
-  pdf.setFontSize(9);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('الطرف الأول (الممول)', pageWidth - margin - 5, yPos + 7, { align: 'right' });
-  pdf.setFont('helvetica', 'normal');
-  
-  pdf.setTextColor(...darkColor);
-  pdf.setFontSize(8);
-  const party1Data = [
-    ['اسم الشركة:', 'شركة علي صالح الشهري القابضة'],
-    ['السجل التجاري:', '4030554749'],
-    ['العنوان:', 'المملكة العربية السعودية'],
-  ];
-  party1Data.forEach((row, i) => {
-    pdf.setTextColor(...grayColor);
-    pdf.text(row[0], pageWidth - margin - 5, yPos + 14 + (i * 7), { align: 'right' });
-    pdf.setTextColor(...darkColor);
-    pdf.text(row[1], pageWidth - margin - 35, yPos + 14 + (i * 7), { align: 'right' });
-  });
+              <!-- توقيع الطرف الثاني -->
+              <div style="
+                flex: 1;
+                text-align: center;
+                padding: 20px;
+                border: 2px dashed #e2e8f0;
+                border-radius: 10px;
+                min-height: 140px;
+              ">
+                <div style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 12px;">توقيع الطرف الثاني</div>
+                ${data.signatureData ? `<img src="${data.signatureData}" style="max-height: 60px; margin: 10px auto; display: block;" />` : '<div style="height: 60px;"></div>'}
+                <div style="font-size: 11px; color: #1e293b; margin-top: 8px;">${data.clientName}</div>
+                <div style="font-size: 10px; color: #64748b; margin-top: 5px;">التاريخ: ${formatDateArabic(new Date())}</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-  // Second Party (Left side)
-  drawRoundedRect(margin, yPos, partyBoxWidth, partyBoxHeight, 3, [236, 253, 245], greenColor);
-  pdf.setTextColor(...greenColor);
-  pdf.setFontSize(9);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('الطرف الثاني (المستفيد)', margin + partyBoxWidth - 5, yPos + 7, { align: 'right' });
-  pdf.setFont('helvetica', 'normal');
-  
-  pdf.setFontSize(8);
-  const party2Data = [
-    ['الاسم:', data.clientName],
-    ['رقم الهوية:', data.nationalId],
-    ['الجوال:', data.phone],
-  ];
-  party2Data.forEach((row, i) => {
-    pdf.setTextColor(...grayColor);
-    pdf.text(row[0], margin + partyBoxWidth - 5, yPos + 14 + (i * 7), { align: 'right' });
-    pdf.setTextColor(...darkColor);
-    pdf.text(row[1], margin + partyBoxWidth - 25, yPos + 14 + (i * 7), { align: 'right' });
-  });
+        <!-- Footer -->
+        <div style="
+          background: #1e293b;
+          padding: 12px 35px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+        ">
+          <div style="font-size: 9px; color: #94a3b8;">
+            هذا العقد ملزم قانونياً للطرفين | السجل التجاري: 4030554749
+          </div>
+          <div style="color: #f59e0b; font-weight: 700; font-size: 12px;">MaxioCore</div>
+        </div>
+      </div>
+    </div>
+  `;
 
-  yPos += partyBoxHeight + 12;
+  // Create container
+  const container = document.createElement('div');
+  container.innerHTML = contractHtml;
+  container.style.position = 'absolute';
+  container.style.left = '-9999px';
+  container.style.top = '0';
+  container.style.width = '794px';
+  container.style.background = 'white';
+  container.style.fontFamily = 'Cairo, Segoe UI, Tahoma, sans-serif';
+  document.body.appendChild(container);
 
-  // ============= TERMS SECTION =============
-  checkNewPage(80);
-  
-  pdf.setFillColor(...primaryColor);
-  pdf.roundedRect(pageWidth - margin - 8, yPos, 6, 6, 1, 1, 'F');
-  pdf.setTextColor(...darkColor);
-  pdf.setFontSize(11);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('بنود وشروط العقد', pageWidth - margin - 12, yPos + 5, { align: 'right' });
-  pdf.setFont('helvetica', 'normal');
-  
-  pdf.setDrawColor(226, 232, 240);
-  pdf.line(margin, yPos + 10, pageWidth - margin, yPos + 10);
-  
-  yPos += 16;
+  try {
+    // Wait for fonts to load
+    await document.fonts.ready;
+    await new Promise(resolve => setTimeout(resolve, 100));
 
-  const terms = [
-    `يوافق الطرف الأول على تمويل الطرف الثاني بمبلغ ${formatAmountArabic(data.amount)} ر.س (فقط ${numberToArabicWords(Math.floor(data.amount))} ريال سعودي).`,
-    'يقر الطرف الثاني بأن التمويل سيُستخدم حصرياً لشراء خدمات من منصة ماكسيوكور.',
-    `يلتزم الطرف الثاني بسداد مبلغ التمويل على ${data.installmentsCount} أقساط شهرية متساوية.`,
-    'هذا التمويل بدون فوائد أو رسوم إضافية، بشرط الالتزام بمواعيد السداد.',
-    'في حال تأخر السداد لمدة تتجاوز 30 يوماً، يحق للطرف الأول اتخاذ الإجراءات القانونية.',
-    'يقر الطرف الثاني بصحة جميع البيانات المقدمة ويتحمل المسؤولية الكاملة.',
-    'يخضع هذا العقد للأنظمة والقوانين المعمول بها في المملكة العربية السعودية.',
-  ];
-
-  terms.forEach((term, index) => {
-    checkNewPage(14);
-    
-    // Term box background
-    pdf.setFillColor(...lightGray);
-    pdf.roundedRect(margin, yPos, contentWidth, 11, 2, 2, 'F');
-    
-    // Amber right border
-    pdf.setFillColor(...primaryColor);
-    pdf.rect(pageWidth - margin - 2, yPos + 1, 2, 9, 'F');
-    
-    // Badge
-    pdf.setFillColor(...primaryColor);
-    pdf.roundedRect(pageWidth - margin - 28, yPos + 2, 22, 7, 3, 3, 'F');
-    pdf.setTextColor(255, 255, 255);
-    pdf.setFontSize(7);
-    pdf.text(`البند ${index + 1}`, pageWidth - margin - 17, yPos + 7, { align: 'center' });
-    
-    // Term text
-    pdf.setTextColor(51, 65, 85);
-    pdf.setFontSize(8);
-    const lines = pdf.splitTextToSize(term, contentWidth - 40);
-    pdf.text(lines, pageWidth - margin - 32, yPos + 7, { align: 'right' });
-    
-    yPos += 13;
-  });
-
-  yPos += 8;
-
-  // ============= INSTALLMENTS TABLE =============
-  checkNewPage(60);
-  
-  pdf.setFillColor(...primaryColor);
-  pdf.roundedRect(pageWidth - margin - 8, yPos, 6, 6, 1, 1, 'F');
-  pdf.setTextColor(...darkColor);
-  pdf.setFontSize(11);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('جدول الأقساط', pageWidth - margin - 12, yPos + 5, { align: 'right' });
-  pdf.setFont('helvetica', 'normal');
-  
-  pdf.setDrawColor(226, 232, 240);
-  pdf.line(margin, yPos + 10, pageWidth - margin, yPos + 10);
-  
-  yPos += 16;
-
-  // Table header
-  pdf.setFillColor(...darkColor);
-  pdf.roundedRect(margin, yPos, contentWidth, 10, 2, 2, 'F');
-  
-  const colWidths = [contentWidth * 0.15, contentWidth * 0.25, contentWidth * 0.35, contentWidth * 0.25];
-  const headers = ['رقم القسط', 'المبلغ', 'تاريخ الاستحقاق', 'الحالة'];
-  
-  pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(9);
-  let xPos = pageWidth - margin;
-  headers.forEach((header, i) => {
-    xPos -= colWidths[i];
-    pdf.text(header, xPos + colWidths[i] / 2, yPos + 7, { align: 'center' });
-  });
-
-  yPos += 12;
-
-  // Table rows
-  data.installments.forEach((inst, index) => {
-    checkNewPage(10);
-    
-    if (index % 2 === 0) {
-      pdf.setFillColor(...lightGray);
-      pdf.rect(margin, yPos - 2, contentWidth, 9, 'F');
-    }
-    
-    pdf.setTextColor(...darkColor);
-    pdf.setFontSize(8);
-    
-    xPos = pageWidth - margin;
-    const rowData = [
-      inst.number.toString(),
-      `${formatAmountArabic(inst.amount)} ر.س`,
-      formatDateArabic(inst.dueDate),
-      'قيد الانتظار'
-    ];
-    
-    rowData.forEach((cell, i) => {
-      xPos -= colWidths[i];
-      pdf.text(cell, xPos + colWidths[i] / 2, yPos + 4, { align: 'center' });
+    const canvas = await html2canvas(container.querySelector('#contract-content') as HTMLElement, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+      width: 794,
+      windowWidth: 794,
     });
-    
-    pdf.setDrawColor(226, 232, 240);
-    pdf.line(margin, yPos + 7, pageWidth - margin, yPos + 7);
-    
-    yPos += 9;
-  });
 
-  // Total row
-  pdf.setFillColor(...primaryColor);
-  pdf.rect(margin, yPos - 2, contentWidth, 10, 'F');
-  pdf.setTextColor(...darkColor);
-  pdf.setFontSize(9);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('الإجمالي', pageWidth - margin - colWidths[0] / 2, yPos + 5, { align: 'center' });
-  pdf.text(`${formatAmountArabic(data.amount)} ر.س`, pageWidth - margin - colWidths[0] - colWidths[1] / 2, yPos + 5, { align: 'center' });
-  pdf.setFont('helvetica', 'normal');
+    const imgData = canvas.toDataURL('image/png', 1.0);
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
 
-  yPos += 18;
+    const imgWidth = 210;
+    const pageHeight = 297;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-  // ============= SIGNATURES SECTION =============
-  checkNewPage(70);
-  
-  pdf.setFillColor(...primaryColor);
-  pdf.roundedRect(pageWidth - margin - 8, yPos, 6, 6, 1, 1, 'F');
-  pdf.setTextColor(...darkColor);
-  pdf.setFontSize(11);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('التوقيعات', pageWidth - margin - 12, yPos + 5, { align: 'right' });
-  pdf.setFont('helvetica', 'normal');
-  
-  pdf.setDrawColor(226, 232, 240);
-  pdf.line(margin, yPos + 10, pageWidth - margin, yPos + 10);
-  
-  yPos += 18;
+    let heightLeft = imgHeight;
+    let position = 0;
 
-  const sigBoxWidth = (contentWidth - 15) / 2;
-  const sigBoxHeight = 50;
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
 
-  // First Party Signature (Right)
-  pdf.setDrawColor(226, 232, 240);
-  pdf.setLineWidth(0.5);
-  pdf.setLineDashPattern([2, 2], 0);
-  pdf.roundedRect(pageWidth - margin - sigBoxWidth, yPos, sigBoxWidth, sigBoxHeight, 3, 3, 'S');
-  pdf.setLineDashPattern([], 0);
-  
-  pdf.setTextColor(...darkColor);
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('توقيع الطرف الأول', pageWidth - margin - sigBoxWidth / 2, yPos + 10, { align: 'center' });
-  pdf.setFont('helvetica', 'normal');
-  
-  // Company stamp
-  pdf.setDrawColor(...greenColor);
-  pdf.setLineWidth(1);
-  pdf.circle(pageWidth - margin - sigBoxWidth / 2, yPos + 28, 12, 'S');
-  pdf.setTextColor(...greenColor);
-  pdf.setFontSize(6);
-  pdf.text('شركة علي صالح', pageWidth - margin - sigBoxWidth / 2, yPos + 25, { align: 'center' });
-  pdf.text('الشهري القابضة', pageWidth - margin - sigBoxWidth / 2, yPos + 29, { align: 'center' });
-  pdf.setFontSize(5);
-  pdf.text('4030554749', pageWidth - margin - sigBoxWidth / 2, yPos + 33, { align: 'center' });
-  
-  pdf.setTextColor(...grayColor);
-  pdf.setFontSize(7);
-  pdf.text(`التاريخ: ${formatDateArabic(data.contractDate)}`, pageWidth - margin - sigBoxWidth / 2, yPos + 46, { align: 'center' });
-
-  // Second Party Signature (Left)
-  pdf.setDrawColor(226, 232, 240);
-  pdf.setLineWidth(0.5);
-  pdf.setLineDashPattern([2, 2], 0);
-  pdf.roundedRect(margin, yPos, sigBoxWidth, sigBoxHeight, 3, 3, 'S');
-  pdf.setLineDashPattern([], 0);
-  
-  pdf.setTextColor(...darkColor);
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('توقيع الطرف الثاني', margin + sigBoxWidth / 2, yPos + 10, { align: 'center' });
-  pdf.setFont('helvetica', 'normal');
-  
-  // Client signature
-  if (data.signatureData) {
-    try {
-      pdf.addImage(data.signatureData, 'PNG', margin + sigBoxWidth / 2 - 20, yPos + 14, 40, 18);
-    } catch (e) {
-      console.error('Error adding signature image:', e);
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
     }
+
+    pdf.save(`عقد_التمويل_${data.contractNumber}.pdf`);
+  } finally {
+    document.body.removeChild(container);
   }
-  
-  pdf.setTextColor(...darkColor);
-  pdf.setFontSize(8);
-  pdf.text(data.clientName, margin + sigBoxWidth / 2, yPos + 38, { align: 'center' });
-  pdf.setTextColor(...grayColor);
-  pdf.setFontSize(7);
-  pdf.text(`التاريخ: ${formatDateArabic(new Date())}`, margin + sigBoxWidth / 2, yPos + 46, { align: 'center' });
-
-  yPos += sigBoxHeight + 15;
-
-  // ============= FOOTER =============
-  const footerY = pageHeight - 12;
-  pdf.setFillColor(...darkColor);
-  pdf.rect(0, footerY - 8, pageWidth, 20, 'F');
-  
-  pdf.setTextColor(148, 163, 184);
-  pdf.setFontSize(7);
-  pdf.text('هذا العقد ملزم قانونياً للطرفين | السجل التجاري: 4030554749', margin, footerY, { align: 'left' });
-  
-  pdf.setTextColor(...primaryColor);
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('MaxioCore', pageWidth - margin, footerY, { align: 'right' });
-
-  // Save PDF
-  pdf.save(`عقد_التمويل_${data.contractNumber}.pdf`);
 }
