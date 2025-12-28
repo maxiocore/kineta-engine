@@ -83,6 +83,7 @@ import AdminRewardsReports from "./pages/admin/AdminRewardsReports";
 import AdminWallets from "./pages/admin/AdminWallets";
 import AdminCashback from "./pages/admin/AdminCashback";
 import AdminBankWithdrawals from "./pages/admin/AdminBankWithdrawals";
+import AdminFinancialHub from "./pages/admin/AdminFinancialHub";
 import AdminUserSettings from "./pages/admin/AdminUserSettings";
 import AdminFeaturedOffers from "./pages/admin/AdminFeaturedOffers";
 import AdminTamaraPayments from "./pages/admin/AdminTamaraPayments";
@@ -243,6 +244,11 @@ const App = () => (
                   
                   {/* Admin Dashboard Routes */}
                   <Route path="/admin/auth" element={<AdminAuth />} />
+                  <Route path="/admin/financial" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminFinancialHub />
+                    </ProtectedRoute>
+                  } />
                   <Route path="/admin/wallets" element={
                     <ProtectedRoute requireAdmin>
                       <AdminWallets />
