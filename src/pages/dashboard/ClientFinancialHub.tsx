@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Landmark, 
-  Wallet, 
   History, 
   Coins,
-  TrendingUp
+  CreditCard
 } from "lucide-react";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,22 +18,43 @@ import ClientCashbackContent from "@/components/financial/ClientCashbackContent"
 
 const ClientFinancialHub = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("deposits");
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Get initial tab from URL or default to "deposits"
+  const urlTab = searchParams.get("tab");
+  const validTabs = ["deposits", "balance-logs", "cashback"];
+  const initialTab = urlTab && validTabs.includes(urlTab) ? urlTab : "deposits";
+  
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Update URL when tab changes
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    setSearchParams({ tab: newTab });
+  };
+
+  // Sync with URL changes
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab && validTabs.includes(tab) && tab !== activeTab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   const tabs = [
-    { id: "deposits", label: "الإيداعات", icon: History },
-    { id: "balance-logs", label: "سجل الرصيد", icon: Wallet },
+    { id: "deposits", label: "الإيداعات", icon: CreditCard },
+    { id: "balance-logs", label: "السجل", icon: History },
     { id: "cashback", label: "كاش باك", icon: Coins },
   ];
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-primary/10 via-accent/5 to-background border border-border p-6"
+          className="relative overflow-hidden rounded-xl md:rounded-2xl bg-gradient-to-l from-primary/10 via-accent/5 to-background border border-border p-4 md:p-6"
         >
           <div className="absolute inset-0 bg-grid-pattern opacity-5" />
           <motion.div
@@ -42,36 +63,36 @@ const ClientFinancialHub = () => {
             transition={{ duration: 4, repeat: Infinity }}
           />
           
-          <div className="relative flex items-center gap-4">
+          <div className="relative flex items-center gap-3 md:gap-4">
             <motion.div 
-              className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg"
+              className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg"
               whileHover={{ rotate: 5, scale: 1.05 }}
             >
-              <Landmark className="w-7 h-7 text-primary-foreground" />
+              <Landmark className="w-6 h-6 md:w-7 md:h-7 text-primary-foreground" />
             </motion.div>
             <div>
-              <h1 className="text-2xl font-bold">المركز المالي</h1>
-              <p className="text-muted-foreground">إدارة الإيداعات وسجل الرصيد والكاش باك</p>
+              <h1 className="text-xl md:text-2xl font-bold">المركز المالي</h1>
+              <p className="text-xs md:text-sm text-muted-foreground">إدارة الإيداعات وسجل الرصيد والكاش باك</p>
             </div>
           </div>
         </motion.div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-auto p-1 bg-muted/50 rounded-xl">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 h-auto p-1 md:p-1.5 bg-muted/50 rounded-lg md:rounded-xl">
             {tabs.map((tab) => (
               <TabsTrigger
                 key={tab.id}
                 value={tab.id}
-                className="flex items-center gap-2 py-3 data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-lg transition-all"
+                className="flex items-center justify-center gap-1.5 md:gap-2 py-2.5 md:py-3 text-xs md:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md md:rounded-lg transition-all"
               >
-                <tab.icon className="w-4 h-4" />
-                <span className="hidden sm:inline">{tab.label}</span>
+                <tab.icon className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span>{tab.label}</span>
               </TabsTrigger>
             ))}
           </TabsList>
 
-          <div className="mt-6">
+          <div className="mt-4 md:mt-6">
             <TabsContent value="deposits" className="m-0">
               <ClientDepositsContent />
             </TabsContent>
