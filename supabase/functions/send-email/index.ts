@@ -741,6 +741,55 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
         `
       };
 
+    case 'financing_documents_required':
+      return {
+        subject: `📋 مطلوب مستندات إضافية لطلب التمويل #${data.applicationNumber}`,
+        content: `
+          ${createIconCircle('📄', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          ${createGreeting(`مرحباً ${data.name}`)}
+          ${createMessage('نحتاج إلى بعض المستندات الإضافية لإكمال مراجعة طلب التمويل الخاص بك.')}
+          
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.applicationNumber },
+            { label: 'الحالة', value: 'مطلوب مستندات', isStatus: true, statusColor: '#fef3c7', valueColor: '#92400e' }
+          ])}
+          
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 14px; border-right: 4px solid #f59e0b; margin-bottom: 25px;">
+            <tr>
+              <td style="padding: 20px 25px;">
+                <h3 style="margin: 0 0 15px; color: #92400e; font-size: 16px; text-align: right;">📋 المستندات المطلوبة</h3>
+                <p style="margin: 0; color: #78350f; font-size: 15px; line-height: 1.8; text-align: right; white-space: pre-wrap;">${data.requiredDocuments}</p>
+              </td>
+            </tr>
+          </table>
+          
+          ${data.adminNotes ? createNoticeBox(`💬 ملاحظات إضافية: ${data.adminNotes}`, '#f0f9ff', '#0369a1', '#0ea5e9') : ''}
+          
+          ${createMessage('يرجى تجهيز المستندات المطلوبة والتواصل معنا لاستكمال طلبك. نحن هنا لمساعدتك!')}
+          
+          ${createCTAButton('تواصل معنا')}
+        `
+      };
+
+    case 'financing_under_review':
+      return {
+        subject: `🔍 طلب التمويل #${data.applicationNumber} قيد المراجعة`,
+        content: `
+          ${createIconCircle('🔍', 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)')}
+          ${createGreeting(`مرحباً ${data.name}`)}
+          ${createMessage('طلب التمويل الخاص بك قيد المراجعة الآن. سنقوم بإشعارك بالنتيجة في أقرب وقت ممكن.')}
+          
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.applicationNumber },
+            { label: 'الحالة', value: 'قيد المراجعة', isStatus: true, statusColor: '#dbeafe', valueColor: '#1d4ed8' }
+          ])}
+          
+          ${createNoticeBox('⏳ عادةً ما يتم مراجعة الطلبات خلال 24-48 ساعة عمل.', '#f0f9ff', '#0369a1', '#0ea5e9')}
+          
+          ${createCTAButton('متابعة طلبك')}
+        `
+      };
+
     case 'custom':
       return {
         subject: data.subject || 'رسالة من MaxioCore',
