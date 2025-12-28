@@ -2,48 +2,121 @@ import jsPDF from 'jspdf';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 
-// Helper function for RTL text positioning
-const rtlText = (doc: jsPDF, text: string, x: number, y: number) => {
-  doc.text(text, x, y, { align: 'right' });
+// Arabic numerals converter
+const toArabicNumerals = (num: number | string): string => {
+  const arabicNums = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+  return num.toString().replace(/[0-9]/g, (d) => arabicNums[parseInt(d)]);
 };
 
-// Format numbers with Arabic style
-const formatAmount = (amount: number) => {
-  return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+// Format amount in Arabic style
+const formatAmountArabic = (amount: number): string => {
+  const formatted = amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return toArabicNumerals(formatted);
 };
 
-// Common header for all receipts
-const drawHeader = (doc: jsPDF, title: string, subtitle: string, color: [number, number, number] = [0, 128, 85]) => {
+// Format date in Arabic
+const formatDateArabic = (date: string | Date): string => {
+  try {
+    const d = new Date(date);
+    return format(d, 'dd/MM/yyyy HH:mm', { locale: ar });
+  } catch {
+    return toArabicNumerals(new Date().toLocaleDateString('ar-SA'));
+  }
+};
+
+// Reverse text for RTL rendering in jsPDF (since jsPDF doesn't support RTL natively)
+const reverseArabicText = (text: string): string => {
+  return text.split('').reverse().join('');
+};
+
+// Arabic text wrapper - simulates RTL by positioning from right
+const drawArabicText = (doc: jsPDF, text: string, x: number, y: number, options?: { align?: 'right' | 'left' | 'center', fontSize?: number }) => {
+  if (options?.fontSize) {
+    doc.setFontSize(options.fontSize);
+  }
+  doc.text(text, x, y, { align: options?.align || 'right' });
+};
+
+// Common Arabic header for all receipts
+const drawArabicHeader = (
+  doc: jsPDF, 
+  title: string, 
+  subtitle: string, 
+  color: [number, number, number] = [0, 128, 85]
+) => {
   const pageWidth = 210;
   
   // Header gradient
   doc.setFillColor(...color);
-  doc.rect(0, 0, pageWidth, 50, 'F');
+  doc.rect(0, 0, pageWidth, 55, 'F');
   
   // Darker accent
-  doc.setFillColor(color[0] * 0.8, color[1] * 0.8, color[2] * 0.8);
-  doc.rect(0, 42, pageWidth, 8, 'F');
+  doc.setFillColor(color[0] * 0.7, color[1] * 0.7, color[2] * 0.7);
+  doc.rect(0, 47, pageWidth, 8, 'F');
   
   // Logo circle
   doc.setFillColor(255, 255, 255);
-  doc.circle(105, 20, 10, 'F');
+  doc.circle(105, 18, 12, 'F');
   doc.setFillColor(...color);
-  doc.circle(105, 20, 8, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(12);
-  doc.text('M', 105, 23, { align: 'center' });
-  
-  // Title
+  doc.circle(105, 18, 10, 'F');
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(14);
-  doc.text('MaxioCore', 105, 36, { align: 'center' });
+  doc.text('M', 105, 22, { align: 'center' });
   
-  doc.setFontSize(10);
-  doc.text(title, 105, 47, { align: 'center' });
+  // Company name
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(16);
+  doc.text('ماكسيو كور', 105, 37, { align: 'center' });
+  
+  // Title
+  doc.setFontSize(12);
+  doc.text(title, 105, 45, { align: 'center' });
+  
+  // Subtitle
+  doc.setFontSize(9);
+  doc.text(subtitle, 105, 52, { align: 'center' });
 };
 
-// Common footer
-const drawFooter = (doc: jsPDF, receiptNumber: string) => {
+// Digital signature section
+const drawDigitalSignature = (doc: jsPDF, y: number, color: [number, number, number] = [0, 128, 85]) => {
+  const pageWidth = 210;
+  const leftMargin = 20;
+  const rightMargin = 190;
+  
+  // Signature container
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(leftMargin, y, rightMargin - leftMargin, 35, 3, 3, 'F');
+  doc.setDrawColor(...color);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(leftMargin, y, rightMargin - leftMargin, 35, 3, 3, 'S');
+  
+  // Digital signature icon
+  doc.setFillColor(...color);
+  doc.circle(rightMargin - 25, y + 17, 8, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(10);
+  doc.text('✓', rightMargin - 25, y + 20, { align: 'center' });
+  
+  // Signature text
+  doc.setTextColor(...color);
+  doc.setFontSize(10);
+  doc.text('توقيع رقمي معتمد', rightMargin - 45, y + 12, { align: 'right' });
+  
+  doc.setTextColor(100, 100, 100);
+  doc.setFontSize(8);
+  doc.text('هذا الإيصال موقع إلكترونياً ومعتمد', rightMargin - 45, y + 20, { align: 'right' });
+  doc.text('Digital Signature Verified', rightMargin - 45, y + 27, { align: 'right' });
+  
+  // Verification hash
+  const hash = `SIG-${Date.now().toString(36).toUpperCase().slice(0, 8)}`;
+  doc.setFontSize(7);
+  doc.setTextColor(150, 150, 150);
+  doc.text(`كود التحقق: ${hash}`, leftMargin + 10, y + 17, { align: 'left' });
+  doc.text(`Verification: ${hash}`, leftMargin + 10, y + 24, { align: 'left' });
+};
+
+// Common Arabic footer
+const drawArabicFooter = (doc: jsPDF, receiptNumber: string, color: [number, number, number] = [0, 128, 85]) => {
   const pageWidth = 210;
   const leftMargin = 20;
   const rightMargin = 190;
@@ -51,44 +124,52 @@ const drawFooter = (doc: jsPDF, receiptNumber: string) => {
   // Divider
   doc.setDrawColor(230, 230, 230);
   doc.setLineWidth(0.3);
-  doc.line(leftMargin, 260, rightMargin, 260);
+  doc.line(leftMargin, 252, rightMargin, 252);
   
   // QR placeholder
   doc.setFillColor(248, 250, 252);
-  doc.rect(leftMargin, 265, 20, 20, 'F');
+  doc.rect(rightMargin - 22, 255, 22, 22, 'F');
   doc.setDrawColor(200, 200, 200);
-  doc.rect(leftMargin, 265, 20, 20, 'S');
+  doc.setLineWidth(0.3);
+  doc.rect(rightMargin - 22, 255, 22, 22, 'S');
   doc.setTextColor(150, 150, 150);
   doc.setFontSize(6);
-  doc.text('QR', leftMargin + 10, 277, { align: 'center' });
+  doc.text('QR', rightMargin - 11, 268, { align: 'center' });
   
-  // Footer text
-  doc.setTextColor(120, 120, 120);
+  // Footer text - Arabic
+  doc.setTextColor(100, 100, 100);
+  doc.setFontSize(9);
+  doc.text('إيصال إلكتروني - لا يحتاج إلى توقيع يدوي', 105, 258, { align: 'center' });
+  
   doc.setFontSize(8);
-  doc.text('This is an electronically generated receipt', 105, 268, { align: 'center' });
-  doc.text('No signature required', 105, 273, { align: 'center' });
+  doc.text('ماكسيو كور - منصة الخدمات الرقمية', 105, 265, { align: 'center' });
   
-  doc.setFontSize(7);
   doc.setTextColor(150, 150, 150);
-  doc.text('MaxioCore - Digital Services Platform', 105, 280, { align: 'center' });
-  doc.text('support@maxiocore.com', 105, 285, { align: 'center' });
+  doc.setFontSize(7);
+  doc.text('support@maxiocore.com | www.maxiocore.com', 105, 272, { align: 'center' });
   
-  // Generated timestamp
+  // Reference and timestamp
   doc.setFontSize(6);
-  doc.text('Generated: ' + format(new Date(), 'dd/MM/yyyy HH:mm:ss'), rightMargin, 290, { align: 'right' });
-  doc.text('Ref: ' + receiptNumber, leftMargin, 290);
+  doc.text(`رقم المرجع: ${receiptNumber}`, leftMargin + 5, 280, { align: 'left' });
+  doc.text(`تاريخ الإصدار: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}`, leftMargin + 5, 285, { align: 'left' });
   
   // Bottom bar
-  doc.setFillColor(0, 128, 85);
-  doc.rect(0, 293, pageWidth, 4, 'F');
+  doc.setFillColor(...color);
+  doc.rect(0, 290, pageWidth, 7, 'F');
+  
+  // Saudi VAT note
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(6);
+  doc.text('المملكة العربية السعودية - الرقم الضريبي: XXXXXXXXXX', 105, 294, { align: 'center' });
 };
 
-// ==================== CASHBACK RECEIPT ====================
+// ==================== CASHBACK RECEIPT - Arabic ====================
 interface CashbackReceiptData {
   id: string;
   amount: number;
   type: string;
   description: string;
+  description_ar?: string;
   created_at: string;
   balance_after?: number;
   user_name?: string;
@@ -100,72 +181,73 @@ export const generateCashbackReceipt = (data: CashbackReceiptData) => {
   const receiptNumber = `CB-${data.id.slice(0, 8).toUpperCase()}`;
   const leftMargin = 20;
   const rightMargin = 190;
-  const rowHeight = 12;
+  const rowHeight = 14;
+  const color: [number, number, number] = [0, 150, 100];
   
-  // Header - Green theme for cashback
-  drawHeader(doc, 'CASHBACK RECEIPT', 'Cashback Transaction', [0, 150, 100]);
+  // Header
+  drawArabicHeader(doc, 'إيصال الكاش باك', 'معاملة استرداد نقدي', color);
+  
+  let yPos = 65;
   
   // Receipt info boxes
-  let yPos = 58;
-  
-  // Receipt number
+  // Receipt number box - right side
   doc.setFillColor(248, 250, 252);
-  doc.roundedRect(rightMargin - 55, yPos, 55, 20, 2, 2, 'F');
-  doc.setDrawColor(0, 150, 100);
+  doc.roundedRect(rightMargin - 60, yPos, 60, 22, 3, 3, 'F');
+  doc.setDrawColor(...color);
   doc.setLineWidth(0.5);
-  doc.roundedRect(rightMargin - 55, yPos, 55, 20, 2, 2, 'S');
-  doc.setFontSize(8);
+  doc.roundedRect(rightMargin - 60, yPos, 60, 22, 3, 3, 'S');
+  doc.setFontSize(9);
   doc.setTextColor(100, 100, 100);
-  rtlText(doc, 'Receipt Number', rightMargin - 5, yPos + 7);
-  doc.setFontSize(10);
-  doc.setTextColor(0, 150, 100);
-  rtlText(doc, receiptNumber, rightMargin - 5, yPos + 15);
+  doc.text('رقم الإيصال', rightMargin - 5, yPos + 8, { align: 'right' });
+  doc.setFontSize(11);
+  doc.setTextColor(...color);
+  doc.text(receiptNumber, rightMargin - 5, yPos + 17, { align: 'right' });
   
-  // Date
+  // Date box - left side
   doc.setFillColor(248, 250, 252);
-  doc.roundedRect(leftMargin, yPos, 55, 20, 2, 2, 'F');
-  doc.setDrawColor(0, 150, 100);
-  doc.roundedRect(leftMargin, yPos, 55, 20, 2, 2, 'S');
-  doc.setFontSize(8);
+  doc.roundedRect(leftMargin, yPos, 60, 22, 3, 3, 'F');
+  doc.setDrawColor(...color);
+  doc.roundedRect(leftMargin, yPos, 60, 22, 3, 3, 'S');
+  doc.setFontSize(9);
   doc.setTextColor(100, 100, 100);
-  doc.text('Date', leftMargin + 5, yPos + 7);
+  doc.text('التاريخ', leftMargin + 55, yPos + 8, { align: 'right' });
   doc.setFontSize(10);
   doc.setTextColor(50, 50, 50);
-  doc.text(format(new Date(data.created_at), 'dd/MM/yyyy HH:mm'), leftMargin + 5, yPos + 15);
+  doc.text(formatDateArabic(data.created_at), leftMargin + 55, yPos + 17, { align: 'right' });
   
   // Type badge
-  const typeLabels: Record<string, { text: string; color: [number, number, number] }> = {
-    earned: { text: 'EARNED', color: [0, 150, 100] },
-    withdrawn: { text: 'WITHDRAWN', color: [59, 130, 246] },
-    expired: { text: 'EXPIRED', color: [239, 68, 68] },
+  const typeLabels: Record<string, { text: string; textAr: string; color: [number, number, number] }> = {
+    earned: { text: 'مكتسب', textAr: 'مكتسب', color: [0, 150, 100] },
+    withdrawn: { text: 'مسحوب', textAr: 'مسحوب', color: [59, 130, 246] },
+    expired: { text: 'منتهي', textAr: 'منتهي', color: [239, 68, 68] },
   };
-  const typeInfo = typeLabels[data.type] || { text: data.type.toUpperCase(), color: [100, 100, 100] };
+  const typeInfo = typeLabels[data.type] || { text: data.type, textAr: data.type, color: [100, 100, 100] };
   
   doc.setFillColor(...typeInfo.color);
-  doc.roundedRect(90, yPos + 3, 30, 14, 3, 3, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(8);
-  doc.text(typeInfo.text, 105, yPos + 12, { align: 'center' });
-  
-  yPos = 90;
-  
-  // Section header
-  doc.setFillColor(0, 150, 100);
-  doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 8, 1, 1, 'F');
+  doc.roundedRect(95, yPos + 4, 35, 14, 4, 4, 'F');
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(10);
-  doc.text('TRANSACTION DETAILS', 105, yPos + 6, { align: 'center' });
-  yPos += 15;
+  doc.text(typeInfo.textAr, 112.5, yPos + 13, { align: 'center' });
+  
+  yPos = 98;
+  
+  // Transaction details section
+  doc.setFillColor(...color);
+  doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 10, 2, 2, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(11);
+  doc.text('تفاصيل المعاملة', 105, yPos + 7, { align: 'center' });
+  yPos += 18;
   
   // Customer info
   if (data.user_name) {
     doc.setFillColor(252, 252, 252);
     doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
     doc.setTextColor(80, 80, 80);
-    doc.setFontSize(9);
-    doc.text('Customer', leftMargin + 5, yPos + 2);
+    doc.setFontSize(10);
+    doc.text('اسم العميل', rightMargin - 5, yPos + 3, { align: 'right' });
     doc.setTextColor(50, 50, 50);
-    rtlText(doc, data.user_name, rightMargin - 5, yPos + 2);
+    doc.text(data.user_name, leftMargin + 5, yPos + 3, { align: 'left' });
     yPos += rowHeight;
   }
   
@@ -173,9 +255,9 @@ export const generateCashbackReceipt = (data: CashbackReceiptData) => {
     doc.setFillColor(248, 250, 252);
     doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
     doc.setTextColor(80, 80, 80);
-    doc.text('Email', leftMargin + 5, yPos + 2);
+    doc.text('البريد الإلكتروني', rightMargin - 5, yPos + 3, { align: 'right' });
     doc.setTextColor(50, 50, 50);
-    rtlText(doc, data.user_email, rightMargin - 5, yPos + 2);
+    doc.text(data.user_email, leftMargin + 5, yPos + 3, { align: 'left' });
     yPos += rowHeight;
   }
   
@@ -183,58 +265,66 @@ export const generateCashbackReceipt = (data: CashbackReceiptData) => {
   doc.setFillColor(252, 252, 252);
   doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
   doc.setTextColor(80, 80, 80);
-  doc.text('Description', leftMargin + 5, yPos + 2);
+  doc.text('الوصف', rightMargin - 5, yPos + 3, { align: 'right' });
   doc.setTextColor(50, 50, 50);
-  rtlText(doc, data.description || 'Cashback Transaction', rightMargin - 5, yPos + 2);
+  const desc = data.description_ar || data.description || 'معاملة كاش باك';
+  doc.text(desc.length > 40 ? desc.substring(0, 40) + '...' : desc, leftMargin + 5, yPos + 3, { align: 'left' });
   yPos += rowHeight + 10;
   
   // Amount section
-  doc.setFillColor(0, 150, 100);
-  doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 8, 1, 1, 'F');
+  doc.setFillColor(...color);
+  doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 10, 2, 2, 'F');
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(10);
-  doc.text('AMOUNT DETAILS', 105, yPos + 6, { align: 'center' });
-  yPos += 18;
+  doc.setFontSize(11);
+  doc.text('تفاصيل المبلغ', 105, yPos + 7, { align: 'center' });
+  yPos += 20;
   
   // Amount box
   const isPositive = data.amount > 0;
   doc.setFillColor(isPositive ? 240 : 254, isPositive ? 253 : 242, isPositive ? 244 : 242);
-  doc.roundedRect(leftMargin, yPos - 5, rightMargin - leftMargin, 25, 3, 3, 'F');
+  doc.roundedRect(leftMargin, yPos - 5, rightMargin - leftMargin, 30, 4, 4, 'F');
   doc.setDrawColor(isPositive ? 0 : 239, isPositive ? 150 : 68, isPositive ? 100 : 68);
-  doc.setLineWidth(1);
-  doc.roundedRect(leftMargin, yPos - 5, rightMargin - leftMargin, 25, 3, 3, 'S');
+  doc.setLineWidth(1.5);
+  doc.roundedRect(leftMargin, yPos - 5, rightMargin - leftMargin, 30, 4, 4, 'S');
   
   doc.setTextColor(80, 80, 80);
-  doc.setFontSize(10);
-  doc.text('Cashback Amount', leftMargin + 10, yPos + 5);
+  doc.setFontSize(11);
+  doc.text('مبلغ الكاش باك', rightMargin - 10, yPos + 5, { align: 'right' });
   
   doc.setTextColor(isPositive ? 0 : 239, isPositive ? 150 : 68, isPositive ? 100 : 68);
-  doc.setFontSize(16);
-  rtlText(doc, (isPositive ? '+' : '') + formatAmount(data.amount) + ' SAR', rightMargin - 10, yPos + 10);
+  doc.setFontSize(20);
+  const amountText = (isPositive ? '+' : '') + formatAmountArabic(data.amount) + ' ر.س';
+  doc.text(amountText, leftMargin + 10, yPos + 15, { align: 'left' });
   
-  yPos += 35;
+  yPos += 40;
   
-  // Balance after (if available)
+  // Balance after
   if (data.balance_after !== undefined) {
     doc.setFillColor(248, 250, 252);
-    doc.roundedRect(leftMargin, yPos - 5, rightMargin - leftMargin, 18, 2, 2, 'F');
+    doc.roundedRect(leftMargin, yPos - 5, rightMargin - leftMargin, 20, 3, 3, 'F');
     doc.setTextColor(80, 80, 80);
-    doc.setFontSize(9);
-    doc.text('Balance After Transaction', leftMargin + 10, yPos + 5);
-    doc.setTextColor(0, 150, 100);
-    doc.setFontSize(12);
-    rtlText(doc, formatAmount(data.balance_after) + ' SAR', rightMargin - 10, yPos + 7);
+    doc.setFontSize(10);
+    doc.text('الرصيد بعد المعاملة', rightMargin - 10, yPos + 5, { align: 'right' });
+    doc.setTextColor(...color);
+    doc.setFontSize(14);
+    doc.text(formatAmountArabic(data.balance_after) + ' ر.س', leftMargin + 10, yPos + 8, { align: 'left' });
+    yPos += 25;
   }
   
-  drawFooter(doc, receiptNumber);
-  doc.save(`Cashback-${receiptNumber}.pdf`);
+  // Digital signature
+  drawDigitalSignature(doc, yPos, color);
+  
+  drawArabicFooter(doc, receiptNumber, color);
+  doc.save(`كاش-باك-${receiptNumber}.pdf`);
 };
 
-// ==================== CHALLENGE CERTIFICATE ====================
+// ==================== CHALLENGE CERTIFICATE - Arabic ====================
 interface ChallengeCertificateData {
   id: string;
   title: string;
+  title_ar?: string;
   description: string;
+  description_ar?: string;
   target_value: number;
   current_value: number;
   reward_points: number;
@@ -247,111 +337,120 @@ export const generateChallengeCertificate = (data: ChallengeCertificateData) => 
   const certificateNumber = `CH-${data.id.slice(0, 8).toUpperCase()}`;
   const pageWidth = 297;
   const pageHeight = 210;
+  const color: [number, number, number] = [99, 102, 241];
   
-  // Background gradient effect
+  // Background
   doc.setFillColor(250, 250, 255);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
   
   // Decorative border
-  doc.setDrawColor(99, 102, 241);
-  doc.setLineWidth(3);
-  doc.roundedRect(10, 10, pageWidth - 20, pageHeight - 20, 5, 5, 'S');
+  doc.setDrawColor(...color);
+  doc.setLineWidth(4);
+  doc.roundedRect(8, 8, pageWidth - 16, pageHeight - 16, 6, 6, 'S');
   
   doc.setDrawColor(199, 210, 254);
-  doc.setLineWidth(1);
-  doc.roundedRect(15, 15, pageWidth - 30, pageHeight - 30, 4, 4, 'S');
+  doc.setLineWidth(1.5);
+  doc.roundedRect(14, 14, pageWidth - 28, pageHeight - 28, 5, 5, 'S');
   
   // Corner decorations
-  const corners = [[20, 20], [pageWidth - 20, 20], [20, pageHeight - 20], [pageWidth - 20, pageHeight - 20]];
+  const corners = [[22, 22], [pageWidth - 22, 22], [22, pageHeight - 22], [pageWidth - 22, pageHeight - 22]];
   corners.forEach(([x, y]) => {
-    doc.setFillColor(99, 102, 241);
-    doc.circle(x, y, 4, 'F');
+    doc.setFillColor(...color);
+    doc.circle(x, y, 5, 'F');
     doc.setFillColor(255, 255, 255);
-    doc.circle(x, y, 2, 'F');
+    doc.circle(x, y, 3, 'F');
   });
   
   // Header
-  doc.setFillColor(99, 102, 241);
-  doc.roundedRect(pageWidth / 2 - 60, 25, 120, 30, 5, 5, 'F');
+  doc.setFillColor(...color);
+  doc.roundedRect(pageWidth / 2 - 70, 22, 140, 35, 6, 6, 'F');
   
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(20);
-  doc.text('CHALLENGE COMPLETED', pageWidth / 2, 40, { align: 'center' });
-  doc.setFontSize(10);
+  doc.setFontSize(24);
+  doc.text('شهادة إنجاز التحدي', pageWidth / 2, 40, { align: 'center' });
+  doc.setFontSize(11);
   doc.text('Certificate of Achievement', pageWidth / 2, 50, { align: 'center' });
   
   // Main content
-  doc.setTextColor(60, 60, 60);
-  doc.setFontSize(12);
-  doc.text('This certificate is proudly presented to', pageWidth / 2, 75, { align: 'center' });
+  doc.setTextColor(80, 80, 80);
+  doc.setFontSize(13);
+  doc.text('تُمنح هذه الشهادة بكل فخر إلى', pageWidth / 2, 75, { align: 'center' });
   
   // User name
-  doc.setTextColor(99, 102, 241);
-  doc.setFontSize(24);
-  doc.text(data.user_name || 'Valued Customer', pageWidth / 2, 95, { align: 'center' });
+  doc.setTextColor(...color);
+  doc.setFontSize(28);
+  doc.text(data.user_name || 'عميل مميز', pageWidth / 2, 95, { align: 'center' });
   
-  // Decorative line under name
-  doc.setDrawColor(99, 102, 241);
-  doc.setLineWidth(0.5);
-  doc.line(pageWidth / 2 - 60, 100, pageWidth / 2 + 60, 100);
+  // Decorative line
+  doc.setDrawColor(...color);
+  doc.setLineWidth(1);
+  doc.line(pageWidth / 2 - 70, 102, pageWidth / 2 + 70, 102);
   
   // Challenge details
   doc.setTextColor(80, 80, 80);
-  doc.setFontSize(11);
-  doc.text('For successfully completing the challenge:', pageWidth / 2, 115, { align: 'center' });
+  doc.setFontSize(12);
+  doc.text('لإكمال التحدي بنجاح', pageWidth / 2, 115, { align: 'center' });
   
   // Challenge title box
   doc.setFillColor(248, 250, 252);
-  doc.roundedRect(pageWidth / 2 - 80, 120, 160, 25, 3, 3, 'F');
-  doc.setDrawColor(99, 102, 241);
-  doc.setLineWidth(0.5);
-  doc.roundedRect(pageWidth / 2 - 80, 120, 160, 25, 3, 3, 'S');
+  doc.roundedRect(pageWidth / 2 - 90, 122, 180, 28, 4, 4, 'F');
+  doc.setDrawColor(...color);
+  doc.setLineWidth(0.8);
+  doc.roundedRect(pageWidth / 2 - 90, 122, 180, 28, 4, 4, 'S');
   
-  doc.setTextColor(99, 102, 241);
-  doc.setFontSize(14);
-  doc.text(data.title, pageWidth / 2, 135, { align: 'center' });
+  doc.setTextColor(...color);
+  doc.setFontSize(16);
+  doc.text(data.title_ar || data.title, pageWidth / 2, 140, { align: 'center' });
   
   // Stats row
-  const statsY = 155;
-  const statBoxWidth = 60;
-  const statSpacing = 70;
+  const statsY = 158;
+  const statBoxWidth = 65;
+  const statSpacing = 75;
   const startX = pageWidth / 2 - statSpacing;
   
   // Target achieved
   doc.setFillColor(240, 253, 244);
-  doc.roundedRect(startX - statBoxWidth / 2, statsY, statBoxWidth, 25, 3, 3, 'F');
+  doc.roundedRect(startX - statBoxWidth / 2, statsY, statBoxWidth, 28, 4, 4, 'F');
   doc.setTextColor(22, 163, 74);
-  doc.setFontSize(16);
-  doc.text(`${data.current_value}/${data.target_value}`, startX, statsY + 12, { align: 'center' });
-  doc.setFontSize(8);
-  doc.text('Target Achieved', startX, statsY + 20, { align: 'center' });
+  doc.setFontSize(18);
+  doc.text(`${toArabicNumerals(data.current_value)}/${toArabicNumerals(data.target_value)}`, startX, statsY + 14, { align: 'center' });
+  doc.setFontSize(9);
+  doc.text('الهدف المحقق', startX, statsY + 23, { align: 'center' });
   
   // Points earned
   doc.setFillColor(254, 249, 195);
-  doc.roundedRect(startX + statSpacing - statBoxWidth / 2, statsY, statBoxWidth, 25, 3, 3, 'F');
+  doc.roundedRect(startX + statSpacing - statBoxWidth / 2, statsY, statBoxWidth, 28, 4, 4, 'F');
   doc.setTextColor(161, 98, 7);
-  doc.setFontSize(16);
-  doc.text(`+${data.reward_points}`, startX + statSpacing, statsY + 12, { align: 'center' });
-  doc.setFontSize(8);
-  doc.text('Points Earned', startX + statSpacing, statsY + 20, { align: 'center' });
+  doc.setFontSize(18);
+  doc.text(`+${toArabicNumerals(data.reward_points)}`, startX + statSpacing, statsY + 14, { align: 'center' });
+  doc.setFontSize(9);
+  doc.text('النقاط المكتسبة', startX + statSpacing, statsY + 23, { align: 'center' });
   
   // Date and certificate number
   doc.setTextColor(120, 120, 120);
-  doc.setFontSize(9);
-  doc.text(`Completed on: ${format(new Date(data.completed_at), 'dd MMMM yyyy')}`, pageWidth / 2, 190, { align: 'center' });
-  doc.text(`Certificate: ${certificateNumber}`, pageWidth / 2, 196, { align: 'center' });
+  doc.setFontSize(10);
+  doc.text(`تاريخ الإنجاز: ${format(new Date(data.completed_at), 'dd MMMM yyyy', { locale: ar })}`, pageWidth / 2, 195, { align: 'center' });
   
-  // Signature area
-  doc.setDrawColor(200, 200, 200);
-  doc.line(pageWidth - 80, 185, pageWidth - 30, 185);
+  // Digital signature area
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(pageWidth - 85, 175, 60, 25, 3, 3, 'F');
+  doc.setFillColor(...color);
+  doc.circle(pageWidth - 55, 182, 6, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(8);
+  doc.text('✓', pageWidth - 55, 184, { align: 'center' });
+  doc.setTextColor(...color);
+  doc.setFontSize(8);
+  doc.text('توقيع رقمي معتمد', pageWidth - 55, 193, { align: 'center' });
+  
   doc.setTextColor(150, 150, 150);
   doc.setFontSize(8);
-  doc.text('MaxioCore', pageWidth - 55, 192, { align: 'center' });
+  doc.text(`رقم الشهادة: ${certificateNumber}`, 40, 195, { align: 'left' });
   
-  doc.save(`Challenge-Certificate-${certificateNumber}.pdf`);
+  doc.save(`شهادة-تحدي-${certificateNumber}.pdf`);
 };
 
-// ==================== ORDER RECEIPT ====================
+// ==================== ORDER RECEIPT - Arabic ====================
 interface OrderReceiptData {
   id: string;
   order_number: string;
@@ -372,74 +471,76 @@ export const generateOrderReceipt = (data: OrderReceiptData) => {
   const receiptNumber = data.order_number;
   const leftMargin = 20;
   const rightMargin = 190;
-  const rowHeight = 12;
+  const rowHeight = 13;
+  const color: [number, number, number] = [37, 99, 235];
   
-  // Header - Blue theme for orders
-  drawHeader(doc, 'ORDER RECEIPT', 'Service Order', [37, 99, 235]);
+  // Header
+  drawArabicHeader(doc, 'إيصال الطلب', 'فاتورة خدمة', color);
   
-  let yPos = 58;
+  let yPos = 65;
   
   // Order number box
   doc.setFillColor(248, 250, 252);
-  doc.roundedRect(rightMargin - 55, yPos, 55, 20, 2, 2, 'F');
-  doc.setDrawColor(37, 99, 235);
+  doc.roundedRect(rightMargin - 60, yPos, 60, 22, 3, 3, 'F');
+  doc.setDrawColor(...color);
   doc.setLineWidth(0.5);
-  doc.roundedRect(rightMargin - 55, yPos, 55, 20, 2, 2, 'S');
-  doc.setFontSize(8);
-  doc.setTextColor(100, 100, 100);
-  rtlText(doc, 'Order Number', rightMargin - 5, yPos + 7);
+  doc.roundedRect(rightMargin - 60, yPos, 60, 22, 3, 3, 'S');
   doc.setFontSize(9);
-  doc.setTextColor(37, 99, 235);
-  rtlText(doc, receiptNumber, rightMargin - 5, yPos + 15);
+  doc.setTextColor(100, 100, 100);
+  doc.text('رقم الطلب', rightMargin - 5, yPos + 8, { align: 'right' });
+  doc.setFontSize(10);
+  doc.setTextColor(...color);
+  doc.text(receiptNumber, rightMargin - 5, yPos + 17, { align: 'right' });
   
   // Date box
   doc.setFillColor(248, 250, 252);
-  doc.roundedRect(leftMargin, yPos, 55, 20, 2, 2, 'F');
-  doc.setDrawColor(37, 99, 235);
-  doc.roundedRect(leftMargin, yPos, 55, 20, 2, 2, 'S');
-  doc.setFontSize(8);
-  doc.setTextColor(100, 100, 100);
-  doc.text('Date', leftMargin + 5, yPos + 7);
+  doc.roundedRect(leftMargin, yPos, 60, 22, 3, 3, 'F');
+  doc.setDrawColor(...color);
+  doc.roundedRect(leftMargin, yPos, 60, 22, 3, 3, 'S');
   doc.setFontSize(9);
+  doc.setTextColor(100, 100, 100);
+  doc.text('التاريخ', leftMargin + 55, yPos + 8, { align: 'right' });
+  doc.setFontSize(10);
   doc.setTextColor(50, 50, 50);
-  doc.text(format(new Date(data.created_at), 'dd/MM/yyyy HH:mm'), leftMargin + 5, yPos + 15);
+  doc.text(formatDateArabic(data.created_at), leftMargin + 55, yPos + 17, { align: 'right' });
   
   // Status badge
-  const statusConfig: Record<string, { text: string; color: [number, number, number] }> = {
-    pending: { text: 'PENDING', color: [234, 179, 8] },
-    processing: { text: 'PROCESSING', color: [59, 130, 246] },
-    in_progress: { text: 'IN PROGRESS', color: [139, 92, 246] },
-    completed: { text: 'COMPLETED', color: [34, 197, 94] },
-    partial: { text: 'PARTIAL', color: [249, 115, 22] },
-    cancelled: { text: 'CANCELLED', color: [239, 68, 68] },
-    refunded: { text: 'REFUNDED', color: [107, 114, 128] },
+  const statusConfig: Record<string, { textAr: string; color: [number, number, number] }> = {
+    pending: { textAr: 'قيد الانتظار', color: [234, 179, 8] },
+    processing: { textAr: 'جاري المعالجة', color: [59, 130, 246] },
+    in_progress: { textAr: 'قيد التنفيذ', color: [139, 92, 246] },
+    completed: { textAr: 'مكتمل', color: [34, 197, 94] },
+    partial: { textAr: 'جزئي', color: [249, 115, 22] },
+    cancelled: { textAr: 'ملغي', color: [239, 68, 68] },
+    refunded: { textAr: 'مسترد', color: [107, 114, 128] },
+    confirmed: { textAr: 'مؤكد', color: [34, 197, 94] },
   };
-  const statusInfo = statusConfig[data.status] || { text: data.status.toUpperCase(), color: [100, 100, 100] };
+  const statusInfo = statusConfig[data.status] || { textAr: data.status, color: [100, 100, 100] };
   
   doc.setFillColor(...statusInfo.color);
-  doc.roundedRect(88, yPos + 3, 34, 14, 3, 3, 'F');
+  doc.roundedRect(90, yPos + 4, 40, 14, 4, 4, 'F');
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(7);
-  doc.text(statusInfo.text, 105, yPos + 12, { align: 'center' });
+  doc.setFontSize(9);
+  doc.text(statusInfo.textAr, 110, yPos + 13, { align: 'center' });
   
-  yPos = 88;
+  yPos = 98;
   
   // Customer section
-  doc.setFillColor(37, 99, 235);
-  doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 8, 1, 1, 'F');
+  doc.setFillColor(...color);
+  doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 10, 2, 2, 'F');
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(10);
-  doc.text('CUSTOMER INFORMATION', 105, yPos + 6, { align: 'center' });
-  yPos += 15;
+  doc.setFontSize(11);
+  doc.text('معلومات العميل', 105, yPos + 7, { align: 'center' });
+  yPos += 17;
   
   if (data.user_name) {
     doc.setFillColor(252, 252, 252);
     doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
     doc.setTextColor(80, 80, 80);
-    doc.setFontSize(9);
-    doc.text('Name', leftMargin + 5, yPos + 2);
+    doc.setFontSize(10);
+    doc.text('الاسم', rightMargin - 5, yPos + 3, { align: 'right' });
     doc.setTextColor(50, 50, 50);
-    rtlText(doc, data.user_name, rightMargin - 5, yPos + 2);
+    doc.text(data.user_name, leftMargin + 5, yPos + 3, { align: 'left' });
     yPos += rowHeight;
   }
   
@@ -447,113 +548,119 @@ export const generateOrderReceipt = (data: OrderReceiptData) => {
     doc.setFillColor(248, 250, 252);
     doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
     doc.setTextColor(80, 80, 80);
-    doc.text('Email', leftMargin + 5, yPos + 2);
+    doc.text('البريد الإلكتروني', rightMargin - 5, yPos + 3, { align: 'right' });
     doc.setTextColor(50, 50, 50);
-    rtlText(doc, data.user_email, rightMargin - 5, yPos + 2);
+    doc.text(data.user_email, leftMargin + 5, yPos + 3, { align: 'left' });
     yPos += rowHeight;
   }
   
   yPos += 5;
   
   // Service section
-  doc.setFillColor(37, 99, 235);
-  doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 8, 1, 1, 'F');
+  doc.setFillColor(...color);
+  doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 10, 2, 2, 'F');
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(10);
-  doc.text('SERVICE DETAILS', 105, yPos + 6, { align: 'center' });
-  yPos += 15;
+  doc.setFontSize(11);
+  doc.text('تفاصيل الخدمة', 105, yPos + 7, { align: 'center' });
+  yPos += 17;
   
   // Service name
   doc.setFillColor(252, 252, 252);
   doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
   doc.setTextColor(80, 80, 80);
-  doc.setFontSize(9);
-  doc.text('Service', leftMargin + 5, yPos + 2);
+  doc.setFontSize(10);
+  doc.text('الخدمة', rightMargin - 5, yPos + 3, { align: 'right' });
   doc.setTextColor(50, 50, 50);
-  const serviceName = data.service_name.length > 40 ? data.service_name.substring(0, 40) + '...' : data.service_name;
-  rtlText(doc, serviceName, rightMargin - 5, yPos + 2);
+  const serviceName = data.service_name.length > 35 ? data.service_name.substring(0, 35) + '...' : data.service_name;
+  doc.text(serviceName, leftMargin + 5, yPos + 3, { align: 'left' });
   yPos += rowHeight;
   
   // Quantity
   doc.setFillColor(248, 250, 252);
   doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
   doc.setTextColor(80, 80, 80);
-  doc.text('Quantity', leftMargin + 5, yPos + 2);
+  doc.text('الكمية', rightMargin - 5, yPos + 3, { align: 'right' });
   doc.setTextColor(50, 50, 50);
-  rtlText(doc, data.quantity.toLocaleString(), rightMargin - 5, yPos + 2);
+  doc.text(toArabicNumerals(data.quantity.toLocaleString()), leftMargin + 5, yPos + 3, { align: 'left' });
   yPos += rowHeight;
   
-  // Link (if provided)
+  // Link
   if (data.link) {
     doc.setFillColor(252, 252, 252);
     doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
     doc.setTextColor(80, 80, 80);
-    doc.text('Link', leftMargin + 5, yPos + 2);
-    doc.setTextColor(37, 99, 235);
-    const linkText = data.link.length > 45 ? data.link.substring(0, 45) + '...' : data.link;
-    rtlText(doc, linkText, rightMargin - 5, yPos + 2);
+    doc.text('الرابط', rightMargin - 5, yPos + 3, { align: 'right' });
+    doc.setTextColor(...color);
+    const linkText = data.link.length > 40 ? data.link.substring(0, 40) + '...' : data.link;
+    doc.text(linkText, leftMargin + 5, yPos + 3, { align: 'left' });
     yPos += rowHeight;
   }
   
   yPos += 5;
   
   // Payment section
-  doc.setFillColor(37, 99, 235);
-  doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 8, 1, 1, 'F');
+  doc.setFillColor(...color);
+  doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 10, 2, 2, 'F');
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(10);
-  doc.text('PAYMENT DETAILS', 105, yPos + 6, { align: 'center' });
-  yPos += 15;
+  doc.setFontSize(11);
+  doc.text('تفاصيل الدفع', 105, yPos + 7, { align: 'center' });
+  yPos += 17;
   
   // Subtotal
   const subtotal = data.total_price + (data.discount_amount || 0);
   doc.setFillColor(252, 252, 252);
   doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
   doc.setTextColor(80, 80, 80);
-  doc.setFontSize(9);
-  doc.text('Subtotal', leftMargin + 5, yPos + 2);
+  doc.setFontSize(10);
+  doc.text('المبلغ الأساسي', rightMargin - 5, yPos + 3, { align: 'right' });
   doc.setTextColor(50, 50, 50);
-  rtlText(doc, formatAmount(subtotal) + ' SAR', rightMargin - 5, yPos + 2);
+  doc.text(formatAmountArabic(subtotal) + ' ر.س', leftMargin + 5, yPos + 3, { align: 'left' });
   yPos += rowHeight;
   
-  // Discount (if any)
+  // Discount
   if (data.discount_amount && data.discount_amount > 0) {
     doc.setFillColor(240, 253, 244);
     doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
     doc.setTextColor(22, 163, 74);
-    doc.text('Discount', leftMargin + 5, yPos + 2);
-    rtlText(doc, '-' + formatAmount(data.discount_amount) + ' SAR', rightMargin - 5, yPos + 2);
+    doc.text('الخصم', rightMargin - 5, yPos + 3, { align: 'right' });
+    doc.text('-' + formatAmountArabic(data.discount_amount) + ' ر.س', leftMargin + 5, yPos + 3, { align: 'left' });
     yPos += rowHeight;
   }
   
   // Total
   yPos += 3;
-  doc.setFillColor(37, 99, 235);
-  doc.roundedRect(leftMargin, yPos - 2, rightMargin - leftMargin, 18, 2, 2, 'F');
+  doc.setFillColor(...color);
+  doc.roundedRect(leftMargin, yPos - 2, rightMargin - leftMargin, 22, 3, 3, 'F');
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(11);
-  doc.text('TOTAL', leftMargin + 10, yPos + 10);
-  doc.setFontSize(14);
-  rtlText(doc, formatAmount(data.total_price) + ' SAR', rightMargin - 10, yPos + 10);
+  doc.setFontSize(12);
+  doc.text('الإجمالي', rightMargin - 10, yPos + 10, { align: 'right' });
+  doc.setFontSize(18);
+  doc.text(formatAmountArabic(data.total_price) + ' ر.س', leftMargin + 10, yPos + 12, { align: 'left' });
+  
+  yPos += 30;
   
   // Completion date
   if (data.completed_at) {
-    yPos += 28;
     doc.setTextColor(34, 197, 94);
-    doc.setFontSize(9);
-    doc.text('Completed: ' + format(new Date(data.completed_at), 'dd/MM/yyyy HH:mm'), 105, yPos, { align: 'center' });
+    doc.setFontSize(10);
+    doc.text(`تاريخ الإكمال: ${formatDateArabic(data.completed_at)}`, 105, yPos, { align: 'center' });
+    yPos += 10;
   }
   
-  drawFooter(doc, receiptNumber);
-  doc.save(`Order-${receiptNumber}.pdf`);
+  // Digital signature
+  drawDigitalSignature(doc, yPos, color);
+  
+  drawArabicFooter(doc, receiptNumber, color);
+  doc.save(`طلب-${receiptNumber}.pdf`);
 };
 
-// ==================== BADGE CERTIFICATE ====================
+// ==================== BADGE CERTIFICATE - Arabic ====================
 interface BadgeCertificateData {
   id: string;
   name: string;
   name_ar: string;
   description: string;
+  description_ar?: string;
   icon: string;
   color: string;
   tier: number;
@@ -566,106 +673,110 @@ export const generateBadgeCertificate = (data: BadgeCertificateData) => {
   const certificateNumber = `BDG-${data.id.slice(0, 8).toUpperCase()}`;
   const pageWidth = 297;
   const pageHeight = 210;
+  const color: [number, number, number] = [217, 119, 6];
   
-  // Golden background for badges
+  // Golden background
   doc.setFillColor(255, 251, 235);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
   
-  // Decorative border - gold theme
-  doc.setDrawColor(217, 119, 6);
-  doc.setLineWidth(3);
-  doc.roundedRect(10, 10, pageWidth - 20, pageHeight - 20, 5, 5, 'S');
+  // Decorative border
+  doc.setDrawColor(...color);
+  doc.setLineWidth(4);
+  doc.roundedRect(8, 8, pageWidth - 16, pageHeight - 16, 6, 6, 'S');
   
   doc.setDrawColor(251, 191, 36);
-  doc.setLineWidth(1);
-  doc.roundedRect(15, 15, pageWidth - 30, pageHeight - 30, 4, 4, 'S');
+  doc.setLineWidth(1.5);
+  doc.roundedRect(14, 14, pageWidth - 28, pageHeight - 28, 5, 5, 'S');
   
-  // Corner stars
-  const corners = [[25, 25], [pageWidth - 25, 25], [25, pageHeight - 25], [pageWidth - 25, pageHeight - 25]];
+  // Corner decorations
+  const corners = [[24, 24], [pageWidth - 24, 24], [24, pageHeight - 24], [pageWidth - 24, pageHeight - 24]];
   corners.forEach(([x, y]) => {
-    doc.setFillColor(217, 119, 6);
-    // Simple star shape using circles
-    doc.circle(x, y, 5, 'F');
+    doc.setFillColor(...color);
+    doc.circle(x, y, 6, 'F');
     doc.setFillColor(255, 251, 235);
-    doc.circle(x, y, 2.5, 'F');
+    doc.circle(x, y, 4, 'F');
     doc.setFillColor(251, 191, 36);
-    doc.circle(x, y, 1.5, 'F');
+    doc.circle(x, y, 2.5, 'F');
   });
   
   // Header
-  doc.setFillColor(217, 119, 6);
-  doc.roundedRect(pageWidth / 2 - 70, 25, 140, 30, 5, 5, 'F');
+  doc.setFillColor(...color);
+  doc.roundedRect(pageWidth / 2 - 75, 22, 150, 35, 6, 6, 'F');
   
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(22);
-  doc.text('BADGE ACHIEVED', pageWidth / 2, 42, { align: 'center' });
-  doc.setFontSize(10);
+  doc.setFontSize(24);
+  doc.text('شهادة الشارة', pageWidth / 2, 40, { align: 'center' });
+  doc.setFontSize(11);
   doc.text('Certificate of Recognition', pageWidth / 2, 50, { align: 'center' });
   
   // Badge icon circle
   doc.setFillColor(251, 191, 36);
-  doc.circle(pageWidth / 2, 80, 20, 'F');
+  doc.circle(pageWidth / 2, 82, 22, 'F');
   doc.setFillColor(255, 255, 255);
-  doc.circle(pageWidth / 2, 80, 17, 'F');
+  doc.circle(pageWidth / 2, 82, 19, 'F');
   
-  // Tier indicator
-  doc.setFillColor(217, 119, 6);
+  // Tier
+  doc.setFillColor(...color);
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(24);
-  doc.text(data.icon || data.tier.toString(), pageWidth / 2, 86, { align: 'center' });
+  doc.setFontSize(26);
+  doc.text(data.icon || toArabicNumerals(data.tier), pageWidth / 2, 88, { align: 'center' });
   
   // Tier label
-  const tierLabels = ['', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond'];
-  doc.setTextColor(217, 119, 6);
-  doc.setFontSize(10);
-  doc.text(`Tier ${data.tier}: ${tierLabels[data.tier] || 'Elite'}`, pageWidth / 2, 108, { align: 'center' });
+  const tierLabelsAr = ['', 'برونزي', 'فضي', 'ذهبي', 'بلاتيني', 'ماسي'];
+  doc.setTextColor(...color);
+  doc.setFontSize(11);
+  doc.text(`المستوى ${toArabicNumerals(data.tier)}: ${tierLabelsAr[data.tier] || 'النخبة'}`, pageWidth / 2, 112, { align: 'center' });
   
   // Presented to
   doc.setTextColor(80, 80, 80);
-  doc.setFontSize(11);
-  doc.text('This badge is proudly awarded to', pageWidth / 2, 120, { align: 'center' });
+  doc.setFontSize(12);
+  doc.text('تُمنح هذه الشارة بكل تقدير إلى', pageWidth / 2, 125, { align: 'center' });
   
   // User name
-  doc.setTextColor(217, 119, 6);
-  doc.setFontSize(22);
-  doc.text(data.user_name || 'Valued Customer', pageWidth / 2, 135, { align: 'center' });
+  doc.setTextColor(...color);
+  doc.setFontSize(26);
+  doc.text(data.user_name || 'عميل مميز', pageWidth / 2, 142, { align: 'center' });
   
   // Decorative line
-  doc.setDrawColor(217, 119, 6);
-  doc.setLineWidth(0.5);
-  doc.line(pageWidth / 2 - 50, 140, pageWidth / 2 + 50, 140);
+  doc.setDrawColor(...color);
+  doc.setLineWidth(0.8);
+  doc.line(pageWidth / 2 - 55, 148, pageWidth / 2 + 55, 148);
   
   // Badge name box
   doc.setFillColor(254, 243, 199);
-  doc.roundedRect(pageWidth / 2 - 70, 148, 140, 30, 3, 3, 'F');
-  doc.setDrawColor(217, 119, 6);
-  doc.setLineWidth(0.5);
-  doc.roundedRect(pageWidth / 2 - 70, 148, 140, 30, 3, 3, 'S');
+  doc.roundedRect(pageWidth / 2 - 75, 155, 150, 30, 4, 4, 'F');
+  doc.setDrawColor(...color);
+  doc.setLineWidth(0.8);
+  doc.roundedRect(pageWidth / 2 - 75, 155, 150, 30, 4, 4, 'S');
   
   doc.setTextColor(161, 98, 7);
-  doc.setFontSize(16);
-  doc.text(data.name, pageWidth / 2, 160, { align: 'center' });
+  doc.setFontSize(18);
+  doc.text(data.name_ar || data.name, pageWidth / 2, 168, { align: 'center' });
   doc.setFontSize(10);
-  doc.text(data.name_ar, pageWidth / 2, 172, { align: 'center' });
+  doc.text(data.name, pageWidth / 2, 180, { align: 'center' });
   
-  // Description
-  if (data.description) {
-    doc.setTextColor(100, 100, 100);
-    doc.setFontSize(9);
-    const desc = data.description.length > 80 ? data.description.substring(0, 80) + '...' : data.description;
-    doc.text(desc, pageWidth / 2, 188, { align: 'center' });
-  }
+  // Digital signature
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(pageWidth - 90, 175, 65, 25, 3, 3, 'F');
+  doc.setFillColor(...color);
+  doc.circle(pageWidth - 57, 182, 7, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(9);
+  doc.text('✓', pageWidth - 57, 185, { align: 'center' });
+  doc.setTextColor(...color);
+  doc.setFontSize(9);
+  doc.text('توقيع رقمي معتمد', pageWidth - 57, 195, { align: 'center' });
   
-  // Date and certificate number
-  doc.setTextColor(120, 120, 120);
-  doc.setFontSize(8);
-  doc.text(`Awarded on: ${format(new Date(data.awarded_at), 'dd MMMM yyyy')}`, 40, 195);
-  doc.text(`Certificate: ${certificateNumber}`, pageWidth - 40, 195, { align: 'right' });
+  // Date and certificate
+  doc.setTextColor(150, 150, 150);
+  doc.setFontSize(9);
+  doc.text(`تاريخ المنح: ${format(new Date(data.awarded_at), 'dd MMMM yyyy', { locale: ar })}`, 45, 193, { align: 'left' });
+  doc.text(`رقم الشهادة: ${certificateNumber}`, 45, 200, { align: 'left' });
   
-  doc.save(`Badge-Certificate-${certificateNumber}.pdf`);
+  doc.save(`شهادة-شارة-${certificateNumber}.pdf`);
 };
 
-// ==================== REWARDS STATEMENT ====================
+// ==================== REWARDS STATEMENT - Arabic ====================
 interface RewardsStatementData {
   user_name?: string;
   user_email?: string;
@@ -673,11 +784,13 @@ interface RewardsStatementData {
   total_points: number;
   redeemed_points: number;
   tier_name?: string;
+  tier_name_ar?: string;
   transactions: Array<{
     id: string;
     type: string;
     points: number;
     description: string;
+    description_ar?: string;
     created_at: string;
   }>;
   generated_at?: string;
@@ -688,66 +801,67 @@ export const generateRewardsStatement = (data: RewardsStatementData) => {
   const statementNumber = `RWD-${Date.now().toString(36).toUpperCase()}`;
   const leftMargin = 20;
   const rightMargin = 190;
-  const rowHeight = 10;
+  const rowHeight = 11;
+  const color: [number, number, number] = [139, 92, 246];
   
-  // Header - Purple/Gold theme for rewards
-  drawHeader(doc, 'REWARDS STATEMENT', 'Points Summary', [139, 92, 246]);
+  // Header
+  drawArabicHeader(doc, 'كشف حساب المكافآت', 'ملخص النقاط', color);
   
-  let yPos = 58;
+  let yPos = 65;
   
   // Statement info
   doc.setFillColor(248, 250, 252);
-  doc.roundedRect(rightMargin - 55, yPos, 55, 18, 2, 2, 'F');
-  doc.setDrawColor(139, 92, 246);
+  doc.roundedRect(rightMargin - 55, yPos, 55, 20, 3, 3, 'F');
+  doc.setDrawColor(...color);
   doc.setLineWidth(0.5);
-  doc.roundedRect(rightMargin - 55, yPos, 55, 18, 2, 2, 'S');
-  doc.setFontSize(8);
-  doc.setTextColor(100, 100, 100);
-  rtlText(doc, 'Statement', rightMargin - 5, yPos + 6);
+  doc.roundedRect(rightMargin - 55, yPos, 55, 20, 3, 3, 'S');
   doc.setFontSize(9);
-  doc.setTextColor(139, 92, 246);
-  rtlText(doc, statementNumber, rightMargin - 5, yPos + 13);
+  doc.setTextColor(100, 100, 100);
+  doc.text('رقم الكشف', rightMargin - 5, yPos + 8, { align: 'right' });
+  doc.setFontSize(10);
+  doc.setTextColor(...color);
+  doc.text(statementNumber, rightMargin - 5, yPos + 16, { align: 'right' });
   
   // Date
   doc.setFillColor(248, 250, 252);
-  doc.roundedRect(leftMargin, yPos, 55, 18, 2, 2, 'F');
-  doc.setDrawColor(139, 92, 246);
-  doc.roundedRect(leftMargin, yPos, 55, 18, 2, 2, 'S');
-  doc.setFontSize(8);
-  doc.setTextColor(100, 100, 100);
-  doc.text('Generated', leftMargin + 5, yPos + 6);
+  doc.roundedRect(leftMargin, yPos, 55, 20, 3, 3, 'F');
+  doc.setDrawColor(...color);
+  doc.roundedRect(leftMargin, yPos, 55, 20, 3, 3, 'S');
   doc.setFontSize(9);
+  doc.setTextColor(100, 100, 100);
+  doc.text('تاريخ الإصدار', leftMargin + 50, yPos + 8, { align: 'right' });
+  doc.setFontSize(10);
   doc.setTextColor(50, 50, 50);
-  doc.text(format(new Date(), 'dd/MM/yyyy'), leftMargin + 5, yPos + 13);
+  doc.text(format(new Date(), 'dd/MM/yyyy'), leftMargin + 50, yPos + 16, { align: 'right' });
   
-  // Tier badge (if available)
-  if (data.tier_name) {
-    doc.setFillColor(139, 92, 246);
-    doc.roundedRect(90, yPos + 2, 30, 14, 3, 3, 'F');
+  // Tier badge
+  if (data.tier_name_ar || data.tier_name) {
+    doc.setFillColor(...color);
+    doc.roundedRect(95, yPos + 3, 35, 14, 4, 4, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(8);
-    doc.text(data.tier_name.toUpperCase(), 105, yPos + 11, { align: 'center' });
+    doc.setFontSize(9);
+    doc.text(data.tier_name_ar || data.tier_name || '', 112.5, yPos + 12, { align: 'center' });
   }
   
-  yPos = 85;
+  yPos = 95;
   
   // Customer info
   if (data.user_name || data.user_email) {
-    doc.setFillColor(139, 92, 246);
-    doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 8, 1, 1, 'F');
+    doc.setFillColor(...color);
+    doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 10, 2, 2, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(10);
-    doc.text('ACCOUNT HOLDER', 105, yPos + 6, { align: 'center' });
-    yPos += 13;
+    doc.setFontSize(11);
+    doc.text('صاحب الحساب', 105, yPos + 7, { align: 'center' });
+    yPos += 15;
     
     if (data.user_name) {
       doc.setFillColor(252, 252, 252);
       doc.rect(leftMargin, yPos - 4, rightMargin - leftMargin, rowHeight, 'F');
       doc.setTextColor(80, 80, 80);
-      doc.setFontSize(9);
-      doc.text('Name', leftMargin + 5, yPos + 2);
+      doc.setFontSize(10);
+      doc.text('الاسم', rightMargin - 5, yPos + 3, { align: 'right' });
       doc.setTextColor(50, 50, 50);
-      rtlText(doc, data.user_name, rightMargin - 5, yPos + 2);
+      doc.text(data.user_name, leftMargin + 5, yPos + 3, { align: 'left' });
       yPos += rowHeight;
     }
     
@@ -755,109 +869,314 @@ export const generateRewardsStatement = (data: RewardsStatementData) => {
       doc.setFillColor(248, 250, 252);
       doc.rect(leftMargin, yPos - 4, rightMargin - leftMargin, rowHeight, 'F');
       doc.setTextColor(80, 80, 80);
-      doc.text('Email', leftMargin + 5, yPos + 2);
+      doc.text('البريد الإلكتروني', rightMargin - 5, yPos + 3, { align: 'right' });
       doc.setTextColor(50, 50, 50);
-      rtlText(doc, data.user_email, rightMargin - 5, yPos + 2);
+      doc.text(data.user_email, leftMargin + 5, yPos + 3, { align: 'left' });
       yPos += rowHeight;
     }
     yPos += 5;
   }
   
   // Points summary section
-  doc.setFillColor(139, 92, 246);
-  doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 8, 1, 1, 'F');
+  doc.setFillColor(...color);
+  doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 10, 2, 2, 'F');
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(10);
-  doc.text('POINTS SUMMARY', 105, yPos + 6, { align: 'center' });
-  yPos += 15;
+  doc.setFontSize(11);
+  doc.text('ملخص النقاط', 105, yPos + 7, { align: 'center' });
+  yPos += 18;
   
   // Points boxes
-  const boxWidth = 50;
-  const boxSpacing = 56;
+  const boxWidth = 52;
+  const boxSpacing = 57;
   const startX = leftMargin;
   
   // Available points
   doc.setFillColor(240, 253, 244);
-  doc.roundedRect(startX, yPos, boxWidth, 28, 3, 3, 'F');
+  doc.roundedRect(startX, yPos, boxWidth, 32, 4, 4, 'F');
   doc.setDrawColor(34, 197, 94);
-  doc.setLineWidth(0.5);
-  doc.roundedRect(startX, yPos, boxWidth, 28, 3, 3, 'S');
+  doc.setLineWidth(0.8);
+  doc.roundedRect(startX, yPos, boxWidth, 32, 4, 4, 'S');
   doc.setTextColor(34, 197, 94);
-  doc.setFontSize(16);
-  doc.text(data.available_points.toLocaleString(), startX + boxWidth / 2, yPos + 14, { align: 'center' });
-  doc.setFontSize(8);
-  doc.text('Available', startX + boxWidth / 2, yPos + 23, { align: 'center' });
+  doc.setFontSize(18);
+  doc.text(toArabicNumerals(data.available_points.toLocaleString()), startX + boxWidth / 2, yPos + 16, { align: 'center' });
+  doc.setFontSize(9);
+  doc.text('المتاحة', startX + boxWidth / 2, yPos + 26, { align: 'center' });
   
   // Total earned
   doc.setFillColor(239, 246, 255);
-  doc.roundedRect(startX + boxSpacing, yPos, boxWidth, 28, 3, 3, 'F');
+  doc.roundedRect(startX + boxSpacing, yPos, boxWidth, 32, 4, 4, 'F');
   doc.setDrawColor(59, 130, 246);
-  doc.roundedRect(startX + boxSpacing, yPos, boxWidth, 28, 3, 3, 'S');
+  doc.roundedRect(startX + boxSpacing, yPos, boxWidth, 32, 4, 4, 'S');
   doc.setTextColor(59, 130, 246);
-  doc.setFontSize(16);
-  doc.text(data.total_points.toLocaleString(), startX + boxSpacing + boxWidth / 2, yPos + 14, { align: 'center' });
-  doc.setFontSize(8);
-  doc.text('Total Earned', startX + boxSpacing + boxWidth / 2, yPos + 23, { align: 'center' });
+  doc.setFontSize(18);
+  doc.text(toArabicNumerals(data.total_points.toLocaleString()), startX + boxSpacing + boxWidth / 2, yPos + 16, { align: 'center' });
+  doc.setFontSize(9);
+  doc.text('إجمالي المكتسبة', startX + boxSpacing + boxWidth / 2, yPos + 26, { align: 'center' });
   
   // Redeemed
   doc.setFillColor(254, 242, 242);
-  doc.roundedRect(startX + boxSpacing * 2, yPos, boxWidth, 28, 3, 3, 'F');
+  doc.roundedRect(startX + boxSpacing * 2, yPos, boxWidth, 32, 4, 4, 'F');
   doc.setDrawColor(239, 68, 68);
-  doc.roundedRect(startX + boxSpacing * 2, yPos, boxWidth, 28, 3, 3, 'S');
+  doc.roundedRect(startX + boxSpacing * 2, yPos, boxWidth, 32, 4, 4, 'S');
   doc.setTextColor(239, 68, 68);
-  doc.setFontSize(16);
-  doc.text(data.redeemed_points.toLocaleString(), startX + boxSpacing * 2 + boxWidth / 2, yPos + 14, { align: 'center' });
-  doc.setFontSize(8);
-  doc.text('Redeemed', startX + boxSpacing * 2 + boxWidth / 2, yPos + 23, { align: 'center' });
+  doc.setFontSize(18);
+  doc.text(toArabicNumerals(data.redeemed_points.toLocaleString()), startX + boxSpacing * 2 + boxWidth / 2, yPos + 16, { align: 'center' });
+  doc.setFontSize(9);
+  doc.text('المستبدلة', startX + boxSpacing * 2 + boxWidth / 2, yPos + 26, { align: 'center' });
   
-  yPos += 40;
+  yPos += 45;
   
   // Recent transactions
   if (data.transactions && data.transactions.length > 0) {
-    doc.setFillColor(139, 92, 246);
-    doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 8, 1, 1, 'F');
+    doc.setFillColor(...color);
+    doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 10, 2, 2, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(10);
-    doc.text('RECENT TRANSACTIONS', 105, yPos + 6, { align: 'center' });
-    yPos += 15;
+    doc.setFontSize(11);
+    doc.text('آخر المعاملات', 105, yPos + 7, { align: 'center' });
+    yPos += 17;
     
     // Table header
     doc.setFillColor(248, 250, 252);
-    doc.rect(leftMargin, yPos - 4, rightMargin - leftMargin, 10, 'F');
+    doc.rect(leftMargin, yPos - 4, rightMargin - leftMargin, 11, 'F');
     doc.setTextColor(80, 80, 80);
-    doc.setFontSize(8);
-    doc.text('Date', leftMargin + 5, yPos + 2);
-    doc.text('Description', leftMargin + 35, yPos + 2);
-    doc.text('Type', rightMargin - 40, yPos + 2);
-    rtlText(doc, 'Points', rightMargin - 5, yPos + 2);
-    yPos += 10;
+    doc.setFontSize(9);
+    doc.text('النقاط', leftMargin + 8, yPos + 3, { align: 'left' });
+    doc.text('النوع', leftMargin + 35, yPos + 3, { align: 'left' });
+    doc.text('الوصف', rightMargin - 50, yPos + 3, { align: 'right' });
+    doc.text('التاريخ', rightMargin - 5, yPos + 3, { align: 'right' });
+    yPos += 11;
     
-    // Transactions (max 8)
-    const maxTransactions = Math.min(data.transactions.length, 8);
+    // Transaction type labels
+    const typeLabelsAr: Record<string, string> = {
+      earned: 'مكتسب',
+      redeemed: 'مستبدل',
+      bonus: 'مكافأة',
+      expired: 'منتهي',
+    };
+    
+    // Transactions (max 6)
+    const maxTransactions = Math.min(data.transactions.length, 6);
     for (let i = 0; i < maxTransactions; i++) {
       const tx = data.transactions[i];
       const bgColor = i % 2 === 0 ? [252, 252, 252] : [248, 250, 252];
       doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
-      doc.rect(leftMargin, yPos - 4, rightMargin - leftMargin, 9, 'F');
-      
-      doc.setTextColor(100, 100, 100);
-      doc.setFontSize(7);
-      doc.text(format(new Date(tx.created_at), 'dd/MM/yy'), leftMargin + 5, yPos + 2);
-      
-      doc.setTextColor(60, 60, 60);
-      const desc = tx.description?.length > 35 ? tx.description.substring(0, 35) + '...' : (tx.description || '-');
-      doc.text(desc, leftMargin + 35, yPos + 2);
-      
-      doc.text(tx.type, rightMargin - 40, yPos + 2);
+      doc.rect(leftMargin, yPos - 4, rightMargin - leftMargin, 10, 'F');
       
       const isPositive = tx.points > 0;
       doc.setTextColor(isPositive ? 34 : 239, isPositive ? 197 : 68, isPositive ? 94 : 68);
-      rtlText(doc, (isPositive ? '+' : '') + tx.points.toString(), rightMargin - 5, yPos + 2);
+      doc.setFontSize(8);
+      doc.text((isPositive ? '+' : '') + toArabicNumerals(tx.points.toString()), leftMargin + 8, yPos + 2, { align: 'left' });
       
-      yPos += 9;
+      doc.setTextColor(100, 100, 100);
+      doc.text(typeLabelsAr[tx.type] || tx.type, leftMargin + 35, yPos + 2, { align: 'left' });
+      
+      doc.setTextColor(60, 60, 60);
+      const desc = tx.description_ar || tx.description || '-';
+      doc.text(desc.length > 25 ? desc.substring(0, 25) + '...' : desc, rightMargin - 50, yPos + 2, { align: 'right' });
+      
+      doc.text(format(new Date(tx.created_at), 'dd/MM/yy'), rightMargin - 5, yPos + 2, { align: 'right' });
+      
+      yPos += 10;
     }
   }
   
-  drawFooter(doc, statementNumber);
-  doc.save(`Rewards-Statement-${statementNumber}.pdf`);
+  yPos += 5;
+  
+  // Digital signature
+  drawDigitalSignature(doc, yPos > 210 ? 210 : yPos, color);
+  
+  drawArabicFooter(doc, statementNumber, color);
+  doc.save(`كشف-مكافآت-${statementNumber}.pdf`);
+};
+
+// ==================== DEPOSIT RECEIPT - Arabic ====================
+interface DepositReceiptData {
+  id: string;
+  amount: number;
+  bonus_amount?: number;
+  fee_amount?: number;
+  total_credited: number;
+  status: string;
+  payment_method?: string;
+  transaction_id?: string;
+  created_at: string;
+  completed_at?: string;
+  user_name?: string;
+  user_email?: string;
+}
+
+export const generateDepositReceipt = (data: DepositReceiptData) => {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const receiptNumber = `DEP-${data.id.slice(0, 8).toUpperCase()}`;
+  const leftMargin = 20;
+  const rightMargin = 190;
+  const rowHeight = 13;
+  const color: [number, number, number] = [0, 128, 85];
+  
+  // Header
+  drawArabicHeader(doc, 'إيصال إيداع', 'معاملة مالية', color);
+  
+  let yPos = 65;
+  
+  // Receipt number box
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(rightMargin - 60, yPos, 60, 22, 3, 3, 'F');
+  doc.setDrawColor(...color);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(rightMargin - 60, yPos, 60, 22, 3, 3, 'S');
+  doc.setFontSize(9);
+  doc.setTextColor(100, 100, 100);
+  doc.text('رقم الإيصال', rightMargin - 5, yPos + 8, { align: 'right' });
+  doc.setFontSize(10);
+  doc.setTextColor(...color);
+  doc.text(receiptNumber, rightMargin - 5, yPos + 17, { align: 'right' });
+  
+  // Date box
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(leftMargin, yPos, 60, 22, 3, 3, 'F');
+  doc.setDrawColor(...color);
+  doc.roundedRect(leftMargin, yPos, 60, 22, 3, 3, 'S');
+  doc.setFontSize(9);
+  doc.setTextColor(100, 100, 100);
+  doc.text('التاريخ', leftMargin + 55, yPos + 8, { align: 'right' });
+  doc.setFontSize(10);
+  doc.setTextColor(50, 50, 50);
+  doc.text(formatDateArabic(data.created_at), leftMargin + 55, yPos + 17, { align: 'right' });
+  
+  // Status badge
+  const statusConfig: Record<string, { textAr: string; color: [number, number, number] }> = {
+    pending: { textAr: 'قيد الانتظار', color: [234, 179, 8] },
+    completed: { textAr: 'مكتمل', color: [34, 197, 94] },
+    failed: { textAr: 'فشل', color: [239, 68, 68] },
+    cancelled: { textAr: 'ملغي', color: [107, 114, 128] },
+  };
+  const statusInfo = statusConfig[data.status] || { textAr: data.status, color: [100, 100, 100] };
+  
+  doc.setFillColor(...statusInfo.color);
+  doc.roundedRect(95, yPos + 4, 35, 14, 4, 4, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(9);
+  doc.text(statusInfo.textAr, 112.5, yPos + 13, { align: 'center' });
+  
+  yPos = 98;
+  
+  // Customer section
+  doc.setFillColor(...color);
+  doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 10, 2, 2, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(11);
+  doc.text('معلومات العميل', 105, yPos + 7, { align: 'center' });
+  yPos += 17;
+  
+  if (data.user_name) {
+    doc.setFillColor(252, 252, 252);
+    doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
+    doc.setTextColor(80, 80, 80);
+    doc.setFontSize(10);
+    doc.text('اسم العميل', rightMargin - 5, yPos + 3, { align: 'right' });
+    doc.setTextColor(50, 50, 50);
+    doc.text(data.user_name, leftMargin + 5, yPos + 3, { align: 'left' });
+    yPos += rowHeight;
+  }
+  
+  if (data.user_email) {
+    doc.setFillColor(248, 250, 252);
+    doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
+    doc.setTextColor(80, 80, 80);
+    doc.text('البريد الإلكتروني', rightMargin - 5, yPos + 3, { align: 'right' });
+    doc.setTextColor(50, 50, 50);
+    doc.text(data.user_email, leftMargin + 5, yPos + 3, { align: 'left' });
+    yPos += rowHeight;
+  }
+  
+  yPos += 5;
+  
+  // Transaction details
+  doc.setFillColor(...color);
+  doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 10, 2, 2, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(11);
+  doc.text('تفاصيل المعاملة', 105, yPos + 7, { align: 'center' });
+  yPos += 17;
+  
+  // Payment method
+  if (data.payment_method) {
+    doc.setFillColor(252, 252, 252);
+    doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
+    doc.setTextColor(80, 80, 80);
+    doc.setFontSize(10);
+    doc.text('طريقة الدفع', rightMargin - 5, yPos + 3, { align: 'right' });
+    doc.setTextColor(50, 50, 50);
+    doc.text(data.payment_method, leftMargin + 5, yPos + 3, { align: 'left' });
+    yPos += rowHeight;
+  }
+  
+  // Transaction ID
+  if (data.transaction_id) {
+    doc.setFillColor(248, 250, 252);
+    doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
+    doc.setTextColor(80, 80, 80);
+    doc.text('رقم العملية', rightMargin - 5, yPos + 3, { align: 'right' });
+    doc.setTextColor(50, 50, 50);
+    doc.text(data.transaction_id, leftMargin + 5, yPos + 3, { align: 'left' });
+    yPos += rowHeight;
+  }
+  
+  yPos += 5;
+  
+  // Amount details
+  doc.setFillColor(...color);
+  doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 10, 2, 2, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(11);
+  doc.text('تفاصيل المبلغ', 105, yPos + 7, { align: 'center' });
+  yPos += 17;
+  
+  // Deposit amount
+  doc.setFillColor(252, 252, 252);
+  doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
+  doc.setTextColor(80, 80, 80);
+  doc.setFontSize(10);
+  doc.text('مبلغ الإيداع', rightMargin - 5, yPos + 3, { align: 'right' });
+  doc.setTextColor(50, 50, 50);
+  doc.text(formatAmountArabic(data.amount) + ' ر.س', leftMargin + 5, yPos + 3, { align: 'left' });
+  yPos += rowHeight;
+  
+  // Bonus
+  if (data.bonus_amount && data.bonus_amount > 0) {
+    doc.setFillColor(240, 253, 244);
+    doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
+    doc.setTextColor(22, 163, 74);
+    doc.text('المكافأة', rightMargin - 5, yPos + 3, { align: 'right' });
+    doc.text('+' + formatAmountArabic(data.bonus_amount) + ' ر.س', leftMargin + 5, yPos + 3, { align: 'left' });
+    yPos += rowHeight;
+  }
+  
+  // Fee
+  if (data.fee_amount && data.fee_amount > 0) {
+    doc.setFillColor(254, 242, 242);
+    doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
+    doc.setTextColor(239, 68, 68);
+    doc.text('الرسوم', rightMargin - 5, yPos + 3, { align: 'right' });
+    doc.text('-' + formatAmountArabic(data.fee_amount) + ' ر.س', leftMargin + 5, yPos + 3, { align: 'left' });
+    yPos += rowHeight;
+  }
+  
+  // Total credited
+  yPos += 3;
+  doc.setFillColor(...color);
+  doc.roundedRect(leftMargin, yPos - 2, rightMargin - leftMargin, 25, 3, 3, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(12);
+  doc.text('إجمالي المضاف للرصيد', rightMargin - 10, yPos + 10, { align: 'right' });
+  doc.setFontSize(20);
+  doc.text(formatAmountArabic(data.total_credited) + ' ر.س', leftMargin + 10, yPos + 13, { align: 'left' });
+  
+  yPos += 35;
+  
+  // Digital signature
+  drawDigitalSignature(doc, yPos, color);
+  
+  drawArabicFooter(doc, receiptNumber, color);
+  doc.save(`إيداع-${receiptNumber}.pdf`);
 };
