@@ -24,10 +24,8 @@ import {
   ShoppingCart,
   TrendingUp,
   Clock,
-  Timer,
   Shield,
   ChevronDown,
-  ChevronUp,
   Info,
   Plus,
   Minus,
@@ -36,13 +34,16 @@ import {
   Package,
   FileText,
   Grid3X3,
-  LayoutList,
+  ArrowRight,
+  Flame,
+  Target,
+  Award,
+  Eye,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -116,7 +117,7 @@ const TwitchIcon = () => (
 );
 
 const socialNetworks = [
-  { id: 'all', name: 'جميع المنصات', keywords: [], icon: Sparkles, gradient: 'from-primary to-primary/80', bgColor: 'bg-primary' },
+  { id: 'all', name: 'جميع المنصات', keywords: [], icon: Sparkles, gradient: 'from-primary to-accent', bgColor: 'bg-gradient-to-br from-primary to-accent' },
   { id: 'instagram', name: 'انستقرام', keywords: ['instagram', 'انستقرام', 'انستا', 'insta'], icon: Instagram, gradient: 'from-[#833AB4] via-[#FD1D1D] to-[#F77737]', bgColor: 'bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#F77737]' },
   { id: 'tiktok', name: 'تيك توك', keywords: ['tiktok', 'تيك توك', 'تيكتوك'], customIcon: TikTokIcon, gradient: 'from-black to-gray-800', bgColor: 'bg-black' },
   { id: 'youtube', name: 'يوتيوب', keywords: ['youtube', 'يوتيوب', 'يوتوب'], icon: Youtube, gradient: 'from-[#FF0000] to-[#CC0000]', bgColor: 'bg-[#FF0000]' },
@@ -132,7 +133,100 @@ const socialNetworks = [
   { id: 'reviews', name: 'تقييمات', keywords: ['review', 'تقييم', 'rating'], icon: Star, gradient: 'from-[#F59E0B] to-[#D97706]', bgColor: 'bg-[#F59E0B]' },
 ];
 
-// Service Card for Browse Tab
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 300,
+      damping: 24,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring" as const,
+      stiffness: 200,
+      damping: 20,
+    },
+  },
+};
+
+const pulseVariants = {
+  pulse: {
+    scale: [1, 1.02, 1],
+    transition: {
+      duration: 2,
+      repeat: Infinity,
+      ease: "easeInOut" as const,
+    },
+  },
+};
+
+const glowVariants = {
+  glow: {
+    boxShadow: [
+      "0 0 20px hsl(var(--primary) / 0.2)",
+      "0 0 40px hsl(var(--primary) / 0.4)",
+      "0 0 20px hsl(var(--primary) / 0.2)",
+    ],
+    transition: {
+      duration: 2,
+      repeat: Infinity,
+      ease: "easeInOut" as const,
+    },
+  },
+};
+
+// Floating particles component
+const FloatingParticles = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    {[...Array(6)].map((_, i) => (
+      <motion.div
+        key={i}
+        className="absolute w-2 h-2 rounded-full bg-primary/20"
+        initial={{ 
+          x: Math.random() * 100 + "%",
+          y: Math.random() * 100 + "%",
+          scale: Math.random() * 0.5 + 0.5,
+        }}
+        animate={{
+          y: [null, "-20%", "120%"],
+          x: [null, `${Math.random() * 20 - 10}%`],
+          opacity: [0, 1, 0],
+        }}
+        transition={{
+          duration: Math.random() * 4 + 4,
+          repeat: Infinity,
+          delay: Math.random() * 2,
+          ease: "linear",
+        }}
+      />
+    ))}
+  </div>
+);
+
+// Interactive Service Card for Browse Tab
 const BrowseServiceCard = ({ 
   service, 
   onOrder, 
@@ -140,6 +234,7 @@ const BrowseServiceCard = ({
   onToggleFavorite,
   parseFeatures,
   convertToSAR,
+  index,
 }: { 
   service: Service; 
   onOrder: (service: Service) => void;
@@ -147,7 +242,9 @@ const BrowseServiceCard = ({
   onToggleFavorite: (id: string) => void;
   parseFeatures: (features: any) => { min: number; max: number; refill: boolean };
   convertToSAR: (price: number) => number;
+  index: number;
 }) => {
+  const [isHovered, setIsHovered] = useState(false);
   const features = parseFeatures(service.features);
   const pricePerK = convertToSAR(service.price);
 
@@ -166,50 +263,217 @@ const BrowseServiceCard = ({
   const CustomIcon = (platform as any).customIcon;
 
   return (
-    <Card className="border border-border/50 bg-card hover:border-primary/30 transition-all rounded-lg overflow-hidden group">
-      <CardContent className="p-3">
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-lg ${platform.bgColor} flex items-center justify-center shrink-0`}>
-            {CustomIcon ? <CustomIcon /> : Icon && <Icon className={cn("w-5 h-5", platform.textColor || "text-white")} />}
-          </div>
+    <motion.div
+      variants={itemVariants}
+      initial="hidden"
+      animate="visible"
+      whileHover={{ scale: 1.02, y: -4 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ delay: index * 0.03 }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+    >
+      <Card className={cn(
+        "relative border border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden transition-all duration-300 rounded-xl group cursor-pointer",
+        isHovered && "border-primary/50 shadow-lg shadow-primary/10"
+      )}>
+        {/* Animated gradient background on hover */}
+        <motion.div 
+          className={cn(
+            "absolute inset-0 bg-gradient-to-r opacity-0 transition-opacity duration-300",
+            platform.gradient
+          )}
+          animate={{ opacity: isHovered ? 0.05 : 0 }}
+        />
+        
+        {/* Glow effect */}
+        <motion.div 
+          className="absolute inset-0 bg-gradient-radial from-primary/10 to-transparent opacity-0"
+          animate={{ opacity: isHovered ? 1 : 0 }}
+          transition={{ duration: 0.3 }}
+        />
 
-          <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">{service.name}</h3>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-              {service.external_service_id && (
-                <span className="text-muted-foreground">#{service.external_service_id}</span>
+        <CardContent className="p-4 relative z-10">
+          <div className="flex items-center gap-4">
+            {/* Platform Icon with animation */}
+            <motion.div 
+              className={`w-12 h-12 rounded-xl ${platform.bgColor} flex items-center justify-center shrink-0 relative overflow-hidden`}
+              whileHover={{ rotate: [0, -5, 5, 0] }}
+              transition={{ duration: 0.4 }}
+            >
+              {CustomIcon ? (
+                <div className={platform.textColor || "text-white"}>
+                  <CustomIcon />
+                </div>
+              ) : Icon && (
+                <Icon className={cn("w-6 h-6", platform.textColor || "text-white")} />
               )}
-              <span>{features.min.toLocaleString()}-{features.max.toLocaleString()}</span>
-              {(service.refill_enabled || features.refill) && (
-                <Badge className="bg-green-500/15 text-green-600 border-0 text-[10px] px-1.5 py-0">ضمان</Badge>
-              )}
+              {/* Shine effect */}
+              <motion.div 
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                initial={{ x: "-100%" }}
+                animate={isHovered ? { x: "100%" } : {}}
+                transition={{ duration: 0.6 }}
+              />
+            </motion.div>
+
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-sm line-clamp-1 group-hover:text-primary transition-colors duration-300">
+                {service.name}
+              </h3>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                {service.external_service_id && (
+                  <span className="font-mono">#{service.external_service_id}</span>
+                )}
+                <span className="flex items-center gap-1">
+                  <Target className="w-3 h-3" />
+                  {features.min.toLocaleString()}-{features.max.toLocaleString()}
+                </span>
+              </div>
+              {/* Badges */}
+              <div className="flex items-center gap-1.5 mt-2">
+                {(service.refill_enabled || features.refill) && (
+                  <Badge className="bg-green-500/15 text-green-600 border-0 text-[10px] px-2 py-0.5 gap-1">
+                    <RefreshCw className="w-2.5 h-2.5" />
+                    ضمان
+                  </Badge>
+                )}
+                {service.refill_days && (
+                  <Badge className="bg-blue-500/15 text-blue-600 border-0 text-[10px] px-2 py-0.5">
+                    {service.refill_days} يوم
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col items-end gap-2 shrink-0">
+              {/* Price with animation */}
+              <motion.div 
+                className="text-left"
+                animate={isHovered ? { scale: 1.05 } : { scale: 1 }}
+              >
+                <span className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  {pricePerK.toFixed(2)}
+                </span>
+                <span className="text-[10px] text-muted-foreground mr-1">ر.س</span>
+              </motion.div>
+              
+              <div className="flex items-center gap-2">
+                {/* Favorite button */}
+                <motion.button
+                  onClick={(e) => { e.stopPropagation(); onToggleFavorite(service.id); }}
+                  className={cn(
+                    "h-9 w-9 rounded-lg flex items-center justify-center transition-colors",
+                    isFavorite ? "bg-rose-500/15 text-rose-500" : "bg-muted hover:bg-rose-500/10 hover:text-rose-500"
+                  )}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <Heart className={cn("w-4 h-4", isFavorite && "fill-current")} />
+                </motion.button>
+                
+                {/* Order button */}
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    size="sm"
+                    onClick={() => onOrder(service)}
+                    className={cn(
+                      "bg-gradient-to-r text-white rounded-lg h-9 px-4 text-xs font-semibold gap-1.5",
+                      platform.gradient
+                    )}
+                  >
+                    <ShoppingCart className="w-3.5 h-3.5" />
+                    اطلب الآن
+                  </Button>
+                </motion.div>
+              </div>
             </div>
           </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+};
 
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="text-left">
-              <span className="text-sm font-bold text-primary">{pricePerK.toFixed(2)}</span>
-              <span className="text-[10px] text-muted-foreground mr-0.5">ر.س</span>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => { e.stopPropagation(); onToggleFavorite(service.id); }}
-              className={cn("h-8 w-8 rounded-md", isFavorite ? "text-rose-500" : "hover:text-rose-500")}
+// Platform selector with animations
+const PlatformSelector = ({ 
+  networks, 
+  selected, 
+  onSelect, 
+  getServiceCount 
+}: { 
+  networks: typeof socialNetworks;
+  selected: string;
+  onSelect: (id: string) => void;
+  getServiceCount: (id: string) => number;
+}) => {
+  return (
+    <motion.div 
+      className="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-4"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {networks.slice(0, 7).map((network, index) => {
+        const Icon = network.icon;
+        const CustomIcon = (network as any).customIcon;
+        const isSelected = selected === network.id;
+        const count = getServiceCount(network.id);
+
+        return (
+          <motion.button
+            key={network.id}
+            variants={itemVariants}
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => onSelect(network.id)}
+            className={cn(
+              "relative flex flex-col items-center gap-1.5 p-2.5 rounded-xl border transition-all duration-300",
+              isSelected 
+                ? "border-primary bg-primary/10 shadow-lg shadow-primary/20" 
+                : "border-border/50 bg-card/50 hover:border-primary/30 hover:bg-primary/5"
+            )}
+          >
+            <motion.div 
+              className={cn(
+                "w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300",
+                isSelected ? network.bgColor : "bg-muted"
+              )}
+              animate={isSelected ? { rotate: [0, -5, 5, 0] } : {}}
+              transition={{ duration: 0.4 }}
             >
-              <Heart className={cn("w-4 h-4", isFavorite && "fill-current")} />
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => onOrder(service)}
-              className={`bg-gradient-to-r ${platform.gradient} text-white rounded-md h-8 px-3 text-xs`}
-            >
-              اطلب
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+              {CustomIcon ? (
+                <div className={isSelected ? (network.textColor || "text-white") : "text-muted-foreground"}>
+                  <CustomIcon />
+                </div>
+              ) : Icon && (
+                <Icon className={cn("w-5 h-5", isSelected ? (network.textColor || "text-white") : "text-muted-foreground")} />
+              )}
+            </motion.div>
+            <span className={cn(
+              "text-[10px] font-medium text-center line-clamp-1",
+              isSelected ? "text-primary" : "text-muted-foreground"
+            )}>
+              {network.name}
+            </span>
+            <AnimatePresence>
+              {isSelected && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center"
+                >
+                  <CheckCircle2 className="w-3 h-3 text-primary-foreground" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        );
+      })}
+    </motion.div>
   );
 };
 
@@ -225,11 +489,11 @@ const SocialMediaServices = () => {
   const [link, setLink] = useState("");
   const [quantity, setQuantity] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [browseSearchQuery, setBrowseSearchQuery] = useState("");
   const [balance, setBalance] = useState(0);
   const [serviceSearchOpen, setServiceSearchOpen] = useState(false);
   const [serviceSearchQuery, setServiceSearchQuery] = useState("");
+  const [showOrderSuccess, setShowOrderSuccess] = useState(false);
 
   // Fetch balance
   const { data: userBalance, refetch: refetchBalance } = useQuery({
@@ -265,7 +529,7 @@ const SocialMediaServices = () => {
     toast.success("تم تحديث الخدمات");
   };
 
-  // Filter social media services (exclude design/dev)
+  // Filter social media services
   const designDevKeywords = ['تصميم', 'شعار', 'لوجو', 'design', 'logo', 'بنر', 'banner', 'هوية', 'برمجة', 'تطوير', 'dev', 'development', 'app'];
   
   const socialMediaServices = useMemo(() => {
@@ -275,7 +539,7 @@ const SocialMediaServices = () => {
     });
   }, [services]);
 
-  // Get services by category/platform
+  // Get services by category
   const getServicesByCategory = useCallback((categoryId: string) => {
     if (categoryId === 'all') return socialMediaServices;
     const network = socialNetworks.find(n => n.id === categoryId);
@@ -286,7 +550,7 @@ const SocialMediaServices = () => {
     });
   }, [socialMediaServices]);
 
-  // Filtered services for selected category
+  // Filtered services
   const categoryServices = useMemo(() => {
     let filtered = getServicesByCategory(selectedCategory);
     if (serviceSearchQuery) {
@@ -299,7 +563,6 @@ const SocialMediaServices = () => {
     return filtered;
   }, [selectedCategory, serviceSearchQuery, getServicesByCategory]);
 
-  // Filtered services for browse tab
   const browseServices = useMemo(() => {
     let filtered = socialMediaServices;
     if (browseSearchQuery) {
@@ -337,19 +600,19 @@ const SocialMediaServices = () => {
     return convertToSAR(priceInUSD);
   }, [selectedService, quantity, convertToSAR]);
 
-  // Get link placeholder based on service
+  // Get link placeholder
   const getLinkPlaceholder = () => {
     if (!selectedService) return "https://...";
     const name = selectedService.name.toLowerCase();
-    if (name.includes('instagram') || name.includes('انستقرام')) return "https://instagram.com/username أو رابط المنشور";
-    if (name.includes('tiktok') || name.includes('تيك توك')) return "https://tiktok.com/@username أو رابط الفيديو";
-    if (name.includes('youtube') || name.includes('يوتيوب')) return "https://youtube.com/watch?v=... أو رابط القناة";
-    if (name.includes('twitter') || name.includes('تويتر')) return "https://twitter.com/username أو رابط التغريدة";
-    if (name.includes('facebook') || name.includes('فيسبوك')) return "https://facebook.com/... رابط الصفحة أو المنشور";
+    if (name.includes('instagram') || name.includes('انستقرام')) return "https://instagram.com/username";
+    if (name.includes('tiktok') || name.includes('تيك توك')) return "https://tiktok.com/@username";
+    if (name.includes('youtube') || name.includes('يوتيوب')) return "https://youtube.com/watch?v=...";
+    if (name.includes('twitter') || name.includes('تويتر')) return "https://twitter.com/username";
+    if (name.includes('facebook') || name.includes('فيسبوك')) return "https://facebook.com/...";
     return "https://...";
   };
 
-  // Handle service selection from dropdown
+  // Handle service selection
   const handleSelectService = (service: Service) => {
     setSelectedService(service);
     const features = parseFeatures(service.features);
@@ -437,6 +700,9 @@ const SocialMediaServices = () => {
         } catch {}
       }
       
+      setShowOrderSuccess(true);
+      setTimeout(() => setShowOrderSuccess(false), 3000);
+      
       toast.success("تم إرسال الطلب بنجاح!", {
         description: `رقم الطلب: ${orderNumber}`,
         action: { label: "عرض الطلبات", onClick: () => navigate('/dashboard/orders') }
@@ -483,441 +749,692 @@ const SocialMediaServices = () => {
   }
 
   const currentFeatures = selectedService ? parseFeatures(selectedService.features) : null;
+  const selectedPlatform = selectedService ? getServicePlatform(selectedService) : null;
 
   return (
     <ClientDashboardLayout>
       <PullToRefresh onRefresh={handleRefresh} className="h-full w-full overflow-x-hidden overflow-y-auto">
-        <div className="w-full min-w-0 max-w-full pb-8 px-2 sm:px-4" dir="rtl">
+        <div className="w-full min-w-0 max-w-full pb-8 px-2 sm:px-4 relative" dir="rtl">
+          {/* Background decoration */}
+          <div className="absolute inset-0 bg-gradient-mesh opacity-30 pointer-events-none" />
+          <FloatingParticles />
           
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4 pt-2">
+          {/* Order Success Animation */}
+          <AnimatePresence>
+            {showOrderSuccess && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.5 }}
+                className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: [0, 1.2, 1] }}
+                  className="bg-green-500 rounded-full p-8"
+                >
+                  <CheckCircle2 className="w-24 h-24 text-white" />
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Header with animation */}
+          <motion.div 
+            className="flex items-center justify-between mb-6 pt-2 relative z-10"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <div className="flex items-center gap-3">
-              <Link to="/dashboard/our-services">
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg">
-                  <ArrowLeft className="w-4 h-4" />
-                </Button>
-              </Link>
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Link to="/dashboard/our-services">
+                  <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-muted/50 backdrop-blur-sm">
+                    <ArrowLeft className="w-5 h-5" />
+                  </Button>
+                </Link>
+              </motion.div>
               <div>
-                <h1 className="text-lg sm:text-xl font-bold">خدمات التواصل الاجتماعي</h1>
-                <p className="text-xs text-muted-foreground hidden sm:block">زد متابعيك وتفاعلك على جميع المنصات</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
-              <Wallet className="w-4 h-4 text-primary" />
-              <span className="text-sm font-bold text-primary">{balance.toFixed(2)} ر.س</span>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full grid grid-cols-2 h-11 mb-4 bg-muted/50">
-              <TabsTrigger value="new-order" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2 text-sm">
-                <ShoppingCart className="w-4 h-4" />
-                طلب جديد
-              </TabsTrigger>
-              <TabsTrigger value="browse" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2 text-sm">
-                <Grid3X3 className="w-4 h-4" />
-                تصفح الخدمات
-              </TabsTrigger>
-            </TabsList>
-
-            {/* New Order Tab */}
-            <TabsContent value="new-order" className="mt-0">
-              <div className="grid lg:grid-cols-[1fr_340px] gap-4">
-                {/* Order Form - Left Column (70%) */}
-                <Card className="border-border/50">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-base font-semibold flex items-center gap-2">
-                      <Package className="w-5 h-5 text-primary" />
-                      نموذج الطلب
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-5">
-                    {/* Category Selection */}
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">المنصة / التصنيف</Label>
-                      <Select value={selectedCategory} onValueChange={(value) => { setSelectedCategory(value); setSelectedService(null); }}>
-                        <SelectTrigger className="h-11 rounded-lg bg-background">
-                          <SelectValue placeholder="اختر المنصة" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-popover border-border z-50">
-                          {socialNetworks.map((network) => {
-                            const Icon = network.icon;
-                            const CustomIcon = (network as any).customIcon;
-                            const count = getServicesByCategory(network.id).length;
-                            return (
-                              <SelectItem key={network.id} value={network.id}>
-                                <div className="flex items-center gap-2">
-                                  <div className={`w-6 h-6 rounded-md ${network.bgColor} flex items-center justify-center`}>
-                                    {CustomIcon ? (
-                                      <div className={network.textColor || "text-white"}>
-                                        <CustomIcon />
-                                      </div>
-                                    ) : Icon && (
-                                      <Icon className={cn("w-3.5 h-3.5", network.textColor || "text-white")} />
-                                    )}
-                                  </div>
-                                  <span>{network.name}</span>
-                                  <Badge variant="secondary" className="mr-auto text-[10px] h-5">{count}</Badge>
-                                </div>
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Service Selection */}
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">الخدمة</Label>
-                      <Popover open={serviceSearchOpen} onOpenChange={setServiceSearchOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={serviceSearchOpen}
-                            className="w-full h-11 justify-between rounded-lg bg-background text-right"
-                          >
-                            {selectedService ? (
-                              <div className="flex items-center gap-2 text-right flex-1 min-w-0">
-                                <span className="truncate">{selectedService.name}</span>
-                                <Badge className="bg-primary/10 text-primary border-0 text-[10px] shrink-0">
-                                  {convertToSAR(selectedService.price).toFixed(2)} ر.س
-                                </Badge>
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground">ابحث واختر الخدمة...</span>
-                            )}
-                            <ChevronDown className="w-4 h-4 shrink-0 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-popover border-border z-50" align="start">
-                          <Command className="bg-transparent">
-                            <CommandInput 
-                              placeholder="ابحث عن خدمة..." 
-                              value={serviceSearchQuery}
-                              onValueChange={setServiceSearchQuery}
-                              className="h-10"
-                            />
-                            <CommandList className="max-h-64">
-                              <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
-                                لا توجد خدمات مطابقة
-                              </CommandEmpty>
-                              <CommandGroup>
-                                {categoryServices.slice(0, 50).map((service) => {
-                                  const features = parseFeatures(service.features);
-                                  const platform = getServicePlatform(service);
-                                  return (
-                                    <CommandItem
-                                      key={service.id}
-                                      value={service.name}
-                                      onSelect={() => handleSelectService(service)}
-                                      className="flex items-center gap-2 py-2.5 px-3 cursor-pointer"
-                                    >
-                                      <div className={`w-7 h-7 rounded-md ${platform.bgColor} flex items-center justify-center shrink-0`}>
-                                        {(() => {
-                                          const CustomIcon = (platform as any).customIcon;
-                                          const Icon = platform.icon;
-                                          if (CustomIcon) {
-                                            return (
-                                              <div className={platform.textColor || "text-white"}>
-                                                <CustomIcon />
-                                              </div>
-                                            );
-                                          }
-                                          if (Icon) {
-                                            return <Icon className={cn("w-3.5 h-3.5", platform.textColor || "text-white")} />;
-                                          }
-                                          return null;
-                                        })()}
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <p className="text-sm truncate">{service.name}</p>
-                                        <p className="text-[10px] text-muted-foreground">
-                                          {service.external_service_id && `#${service.external_service_id} • `}
-                                          {features.min.toLocaleString()}-{features.max.toLocaleString()}
-                                        </p>
-                                      </div>
-                                      <Badge className="bg-primary/10 text-primary border-0 text-[10px] shrink-0">
-                                        {convertToSAR(service.price).toFixed(2)}
-                                      </Badge>
-                                    </CommandItem>
-                                  );
-                                })}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                      {categoryServices.length > 50 && (
-                        <p className="text-[11px] text-muted-foreground">يتم عرض أول 50 خدمة، استخدم البحث للمزيد</p>
-                      )}
-                    </div>
-
-                    {/* Link Input */}
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium flex items-center gap-2">
-                        <LinkIcon className="w-4 h-4 text-primary" />
-                        الرابط
-                      </Label>
-                      <Input
-                        value={link}
-                        onChange={(e) => setLink(e.target.value)}
-                        placeholder={getLinkPlaceholder()}
-                        className="h-11 rounded-lg bg-background"
-                        dir="ltr"
-                      />
-                    </div>
-
-                    {/* Quantity Input */}
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-primary" />
-                        الكمية
-                      </Label>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={decrementQuantity}
-                          disabled={!selectedService}
-                          className="h-11 w-11 rounded-lg shrink-0"
-                        >
-                          <Minus className="w-4 h-4" />
-                        </Button>
-                        <Input
-                          type="number"
-                          value={quantity}
-                          onChange={(e) => setQuantity(e.target.value)}
-                          placeholder="أدخل الكمية"
-                          className="h-11 rounded-lg bg-background text-center flex-1"
-                          dir="ltr"
-                        />
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={incrementQuantity}
-                          disabled={!selectedService}
-                          className="h-11 w-11 rounded-lg shrink-0"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      {currentFeatures && (
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>الحد الأدنى: {currentFeatures.min.toLocaleString()}</span>
-                          <span>الحد الأقصى: {currentFeatures.max.toLocaleString()}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Price Summary */}
-                    <div className="p-4 rounded-xl bg-muted/50 border border-border space-y-3">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">السعر / 1000:</span>
-                        <span className="font-medium">{selectedService ? convertToSAR(selectedService.price).toFixed(2) : '0.00'} ر.س</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">الكمية:</span>
-                        <span className="font-medium">{parseInt(quantity) ? parseInt(quantity).toLocaleString() : 0}</span>
-                      </div>
-                      <div className="h-px bg-border" />
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold">الإجمالي:</span>
-                        <span className="text-xl font-bold text-primary">{totalPrice.toFixed(2)} ر.س</span>
-                      </div>
-                      
-                      {userBalance && (
-                        <div className="flex items-center justify-between text-sm pt-1">
-                          <span className="text-muted-foreground">رصيدك الحالي:</span>
-                          <span className={cn("font-medium", userBalance.balance >= totalPrice ? "text-green-600" : "text-red-500")}>
-                            {userBalance.balance.toFixed(2)} ر.س
-                          </span>
-                        </div>
-                      )}
-                      
-                      {userBalance && userBalance.balance < totalPrice && totalPrice > 0 && (
-                        <Button
-                          variant="outline"
-                          onClick={() => navigate('/dashboard/deposit')}
-                          className="w-full gap-2 border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
-                        >
-                          <Wallet className="w-4 h-4" />
-                          شحن الرصيد
-                        </Button>
-                      )}
-                    </div>
-
-                    {/* Submit Button */}
-                    <Button
-                      onClick={handleSubmit}
-                      disabled={isSubmitting || !selectedService || !link || !quantity || (userBalance && userBalance.balance < totalPrice)}
-                      className="w-full h-12 text-base font-semibold rounded-xl gap-2"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          جاري تنفيذ الطلب...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="w-5 h-5" />
-                          تنفيذ الطلب
-                        </>
-                      )}
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Service Details Card - Right Column (30%) */}
-                <Card className="border-border/50 h-fit lg:sticky lg:top-4">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base font-semibold flex items-center gap-2">
-                      <Info className="w-5 h-5 text-primary" />
-                      تفاصيل الخدمة
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {selectedService ? (
-                      <div className="space-y-4">
-                        {/* Service Name */}
-                        <div className="p-3 rounded-lg bg-muted/50 border border-border">
-                          <h3 className="font-medium text-sm leading-relaxed">{selectedService.name}</h3>
-                          {selectedService.external_service_id && (
-                            <p className="text-xs text-muted-foreground mt-1">#{selectedService.external_service_id}</p>
-                          )}
-                        </div>
-
-                        {/* Stats Grid */}
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 text-center">
-                            <p className="text-xs text-muted-foreground mb-1">السعر / 1000</p>
-                            <p className="text-lg font-bold text-primary">{convertToSAR(selectedService.price).toFixed(2)}</p>
-                            <p className="text-[10px] text-muted-foreground">ر.س</p>
-                          </div>
-                          <div className="p-3 rounded-lg bg-muted/50 border border-border text-center">
-                            <p className="text-xs text-muted-foreground mb-1">الحد الأدنى</p>
-                            <p className="text-lg font-bold">{currentFeatures?.min.toLocaleString()}</p>
-                          </div>
-                          <div className="p-3 rounded-lg bg-muted/50 border border-border text-center">
-                            <p className="text-xs text-muted-foreground mb-1">الحد الأقصى</p>
-                            <p className="text-lg font-bold">{currentFeatures?.max.toLocaleString()}</p>
-                          </div>
-                          <div className="p-3 rounded-lg bg-muted/50 border border-border text-center">
-                            <p className="text-xs text-muted-foreground mb-1">وقت البدء</p>
-                            <div className="flex items-center justify-center gap-1">
-                              <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                              <p className="text-sm font-bold">0-1 ساعة</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Speed */}
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border">
-                          <Zap className="w-5 h-5 text-amber-500" />
-                          <div>
-                            <p className="text-sm font-medium">سرعة التنفيذ</p>
-                            <p className="text-xs text-muted-foreground">100 - 10K / يوم</p>
-                          </div>
-                        </div>
-
-                        {/* Badges */}
-                        <div className="flex flex-wrap gap-2">
-                          {(selectedService.refill_enabled || currentFeatures?.refill) && (
-                            <Badge className="bg-green-500/15 text-green-600 border-green-500/30 gap-1">
-                              <RefreshCw className="w-3 h-3" />
-                              ضمان تعويض
-                            </Badge>
-                          )}
-                          {selectedService.refill_days && (
-                            <Badge className="bg-blue-500/15 text-blue-600 border-blue-500/30 gap-1">
-                              <Shield className="w-3 h-3" />
-                              {selectedService.refill_days} يوم
-                            </Badge>
-                          )}
-                          <Badge className="bg-primary/15 text-primary border-primary/30 gap-1">
-                            <Zap className="w-3 h-3" />
-                            تنفيذ فوري
-                          </Badge>
-                        </div>
-
-                        {/* Description */}
-                        {selectedService.description && (
-                          <div className="space-y-2">
-                            <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                              <FileText className="w-3.5 h-3.5" />
-                              الوصف
-                            </Label>
-                            <ScrollArea className="h-24 rounded-lg border border-border p-3">
-                              <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                                {selectedService.description}
-                              </p>
-                            </ScrollArea>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center mx-auto mb-3">
-                          <Package className="w-8 h-8 text-muted-foreground" />
-                        </div>
-                        <p className="text-sm text-muted-foreground">اختر خدمة لعرض التفاصيل</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* Browse Services Tab */}
-            <TabsContent value="browse" className="mt-0">
-              {/* Search */}
-              <div className="mb-4">
-                <div className="relative">
-                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="ابحث عن خدمة..."
-                    value={browseSearchQuery}
-                    onChange={(e) => setBrowseSearchQuery(e.target.value)}
-                    className="pr-10 h-11 rounded-lg"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {browseServices.length} خدمة متاحة
+                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  خدمات التواصل الاجتماعي
+                </h1>
+                <p className="text-xs text-muted-foreground hidden sm:block">
+                  زد متابعيك وتفاعلك على جميع المنصات بأسعار منافسة
                 </p>
               </div>
+            </div>
+            
+            {/* Balance Card with glow */}
+            <motion.div 
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 backdrop-blur-sm"
+              whileHover={{ scale: 1.02 }}
+              variants={glowVariants}
+              animate="glow"
+            >
+              <motion.div
+                animate={{ rotate: [0, 15, -15, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Wallet className="w-5 h-5 text-primary" />
+              </motion.div>
+              <span className="text-base font-bold text-primary">{balance.toFixed(2)}</span>
+              <span className="text-xs text-muted-foreground">ر.س</span>
+            </motion.div>
+          </motion.div>
 
-              {/* Services List */}
-              <div className="space-y-2">
-                {browseServices.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mx-auto mb-3">
-                      <Search className="w-7 h-7 text-muted-foreground" />
+          {/* Tabs with animation */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full relative z-10">
+              <TabsList className="w-full grid grid-cols-2 h-12 mb-6 bg-muted/50 backdrop-blur-sm rounded-xl p-1">
+                <TabsTrigger 
+                  value="new-order" 
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-primary-foreground gap-2 text-sm font-semibold rounded-lg transition-all duration-300"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  طلب جديد
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="browse" 
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-primary-foreground gap-2 text-sm font-semibold rounded-lg transition-all duration-300"
+                >
+                  <Grid3X3 className="w-4 h-4" />
+                  تصفح الخدمات
+                  <Badge variant="secondary" className="mr-1 text-[10px]">
+                    {socialMediaServices.length}
+                  </Badge>
+                </TabsTrigger>
+              </TabsList>
+
+              {/* New Order Tab */}
+              <TabsContent value="new-order" className="mt-0">
+                <motion.div 
+                  className="grid lg:grid-cols-[1fr_380px] gap-6"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  {/* Order Form */}
+                  <motion.div variants={cardVariants}>
+                    <Card className="border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden">
+                      <CardHeader className="pb-4 border-b border-border/50">
+                        <CardTitle className="text-lg font-bold flex items-center gap-3">
+                          <motion.div 
+                            className="w-10 h-10 rounded-xl bg-gradient-to-r from-primary to-accent flex items-center justify-center"
+                            animate={{ rotate: [0, 5, -5, 0] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          >
+                            <Package className="w-5 h-5 text-primary-foreground" />
+                          </motion.div>
+                          نموذج الطلب
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-6 p-6">
+                        {/* Platform Selector */}
+                        <PlatformSelector
+                          networks={socialNetworks}
+                          selected={selectedCategory}
+                          onSelect={(id) => { setSelectedCategory(id); setSelectedService(null); }}
+                          getServiceCount={(id) => getServicesByCategory(id).length}
+                        />
+
+                        {/* Service Selection */}
+                        <motion.div 
+                          className="space-y-2"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.3 }}
+                        >
+                          <Label className="text-sm font-semibold flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-primary" />
+                            الخدمة
+                          </Label>
+                          <Popover open={serviceSearchOpen} onOpenChange={setServiceSearchOpen}>
+                            <PopoverTrigger asChild>
+                              <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={serviceSearchOpen}
+                                  className="w-full h-14 justify-between rounded-xl bg-muted/50 border-2 border-border hover:border-primary/50 text-right transition-all duration-300"
+                                >
+                                  {selectedService ? (
+                                    <div className="flex items-center gap-3 text-right flex-1 min-w-0">
+                                      {selectedPlatform && (
+                                        <div className={`w-8 h-8 rounded-lg ${selectedPlatform.bgColor} flex items-center justify-center shrink-0`}>
+                                          {(() => {
+                                            const CustomIcon = (selectedPlatform as any).customIcon;
+                                            const Icon = selectedPlatform.icon;
+                                            if (CustomIcon) return <div className={selectedPlatform.textColor || "text-white"}><CustomIcon /></div>;
+                                            if (Icon) return <Icon className={cn("w-4 h-4", selectedPlatform.textColor || "text-white")} />;
+                                            return null;
+                                          })()}
+                                        </div>
+                                      )}
+                                      <span className="truncate font-medium">{selectedService.name}</span>
+                                      <Badge className="bg-primary/15 text-primary border-0 text-xs shrink-0 ml-auto">
+                                        {convertToSAR(selectedService.price).toFixed(2)} ر.س
+                                      </Badge>
+                                    </div>
+                                  ) : (
+                                    <span className="text-muted-foreground flex items-center gap-2">
+                                      <Search className="w-4 h-4" />
+                                      ابحث واختر الخدمة...
+                                    </span>
+                                  )}
+                                  <ChevronDown className="w-5 h-5 shrink-0 opacity-50" />
+                                </Button>
+                              </motion.div>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-popover/95 backdrop-blur-xl border-border z-50 rounded-xl" align="start">
+                              <Command className="bg-transparent">
+                                <CommandInput 
+                                  placeholder="ابحث عن خدمة..." 
+                                  value={serviceSearchQuery}
+                                  onValueChange={setServiceSearchQuery}
+                                  className="h-12"
+                                />
+                                <CommandList className="max-h-72">
+                                  <CommandEmpty className="py-8 text-center text-sm text-muted-foreground">
+                                    <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                    لا توجد خدمات مطابقة
+                                  </CommandEmpty>
+                                  <CommandGroup>
+                                    {categoryServices.slice(0, 50).map((service, index) => {
+                                      const features = parseFeatures(service.features);
+                                      const platform = getServicePlatform(service);
+                                      return (
+                                        <CommandItem
+                                          key={service.id}
+                                          value={service.name}
+                                          onSelect={() => handleSelectService(service)}
+                                          className="flex items-center gap-3 py-3 px-3 cursor-pointer rounded-lg m-1 hover:bg-primary/10"
+                                        >
+                                          <div className={`w-9 h-9 rounded-lg ${platform.bgColor} flex items-center justify-center shrink-0`}>
+                                            {(() => {
+                                              const CustomIcon = (platform as any).customIcon;
+                                              const Icon = platform.icon;
+                                              if (CustomIcon) return <div className={platform.textColor || "text-white"}><CustomIcon /></div>;
+                                              if (Icon) return <Icon className={cn("w-4 h-4", platform.textColor || "text-white")} />;
+                                              return null;
+                                            })()}
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium truncate">{service.name}</p>
+                                            <p className="text-[11px] text-muted-foreground">
+                                              {service.external_service_id && `#${service.external_service_id} • `}
+                                              {features.min.toLocaleString()}-{features.max.toLocaleString()}
+                                            </p>
+                                          </div>
+                                          <Badge className="bg-primary/15 text-primary border-0 text-xs shrink-0">
+                                            {convertToSAR(service.price).toFixed(2)}
+                                          </Badge>
+                                        </CommandItem>
+                                      );
+                                    })}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </motion.div>
+
+                        {/* Link Input */}
+                        <motion.div 
+                          className="space-y-2"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.4 }}
+                        >
+                          <Label className="text-sm font-semibold flex items-center gap-2">
+                            <LinkIcon className="w-4 h-4 text-primary" />
+                            الرابط
+                          </Label>
+                          <div className="relative">
+                            <Input
+                              value={link}
+                              onChange={(e) => setLink(e.target.value)}
+                              placeholder={getLinkPlaceholder()}
+                              className="h-14 rounded-xl bg-muted/50 border-2 border-border hover:border-primary/50 focus:border-primary pr-12 transition-all duration-300"
+                              dir="ltr"
+                            />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                              <Globe className="w-5 h-5 text-muted-foreground" />
+                            </div>
+                          </div>
+                        </motion.div>
+
+                        {/* Quantity Input */}
+                        <motion.div 
+                          className="space-y-2"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.5 }}
+                        >
+                          <Label className="text-sm font-semibold flex items-center gap-2">
+                            <TrendingUp className="w-4 h-4 text-primary" />
+                            الكمية
+                          </Label>
+                          <div className="flex items-center gap-3">
+                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={decrementQuantity}
+                                disabled={!selectedService}
+                                className="h-14 w-14 rounded-xl border-2 shrink-0 hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive"
+                              >
+                                <Minus className="w-5 h-5" />
+                              </Button>
+                            </motion.div>
+                            <Input
+                              type="number"
+                              value={quantity}
+                              onChange={(e) => setQuantity(e.target.value)}
+                              placeholder="أدخل الكمية"
+                              className="h-14 rounded-xl bg-muted/50 border-2 border-border hover:border-primary/50 text-center text-lg font-bold flex-1 transition-all duration-300"
+                              dir="ltr"
+                            />
+                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={incrementQuantity}
+                                disabled={!selectedService}
+                                className="h-14 w-14 rounded-xl border-2 shrink-0 hover:bg-green-500/10 hover:border-green-500/50 hover:text-green-500"
+                              >
+                                <Plus className="w-5 h-5" />
+                              </Button>
+                            </motion.div>
+                          </div>
+                          {currentFeatures && (
+                            <motion.div 
+                              className="flex items-center justify-between text-xs text-muted-foreground bg-muted/30 p-2 rounded-lg"
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                            >
+                              <span className="flex items-center gap-1">
+                                <Target className="w-3 h-3" />
+                                الحد الأدنى: {currentFeatures.min.toLocaleString()}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Flame className="w-3 h-3" />
+                                الحد الأقصى: {currentFeatures.max.toLocaleString()}
+                              </span>
+                            </motion.div>
+                          )}
+                        </motion.div>
+
+                        {/* Price Summary Card */}
+                        <motion.div 
+                          className="p-5 rounded-2xl bg-gradient-to-br from-primary/5 to-accent/5 border-2 border-primary/20 space-y-4"
+                          variants={pulseVariants}
+                          animate={totalPrice > 0 ? "pulse" : ""}
+                        >
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-muted-foreground flex items-center gap-2">
+                              <Award className="w-4 h-4" />
+                              السعر / 1000:
+                            </span>
+                            <span className="font-semibold">{selectedService ? convertToSAR(selectedService.price).toFixed(2) : '0.00'} ر.س</span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-muted-foreground flex items-center gap-2">
+                              <Eye className="w-4 h-4" />
+                              الكمية:
+                            </span>
+                            <span className="font-semibold">{parseInt(quantity) ? parseInt(quantity).toLocaleString() : 0}</span>
+                          </div>
+                          <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold text-lg">الإجمالي:</span>
+                            <motion.span 
+                              className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"
+                              key={totalPrice}
+                              initial={{ scale: 1.2, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                            >
+                              {totalPrice.toFixed(2)} ر.س
+                            </motion.span>
+                          </div>
+                          
+                          {userBalance && (
+                            <div className="flex items-center justify-between text-sm pt-2 border-t border-border/50">
+                              <span className="text-muted-foreground">رصيدك الحالي:</span>
+                              <span className={cn(
+                                "font-bold",
+                                userBalance.balance >= totalPrice ? "text-green-500" : "text-destructive"
+                              )}>
+                                {userBalance.balance.toFixed(2)} ر.س
+                              </span>
+                            </div>
+                          )}
+                          
+                          {userBalance && userBalance.balance < totalPrice && totalPrice > 0 && (
+                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                              <Button
+                                variant="outline"
+                                onClick={() => navigate('/dashboard/deposit')}
+                                className="w-full gap-2 border-amber-500/50 text-amber-600 hover:bg-amber-500/10 rounded-xl h-12"
+                              >
+                                <Wallet className="w-4 h-4" />
+                                شحن الرصيد الآن
+                                <ArrowRight className="w-4 h-4" />
+                              </Button>
+                            </motion.div>
+                          )}
+                        </motion.div>
+
+                        {/* Submit Button */}
+                        <motion.div 
+                          whileHover={{ scale: 1.02 }} 
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <Button
+                            onClick={handleSubmit}
+                            disabled={isSubmitting || !selectedService || !link || !quantity || (userBalance && userBalance.balance < totalPrice)}
+                            className="w-full h-14 text-lg font-bold rounded-xl gap-3 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 transition-all duration-300 shadow-lg shadow-primary/25"
+                          >
+                            {isSubmitting ? (
+                              <>
+                                <Loader2 className="w-6 h-6 animate-spin" />
+                                جاري تنفيذ الطلب...
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle2 className="w-6 h-6" />
+                                تنفيذ الطلب
+                                <motion.div
+                                  animate={{ x: [0, 5, 0] }}
+                                  transition={{ duration: 1.5, repeat: Infinity }}
+                                >
+                                  <ArrowLeft className="w-5 h-5" />
+                                </motion.div>
+                              </>
+                            )}
+                          </Button>
+                        </motion.div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+
+                  {/* Service Details Card */}
+                  <motion.div variants={cardVariants}>
+                    <Card className="border-border/50 bg-card/80 backdrop-blur-sm h-fit lg:sticky lg:top-4 overflow-hidden">
+                      <CardHeader className="pb-3 border-b border-border/50">
+                        <CardTitle className="text-lg font-bold flex items-center gap-3">
+                          <motion.div 
+                            className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center"
+                            animate={{ rotate: [0, 10, -10, 0] }}
+                            transition={{ duration: 3, repeat: Infinity }}
+                          >
+                            <Info className="w-5 h-5 text-primary" />
+                          </motion.div>
+                          تفاصيل الخدمة
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-5">
+                        <AnimatePresence mode="wait">
+                          {selectedService ? (
+                            <motion.div 
+                              key={selectedService.id}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -20 }}
+                              className="space-y-5"
+                            >
+                              {/* Service Name with Platform Icon */}
+                              <motion.div 
+                                className="p-4 rounded-xl bg-gradient-to-r from-muted/50 to-muted/30 border border-border"
+                                whileHover={{ scale: 1.01 }}
+                              >
+                                <div className="flex items-start gap-3">
+                                  {selectedPlatform && (
+                                    <div className={`w-12 h-12 rounded-xl ${selectedPlatform.bgColor} flex items-center justify-center shrink-0`}>
+                                      {(() => {
+                                        const CustomIcon = (selectedPlatform as any).customIcon;
+                                        const Icon = selectedPlatform.icon;
+                                        if (CustomIcon) return <div className={selectedPlatform.textColor || "text-white"}><CustomIcon /></div>;
+                                        if (Icon) return <Icon className={cn("w-6 h-6", selectedPlatform.textColor || "text-white")} />;
+                                        return null;
+                                      })()}
+                                    </div>
+                                  )}
+                                  <div>
+                                    <h3 className="font-bold text-sm leading-relaxed">{selectedService.name}</h3>
+                                    {selectedService.external_service_id && (
+                                      <p className="text-xs text-muted-foreground mt-1 font-mono">#{selectedService.external_service_id}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              </motion.div>
+
+                              {/* Stats Grid with animations */}
+                              <div className="grid grid-cols-2 gap-3">
+                                <motion.div 
+                                  className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 text-center"
+                                  whileHover={{ scale: 1.03, y: -2 }}
+                                >
+                                  <p className="text-xs text-muted-foreground mb-1">السعر / 1000</p>
+                                  <p className="text-2xl font-bold text-primary">{convertToSAR(selectedService.price).toFixed(2)}</p>
+                                  <p className="text-[10px] text-muted-foreground">ر.س</p>
+                                </motion.div>
+                                <motion.div 
+                                  className="p-4 rounded-xl bg-muted/50 border border-border text-center"
+                                  whileHover={{ scale: 1.03, y: -2 }}
+                                >
+                                  <p className="text-xs text-muted-foreground mb-1">الحد الأدنى</p>
+                                  <p className="text-2xl font-bold">{currentFeatures?.min.toLocaleString()}</p>
+                                </motion.div>
+                                <motion.div 
+                                  className="p-4 rounded-xl bg-muted/50 border border-border text-center"
+                                  whileHover={{ scale: 1.03, y: -2 }}
+                                >
+                                  <p className="text-xs text-muted-foreground mb-1">الحد الأقصى</p>
+                                  <p className="text-2xl font-bold">{currentFeatures?.max.toLocaleString()}</p>
+                                </motion.div>
+                                <motion.div 
+                                  className="p-4 rounded-xl bg-muted/50 border border-border text-center"
+                                  whileHover={{ scale: 1.03, y: -2 }}
+                                >
+                                  <p className="text-xs text-muted-foreground mb-1">وقت البدء</p>
+                                  <div className="flex items-center justify-center gap-1">
+                                    <Clock className="w-4 h-4 text-muted-foreground" />
+                                    <p className="text-sm font-bold">0-1 ساعة</p>
+                                  </div>
+                                </motion.div>
+                              </div>
+
+                              {/* Speed indicator */}
+                              <motion.div 
+                                className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20"
+                                whileHover={{ scale: 1.02 }}
+                              >
+                                <motion.div
+                                  animate={{ rotate: [0, 360] }}
+                                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                                >
+                                  <Zap className="w-6 h-6 text-amber-500" />
+                                </motion.div>
+                                <div>
+                                  <p className="text-sm font-bold">سرعة التنفيذ</p>
+                                  <p className="text-xs text-muted-foreground">100 - 10K / يوم</p>
+                                </div>
+                              </motion.div>
+
+                              {/* Badges with animation */}
+                              <motion.div 
+                                className="flex flex-wrap gap-2"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.3 }}
+                              >
+                                {(selectedService.refill_enabled || currentFeatures?.refill) && (
+                                  <motion.div whileHover={{ scale: 1.05 }}>
+                                    <Badge className="bg-green-500/15 text-green-600 border-green-500/30 gap-1.5 px-3 py-1.5">
+                                      <RefreshCw className="w-3.5 h-3.5" />
+                                      ضمان تعويض
+                                    </Badge>
+                                  </motion.div>
+                                )}
+                                {selectedService.refill_days && (
+                                  <motion.div whileHover={{ scale: 1.05 }}>
+                                    <Badge className="bg-blue-500/15 text-blue-600 border-blue-500/30 gap-1.5 px-3 py-1.5">
+                                      <Shield className="w-3.5 h-3.5" />
+                                      {selectedService.refill_days} يوم
+                                    </Badge>
+                                  </motion.div>
+                                )}
+                                <motion.div whileHover={{ scale: 1.05 }}>
+                                  <Badge className="bg-primary/15 text-primary border-primary/30 gap-1.5 px-3 py-1.5">
+                                    <Zap className="w-3.5 h-3.5" />
+                                    تنفيذ فوري
+                                  </Badge>
+                                </motion.div>
+                              </motion.div>
+
+                              {/* Description */}
+                              {selectedService.description && (
+                                <motion.div 
+                                  className="space-y-2"
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: "auto" }}
+                                >
+                                  <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                                    <FileText className="w-3.5 h-3.5" />
+                                    الوصف
+                                  </Label>
+                                  <ScrollArea className="h-28 rounded-xl border border-border p-4 bg-muted/30">
+                                    <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                                      {selectedService.description}
+                                    </p>
+                                  </ScrollArea>
+                                </motion.div>
+                              )}
+                            </motion.div>
+                          ) : (
+                            <motion.div 
+                              key="empty"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="text-center py-12"
+                            >
+                              <motion.div 
+                                className="w-20 h-20 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4"
+                                animate={{ 
+                                  rotate: [0, 5, -5, 0],
+                                  y: [0, -5, 0],
+                                }}
+                                transition={{ duration: 3, repeat: Infinity }}
+                              >
+                                <Package className="w-10 h-10 text-muted-foreground" />
+                              </motion.div>
+                              <p className="text-sm text-muted-foreground font-medium">اختر خدمة لعرض التفاصيل</p>
+                              <p className="text-xs text-muted-foreground mt-1">ستظهر هنا جميع معلومات الخدمة</p>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </motion.div>
+              </TabsContent>
+
+              {/* Browse Services Tab */}
+              <TabsContent value="browse" className="mt-0">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  {/* Search with animation */}
+                  <motion.div 
+                    className="mb-6"
+                    initial={{ y: -20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                  >
+                    <div className="relative">
+                      <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        placeholder="ابحث عن خدمة..."
+                        value={browseSearchQuery}
+                        onChange={(e) => setBrowseSearchQuery(e.target.value)}
+                        className="pr-12 h-14 rounded-xl bg-muted/50 border-2 border-border hover:border-primary/50 focus:border-primary text-base transition-all duration-300"
+                      />
                     </div>
-                    <h3 className="text-base font-bold mb-1">لا توجد خدمات</h3>
-                    <p className="text-muted-foreground text-xs">
-                      {browseSearchQuery ? "لم يتم العثور على خدمات مطابقة" : "سيتم إضافة الخدمات قريباً"}
-                    </p>
-                  </div>
-                ) : (
-                  browseServices.map((service) => (
-                    <BrowseServiceCard
-                      key={service.id}
-                      service={service}
-                      onOrder={(s) => {
-                        handleSelectService(s);
-                        setActiveTab("new-order");
-                      }}
-                      isFavorite={favorites.includes(service.id)}
-                      onToggleFavorite={toggleFavorite}
-                      parseFeatures={parseFeatures}
-                      convertToSAR={convertToSAR}
-                    />
-                  ))
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
+                    <div className="flex items-center justify-between mt-3">
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-bold text-foreground">{browseServices.length}</span> خدمة متاحة
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="gap-1">
+                          <Flame className="w-3 h-3 text-orange-500" />
+                          الأكثر طلباً
+                        </Badge>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Services List */}
+                  <motion.div 
+                    className="space-y-3"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    {browseServices.length === 0 ? (
+                      <motion.div 
+                        className="text-center py-16"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                      >
+                        <motion.div 
+                          className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4"
+                          animate={{ rotate: [0, 10, -10, 0] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          <Search className="w-10 h-10 text-muted-foreground" />
+                        </motion.div>
+                        <h3 className="text-lg font-bold mb-2">لا توجد خدمات</h3>
+                        <p className="text-muted-foreground text-sm">
+                          {browseSearchQuery ? "لم يتم العثور على خدمات مطابقة" : "سيتم إضافة الخدمات قريباً"}
+                        </p>
+                      </motion.div>
+                    ) : (
+                      browseServices.slice(0, 50).map((service, index) => (
+                        <BrowseServiceCard
+                          key={service.id}
+                          service={service}
+                          onOrder={(s) => {
+                            handleSelectService(s);
+                            setActiveTab("new-order");
+                          }}
+                          isFavorite={favorites.includes(service.id)}
+                          onToggleFavorite={toggleFavorite}
+                          parseFeatures={parseFeatures}
+                          convertToSAR={convertToSAR}
+                          index={index}
+                        />
+                      ))
+                    )}
+                    {browseServices.length > 50 && (
+                      <motion.p 
+                        className="text-center text-sm text-muted-foreground py-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                      >
+                        يتم عرض أول 50 خدمة، استخدم البحث لإيجاد المزيد
+                      </motion.p>
+                    )}
+                  </motion.div>
+                </motion.div>
+              </TabsContent>
+            </Tabs>
+          </motion.div>
         </div>
       </PullToRefresh>
     </ClientDashboardLayout>
