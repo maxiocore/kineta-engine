@@ -394,8 +394,8 @@ export default function ClientFinancing() {
         )}
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-muted/50 flex-wrap">
+        <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
+          <TabsList className="bg-muted/50 flex-wrap flex-row-reverse justify-end">
             <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
             <TabsTrigger value="applications">طلباتي ({applications.length})</TabsTrigger>
             {activeApplications.length > 0 && (
