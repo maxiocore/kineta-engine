@@ -30,7 +30,7 @@ import {
   Wallet,
   Ban,
 } from "lucide-react";
-import { sendFinancingNewApplicationEmail } from "@/lib/emailService";
+import { sendFinancingNewApplicationEmail, sendFinancingApplicationReceivedEmail } from "@/lib/emailService";
 
 interface FinancingPlan {
   id: string;
@@ -103,6 +103,11 @@ export default function FinancingApply() {
 
       if (error) throw error;
 
+      const selectedPlanData = plans.find(p => p.id === selectedPlanId);
+      const monthlyInstallmentCalc = selectedPlanData 
+        ? parseFloat(formData.requested_amount) / selectedPlanData.installments_count 
+        : 0;
+
       // Send email notification to admin
       try {
         await sendFinancingNewApplicationEmail("info@maxiocore.com", {
@@ -116,6 +121,20 @@ export default function FinancingApply() {
         console.log("Admin notification email sent successfully");
       } catch (emailError) {
         console.error("Failed to send admin notification:", emailError);
+      }
+
+      // Send confirmation email to customer
+      try {
+        await sendFinancingApplicationReceivedEmail(formData.email, {
+          name: formData.full_name,
+          applicationNumber,
+          requestedAmount: parseFloat(formData.requested_amount),
+          installmentsCount: selectedPlanData?.installments_count || 0,
+          monthlyInstallment: monthlyInstallmentCalc,
+        });
+        console.log("Customer confirmation email sent successfully");
+      } catch (emailError) {
+        console.error("Failed to send customer confirmation:", emailError);
       }
     },
     onSuccess: () => {

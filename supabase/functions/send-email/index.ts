@@ -33,6 +33,7 @@ type EmailType =
   | 'financing_new_application'
   | 'financing_documents_required'
   | 'financing_under_review'
+  | 'financing_application_received'
   | 'custom';
 
 interface EmailRequest {
@@ -711,6 +712,32 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           ${createNoticeBox('⏰ يرجى مراجعة الطلب واتخاذ القرار في أقرب وقت ممكن.', '#f0f9ff', '#0369a1', '#0ea5e9')}
           
           ${createCTAButton('مراجعة الطلب')}
+        `
+      };
+
+    case 'financing_application_received':
+      return {
+        subject: `✅ تم استلام طلب التمويل #${data.applicationNumber} - MaxioCore`,
+        content: `
+          ${createIconCircle('✅', 'linear-gradient(135deg, #10b981 0%, #059669 100%)')}
+          ${createGreeting(`مرحباً ${data.name}! 🎉`)}
+          ${createMessage('تم استلام طلب التمويل الخاص بك بنجاح وهو الآن قيد المراجعة. سيتم إشعارك بالنتيجة عبر البريد الإلكتروني.')}
+          
+          ${createHighlightBox(`${formatAmountArabic(data.requestedAmount)} ر.س`, 'المبلغ المطلوب', 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)')}
+          
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.applicationNumber },
+            { label: 'المبلغ المطلوب', value: `${formatAmountArabic(data.requestedAmount)} ر.س` },
+            { label: 'عدد الأقساط', value: `${data.installmentsCount} قسط` },
+            { label: 'القسط الشهري المتوقع', value: `${formatAmountArabic(data.monthlyInstallment)} ر.س`, valueColor: '#6366f1' },
+            { label: 'الحالة', value: 'قيد المراجعة', isStatus: true, statusColor: '#fef3c7', valueColor: '#92400e' }
+          ])}
+          
+          ${createNoticeBox('⏳ عادةً ما يتم مراجعة الطلبات خلال 24-48 ساعة عمل. سنتواصل معك في حال احتجنا لأي معلومات إضافية.', '#f0f9ff', '#0369a1', '#0ea5e9')}
+          
+          ${createMessage('شكراً لثقتك بـ MaxioCore. نتطلع لخدمتك!')}
+          
+          ${createCTAButton('متابعة طلبك')}
         `
       };
 

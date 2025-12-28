@@ -22,6 +22,7 @@ export type EmailType =
   | 'financing_new_application'
   | 'financing_documents_required'
   | 'financing_under_review'
+  | 'financing_application_received'
   | 'custom';
 
 interface SendEmailParams {
@@ -391,6 +392,23 @@ export async function sendFinancingUnderReviewEmail(
   return sendEmail({
     to: email,
     type: 'financing_under_review',
+    data,
+  });
+}
+
+export async function sendFinancingApplicationReceivedEmail(
+  email: string,
+  data: {
+    name: string;
+    applicationNumber: string;
+    requestedAmount: number;
+    installmentsCount: number;
+    monthlyInstallment: number;
+  }
+): Promise<EmailResult> {
+  return sendEmail({
+    to: email,
+    type: 'financing_application_received',
     data,
   });
 }
