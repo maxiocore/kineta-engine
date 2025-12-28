@@ -29,11 +29,14 @@ import {
   BookOpen,
   UserCheck,
   Eye,
-  Receipt
+  Receipt,
+  ScrollText
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import FinancingBankCard from "@/components/financing/FinancingBankCard";
+import EnhancedFinancingCard from "@/components/financing/EnhancedFinancingCard";
+import FinancingContract from "@/components/financing/FinancingContract";
+import InstallmentsTable from "@/components/financing/InstallmentsTable";
 
 interface FinancingPlan {
   id: string;
