@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { sendFinancingApprovedEmail, sendFinancingRejectedEmail } from "@/lib/emailService";
 
 interface FinancingApplication {
   id: string;
@@ -241,21 +242,18 @@ export default function AdminFinancing() {
             notes: `رصيد تمويل - طلب رقم ${application.application_number}`
           });
 
-        // Send email notification
+        // Send email notification using unified email service
         try {
-          await supabase.functions.invoke("financing-notification", {
-            body: {
-              type: "approved",
-              email: application.email,
-              name: application.full_name,
-              amount: approved_amount,
-              installments_count: plan.installments_count,
-              monthly_installment: installmentAmount,
-              application_number: application.application_number,
-            },
+          await sendFinancingApprovedEmail(application.email, {
+            name: application.full_name,
+            applicationNumber: application.application_number,
+            amount: approved_amount,
+            installmentsCount: plan.installments_count,
+            monthlyInstallment: installmentAmount,
           });
+          console.log("Financing approval email sent successfully");
         } catch (emailError) {
-          console.error("Failed to send email:", emailError);
+          console.error("Failed to send approval email:", emailError);
         }
       }
 
@@ -294,18 +292,15 @@ export default function AdminFinancing() {
 
       if (error) throw error;
 
-      // Send rejection email
+      // Send rejection email using unified email service
       if (application) {
         try {
-          await supabase.functions.invoke("financing-notification", {
-            body: {
-              type: "rejected",
-              email: application.email,
-              name: application.full_name,
-              rejection_reason,
-              application_number: application.application_number,
-            },
+          await sendFinancingRejectedEmail(application.email, {
+            name: application.full_name,
+            applicationNumber: application.application_number,
+            rejectionReason: rejection_reason,
           });
+          console.log("Financing rejection email sent successfully");
         } catch (emailError) {
           console.error("Failed to send rejection email:", emailError);
         }

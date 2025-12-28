@@ -27,7 +27,10 @@ import {
   Briefcase,
   AlertTriangle,
   Sparkles,
+  Wallet,
+  Ban,
 } from "lucide-react";
+import { sendFinancingNewApplicationEmail } from "@/lib/emailService";
 
 interface FinancingPlan {
   id: string;
@@ -80,6 +83,8 @@ export default function FinancingApply() {
     mutationFn: async () => {
       if (!user?.id || !selectedPlanId) throw new Error("بيانات ناقصة");
 
+      const applicationNumber = `FIN-${Date.now()}`;
+      
       const { error } = await supabase.from("financing_applications").insert([{
         user_id: user.id,
         plan_id: selectedPlanId,
@@ -93,10 +98,25 @@ export default function FinancingApply() {
         tax_number: formData.tax_number || null,
         requested_amount: parseFloat(formData.requested_amount),
         service_description: `${formData.project_type}: ${formData.service_description}`,
-        application_number: `FIN-${Date.now()}`,
+        application_number: applicationNumber,
       }]);
 
       if (error) throw error;
+
+      // Send email notification to admin
+      try {
+        await sendFinancingNewApplicationEmail("info@maxiocore.com", {
+          applicantName: formData.full_name,
+          applicantEmail: formData.email,
+          applicantPhone: formData.phone,
+          applicationNumber,
+          requestedAmount: parseFloat(formData.requested_amount),
+          serviceDescription: `${formData.project_type}: ${formData.service_description}`,
+        });
+        console.log("Admin notification email sent successfully");
+      } catch (emailError) {
+        console.error("Failed to send admin notification:", emailError);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-financing-applications"] });
@@ -217,9 +237,52 @@ export default function FinancingApply() {
                     <div className="flex justify-between"><span className="text-muted-foreground">عدد الأقساط</span><span className="font-medium">{selectedPlan?.installments_count}</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">القسط الشهري</span><span className="font-medium text-primary">{monthlyInstallment.toFixed(2)} ر.س</span></div>
                   </CardContent></Card>
-                  <div className="p-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10">
-                    <div className="flex gap-3"><AlertTriangle className="h-5 w-5 text-yellow-400" /><div><p className="font-medium text-yellow-400">تنبيه مهم</p><p className="text-sm text-muted-foreground">الرصيد يُضاف لحسابك ولا يمكن سحبه. للاستخدام داخل المنصة فقط.</p></div></div>
-                  </div>
+                  
+                  {/* Balance Info Card */}
+                  <Card className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border-blue-500/30">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-blue-500/20">
+                          <Wallet className="h-5 w-5 text-blue-400" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-blue-400 mb-2">كيف يتم استلام الخدمة؟</h4>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            بمجرد الموافقة على طلبك، يُضاف مبلغ التمويل كرصيد في حسابك على المنصة. 
+                            يمكنك استخدام هذا الرصيد لشراء خدمات البرمجة والتصميم ومواقع التواصل. 
+                            يتم تسليم الخدمات حسب الاتفاق المحدد مع فريقنا.
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Warning Card */}
+                  <Card className="bg-yellow-500/10 border-yellow-500/30">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <h4 className="font-semibold text-yellow-400 mb-2">تنبيهات مهمة</h4>
+                          <ul className="space-y-2 text-sm text-muted-foreground">
+                            <li className="flex items-center gap-2">
+                              <Ban className="h-4 w-4 text-red-400" />
+                              <span>لا يمكن سحب مبلغ التمويل نقداً</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <Ban className="h-4 w-4 text-red-400" />
+                              <span>لا يمكن تحويل الرصيد لحسابات أخرى</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                              <span>الرصيد صالح فقط لخدماتنا داخل المنصة</span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
                   <div className="flex items-start gap-2 p-4 rounded-lg border">
                     <Checkbox id="terms" checked={acceptTerms} onCheckedChange={c => setAcceptTerms(!!c)} />
                     <Label htmlFor="terms" className="text-sm">أوافق على <Link to="/dashboard/financing/guide" className="text-primary underline">شروط وأحكام التمويل</Link> والسند التنفيذي</Label>

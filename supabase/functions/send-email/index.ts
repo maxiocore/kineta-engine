@@ -28,6 +28,9 @@ type EmailType =
   | 'challenge_completed'
   | 'refund_processed'
   | 'package_inquiry'
+  | 'financing_approved'
+  | 'financing_rejected'
+  | 'financing_new_application'
   | 'custom';
 
 interface EmailRequest {
@@ -639,6 +642,73 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           ` : ''}
           
           ${createNoticeBox('⏰ يرجى التواصل مع العميل في أقرب وقت ممكن', '#fef3c7', '#92400e', '#f59e0b')}
+        `
+      };
+
+    case 'financing_approved':
+      return {
+        subject: `🎉 تمت الموافقة على طلب التمويل #${data.applicationNumber}`,
+        content: `
+          ${createIconCircle('🎉', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          ${createGreeting(`مبروك ${data.name}! 🎊`)}
+          ${createMessage('تمت الموافقة على طلب التمويل الخاص بك بنجاح. تم إضافة الرصيد إلى حسابك ويمكنك استخدامه فوراً لشراء خدماتنا.')}
+          
+          ${createHighlightBox(`${formatAmountArabic(data.amount)} ر.س`, 'مبلغ التمويل المعتمد', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.applicationNumber },
+            { label: 'مبلغ التمويل', value: `${formatAmountArabic(data.amount)} ر.س`, valueColor: '#22c55e' },
+            { label: 'عدد الأقساط', value: `${data.installmentsCount} قسط` },
+            { label: 'القسط الشهري', value: `${formatAmountArabic(data.monthlyInstallment)} ر.س`, valueColor: '#6366f1' }
+          ])}
+          
+          ${createNoticeBox('⚠️ تنبيه مهم: الرصيد المضاف لحسابك صالح للاستخدام داخل المنصة فقط لشراء خدمات البرمجة والتصميم ومواقع التواصل. لا يمكن سحب هذا الرصيد نقداً أو تحويله.', '#fef3c7', '#92400e', '#f59e0b')}
+          
+          ${createCTAButton('استخدم رصيدك الآن')}
+        `
+      };
+
+    case 'financing_rejected':
+      return {
+        subject: `نتيجة مراجعة طلب التمويل #${data.applicationNumber}`,
+        content: `
+          ${createIconCircle('📋', 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)')}
+          ${createGreeting(`مرحباً ${data.name}`)}
+          ${createMessage('نأسف لإبلاغك بأنه لم تتم الموافقة على طلب التمويل الخاص بك في الوقت الحالي.')}
+          
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.applicationNumber },
+            { label: 'الحالة', value: 'لم يتم القبول', isStatus: true, statusColor: '#fee2e2', valueColor: '#991b1b' },
+            ...(data.rejectionReason ? [{ label: 'السبب', value: data.rejectionReason }] : [])
+          ])}
+          
+          ${createMessage('يمكنك التقديم مرة أخرى بعد استيفاء الشروط المطلوبة. لأي استفسار، لا تتردد في التواصل معنا.')}
+          
+          ${createCTAButton('تواصل معنا')}
+        `
+      };
+
+    case 'financing_new_application':
+      return {
+        subject: `📋 طلب تمويل جديد #${data.applicationNumber} - يتطلب المراجعة`,
+        content: `
+          ${createIconCircle('🏦', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          ${createGreeting('طلب تمويل جديد! 📋')}
+          ${createMessage('تم استلام طلب تمويل جديد يتطلب مراجعتك.')}
+          
+          ${createHighlightBox(`${formatAmountArabic(data.requestedAmount)} ر.س`, 'المبلغ المطلوب', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.applicationNumber },
+            { label: 'اسم المتقدم', value: data.applicantName },
+            { label: 'البريد الإلكتروني', value: data.applicantEmail },
+            { label: 'رقم الجوال', value: data.applicantPhone },
+            ...(data.serviceDescription ? [{ label: 'وصف الخدمة', value: data.serviceDescription }] : [])
+          ])}
+          
+          ${createNoticeBox('⏰ يرجى مراجعة الطلب واتخاذ القرار في أقرب وقت ممكن.', '#f0f9ff', '#0369a1', '#0ea5e9')}
+          
+          ${createCTAButton('مراجعة الطلب')}
         `
       };
 
