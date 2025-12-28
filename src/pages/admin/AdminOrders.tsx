@@ -1,16 +1,22 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Clock, Loader2, Activity, CheckCircle, AlertCircle, XCircle, RotateCcw } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Clock, Loader2, Activity, CheckCircle, AlertCircle, XCircle, RotateCcw, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format, isAfter, isBefore, startOfDay, endOfDay, subDays } from "date-fns";
+import { format, isAfter, isBefore, startOfDay, endOfDay } from "date-fns";
 
-import OrdersHeader from "@/components/admin/orders/OrdersHeader";
-import OrdersStatsGrid from "@/components/admin/orders/OrdersStatsGrid";
-import OrdersFilters from "@/components/admin/orders/OrdersFilters";
+import { 
+  AdminOrdersHeader, 
+  AdminOrdersStats, 
+  AdminOrdersSectionCards, 
+  AdminSectionHeader,
+  AdminOrdersSearch,
+  type AdminOrderType 
+} from "@/components/admin/orders/modern";
 import BulkActionsBar from "@/components/admin/orders/BulkActionsBar";
 import OrdersList from "@/components/admin/orders/OrdersList";
 import OrderDetailsDialog from "@/components/admin/orders/OrderDetailsDialog";
@@ -52,6 +58,21 @@ const statusOptions = [
   { value: "refunded", label: "مسترد", icon: RotateCcw },
 ];
 
+// Category mappings
+const socialCategories = ['instagram', 'facebook', 'twitter', 'tiktok', 'youtube', 'snapchat', 'telegram', 'linkedin', 'pinterest', 'social', 'smm', 'followers', 'likes', 'views', 'comments', 'shares', 'subscribers'];
+const marketingCategories = ['marketing', 'digital', 'seo', 'sem', 'ppc', 'ads', 'advertising', 'google ads', 'facebook ads', 'campaign', 'email marketing', 'content', 'analytics', 'conversion', 'lead', 'funnel', 'automation', 'تسويق'];
+const designCategories = ['design', 'graphic', 'logo', 'banner', 'poster', 'branding', 'ui', 'ux', 'illustration', 'motion', 'video', 'animation'];
+const devCategories = ['development', 'programming', 'web', 'app', 'mobile', 'software', 'backend', 'frontend', 'api', 'database', 'code', 'script'];
+
+const getOrderType = (category: string): AdminOrderType => {
+  const lowerCategory = category?.toLowerCase() || '';
+  if (marketingCategories.some(c => lowerCategory.includes(c))) return 'marketing';
+  if (socialCategories.some(c => lowerCategory.includes(c))) return 'social';
+  if (designCategories.some(c => lowerCategory.includes(c))) return 'design';
+  if (devCategories.some(c => lowerCategory.includes(c))) return 'dev';
+  return 'social';
+};
+
 const AdminOrders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [services, setServices] = useState<{ id: string; name: string }[]>([]);
@@ -61,7 +82,6 @@ const AdminOrders = () => {
   const [serviceFilter, setServiceFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [updating, setUpdating] = useState(false);
   const [stats, setStats] = useState({ pending: 0, in_progress: 0, completed: 0, cancelled: 0, total: 0, totalRevenue: 0, todayOrders: 0, todayRevenue: 0 });
@@ -74,15 +94,11 @@ const AdminOrders = () => {
   const [cancellingOrder, setCancellingOrder] = useState<Order | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  const [activeTab, setActiveTab] = useState("all");
-  const [sortBy, setSortBy] = useState<"date" | "price">("date");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [newOrdersCount, setNewOrdersCount] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [showAnalytics, setShowAnalytics] = useState(false);
   const [orderHistory, setOrderHistory] = useState<OrderHistory[]>([]);
-
-  const activeFiltersCount = [statusFilter !== "all", serviceFilter !== "all", dateFrom !== undefined, dateTo !== undefined].filter(Boolean).length;
+  const [activeSection, setActiveSection] = useState<AdminOrderType | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const playNotificationSound = useCallback(() => {
     if (!soundEnabled) return;
@@ -158,15 +174,10 @@ const AdminOrders = () => {
     const { error } = await supabase.from("orders").update({ status: status as any, admin_notes: adminNotes, updated_at: new Date().toISOString() }).eq("id", orderId);
     if (error) toast.error("خطأ في تحديث الطلب");
     else { 
-      // Send email notification to client if status changed
       if (oldStatus !== status) {
         try {
-          await supabase.functions.invoke('notify-order-status', {
-            body: { orderId, oldStatus, newStatus: status }
-          });
-        } catch (e) {
-          console.error("Failed to send status notification:", e);
-        }
+          await supabase.functions.invoke('notify-order-status', { body: { orderId, oldStatus, newStatus: status } });
+        } catch (e) { console.error("Failed to send status notification:", e); }
       }
       toast.success("تم تحديث الطلب بنجاح"); 
       setSelectedOrder(null); 
@@ -177,23 +188,14 @@ const AdminOrders = () => {
 
   const handleBulkStatusUpdate = async (status: string) => {
     if (selectedIds.length === 0) return;
-    
-    // Get old statuses before update
     const ordersToUpdate = orders.filter(o => selectedIds.includes(o.id));
     
     const { error } = await supabase.from("orders").update({ status: status as any, updated_at: new Date().toISOString() }).in("id", selectedIds);
     if (error) toast.error("خطأ في تحديث الطلبات");
     else { 
-      // Send email notifications to clients
       for (const order of ordersToUpdate) {
         if (order.status !== status) {
-          try {
-            await supabase.functions.invoke('notify-order-status', {
-              body: { orderId: order.id, oldStatus: order.status, newStatus: status }
-            });
-          } catch (e) {
-            console.error("Failed to send status notification:", e);
-          }
+          try { await supabase.functions.invoke('notify-order-status', { body: { orderId: order.id, oldStatus: order.status, newStatus: status } }); } catch (e) { console.error("Failed to send status notification:", e); }
         }
       }
       toast.success(`تم تحديث ${selectedIds.length} طلب`); 
@@ -203,7 +205,7 @@ const AdminOrders = () => {
   };
 
   const openOrderDetails = async (order: Order) => { setSelectedOrder(order); await fetchOrderHistory(order.id); };
-  const resetFilters = () => { setStatusFilter("all"); setServiceFilter("all"); setDateFrom(undefined); setDateTo(undefined); setSearchQuery(""); setActiveTab("all"); };
+  const resetFilters = () => { setStatusFilter("all"); setServiceFilter("all"); setDateFrom(undefined); setDateTo(undefined); setSearchQuery(""); };
   const openDeleteDialog = (id: string) => { setDeletingId(id); setDeleteType("single"); setDeleteDialogOpen(true); };
   const openBulkDeleteDialog = () => { if (selectedIds.length === 0) return; setDeleteType("bulk"); setDeleteDialogOpen(true); };
   const openCancelDialog = (order: Order) => { setCancellingOrder(order); setCancelDialogOpen(true); };
@@ -212,21 +214,12 @@ const AdminOrders = () => {
     if (!cancellingOrder) return;
     setCancelling(true);
     try {
-      const { error } = await supabase.from("orders").update({ 
-        status: 'cancelled' as any, 
-        updated_at: new Date().toISOString() 
-      }).eq("id", cancellingOrder.id);
-      
+      const { error } = await supabase.from("orders").update({ status: 'cancelled' as any, updated_at: new Date().toISOString() }).eq("id", cancellingOrder.id);
       if (error) throw error;
       toast.success(`تم إلغاء الطلب ${cancellingOrder.order_number} واسترداد المبلغ $${cancellingOrder.total_price}`);
       fetchOrders();
-    } catch (error) {
-      toast.error("فشل في إلغاء الطلب");
-    } finally {
-      setCancelling(false);
-      setCancelDialogOpen(false);
-      setCancellingOrder(null);
-    }
+    } catch (error) { toast.error("فشل في إلغاء الطلب"); }
+    finally { setCancelling(false); setCancelDialogOpen(false); setCancellingOrder(null); }
   };
 
   const handleConfirmDelete = async () => {
@@ -264,6 +257,13 @@ const AdminOrders = () => {
     finally { setSyncing(false); }
   };
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchOrders();
+    setIsRefreshing(false);
+    toast.success("تم تحديث الطلبات");
+  };
+
   const exportOrders = (type: 'csv' | 'json') => {
     const dataToExport = selectedIds.length > 0 ? filteredOrders.filter(o => selectedIds.includes(o.id)) : filteredOrders;
     if (type === 'csv') {
@@ -277,49 +277,147 @@ const AdminOrders = () => {
     toast.success(`تم تصدير ${dataToExport.length} طلب`);
   };
 
+  // Orders by type
+  const ordersByType = useMemo(() => {
+    const result = { all: orders, social: [] as Order[], marketing: [] as Order[], design: [] as Order[], dev: [] as Order[] };
+    orders.forEach(order => {
+      const type = getOrderType(order.service?.category || '');
+      result[type].push(order);
+    });
+    return result;
+  }, [orders]);
+
+  const typeCounts = useMemo(() => ({
+    all: orders.length,
+    social: ordersByType.social.length,
+    marketing: ordersByType.marketing.length,
+    design: ordersByType.design.length,
+    dev: ordersByType.dev.length,
+  }), [orders, ordersByType]);
+
+  const currentSectionOrders = activeSection ? ordersByType[activeSection] : [];
+
   const filteredOrders = useMemo(() => {
-    let filtered = orders.filter(order => {
+    const ordersToFilter = activeSection ? currentSectionOrders : orders;
+    return ordersToFilter.filter(order => {
       const matchesSearch = order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) || order.profile?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) || order.profile?.email?.toLowerCase().includes(searchQuery.toLowerCase()) || order.service?.name?.toLowerCase().includes(searchQuery.toLowerCase());
-      let matchesTab = true;
-      if (activeTab === "pending") matchesTab = order.status === "pending";
-      else if (activeTab === "in_progress") matchesTab = order.status === "in_progress" || order.status === "processing";
-      else if (activeTab === "completed") matchesTab = order.status === "completed";
-      else if (activeTab === "cancelled") matchesTab = order.status === "cancelled" || order.status === "refunded";
       const matchesStatus = statusFilter === "all" || order.status === statusFilter;
       const matchesService = serviceFilter === "all" || order.service?.id === serviceFilter;
       const orderDate = new Date(order.created_at);
       const matchesDateFrom = !dateFrom || !isBefore(orderDate, startOfDay(dateFrom));
       const matchesDateTo = !dateTo || !isAfter(orderDate, endOfDay(dateTo));
-      return matchesSearch && matchesTab && matchesStatus && matchesService && matchesDateFrom && matchesDateTo;
+      return matchesSearch && matchesStatus && matchesService && matchesDateFrom && matchesDateTo;
     });
-    filtered.sort((a, b) => sortBy === "date" ? (sortOrder === "desc" ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime() : new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) : (sortOrder === "desc" ? b.total_price - a.total_price : a.total_price - b.total_price));
-    return filtered;
-  }, [orders, searchQuery, activeTab, statusFilter, serviceFilter, dateFrom, dateTo, sortBy, sortOrder]);
+  }, [orders, currentSectionOrders, activeSection, searchQuery, statusFilter, serviceFilter, dateFrom, dateTo]);
 
   return (
     <AdminDashboardLayout>
       <TooltipProvider>
-        <div className="space-y-4" dir="rtl">
-          <OrdersHeader newOrdersCount={newOrdersCount} soundEnabled={soundEnabled} onToggleSound={() => setSoundEnabled(!soundEnabled)} showAnalytics={showAnalytics} onToggleAnalytics={() => setShowAnalytics(!showAnalytics)} syncing={syncing} onSync={handleSyncOrdersStatus} onExport={exportOrders} />
-          <OrdersStatsGrid stats={stats} onTabClick={setActiveTab} />
-          <Card className="border-border/40">
-            <CardContent className="p-3 sm:p-4 space-y-3">
-              <OrdersFilters activeTab={activeTab} onTabChange={setActiveTab} searchQuery={searchQuery} onSearchChange={setSearchQuery} statusFilter={statusFilter} onStatusFilterChange={setStatusFilter} serviceFilter={serviceFilter} onServiceFilterChange={setServiceFilter} dateFrom={dateFrom} onDateFromChange={setDateFrom} dateTo={dateTo} onDateToChange={setDateTo} sortBy={sortBy} sortOrder={sortOrder} onSortChange={(by, order) => { setSortBy(by); setSortOrder(order); }} showAdvancedFilters={showAdvancedFilters} onToggleAdvancedFilters={() => setShowAdvancedFilters(!showAdvancedFilters)} activeFiltersCount={activeFiltersCount} onResetFilters={resetFilters} stats={stats} services={services} statusOptions={statusOptions} />
-              <BulkActionsBar selectedCount={selectedIds.length} onStatusUpdate={handleBulkStatusUpdate} onExport={exportOrders} onDelete={openBulkDeleteDialog} onClear={() => setSelectedIds([])} statusOptions={statusOptions} />
-            </CardContent>
-          </Card>
-          <OrdersList orders={filteredOrders} loading={loading} selectedIds={selectedIds} onToggleSelect={toggleSelect} onToggleSelectAll={toggleSelectAll} onViewOrder={openOrderDetails} onDeleteOrder={openDeleteDialog} onCancelOrder={openCancelDialog} />
+        <motion.div 
+          className="space-y-4 pb-8" 
+          dir="rtl"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <AnimatePresence mode="wait">
+            {!activeSection ? (
+              <motion.div
+                key="section-cards"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-4"
+              >
+                <AdminOrdersHeader
+                  newOrdersCount={newOrdersCount}
+                  soundEnabled={soundEnabled}
+                  onToggleSound={() => setSoundEnabled(!soundEnabled)}
+                  syncing={syncing}
+                  onSync={handleSyncOrdersStatus}
+                  onExport={exportOrders}
+                />
+                
+                <AdminOrdersStats stats={stats} />
+
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="p-4 rounded-xl bg-muted/50 border border-border/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <ArrowRight className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">اختر قسم لإدارة الطلبات</h3>
+                      <p className="text-sm text-muted-foreground">انقر على أي قسم لعرض وإدارة جميع الطلبات المتعلقة به</p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <AdminOrdersSectionCards
+                  activeSection={null}
+                  onSectionClick={(section) => setActiveSection(section)}
+                  counts={typeCounts}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key={`section-${activeSection}`}
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                className="space-y-4"
+              >
+                <AdminSectionHeader
+                  section={activeSection}
+                  count={typeCounts[activeSection]}
+                  onBack={() => { setActiveSection(null); resetFilters(); setSelectedIds([]); }}
+                />
+
+                <AdminOrdersStats stats={{
+                  ...stats,
+                  total: filteredOrders.length,
+                  pending: filteredOrders.filter(o => o.status === "pending").length,
+                  in_progress: filteredOrders.filter(o => o.status === "in_progress" || o.status === "processing").length,
+                  completed: filteredOrders.filter(o => o.status === "completed").length,
+                  cancelled: filteredOrders.filter(o => o.status === "cancelled" || o.status === "refunded").length,
+                  totalRevenue: filteredOrders.reduce((sum, o) => sum + (o.total_price || 0), 0),
+                }} />
+
+                <Card className="border-border/40">
+                  <CardContent className="p-3 sm:p-4 space-y-3">
+                    <AdminOrdersSearch
+                      searchQuery={searchQuery}
+                      setSearchQuery={setSearchQuery}
+                      statusFilter={statusFilter}
+                      setStatusFilter={setStatusFilter}
+                      serviceFilter={serviceFilter}
+                      setServiceFilter={setServiceFilter}
+                      dateFrom={dateFrom}
+                      setDateFrom={setDateFrom}
+                      dateTo={dateTo}
+                      setDateTo={setDateTo}
+                      onRefresh={handleRefresh}
+                      isRefreshing={isRefreshing}
+                      filteredCount={filteredOrders.length}
+                      totalCount={currentSectionOrders.length}
+                      services={services}
+                    />
+                    <BulkActionsBar selectedCount={selectedIds.length} onStatusUpdate={handleBulkStatusUpdate} onExport={exportOrders} onDelete={openBulkDeleteDialog} onClear={() => setSelectedIds([])} statusOptions={statusOptions} />
+                  </CardContent>
+                </Card>
+
+                <OrdersList orders={filteredOrders} loading={loading} selectedIds={selectedIds} onToggleSelect={toggleSelect} onToggleSelectAll={toggleSelectAll} onViewOrder={openOrderDetails} onDeleteOrder={openDeleteDialog} onCancelOrder={openCancelDialog} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <OrderDetailsDialog order={selectedOrder} orderHistory={orderHistory} open={!!selectedOrder} onClose={() => setSelectedOrder(null)} onSave={handleUpdateOrder} onCancel={(order) => { setSelectedOrder(null); openCancelDialog(order); }} saving={updating} />
           <ConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} title={deleteType === "single" ? "حذف الطلب" : `حذف ${selectedIds.length} طلب`} description="هل أنت متأكد؟ لا يمكن التراجع عن هذا الإجراء." onConfirm={handleConfirmDelete} loading={deleting} />
-          <ConfirmDialog 
-            open={cancelDialogOpen} 
-            onOpenChange={setCancelDialogOpen} 
-            title="إلغاء الطلب واسترداد الرصيد" 
-            description={cancellingOrder ? `هل تريد إلغاء الطلب ${cancellingOrder.order_number} واسترداد مبلغ $${cancellingOrder.total_price} لرصيد العميل؟` : ""} 
-            onConfirm={handleCancelOrder} 
-            loading={cancelling} 
-          />
-        </div>
+          <ConfirmDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen} title="إلغاء الطلب واسترداد الرصيد" description={cancellingOrder ? `هل تريد إلغاء الطلب ${cancellingOrder.order_number} واسترداد مبلغ $${cancellingOrder.total_price} لرصيد العميل؟` : ""} onConfirm={handleCancelOrder} loading={cancelling} />
+        </motion.div>
       </TooltipProvider>
     </AdminDashboardLayout>
   );
