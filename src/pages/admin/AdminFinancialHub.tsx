@@ -375,24 +375,54 @@ const AdminFinancialHub = () => {
 
   // Mutations
   const updateBalanceMutation = useMutation({
-    mutationFn: async ({ userId, newBalance, action, amount, reason }: any) => {
+    mutationFn: async ({ userId, currentBalance, newBalance, action, amount, reason }: any) => {
+      const adminUser = await supabase.auth.getUser();
+      const adminId = adminUser.data.user?.id;
+
+      // تحديث الرصيد
       const { error } = await supabase
         .from("user_balances")
         .update({ balance: newBalance, updated_at: new Date().toISOString() })
         .eq("user_id", userId);
       if (error) throw error;
 
+      // تسجيل في سجل الرصيد
+      await supabase.from("balance_logs").insert({
+        user_id: userId,
+        action_type: action === "add" ? "admin_credit" : "admin_debit",
+        amount: action === "add" ? amount : -amount,
+        balance_before: currentBalance,
+        balance_after: newBalance,
+        notes: reason || (action === "add" ? "إضافة رصيد بواسطة الإدارة" : "خصم رصيد بواسطة الإدارة"),
+        created_by: adminId,
+        reference_type: "admin_adjustment",
+      });
+
+      // تسجيل في سجل المراجعة
       await supabase.from("audit_logs").insert({
         table_name: "user_balances",
         record_id: userId,
         action: action === "add" ? "BALANCE_ADD" : "BALANCE_DEDUCT",
+        old_value: { balance: currentBalance },
         new_value: { balance: newBalance, change: amount, reason },
-        user_id: (await supabase.auth.getUser()).data.user?.id
+        user_id: adminId
+      });
+
+      // إرسال إشعار للمستخدم
+      await supabase.from("notifications").insert({
+        user_id: userId,
+        title: action === "add" ? "تم إضافة رصيد لحسابك" : "تم خصم رصيد من حسابك",
+        message: action === "add" 
+          ? `تم إضافة ${amount.toLocaleString('ar-SA')} ر.س إلى رصيدك${reason ? `. السبب: ${reason}` : ""}`
+          : `تم خصم ${amount.toLocaleString('ar-SA')} ر.س من رصيدك${reason ? `. السبب: ${reason}` : ""}`,
+        type: action === "add" ? "success" : "warning",
       });
     },
     onSuccess: () => {
       toast.success(balanceAction === "add" ? "تم إضافة الرصيد بنجاح" : "تم خصم الرصيد بنجاح");
       queryClient.invalidateQueries({ queryKey: ["financial-balances"] });
+      queryClient.invalidateQueries({ queryKey: ["financial-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["financial-stats"] });
       setIsTransferDialogOpen(false);
       setSelectedUser(null);
     },
@@ -508,6 +538,7 @@ const AdminFinancialHub = () => {
 
     updateBalanceMutation.mutate({
       userId: selectedUser.user_id,
+      currentBalance: selectedUser.balance,
       newBalance,
       action: balanceAction,
       amount,
