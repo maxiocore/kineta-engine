@@ -959,6 +959,245 @@ export type Database = {
           },
         ]
       }
+      financing_applications: {
+        Row: {
+          address: string | null
+          admin_notes: string | null
+          application_number: string
+          approved_amount: number | null
+          approved_at: string | null
+          commercial_register: string | null
+          company_name: string | null
+          contract_document_url: string | null
+          contract_number: string | null
+          contract_signed_at: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          national_id: string
+          phone: string
+          plan_id: string | null
+          promissory_note_url: string | null
+          rejection_reason: string | null
+          requested_amount: number
+          reviewed_at: string | null
+          reviewed_by: string | null
+          service_description: string | null
+          service_id: string | null
+          status: string
+          submitted_at: string
+          tax_number: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          admin_notes?: string | null
+          application_number: string
+          approved_amount?: number | null
+          approved_at?: string | null
+          commercial_register?: string | null
+          company_name?: string | null
+          contract_document_url?: string | null
+          contract_number?: string | null
+          contract_signed_at?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          national_id: string
+          phone: string
+          plan_id?: string | null
+          promissory_note_url?: string | null
+          rejection_reason?: string | null
+          requested_amount: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          service_description?: string | null
+          service_id?: string | null
+          status?: string
+          submitted_at?: string
+          tax_number?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          admin_notes?: string | null
+          application_number?: string
+          approved_amount?: number | null
+          approved_at?: string | null
+          commercial_register?: string | null
+          company_name?: string | null
+          contract_document_url?: string | null
+          contract_number?: string | null
+          contract_signed_at?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          national_id?: string
+          phone?: string
+          plan_id?: string | null
+          promissory_note_url?: string | null
+          rejection_reason?: string | null
+          requested_amount?: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          service_description?: string | null
+          service_id?: string | null
+          status?: string
+          submitted_at?: string
+          tax_number?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_applications_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "financing_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financing_applications_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financing_installments: {
+        Row: {
+          amount: number
+          application_id: string
+          created_at: string
+          due_date: string
+          id: string
+          installment_number: number
+          late_fee: number | null
+          notes: string | null
+          paid_at: string | null
+          payment_method: string | null
+          status: string
+          transaction_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          application_id: string
+          created_at?: string
+          due_date: string
+          id?: string
+          installment_number: number
+          late_fee?: number | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          application_id?: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          installment_number?: number
+          late_fee?: number | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_installments_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "financing_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financing_plans: {
+        Row: {
+          created_at: string
+          description: string | null
+          description_ar: string | null
+          display_order: number | null
+          duration_months: number
+          id: string
+          installments_count: number
+          is_active: boolean
+          max_amount: number | null
+          min_amount: number
+          name: string
+          name_ar: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          display_order?: number | null
+          duration_months?: number
+          id?: string
+          installments_count?: number
+          is_active?: boolean
+          max_amount?: number | null
+          min_amount?: number
+          name: string
+          name_ar: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          display_order?: number | null
+          duration_months?: number
+          id?: string
+          installments_count?: number
+          is_active?: boolean
+          max_amount?: number | null
+          min_amount?: number
+          name?: string
+          name_ar?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      financing_settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       job_applications: {
         Row: {
           admin_notes: string | null
@@ -2277,6 +2516,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_overdue_installments: { Args: never; Returns: undefined }
       withdraw_cashback: {
         Args: { p_amount: number; p_user_id: string }
         Returns: Json
