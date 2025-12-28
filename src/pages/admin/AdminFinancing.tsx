@@ -140,7 +140,7 @@ export default function AdminFinancing() {
         .from("financing_applications")
         .select(`
           *,
-          financing_plans (name_ar, installments_count)
+          financing_plans (name_ar, installments_count, duration_months)
         `)
         .order("submitted_at", { ascending: false });
 
