@@ -351,9 +351,13 @@ export default function ClientFinancing() {
                   ? "bg-gradient-to-r from-yellow-500 to-orange-500" 
                   : applications[0].status === "documents_required"
                     ? "bg-gradient-to-r from-orange-500 to-amber-500"
-                    : applications[0].status === "approved" 
-                      ? "bg-gradient-to-r from-green-500 to-emerald-500"
-                      : "bg-gradient-to-r from-red-500 to-rose-500"
+                    : applications[0].status === "awaiting_contract"
+                      ? "bg-gradient-to-r from-purple-500 to-violet-500"
+                      : applications[0].status === "awaiting_signature"
+                        ? "bg-gradient-to-r from-indigo-500 to-blue-500"
+                        : applications[0].status === "approved" 
+                          ? "bg-gradient-to-r from-green-500 to-emerald-500"
+                          : "bg-gradient-to-r from-red-500 to-rose-500"
               }`} />
               <CardContent className="p-6">
                 <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
@@ -362,14 +366,22 @@ export default function ClientFinancing() {
                       ? "bg-gradient-to-br from-yellow-500/20 to-orange-500/20"
                       : applications[0].status === "documents_required"
                         ? "bg-gradient-to-br from-orange-500/20 to-amber-500/20"
-                        : applications[0].status === "approved"
-                          ? "bg-gradient-to-br from-green-500/20 to-emerald-500/20"
-                          : "bg-gradient-to-br from-red-500/20 to-rose-500/20"
+                        : applications[0].status === "awaiting_contract"
+                          ? "bg-gradient-to-br from-purple-500/20 to-violet-500/20"
+                          : applications[0].status === "awaiting_signature"
+                            ? "bg-gradient-to-br from-indigo-500/20 to-blue-500/20"
+                            : applications[0].status === "approved"
+                              ? "bg-gradient-to-br from-green-500/20 to-emerald-500/20"
+                              : "bg-gradient-to-br from-red-500/20 to-rose-500/20"
                   }`}>
                     {applications[0].status === "pending" || applications[0].status === "under_review" ? (
                       <Clock className="h-10 w-10 text-yellow-400" />
                     ) : applications[0].status === "documents_required" ? (
                       <FileUp className="h-10 w-10 text-orange-400" />
+                    ) : applications[0].status === "awaiting_contract" ? (
+                      <ScrollText className="h-10 w-10 text-purple-400" />
+                    ) : applications[0].status === "awaiting_signature" ? (
+                      <FileText className="h-10 w-10 text-indigo-400" />
                     ) : applications[0].status === "approved" ? (
                       <CheckCircle2 className="h-10 w-10 text-green-400" />
                     ) : (
@@ -387,6 +399,8 @@ export default function ClientFinancing() {
                     <p className="text-muted-foreground mb-3">
                       {(applications[0].status === "pending" || applications[0].status === "under_review") && "طلبك قيد المراجعة من فريقنا، سنقوم بإعلامك فور اتخاذ القرار عبر البريد الإلكتروني"}
                       {applications[0].status === "documents_required" && "مطلوب رفع بعض المستندات لإكمال مراجعة طلبك"}
+                      {applications[0].status === "awaiting_contract" && "تمت الموافقة المبدئية على طلبك! يرجى مراجعة العقد وتوقيعه رقمياً"}
+                      {applications[0].status === "awaiting_signature" && "تم توقيع العقد، يرجى توقيع السند التنفيذي لإتمام عملية التمويل"}
                       {applications[0].status === "approved" && "تمت الموافقة على طلبك! سيتم إضافة الرصيد لحسابك وتفعيل التمويل قريباً"}
                       {applications[0].status === "rejected" && `عذراً، تم رفض الطلب. ${applications[0].rejection_reason || "يمكنك تقديم طلب جديد"}`}
                     </p>
@@ -400,6 +414,27 @@ export default function ClientFinancing() {
                         </Link>
                       </Button>
                     )}
+
+                    {/* Sign Contract Button for awaiting_contract status */}
+                    {applications[0].status === "awaiting_contract" && (
+                      <Button asChild className="mb-4 bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700">
+                        <Link to={`/dashboard/financing/sign-contract/${applications[0].id}`}>
+                          <ScrollText className="h-4 w-4 ml-2" />
+                          مراجعة وتوقيع العقد
+                        </Link>
+                      </Button>
+                    )}
+
+                    {/* Sign Promissory Note Button for awaiting_signature status */}
+                    {applications[0].status === "awaiting_signature" && (
+                      <Button asChild className="mb-4 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700">
+                        <Link to={`/dashboard/financing/sign-promissory/${applications[0].id}`}>
+                          <FileText className="h-4 w-4 ml-2" />
+                          توقيع السند التنفيذي
+                        </Link>
+                      </Button>
+                    )}
+
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 p-4 bg-muted/30 rounded-xl">
                       <div>
                         <p className="text-xs text-muted-foreground">المبلغ المطلوب</p>

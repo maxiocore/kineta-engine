@@ -101,6 +101,8 @@ import FinancingCalculator from "./pages/dashboard/FinancingCalculator";
 import FinancingEligibility from "./pages/dashboard/FinancingEligibility";
 import FinancingApply from "./pages/dashboard/FinancingApply";
 import FinancingDocuments from "./pages/dashboard/FinancingDocuments";
+import SignContract from "./pages/dashboard/SignContract";
+import SignPromissoryNote from "./pages/dashboard/SignPromissoryNote";
 
 const queryClient = new QueryClient();
 
@@ -282,6 +284,16 @@ const App = () => (
                   <Route path="/dashboard/financing/documents/:applicationId" element={
                     <ProtectedRoute>
                       <FinancingDocuments />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/financing/sign-contract/:applicationId" element={
+                    <ProtectedRoute>
+                      <SignContract />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/financing/sign-promissory/:applicationId" element={
+                    <ProtectedRoute>
+                      <SignPromissoryNote />
                     </ProtectedRoute>
                   } />
                   
