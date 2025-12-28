@@ -130,23 +130,28 @@ const ClientDepositsContent = () => {
   }, [user]);
 
   // Generate PDF Invoice - Arabic Bank Receipt Style
-  const generatePDF = useCallback((deposit: Deposit) => {
-    generateDepositReceipt({
-      id: deposit.id,
-      amount: deposit.amount,
-      bonus_amount: deposit.bonus_amount || undefined,
-      fee_amount: deposit.fee_amount || undefined,
-      total_credited: deposit.total_credited,
-      status: deposit.status,
-      payment_method: deposit.payment_method?.name_ar || undefined,
-      transaction_id: deposit.transaction_id || undefined,
-      created_at: deposit.created_at,
-      completed_at: deposit.completed_at || undefined,
-      user_name: profile?.full_name || undefined,
-      user_email: profile?.email || user?.email || undefined,
-    });
-    
-    sonnerToast.success('تم تحميل الإيصال بنجاح');
+  const generatePDF = useCallback(async (deposit: Deposit) => {
+    try {
+      await generateDepositReceipt({
+        id: deposit.id,
+        amount: deposit.amount,
+        bonus_amount: deposit.bonus_amount || undefined,
+        fee_amount: deposit.fee_amount || undefined,
+        total_credited: deposit.total_credited,
+        status: deposit.status,
+        payment_method: deposit.payment_method?.name_ar || undefined,
+        transaction_id: deposit.transaction_id || undefined,
+        created_at: deposit.created_at,
+        completed_at: deposit.completed_at || undefined,
+        user_name: profile?.full_name || undefined,
+        user_email: profile?.email || user?.email || undefined,
+      });
+      
+      sonnerToast.success('تم تحميل الإيصال بنجاح');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      sonnerToast.error('حدث خطأ أثناء تحميل الإيصال');
+    }
   }, [profile, user]);
 
   // Verify payment function
