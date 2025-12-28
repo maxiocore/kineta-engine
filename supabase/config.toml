@@ -62,3 +62,6 @@ verify_jwt = false
 
 [functions.social-oembed]
 verify_jwt = false
+
+[functions.financing-notification]
+verify_jwt = false

@@ -185,7 +185,7 @@ export default function AdminFinancing() {
 
       if (updateError) throw updateError;
 
-      // Create installments
+      // Create installments and add balance to user
       const plan = application.financing_plans;
       if (plan) {
         const installmentAmount = approved_amount / plan.installments_count;
@@ -208,7 +208,55 @@ export default function AdminFinancing() {
           .from("financing_installments")
           .insert(installments);
 
-        if (installmentError) throw installmentError;
+        // Add financing amount to user balance
+        // First get current balance
+        const { data: currentBalance } = await supabase
+          .from("user_balances")
+          .select("balance")
+          .eq("user_id", application.user_id)
+          .single();
+
+        const newBalance = (currentBalance?.balance || 0) + approved_amount;
+        
+        // Update or insert balance
+        await supabase
+          .from("user_balances")
+          .upsert({ 
+            user_id: application.user_id,
+            balance: newBalance,
+            updated_at: new Date().toISOString()
+          }, { onConflict: "user_id" });
+
+        // Log balance change
+        await supabase
+          .from("balance_logs")
+          .insert({
+            user_id: application.user_id,
+            action_type: "financing",
+            amount: approved_amount,
+            balance_before: currentBalance?.balance || 0,
+            balance_after: newBalance,
+            reference_type: "financing",
+            reference_id: id,
+            notes: `رصيد تمويل - طلب رقم ${application.application_number}`
+          });
+
+        // Send email notification
+        try {
+          await supabase.functions.invoke("financing-notification", {
+            body: {
+              type: "approved",
+              email: application.email,
+              name: application.full_name,
+              amount: approved_amount,
+              installments_count: plan.installments_count,
+              monthly_installment: installmentAmount,
+              application_number: application.application_number,
+            },
+          });
+        } catch (emailError) {
+          console.error("Failed to send email:", emailError);
+        }
       }
 
       // Update status to active
@@ -220,7 +268,7 @@ export default function AdminFinancing() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["financing-applications"] });
       queryClient.invalidateQueries({ queryKey: ["financing-stats"] });
-      toast.success("تمت الموافقة على طلب التمويل بنجاح");
+      toast.success("تمت الموافقة على طلب التمويل وإرسال إشعار للعميل");
       setShowApprovalDialog(false);
       setSelectedApplication(null);
     },
@@ -233,6 +281,8 @@ export default function AdminFinancing() {
   // Reject mutation
   const rejectMutation = useMutation({
     mutationFn: async ({ id, rejection_reason }: { id: string; rejection_reason: string }) => {
+      const application = applications.find(a => a.id === id);
+      
       const { error } = await supabase
         .from("financing_applications")
         .update({
@@ -243,11 +293,28 @@ export default function AdminFinancing() {
         .eq("id", id);
 
       if (error) throw error;
+
+      // Send rejection email
+      if (application) {
+        try {
+          await supabase.functions.invoke("financing-notification", {
+            body: {
+              type: "rejected",
+              email: application.email,
+              name: application.full_name,
+              rejection_reason,
+              application_number: application.application_number,
+            },
+          });
+        } catch (emailError) {
+          console.error("Failed to send rejection email:", emailError);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["financing-applications"] });
       queryClient.invalidateQueries({ queryKey: ["financing-stats"] });
-      toast.success("تم رفض طلب التمويل");
+      toast.success("تم رفض طلب التمويل وإرسال إشعار للعميل");
       setShowRejectionDialog(false);
       setSelectedApplication(null);
     },

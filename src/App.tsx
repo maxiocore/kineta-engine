@@ -96,6 +96,10 @@ import AdminDigitalMarketing from "./pages/admin/AdminDigitalMarketing";
 import AdminCareers from "./pages/admin/AdminCareers";
 import AdminFinancing from "./pages/admin/AdminFinancing";
 import ClientFinancing from "./pages/dashboard/ClientFinancing";
+import FinancingGuide from "./pages/dashboard/FinancingGuide";
+import FinancingCalculator from "./pages/dashboard/FinancingCalculator";
+import FinancingEligibility from "./pages/dashboard/FinancingEligibility";
+import FinancingApply from "./pages/dashboard/FinancingApply";
 
 const queryClient = new QueryClient();
 
@@ -252,6 +256,26 @@ const App = () => (
                   <Route path="/dashboard/financing" element={
                     <ProtectedRoute>
                       <ClientFinancing />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/financing/guide" element={
+                    <ProtectedRoute>
+                      <FinancingGuide />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/financing/calculator" element={
+                    <ProtectedRoute>
+                      <FinancingCalculator />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/financing/eligibility" element={
+                    <ProtectedRoute>
+                      <FinancingEligibility />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/financing/apply" element={
+                    <ProtectedRoute>
+                      <FinancingApply />
                     </ProtectedRoute>
                   } />
                   
