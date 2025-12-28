@@ -52,14 +52,7 @@ const clientNavItems: NavItem[] = [
   { 
     label: "الطلبات", 
     href: "/dashboard/orders", 
-    icon: ShoppingBag,
-    children: [
-      { label: "جميع الطلبات", href: "/dashboard/orders", icon: Package },
-      { label: "مواقع التواصل", href: "/dashboard/orders/social", icon: Share2 },
-      { label: "التسويق الرقمي", href: "/dashboard/orders/marketing", icon: Megaphone },
-      { label: "التصميم", href: "/dashboard/orders/design", icon: Palette },
-      { label: "البرمجة", href: "/dashboard/orders/dev", icon: Code },
-    ]
+    icon: ShoppingBag
   },
   { label: "المفضلة", href: "/dashboard/favorites", icon: Heart },
   { label: "الإحالات", href: "/dashboard/referrals", icon: Gift },
