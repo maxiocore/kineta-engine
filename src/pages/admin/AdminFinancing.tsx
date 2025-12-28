@@ -42,7 +42,8 @@ import {
   sendFinancingRejectedEmail,
   sendFinancingDocumentsRequiredEmail,
   sendFinancingUnderReviewEmail,
-  sendFinancingPromissoryNoteEmail
+  sendFinancingPromissoryNoteEmail,
+  sendFinancingContractEmail
 } from "@/lib/emailService";
 import {
   DropdownMenu,
@@ -79,6 +80,7 @@ interface FinancingApplication {
   financing_plans?: {
     name_ar: string;
     installments_count: number;
+    duration_months: number;
   };
 }
 
@@ -274,6 +276,8 @@ export default function AdminFinancing() {
       if (!application) throw new Error("Application not found");
 
       const contractNumber = `CNT-${Date.now()}`;
+      const plan = application.financing_plans;
+      const installmentAmount = plan ? approved_amount / plan.installments_count : approved_amount;
 
       // Update application status to awaiting_contract (first step)
       const { error: updateError } = await supabase
@@ -289,8 +293,20 @@ export default function AdminFinancing() {
 
       if (updateError) throw updateError;
 
-      // TODO: Send financing contract email to customer
-      // For now, we'll just update the status
+      // Send financing contract email to customer
+      try {
+        await sendFinancingContractEmail(application.email, {
+          name: application.full_name,
+          applicationNumber: application.application_number,
+          contractNumber: contractNumber,
+          amount: approved_amount,
+          installmentsCount: plan?.installments_count || 1,
+          monthlyInstallment: installmentAmount,
+          durationMonths: plan?.duration_months || 1,
+        });
+      } catch (emailError) {
+        console.error("Failed to send contract email:", emailError);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["financing-applications"] });
