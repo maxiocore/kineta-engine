@@ -34,7 +34,9 @@ import {
   Receipt,
   ScrollText,
   Percent,
-  Check
+  Check,
+  Upload,
+  FileUp
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -90,11 +92,15 @@ interface FinancingInstallment {
 const statusConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
   pending: { label: "قيد المراجعة", color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30", icon: <Clock className="h-3 w-3" /> },
   under_review: { label: "قيد المراجعة", color: "bg-blue-500/20 text-blue-400 border-blue-500/30", icon: <Clock className="h-3 w-3" /> },
+  documents_required: { label: "مستندات مطلوبة", color: "bg-orange-500/20 text-orange-400 border-orange-500/30", icon: <FileUp className="h-3 w-3" /> },
+  awaiting_contract: { label: "بانتظار العقد", color: "bg-purple-500/20 text-purple-400 border-purple-500/30", icon: <ScrollText className="h-3 w-3" /> },
+  awaiting_signature: { label: "بانتظار التوقيع", color: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30", icon: <FileText className="h-3 w-3" /> },
   approved: { label: "موافق عليه", color: "bg-green-500/20 text-green-400 border-green-500/30", icon: <CheckCircle2 className="h-3 w-3" /> },
   rejected: { label: "مرفوض", color: "bg-red-500/20 text-red-400 border-red-500/30", icon: <XCircle className="h-3 w-3" /> },
   active: { label: "نشط", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30", icon: <TrendingUp className="h-3 w-3" /> },
   completed: { label: "مكتمل", color: "bg-primary/20 text-primary border-primary/30", icon: <CheckCircle2 className="h-3 w-3" /> },
   defaulted: { label: "متعثر", color: "bg-orange-500/20 text-orange-400 border-orange-500/30", icon: <AlertTriangle className="h-3 w-3" /> },
+  cancelled: { label: "ملغي", color: "bg-gray-500/20 text-gray-400 border-gray-500/30", icon: <XCircle className="h-3 w-3" /> },
 };
 
 const installmentStatusConfig: Record<string, { label: string; color: string }> = {
@@ -682,6 +688,21 @@ export default function ClientFinancing() {
                               </span>
                             </div>
                           </div>
+                        )}
+
+                        {/* Action Button for documents required */}
+                        {app.status === "documents_required" && (
+                          <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                            <Button 
+                              asChild
+                              className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
+                            >
+                              <Link to={`/dashboard/financing/documents/${app.id}`}>
+                                <Upload className="h-4 w-4 ml-2" />
+                                رفع المستندات المطلوبة
+                              </Link>
+                            </Button>
+                          </motion.div>
                         )}
 
                         {/* Action Button */}

@@ -100,6 +100,7 @@ import FinancingGuide from "./pages/dashboard/FinancingGuide";
 import FinancingCalculator from "./pages/dashboard/FinancingCalculator";
 import FinancingEligibility from "./pages/dashboard/FinancingEligibility";
 import FinancingApply from "./pages/dashboard/FinancingApply";
+import FinancingDocuments from "./pages/dashboard/FinancingDocuments";
 
 const queryClient = new QueryClient();
 
@@ -276,6 +277,11 @@ const App = () => (
                   <Route path="/dashboard/financing/apply" element={
                     <ProtectedRoute>
                       <FinancingApply />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/financing/documents/:applicationId" element={
+                    <ProtectedRoute>
+                      <FinancingDocuments />
                     </ProtectedRoute>
                   } />
                   
