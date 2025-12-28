@@ -43,6 +43,7 @@ import { ar } from "date-fns/locale";
 import EnhancedFinancingCard from "@/components/financing/EnhancedFinancingCard";
 import FinancingContract from "@/components/financing/FinancingContract";
 import InstallmentsTable from "@/components/financing/InstallmentsTable";
+import FinancingStatusCard from "@/components/financing/FinancingStatusCard";
 
 interface FinancingPlan {
   id: string;
@@ -279,64 +280,73 @@ export default function ClientFinancing() {
 
         {/* Bank Card for Active Financing */}
         {activeApplications.length > 0 && currentApplication && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <EnhancedFinancingCard
-              userName={currentApplication.full_name}
-              totalBalance={currentApplication.approved_amount || currentApplication.requested_amount}
-              paidAmount={totalPaid}
-              remainingAmount={totalRemaining}
-              nextInstallmentAmount={nextInstallment?.amount}
-              nextInstallmentDate={nextInstallment ? new Date(nextInstallment.due_date) : undefined}
-              planName={currentApplication.financing_plans?.name_ar}
-              contractNumber={currentApplication.contract_number || undefined}
-              installmentsCount={currentApplication.financing_plans?.installments_count || 6}
-              paidInstallments={installments.filter(i => i.status === "paid").length}
-            />
-            
-            {/* Stats Cards */}
-            <div className="space-y-4">
-              <Card className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border-emerald-500/20">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">المبلغ المدفوع</p>
-                      <p className="text-2xl font-bold text-emerald-400">{totalPaid.toFixed(2)} ر.س</p>
-                    </div>
-                    <CheckCircle2 className="h-8 w-8 text-emerald-400/50" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/20">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">المبلغ المتبقي</p>
-                      <p className="text-2xl font-bold text-yellow-400">{totalRemaining.toFixed(2)} ر.س</p>
-                    </div>
-                    <DollarSign className="h-8 w-8 text-yellow-400/50" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {nextInstallment && (
-                <Card className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border-blue-500/20">
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <EnhancedFinancingCard
+                userName={currentApplication.full_name}
+                totalBalance={currentApplication.approved_amount || currentApplication.requested_amount}
+                paidAmount={totalPaid}
+                remainingAmount={totalRemaining}
+                nextInstallmentAmount={nextInstallment?.amount}
+                nextInstallmentDate={nextInstallment ? new Date(nextInstallment.due_date) : undefined}
+                planName={currentApplication.financing_plans?.name_ar}
+                contractNumber={currentApplication.contract_number || undefined}
+                installmentsCount={currentApplication.financing_plans?.installments_count || 6}
+                paidInstallments={installments.filter(i => i.status === "paid").length}
+              />
+              
+              {/* Stats Cards */}
+              <div className="space-y-4">
+                <Card className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border-emerald-500/20">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground">القسط القادم - يوم 30</p>
-                        <p className="text-xl font-bold text-blue-400">{nextInstallment.amount.toFixed(2)} ر.س</p>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(nextInstallment.due_date), "dd MMMM yyyy", { locale: ar })}
-                        </p>
+                        <p className="text-sm text-muted-foreground">المبلغ المدفوع</p>
+                        <p className="text-2xl font-bold text-emerald-400">{totalPaid.toFixed(2)} ر.س</p>
                       </div>
-                      <Calendar className="h-8 w-8 text-blue-400/50" />
+                      <CheckCircle2 className="h-8 w-8 text-emerald-400/50" />
                     </div>
                   </CardContent>
                 </Card>
-              )}
+
+                <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">المبلغ المتبقي</p>
+                        <p className="text-2xl font-bold text-yellow-400">{totalRemaining.toFixed(2)} ر.س</p>
+                      </div>
+                      <DollarSign className="h-8 w-8 text-yellow-400/50" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {nextInstallment && (
+                  <Card className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border-blue-500/20">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">القسط القادم - يوم 30</p>
+                          <p className="text-xl font-bold text-blue-400">{nextInstallment.amount.toFixed(2)} ر.س</p>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(nextInstallment.due_date), "dd MMMM yyyy", { locale: ar })}
+                          </p>
+                        </div>
+                        <Calendar className="h-8 w-8 text-blue-400/50" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             </div>
-          </div>
+
+            {/* Client Status Card with Payment Methods */}
+            <FinancingStatusCard 
+              application={currentApplication}
+              installments={installments}
+              showClientInfo={false}
+            />
+          </>
         )}
 
         {/* Show application status card for pending/approved/rejected/documents_required applications */}

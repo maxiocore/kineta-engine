@@ -45,6 +45,7 @@ import {
   sendFinancingPromissoryNoteEmail,
   sendFinancingContractEmail
 } from "@/lib/emailService";
+import FinancingStatusCard from "@/components/financing/FinancingStatusCard";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -932,65 +933,12 @@ export default function AdminFinancing() {
             
             {selectedApplication && (
               <div className="space-y-6">
-                {/* Status Badge */}
-                <div className="flex items-center justify-between">
-                  <Badge className={`${statusConfig[selectedApplication.status]?.color} flex items-center gap-1`}>
-                    {statusConfig[selectedApplication.status]?.icon}
-                    {statusConfig[selectedApplication.status]?.label}
-                  </Badge>
-                  {selectedApplication.reviewed_at && (
-                    <span className="text-sm text-muted-foreground">
-                      آخر تحديث: {format(new Date(selectedApplication.reviewed_at), "dd/MM/yyyy HH:mm", { locale: ar })}
-                    </span>
-                  )}
-                </div>
-
-                {/* Applicant Info */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      معلومات مقدم الطلب
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="grid grid-cols-2 gap-4 text-sm">
-                    <div><span className="text-muted-foreground">الاسم:</span> {selectedApplication.full_name}</div>
-                    <div><span className="text-muted-foreground">الهوية:</span> {selectedApplication.national_id}</div>
-                    <div><span className="text-muted-foreground">الهاتف:</span> {selectedApplication.phone}</div>
-                    <div><span className="text-muted-foreground">البريد:</span> {selectedApplication.email}</div>
-                    {selectedApplication.address && (
-                      <div className="col-span-2"><span className="text-muted-foreground">العنوان:</span> {selectedApplication.address}</div>
-                    )}
-                    {selectedApplication.company_name && (
-                      <div><span className="text-muted-foreground">الشركة:</span> {selectedApplication.company_name}</div>
-                    )}
-                    {selectedApplication.commercial_register && (
-                      <div><span className="text-muted-foreground">السجل التجاري:</span> {selectedApplication.commercial_register}</div>
-                    )}
-                    {selectedApplication.tax_number && (
-                      <div><span className="text-muted-foreground">الرقم الضريبي:</span> {selectedApplication.tax_number}</div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Finance Info */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <CreditCard className="h-4 w-4" />
-                      تفاصيل التمويل
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="grid grid-cols-2 gap-4 text-sm">
-                    <div><span className="text-muted-foreground">المبلغ المطلوب:</span> {selectedApplication.requested_amount.toFixed(2)} ر.س</div>
-                    <div><span className="text-muted-foreground">المبلغ الموافق عليه:</span> {selectedApplication.approved_amount?.toFixed(2) || "-"} ر.س</div>
-                    <div><span className="text-muted-foreground">الخطة:</span> {selectedApplication.financing_plans?.name_ar || "-"}</div>
-                    <div><span className="text-muted-foreground">عدد الأقساط:</span> {selectedApplication.financing_plans?.installments_count || "-"}</div>
-                    {selectedApplication.service_description && (
-                      <div className="col-span-2"><span className="text-muted-foreground">الخدمة:</span> {selectedApplication.service_description}</div>
-                    )}
-                  </CardContent>
-                </Card>
+                {/* Client Status Card with full info */}
+                <FinancingStatusCard 
+                  application={selectedApplication}
+                  installments={installments}
+                  showClientInfo={true}
+                />
 
                 {/* Admin Notes */}
                 {selectedApplication.admin_notes && (
