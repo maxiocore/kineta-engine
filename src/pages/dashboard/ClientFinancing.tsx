@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { Link } from "react-router-dom";
 import { 
   Landmark, 
@@ -36,7 +36,19 @@ import {
   Percent,
   Check,
   Upload,
-  FileUp
+  FileUp,
+  Wallet,
+  Star,
+  Zap,
+  Gift,
+  Lock,
+  Award,
+  ArrowUpRight,
+  BadgeCheck,
+  CircleDollarSign,
+  Coins,
+  Target,
+  Timer
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -91,6 +103,250 @@ interface FinancingInstallment {
   paid_at: string | null;
 }
 
+// Animated Counter Component
+function AnimatedValue({ value, suffix = "", prefix = "" }: { value: number; suffix?: string; prefix?: string }) {
+  const springValue = useSpring(0, { stiffness: 100, damping: 30 });
+  const display = useTransform(springValue, (latest) => 
+    prefix + Math.floor(latest).toLocaleString("ar-SA") + suffix
+  );
+
+  useEffect(() => {
+    springValue.set(value);
+  }, [value, springValue]);
+
+  return <motion.span>{display}</motion.span>;
+}
+
+// Floating Orbs Background
+function FloatingOrbs() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {[...Array(5)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full opacity-30"
+          style={{
+            background: `radial-gradient(circle, hsl(${160 + i * 20}, 80%, 50%) 0%, transparent 70%)`,
+            width: `${100 + i * 50}px`,
+            height: `${100 + i * 50}px`,
+          }}
+          animate={{
+            x: [0, 30, -20, 0],
+            y: [0, -30, 20, 0],
+            scale: [1, 1.1, 0.9, 1],
+          }}
+          transition={{
+            duration: 8 + i * 2,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          initial={{
+            left: `${10 + i * 20}%`,
+            top: `${10 + i * 15}%`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Interactive Stat Card
+function StatCard({ 
+  icon: Icon, 
+  label, 
+  value, 
+  suffix = "ر.س",
+  gradient,
+  delay = 0
+}: { 
+  icon: React.ElementType; 
+  label: string; 
+  value: number; 
+  suffix?: string;
+  gradient: string;
+  delay?: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ delay, type: "spring", stiffness: 200 }}
+      whileHover={{ scale: 1.02, y: -5 }}
+      className="relative group"
+    >
+      <div className={`absolute inset-0 ${gradient} rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity`} />
+      <Card className="relative overflow-hidden border-0 bg-card/80 backdrop-blur-xl">
+        <CardContent className="p-5">
+          <div className="flex items-start justify-between">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">{label}</p>
+              <p className="text-2xl sm:text-3xl font-bold">
+                <AnimatedValue value={value} suffix={` ${suffix}`} />
+              </p>
+            </div>
+            <motion.div 
+              className={`p-3 rounded-xl ${gradient}`}
+              whileHover={{ rotate: 10, scale: 1.1 }}
+            >
+              <Icon className="h-6 w-6 text-white" />
+            </motion.div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
+// Feature Card Component
+function FeatureCard({ 
+  icon: Icon, 
+  title, 
+  description,
+  color,
+  delay = 0
+}: { 
+  icon: React.ElementType; 
+  title: string; 
+  description: string;
+  color: string;
+  delay?: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      whileHover={{ scale: 1.03, y: -5 }}
+      className="group"
+    >
+      <Card className="h-full border border-border/50 hover:border-primary/30 transition-all duration-300 bg-card/50 backdrop-blur-sm overflow-hidden">
+        <CardContent className="p-5">
+          <motion.div 
+            className={`w-14 h-14 rounded-2xl ${color} flex items-center justify-center mb-4 shadow-lg`}
+            whileHover={{ rotate: 5, scale: 1.1 }}
+          >
+            <Icon className="h-7 w-7 text-white" />
+          </motion.div>
+          <h4 className="font-bold text-lg mb-2 group-hover:text-primary transition-colors">{title}</h4>
+          <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
+// Plan Card with Premium Design
+function PlanCard({ 
+  plan, 
+  index, 
+  isPopular = false 
+}: { 
+  plan: FinancingPlan; 
+  index: number;
+  isPopular?: boolean;
+}) {
+  const gradients = [
+    "from-blue-500 to-cyan-500",
+    "from-violet-500 to-purple-500",
+    "from-emerald-500 to-teal-500",
+    "from-orange-500 to-amber-500",
+    "from-rose-500 to-pink-500",
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.1, type: "spring" }}
+      whileHover={{ scale: 1.02, y: -8 }}
+      className="relative group"
+    >
+      {isPopular && (
+        <motion.div 
+          className="absolute -top-3 left-1/2 -translate-x-1/2 z-10"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.5, type: "spring" }}
+        >
+          <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-1 shadow-lg">
+            <Star className="h-3 w-3 ml-1" />
+            الأكثر شيوعاً
+          </Badge>
+        </motion.div>
+      )}
+      
+      <Card className={`h-full overflow-hidden transition-all duration-500 ${
+        isPopular 
+          ? "border-2 border-amber-500/50 shadow-xl shadow-amber-500/10" 
+          : "border border-border/50 hover:border-primary/30"
+      }`}>
+        <div className={`h-2 bg-gradient-to-r ${gradients[index % gradients.length]}`} />
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <motion.div 
+              className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradients[index % gradients.length]} flex items-center justify-center shadow-lg`}
+              whileHover={{ rotate: 360 }}
+              transition={{ duration: 0.5 }}
+            >
+              <span className="text-2xl font-black text-white">{plan.installments_count}</span>
+            </motion.div>
+            <div className="text-left">
+              <p className="text-xs text-muted-foreground">المدة</p>
+              <p className="font-bold text-lg">{plan.duration_months} شهر</p>
+            </div>
+          </div>
+
+          <h3 className="font-bold text-xl mb-2">{plan.name_ar}</h3>
+          <p className="text-sm text-muted-foreground mb-6">{plan.description_ar || "خطة تمويل مرنة بدون فوائد"}</p>
+
+          <div className="space-y-3 mb-6">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50">
+              <span className="text-sm text-muted-foreground flex items-center gap-2">
+                <DollarSign className="h-4 w-4" />
+                الحد الأدنى
+              </span>
+              <span className="font-bold">{plan.min_amount.toLocaleString()} ر.س</span>
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50">
+              <span className="text-sm text-muted-foreground flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                الحد الأقصى
+              </span>
+              <span className="font-bold">{plan.max_amount ? `${plan.max_amount.toLocaleString()} ر.س` : "غير محدد"}</span>
+            </div>
+          </div>
+
+          <div className="space-y-2 mb-6">
+            {[
+              { icon: CheckCircle2, text: "بدون فوائد" },
+              { icon: Shield, text: "موافقة سريعة" },
+              { icon: Timer, text: "القسط يوم 30" },
+            ].map((item, i) => (
+              <motion.div 
+                key={i}
+                className="flex items-center gap-2 text-sm"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 + i * 0.1 }}
+              >
+                <item.icon className="h-4 w-4 text-emerald-500" />
+                <span>{item.text}</span>
+              </motion.div>
+            ))}
+          </div>
+
+          <Button asChild className={`w-full bg-gradient-to-r ${gradients[index % gradients.length]} hover:opacity-90`}>
+            <Link to="/dashboard/financing/apply">
+              اختر هذه الخطة
+              <ArrowLeft className="h-4 w-4 mr-2" />
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
 const statusConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
   pending: { label: "قيد المراجعة", color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30", icon: <Clock className="h-3 w-3" /> },
   under_review: { label: "قيد المراجعة", color: "bg-blue-500/20 text-blue-400 border-blue-500/30", icon: <Clock className="h-3 w-3" /> },
@@ -111,36 +367,8 @@ const installmentStatusConfig: Record<string, { label: string; color: string }> 
   overdue: { label: "متأخر", color: "bg-red-500/20 text-red-400" },
 };
 
-const quickLinks = [
-  {
-    title: "حاسبة التمويل",
-    description: "احسب أقساطك الشهرية",
-    icon: Calculator,
-    href: "/dashboard/financing/calculator",
-    color: "from-blue-500 to-indigo-600",
-  },
-  {
-    title: "تحقق من الأهلية",
-    description: "تأكد من استيفاء الشروط",
-    icon: UserCheck,
-    href: "/dashboard/financing/eligibility",
-    color: "from-emerald-500 to-teal-600",
-  },
-  {
-    title: "تعليمات التمويل",
-    description: "اقرأ الشروط والأحكام",
-    icon: BookOpen,
-    href: "/dashboard/financing/guide",
-    color: "from-purple-500 to-violet-600",
-  },
-  {
-    title: "تقديم طلب",
-    description: "ابدأ طلب تمويل جديد",
-    icon: Plus,
-    href: "/dashboard/financing/apply",
-    color: "from-orange-500 to-red-600",
-  },
-];
+// Execution Fee constant
+const EXECUTION_FEE = 500;
 
 export default function ClientFinancing() {
   const { user } = useAuth();
@@ -202,60 +430,150 @@ export default function ClientFinancing() {
   });
 
   const activeApplications = applications.filter(a => a.status === "active");
-  
-  // Get the selected or first active application
   const currentApplication = selectedApplication || activeApplications[0];
   
   const totalPaid = installments.filter(i => i.status === "paid").reduce((sum, i) => sum + i.amount, 0);
   const totalRemaining = installments.filter(i => i.status !== "paid").reduce((sum, i) => sum + i.amount, 0);
   const nextInstallment = installments.find(i => i.status === "pending");
 
-  // Calculate paid installments count for active applications to check eligibility for new application
   const paidInstallmentsCount = installments.filter(i => i.status === "paid").length;
   const hasActiveApplication = activeApplications.length > 0;
   const hasPendingApplication = applications.some(a => a.status === "pending" || a.status === "under_review" || a.status === "approved");
   const canApplyForNew = !hasPendingApplication && (!hasActiveApplication || paidInstallmentsCount >= 3);
 
+  const features = [
+    { icon: Sparkles, title: "بدون فوائد", description: "تمويل إسلامي متوافق مع الشريعة بدون أي فوائد أو رسوم خفية", color: "bg-gradient-to-br from-emerald-500 to-teal-600" },
+    { icon: Zap, title: "موافقة سريعة", description: "الموافقة على طلبك خلال 24 ساعة عمل فقط", color: "bg-gradient-to-br from-amber-500 to-orange-600" },
+    { icon: Shield, title: "آمن وموثوق", description: "بياناتك محمية بأعلى معايير الأمان والخصوصية", color: "bg-gradient-to-br from-blue-500 to-indigo-600" },
+    { icon: Gift, title: "مكافآت حصرية", description: "احصل على نقاط مكافآت مع كل دفعة في الموعد", color: "bg-gradient-to-br from-purple-500 to-violet-600" },
+  ];
+
+  const quickLinks = [
+    { title: "حاسبة التمويل", description: "احسب أقساطك", icon: Calculator, href: "/dashboard/financing/calculator", gradient: "from-blue-500 to-indigo-600" },
+    { title: "تحقق من الأهلية", description: "تأكد من الشروط", icon: UserCheck, href: "/dashboard/financing/eligibility", gradient: "from-emerald-500 to-teal-600" },
+    { title: "دليل التمويل", description: "اقرأ الشروط", icon: BookOpen, href: "/dashboard/financing/guide", gradient: "from-purple-500 to-violet-600" },
+    { title: "تقديم طلب", description: "ابدأ الآن", icon: Plus, href: "/dashboard/financing/apply", gradient: "from-orange-500 to-red-600" },
+  ];
+
   return (
     <ClientDashboardLayout>
-      <div className="space-y-6" dir="rtl">
-        {/* Header */}
-        <div className="flex flex-col gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2 sm:gap-3">
-              <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600">
-                <Landmark className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+      <div className="space-y-8" dir="rtl">
+        {/* Premium Hero Header */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="relative overflow-hidden rounded-3xl"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700" />
+          <FloatingOrbs />
+          
+          <div className="relative z-10 p-6 sm:p-10">
+            <div className="flex flex-col lg:flex-row items-start justify-between gap-6">
+              <div className="flex-1">
+                <motion.div 
+                  initial={{ opacity: 0, x: -30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center gap-3 mb-4"
+                >
+                  <motion.div 
+                    className="p-3 rounded-2xl bg-white/20 backdrop-blur-sm"
+                    whileHover={{ rotate: 10, scale: 1.1 }}
+                  >
+                    <Landmark className="h-8 w-8 text-white" />
+                  </motion.div>
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white">التمويل المرن</h1>
+                    <p className="text-white/70 text-sm sm:text-base">احصل على خدماتك الآن وادفع لاحقاً</p>
+                  </div>
+                </motion.div>
+
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-white/80 text-base sm:text-lg mb-6 max-w-2xl leading-relaxed"
+                >
+                  تمويل بدون فوائد لخدمات البرمجة والتصميم ومواقع التواصل. 
+                  مبالغ من <span className="font-bold text-white">100</span> حتى <span className="font-bold text-white">100,000</span> ريال 
+                  بأقساط تصل إلى <span className="font-bold text-white">12 شهر</span>.
+                </motion.p>
+
+                {/* Execution Fee Badge */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6"
+                >
+                  <Coins className="h-5 w-5 text-amber-300" />
+                  <span className="text-white text-sm">رسوم تنفيذ الطلب: <span className="font-bold text-amber-300">{EXECUTION_FEE} ر.س</span> (تُضاف لأول قسط)</span>
+                </motion.div>
+
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex flex-wrap gap-3"
+                >
+                  {canApplyForNew ? (
+                    <Button asChild size="lg" className="bg-white text-emerald-600 hover:bg-white/90 shadow-xl shadow-black/20">
+                      <Link to="/dashboard/financing/apply">
+                        <Plus className="h-5 w-5 ml-2" />
+                        تقديم طلب تمويل
+                      </Link>
+                    </Button>
+                  ) : (
+                    <div className="flex flex-col">
+                      <Button disabled size="lg" className="bg-white/30 text-white cursor-not-allowed">
+                        <Lock className="h-4 w-4 ml-2" />
+                        غير متاح حالياً
+                      </Button>
+                      <p className="text-xs text-white/60 mt-2">
+                        {hasPendingApplication ? "لديك طلب قيد المراجعة" : `يجب سداد ${3 - paidInstallmentsCount} أقساط إضافية`}
+                      </p>
+                    </div>
+                  )}
+                  <Button asChild size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10">
+                    <Link to="/dashboard/financing/calculator">
+                      <Calculator className="h-5 w-5 ml-2" />
+                      حاسبة الأقساط
+                    </Link>
+                  </Button>
+                </motion.div>
               </div>
-              التمويل المرن
-            </h1>
-            <p className="text-sm sm:text-base text-muted-foreground mt-1">احصل على خدماتك الآن وادفع لاحقاً بدون فوائد</p>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          {canApplyForNew ? (
-            <Button asChild size="sm" className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700">
-              <Link to="/dashboard/financing/apply">
-                <Plus className="h-4 w-4 ml-2" />
-                تقديم طلب تمويل
-              </Link>
-            </Button>
-          ) : (
-            <div className="w-full sm:w-auto">
-              <Button disabled size="sm" className="w-full sm:w-auto bg-muted text-muted-foreground cursor-not-allowed">
-                <AlertTriangle className="h-4 w-4 ml-2" />
-                تقديم طلب جديد
-              </Button>
-              <p className="text-xs text-muted-foreground mt-1 text-center sm:text-right">
-                {hasPendingApplication 
-                  ? "لديك طلب قيد المراجعة" 
-                  : `يجب سداد ${3 - paidInstallmentsCount} أقساط إضافية`}
-              </p>
+
+              {/* Quick Stats */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5, type: "spring" }}
+                className="grid grid-cols-2 gap-3 w-full lg:w-auto"
+              >
+                {[
+                  { label: "الحد الأقصى", value: "100,000", suffix: "ر.س", icon: CircleDollarSign },
+                  { label: "أقصى مدة", value: "12", suffix: "شهر", icon: Calendar },
+                  { label: "رسوم التنفيذ", value: "500", suffix: "ر.س", icon: Receipt },
+                  { label: "نسبة الفائدة", value: "0", suffix: "%", icon: Percent },
+                ].map((stat, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 + i * 0.1 }}
+                    className="p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20"
+                  >
+                    <stat.icon className="h-5 w-5 text-white/60 mb-2" />
+                    <p className="text-2xl font-black text-white">{stat.value}<span className="text-sm font-normal text-white/60 mr-1">{stat.suffix}</span></p>
+                    <p className="text-xs text-white/60">{stat.label}</p>
+                  </motion.div>
+                ))}
+              </motion.div>
             </div>
-          )}
           </div>
-        </div>
+        </motion.div>
 
         {/* Quick Links */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {quickLinks.map((link, index) => (
             <motion.div
               key={index}
@@ -264,13 +582,16 @@ export default function ClientFinancing() {
               transition={{ delay: index * 0.1 }}
             >
               <Link to={link.href}>
-                <Card className="h-full hover:border-primary/50 transition-all group cursor-pointer">
-                  <CardContent className="p-3 sm:p-4">
-                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br ${link.color} flex items-center justify-center mb-2 sm:mb-3 group-hover:scale-110 transition-transform`}>
-                      <link.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                    </div>
-                    <h3 className="font-semibold text-xs sm:text-sm line-clamp-1">{link.title}</h3>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 line-clamp-2">{link.description}</p>
+                <Card className="h-full hover:border-primary/50 transition-all group cursor-pointer hover:shadow-lg">
+                  <CardContent className="p-4">
+                    <motion.div 
+                      className={`w-12 h-12 rounded-xl bg-gradient-to-br ${link.gradient} flex items-center justify-center mb-3 shadow-lg`}
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                    >
+                      <link.icon className="h-6 w-6 text-white" />
+                    </motion.div>
+                    <h3 className="font-bold text-sm group-hover:text-primary transition-colors">{link.title}</h3>
+                    <p className="text-xs text-muted-foreground">{link.description}</p>
                   </CardContent>
                 </Card>
               </Link>
@@ -278,78 +599,78 @@ export default function ClientFinancing() {
           ))}
         </div>
 
-        {/* Bank Card for Active Financing */}
+        {/* Active Financing Display */}
         {activeApplications.length > 0 && currentApplication && (
-          <>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <EnhancedFinancingCard
-                userName={currentApplication.full_name}
-                totalBalance={currentApplication.approved_amount || currentApplication.requested_amount}
-                paidAmount={totalPaid}
-                remainingAmount={totalRemaining}
-                nextInstallmentAmount={nextInstallment?.amount}
-                nextInstallmentDate={nextInstallment ? new Date(nextInstallment.due_date) : undefined}
-                planName={currentApplication.financing_plans?.name_ar}
-                contractNumber={currentApplication.contract_number || undefined}
-                installmentsCount={currentApplication.financing_plans?.installments_count || 6}
-                paidInstallments={installments.filter(i => i.status === "paid").length}
-              />
-              
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-emerald-500/20">
+                <TrendingUp className="h-6 w-6 text-emerald-500" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold">التمويل النشط</h2>
+                <p className="text-sm text-muted-foreground">متابعة تمويلك الحالي</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+              {/* Bank Card */}
+              <div className="lg:col-span-3">
+                <EnhancedFinancingCard
+                  userName={currentApplication.full_name}
+                  totalBalance={currentApplication.approved_amount || currentApplication.requested_amount}
+                  paidAmount={totalPaid}
+                  remainingAmount={totalRemaining}
+                  nextInstallmentAmount={nextInstallment?.amount}
+                  nextInstallmentDate={nextInstallment ? new Date(nextInstallment.due_date) : undefined}
+                  planName={currentApplication.financing_plans?.name_ar}
+                  contractNumber={currentApplication.contract_number || undefined}
+                  installmentsCount={currentApplication.financing_plans?.installments_count || 6}
+                  paidInstallments={installments.filter(i => i.status === "paid").length}
+                />
+              </div>
+
               {/* Stats Cards */}
-              <div className="space-y-4">
-                <Card className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border-emerald-500/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-muted-foreground">المبلغ المدفوع</p>
-                        <p className="text-2xl font-bold text-emerald-400">{totalPaid.toFixed(2)} ر.س</p>
-                      </div>
-                      <CheckCircle2 className="h-8 w-8 text-emerald-400/50" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-muted-foreground">المبلغ المتبقي</p>
-                        <p className="text-2xl font-bold text-yellow-400">{totalRemaining.toFixed(2)} ر.س</p>
-                      </div>
-                      <DollarSign className="h-8 w-8 text-yellow-400/50" />
-                    </div>
-                  </CardContent>
-                </Card>
-
+              <div className="lg:col-span-2 grid grid-cols-1 gap-4">
+                <StatCard
+                  icon={CheckCircle2}
+                  label="المبلغ المدفوع"
+                  value={totalPaid}
+                  gradient="bg-gradient-to-br from-emerald-500 to-teal-600"
+                  delay={0.1}
+                />
+                <StatCard
+                  icon={Wallet}
+                  label="المبلغ المتبقي"
+                  value={totalRemaining}
+                  gradient="bg-gradient-to-br from-amber-500 to-orange-600"
+                  delay={0.2}
+                />
                 {nextInstallment && (
-                  <Card className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border-blue-500/20">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-muted-foreground">القسط القادم - يوم 30</p>
-                          <p className="text-xl font-bold text-blue-400">{nextInstallment.amount.toFixed(2)} ر.س</p>
-                          <p className="text-xs text-muted-foreground">
-                            {format(new Date(nextInstallment.due_date), "dd MMMM yyyy", { locale: ar })}
-                          </p>
-                        </div>
-                        <Calendar className="h-8 w-8 text-blue-400/50" />
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <StatCard
+                    icon={Calendar}
+                    label={`القسط القادم - ${format(new Date(nextInstallment.due_date), "dd/MM")}`}
+                    value={nextInstallment.amount}
+                    gradient="bg-gradient-to-br from-blue-500 to-indigo-600"
+                    delay={0.3}
+                  />
                 )}
               </div>
             </div>
 
-            {/* Client Status Card with Payment Methods */}
+            {/* Status Card with Payment Methods */}
             <FinancingStatusCard 
               application={currentApplication}
               installments={installments}
               showClientInfo={false}
             />
-          </>
+          </motion.div>
         )}
 
-        {/* Show application status card for pending/approved/rejected/documents_required applications */}
+        {/* Pending/Approved Application Status */}
         {activeApplications.length === 0 && applications.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -408,61 +729,54 @@ export default function ClientFinancing() {
                       </Badge>
                     </div>
                     <p className="text-muted-foreground mb-3">
-                      {(applications[0].status === "pending" || applications[0].status === "under_review") && "طلبك قيد المراجعة من فريقنا، سنقوم بإعلامك فور اتخاذ القرار عبر البريد الإلكتروني"}
+                      {(applications[0].status === "pending" || applications[0].status === "under_review") && "طلبك قيد المراجعة، سنقوم بإعلامك فور اتخاذ القرار"}
                       {applications[0].status === "documents_required" && "مطلوب رفع بعض المستندات لإكمال مراجعة طلبك"}
-                      {applications[0].status === "awaiting_contract" && "تمت الموافقة المبدئية على طلبك! يرجى مراجعة العقد وتوقيعه رقمياً"}
-                      {applications[0].status === "awaiting_signature" && !applications[0].promissory_note_url && "تم توقيع العقد، يرجى توقيع الكمبيالة لإتمام عملية التمويل"}
-                      {applications[0].status === "awaiting_signature" && applications[0].promissory_note_url && "تم توقيع الكمبيالة بنجاح، بانتظار تفعيل التمويل من الإدارة"}
-                      {applications[0].status === "approved" && "تمت الموافقة على طلبك! سيتم إضافة الرصيد لحسابك وتفعيل التمويل قريباً"}
-                      {applications[0].status === "rejected" && `عذراً، تم رفض الطلب. ${applications[0].rejection_reason || "يمكنك تقديم طلب جديد"}`}
+                      {applications[0].status === "awaiting_contract" && "تمت الموافقة المبدئية! يرجى مراجعة العقد وتوقيعه"}
+                      {applications[0].status === "awaiting_signature" && !applications[0].promissory_note_url && "تم توقيع العقد، يرجى توقيع الكمبيالة"}
+                      {applications[0].status === "awaiting_signature" && applications[0].promissory_note_url && "تم توقيع الكمبيالة، بانتظار التفعيل"}
+                      {applications[0].status === "approved" && "تمت الموافقة! سيتم إضافة الرصيد قريباً"}
+                      {applications[0].status === "rejected" && `عذراً، تم رفض الطلب. ${applications[0].rejection_reason || ""}`}
                     </p>
                     
-                    {/* Upload Documents Button for documents_required status */}
+                    {/* Execution Fee Notice */}
+                    <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 mb-4">
+                      <div className="flex items-center gap-2">
+                        <Coins className="h-4 w-4 text-blue-400" />
+                        <span className="text-sm text-blue-300">
+                          رسوم تنفيذ الطلب: <span className="font-bold">{EXECUTION_FEE} ر.س</span> (تُضاف لأول قسط)
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
                     {applications[0].status === "documents_required" && (
-                      <Button asChild className="mb-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600">
+                      <Button asChild className="mb-4 bg-gradient-to-r from-orange-500 to-amber-500">
                         <Link to={`/dashboard/financing/documents/${applications[0].id}`}>
                           <Upload className="h-4 w-4 ml-2" />
-                          رفع المستندات المطلوبة
+                          رفع المستندات
                         </Link>
                       </Button>
                     )}
 
-                    {/* Sign Contract Button for awaiting_contract status */}
                     {applications[0].status === "awaiting_contract" && (
-                      <Button asChild className="mb-4 bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700">
+                      <Button asChild className="mb-4 bg-gradient-to-r from-purple-500 to-violet-600">
                         <Link to={`/dashboard/financing/sign-contract/${applications[0].id}`}>
                           <ScrollText className="h-4 w-4 ml-2" />
-                          مراجعة وتوقيع العقد
+                          توقيع العقد
                         </Link>
                       </Button>
                     )}
 
-                    {/* Sign Promissory Note Button for awaiting_signature status (only if not signed) */}
                     {applications[0].status === "awaiting_signature" && !applications[0].promissory_note_url && (
-                      <Button asChild className="mb-4 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700">
+                      <Button asChild className="mb-4 bg-gradient-to-r from-indigo-500 to-blue-600">
                         <Link to={`/dashboard/financing/sign-promissory/${applications[0].id}`}>
                           <FileText className="h-4 w-4 ml-2" />
                           توقيع الكمبيالة
                         </Link>
                       </Button>
                     )}
-                    
-                    {/* Already signed - waiting for admin activation */}
-                    {applications[0].status === "awaiting_signature" && applications[0].promissory_note_url && (
-                      <div className="mb-4 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center">
-                            <CheckCircle2 className="h-5 w-5 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-bold text-emerald-400">تم توقيع الكمبيالة بنجاح</p>
-                            <p className="text-sm text-muted-foreground">بانتظار تفعيل التمويل من الإدارة</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 p-4 bg-muted/30 rounded-xl">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 p-4 bg-muted/30 rounded-xl">
                       <div>
                         <p className="text-xs text-muted-foreground">المبلغ المطلوب</p>
                         <p className="text-lg font-bold text-primary">{applications[0].requested_amount.toLocaleString()} ر.س</p>
@@ -487,143 +801,141 @@ export default function ClientFinancing() {
           </motion.div>
         )}
 
-        {/* Select Active Application if multiple */}
-        {activeApplications.length > 1 && (
-          <div className="flex flex-wrap gap-2">
-            <span className="text-sm text-muted-foreground self-center">اختر التمويل:</span>
-            {activeApplications.map((app) => (
-              <Button
-                key={app.id}
-                variant={currentApplication?.id === app.id ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedApplication(app)}
-              >
-                #{app.application_number}
-              </Button>
-            ))}
-          </div>
-        )}
-
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
           <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
             <TabsList className="bg-muted/50 inline-flex w-max sm:w-auto gap-1 p-1 h-auto flex-row-reverse" dir="rtl">
-              <TabsTrigger 
-                value="plans" 
-                className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap"
-              >
+              <TabsTrigger value="plans" className="text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
+                <CreditCard className="h-4 w-4 ml-1" />
                 خطط التمويل
               </TabsTrigger>
               {activeApplications.length > 0 && (
                 <>
-                  <TabsTrigger 
-                    value="contract" 
-                    className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap"
-                  >
+                  <TabsTrigger value="contract" className="text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
+                    <FileText className="h-4 w-4 ml-1" />
                     العقد
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="installments" 
-                    className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap"
-                  >
-                    جدول الأقساط
+                  <TabsTrigger value="installments" className="text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
+                    <Calendar className="h-4 w-4 ml-1" />
+                    الأقساط
                   </TabsTrigger>
                 </>
               )}
-              <TabsTrigger 
-                value="applications" 
-                className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap"
-              >
+              <TabsTrigger value="applications" className="text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
+                <FileText className="h-4 w-4 ml-1" />
                 طلباتي ({applications.length})
               </TabsTrigger>
-              <TabsTrigger 
-                value="overview" 
-                className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap"
-              >
+              <TabsTrigger value="overview" className="text-xs sm:text-sm px-3 py-2 whitespace-nowrap">
+                <Sparkles className="h-4 w-4 ml-1" />
                 نظرة عامة
               </TabsTrigger>
             </TabsList>
           </div>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            {/* Hero Banner */}
-            <Card className="overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 border-0">
-              <CardContent className="p-8 relative">
-                <div className="absolute top-0 left-0 w-full h-full opacity-10">
-                  <div className="absolute top-4 left-4 w-32 h-32 rounded-full bg-white/20" />
-                  <div className="absolute bottom-4 right-4 w-48 h-48 rounded-full bg-white/10" />
-                </div>
-                <div className="relative z-10 text-white">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Sparkles className="h-5 w-5" />
-                    <span className="text-sm font-medium">بدون فوائد • بدون رسوم خفية</span>
-                  </div>
-                  <h2 className="text-3xl font-bold mb-2">تمويل مرن لخدماتك</h2>
-                  <p className="text-white/80 mb-6 max-w-lg">
-                    احصل على خدمات البرمجة والتصميم ومواقع التواصل الآن وادفع على أقساط شهرية تصل إلى 12 شهر للمبالغ الكبيرة.
-                    الرصيد يُضاف لحسابك مباشرة ولا يمكن سحبه. القسط يوم 30 من كل شهر.
-                  </p>
-                  <div className="flex flex-wrap gap-3">
-                    {canApplyForNew ? (
-                      <Button asChild size="lg" className="bg-white text-emerald-600 hover:bg-white/90">
-                        <Link to="/dashboard/financing/apply">
-                          ابدأ الآن
-                          <ArrowLeft className="h-4 w-4 mr-2" />
-                        </Link>
-                      </Button>
-                    ) : (
-                      <div className="flex flex-col items-start">
-                        <Button disabled size="lg" className="bg-white/50 text-emerald-600/50 cursor-not-allowed">
-                          <AlertTriangle className="h-4 w-4 ml-2" />
-                          غير متاح حالياً
-                        </Button>
-                        <p className="text-xs text-white/70 mt-1">
-                          {hasPendingApplication 
-                            ? "لديك طلب قيد المراجعة" 
-                            : `يجب سداد ${3 - paidInstallmentsCount} أقساط إضافية`}
-                        </p>
-                      </div>
-                    )}
-                    <Button asChild size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10">
-                      <Link to="/dashboard/financing/guide">
-                        اقرأ التعليمات
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Available Plans Preview */}
+          <TabsContent value="overview" className="space-y-8 mt-6">
+            {/* Features Section */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">خطط التمويل المتاحة</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {plans.slice(0, 4).map((plan, index) => (
-                  <motion.div key={plan.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: index * 0.1 }}>
-                    <Card className="h-full hover:border-primary/50 transition-all cursor-pointer group" onClick={() => setActiveTab("plans")}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                            <CreditCard className="h-5 w-5 text-primary" />
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 rounded-xl bg-primary/20">
+                  <Award className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">مميزات التمويل</h2>
+                  <p className="text-sm text-muted-foreground">لماذا تختار تمويلنا المرن</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {features.map((feature, index) => (
+                  <FeatureCard key={index} {...feature} delay={index * 0.1} />
+                ))}
+              </div>
+            </div>
+
+            {/* How It Works */}
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 rounded-xl bg-violet-500/20">
+                  <BookOpen className="h-6 w-6 text-violet-500" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">كيف يعمل التمويل؟</h2>
+                  <p className="text-sm text-muted-foreground">خطوات بسيطة للحصول على تمويلك</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {[
+                  { step: 1, title: "قدم طلبك", description: "املأ نموذج الطلب بمعلوماتك الأساسية", icon: FileText },
+                  { step: 2, title: "انتظر الموافقة", description: "نراجع طلبك ونرد خلال 24 ساعة", icon: Clock },
+                  { step: 3, title: "وقع العقد", description: "وقع العقد والكمبيالة رقمياً", icon: ScrollText },
+                  { step: 4, title: "استلم الرصيد", description: "يُضاف الرصيد لحسابك فوراً", icon: Wallet },
+                ].map((item, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.15 }}
+                    className="relative"
+                  >
+                    <Card className="h-full border-border/50 bg-card/50 backdrop-blur-sm">
+                      <CardContent className="p-5 text-center">
+                        <motion.div 
+                          className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mx-auto mb-4 relative"
+                          whileHover={{ scale: 1.1 }}
+                        >
+                          <item.icon className="h-7 w-7 text-primary" />
+                          <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
+                            {item.step}
                           </div>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                        </div>
-                        <h4 className="font-semibold">{plan.name_ar}</h4>
-                        <p className="text-sm text-muted-foreground mt-1">{plan.installments_count} {plan.installments_count === 1 ? "دفعة" : "أقساط"}</p>
-                        <div className="mt-3 pt-3 border-t border-border">
-                          <p className="text-xs text-muted-foreground">من {plan.min_amount} إلى {plan.max_amount || "غير محدد"} ر.س</p>
-                        </div>
+                        </motion.div>
+                        <h4 className="font-bold text-lg mb-2">{item.title}</h4>
+                        <p className="text-sm text-muted-foreground">{item.description}</p>
                       </CardContent>
                     </Card>
+                    {index < 3 && (
+                      <div className="hidden md:block absolute top-1/2 -left-3 transform -translate-y-1/2">
+                        <ChevronRight className="h-6 w-6 text-muted-foreground/30" />
+                      </div>
+                    )}
                   </motion.div>
                 ))}
               </div>
             </div>
+
+            {/* Fee Structure */}
+            <Card className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/20">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600">
+                    <Coins className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-lg mb-2">هيكل الرسوم</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                      <div className="p-4 rounded-xl bg-card/80 backdrop-blur-sm">
+                        <p className="text-2xl font-black text-amber-500">{EXECUTION_FEE} ر.س</p>
+                        <p className="text-sm text-muted-foreground">رسوم تنفيذ الطلب</p>
+                        <p className="text-xs text-muted-foreground/80 mt-1">تُضاف لأول قسط</p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-card/80 backdrop-blur-sm">
+                        <p className="text-2xl font-black text-emerald-500">5%</p>
+                        <p className="text-sm text-muted-foreground">رسوم إدارية</p>
+                        <p className="text-xs text-muted-foreground/80 mt-1">تُضاف لآخر قسط</p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-card/80 backdrop-blur-sm">
+                        <p className="text-2xl font-black text-blue-500">0%</p>
+                        <p className="text-sm text-muted-foreground">فوائد</p>
+                        <p className="text-xs text-muted-foreground/80 mt-1">بدون فوائد نهائياً</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Applications Tab */}
-          <TabsContent value="applications" className="space-y-4">
+          <TabsContent value="applications" className="space-y-4 mt-6">
             {applications.length === 0 ? (
               <Card className="border-dashed">
                 <CardContent className="p-8 text-center">
@@ -637,51 +949,31 @@ export default function ClientFinancing() {
                   </motion.div>
                   <h3 className="text-lg font-semibold mb-2">لا توجد طلبات تمويل</h3>
                   <p className="text-muted-foreground mb-4">ابدأ بتقديم طلب تمويل للحصول على خدماتك الآن</p>
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button asChild className="bg-gradient-to-r from-emerald-500 to-teal-600">
-                      <Link to="/dashboard/financing/apply">
-                        <Plus className="h-4 w-4 ml-2" />
-                        تقديم طلب جديد
-                      </Link>
-                    </Button>
-                  </motion.div>
+                  <Button asChild className="bg-gradient-to-r from-emerald-500 to-teal-600">
+                    <Link to="/dashboard/financing/apply">
+                      <Plus className="h-4 w-4 ml-2" />
+                      تقديم طلب جديد
+                    </Link>
+                  </Button>
                 </CardContent>
               </Card>
             ) : (
               <div className="space-y-4">
-                {/* Applications Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <h3 className="font-semibold text-base sm:text-lg">جميع الطلبات ({applications.length})</h3>
-                  {canApplyForNew ? (
-                    <Button asChild size="sm" className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-600">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-lg">جميع الطلبات ({applications.length})</h3>
+                  {canApplyForNew && (
+                    <Button asChild size="sm" className="bg-gradient-to-r from-emerald-500 to-teal-600">
                       <Link to="/dashboard/financing/apply">
                         <Plus className="h-4 w-4 ml-1" />
                         طلب جديد
                       </Link>
                     </Button>
-                  ) : (
-                    <div className="flex items-center justify-center sm:justify-end">
-                      <Badge variant="outline" className="text-amber-500 border-amber-500/30 bg-amber-500/10 text-xs">
-                        <AlertTriangle className="h-3 w-3 ml-1" />
-                        {hasPendingApplication 
-                          ? "طلب قيد المراجعة" 
-                          : `سدد ${3 - paidInstallmentsCount} أقساط للتقديم`}
-                      </Badge>
-                    </div>
                   )}
                 </div>
 
                 {applications.map((app, index) => (
-                  <motion.div 
-                    key={app.id} 
-                    initial={{ opacity: 0, y: 20 }} 
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <Card className={`overflow-hidden transition-all duration-300 hover:shadow-lg ${
-                      selectedApplication?.id === app.id ? "ring-2 ring-primary shadow-lg" : ""
-                    } ${app.status === 'active' ? 'border-emerald-500/30' : ''}`}>
-                      {/* Status Bar */}
+                  <motion.div key={app.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }}>
+                    <Card className={`overflow-hidden hover:shadow-lg transition-all ${app.status === 'active' ? 'border-emerald-500/30' : ''}`}>
                       <div className={`h-1.5 ${
                         app.status === 'active' ? 'bg-gradient-to-r from-emerald-400 to-teal-500' :
                         app.status === 'approved' ? 'bg-gradient-to-r from-blue-400 to-cyan-500' :
@@ -690,9 +982,8 @@ export default function ClientFinancing() {
                         'bg-muted'
                       }`} />
                       
-                      <CardContent className="p-4 sm:p-5">
-                        {/* Header Row */}
-                        <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+                      <CardContent className="p-5">
+                        <div className="flex items-start justify-between gap-4 mb-4">
                           <div className="flex items-center gap-3">
                             <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                               app.status === 'active' ? 'bg-emerald-500/20' :
@@ -705,45 +996,37 @@ export default function ClientFinancing() {
                             </div>
                             <div>
                               <h4 className="font-bold text-lg">#{app.application_number}</h4>
-                              <p className="text-xs text-muted-foreground">
-                                {format(new Date(app.submitted_at), "dd MMMM yyyy", { locale: ar })}
-                              </p>
+                              <p className="text-xs text-muted-foreground">{format(new Date(app.submitted_at), "dd MMMM yyyy", { locale: ar })}</p>
                             </div>
                           </div>
-                          <Badge className={`${statusConfig[app.status]?.color || "bg-muted"} px-3 py-1`}>
-                            {statusConfig[app.status]?.label || app.status}
+                          <Badge className={`${statusConfig[app.status]?.color} px-3 py-1`}>
+                            {statusConfig[app.status]?.label}
                           </Badge>
                         </div>
 
-                        {/* Details Grid */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                           <div className="p-3 rounded-lg bg-muted/50">
-                            <p className="text-xs text-muted-foreground mb-1">المبلغ المطلوب</p>
-                            <p className="font-bold text-base">{app.requested_amount.toLocaleString("ar-SA")} <span className="text-xs text-muted-foreground">ر.س</span></p>
+                            <p className="text-xs text-muted-foreground">المبلغ المطلوب</p>
+                            <p className="font-bold">{app.requested_amount.toLocaleString()} ر.س</p>
                           </div>
                           {app.approved_amount && (
                             <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                              <p className="text-xs text-emerald-400 mb-1">المبلغ المعتمد</p>
-                              <p className="font-bold text-base text-emerald-400">{app.approved_amount.toLocaleString("ar-SA")} <span className="text-xs">ر.س</span></p>
+                              <p className="text-xs text-emerald-400">المبلغ المعتمد</p>
+                              <p className="font-bold text-emerald-400">{app.approved_amount.toLocaleString()} ر.س</p>
                             </div>
                           )}
                           <div className="p-3 rounded-lg bg-muted/50">
-                            <p className="text-xs text-muted-foreground mb-1">خطة التمويل</p>
+                            <p className="text-xs text-muted-foreground">خطة التمويل</p>
                             <p className="font-medium text-sm">{app.financing_plans?.name_ar || "-"}</p>
                           </div>
                           <div className="p-3 rounded-lg bg-muted/50">
-                            <p className="text-xs text-muted-foreground mb-1">عدد الأقساط</p>
-                            <p className="font-bold text-base">{app.financing_plans?.installments_count || "-"} <span className="text-xs text-muted-foreground">قسط</span></p>
+                            <p className="text-xs text-muted-foreground">عدد الأقساط</p>
+                            <p className="font-bold">{app.financing_plans?.installments_count || "-"} قسط</p>
                           </div>
                         </div>
 
-                        {/* Rejection Reason */}
                         {app.rejection_reason && (
-                          <motion.div 
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30"
-                          >
+                          <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
                             <div className="flex items-start gap-2">
                               <AlertCircle className="h-4 w-4 text-red-400 flex-shrink-0 mt-0.5" />
                               <div>
@@ -751,73 +1034,29 @@ export default function ClientFinancing() {
                                 <p className="text-sm text-red-300/80">{app.rejection_reason}</p>
                               </div>
                             </div>
-                          </motion.div>
-                        )}
-
-                        {/* Administrative Fee Notice for Active */}
-                        {app.status === 'active' && (
-                          <div className="mb-4 p-2 sm:p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
-                              <div className="flex items-center gap-2">
-                                <Percent className="h-4 w-4 text-blue-400 flex-shrink-0" />
-                                <span className="text-xs sm:text-sm text-blue-300">رسوم إدارية 5% تُضاف مع آخر قسط</span>
-                              </div>
-                              <span className="font-bold text-blue-400 text-sm sm:text-base mr-6 sm:mr-0">
-                                {((app.approved_amount || app.requested_amount) * 0.05).toLocaleString("ar-SA")} ر.س
-                              </span>
-                            </div>
                           </div>
                         )}
 
-                        {/* Action Button for documents required */}
-                        {app.status === "documents_required" && (
-                          <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-                            <Button 
-                              asChild
-                              className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
-                            >
-                              <Link to={`/dashboard/financing/documents/${app.id}`}>
-                                <Upload className="h-4 w-4 ml-2" />
-                                رفع المستندات المطلوبة
-                              </Link>
-                            </Button>
-                          </motion.div>
-                        )}
-
-                        {/* Action Button */}
                         {app.status === "active" && (
-                          <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-                            <Button 
-                              variant="outline" 
-                              className="w-full"
-                              onClick={() => setSelectedApplication(selectedApplication?.id === app.id ? null : app)}
-                            >
-                              <Eye className="h-4 w-4 ml-2" />
-                              {selectedApplication?.id === app.id ? "إخفاء الأقساط" : "عرض جدول الأقساط"}
-                              <ChevronDown className={`h-4 w-4 mr-2 transition-transform ${selectedApplication?.id === app.id ? 'rotate-180' : ''}`} />
-                            </Button>
-                          </motion.div>
+                          <Button 
+                            variant="outline" 
+                            className="w-full"
+                            onClick={() => setSelectedApplication(selectedApplication?.id === app.id ? null : app)}
+                          >
+                            <Eye className="h-4 w-4 ml-2" />
+                            {selectedApplication?.id === app.id ? "إخفاء الأقساط" : "عرض جدول الأقساط"}
+                            <ChevronDown className={`h-4 w-4 mr-2 transition-transform ${selectedApplication?.id === app.id ? 'rotate-180' : ''}`} />
+                          </Button>
                         )}
 
-                        {/* Installments Accordion */}
                         <AnimatePresence>
                           {selectedApplication?.id === app.id && installments.length > 0 && (
                             <motion.div 
                               initial={{ opacity: 0, height: 0 }}
                               animate={{ opacity: 1, height: "auto" }}
                               exit={{ opacity: 0, height: 0 }}
-                              transition={{ duration: 0.3 }}
                               className="mt-4 pt-4 border-t border-border overflow-hidden"
                             >
-                              <div className="flex items-center justify-between mb-3">
-                                <h5 className="font-semibold flex items-center gap-2">
-                                  <Calendar className="h-4 w-4 text-primary" />
-                                  جدول الأقساط
-                                </h5>
-                                <span className="text-xs text-muted-foreground">
-                                  {installments.filter(i => i.status === 'paid').length} / {installments.length} مدفوع
-                                </span>
-                              </div>
                               <div className="space-y-2">
                                 {installments.map((inst, i) => (
                                   <motion.div 
@@ -825,32 +1064,26 @@ export default function ClientFinancing() {
                                     initial={{ opacity: 0, x: -10 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: i * 0.05 }}
-                                    className={`flex items-center justify-between p-3 rounded-xl transition-all ${
-                                      inst.status === 'paid' 
-                                        ? 'bg-emerald-500/10 border border-emerald-500/20' 
-                                        : inst.status === 'pending' 
-                                          ? 'bg-amber-500/10 border border-amber-500/20' 
-                                          : 'bg-muted/50 border border-border'
+                                    className={`flex items-center justify-between p-3 rounded-xl ${
+                                      inst.status === 'paid' ? 'bg-emerald-500/10 border border-emerald-500/20' : 
+                                      inst.status === 'pending' ? 'bg-amber-500/10 border border-amber-500/20' : 
+                                      'bg-muted/50 border border-border'
                                     }`}
                                   >
                                     <div className="flex items-center gap-3">
                                       <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
-                                        inst.status === 'paid' 
-                                          ? 'bg-emerald-500 text-white' 
-                                          : inst.status === 'pending'
-                                            ? 'bg-amber-500/20 text-amber-400 border-2 border-amber-500'
-                                            : 'bg-muted text-muted-foreground'
+                                        inst.status === 'paid' ? 'bg-emerald-500 text-white' : 
+                                        inst.status === 'pending' ? 'bg-amber-500/20 text-amber-400 border-2 border-amber-500' :
+                                        'bg-muted text-muted-foreground'
                                       }`}>
                                         {inst.status === 'paid' ? <Check className="h-5 w-5" /> : inst.installment_number}
                                       </div>
                                       <div>
-                                        <p className="font-bold">{inst.amount.toLocaleString("ar-SA")} ر.س</p>
-                                        <p className="text-xs text-muted-foreground">
-                                          {format(new Date(inst.due_date), "dd MMMM yyyy", { locale: ar })}
-                                        </p>
+                                        <p className="font-bold">{inst.amount.toLocaleString()} ر.س</p>
+                                        <p className="text-xs text-muted-foreground">{format(new Date(inst.due_date), "dd MMMM yyyy", { locale: ar })}</p>
                                       </div>
                                     </div>
-                                    <Badge className={`${installmentStatusConfig[inst.status]?.color} px-2 py-0.5 text-xs`}>
+                                    <Badge className={`${installmentStatusConfig[inst.status]?.color} text-xs`}>
                                       {installmentStatusConfig[inst.status]?.label}
                                     </Badge>
                                   </motion.div>
@@ -869,7 +1102,7 @@ export default function ClientFinancing() {
 
           {/* Installments Tab */}
           {activeApplications.length > 0 && currentApplication && (
-            <TabsContent value="installments" className="space-y-4">
+            <TabsContent value="installments" className="space-y-4 mt-6">
               <InstallmentsTable
                 installments={installments}
                 totalAmount={currentApplication.approved_amount || currentApplication.requested_amount}
@@ -879,7 +1112,7 @@ export default function ClientFinancing() {
 
           {/* Contract Tab */}
           {activeApplications.length > 0 && currentApplication && (
-            <TabsContent value="contract" className="space-y-4">
+            <TabsContent value="contract" className="space-y-4 mt-6">
               <FinancingContract
                 application={{
                   ...currentApplication,
@@ -897,43 +1130,57 @@ export default function ClientFinancing() {
           )}
 
           {/* Plans Tab */}
-          <TabsContent value="plans" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <TabsContent value="plans" className="space-y-6 mt-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 rounded-xl bg-primary/20">
+                <CreditCard className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold">خطط التمويل المتاحة</h2>
+                <p className="text-sm text-muted-foreground">اختر الخطة المناسبة لاحتياجاتك</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {plans.map((plan, index) => (
-                <motion.div key={plan.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }}>
-                  <Card className="h-full">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg">{plan.name_ar}</CardTitle>
-                        <Badge variant="outline">{plan.installments_count} أقساط</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground text-sm mb-4">{plan.description_ar || "خطة تمويل مرنة بدون فوائد"}</p>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">المدة:</span>
-                          <span className="font-medium">{plan.duration_months} شهر</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">الحد الأدنى:</span>
-                          <span className="font-medium">{plan.min_amount} ر.س</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">الحد الأقصى:</span>
-                          <span className="font-medium">{plan.max_amount ? `${plan.max_amount} ر.س` : "غير محدد"}</span>
-                        </div>
-                      </div>
-                      <Button asChild className="w-full mt-4">
-                        <Link to="/dashboard/financing/apply">
-                          اختر هذه الخطة
-                        </Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                <PlanCard 
+                  key={plan.id} 
+                  plan={plan} 
+                  index={index}
+                  isPopular={plan.installments_count === 6}
+                />
               ))}
             </div>
+
+            {/* Limits Info */}
+            <Card className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border-blue-500/20">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600">
+                    <Shield className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-lg mb-3">حدود التمويل</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="p-4 rounded-xl bg-card/80 backdrop-blur-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                          <DollarSign className="h-5 w-5 text-blue-400" />
+                          <span className="font-semibold">الحد الأدنى للتمويل</span>
+                        </div>
+                        <p className="text-2xl font-black text-primary">100 ر.س</p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-card/80 backdrop-blur-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Target className="h-5 w-5 text-blue-400" />
+                          <span className="font-semibold">الحد الأقصى للتمويل</span>
+                        </div>
+                        <p className="text-2xl font-black text-primary">100,000 ر.س</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
