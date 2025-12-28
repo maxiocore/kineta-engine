@@ -151,7 +151,10 @@ const ACTION_CONFIG: Record<string, { label: string; color: string; icon: any }>
   refund: { label: "استرداد", color: "text-blue-500", icon: RefreshCw },
   credit: { label: "إضافة", color: "text-emerald-500", icon: ArrowUpCircle },
   debit: { label: "خصم", color: "text-orange-500", icon: ArrowDownCircle },
+  admin_credit: { label: "إضافة (إدارة)", color: "text-emerald-500", icon: ArrowUpCircle },
+  admin_debit: { label: "خصم (إدارة)", color: "text-orange-500", icon: ArrowDownCircle },
   initial: { label: "رصيد ابتدائي", color: "text-purple-500", icon: Wallet },
+  cashback: { label: "كاش باك", color: "text-purple-500", icon: Wallet },
 };
 
 const AdminFinancialHub = () => {
