@@ -663,120 +663,121 @@ const PlatformSelector = ({
         </motion.button>
       )}
 
-      {/* Subcategories Section */}
+      {/* Subcategories Section - Beautiful Card Design */}
       <AnimatePresence mode="wait">
         {activePlatform && activePlatform !== 'all' && (
           <motion.div
             key={activePlatform}
-            initial={{ opacity: 0, height: 0, y: -10 }}
-            animate={{ opacity: 1, height: "auto", y: 0 }}
-            exit={{ opacity: 0, height: 0, y: -10 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+            initial={{ opacity: 0, y: -20, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.98 }}
+            transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
             className="overflow-hidden"
           >
-            <div className="bg-card/60 backdrop-blur-sm rounded-xl border border-border/40 p-3 sm:p-4">
+            <div className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border/50 shadow-xl overflow-hidden">
               {/* Subcategories Header */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between p-4 border-b border-border/30 bg-gradient-to-l from-transparent to-muted/20">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => { setActivePlatform(null); setSubcategories([]); }}
+                  className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+                <div className="flex items-center gap-3">
+                  <div className="text-left">
+                    <h4 className="font-bold text-base">{networks.find(n => n.id === activePlatform)?.name}</h4>
+                    <p className="text-xs text-muted-foreground">
+                      {loadingSubcategories ? "جاري التحميل..." : `${subcategories.length} قسم فرعي`}
+                    </p>
+                  </div>
                   <div className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center",
+                    "w-10 h-10 rounded-xl flex items-center justify-center shadow-lg",
                     networks.find(n => n.id === activePlatform)?.bgColor || "bg-primary"
                   )}>
                     {(() => {
                       const network = networks.find(n => n.id === activePlatform);
-                      if (!network) return <Sparkles className="w-4 h-4 text-white" />;
+                      if (!network) return <Sparkles className="w-5 h-5 text-white" />;
                       const CustomIcon = (network as any).customIcon;
                       const Icon = network.icon;
                       if (CustomIcon) return <div className={network.textColor || "text-white"}><CustomIcon /></div>;
-                      if (Icon) return <Icon className={cn("w-4 h-4", network.textColor || "text-white")} />;
-                      return <Sparkles className="w-4 h-4 text-white" />;
+                      if (Icon) return <Icon className={cn("w-5 h-5", network.textColor || "text-white")} />;
+                      return <Sparkles className="w-5 h-5 text-white" />;
                     })()}
                   </div>
-                  <div>
-                    <h4 className="font-bold text-sm">{networks.find(n => n.id === activePlatform)?.name}</h4>
-                    <p className="text-[10px] text-muted-foreground">
-                      {loadingSubcategories ? "جاري التحميل..." : `${subcategories.length} قسم فرعي`}
-                    </p>
-                  </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => { setActivePlatform(null); setSubcategories([]); }}
-                  className="h-7 px-2"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
               </div>
 
-              {/* Subcategories Grid */}
-              {loadingSubcategories ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="h-12 rounded-lg bg-muted/50 animate-pulse" />
-                  ))}
-                </div>
-              ) : subcategories.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                  {/* All in this platform */}
-                  <motion.button
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => onSelect(activePlatform)}
-                    className={cn(
-                      "p-2.5 sm:p-3 rounded-lg border transition-all duration-200 text-right flex items-center gap-2",
-                      selected === activePlatform
-                        ? "bg-primary/15 border-primary text-primary"
-                        : "bg-card/80 border-border/50 hover:border-primary/40 hover:bg-muted/30"
-                    )}
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-muted/60 flex items-center justify-center shrink-0">
+              {/* Subcategories Content */}
+              <div className="p-4">
+                {loadingSubcategories ? (
+                  <div className="flex flex-wrap gap-2 justify-end">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="h-10 w-32 rounded-xl bg-muted/40 animate-pulse" />
+                    ))}
+                  </div>
+                ) : subcategories.length > 0 ? (
+                  <div className="flex flex-wrap gap-2 sm:gap-3 justify-end">
+                    {/* All button - Primary style */}
+                    <motion.button
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0 }}
+                      whileHover={{ scale: 1.03, y: -2 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => onSelect(activePlatform)}
+                      className={cn(
+                        "px-4 py-2.5 rounded-xl border-2 transition-all duration-300 flex items-center gap-2.5 font-medium text-sm",
+                        selected === activePlatform
+                          ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/30"
+                          : "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20 hover:border-primary/50"
+                      )}
+                    >
+                      <span>الكل</span>
                       <Grid3X3 className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-xs truncate">الكل</p>
-                    </div>
-                  </motion.button>
+                    </motion.button>
 
-                  {/* Subcategories */}
-                  {subcategories.map((sub, idx) => {
-                    const SubIcon = getSubcategoryIcon(sub.icon);
-                    return (
-                      <motion.button
-                        key={sub.id}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: idx * 0.03 }}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => onSelect(sub.slug)}
-                        className={cn(
-                          "p-2.5 sm:p-3 rounded-lg border transition-all duration-200 text-right flex items-center gap-2",
-                          selected === sub.slug
-                            ? "bg-primary/15 border-primary text-primary"
-                            : "bg-card/80 border-border/50 hover:border-primary/40 hover:bg-muted/30"
-                        )}
-                      >
-                        <div className={cn(
-                          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-                          selected === sub.slug ? "bg-primary/20" : "bg-muted/60"
-                        )}>
-                          <SubIcon />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-xs truncate">{sub.name_ar}</p>
-                        </div>
-                      </motion.button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-center text-sm text-muted-foreground py-4">
-                  لا توجد أقسام فرعية لهذه المنصة
-                </p>
-              )}
+                    {/* Subcategories pills */}
+                    {subcategories.map((sub, idx) => {
+                      const SubIcon = getSubcategoryIcon(sub.icon);
+                      const isSubSelected = selected === sub.slug;
+                      return (
+                        <motion.button
+                          key={sub.id}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: (idx + 1) * 0.05 }}
+                          whileHover={{ scale: 1.03, y: -2 }}
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => onSelect(sub.slug)}
+                          className={cn(
+                            "px-4 py-2.5 rounded-xl border transition-all duration-300 flex items-center gap-2.5 text-sm",
+                            isSubSelected
+                              ? "bg-foreground/10 border-foreground/30 text-foreground font-semibold shadow-md"
+                              : "bg-card border-border/50 text-muted-foreground hover:bg-muted/50 hover:border-border hover:text-foreground"
+                          )}
+                        >
+                          <span className="whitespace-nowrap">{sub.name_ar}</span>
+                          <div className={cn(
+                            "w-6 h-6 rounded-lg flex items-center justify-center transition-colors",
+                            isSubSelected ? "bg-foreground/15" : "bg-muted/60"
+                          )}>
+                            <SubIcon />
+                          </div>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted/50 flex items-center justify-center">
+                      <Sparkles className="w-6 h-6 text-muted-foreground/50" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">لا توجد أقسام فرعية لهذه المنصة</p>
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
