@@ -157,15 +157,16 @@ export default function SignPromissoryNote() {
     );
   }
 
-  if (application.status !== "awaiting_signature") {
+  // Allow viewing if already signed (to download PDF) or awaiting signature
+  const alreadySigned = !!application.promissory_note_url;
+  
+  if (application.status !== "awaiting_signature" && !alreadySigned && !isSigned) {
     return (
       <ClientDashboardLayout>
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            {application.promissory_note_url 
-              ? "تم توقيع الكمبيالة مسبقاً" 
-              : "هذا الطلب غير جاهز لتوقيع الكمبيالة حالياً"}
+            هذا الطلب غير جاهز لتوقيع الكمبيالة حالياً
           </AlertDescription>
         </Alert>
         <Button onClick={() => navigate("/dashboard/financing")} className="mt-4">
@@ -175,6 +176,9 @@ export default function SignPromissoryNote() {
       </ClientDashboardLayout>
     );
   }
+  
+  // Set initial signed state from database
+  const isAlreadySigned = alreadySigned || isSigned;
 
   const amount = application.approved_amount || application.requested_amount;
   const installmentAmount = application.financing_plans 
@@ -223,8 +227,8 @@ export default function SignPromissoryNote() {
                     <p className="text-indigo-300 text-sm">ورقة تجارية وفق نظام الأوراق التجارية السعودي</p>
                   </div>
                 </div>
-                <Badge className={`text-sm px-4 py-2 ${isSigned ? "bg-emerald-500" : "bg-yellow-500"}`}>
-                  {isSigned ? "تم التوقيع" : "بانتظار التوقيع"}
+                <Badge className={`text-sm px-4 py-2 ${isAlreadySigned ? "bg-emerald-500" : "bg-yellow-500"}`}>
+                  {isAlreadySigned ? "تم التوقيع" : "بانتظار التوقيع"}
                 </Badge>
               </div>
             </div>
@@ -364,7 +368,7 @@ export default function SignPromissoryNote() {
               <div className="space-y-4 pt-6 border-t">
                 <h3 className="font-bold text-lg">توقيع الساحب (المسحوب عليه)</h3>
                 
-                {!isSigned ? (
+                {!isAlreadySigned ? (
                   <div className="space-y-4">
                     {!showSignature ? (
                       <div className="p-6 border-2 border-dashed border-amber-500/50 rounded-xl text-center">
@@ -396,8 +400,8 @@ export default function SignPromissoryNote() {
                           </p>
                         </div>
                       </div>
-                      {signatureData && (
-                        <img src={signatureData} alt="توقيع" className="h-16 border rounded-lg bg-white" />
+                      {(signatureData || application.promissory_note_url) && (
+                        <img src={signatureData || application.promissory_note_url!} alt="توقيع" className="h-16 border rounded-lg bg-white" />
                       )}
                     </div>
                   </div>
@@ -406,7 +410,7 @@ export default function SignPromissoryNote() {
 
               {/* Action Buttons */}
               <div className="flex flex-wrap gap-3 justify-center pt-4">
-                {isSigned && (
+                {isAlreadySigned && (
                   <Button
                     onClick={handleDownloadPdf}
                     disabled={isDownloading}
