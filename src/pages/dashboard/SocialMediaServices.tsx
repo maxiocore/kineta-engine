@@ -486,8 +486,7 @@ const BrowseServiceCard = ({
     </motion.div>
   );
 };
-
-// Platform selector with animations
+// Platform selector with animations - Enhanced Grid Design
 const PlatformSelector = ({ 
   networks, 
   selected, 
@@ -500,14 +499,15 @@ const PlatformSelector = ({
   getServiceCount: (id: string) => number;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const initialCount = 7;
+  const initialCount = 20;
   const displayedNetworks = isExpanded ? networks : networks.slice(0, initialCount);
   const hasMore = networks.length > initialCount;
 
   return (
-    <div className="mb-4">
+    <div className="space-y-4">
+      {/* Platforms Grid - Enhanced Design like reference image */}
       <motion.div 
-        className="grid grid-cols-4 sm:grid-cols-7 gap-2"
+        className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -516,56 +516,66 @@ const PlatformSelector = ({
           const Icon = network.icon;
           const CustomIcon = (network as any).customIcon;
           const isSelected = selected === network.id;
-          const count = getServiceCount(network.id);
 
           return (
             <motion.button
               key={network.id}
               variants={itemVariants}
-              whileHover={{ scale: 1.05, y: -2 }}
+              whileHover={{ scale: 1.08, y: -3 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => onSelect(network.id)}
-              className={cn(
-                "relative flex flex-col items-center gap-1.5 p-2.5 rounded-xl border transition-all duration-300",
-                isSelected 
-                  ? "border-primary bg-primary/10 shadow-lg shadow-primary/20" 
-                  : "border-border/50 bg-card/50 hover:border-primary/30 hover:bg-primary/5"
-              )}
+              className="flex flex-col items-center gap-2 group"
             >
-              <motion.div 
-                className={cn(
-                  "w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300",
-                  isSelected ? network.bgColor : "bg-muted"
-                )}
-                animate={isSelected ? { rotate: [0, -5, 5, 0] } : {}}
-                transition={{ duration: 0.4 }}
-              >
-                {CustomIcon ? (
-                  <div className={isSelected ? (network.textColor || "text-white") : "text-muted-foreground"}>
-                    <CustomIcon />
+              {/* Platform Icon Circle */}
+              <div className="relative">
+                <motion.div 
+                  className={cn(
+                    "w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center transition-all duration-300 relative overflow-hidden",
+                    network.bgColor,
+                    isSelected 
+                      ? "ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg scale-105" 
+                      : "hover:shadow-xl"
+                  )}
+                  animate={isSelected ? { rotate: [0, -3, 3, 0] } : {}}
+                  transition={{ duration: 0.4 }}
+                >
+                  {/* Shine effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-black/10 pointer-events-none" />
+                  
+                  {/* Icon */}
+                  <div className="relative z-10">
+                    {CustomIcon ? (
+                      <div className={network.textColor || "text-white"}>
+                        <CustomIcon />
+                      </div>
+                    ) : Icon && (
+                      <Icon className={cn("w-5 h-5 sm:w-6 sm:h-6", network.textColor || "text-white")} />
+                    )}
                   </div>
-                ) : Icon && (
-                  <Icon className={cn("w-5 h-5", isSelected ? (network.textColor || "text-white") : "text-muted-foreground")} />
-                )}
-              </motion.div>
+                </motion.div>
+
+                {/* Selection indicator */}
+                <AnimatePresence>
+                  {isSelected && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0 }}
+                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center border-2 border-background shadow-md"
+                    >
+                      <CheckCircle2 className="w-3 h-3 text-primary-foreground" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              
+              {/* Platform Name */}
               <span className={cn(
-                "text-[10px] font-medium text-center line-clamp-1",
-                isSelected ? "text-primary" : "text-muted-foreground"
+                "text-[10px] sm:text-xs font-medium text-center leading-tight transition-colors duration-200 max-w-[70px] line-clamp-1",
+                isSelected ? "text-primary font-bold" : "text-muted-foreground group-hover:text-foreground"
               )}>
                 {network.name}
               </span>
-              <AnimatePresence>
-                {isSelected && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    exit={{ scale: 0 }}
-                    className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center"
-                  >
-                    <CheckCircle2 className="w-3 h-3 text-primary-foreground" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </motion.button>
           );
         })}
@@ -575,7 +585,7 @@ const PlatformSelector = ({
       {hasMore && (
         <motion.button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full mt-3 py-2 px-4 rounded-lg border border-border/50 bg-card/30 hover:bg-card/60 transition-all duration-300 flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+          className="w-full py-2.5 px-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card transition-all duration-300 flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground"
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
         >
