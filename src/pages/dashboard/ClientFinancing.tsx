@@ -57,10 +57,15 @@ interface FinancingApplication {
   application_number: string;
   plan_id: string;
   full_name: string;
+  national_id: string;
+  phone: string;
+  email: string;
+  address?: string | null;
   requested_amount: number;
   approved_amount: number | null;
   status: string;
   submitted_at: string;
+  approved_at?: string | null;
   rejection_reason: string | null;
   contract_number: string | null;
   financing_plans?: {
@@ -151,7 +156,12 @@ export default function ClientFinancing() {
       if (!user?.id) return [];
       const { data, error } = await supabase
         .from("financing_applications")
-        .select(`*, financing_plans (name_ar, installments_count)`)
+        .select(`
+          id, application_number, plan_id, full_name, national_id, phone, email, address,
+          requested_amount, approved_amount, status, submitted_at, approved_at,
+          rejection_reason, contract_number,
+          financing_plans (name_ar, installments_count)
+        `)
         .eq("user_id", user.id)
         .order("submitted_at", { ascending: false });
       if (error) throw error;
@@ -237,7 +247,7 @@ export default function ClientFinancing() {
         {/* Bank Card for Active Financing */}
         {activeApplications.length > 0 && currentApplication && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <FinancingBankCard
+            <EnhancedFinancingCard
               userName={currentApplication.full_name}
               totalBalance={currentApplication.approved_amount || currentApplication.requested_amount}
               paidAmount={totalPaid}
@@ -246,6 +256,8 @@ export default function ClientFinancing() {
               nextInstallmentDate={nextInstallment ? new Date(nextInstallment.due_date) : undefined}
               planName={currentApplication.financing_plans?.name_ar}
               contractNumber={currentApplication.contract_number || undefined}
+              installmentsCount={currentApplication.financing_plans?.installments_count || 6}
+              paidInstallments={installments.filter(i => i.status === "paid").length}
             />
             
             {/* Stats Cards */}
@@ -383,9 +395,15 @@ export default function ClientFinancing() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-muted/50">
+          <TabsList className="bg-muted/50 flex-wrap">
             <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
             <TabsTrigger value="applications">طلباتي ({applications.length})</TabsTrigger>
+            {activeApplications.length > 0 && (
+              <>
+                <TabsTrigger value="installments">جدول الأقساط</TabsTrigger>
+                <TabsTrigger value="contract">العقد</TabsTrigger>
+              </>
+            )}
             <TabsTrigger value="plans">خطط التمويل</TabsTrigger>
           </TabsList>
 
@@ -552,6 +570,35 @@ export default function ClientFinancing() {
               </div>
             )}
           </TabsContent>
+
+          {/* Installments Tab */}
+          {activeApplications.length > 0 && currentApplication && (
+            <TabsContent value="installments" className="space-y-4">
+              <InstallmentsTable
+                installments={installments}
+                totalAmount={currentApplication.approved_amount || currentApplication.requested_amount}
+              />
+            </TabsContent>
+          )}
+
+          {/* Contract Tab */}
+          {activeApplications.length > 0 && currentApplication && (
+            <TabsContent value="contract" className="space-y-4">
+              <FinancingContract
+                application={{
+                  ...currentApplication,
+                  financing_plans: currentApplication.financing_plans ? {
+                    ...currentApplication.financing_plans,
+                    duration_months: currentApplication.financing_plans.installments_count
+                  } : undefined
+                }}
+                installments={installments}
+                onContractSigned={(signature) => {
+                  console.log("Contract signed:", signature);
+                }}
+              />
+            </TabsContent>
+          )}
 
           {/* Plans Tab */}
           <TabsContent value="plans" className="space-y-4">
