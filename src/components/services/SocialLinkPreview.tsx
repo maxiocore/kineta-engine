@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, User, Globe, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ExternalLink, User, Globe, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SocialLinkPreviewProps {
   url: string;
@@ -16,6 +17,15 @@ interface PlatformInfo {
   icon: string;
   patterns: RegExp[];
   extractUsername: (url: string) => string | null;
+  supportsOEmbed: boolean;
+}
+
+interface OEmbedData {
+  title?: string;
+  author_name?: string;
+  author_url?: string;
+  thumbnail_url?: string;
+  provider_name?: string;
 }
 
 const platforms: Record<string, PlatformInfo> = {
@@ -35,7 +45,8 @@ const platforms: Record<string, PlatformInfo> = {
         return match[1];
       }
       return null;
-    }
+    },
+    supportsOEmbed: false
   },
   tiktok: {
     name: 'TikTok',
@@ -49,7 +60,8 @@ const platforms: Record<string, PlatformInfo> = {
     extractUsername: (url: string) => {
       const match = url.match(/tiktok\.com\/@([^/?]+)/i);
       return match ? match[1] : null;
-    }
+    },
+    supportsOEmbed: true
   },
   youtube: {
     name: 'YouTube',
@@ -68,7 +80,8 @@ const platforms: Record<string, PlatformInfo> = {
       if (videoMatch) return `video: ${videoMatch[1]}`;
       
       return null;
-    }
+    },
+    supportsOEmbed: true
   },
   twitter: {
     name: 'X (Twitter)',
@@ -85,7 +98,8 @@ const platforms: Record<string, PlatformInfo> = {
         return match[1];
       }
       return null;
-    }
+    },
+    supportsOEmbed: true
   },
   facebook: {
     name: 'Facebook',
@@ -102,7 +116,8 @@ const platforms: Record<string, PlatformInfo> = {
         return match[1];
       }
       return null;
-    }
+    },
+    supportsOEmbed: false
   },
   snapchat: {
     name: 'Snapchat',
@@ -115,7 +130,8 @@ const platforms: Record<string, PlatformInfo> = {
     extractUsername: (url: string) => {
       const match = url.match(/snapchat\.com\/add\/([^/?]+)/i);
       return match ? match[1] : null;
-    }
+    },
+    supportsOEmbed: false
   },
   telegram: {
     name: 'Telegram',
@@ -129,7 +145,8 @@ const platforms: Record<string, PlatformInfo> = {
     extractUsername: (url: string) => {
       const match = url.match(/(?:t\.me|telegram\.me)\/([^/?]+)/i);
       return match ? match[1] : null;
-    }
+    },
+    supportsOEmbed: false
   },
   twitch: {
     name: 'Twitch',
@@ -145,7 +162,8 @@ const platforms: Record<string, PlatformInfo> = {
         return match[1];
       }
       return null;
-    }
+    },
+    supportsOEmbed: false
   },
   spotify: {
     name: 'Spotify',
@@ -158,7 +176,8 @@ const platforms: Record<string, PlatformInfo> = {
     extractUsername: (url: string) => {
       const match = url.match(/open\.spotify\.com\/(user|artist|playlist)\/([^/?]+)/i);
       return match ? `${match[1]}: ${match[2]}` : null;
-    }
+    },
+    supportsOEmbed: false
   },
   threads: {
     name: 'Threads',
@@ -171,7 +190,8 @@ const platforms: Record<string, PlatformInfo> = {
     extractUsername: (url: string) => {
       const match = url.match(/threads\.net\/@([^/?]+)/i);
       return match ? match[1] : null;
-    }
+    },
+    supportsOEmbed: false
   },
 };
 
@@ -192,11 +212,42 @@ export const SocialLinkPreview = ({ url, onValidation }: SocialLinkPreviewProps)
     platform: PlatformInfo | null;
     username: string | null;
     isValid: boolean;
-  }>({ platform: null, username: null, isValid: false });
+    oembedData: OEmbedData | null;
+    loading: boolean;
+  }>({ platform: null, username: null, isValid: false, oembedData: null, loading: false });
+
+  const fetchOEmbedData = useCallback(async (processedUrl: string, platform: PlatformInfo) => {
+    if (!platform.supportsOEmbed) return null;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('social-oembed', {
+        body: { url: processedUrl }
+      });
+      
+      if (error) {
+        console.error('oEmbed fetch error:', error);
+        return null;
+      }
+      
+      if (data?.success) {
+        return {
+          title: data.title,
+          author_name: data.author_name,
+          author_url: data.author_url,
+          thumbnail_url: data.thumbnail_url,
+          provider_name: data.provider_name,
+        } as OEmbedData;
+      }
+      return null;
+    } catch (error) {
+      console.error('oEmbed error:', error);
+      return null;
+    }
+  }, []);
 
   useEffect(() => {
     if (!url || url.trim().length < 5) {
-      setResult({ platform: null, username: null, isValid: false });
+      setResult({ platform: null, username: null, isValid: false, oembedData: null, loading: false });
       onValidation?.(false, null, null);
       return;
     }
@@ -210,9 +261,16 @@ export const SocialLinkPreview = ({ url, onValidation }: SocialLinkPreviewProps)
     const { platform, username, platformKey } = detectPlatform(processedUrl);
     const isValid = platform !== null && username !== null;
     
-    setResult({ platform, username, isValid });
+    setResult(prev => ({ ...prev, platform, username, isValid, loading: platform?.supportsOEmbed || false }));
     onValidation?.(isValid, platformKey, username);
-  }, [url, onValidation]);
+
+    // Fetch oEmbed data for supported platforms
+    if (platform?.supportsOEmbed && isValid) {
+      fetchOEmbedData(processedUrl, platform).then(oembedData => {
+        setResult(prev => ({ ...prev, oembedData, loading: false }));
+      });
+    }
+  }, [url, onValidation, fetchOEmbedData]);
 
   if (!url || url.trim().length < 5) {
     return null;
@@ -231,9 +289,23 @@ export const SocialLinkPreview = ({ url, onValidation }: SocialLinkPreviewProps)
             <div className={`h-2 bg-gradient-to-r ${result.platform.color}`} />
             <CardContent className="p-4">
               <div className="flex items-center gap-4">
-                {/* Platform Icon */}
-                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${result.platform.color} flex items-center justify-center text-2xl shadow-md`}>
-                  {result.platform.icon}
+                {/* Platform Icon / Thumbnail */}
+                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${result.platform.color} flex items-center justify-center text-2xl shadow-md overflow-hidden`}>
+                  {result.loading ? (
+                    <Loader2 className="w-6 h-6 text-white animate-spin" />
+                  ) : result.oembedData?.thumbnail_url ? (
+                    <img 
+                      src={result.oembedData.thumbnail_url} 
+                      alt={result.oembedData.author_name || result.username || ''} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.parentElement!.innerHTML = result.platform?.icon || '📱';
+                      }}
+                    />
+                  ) : (
+                    result.platform.icon
+                  )}
                 </div>
 
                 {/* Account Info */}
@@ -243,7 +315,28 @@ export const SocialLinkPreview = ({ url, onValidation }: SocialLinkPreviewProps)
                       {result.platform.nameAr}
                     </Badge>
                     <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    {result.platform.supportsOEmbed && (
+                      <Badge variant="outline" className="text-xs text-green-600 border-green-300">
+                        بيانات مباشرة
+                      </Badge>
+                    )}
                   </div>
+                  
+                  {/* Author Name from oEmbed */}
+                  {result.oembedData?.author_name && (
+                    <p className="text-sm font-medium text-foreground truncate mb-0.5">
+                      {result.oembedData.author_name}
+                    </p>
+                  )}
+                  
+                  {/* Title from oEmbed */}
+                  {result.oembedData?.title && (
+                    <p className="text-xs text-muted-foreground truncate mb-1">
+                      {result.oembedData.title.length > 50 
+                        ? result.oembedData.title.substring(0, 50) + '...' 
+                        : result.oembedData.title}
+                    </p>
+                  )}
                   
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-muted-foreground" />
