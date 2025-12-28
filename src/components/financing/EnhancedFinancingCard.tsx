@@ -182,97 +182,105 @@ export default function EnhancedFinancingCard({
 
           {/* Next Installment Section */}
           {nextInstallmentAmount && (
-            <div className="mx-6 mb-4">
-              <div className="bg-gradient-to-r from-amber-500/10 to-yellow-500/10 rounded-2xl p-4 border border-amber-500/20">
-                <div className="flex items-center justify-between mb-4">
+            <div className="mx-4 sm:mx-6 mb-4 space-y-3">
+              {/* Installment Info */}
+              <div className="bg-gradient-to-r from-amber-500/10 to-yellow-500/10 rounded-2xl p-3 sm:p-4 border border-amber-500/20">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-lg">
-                      <Calendar className="h-6 w-6 text-slate-900" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-lg flex-shrink-0">
+                      <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-slate-900" />
                     </div>
                     <div>
                       <p className="text-slate-400 text-xs">القسط القادم</p>
-                      <p className="text-white font-bold text-xl">
+                      <p className="text-white font-bold text-lg sm:text-xl">
                         {nextInstallmentAmount.toLocaleString("ar-SA")} <span className="text-amber-400 text-sm">ر.س</span>
                       </p>
                     </div>
                   </div>
-                  <div className="text-left">
+                  <div className="text-right sm:text-left">
                     <p className="text-slate-400 text-xs">تاريخ الاستحقاق</p>
                     <p className="text-slate-300 text-sm">
                       {format(paymentDate, "dd MMMM yyyy", { locale: ar })}
                     </p>
                   </div>
                 </div>
+              </div>
 
-                {/* Countdown Timer */}
-                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
-                  <div className="flex items-center justify-center gap-1 mb-2">
-                    <Clock className="h-4 w-4 text-amber-400" />
-                    <p className="text-slate-400 text-xs">الوقت المتبقي للسداد</p>
+              {/* Countdown Timer - Responsive */}
+              <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
+                <div className="flex items-center justify-center gap-1 mb-3">
+                  <Clock className="h-4 w-4 text-amber-400" />
+                  <p className="text-slate-400 text-xs">الوقت المتبقي للسداد</p>
+                </div>
+                <div className="grid grid-cols-4 gap-1.5 sm:gap-3" dir="ltr">
+                  {/* Seconds */}
+                  <motion.div 
+                    key={countdown.seconds}
+                    initial={{ scale: 1.05, opacity: 0.8 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="flex flex-col items-center"
+                  >
+                    <div className="w-full aspect-square max-w-[56px] rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center border border-slate-600 shadow-inner">
+                      <span className="text-base sm:text-xl md:text-2xl font-mono font-bold text-white">
+                        {countdown.seconds.toString().padStart(2, '0')}
+                      </span>
+                    </div>
+                    <span className="text-slate-500 text-[10px] sm:text-xs mt-1">ثانية</span>
+                  </motion.div>
+
+                  {/* Minutes */}
+                  <motion.div 
+                    key={`min-${countdown.minutes}`}
+                    initial={{ scale: 1.02 }}
+                    animate={{ scale: 1 }}
+                    className="flex flex-col items-center"
+                  >
+                    <div className="w-full aspect-square max-w-[56px] rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center border border-slate-600 shadow-inner">
+                      <span className="text-base sm:text-xl md:text-2xl font-mono font-bold text-white">
+                        {countdown.minutes.toString().padStart(2, '0')}
+                      </span>
+                    </div>
+                    <span className="text-slate-500 text-[10px] sm:text-xs mt-1">دقيقة</span>
+                  </motion.div>
+
+                  {/* Hours */}
+                  <motion.div 
+                    key={`hr-${countdown.hours}`}
+                    initial={{ scale: 1.02 }}
+                    animate={{ scale: 1 }}
+                    className="flex flex-col items-center"
+                  >
+                    <div className="w-full aspect-square max-w-[56px] rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center border border-slate-600 shadow-inner">
+                      <span className="text-base sm:text-xl md:text-2xl font-mono font-bold text-white">
+                        {countdown.hours.toString().padStart(2, '0')}
+                      </span>
+                    </div>
+                    <span className="text-slate-500 text-[10px] sm:text-xs mt-1">ساعة</span>
+                  </motion.div>
+
+                  {/* Days */}
+                  <motion.div className="flex flex-col items-center">
+                    <div className="w-full aspect-square max-w-[56px] rounded-lg bg-gradient-to-br from-amber-500/20 to-yellow-500/20 flex items-center justify-center border border-amber-500/30 shadow-inner">
+                      <span className="text-base sm:text-xl md:text-2xl font-mono font-bold text-amber-400">
+                        {countdown.days.toString().padStart(2, '0')}
+                      </span>
+                    </div>
+                    <span className="text-amber-400 text-[10px] sm:text-xs mt-1 font-medium">يوم</span>
+                  </motion.div>
+                </div>
+              </div>
+
+              {/* Administrative Fees Notice */}
+              <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-xl p-3 border border-blue-500/20">
+                <div className="flex items-start gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-xs font-bold">5%</span>
                   </div>
-                  <div className="flex items-center justify-center gap-2 sm:gap-4" dir="ltr">
-                    {/* Seconds */}
-                    <motion.div 
-                      key={countdown.seconds}
-                      initial={{ scale: 1.1, opacity: 0.7 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="flex flex-col items-center"
-                    >
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center border border-slate-600 shadow-inner">
-                        <span className="text-xl sm:text-2xl font-mono font-bold text-white">
-                          {countdown.seconds.toString().padStart(2, '0')}
-                        </span>
-                      </div>
-                      <span className="text-slate-500 text-xs mt-1">ثانية</span>
-                    </motion.div>
-
-                    <span className="text-amber-400 text-xl font-bold">:</span>
-
-                    {/* Minutes */}
-                    <motion.div 
-                      key={countdown.minutes}
-                      initial={{ scale: 1.05 }}
-                      animate={{ scale: 1 }}
-                      className="flex flex-col items-center"
-                    >
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center border border-slate-600 shadow-inner">
-                        <span className="text-xl sm:text-2xl font-mono font-bold text-white">
-                          {countdown.minutes.toString().padStart(2, '0')}
-                        </span>
-                      </div>
-                      <span className="text-slate-500 text-xs mt-1">دقيقة</span>
-                    </motion.div>
-
-                    <span className="text-amber-400 text-xl font-bold">:</span>
-
-                    {/* Hours */}
-                    <motion.div 
-                      key={countdown.hours}
-                      initial={{ scale: 1.05 }}
-                      animate={{ scale: 1 }}
-                      className="flex flex-col items-center"
-                    >
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center border border-slate-600 shadow-inner">
-                        <span className="text-xl sm:text-2xl font-mono font-bold text-white">
-                          {countdown.hours.toString().padStart(2, '0')}
-                        </span>
-                      </div>
-                      <span className="text-slate-500 text-xs mt-1">ساعة</span>
-                    </motion.div>
-
-                    <span className="text-amber-400 text-xl font-bold">:</span>
-
-                    {/* Days */}
-                    <motion.div 
-                      className="flex flex-col items-center"
-                    >
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-gradient-to-br from-amber-500/20 to-yellow-500/20 flex items-center justify-center border border-amber-500/30 shadow-inner">
-                        <span className="text-xl sm:text-2xl font-mono font-bold text-amber-400">
-                          {countdown.days.toString().padStart(2, '0')}
-                        </span>
-                      </div>
-                      <span className="text-amber-400 text-xs mt-1 font-medium">يوم</span>
-                    </motion.div>
+                  <div className="flex-1">
+                    <p className="text-blue-300 text-sm font-medium">رسوم إدارية ثابتة</p>
+                    <p className="text-slate-400 text-xs mt-0.5">
+                      تُضاف مع آخر قسط • {((totalBalance * 0.05)).toLocaleString("ar-SA")} ر.س
+                    </p>
                   </div>
                 </div>
               </div>
