@@ -385,7 +385,7 @@ const EnhancedBalanceSummary = ({
             </Button>
             <Button 
               variant="outline"
-              onClick={() => navigate("/dashboard/financial-hub")}
+              onClick={() => navigate("/dashboard/financial")}
               className="flex-1 gap-2"
             >
               <History className="w-4 h-4" />
@@ -474,7 +474,7 @@ const EnhancedBalanceSummary = ({
                 variant="ghost" 
                 size="sm" 
                 className="w-full mt-3 text-xs h-8 gap-1"
-                onClick={() => navigate("/dashboard/financial-hub?tab=cashback")}
+                onClick={() => navigate("/dashboard/financial?tab=cashback")}
               >
                 سحب الكاش باك
                 <ChevronLeft className="w-3 h-3" />
@@ -502,7 +502,7 @@ const EnhancedBalanceSummary = ({
                   variant="ghost" 
                   size="sm" 
                   className="text-xs h-7 gap-1"
-                  onClick={() => navigate("/dashboard/financial-hub?tab=logs")}
+                  onClick={() => navigate("/dashboard/financial?tab=balance-logs")}
                 >
                   عرض الكل
                   <ChevronLeft className="w-3 h-3" />
@@ -558,8 +558,8 @@ const EnhancedBalanceSummary = ({
       >
         {[
           { icon: CreditCard, label: 'إيداع', path: '/dashboard/deposit', color: 'from-blue-500 to-cyan-500' },
-          { icon: History, label: 'السجل', path: '/dashboard/financial-hub?tab=logs', color: 'from-purple-500 to-pink-500' },
-          { icon: Gift, label: 'كاش باك', path: '/dashboard/financial-hub?tab=cashback', color: 'from-emerald-500 to-teal-500' },
+          { icon: History, label: 'السجل', path: '/dashboard/financial?tab=balance-logs', color: 'from-purple-500 to-pink-500' },
+          { icon: Gift, label: 'كاش باك', path: '/dashboard/financial?tab=cashback', color: 'from-emerald-500 to-teal-500' },
           { icon: Star, label: 'مكافآت', path: '/dashboard/rewards', color: 'from-amber-500 to-orange-500' },
         ].map((action, index) => (
           <motion.div
