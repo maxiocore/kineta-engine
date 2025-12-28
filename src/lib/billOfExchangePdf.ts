@@ -312,9 +312,24 @@ export async function generateBillOfExchangePdf(data: BillOfExchangeData): Promi
   document.body.appendChild(container);
 
   try {
-    // Wait for fonts to load
+    // Load Cairo font explicitly
+    const cairoFont = new FontFace(
+      'Cairo',
+      'url(/fonts/cairo-arabic.woff) format("woff")'
+    );
+    
+    try {
+      const loadedFont = await cairoFont.load();
+      document.fonts.add(loadedFont);
+    } catch (fontError) {
+      console.warn('Could not load Cairo font, using fallback:', fontError);
+    }
+
+    // Wait for fonts to be ready
     await document.fonts.ready;
-    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Give extra time for rendering
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     const pageElement = container.querySelector("#billPage") as HTMLElement;
     
