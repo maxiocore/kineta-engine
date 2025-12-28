@@ -202,6 +202,12 @@ export default function ClientFinancing() {
   const totalRemaining = installments.filter(i => i.status !== "paid").reduce((sum, i) => sum + i.amount, 0);
   const nextInstallment = installments.find(i => i.status === "pending");
 
+  // Calculate paid installments count for active applications to check eligibility for new application
+  const paidInstallmentsCount = installments.filter(i => i.status === "paid").length;
+  const hasActiveApplication = activeApplications.length > 0;
+  const hasPendingApplication = applications.some(a => a.status === "pending" || a.status === "under_review" || a.status === "approved");
+  const canApplyForNew = !hasPendingApplication && (!hasActiveApplication || paidInstallmentsCount >= 3);
+
   return (
     <ClientDashboardLayout>
       <div className="space-y-6" dir="rtl">
@@ -216,12 +222,26 @@ export default function ClientFinancing() {
             </h1>
             <p className="text-muted-foreground mt-1">احصل على خدماتك الآن وادفع لاحقاً بدون فوائد</p>
           </div>
-          <Button asChild className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700">
-            <Link to="/dashboard/financing/apply">
-              <Plus className="h-4 w-4 ml-2" />
-              تقديم طلب تمويل
-            </Link>
-          </Button>
+          {canApplyForNew ? (
+            <Button asChild className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700">
+              <Link to="/dashboard/financing/apply">
+                <Plus className="h-4 w-4 ml-2" />
+                تقديم طلب تمويل
+              </Link>
+            </Button>
+          ) : (
+            <div className="text-left">
+              <Button disabled className="bg-muted text-muted-foreground cursor-not-allowed">
+                <AlertTriangle className="h-4 w-4 ml-2" />
+                تقديم طلب جديد
+              </Button>
+              <p className="text-xs text-muted-foreground mt-1">
+                {hasPendingApplication 
+                  ? "لديك طلب قيد المراجعة" 
+                  : `يجب سداد ${3 - paidInstallmentsCount} أقساط إضافية`}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Quick Links */}
@@ -458,12 +478,26 @@ export default function ClientFinancing() {
                     الرصيد يُضاف لحسابك مباشرة ولا يمكن سحبه. القسط يوم 30 من كل شهر.
                   </p>
                   <div className="flex flex-wrap gap-3">
-                    <Button asChild size="lg" className="bg-white text-emerald-600 hover:bg-white/90">
-                      <Link to="/dashboard/financing/apply">
-                        ابدأ الآن
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                      </Link>
-                    </Button>
+                    {canApplyForNew ? (
+                      <Button asChild size="lg" className="bg-white text-emerald-600 hover:bg-white/90">
+                        <Link to="/dashboard/financing/apply">
+                          ابدأ الآن
+                          <ArrowLeft className="h-4 w-4 mr-2" />
+                        </Link>
+                      </Button>
+                    ) : (
+                      <div className="flex flex-col items-start">
+                        <Button disabled size="lg" className="bg-white/50 text-emerald-600/50 cursor-not-allowed">
+                          <AlertTriangle className="h-4 w-4 ml-2" />
+                          غير متاح حالياً
+                        </Button>
+                        <p className="text-xs text-white/70 mt-1">
+                          {hasPendingApplication 
+                            ? "لديك طلب قيد المراجعة" 
+                            : `يجب سداد ${3 - paidInstallmentsCount} أقساط إضافية`}
+                        </p>
+                      </div>
+                    )}
                     <Button asChild size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10">
                       <Link to="/dashboard/financing/guide">
                         اقرأ التعليمات
@@ -531,12 +565,23 @@ export default function ClientFinancing() {
                 {/* Applications Header */}
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-lg">جميع الطلبات ({applications.length})</h3>
-                  <Button asChild size="sm" className="bg-gradient-to-r from-emerald-500 to-teal-600">
-                    <Link to="/dashboard/financing/apply">
-                      <Plus className="h-4 w-4 ml-1" />
-                      طلب جديد
-                    </Link>
-                  </Button>
+                  {canApplyForNew ? (
+                    <Button asChild size="sm" className="bg-gradient-to-r from-emerald-500 to-teal-600">
+                      <Link to="/dashboard/financing/apply">
+                        <Plus className="h-4 w-4 ml-1" />
+                        طلب جديد
+                      </Link>
+                    </Button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-amber-500 border-amber-500/30 bg-amber-500/10">
+                        <AlertTriangle className="h-3 w-3 ml-1" />
+                        {hasPendingApplication 
+                          ? "طلب قيد المراجعة" 
+                          : `سدد ${3 - paidInstallmentsCount} أقساط للتقديم`}
+                      </Badge>
+                    </div>
+                  )}
                 </div>
 
                 {applications.map((app, index) => (
