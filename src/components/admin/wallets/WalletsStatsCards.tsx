@@ -55,42 +55,43 @@ const StatCard = ({
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay, duration: 0.4 }}
     whileHover={{ scale: 1.02, y: -2 }}
+    className="h-full"
   >
-    <Card className={`relative overflow-hidden bg-gradient-to-br ${gradient} border-0 shadow-lg group`}>
+    <Card className={`relative overflow-hidden bg-gradient-to-br ${gradient} border-0 shadow-lg group h-full`}>
       <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       <motion.div 
-        className="absolute -top-8 -left-8 w-24 h-24 rounded-full blur-2xl opacity-30"
+        className="absolute -top-8 -left-8 w-16 sm:w-24 h-16 sm:h-24 rounded-full blur-2xl opacity-30"
         style={{ backgroundColor: iconColor }}
         animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
         transition={{ duration: 4, repeat: Infinity }}
       />
-      <CardContent className="p-4 relative">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <p className="text-xs text-white/70 font-medium mb-1">{title}</p>
+      <CardContent className="p-3 sm:p-4 relative h-full flex flex-col justify-between">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] sm:text-xs text-white/70 font-medium mb-0.5 sm:mb-1 truncate">{title}</p>
             <motion.p 
-              className="text-xl lg:text-2xl font-bold text-white"
+              className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white truncate"
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: delay + 0.2, type: "spring" }}
             >
               {typeof value === 'number' ? value.toLocaleString('ar-SA', { maximumFractionDigits: 0 }) : value}
-              <span className="text-sm font-normal mr-1 opacity-80">{suffix}</span>
+              <span className="text-[10px] sm:text-xs md:text-sm font-normal mr-1 opacity-80">{suffix}</span>
             </motion.p>
-            {trend && trendValue && (
-              <div className={`flex items-center gap-1 mt-1 text-xs ${trend === 'up' ? 'text-emerald-300' : 'text-red-300'}`}>
-                {trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                <span>{trendValue}</span>
-              </div>
-            )}
           </div>
           <motion.div 
-            className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center shrink-0"
             whileHover={{ rotate: 10 }}
           >
-            <Icon className="w-5 h-5 text-white" />
+            <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </motion.div>
         </div>
+        {trend && trendValue && (
+          <div className={`flex items-center gap-1 mt-1 sm:mt-2 text-[10px] sm:text-xs ${trend === 'up' ? 'text-emerald-300' : 'text-red-300'}`}>
+            {trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+            <span className="truncate">{trendValue}</span>
+          </div>
+        )}
       </CardContent>
     </Card>
   </motion.div>
@@ -99,16 +100,16 @@ const StatCard = ({
 export const WalletsStatsCards = ({ stats, isLoading }: WalletsStatsCardsProps) => {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
         {[...Array(8)].map((_, i) => (
-          <div key={i} className="h-24 rounded-xl bg-muted animate-pulse" />
+          <div key={i} className="h-20 sm:h-24 rounded-xl bg-muted animate-pulse" />
         ))}
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
       <StatCard
         title="إجمالي الأرصدة"
         value={stats.totalBalance}
