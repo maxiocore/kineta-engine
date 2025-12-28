@@ -97,7 +97,8 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.R
   pending: { label: "قيد الانتظار", color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30", icon: <Clock className="h-3 w-3" /> },
   under_review: { label: "قيد المراجعة", color: "bg-blue-500/20 text-blue-400 border-blue-500/30", icon: <Eye className="h-3 w-3" /> },
   documents_required: { label: "مستندات مطلوبة", color: "bg-purple-500/20 text-purple-400 border-purple-500/30", icon: <FileQuestion className="h-3 w-3" /> },
-  awaiting_signature: { label: "بانتظار التوقيع", color: "bg-orange-500/20 text-orange-400 border-orange-500/30", icon: <FileSignature className="h-3 w-3" /> },
+  awaiting_contract: { label: "بانتظار توقيع العقد", color: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30", icon: <FileText className="h-3 w-3" /> },
+  awaiting_signature: { label: "بانتظار توقيع السند", color: "bg-orange-500/20 text-orange-400 border-orange-500/30", icon: <FileSignature className="h-3 w-3" /> },
   approved: { label: "موافق عليه", color: "bg-green-500/20 text-green-400 border-green-500/30", icon: <CheckCircle2 className="h-3 w-3" /> },
   rejected: { label: "مرفوض", color: "bg-red-500/20 text-red-400 border-red-500/30", icon: <XCircle className="h-3 w-3" /> },
   active: { label: "نشط", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30", icon: <TrendingUp className="h-3 w-3" /> },
@@ -266,25 +267,59 @@ export default function AdminFinancing() {
     },
   });
 
-  // Approve mutation (sends promissory note - preliminary approval)
+  // Approve mutation (first step - send contract for signing)
   const approveMutation = useMutation({
     mutationFn: async ({ id, approved_amount, admin_notes }: { id: string; approved_amount: number; admin_notes: string }) => {
       const application = applications.find(a => a.id === id);
       if (!application) throw new Error("Application not found");
 
       const contractNumber = `CNT-${Date.now()}`;
-      const plan = application.financing_plans;
-      const installmentAmount = plan ? approved_amount / plan.installments_count : approved_amount;
 
-      // Update application status to awaiting_signature
+      // Update application status to awaiting_contract (first step)
       const { error: updateError } = await supabase
         .from("financing_applications")
         .update({
-          status: "awaiting_signature",
+          status: "awaiting_contract",
           approved_amount,
           admin_notes,
           reviewed_at: new Date().toISOString(),
           contract_number: contractNumber,
+        })
+        .eq("id", id);
+
+      if (updateError) throw updateError;
+
+      // TODO: Send financing contract email to customer
+      // For now, we'll just update the status
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["financing-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["financing-stats"] });
+      toast.success("تم الموافقة المبدئية وإرسال عقد التمويل للعميل");
+      setShowApprovalDialog(false);
+      setSelectedApplication(null);
+    },
+    onError: (error) => {
+      toast.error("حدث خطأ أثناء الموافقة");
+      console.error(error);
+    },
+  });
+
+  // Send promissory note mutation (second step - after contract signed)
+  const sendPromissoryNoteMutation = useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const application = applications.find(a => a.id === id);
+      if (!application) throw new Error("Application not found");
+
+      const plan = application.financing_plans;
+      const installmentAmount = plan ? (application.approved_amount || application.requested_amount) / plan.installments_count : (application.approved_amount || application.requested_amount);
+
+      // Update status to awaiting_signature
+      const { error: updateError } = await supabase
+        .from("financing_applications")
+        .update({
+          status: "awaiting_signature",
+          contract_signed_at: new Date().toISOString(),
         })
         .eq("id", id);
 
@@ -296,8 +331,8 @@ export default function AdminFinancing() {
           name: application.full_name,
           nationalId: application.national_id,
           applicationNumber: application.application_number,
-          contractNumber,
-          amount: approved_amount,
+          contractNumber: application.contract_number || `CNT-${Date.now()}`,
+          amount: application.approved_amount || application.requested_amount,
           installmentsCount: plan?.installments_count || 1,
           monthlyInstallment: installmentAmount,
           startDate: new Date().toISOString(),
@@ -309,12 +344,10 @@ export default function AdminFinancing() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["financing-applications"] });
       queryClient.invalidateQueries({ queryKey: ["financing-stats"] });
-      toast.success("تم إرسال السند التنفيذي للعميل للتوقيع عليه");
-      setShowApprovalDialog(false);
-      setSelectedApplication(null);
+      toast.success("تم تأكيد توقيع العقد وإرسال السند التنفيذي للعميل");
     },
     onError: (error) => {
-      toast.error("حدث خطأ أثناء إرسال السند التنفيذي");
+      toast.error("حدث خطأ أثناء إرسال السند");
       console.error(error);
     },
   });
@@ -630,6 +663,8 @@ export default function AdminFinancing() {
                   <SelectItem value="pending">قيد الانتظار</SelectItem>
                   <SelectItem value="under_review">قيد المراجعة</SelectItem>
                   <SelectItem value="documents_required">مستندات مطلوبة</SelectItem>
+                  <SelectItem value="awaiting_contract">بانتظار توقيع العقد</SelectItem>
+                  <SelectItem value="awaiting_signature">بانتظار توقيع السند</SelectItem>
                   <SelectItem value="approved">موافق عليه</SelectItem>
                   <SelectItem value="active">نشط</SelectItem>
                   <SelectItem value="completed">مكتمل</SelectItem>
@@ -760,6 +795,20 @@ export default function AdminFinancing() {
                                   >
                                     <X className="h-4 w-4 ml-2" />
                                     الرفض
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                              
+                              {app.status === "awaiting_contract" && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() => sendPromissoryNoteMutation.mutate({ id: app.id })}
+                                    className="text-orange-400"
+                                    disabled={sendPromissoryNoteMutation.isPending}
+                                  >
+                                    <FileSignature className="h-4 w-4 ml-2" />
+                                    تأكيد توقيع العقد وإرسال السند
                                   </DropdownMenuItem>
                                 </>
                               )}
@@ -1093,7 +1142,7 @@ export default function AdminFinancing() {
                 />
               </div>
               <p className="text-sm text-muted-foreground">
-                سيتم إرسال السند التنفيذي للعميل للتوقيع عليه. لن يُضاف الرصيد إلا بعد استلام السند الموقع وتفعيل التمويل.
+                سيتم إرسال عقد التمويل للعميل للتوقيع عليه. بعد توقيع العقد سيتم إرسال السند التنفيذي.
               </p>
             </div>
             <DialogFooter>
@@ -1111,8 +1160,8 @@ export default function AdminFinancing() {
                 disabled={approveMutation.isPending || !approvalData.approved_amount}
                 className="bg-green-600 hover:bg-green-700"
               >
-                <FileSignature className="h-4 w-4 ml-2" />
-                {approveMutation.isPending ? "جاري الإرسال..." : "إرسال السند التنفيذي"}
+                <FileText className="h-4 w-4 ml-2" />
+                {approveMutation.isPending ? "جاري الإرسال..." : "إرسال عقد التمويل"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -1292,7 +1341,8 @@ export default function AdminFinancing() {
                     <SelectItem value="pending">قيد الانتظار</SelectItem>
                     <SelectItem value="under_review">قيد المراجعة</SelectItem>
                     <SelectItem value="documents_required">مستندات مطلوبة</SelectItem>
-                    <SelectItem value="awaiting_signature">بانتظار التوقيع</SelectItem>
+                    <SelectItem value="awaiting_contract">بانتظار توقيع العقد</SelectItem>
+                    <SelectItem value="awaiting_signature">بانتظار توقيع السند</SelectItem>
                     <SelectItem value="cancelled">ملغي</SelectItem>
                     <SelectItem value="defaulted">متعثر</SelectItem>
                   </SelectContent>
