@@ -498,71 +498,96 @@ const PlatformSelector = ({
   onSelect: (id: string) => void;
   getServiceCount: (id: string) => number;
 }) => {
-  return (
-    <motion.div 
-      className="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-4"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {networks.slice(0, 7).map((network, index) => {
-        const Icon = network.icon;
-        const CustomIcon = (network as any).customIcon;
-        const isSelected = selected === network.id;
-        const count = getServiceCount(network.id);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const initialCount = 7;
+  const displayedNetworks = isExpanded ? networks : networks.slice(0, initialCount);
+  const hasMore = networks.length > initialCount;
 
-        return (
-          <motion.button
-            key={network.id}
-            variants={itemVariants}
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onSelect(network.id)}
-            className={cn(
-              "relative flex flex-col items-center gap-1.5 p-2.5 rounded-xl border transition-all duration-300",
-              isSelected 
-                ? "border-primary bg-primary/10 shadow-lg shadow-primary/20" 
-                : "border-border/50 bg-card/50 hover:border-primary/30 hover:bg-primary/5"
-            )}
-          >
-            <motion.div 
+  return (
+    <div className="mb-4">
+      <motion.div 
+        className="grid grid-cols-4 sm:grid-cols-7 gap-2"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {displayedNetworks.map((network, index) => {
+          const Icon = network.icon;
+          const CustomIcon = (network as any).customIcon;
+          const isSelected = selected === network.id;
+          const count = getServiceCount(network.id);
+
+          return (
+            <motion.button
+              key={network.id}
+              variants={itemVariants}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => onSelect(network.id)}
               className={cn(
-                "w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300",
-                isSelected ? network.bgColor : "bg-muted"
+                "relative flex flex-col items-center gap-1.5 p-2.5 rounded-xl border transition-all duration-300",
+                isSelected 
+                  ? "border-primary bg-primary/10 shadow-lg shadow-primary/20" 
+                  : "border-border/50 bg-card/50 hover:border-primary/30 hover:bg-primary/5"
               )}
-              animate={isSelected ? { rotate: [0, -5, 5, 0] } : {}}
-              transition={{ duration: 0.4 }}
             >
-              {CustomIcon ? (
-                <div className={isSelected ? (network.textColor || "text-white") : "text-muted-foreground"}>
-                  <CustomIcon />
-                </div>
-              ) : Icon && (
-                <Icon className={cn("w-5 h-5", isSelected ? (network.textColor || "text-white") : "text-muted-foreground")} />
-              )}
-            </motion.div>
-            <span className={cn(
-              "text-[10px] font-medium text-center line-clamp-1",
-              isSelected ? "text-primary" : "text-muted-foreground"
-            )}>
-              {network.name}
-            </span>
-            <AnimatePresence>
-              {isSelected && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center"
-                >
-                  <CheckCircle2 className="w-3 h-3 text-primary-foreground" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.button>
-        );
-      })}
-    </motion.div>
+              <motion.div 
+                className={cn(
+                  "w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300",
+                  isSelected ? network.bgColor : "bg-muted"
+                )}
+                animate={isSelected ? { rotate: [0, -5, 5, 0] } : {}}
+                transition={{ duration: 0.4 }}
+              >
+                {CustomIcon ? (
+                  <div className={isSelected ? (network.textColor || "text-white") : "text-muted-foreground"}>
+                    <CustomIcon />
+                  </div>
+                ) : Icon && (
+                  <Icon className={cn("w-5 h-5", isSelected ? (network.textColor || "text-white") : "text-muted-foreground")} />
+                )}
+              </motion.div>
+              <span className={cn(
+                "text-[10px] font-medium text-center line-clamp-1",
+                isSelected ? "text-primary" : "text-muted-foreground"
+              )}>
+                {network.name}
+              </span>
+              <AnimatePresence>
+                {isSelected && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                    className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center"
+                  >
+                    <CheckCircle2 className="w-3 h-3 text-primary-foreground" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          );
+        })}
+      </motion.div>
+      
+      {/* Expand/Collapse button */}
+      {hasMore && (
+        <motion.button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full mt-3 py-2 px-4 rounded-lg border border-border/50 bg-card/30 hover:bg-card/60 transition-all duration-300 flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
+        >
+          <motion.span
+            animate={{ rotate: isExpanded ? 180 : 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ChevronDown className="w-4 h-4" />
+          </motion.span>
+          <span>{isExpanded ? "عرض أقل" : `عرض المزيد (${networks.length - initialCount}+)`}</span>
+        </motion.button>
+      )}
+    </div>
   );
 };
 
