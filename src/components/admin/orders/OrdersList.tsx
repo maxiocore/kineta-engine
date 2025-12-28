@@ -47,14 +47,14 @@ const OrdersList = ({
 }: OrdersListProps) => {
   return (
     <Card className="border-border/40 overflow-hidden">
-      <CardHeader className="pb-2 flex flex-row items-center justify-between px-4 pt-4">
-        <CardTitle className="flex items-center gap-2 text-sm">
+      <CardHeader className="pb-2 flex flex-row-reverse items-center justify-between px-4 pt-4">
+        <CardTitle className="flex items-center gap-2 text-sm flex-row-reverse">
           <Package className="w-4 h-4 text-primary" />
           قائمة الطلبات
           <Badge variant="secondary" className="rounded-md text-xs">{orders.length}</Badge>
         </CardTitle>
         {orders.length > 0 && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-row-reverse">
             <span className="text-[10px] text-muted-foreground">تحديد الكل</span>
             <Checkbox
               checked={selectedIds.length === orders.length && orders.length > 0}

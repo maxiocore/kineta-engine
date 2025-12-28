@@ -99,84 +99,7 @@ const OrderRow = ({ order, isSelected, onSelect, onView, onDelete, onCancel, ind
         isSelected && "bg-primary/5"
       )}
     >
-      <div className="flex items-start gap-3">
-        {/* Checkbox */}
-        <Checkbox
-          checked={isSelected}
-          onCheckedChange={() => onSelect(order.id)}
-          className="mt-1"
-        />
-
-        {/* Main Content */}
-        <div className="flex-1 min-w-0 space-y-2">
-          {/* Header Row */}
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              <button 
-                onClick={() => copyToClipboard(order.order_number)}
-                className="font-mono text-sm font-semibold hover:text-primary transition-colors flex items-center gap-1"
-              >
-                {order.order_number}
-                <Copy className="w-3 h-3 opacity-50" />
-              </button>
-              <Badge 
-                variant="outline" 
-                className={cn(
-                  "text-[10px] h-5 gap-1 rounded-md",
-                  config.bgColor, 
-                  config.textColor, 
-                  config.borderColor
-                )}
-              >
-                <StatusIcon className="w-3 h-3" />
-                {config.label}
-              </Badge>
-            </div>
-            <span className="text-xs text-muted-foreground whitespace-nowrap">
-              {formatDistanceToNow(new Date(order.created_at), { addSuffix: true, locale: ar })}
-            </span>
-          </div>
-
-          {/* Info Row */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <User className="w-3 h-3" />
-              <span className="truncate max-w-[120px]">
-                {order.profile?.full_name || order.profile?.email || "غير معروف"}
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Package className="w-3 h-3" />
-              <span className="truncate max-w-[150px]">
-                {order.service?.name || "غير محدد"}
-              </span>
-            </div>
-            {order.link && (
-              <a 
-                href={order.link} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-primary hover:underline"
-              >
-                <LinkIcon className="w-3 h-3" />
-                الرابط
-              </a>
-            )}
-          </div>
-
-          {/* Price & Quantity */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="font-semibold text-sm">{order.total_price.toFixed(2)} ر.س</span>
-              {order.quantity && (
-                <span className="text-xs text-muted-foreground">
-                  الكمية: {order.quantity.toLocaleString()}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
+      <div className="flex items-start gap-3 flex-row-reverse">
         {/* Actions */}
         <div className="flex items-center gap-1">
           <Button
@@ -193,18 +116,18 @@ const OrderRow = ({ order, isSelected, onSelect, onView, onDelete, onCancel, ind
                 <MoreVertical className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onView(order)} className="gap-2">
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem onClick={() => onView(order)} className="gap-2 flex-row-reverse">
                 <Eye className="w-4 h-4" />
                 عرض التفاصيل
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => copyToClipboard(order.order_number)} className="gap-2">
+              <DropdownMenuItem onClick={() => copyToClipboard(order.order_number)} className="gap-2 flex-row-reverse">
                 <Copy className="w-4 h-4" />
                 نسخ رقم الطلب
               </DropdownMenuItem>
               {order.link && (
                 <DropdownMenuItem asChild>
-                  <a href={order.link} target="_blank" rel="noopener noreferrer" className="gap-2">
+                  <a href={order.link} target="_blank" rel="noopener noreferrer" className="gap-2 flex-row-reverse">
                     <ExternalLink className="w-4 h-4" />
                     فتح الرابط
                   </a>
@@ -213,20 +136,97 @@ const OrderRow = ({ order, isSelected, onSelect, onView, onDelete, onCancel, ind
               {canCancel && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => onCancel(order)} className="gap-2 text-orange-600">
+                  <DropdownMenuItem onClick={() => onCancel(order)} className="gap-2 flex-row-reverse text-orange-600">
                     <RotateCcw className="w-4 h-4" />
                     إلغاء واسترداد الرصيد
                   </DropdownMenuItem>
                 </>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onDelete(order.id)} className="gap-2 text-destructive">
+              <DropdownMenuItem onClick={() => onDelete(order.id)} className="gap-2 flex-row-reverse text-destructive">
                 <Trash2 className="w-4 h-4" />
                 حذف
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+
+        {/* Main Content */}
+        <div className="flex-1 min-w-0 space-y-2 text-right">
+          {/* Header Row */}
+          <div className="flex items-start justify-between gap-2 flex-row-reverse">
+            <div className="flex items-center gap-2 flex-wrap flex-row-reverse">
+              <button 
+                onClick={() => copyToClipboard(order.order_number)}
+                className="font-mono text-sm font-semibold hover:text-primary transition-colors flex items-center gap-1 flex-row-reverse"
+              >
+                {order.order_number}
+                <Copy className="w-3 h-3 opacity-50" />
+              </button>
+              <Badge 
+                variant="outline" 
+                className={cn(
+                  "text-[10px] h-5 gap-1 rounded-md flex-row-reverse",
+                  config.bgColor, 
+                  config.textColor, 
+                  config.borderColor
+                )}
+              >
+                <StatusIcon className="w-3 h-3" />
+                {config.label}
+              </Badge>
+            </div>
+            <span className="text-xs text-muted-foreground whitespace-nowrap">
+              {formatDistanceToNow(new Date(order.created_at), { addSuffix: true, locale: ar })}
+            </span>
+          </div>
+
+          {/* Info Row */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground justify-end flex-row-reverse">
+            <div className="flex items-center gap-1 flex-row-reverse">
+              <User className="w-3 h-3" />
+              <span className="truncate max-w-[120px]">
+                {order.profile?.full_name || order.profile?.email || "غير معروف"}
+              </span>
+            </div>
+            <div className="flex items-center gap-1 flex-row-reverse">
+              <Package className="w-3 h-3" />
+              <span className="truncate max-w-[150px]">
+                {order.service?.name || "غير محدد"}
+              </span>
+            </div>
+            {order.link && (
+              <a 
+                href={order.link} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-primary hover:underline flex-row-reverse"
+              >
+                <LinkIcon className="w-3 h-3" />
+                الرابط
+              </a>
+            )}
+          </div>
+
+          {/* Price & Quantity */}
+          <div className="flex items-center justify-between flex-row-reverse">
+            <div className="flex items-center gap-3 flex-row-reverse">
+              <span className="font-semibold text-sm">{order.total_price.toFixed(2)} ر.س</span>
+              {order.quantity && (
+                <span className="text-xs text-muted-foreground">
+                  الكمية: {order.quantity.toLocaleString()}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Checkbox */}
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={() => onSelect(order.id)}
+          className="mt-1"
+        />
       </div>
     </motion.div>
   );
