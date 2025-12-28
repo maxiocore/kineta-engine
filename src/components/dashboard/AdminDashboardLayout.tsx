@@ -30,6 +30,7 @@ import {
   FileText,
   Building2,
   MessageSquareText,
+  Landmark,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -58,9 +59,7 @@ const adminNavItems: NavItem[] = [
   { label: "الطلبات", href: "/admin/orders", icon: ShoppingBag },
   { label: "الإحالات", href: "/admin/referrals", icon: Gift },
   { label: "مركز المدفوعات", href: "/admin/payments-hub", icon: CreditCard },
-  { label: "المحافظ", href: "/admin/wallets", icon: Wallet },
-  { label: "كاش باك", href: "/admin/cashback", icon: Coins },
-  { label: "السحب البنكي", href: "/admin/bank-withdrawals", icon: Building2 },
+  { label: "المركز المالي", href: "/admin/financial", icon: Landmark },
   { label: "إعادة التعبئة", href: "/admin/refills", icon: RefreshCw },
   { label: "الكوبونات", href: "/admin/coupons", icon: Ticket },
   { label: "الشارات", href: "/admin/badges", icon: Award },
