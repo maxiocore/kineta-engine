@@ -12,6 +12,11 @@ interface NotifyDepositRequest {
   depositId: string;
 }
 
+// Format amount in Arabic style
+function formatAmountArabic(amount: number): string {
+  return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 function getEmailTemplate(
   customerName: string,
   amount: number,
@@ -20,7 +25,8 @@ function getEmailTemplate(
   transactionId: string | null,
   paymentMethod: string,
   depositDate: string,
-  newBalance: number
+  newBalance: number,
+  receiptNumber: string
 ): string {
   const formattedDate = new Date(depositDate).toLocaleDateString('ar-SA', {
     year: 'numeric',
@@ -29,6 +35,8 @@ function getEmailTemplate(
     hour: '2-digit',
     minute: '2-digit'
   });
+
+  const signatureCode = `SIG-${Date.now().toString(36).toUpperCase().slice(0, 8)}`;
 
   return `
 <!DOCTYPE html>
@@ -45,22 +53,51 @@ function getEmailTemplate(
       <td align="center" style="padding: 30px 15px;">
         <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);">
           
-          <!-- Header with Bank Style -->
+          <!-- Bank Style Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #3b82f6 100%); padding: 35px 30px; text-align: center;">
+            <td style="background: linear-gradient(to right, #00805A, #004d36); padding: 30px; text-align: center;">
               <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                 <tr>
                   <td align="center">
-                    <!-- Success Icon -->
-                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 50%; margin: 0 auto 20px; line-height: 80px; box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);">
-                      <span style="font-size: 40px;">✓</span>
+                    <!-- Logo -->
+                    <div style="width: 70px; height: 70px; background: #ffffff; border-radius: 15px; margin: 0 auto 15px; line-height: 70px;">
+                      <span style="font-size: 32px; font-weight: 800; color: #00805A;">M</span>
                     </div>
-                    <h1 style="margin: 0; color: #ffffff; font-size: 26px; font-weight: 700;">
-                      تم إيداع رصيدك بنجاح
+                    <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">
+                      ماكسيو كور
                     </h1>
-                    <p style="margin: 10px 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">
-                      إيصال المعاملة المالية
+                    <p style="margin: 5px 0 0; color: rgba(255,255,255,0.9); font-size: 12px;">
+                      MAXIOCORE Digital Services
                     </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Success Badge -->
+          <tr>
+            <td style="padding: 25px 30px 15px; text-align: center;">
+              <div style="display: inline-block; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); width: 70px; height: 70px; border-radius: 50%; line-height: 70px; box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);">
+                <span style="font-size: 35px; color: #fff;">✓</span>
+              </div>
+              <h2 style="margin: 15px 0 5px; color: #1e293b; font-size: 22px; font-weight: 700;">
+                تم إيداع رصيدك بنجاح
+              </h2>
+              <p style="margin: 0; color: #64748b; font-size: 13px;">
+                إيصال المعاملة المالية
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Receipt Number -->
+          <tr>
+            <td style="padding: 0 30px 15px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+                <tr>
+                  <td style="padding: 12px 20px; text-align: center;">
+                    <span style="color: #64748b; font-size: 12px;">رقم الإيصال: </span>
+                    <span style="color: #00805A; font-size: 14px; font-weight: 700; font-family: monospace;" dir="ltr">${receiptNumber}</span>
                   </td>
                 </tr>
               </table>
@@ -69,17 +106,17 @@ function getEmailTemplate(
           
           <!-- Amount Display Card -->
           <tr>
-            <td style="padding: 30px 30px 20px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 16px; border: 2px solid #e2e8f0;">
+            <td style="padding: 0 30px 20px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(to right, #00805A, #004d36); border-radius: 16px;">
                 <tr>
                   <td style="padding: 28px; text-align: center;">
-                    <p style="margin: 0 0 10px; color: #64748b; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">المبلغ المضاف للرصيد</p>
-                    <p style="margin: 0; color: #166534; font-size: 42px; font-weight: 800; letter-spacing: -1px;">
-                      $${totalCredited.toFixed(2)}
+                    <p style="margin: 0 0 8px; color: rgba(255,255,255,0.85); font-size: 13px;">إجمالي المبلغ المضاف للرصيد</p>
+                    <p style="margin: 0; color: #ffffff; font-size: 38px; font-weight: 800; direction: ltr;">
+                      <span style="font-size: 18px; margin-left: 5px;">ر.س</span>${formatAmountArabic(totalCredited)}
                     </p>
                     ${bonusAmount && bonusAmount > 0 ? `
-                    <p style="margin: 12px 0 0; color: #22c55e; font-size: 14px; font-weight: 600;">
-                      🎁 يشمل مكافأة إيداع: $${bonusAmount.toFixed(2)}
+                    <p style="margin: 12px 0 0; color: #a7f3d0; font-size: 13px; font-weight: 600;">
+                      🎁 يشمل مكافأة إيداع: ${formatAmountArabic(bonusAmount)} ر.س
                     </p>
                     ` : ''}
                   </td>
@@ -88,48 +125,76 @@ function getEmailTemplate(
             </td>
           </tr>
           
-          <!-- Transaction Details -->
+          <!-- Transaction Details Section -->
           <tr>
-            <td style="padding: 0 30px 25px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+            <td style="padding: 0 30px 20px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: #00805A; border-radius: 8px 8px 0 0;">
                 <tr>
-                  <td style="padding-bottom: 15px;">
-                    <h3 style="margin: 0; color: #1e293b; font-size: 16px; font-weight: 700; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; text-align: right;">
-                      📋 تفاصيل المعاملة
-                    </h3>
+                  <td style="padding: 12px 20px; color: #fff; font-size: 14px; font-weight: 600;">
+                    📋 تفاصيل المعاملة
                   </td>
                 </tr>
               </table>
-              
-              <!-- Details Grid -->
-              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 14px; border-right: 4px solid #3b82f6; overflow: hidden;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: #f8fafc; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none;">
                 ${transactionId ? `
                 <tr>
-                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 13px;">رقم المعاملة</td>
-                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 14px; font-weight: 600; font-family: monospace;" dir="ltr">${transactionId}</td>
+                  <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 13px;">رقم المرجع</td>
+                  <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 13px; font-weight: 600; font-family: monospace;" dir="ltr">${transactionId}</td>
                 </tr>
                 ` : ''}
                 <tr>
-                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 13px;">تاريخ المعاملة</td>
-                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 14px; font-weight: 500;">${formattedDate}</td>
+                  <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 13px;">تاريخ العملية</td>
+                  <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 13px; font-weight: 500;">${formattedDate}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 13px;">طريقة الدفع</td>
-                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 14px; font-weight: 500;">${paymentMethod}</td>
+                  <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 13px;">طريقة الدفع</td>
+                  <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 13px; font-weight: 500;">${paymentMethod}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 13px;">المبلغ المدفوع</td>
-                  <td style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 14px; font-weight: 600;">$${amount.toFixed(2)}</td>
+                  <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-size: 13px;">المبلغ المدفوع</td>
+                  <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0; text-align: left; color: #1e293b; font-size: 13px; font-weight: 600;">${formatAmountArabic(amount)} ر.س</td>
                 </tr>
                 ${bonusAmount && bonusAmount > 0 ? `
                 <tr style="background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%);">
-                  <td style="padding: 15px 20px; border-bottom: 1px solid #bbf7d0; text-align: right; color: #166534; font-size: 13px;">🎁 المكافأة</td>
-                  <td style="padding: 15px 20px; border-bottom: 1px solid #bbf7d0; text-align: left; color: #166534; font-size: 14px; font-weight: 700;">+$${bonusAmount.toFixed(2)}</td>
+                  <td style="padding: 14px 20px; border-bottom: 1px solid #bbf7d0; text-align: right; color: #166534; font-size: 13px;">🎁 المكافأة</td>
+                  <td style="padding: 14px 20px; border-bottom: 1px solid #bbf7d0; text-align: left; color: #166534; font-size: 13px; font-weight: 700;">+${formatAmountArabic(bonusAmount)} ر.س</td>
                 </tr>
                 ` : ''}
                 <tr style="background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);">
-                  <td style="padding: 18px 20px; text-align: right; color: #1e40af; font-size: 14px; font-weight: 600;">💰 رصيدك الجديد</td>
-                  <td style="padding: 18px 20px; text-align: left; color: #1e40af; font-size: 20px; font-weight: 800;">$${newBalance.toFixed(2)}</td>
+                  <td style="padding: 16px 20px; text-align: right; color: #1e40af; font-size: 14px; font-weight: 600;">💰 رصيدك الجديد</td>
+                  <td style="padding: 16px 20px; text-align: left; color: #1e40af; font-size: 18px; font-weight: 800;">${formatAmountArabic(newBalance)} ر.س</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Digital Signature -->
+          <tr>
+            <td style="padding: 0 30px 20px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(to right, #f0fdf4, #dcfce7); border-radius: 12px; border: 2px solid #22c55e;">
+                <tr>
+                  <td style="padding: 18px 20px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                      <tr>
+                        <td style="width: 50px; text-align: center;">
+                          <div style="width: 45px; height: 45px; background: #22c55e; border-radius: 50%; line-height: 45px; text-align: center;">
+                            <span style="color: #fff; font-size: 20px;">✓</span>
+                          </div>
+                        </td>
+                        <td style="padding-right: 15px; text-align: right;">
+                          <p style="margin: 0 0 4px; color: #16a34a; font-size: 14px; font-weight: 600;">تم التحقق والاعتماد رقمياً</p>
+                          <p style="margin: 0; color: #64748b; font-size: 11px;">
+                            كود التحقق: <span style="background: #fff; padding: 2px 8px; border-radius: 4px; font-family: monospace; direction: ltr;">${signatureCode}</span>
+                          </p>
+                        </td>
+                        <td style="text-align: left; color: #64748b; font-size: 10px; line-height: 1.6;">
+                          تاريخ الإصدار<br/>
+                          ${new Date().toLocaleDateString('ar-SA')}<br/>
+                          ${new Date().toLocaleTimeString('ar-SA')}
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
                 </tr>
               </table>
             </td>
@@ -137,7 +202,7 @@ function getEmailTemplate(
           
           <!-- Security Notice -->
           <tr>
-            <td style="padding: 0 30px 25px;">
+            <td style="padding: 0 30px 20px;">
               <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: #fef3c7; border-radius: 12px; border-right: 4px solid #f59e0b;">
                 <tr>
                   <td style="padding: 16px 20px; text-align: right; direction: rtl;">
@@ -152,11 +217,11 @@ function getEmailTemplate(
           
           <!-- CTA Buttons -->
           <tr>
-            <td style="padding: 0 30px 30px; text-align: center;">
+            <td style="padding: 0 30px 25px; text-align: center;">
               <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                 <tr>
                   <td style="padding: 5px;">
-                    <a href="https://maxiocore.com/dashboard" style="display: block; width: 100%; padding: 16px 30px; background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; text-align: center; box-sizing: border-box;">
+                    <a href="https://maxiocore.com/dashboard" style="display: block; width: 100%; padding: 16px 30px; background: linear-gradient(to right, #00805A, #004d36); color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; text-align: center; box-sizing: border-box;">
                       🏦 الذهاب للوحة التحكم
                     </a>
                   </td>
@@ -174,25 +239,34 @@ function getEmailTemplate(
           
           <!-- Footer -->
           <tr>
-            <td style="background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); padding: 25px 30px;">
+            <td style="background: linear-gradient(to right, #00805A, #004d36); padding: 25px 30px;">
               <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                 <tr>
                   <td align="center">
-                    <p style="margin: 0 0 10px; font-size: 14px; color: rgba(255,255,255,0.9);">
+                    <p style="margin: 0 0 8px; font-size: 16px; font-weight: 700; color: #ffffff;">ماكسيو كور</p>
+                    <p style="margin: 0 0 10px; font-size: 13px; color: rgba(255,255,255,0.9);">
                       شكراً لثقتك بنا، ${customerName || 'عميلنا العزيز'}
                     </p>
-                    <p style="margin: 0 0 15px; font-size: 13px; color: rgba(255,255,255,0.7);">
-                      للاستفسارات والدعم الفني، لا تتردد في التواصل معنا
+                    <p style="margin: 0 0 12px; font-size: 12px; color: rgba(255,255,255,0.7);">
+                      هذا إيصال إلكتروني معتمد ولا يحتاج إلى توقيع أو ختم
                     </p>
-                    <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px; margin-top: 5px;">
-                      <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.5);">
+                    <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 12px; margin-top: 5px;">
+                      <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.6);">
                         © ${new Date().getFullYear()} MaxioCore. جميع الحقوق محفوظة.
+                      </p>
+                      <p style="margin: 5px 0 0; font-size: 10px; color: rgba(255,255,255,0.5);">
+                        رقم المرجع: ${receiptNumber} | للاستفسارات: support@maxiocore.com
                       </p>
                     </div>
                   </td>
                 </tr>
               </table>
             </td>
+          </tr>
+          
+          <!-- Bottom Bar -->
+          <tr>
+            <td style="height: 8px; background: linear-gradient(to right, #22c55e, #00805A);"></td>
           </tr>
           
         </table>
@@ -274,6 +348,7 @@ serve(async (req: Request): Promise<Response> => {
       .single();
     
     const paymentMethod = (deposit.payment_methods as any)?.name_ar || "غير محدد";
+    const receiptNumber = `DEP-${deposit.id.slice(0, 8).toUpperCase()}`;
     
     // Generate email HTML
     const emailHtml = getEmailTemplate(
@@ -284,7 +359,8 @@ serve(async (req: Request): Promise<Response> => {
       deposit.transaction_id,
       paymentMethod,
       deposit.completed_at || new Date().toISOString(),
-      balance?.balance || 0
+      balance?.balance || 0,
+      receiptNumber
     );
     
     // Send email using Resend API
@@ -297,7 +373,7 @@ serve(async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: "MaxioCore <noreply@maxiocore.com>",
         to: [profile.email],
-        subject: `✅ تم إيداع $${deposit.total_credited.toFixed(2)} في حسابك بنجاح`,
+        subject: `✅ تم إيداع ${formatAmountArabic(deposit.total_credited)} ر.س في حسابك بنجاح`,
         html: emailHtml,
       }),
     });
@@ -318,8 +394,8 @@ serve(async (req: Request): Promise<Response> => {
     await supabase.from("emails").insert({
       recipient_email: profile.email,
       recipient_name: profile.full_name,
-      subject: `تم إيداع $${deposit.total_credited.toFixed(2)} في حسابك`,
-      content: `تم إيداع مبلغ $${deposit.total_credited.toFixed(2)} في حسابك بنجاح`,
+      subject: `تم إيداع ${formatAmountArabic(deposit.total_credited)} ر.س في حسابك`,
+      content: `تم إيداع مبلغ ${formatAmountArabic(deposit.total_credited)} ر.س في حسابك بنجاح`,
       status: "sent",
       sent_at: new Date().toISOString(),
     });

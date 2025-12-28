@@ -38,6 +38,11 @@ interface EmailRequest {
   customContent?: string;
 }
 
+// Format amount in Arabic style
+function formatAmountArabic(amount: number): string {
+  return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 // Enhanced RTL Email wrapper with IBM Plex Sans Arabic font
 function getEmailWrapper(content: string, title: string): string {
   return `
@@ -240,7 +245,7 @@ function createNoticeBox(text: string, bgColor: string = '#fef3c7', textColor: s
   `;
 }
 
-// Email templates
+// Email templates - All amounts in SAR (ر.س)
 function getEmailContent(type: EmailType, data: Record<string, any>): { subject: string; content: string } {
   switch (type) {
     case 'welcome':
@@ -278,7 +283,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
             { label: 'رقم الطلب', value: data.orderNumber },
             { label: 'اسم الخدمة', value: data.serviceName },
             { label: 'الكمية', value: String(data.quantity || 1) },
-            { label: 'المبلغ الإجمالي', value: `$${data.totalPrice}`, valueColor: '#22c55e' },
+            { label: 'المبلغ الإجمالي', value: `${formatAmountArabic(data.totalPrice)} ر.س`, valueColor: '#22c55e' },
             { label: 'الحالة', value: 'قيد الانتظار', isStatus: true, statusColor: '#fef3c7', valueColor: '#92400e' }
           ])}
           
@@ -327,20 +332,20 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'deposit_completed':
       return {
-        subject: `تم إيداع $${data.amount} في رصيدك - MaxioCore`,
+        subject: `تم إيداع ${formatAmountArabic(data.amount)} ر.س في رصيدك - MaxioCore`,
         content: `
           ${createIconCircle('💰', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           ${createGreeting('تم شحن رصيدك بنجاح! 🎉')}
           ${createMessage('تم إضافة المبلغ إلى رصيدك وأصبح متاحاً للاستخدام الآن.')}
           
-          ${createHighlightBox(`$${data.amount}`, 'المبلغ المُضاف', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          ${createHighlightBox(`${formatAmountArabic(data.amount)} ر.س`, 'المبلغ المُضاف', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           
           ${createInfoCard([
-            { label: 'المبلغ الأصلي', value: `$${data.originalAmount}` },
-            ...(data.bonusAmount ? [{ label: 'البونص 🎁', value: `+$${data.bonusAmount}`, valueColor: '#22c55e' }] : []),
+            { label: 'المبلغ الأصلي', value: `${formatAmountArabic(data.originalAmount)} ر.س` },
+            ...(data.bonusAmount ? [{ label: 'البونص 🎁', value: `+${formatAmountArabic(data.bonusAmount)} ر.س`, valueColor: '#22c55e' }] : []),
             { label: 'طريقة الدفع', value: data.paymentMethod || 'غير محدد' },
             { label: 'رقم العملية', value: data.transactionId || '-' },
-            { label: 'الرصيد الجديد', value: `$${data.newBalance}`, valueColor: '#6366f1' }
+            { label: 'الرصيد الجديد', value: `${formatAmountArabic(data.newBalance)} ر.س`, valueColor: '#6366f1' }
           ])}
           
           ${createCTAButton('استخدم رصيدك الآن')}
@@ -355,7 +360,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           ${createGreeting('تم استلام طلب الإيداع')}
           ${createMessage('طلب الإيداع الخاص بك قيد المراجعة وسيتم معالجته في أقرب وقت ممكن.')}
           
-          ${createHighlightBox(`$${data.amount}`, 'المبلغ المطلوب إيداعه', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          ${createHighlightBox(`${formatAmountArabic(data.amount)} ر.س`, 'المبلغ المطلوب إيداعه', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
           
           ${createInfoCard([
             { label: 'طريقة الدفع', value: data.paymentMethod || 'غير محدد' },
@@ -398,7 +403,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           ${createHighlightBox(`-${data.points}`, 'نقطة مستخدمة', 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)')}
           
           ${createInfoCard([
-            { label: 'قيمة الخصم', value: `$${data.discountValue}`, valueColor: '#22c55e' },
+            { label: 'قيمة الخصم', value: `${formatAmountArabic(data.discountValue)} ر.س`, valueColor: '#22c55e' },
             { label: 'رصيد النقاط المتبقي', value: `${data.remainingPoints} نقطة` }
           ])}
         `
@@ -406,18 +411,18 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'cashback_earned':
       return {
-        subject: `🎉 حصلت على كاش باك $${data.amount}! - MaxioCore`,
+        subject: `🎉 حصلت على كاش باك ${formatAmountArabic(data.amount)} ر.س! - MaxioCore`,
         content: `
           ${createIconCircle('💵', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           ${createGreeting('مبروك! كسبت كاش باك 🎉')}
           ${createMessage('تم إضافة مكافأة الكاش باك إلى محفظتك من عملية الإيداع الأخيرة.')}
           
-          ${createHighlightBox(`+$${data.amount}`, 'كاش باك مكتسب', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          ${createHighlightBox(`+${formatAmountArabic(data.amount)} ر.س`, 'كاش باك مكتسب', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           
           ${createInfoCard([
-            { label: 'قيمة الإيداع', value: `$${data.depositAmount}` },
+            { label: 'قيمة الإيداع', value: `${formatAmountArabic(data.depositAmount)} ر.س` },
             { label: 'نسبة الكاش باك', value: `${data.percentage}%` },
-            { label: 'رصيد الكاش باك الحالي', value: `$${data.totalCashback}`, valueColor: '#22c55e' }
+            { label: 'رصيد الكاش باك الحالي', value: `${formatAmountArabic(data.totalCashback)} ر.س`, valueColor: '#22c55e' }
           ])}
           
           ${createCTAButton('سحب الكاش باك')}
@@ -426,17 +431,17 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'cashback_withdrawn':
       return {
-        subject: `تم سحب الكاش باك $${data.amount} - MaxioCore`,
+        subject: `تم سحب الكاش باك ${formatAmountArabic(data.amount)} ر.س - MaxioCore`,
         content: `
           ${createIconCircle('✅', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           ${createGreeting('تم سحب الكاش باك بنجاح!')}
           ${createMessage('تم تحويل الكاش باك إلى رصيدك الرئيسي وأصبح متاحاً للاستخدام.')}
           
-          ${createHighlightBox(`$${data.amount}`, 'تم تحويله للرصيد الرئيسي', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          ${createHighlightBox(`${formatAmountArabic(data.amount)} ر.س`, 'تم تحويله للرصيد الرئيسي', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           
           ${createInfoCard([
-            { label: 'رصيد الكاش باك المتبقي', value: `$${data.remainingCashback}` },
-            { label: 'الرصيد الرئيسي الجديد', value: `$${data.newBalance}`, valueColor: '#6366f1' }
+            { label: 'رصيد الكاش باك المتبقي', value: `${formatAmountArabic(data.remainingCashback)} ر.س` },
+            { label: 'الرصيد الرئيسي الجديد', value: `${formatAmountArabic(data.newBalance)} ر.س`, valueColor: '#6366f1' }
           ])}
         `
       };
@@ -449,7 +454,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           ${createGreeting('تم استلام طلب السحب البنكي')}
           ${createMessage('طلب السحب البنكي الخاص بك قيد المراجعة وسيتم معالجته خلال 1-3 أيام عمل.')}
           
-          ${createHighlightBox(`$${data.amount}`, 'المبلغ المطلوب سحبه', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          ${createHighlightBox(`${formatAmountArabic(data.amount)} ر.س`, 'المبلغ المطلوب سحبه', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
           
           ${createInfoCard([
             { label: 'اسم البنك', value: data.bankName },
@@ -464,13 +469,13 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'bank_withdrawal_completed':
       return {
-        subject: `✅ تم تحويل $${data.amount} إلى حسابك البنكي - MaxioCore`,
+        subject: `✅ تم تحويل ${formatAmountArabic(data.amount)} ر.س إلى حسابك البنكي - MaxioCore`,
         content: `
           ${createIconCircle('🎉', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           ${createGreeting('تم التحويل بنجاح!')}
           ${createMessage('تم تحويل المبلغ إلى حسابك البنكي بنجاح.')}
           
-          ${createHighlightBox(`$${data.amount}`, 'تم تحويله', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          ${createHighlightBox(`${formatAmountArabic(data.amount)} ر.س`, 'تم تحويله', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           
           ${createInfoCard([
             { label: 'اسم البنك', value: data.bankName },
@@ -491,7 +496,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           ${createMessage('نأسف لإبلاغك بأنه تم رفض طلب السحب البنكي الخاص بك.')}
           
           ${createInfoCard([
-            { label: 'المبلغ', value: `$${data.amount}` },
+            { label: 'المبلغ', value: `${formatAmountArabic(data.amount)} ر.س` },
             { label: 'اسم البنك', value: data.bankName },
             { label: 'الحالة', value: 'مرفوض', isStatus: true, statusColor: '#fee2e2', valueColor: '#991b1b' },
             ...(data.reason ? [{ label: 'سبب الرفض', value: data.reason }] : [])
@@ -548,18 +553,18 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'refund_processed':
       return {
-        subject: `تم استرداد $${data.amount} إلى رصيدك - MaxioCore`,
+        subject: `تم استرداد ${formatAmountArabic(data.amount)} ر.س إلى رصيدك - MaxioCore`,
         content: `
           ${createIconCircle('↩️', 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)')}
           ${createGreeting('تم استرداد الرصيد')}
           ${createMessage('تم استرداد مبلغ الطلب إلى رصيدك بنجاح.')}
           
-          ${createHighlightBox(`+$${data.amount}`, 'تم استرداده', 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)')}
+          ${createHighlightBox(`+${formatAmountArabic(data.amount)} ر.س`, 'تم استرداده', 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)')}
           
           ${createInfoCard([
             { label: 'رقم الطلب', value: data.orderNumber },
             { label: 'سبب الاسترداد', value: data.reason || 'إلغاء الطلب' },
-            { label: 'الرصيد الجديد', value: `$${data.newBalance}`, valueColor: '#6366f1' }
+            { label: 'الرصيد الجديد', value: `${formatAmountArabic(data.newBalance)} ر.س`, valueColor: '#6366f1' }
           ])}
         `
       };
@@ -576,8 +581,8 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           
           ${createInfoCard([
             { label: 'اسم العرض', value: data.offerTitle },
-            ...(data.originalPrice ? [{ label: 'السعر الأصلي', value: `$${data.originalPrice}`, valueColor: '#94a3b8' }] : []),
-            ...(data.offerPrice ? [{ label: 'سعر العرض', value: `$${data.offerPrice}`, valueColor: '#22c55e' }] : []),
+            ...(data.originalPrice ? [{ label: 'السعر الأصلي', value: `${formatAmountArabic(data.originalPrice)} ر.س`, valueColor: '#94a3b8' }] : []),
+            ...(data.offerPrice ? [{ label: 'سعر العرض', value: `${formatAmountArabic(data.offerPrice)} ر.س`, valueColor: '#22c55e' }] : []),
             ...(data.endDate ? [{ label: 'ينتهي في', value: data.endDate }] : [])
           ])}
           
