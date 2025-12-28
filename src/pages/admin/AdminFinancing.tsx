@@ -77,6 +77,7 @@ interface FinancingApplication {
   admin_notes: string | null;
   rejection_reason: string | null;
   contract_number: string | null;
+  promissory_note_url: string | null;
   financing_plans?: {
     name_ar: string;
     installments_count: number;
@@ -737,10 +738,19 @@ export default function AdminFinancing() {
                         <td className="py-3 px-4 font-medium">{app.requested_amount.toFixed(2)} ر.س</td>
                         <td className="py-3 px-4">{app.financing_plans?.name_ar || "-"}</td>
                         <td className="py-3 px-4">
-                          <Badge className={`${statusConfig[app.status]?.color} flex items-center gap-1 w-fit`}>
-                            {statusConfig[app.status]?.icon}
-                            {statusConfig[app.status]?.label}
-                          </Badge>
+                          <div className="flex flex-col gap-1">
+                            <Badge className={`${statusConfig[app.status]?.color} flex items-center gap-1 w-fit`}>
+                              {statusConfig[app.status]?.icon}
+                              {statusConfig[app.status]?.label}
+                            </Badge>
+                            {/* Show promissory note signed indicator */}
+                            {app.status === "awaiting_signature" && app.promissory_note_url && (
+                              <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 flex items-center gap-1 w-fit text-xs">
+                                <CheckCircle2 className="h-3 w-3" />
+                                تم توقيع الكمبيالة ✓
+                              </Badge>
+                            )}
+                          </div>
                         </td>
                         <td className="py-3 px-4 text-sm text-muted-foreground">
                           {format(new Date(app.submitted_at), "dd/MM/yyyy", { locale: ar })}
