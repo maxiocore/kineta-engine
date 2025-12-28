@@ -25,6 +25,10 @@ export type EmailType =
   | 'financing_application_received'
   | 'financing_promissory_note'
   | 'financing_contract'
+  | 'financing_payment_client'
+  | 'financing_payment_admin'
+  | 'financing_payment_reminder'
+  | 'financing_payment_overdue'
   | 'custom';
 
 interface SendEmailParams {
@@ -450,6 +454,97 @@ export async function sendFinancingContractEmail(
   return sendEmail({
     to: email,
     type: 'financing_contract',
+    data,
+  });
+}
+
+// Financing Payment Email Functions
+export async function sendFinancingPaymentClientEmail(
+  email: string,
+  data: {
+    name: string;
+    applicationNumber: string;
+    contractNumber: string;
+    installmentNumber: number;
+    totalInstallments: number;
+    amount: number;
+    paymentDate?: string;
+    paymentMethod?: string;
+    receiptNumber?: string;
+    totalPaid: number;
+    remainingAmount: number;
+    remainingInstallments: number;
+    nextDueDate?: string;
+  }
+): Promise<EmailResult> {
+  return sendEmail({
+    to: email,
+    type: 'financing_payment_client',
+    data,
+  });
+}
+
+export async function sendFinancingPaymentAdminEmail(
+  adminEmail: string,
+  data: {
+    clientName: string;
+    clientEmail: string;
+    clientPhone?: string;
+    applicationNumber: string;
+    contractNumber: string;
+    installmentNumber: number;
+    totalInstallments: number;
+    amount: number;
+    paymentDate?: string;
+    paymentMethod?: string;
+    originalAmount: number;
+    totalPaid: number;
+    remainingAmount: number;
+    completionPercentage?: number;
+  }
+): Promise<EmailResult> {
+  return sendEmail({
+    to: adminEmail,
+    type: 'financing_payment_admin',
+    data,
+  });
+}
+
+export async function sendFinancingPaymentReminderEmail(
+  email: string,
+  data: {
+    name: string;
+    applicationNumber: string;
+    installmentNumber: number;
+    totalInstallments: number;
+    amount: number;
+    dueDate: string;
+    daysRemaining: number;
+  }
+): Promise<EmailResult> {
+  return sendEmail({
+    to: email,
+    type: 'financing_payment_reminder',
+    data,
+  });
+}
+
+export async function sendFinancingPaymentOverdueEmail(
+  email: string,
+  data: {
+    name: string;
+    applicationNumber: string;
+    installmentNumber: number;
+    totalInstallments: number;
+    amount: number;
+    dueDate: string;
+    daysOverdue: number;
+    lateFee?: number;
+  }
+): Promise<EmailResult> {
+  return sendEmail({
+    to: email,
+    type: 'financing_payment_overdue',
     data,
   });
 }

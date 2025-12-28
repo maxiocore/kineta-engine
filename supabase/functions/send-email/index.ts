@@ -36,6 +36,10 @@ type EmailType =
   | 'financing_application_received'
   | 'financing_promissory_note'
   | 'financing_contract'
+  | 'financing_payment_client'
+  | 'financing_payment_admin'
+  | 'financing_payment_reminder'
+  | 'financing_payment_overdue'
   | 'custom';
 
 interface EmailRequest {
@@ -986,6 +990,261 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           ${createNoticeBox('📝 الخطوة التالية: يرجى طباعة هذا العقد والتوقيع عليه وإرساله عبر البريد الإلكتروني أو الواتساب. بعد استلام العقد الموقع، سنرسل لك السند التنفيذي للتوقيع عليه.', '#dbeafe', '#1d4ed8', '#3b82f6')}
           
           ${createMessage('للتواصل والإرسال: info@maxiocore.com')}
+        `
+      };
+
+    case 'financing_payment_client':
+      return {
+        subject: `✅ تأكيد سداد القسط رقم ${data.installmentNumber} - طلب التمويل #${data.applicationNumber}`,
+        content: `
+          ${createIconCircle('✅', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          ${createGreeting(`مرحباً ${data.name}`)}
+          ${createMessage('تم تسجيل سداد القسط بنجاح. شكراً لالتزامك بالسداد في الموعد المحدد.')}
+          
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 14px; border: 2px solid #22c55e; margin-bottom: 25px;">
+            <tr>
+              <td style="padding: 25px;">
+                <h2 style="margin: 0 0 20px; text-align: center; color: #22c55e; font-size: 24px; border-bottom: 2px solid #22c55e; padding-bottom: 15px;">🏦 إيصال السداد</h2>
+                
+                <div style="background: rgba(34, 197, 94, 0.1); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px;">
+                  <p style="margin: 0 0 8px; color: #94a3b8; font-size: 14px;">المبلغ المسدد</p>
+                  <p style="margin: 0; color: #22c55e; font-size: 36px; font-weight: 800;">${formatAmountArabic(data.amount)} ر.س</p>
+                </div>
+                
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 20px;">
+                  <tr>
+                    <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155; width: 45%;">رقم الإيصال:</td>
+                    <td style="padding: 12px 0; color: #fff; font-weight: bold; border-bottom: 1px solid #334155;">${data.receiptNumber || 'PAY-' + Date.now()}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">رقم العقد:</td>
+                    <td style="padding: 12px 0; color: #fff; border-bottom: 1px solid #334155;">${data.contractNumber}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">رقم الطلب:</td>
+                    <td style="padding: 12px 0; color: #fff; border-bottom: 1px solid #334155;">${data.applicationNumber}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">رقم القسط:</td>
+                    <td style="padding: 12px 0; color: #fff; border-bottom: 1px solid #334155;">${data.installmentNumber} من ${data.totalInstallments}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">تاريخ السداد:</td>
+                    <td style="padding: 12px 0; color: #fff; border-bottom: 1px solid #334155;">${data.paymentDate || new Date().toLocaleDateString('ar-SA')}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">طريقة الدفع:</td>
+                    <td style="padding: 12px 0; color: #fff; border-bottom: 1px solid #334155;">${data.paymentMethod || 'الرصيد'}</td>
+                  </tr>
+                </table>
+                
+                <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 15px;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                    <tr>
+                      <td style="padding: 8px 0; color: #94a3b8;">إجمالي المدفوع:</td>
+                      <td style="padding: 8px 0; color: #22c55e; font-weight: bold; text-align: left;">${formatAmountArabic(data.totalPaid)} ر.س</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 0; color: #94a3b8;">المتبقي:</td>
+                      <td style="padding: 8px 0; color: #f59e0b; font-weight: bold; text-align: left;">${formatAmountArabic(data.remainingAmount)} ر.س</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 0; color: #94a3b8;">الأقساط المتبقية:</td>
+                      <td style="padding: 8px 0; color: #fff; text-align: left;">${data.remainingInstallments} قسط</td>
+                    </tr>
+                    ${data.nextDueDate ? `
+                    <tr>
+                      <td style="padding: 8px 0; color: #94a3b8;">موعد القسط القادم:</td>
+                      <td style="padding: 8px 0; color: #3b82f6; font-weight: bold; text-align: left;">${data.nextDueDate}</td>
+                    </tr>
+                    ` : ''}
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </table>
+          
+          ${data.remainingInstallments === 0 
+            ? createNoticeBox('🎉 تهانينا! لقد أتممت سداد جميع الأقساط بنجاح. شكراً لثقتك بنا!', '#dcfce7', '#166534', '#22c55e')
+            : createNoticeBox('💡 نصيحة: يمكنك دفع الأقساط المتبقية مبكراً من خلال صفحة التمويل في حسابك.', '#dbeafe', '#1d4ed8', '#3b82f6')
+          }
+          
+          ${createCTAButton('عرض تفاصيل التمويل')}
+        `
+      };
+
+    case 'financing_payment_admin':
+      return {
+        subject: `🔔 إشعار سداد قسط - العميل ${data.clientName} - طلب #${data.applicationNumber}`,
+        content: `
+          ${createIconCircle('🏦', 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)')}
+          ${createGreeting('إشعار سداد قسط تمويل')}
+          ${createMessage('تم تسجيل سداد قسط تمويل من أحد العملاء. فيما يلي تفاصيل العملية:')}
+          
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 14px; border: 2px solid #6366f1; margin-bottom: 25px;">
+            <tr>
+              <td style="padding: 25px;">
+                <h2 style="margin: 0 0 20px; text-align: center; color: #6366f1; font-size: 24px; border-bottom: 2px solid #6366f1; padding-bottom: 15px;">📊 تفاصيل عملية السداد</h2>
+                
+                <div style="background: rgba(99, 102, 241, 0.1); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px;">
+                  <p style="margin: 0 0 8px; color: #94a3b8; font-size: 14px;">المبلغ المسدد</p>
+                  <p style="margin: 0; color: #22c55e; font-size: 36px; font-weight: 800;">${formatAmountArabic(data.amount)} ر.س</p>
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                  <h3 style="margin: 0 0 15px; color: #a5b4fc; font-size: 16px;">👤 بيانات العميل:</h3>
+                  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                    <tr>
+                      <td style="padding: 8px 0; color: #94a3b8; width: 40%;">الاسم:</td>
+                      <td style="padding: 8px 0; color: #fff; font-weight: bold;">${data.clientName}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 0; color: #94a3b8;">البريد الإلكتروني:</td>
+                      <td style="padding: 8px 0; color: #fff;">${data.clientEmail}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 0; color: #94a3b8;">رقم الهاتف:</td>
+                      <td style="padding: 8px 0; color: #fff;">${data.clientPhone || 'غير متوفر'}</td>
+                    </tr>
+                  </table>
+                </div>
+                
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                  <tr>
+                    <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155; width: 45%;">رقم العقد:</td>
+                    <td style="padding: 12px 0; color: #fff; font-weight: bold; border-bottom: 1px solid #334155;">${data.contractNumber}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">رقم الطلب:</td>
+                    <td style="padding: 12px 0; color: #fff; border-bottom: 1px solid #334155;">${data.applicationNumber}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">رقم القسط:</td>
+                    <td style="padding: 12px 0; color: #fff; border-bottom: 1px solid #334155;">${data.installmentNumber} من ${data.totalInstallments}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">تاريخ السداد:</td>
+                    <td style="padding: 12px 0; color: #fff; border-bottom: 1px solid #334155;">${data.paymentDate || new Date().toLocaleDateString('ar-SA')}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">طريقة الدفع:</td>
+                    <td style="padding: 12px 0; color: #fff; border-bottom: 1px solid #334155;">${data.paymentMethod || 'الرصيد'}</td>
+                  </tr>
+                </table>
+                
+                <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 15px; margin-top: 20px;">
+                  <h3 style="margin: 0 0 15px; color: #a5b4fc; font-size: 16px;">📈 ملخص التمويل:</h3>
+                  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                    <tr>
+                      <td style="padding: 8px 0; color: #94a3b8;">مبلغ التمويل الأصلي:</td>
+                      <td style="padding: 8px 0; color: #fff; text-align: left;">${formatAmountArabic(data.originalAmount)} ر.س</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 0; color: #94a3b8;">إجمالي المدفوع:</td>
+                      <td style="padding: 8px 0; color: #22c55e; font-weight: bold; text-align: left;">${formatAmountArabic(data.totalPaid)} ر.س</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 0; color: #94a3b8;">المتبقي:</td>
+                      <td style="padding: 8px 0; color: #f59e0b; font-weight: bold; text-align: left;">${formatAmountArabic(data.remainingAmount)} ر.س</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 0; color: #94a3b8;">نسبة الإنجاز:</td>
+                      <td style="padding: 8px 0; color: #3b82f6; font-weight: bold; text-align: left;">${data.completionPercentage || Math.round((data.totalPaid / data.originalAmount) * 100)}%</td>
+                    </tr>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </table>
+          
+          ${createCTAButton('عرض تفاصيل الطلب في لوحة التحكم')}
+        `
+      };
+
+    case 'financing_payment_reminder':
+      return {
+        subject: `⏰ تذكير بموعد سداد القسط - طلب التمويل #${data.applicationNumber}`,
+        content: `
+          ${createIconCircle('⏰', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          ${createGreeting(`مرحباً ${data.name}`)}
+          ${createMessage('نود تذكيرك بموعد سداد القسط القادم. يرجى التأكد من توفر الرصيد الكافي لإتمام عملية السداد.')}
+          
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 14px; border: 2px solid #f59e0b; margin-bottom: 25px;">
+            <tr>
+              <td style="padding: 25px;">
+                <h2 style="margin: 0 0 20px; text-align: center; color: #f59e0b; font-size: 24px; border-bottom: 2px solid #f59e0b; padding-bottom: 15px;">📅 تذكير بموعد السداد</h2>
+                
+                <div style="background: rgba(245, 158, 11, 0.1); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px;">
+                  <p style="margin: 0 0 8px; color: #94a3b8; font-size: 14px;">المبلغ المستحق</p>
+                  <p style="margin: 0; color: #f59e0b; font-size: 36px; font-weight: 800;">${formatAmountArabic(data.amount)} ر.س</p>
+                </div>
+                
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                  <tr>
+                    <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155; width: 45%;">رقم القسط:</td>
+                    <td style="padding: 12px 0; color: #fff; border-bottom: 1px solid #334155;">${data.installmentNumber} من ${data.totalInstallments}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">تاريخ الاستحقاق:</td>
+                    <td style="padding: 12px 0; color: #f59e0b; font-weight: bold; border-bottom: 1px solid #334155;">${data.dueDate}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">الأيام المتبقية:</td>
+                    <td style="padding: 12px 0; color: #fff; border-bottom: 1px solid #334155;">${data.daysRemaining} يوم</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          
+          ${createNoticeBox('💡 نصيحة: ادفع الآن وتجنب رسوم التأخير. يمكنك الدفع من خلال صفحة التمويل في حسابك.', '#fef3c7', '#92400e', '#f59e0b')}
+          
+          ${createCTAButton('ادفع الآن')}
+        `
+      };
+
+    case 'financing_payment_overdue':
+      return {
+        subject: `🚨 قسط متأخر - طلب التمويل #${data.applicationNumber}`,
+        content: `
+          ${createIconCircle('🚨', 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)')}
+          ${createGreeting(`مرحباً ${data.name}`)}
+          ${createMessage('نود إعلامك بأن لديك قسط متأخر السداد. يرجى السداد في أقرب وقت ممكن لتجنب أي رسوم إضافية.')}
+          
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 14px; border: 2px solid #ef4444; margin-bottom: 25px;">
+            <tr>
+              <td style="padding: 25px;">
+                <h2 style="margin: 0 0 20px; text-align: center; color: #ef4444; font-size: 24px; border-bottom: 2px solid #ef4444; padding-bottom: 15px;">⚠️ قسط متأخر</h2>
+                
+                <div style="background: rgba(239, 68, 68, 0.1); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px;">
+                  <p style="margin: 0 0 8px; color: #94a3b8; font-size: 14px;">المبلغ المستحق</p>
+                  <p style="margin: 0; color: #ef4444; font-size: 36px; font-weight: 800;">${formatAmountArabic(data.amount)} ر.س</p>
+                  ${data.lateFee ? `<p style="margin: 10px 0 0; color: #f87171; font-size: 14px;">+ رسوم تأخير: ${formatAmountArabic(data.lateFee)} ر.س</p>` : ''}
+                </div>
+                
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                  <tr>
+                    <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155; width: 45%;">رقم القسط:</td>
+                    <td style="padding: 12px 0; color: #fff; border-bottom: 1px solid #334155;">${data.installmentNumber} من ${data.totalInstallments}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">تاريخ الاستحقاق:</td>
+                    <td style="padding: 12px 0; color: #ef4444; font-weight: bold; border-bottom: 1px solid #334155;">${data.dueDate}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; color: #94a3b8; border-bottom: 1px solid #334155;">أيام التأخير:</td>
+                    <td style="padding: 12px 0; color: #ef4444; font-weight: bold; border-bottom: 1px solid #334155;">${data.daysOverdue} يوم</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          
+          ${createNoticeBox('⚠️ تنبيه مهم: التأخر في السداد قد يؤثر على تقييمك الائتماني. يرجى السداد فوراً لتجنب أي عواقب إضافية.', '#fee2e2', '#991b1b', '#ef4444')}
+          
+          ${createCTAButton('ادفع الآن')}
+          
+          ${createMessage('في حال واجهت أي صعوبات في السداد، يرجى التواصل معنا على info@maxiocore.com')}
         `
       };
 
