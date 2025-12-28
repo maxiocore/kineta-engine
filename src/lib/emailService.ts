@@ -29,6 +29,7 @@ export type EmailType =
   | 'financing_payment_admin'
   | 'financing_payment_reminder'
   | 'financing_payment_overdue'
+  | 'financing_clearance'
   | 'custom';
 
 interface SendEmailParams {
@@ -545,6 +546,25 @@ export async function sendFinancingPaymentOverdueEmail(
   return sendEmail({
     to: email,
     type: 'financing_payment_overdue',
+    data,
+  });
+}
+
+export async function sendFinancingClearanceEmail(
+  email: string,
+  data: {
+    name: string;
+    nationalId?: string;
+    applicationNumber: string;
+    contractNumber: string;
+    totalAmount: number;
+    totalInstallments: number;
+    lastPaymentDate?: string;
+  }
+): Promise<EmailResult> {
+  return sendEmail({
+    to: email,
+    type: 'financing_clearance',
     data,
   });
 }
