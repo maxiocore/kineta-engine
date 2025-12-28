@@ -338,7 +338,7 @@ export default function ClientFinancing() {
           </div>
         )}
 
-        {/* Show application status card for pending/approved/rejected applications */}
+        {/* Show application status card for pending/approved/rejected/documents_required applications */}
         {activeApplications.length === 0 && applications.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -349,21 +349,27 @@ export default function ClientFinancing() {
               <div className={`h-2 ${
                 applications[0].status === "pending" || applications[0].status === "under_review" 
                   ? "bg-gradient-to-r from-yellow-500 to-orange-500" 
-                  : applications[0].status === "approved" 
-                    ? "bg-gradient-to-r from-green-500 to-emerald-500"
-                    : "bg-gradient-to-r from-red-500 to-rose-500"
+                  : applications[0].status === "documents_required"
+                    ? "bg-gradient-to-r from-orange-500 to-amber-500"
+                    : applications[0].status === "approved" 
+                      ? "bg-gradient-to-r from-green-500 to-emerald-500"
+                      : "bg-gradient-to-r from-red-500 to-rose-500"
               }`} />
               <CardContent className="p-6">
                 <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
                   <div className={`w-20 h-20 rounded-2xl flex items-center justify-center ${
                     applications[0].status === "pending" || applications[0].status === "under_review"
                       ? "bg-gradient-to-br from-yellow-500/20 to-orange-500/20"
-                      : applications[0].status === "approved"
-                        ? "bg-gradient-to-br from-green-500/20 to-emerald-500/20"
-                        : "bg-gradient-to-br from-red-500/20 to-rose-500/20"
+                      : applications[0].status === "documents_required"
+                        ? "bg-gradient-to-br from-orange-500/20 to-amber-500/20"
+                        : applications[0].status === "approved"
+                          ? "bg-gradient-to-br from-green-500/20 to-emerald-500/20"
+                          : "bg-gradient-to-br from-red-500/20 to-rose-500/20"
                   }`}>
                     {applications[0].status === "pending" || applications[0].status === "under_review" ? (
                       <Clock className="h-10 w-10 text-yellow-400" />
+                    ) : applications[0].status === "documents_required" ? (
+                      <FileUp className="h-10 w-10 text-orange-400" />
                     ) : applications[0].status === "approved" ? (
                       <CheckCircle2 className="h-10 w-10 text-green-400" />
                     ) : (
@@ -380,9 +386,20 @@ export default function ClientFinancing() {
                     </div>
                     <p className="text-muted-foreground mb-3">
                       {(applications[0].status === "pending" || applications[0].status === "under_review") && "طلبك قيد المراجعة من فريقنا، سنقوم بإعلامك فور اتخاذ القرار عبر البريد الإلكتروني"}
+                      {applications[0].status === "documents_required" && "مطلوب رفع بعض المستندات لإكمال مراجعة طلبك"}
                       {applications[0].status === "approved" && "تمت الموافقة على طلبك! سيتم إضافة الرصيد لحسابك وتفعيل التمويل قريباً"}
                       {applications[0].status === "rejected" && `عذراً، تم رفض الطلب. ${applications[0].rejection_reason || "يمكنك تقديم طلب جديد"}`}
                     </p>
+                    
+                    {/* Upload Documents Button for documents_required status */}
+                    {applications[0].status === "documents_required" && (
+                      <Button asChild className="mb-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600">
+                        <Link to={`/dashboard/financing/documents/${applications[0].id}`}>
+                          <Upload className="h-4 w-4 ml-2" />
+                          رفع المستندات المطلوبة
+                        </Link>
+                      </Button>
+                    )}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 p-4 bg-muted/30 rounded-xl">
                       <div>
                         <p className="text-xs text-muted-foreground">المبلغ المطلوب</p>
