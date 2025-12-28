@@ -134,15 +134,15 @@ const bankStyles = `
   .brand-info {
     text-align: right;
   }
-  .brand-name-ar {
-    font-size: 26px;
+  .brand-name-main {
+    font-size: 24px;
     font-weight: 800;
     color: #ffffff;
     line-height: 1.2;
     letter-spacing: 1px;
   }
-  .brand-name-en {
-    font-size: 12px;
+  .brand-name-sub {
+    font-size: 11px;
     color: rgba(255,255,255,0.85);
     margin-top: 2px;
     font-weight: 600;
@@ -514,12 +514,12 @@ export const generateDepositReceipt = async (data: DepositReceiptData) => {
           <div class="brand-section">
             <div class="brand-logo">M</div>
             <div class="brand-info">
-              <div class="brand-name-ar">ماكسيو كور</div>
-              <div class="brand-name-en">MAXIOCORE Digital Services</div>
+              <div class="brand-name-main">MAXIOCORE</div>
+              <div class="brand-name-sub">Digital Services</div>
             </div>
           </div>
           <div class="receipt-title-box">
-            <h1 class="receipt-title">إيصال إيداع</h1>
+            <h1 class="receipt-title">Deposit Receipt</h1>
           </div>
         </div>
       </div>
@@ -607,21 +607,21 @@ export const generateDepositReceipt = async (data: DepositReceiptData) => {
           </svg>
         </div>
         <div class="sig-main">
-          <div class="sig-title">تم التحقق والاعتماد رقمياً</div>
-          <div class="sig-signer">التوقيع الرقمي: <span>ماكسيو كور - MAXIOCORE</span></div>
+          <div class="sig-title">Digitally Verified</div>
+          <div class="sig-signer">Digital Signature: <span>MAXIOCORE</span></div>
           <div class="sig-codes">
             <div class="sig-code-item">
-              <span>كود التحقق:</span>
+              <span>Verification:</span>
               <span class="sig-code-value">${signatureCode}</span>
             </div>
             <div class="sig-code-item">
-              <span>كود التأكيد:</span>
+              <span>Confirmation:</span>
               <span class="sig-code-value">${verifyCode}</span>
             </div>
           </div>
         </div>
         <div class="sig-timestamp">
-          <div class="sig-timestamp-label">تاريخ الإصدار</div>
+          <div class="sig-timestamp-label">Issue Date</div>
           <div class="sig-timestamp-value">
             ${format(new Date(), 'dd/MM/yyyy')}<br/>
             ${format(new Date(), 'HH:mm:ss')}
@@ -631,11 +631,11 @@ export const generateDepositReceipt = async (data: DepositReceiptData) => {
       
       <!-- Footer -->
       <div class="footer-section">
-        <div class="footer-brand">ماكسيو كور</div>
-        <div class="footer-note">هذا إيصال إلكتروني معتمد ولا يحتاج إلى توقيع أو ختم</div>
-        <div class="footer-contact">للاستفسارات: support@maxiocore.com</div>
+        <div class="footer-brand">MAXIOCORE</div>
+        <div class="footer-note">This is an official electronic receipt</div>
+        <div class="footer-contact">Contact: support@maxiocore.com</div>
         <div class="footer-ref">
-          رقم المرجع: ${receiptNumber} | تاريخ الإصدار: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
+          Reference: ${receiptNumber} | Date: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
         </div>
         <div class="footer-bar"></div>
       </div>
@@ -680,12 +680,12 @@ export const generateCashbackReceipt = async (data: CashbackReceiptData) => {
           <div class="brand-section">
             <div class="brand-logo">M</div>
             <div class="brand-info">
-              <div class="brand-name-ar">ماكسيو كور</div>
-              <div class="brand-name-en">MAXIOCORE Digital Services</div>
+              <div class="brand-name-main">MAXIOCORE</div>
+              <div class="brand-name-sub">Digital Services</div>
             </div>
           </div>
           <div class="receipt-title-box">
-            <h1 class="receipt-title">إيصال كاش باك</h1>
+            <h1 class="receipt-title">Cashback Receipt</h1>
           </div>
         </div>
       </div>
@@ -761,21 +761,21 @@ export const generateCashbackReceipt = async (data: CashbackReceiptData) => {
           </svg>
         </div>
         <div class="sig-main">
-          <div class="sig-title">تم التحقق والاعتماد رقمياً</div>
-          <div class="sig-signer">التوقيع الرقمي: <span>ماكسيو كور - MAXIOCORE</span></div>
+          <div class="sig-title">Digitally Verified</div>
+          <div class="sig-signer">Digital Signature: <span>MAXIOCORE</span></div>
           <div class="sig-codes">
             <div class="sig-code-item">
-              <span>كود التحقق:</span>
+              <span>Verification:</span>
               <span class="sig-code-value">${signatureCode}</span>
             </div>
             <div class="sig-code-item">
-              <span>كود التأكيد:</span>
+              <span>Confirmation:</span>
               <span class="sig-code-value">${verifyCode}</span>
             </div>
           </div>
         </div>
         <div class="sig-timestamp">
-          <div class="sig-timestamp-label">تاريخ الإصدار</div>
+          <div class="sig-timestamp-label">Issue Date</div>
           <div class="sig-timestamp-value">
             ${format(new Date(), 'dd/MM/yyyy')}<br/>
             ${format(new Date(), 'HH:mm:ss')}
@@ -785,11 +785,11 @@ export const generateCashbackReceipt = async (data: CashbackReceiptData) => {
       
       <!-- Footer -->
       <div class="footer-section">
-        <div class="footer-brand">ماكسيو كور</div>
-        <div class="footer-note">هذا إيصال إلكتروني معتمد ولا يحتاج إلى توقيع أو ختم</div>
-        <div class="footer-contact">للاستفسارات: support@maxiocore.com</div>
+        <div class="footer-brand">MAXIOCORE</div>
+        <div class="footer-note">This is an official electronic receipt</div>
+        <div class="footer-contact">Contact: support@maxiocore.com</div>
         <div class="footer-ref">
-          رقم المرجع: ${receiptNumber} | تاريخ الإصدار: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
+          Reference: ${receiptNumber} | Date: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
         </div>
         <div class="footer-bar"></div>
       </div>
@@ -842,12 +842,12 @@ export const generateOrderReceipt = async (data: OrderReceiptData) => {
           <div class="brand-section">
             <div class="brand-logo">M</div>
             <div class="brand-info">
-              <div class="brand-name-ar">ماكسيو كور</div>
-              <div class="brand-name-en">MAXIOCORE Digital Services</div>
+              <div class="brand-name-main">MAXIOCORE</div>
+              <div class="brand-name-sub">Digital Services</div>
             </div>
           </div>
           <div class="receipt-title-box">
-            <h1 class="receipt-title">إيصال طلب</h1>
+            <h1 class="receipt-title">Order Receipt</h1>
           </div>
         </div>
       </div>
@@ -944,21 +944,21 @@ export const generateOrderReceipt = async (data: OrderReceiptData) => {
           </svg>
         </div>
         <div class="sig-main">
-          <div class="sig-title blue">تم التحقق والاعتماد رقمياً</div>
-          <div class="sig-signer blue">التوقيع الرقمي: <span>ماكسيو كور - MAXIOCORE</span></div>
+          <div class="sig-title blue">Digitally Verified</div>
+          <div class="sig-signer blue">Digital Signature: <span>MAXIOCORE</span></div>
           <div class="sig-codes">
             <div class="sig-code-item">
-              <span>كود التحقق:</span>
+              <span>Verification:</span>
               <span class="sig-code-value">${signatureCode}</span>
             </div>
             <div class="sig-code-item">
-              <span>كود التأكيد:</span>
+              <span>Confirmation:</span>
               <span class="sig-code-value">${verifyCode}</span>
             </div>
           </div>
         </div>
         <div class="sig-timestamp">
-          <div class="sig-timestamp-label">تاريخ الإصدار</div>
+          <div class="sig-timestamp-label">Issue Date</div>
           <div class="sig-timestamp-value">
             ${format(new Date(), 'dd/MM/yyyy')}<br/>
             ${format(new Date(), 'HH:mm:ss')}
@@ -968,11 +968,11 @@ export const generateOrderReceipt = async (data: OrderReceiptData) => {
       
       <!-- Footer -->
       <div class="footer-section">
-        <div class="footer-brand blue">ماكسيو كور</div>
-        <div class="footer-note">هذا إيصال إلكتروني معتمد ولا يحتاج إلى توقيع أو ختم</div>
-        <div class="footer-contact">للاستفسارات: support@maxiocore.com</div>
+        <div class="footer-brand blue">MAXIOCORE</div>
+        <div class="footer-note">This is an official electronic receipt</div>
+        <div class="footer-contact">Contact: support@maxiocore.com</div>
         <div class="footer-ref">
-          رقم المرجع: ${receiptNumber} | تاريخ الإصدار: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
+          Reference: ${receiptNumber} | Date: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
         </div>
         <div class="footer-bar blue"></div>
       </div>
@@ -1008,8 +1008,8 @@ export const generateChallengeCertificate = async (data: ChallengeCertificateDat
         <!-- Certificate Header -->
         <div style="text-align: center; margin-bottom: 30px;">
           <div style="background: linear-gradient(135deg, #7c3aed, #5b21b6); color: #fff; padding: 20px 50px; border-radius: 12px; display: inline-block;">
-            <h1 style="font-size: 28px; font-weight: 800; margin: 0;">شهادة إنجاز تحدي</h1>
-            <p style="font-size: 12px; opacity: 0.9; margin: 5px 0 0;">CHALLENGE COMPLETION CERTIFICATE</p>
+            <h1 style="font-size: 28px; font-weight: 800; margin: 0;">Challenge Certificate</h1>
+            <p style="font-size: 12px; opacity: 0.9; margin: 5px 0 0;">MAXIOCORE Digital Services</p>
           </div>
         </div>
         
@@ -1058,21 +1058,21 @@ export const generateChallengeCertificate = async (data: ChallengeCertificateDat
             </svg>
           </div>
           <div class="sig-main">
-            <div class="sig-title purple">تم التحقق والاعتماد رقمياً</div>
-            <div class="sig-signer purple">التوقيع الرقمي: <span>ماكسيو كور - MAXIOCORE</span></div>
+            <div class="sig-title purple">Digitally Verified</div>
+            <div class="sig-signer purple">Digital Signature: <span>MAXIOCORE</span></div>
             <div class="sig-codes">
               <div class="sig-code-item">
-                <span>رقم الشهادة:</span>
+                <span>Certificate:</span>
                 <span class="sig-code-value">${certificateNumber}</span>
               </div>
               <div class="sig-code-item">
-                <span>كود التحقق:</span>
+                <span>Verification:</span>
                 <span class="sig-code-value">${signatureCode}</span>
               </div>
             </div>
           </div>
           <div class="sig-timestamp">
-            <div class="sig-timestamp-label">تاريخ الإصدار</div>
+            <div class="sig-timestamp-label">Issue Date</div>
             <div class="sig-timestamp-value">
               ${format(new Date(), 'dd/MM/yyyy')}<br/>
               ${format(new Date(), 'HH:mm:ss')}
@@ -1082,8 +1082,8 @@ export const generateChallengeCertificate = async (data: ChallengeCertificateDat
         
         <!-- Footer -->
         <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px dashed #e5e7eb;">
-          <div style="font-size: 18px; font-weight: 800; color: #7c3aed;">ماكسيو كور</div>
-          <div style="font-size: 11px; color: #9ca3af; margin-top: 5px;">MAXIOCORE Digital Services</div>
+          <div style="font-size: 18px; font-weight: 800; color: #7c3aed;">MAXIOCORE</div>
+          <div style="font-size: 11px; color: #9ca3af; margin-top: 5px;">Digital Services</div>
         </div>
         
       </div>
@@ -1119,8 +1119,8 @@ export const generateBadgeCertificate = async (data: BadgeCertificateData) => {
         <!-- Certificate Header -->
         <div style="text-align: center; margin-bottom: 30px;">
           <div style="background: linear-gradient(135deg, #d97706, #92400e); color: #fff; padding: 20px 50px; border-radius: 12px; display: inline-block;">
-            <h1 style="font-size: 28px; font-weight: 800; margin: 0;">شهادة حصول على شارة</h1>
-            <p style="font-size: 12px; opacity: 0.9; margin: 5px 0 0;">BADGE AWARD CERTIFICATE</p>
+            <h1 style="font-size: 28px; font-weight: 800; margin: 0;">Badge Certificate</h1>
+            <p style="font-size: 12px; opacity: 0.9; margin: 5px 0 0;">MAXIOCORE Digital Services</p>
           </div>
         </div>
         
@@ -1161,21 +1161,21 @@ export const generateBadgeCertificate = async (data: BadgeCertificateData) => {
             </svg>
           </div>
           <div class="sig-main">
-            <div class="sig-title" style="color: #b45309;">تم التحقق والاعتماد رقمياً</div>
-            <div class="sig-signer" style="color: #374151;">التوقيع الرقمي: <span style="color: #92400e;">ماكسيو كور - MAXIOCORE</span></div>
+            <div class="sig-title" style="color: #b45309;">Digitally Verified</div>
+            <div class="sig-signer" style="color: #374151;">Digital Signature: <span style="color: #92400e;">MAXIOCORE</span></div>
             <div class="sig-codes">
               <div class="sig-code-item">
-                <span>رقم الشهادة:</span>
+                <span>Certificate:</span>
                 <span class="sig-code-value">${certificateNumber}</span>
               </div>
               <div class="sig-code-item">
-                <span>كود التحقق:</span>
+                <span>Verification:</span>
                 <span class="sig-code-value">${signatureCode}</span>
               </div>
             </div>
           </div>
           <div class="sig-timestamp">
-            <div class="sig-timestamp-label">تاريخ الإصدار</div>
+            <div class="sig-timestamp-label">Issue Date</div>
             <div class="sig-timestamp-value">
               ${format(new Date(), 'dd/MM/yyyy')}<br/>
               ${format(new Date(), 'HH:mm:ss')}
@@ -1185,8 +1185,8 @@ export const generateBadgeCertificate = async (data: BadgeCertificateData) => {
         
         <!-- Footer -->
         <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px dashed #e5e7eb;">
-          <div style="font-size: 18px; font-weight: 800; color: #d97706;">ماكسيو كور</div>
-          <div style="font-size: 11px; color: #9ca3af; margin-top: 5px;">MAXIOCORE Digital Services</div>
+          <div style="font-size: 18px; font-weight: 800; color: #d97706;">MAXIOCORE</div>
+          <div style="font-size: 11px; color: #9ca3af; margin-top: 5px;">Digital Services</div>
         </div>
         
       </div>
@@ -1241,12 +1241,12 @@ export const generateRewardsStatement = async (data: RewardsStatementData) => {
           <div class="brand-section">
             <div class="brand-logo">M</div>
             <div class="brand-info">
-              <div class="brand-name-ar">ماكسيو كور</div>
-              <div class="brand-name-en">MAXIOCORE Digital Services</div>
+              <div class="brand-name-main">MAXIOCORE</div>
+              <div class="brand-name-sub">Digital Services</div>
             </div>
           </div>
           <div class="receipt-title-box">
-            <h1 class="receipt-title">كشف حساب النقاط</h1>
+            <h1 class="receipt-title">Points Statement</h1>
           </div>
         </div>
       </div>
@@ -1317,21 +1317,21 @@ export const generateRewardsStatement = async (data: RewardsStatementData) => {
           </svg>
         </div>
         <div class="sig-main">
-          <div class="sig-title purple">تم التحقق والاعتماد رقمياً</div>
-          <div class="sig-signer purple">التوقيع الرقمي: <span>ماكسيو كور - MAXIOCORE</span></div>
+          <div class="sig-title purple">Digitally Verified</div>
+          <div class="sig-signer purple">Digital Signature: <span>MAXIOCORE</span></div>
           <div class="sig-codes">
             <div class="sig-code-item">
-              <span>رقم الكشف:</span>
+              <span>Statement:</span>
               <span class="sig-code-value">${statementNumber}</span>
             </div>
             <div class="sig-code-item">
-              <span>كود التحقق:</span>
+              <span>Verification:</span>
               <span class="sig-code-value">${signatureCode}</span>
             </div>
           </div>
         </div>
         <div class="sig-timestamp">
-          <div class="sig-timestamp-label">تاريخ الإصدار</div>
+          <div class="sig-timestamp-label">Issue Date</div>
           <div class="sig-timestamp-value">
             ${format(new Date(), 'dd/MM/yyyy')}<br/>
             ${format(new Date(), 'HH:mm:ss')}
@@ -1341,11 +1341,11 @@ export const generateRewardsStatement = async (data: RewardsStatementData) => {
       
       <!-- Footer -->
       <div class="footer-section">
-        <div class="footer-brand purple">ماكسيو كور</div>
-        <div class="footer-note">هذا كشف حساب إلكتروني معتمد ولا يحتاج إلى توقيع أو ختم</div>
-        <div class="footer-contact">للاستفسارات: support@maxiocore.com</div>
+        <div class="footer-brand purple">MAXIOCORE</div>
+        <div class="footer-note">This is an official electronic statement</div>
+        <div class="footer-contact">Contact: support@maxiocore.com</div>
         <div class="footer-ref">
-          رقم المرجع: ${statementNumber} | تاريخ الإصدار: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
+          Reference: ${statementNumber} | Date: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
         </div>
         <div class="footer-bar purple"></div>
       </div>
