@@ -94,6 +94,8 @@ import AdminSyncSettings from "./pages/admin/AdminSyncSettings";
 import AdminContactMessages from "./pages/admin/AdminContactMessages";
 import AdminDigitalMarketing from "./pages/admin/AdminDigitalMarketing";
 import AdminCareers from "./pages/admin/AdminCareers";
+import AdminFinancing from "./pages/admin/AdminFinancing";
+import ClientFinancing from "./pages/dashboard/ClientFinancing";
 
 const queryClient = new QueryClient();
 
@@ -247,12 +249,22 @@ const App = () => (
                       <ClientFinancialHub />
                     </ProtectedRoute>
                   } />
+                  <Route path="/dashboard/financing" element={
+                    <ProtectedRoute>
+                      <ClientFinancing />
+                    </ProtectedRoute>
+                  } />
                   
                   {/* Admin Dashboard Routes */}
                   <Route path="/admin/auth" element={<AdminAuth />} />
                   <Route path="/admin/financial" element={
                     <ProtectedRoute requireAdmin>
                       <AdminFinancialHub />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/financing" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminFinancing />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/wallets" element={

@@ -31,6 +31,7 @@ import {
   Building2,
   MessageSquareText,
   Landmark,
+  Banknote,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -60,6 +61,7 @@ const adminNavItems: NavItem[] = [
   { label: "الإحالات", href: "/admin/referrals", icon: Gift },
   { label: "مركز المدفوعات", href: "/admin/payments-hub", icon: CreditCard },
   { label: "المركز المالي", href: "/admin/financial", icon: Landmark },
+  { label: "التمويل", href: "/admin/financing", icon: Banknote },
   { label: "إعادة التعبئة", href: "/admin/refills", icon: RefreshCw },
   { label: "الكوبونات", href: "/admin/coupons", icon: Ticket },
   { label: "الشارات", href: "/admin/badges", icon: Award },
