@@ -342,7 +342,7 @@ const ClientServicesHome = () => {
       subtitle: 'Social Media',
       description: 'زيادة المتابعين والتفاعل على جميع المنصات',
       icon: Globe,
-      path: '/dashboard/services',
+      path: '/dashboard/social-services',
       gradient: 'from-blue-500 via-cyan-500 to-teal-500',
       bgGradient: 'from-blue-500/20 via-cyan-500/10 to-transparent',
       shadowColor: 'shadow-blue-500/25',
