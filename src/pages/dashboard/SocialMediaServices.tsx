@@ -741,7 +741,7 @@ const PlatformSelector = ({
                     {/* Subcategories pills */}
                     {subcategories.map((sub, idx) => {
                       const SubIcon = getSubcategoryIcon(sub.icon);
-                      const isSubSelected = selected === sub.slug;
+                      const isSubSelected = selected === sub.id;
                       return (
                         <motion.button
                           key={sub.id}
@@ -750,7 +750,7 @@ const PlatformSelector = ({
                           transition={{ delay: (idx + 1) * 0.05 }}
                           whileHover={{ scale: 1.03, y: -2 }}
                           whileTap={{ scale: 0.97 }}
-                          onClick={() => onSelect(sub.slug)}
+                          onClick={() => onSelect(sub.id)}
                           className={cn(
                             "px-4 py-2.5 rounded-xl border transition-all duration-300 flex items-center gap-2.5 text-sm",
                             isSubSelected
@@ -848,9 +848,19 @@ const SocialMediaServices = () => {
     });
   }, [services]);
 
-  // Get services by category
+  // Get services by category - using category_id for proper filtering
   const getServicesByCategory = useCallback((categoryId: string) => {
     if (categoryId === 'all') return socialMediaServices;
+    
+    // First check if it's a UUID (subcategory ID from database)
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(categoryId);
+    
+    if (isUUID) {
+      // Filter by category_id directly
+      return socialMediaServices.filter(s => s.category_id === categoryId);
+    }
+    
+    // Fallback to keywords for main platforms
     const network = socialNetworks.find(n => n.id === categoryId);
     if (!network || network.keywords.length === 0) return socialMediaServices;
     return socialMediaServices.filter(s => {
