@@ -75,8 +75,8 @@ const benefits = [
   { icon: Clock, text: "موافقة سريعة خلال 24 ساعة" },
   { icon: Shield, text: "أمان وسرية تامة" },
   { icon: FileSignature, text: "عقود واضحة وملزمة" },
-  { icon: CreditCard, text: "أقساط شهرية مريحة" },
-  { icon: CheckCircle2, text: "استلام الخدمة فوراً" },
+  { icon: CreditCard, text: "أقساط شهرية يوم 30 من كل شهر" },
+  { icon: CheckCircle2, text: "استلام الخدمة فوراً - تقسيط حتى 12 شهر" },
 ];
 
 const eligibilityRequirements = [
