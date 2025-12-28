@@ -44,7 +44,7 @@ import { ar } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { toast as sonnerToast } from 'sonner';
-import jsPDF from 'jspdf';
+import { generateDepositReceipt } from '@/lib/pdfTemplates';
 
 interface Deposit {
   id: string;
@@ -131,264 +131,22 @@ const ClientDepositsContent = () => {
 
   // Generate PDF Invoice - Arabic Bank Receipt Style
   const generatePDF = useCallback((deposit: Deposit) => {
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
+    generateDepositReceipt({
+      id: deposit.id,
+      amount: deposit.amount,
+      bonus_amount: deposit.bonus_amount || undefined,
+      fee_amount: deposit.fee_amount || undefined,
+      total_credited: deposit.total_credited,
+      status: deposit.status,
+      payment_method: deposit.payment_method?.name_ar || undefined,
+      transaction_id: deposit.transaction_id || undefined,
+      created_at: deposit.created_at,
+      completed_at: deposit.completed_at || undefined,
+      user_name: profile?.full_name || undefined,
+      user_email: profile?.email || user?.email || undefined,
     });
     
-    const receiptNumber = `RCP-${deposit.id.slice(0, 8).toUpperCase()}`;
-    const pageWidth = 210;
-    const rightMargin = 190;
-    const leftMargin = 20;
-    
-    // Helper function for RTL text positioning
-    const rtlText = (text: string, x: number, y: number, options?: any) => {
-      doc.text(text, x, y, { align: 'right', ...options });
-    };
-    
-    // Format numbers with Arabic style
-    const formatAmount = (amount: number) => {
-      return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    };
-    
-    // Header - Green gradient style like Saudi banks
-    doc.setFillColor(0, 128, 85); // Saudi bank green
-    doc.rect(0, 0, pageWidth, 55, 'F');
-    
-    // Secondary header accent
-    doc.setFillColor(0, 100, 70);
-    doc.rect(0, 45, pageWidth, 10, 'F');
-    
-    // Company Logo area (circle placeholder)
-    doc.setFillColor(255, 255, 255);
-    doc.circle(105, 22, 12, 'F');
-    doc.setFillColor(0, 128, 85);
-    doc.circle(105, 22, 10, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
-    doc.text('M', 105, 26, { align: 'center' });
-    
-    // Title
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(16);
-    doc.text('MaxioCore', 105, 42, { align: 'center' });
-    
-    doc.setFontSize(11);
-    doc.text('DEPOSIT RECEIPT', 105, 52, { align: 'center' });
-    
-    // Receipt info section
-    doc.setTextColor(60, 60, 60);
-    doc.setFontSize(9);
-    
-    // Receipt number box - Right side
-    doc.setFillColor(248, 250, 252);
-    doc.roundedRect(rightMargin - 60, 62, 60, 22, 2, 2, 'F');
-    doc.setDrawColor(0, 128, 85);
-    doc.setLineWidth(0.5);
-    doc.roundedRect(rightMargin - 60, 62, 60, 22, 2, 2, 'S');
-    
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    rtlText('Receipt Number', rightMargin - 5, 69);
-    doc.setFontSize(11);
-    doc.setTextColor(0, 128, 85);
-    rtlText(receiptNumber, rightMargin - 5, 79);
-    
-    // Date box - Left side
-    doc.setFillColor(248, 250, 252);
-    doc.roundedRect(leftMargin, 62, 60, 22, 2, 2, 'F');
-    doc.setDrawColor(0, 128, 85);
-    doc.roundedRect(leftMargin, 62, 60, 22, 2, 2, 'S');
-    
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    doc.text('Date / Time', leftMargin + 5, 69);
-    doc.setFontSize(10);
-    doc.setTextColor(50, 50, 50);
-    doc.text(format(new Date(deposit.created_at), 'dd/MM/yyyy'), leftMargin + 5, 78);
-    doc.setFontSize(9);
-    doc.text(format(new Date(deposit.created_at), 'HH:mm:ss'), leftMargin + 5, 83);
-    
-    // Status Badge - Center
-    const statusLabels: Record<string, { ar: string; en: string }> = {
-      pending: { ar: 'Pending', en: 'Pending' },
-      completed: { ar: 'Completed', en: 'Completed' },
-      rejected: { ar: 'Rejected', en: 'Rejected' },
-      cancelled: { ar: 'Cancelled', en: 'Cancelled' },
-    };
-    const statusInfo = statusLabels[deposit.status] || { ar: deposit.status, en: deposit.status };
-    let statusColor: [number, number, number] = [100, 100, 100];
-    if (deposit.status === 'completed') statusColor = [0, 128, 85];
-    else if (deposit.status === 'pending') statusColor = [234, 179, 8];
-    else if (deposit.status === 'rejected' || deposit.status === 'cancelled') statusColor = [220, 38, 38];
-    
-    doc.setFillColor(...statusColor);
-    doc.roundedRect(85, 62, 40, 12, 3, 3, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(9);
-    doc.text(statusInfo.en, 105, 70, { align: 'center' });
-    
-    // Divider line
-    doc.setDrawColor(230, 230, 230);
-    doc.setLineWidth(0.3);
-    doc.line(leftMargin, 92, rightMargin, 92);
-    
-    // Transaction Details Section
-    doc.setFillColor(0, 128, 85);
-    doc.roundedRect(leftMargin, 98, rightMargin - leftMargin, 8, 1, 1, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(10);
-    doc.text('TRANSACTION DETAILS', 105, 104, { align: 'center' });
-    
-    // Details table
-    let yPos = 115;
-    const rowHeight = 12;
-    
-    // Transaction ID
-    doc.setFillColor(252, 252, 252);
-    doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
-    doc.setTextColor(80, 80, 80);
-    doc.setFontSize(9);
-    doc.text('Transaction ID', leftMargin + 5, yPos + 2);
-    doc.setTextColor(50, 50, 50);
-    rtlText(deposit.transaction_id || 'N/A', rightMargin - 5, yPos + 2);
-    yPos += rowHeight;
-    
-    // Payment Method
-    doc.setFillColor(248, 250, 252);
-    doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
-    doc.setTextColor(80, 80, 80);
-    doc.text('Payment Method', leftMargin + 5, yPos + 2);
-    doc.setTextColor(50, 50, 50);
-    rtlText(deposit.payment_method?.name_ar || 'Online Payment', rightMargin - 5, yPos + 2);
-    yPos += rowHeight;
-    
-    // Customer Info
-    doc.setFillColor(252, 252, 252);
-    doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
-    doc.setTextColor(80, 80, 80);
-    doc.text('Customer Name', leftMargin + 5, yPos + 2);
-    doc.setTextColor(50, 50, 50);
-    rtlText(profile?.full_name || 'N/A', rightMargin - 5, yPos + 2);
-    yPos += rowHeight;
-    
-    // Email
-    doc.setFillColor(248, 250, 252);
-    doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
-    doc.setTextColor(80, 80, 80);
-    doc.text('Email', leftMargin + 5, yPos + 2);
-    doc.setTextColor(50, 50, 50);
-    rtlText(profile?.email || user?.email || 'N/A', rightMargin - 5, yPos + 2);
-    yPos += rowHeight + 5;
-    
-    // Financial Details Section
-    doc.setFillColor(0, 128, 85);
-    doc.roundedRect(leftMargin, yPos, rightMargin - leftMargin, 8, 1, 1, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(10);
-    doc.text('FINANCIAL DETAILS', 105, yPos + 6, { align: 'center' });
-    yPos += 15;
-    
-    // Amount breakdown
-    doc.setFillColor(252, 252, 252);
-    doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
-    doc.setTextColor(80, 80, 80);
-    doc.setFontSize(9);
-    doc.text('Deposit Amount', leftMargin + 5, yPos + 2);
-    doc.setTextColor(50, 50, 50);
-    rtlText(formatAmount(deposit.amount) + ' SAR', rightMargin - 5, yPos + 2);
-    yPos += rowHeight;
-    
-    if (deposit.fee_amount && deposit.fee_amount > 0) {
-      doc.setFillColor(254, 242, 242);
-      doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
-      doc.setTextColor(220, 38, 38);
-      doc.text('Processing Fee', leftMargin + 5, yPos + 2);
-      rtlText('-' + formatAmount(deposit.fee_amount) + ' SAR', rightMargin - 5, yPos + 2);
-      yPos += rowHeight;
-    }
-    
-    if (deposit.bonus_amount && deposit.bonus_amount > 0) {
-      doc.setFillColor(240, 253, 244);
-      doc.rect(leftMargin, yPos - 5, rightMargin - leftMargin, rowHeight, 'F');
-      doc.setTextColor(0, 128, 85);
-      doc.text('Bonus Amount', leftMargin + 5, yPos + 2);
-      rtlText('+' + formatAmount(deposit.bonus_amount) + ' SAR', rightMargin - 5, yPos + 2);
-      yPos += rowHeight;
-    }
-    
-    // Total Section
-    yPos += 3;
-    doc.setFillColor(0, 128, 85);
-    doc.roundedRect(leftMargin, yPos - 2, rightMargin - leftMargin, 18, 2, 2, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(11);
-    doc.text('TOTAL CREDITED', leftMargin + 10, yPos + 10);
-    doc.setFontSize(14);
-    rtlText(formatAmount(deposit.total_credited) + ' SAR', rightMargin - 10, yPos + 10);
-    
-    yPos += 28;
-    
-    // Notes section if exists
-    if (deposit.notes) {
-      doc.setFillColor(255, 251, 235);
-      doc.roundedRect(leftMargin, yPos - 2, rightMargin - leftMargin, 18, 2, 2, 'F');
-      doc.setDrawColor(234, 179, 8);
-      doc.setLineWidth(0.3);
-      doc.roundedRect(leftMargin, yPos - 2, rightMargin - leftMargin, 18, 2, 2, 'S');
-      doc.setTextColor(161, 98, 7);
-      doc.setFontSize(8);
-      doc.text('Notes:', leftMargin + 5, yPos + 5);
-      doc.setFontSize(9);
-      doc.text(deposit.notes.substring(0, 70), leftMargin + 5, yPos + 12);
-      yPos += 25;
-    }
-    
-    // Completion date if completed
-    if (deposit.completed_at) {
-      doc.setTextColor(0, 128, 85);
-      doc.setFontSize(9);
-      doc.text('Completed: ' + format(new Date(deposit.completed_at), 'dd/MM/yyyy HH:mm'), 105, yPos, { align: 'center' });
-      yPos += 10;
-    }
-    
-    // Footer Section
-    doc.setDrawColor(230, 230, 230);
-    doc.setLineWidth(0.3);
-    doc.line(leftMargin, 255, rightMargin, 255);
-    
-    // QR Code placeholder
-    doc.setFillColor(248, 250, 252);
-    doc.rect(leftMargin, 260, 25, 25, 'F');
-    doc.setDrawColor(200, 200, 200);
-    doc.rect(leftMargin, 260, 25, 25, 'S');
-    doc.setTextColor(150, 150, 150);
-    doc.setFontSize(6);
-    doc.text('QR', leftMargin + 12.5, 275, { align: 'center' });
-    
-    // Footer text
-    doc.setTextColor(120, 120, 120);
-    doc.setFontSize(8);
-    doc.text('This is an electronically generated receipt', 105, 263, { align: 'center' });
-    doc.text('No signature required', 105, 268, { align: 'center' });
-    
-    doc.setFontSize(7);
-    doc.setTextColor(150, 150, 150);
-    doc.text('MaxioCore - Digital Services Platform', 105, 278, { align: 'center' });
-    doc.text('support@maxiocore.com | www.maxiocore.com', 105, 283, { align: 'center' });
-    
-    // Generated timestamp
-    doc.setFontSize(6);
-    doc.text('Generated: ' + format(new Date(), 'dd/MM/yyyy HH:mm:ss'), rightMargin, 288, { align: 'right' });
-    
-    // Bottom bar
-    doc.setFillColor(0, 128, 85);
-    doc.rect(0, 292, pageWidth, 5, 'F');
-    
-    doc.save(`Receipt-${receiptNumber}.pdf`);
-    
-    sonnerToast.success('Receipt downloaded successfully');
+    sonnerToast.success('تم تحميل الإيصال بنجاح');
   }, [profile, user]);
 
   // Verify payment function
