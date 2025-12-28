@@ -553,9 +553,9 @@ const ClientOrderDetails = () => {
     const invoiceDate = format(new Date(order.created_at), 'dd/MM/yyyy');
     const invoiceTime = format(new Date(order.created_at), 'HH:mm');
 
-    // Create clean professional invoice HTML
+    // Create clean professional invoice HTML - A4 size optimized
     const container = document.createElement('div');
-    container.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 595px; background: white;';
+    container.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 794px; background: white;';
     
     // Load Cairo font for Arabic support
     const fontLink = document.createElement('link');
@@ -929,22 +929,27 @@ ${order.link ? `الرابط: ${order.link}` : ''}
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={generatePDF} className="gap-2 rounded-xl">
-              <Download className="w-4 h-4" />
-              EN
-            </Button>
-            <Button variant="outline" size="sm" onClick={generateArabicPDF} className="gap-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40">
-              <FileText className="w-4 h-4" />
-              عربي
-            </Button>
-            <Button variant="outline" size="sm" onClick={shareViaWhatsApp} className="gap-2 rounded-xl bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/40">
-              <MessageCircle className="w-4 h-4" />
-              واتساب
-            </Button>
-            <Button variant="outline" size="sm" onClick={shareViaEmail} className="gap-2 rounded-xl bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40">
-              <Mail className="w-4 h-4" />
-              إيميل
-            </Button>
+            {/* أزرار الفاتورة تظهر فقط عند اكتمال الطلب */}
+            {order.status === 'completed' && (
+              <>
+                <Button variant="outline" size="sm" onClick={generatePDF} className="gap-2 rounded-xl">
+                  <Download className="w-4 h-4" />
+                  EN
+                </Button>
+                <Button variant="outline" size="sm" onClick={generateArabicPDF} className="gap-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40">
+                  <FileText className="w-4 h-4" />
+                  عربي
+                </Button>
+                <Button variant="outline" size="sm" onClick={shareViaWhatsApp} className="gap-2 rounded-xl bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/40">
+                  <MessageCircle className="w-4 h-4" />
+                  واتساب
+                </Button>
+                <Button variant="outline" size="sm" onClick={shareViaEmail} className="gap-2 rounded-xl bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40">
+                  <Mail className="w-4 h-4" />
+                  إيميل
+                </Button>
+              </>
+            )}
             <Button variant="outline" size="sm" onClick={fetchOrder} className="gap-2 rounded-xl">
               <RefreshCw className="w-4 h-4" />
               تحديث
