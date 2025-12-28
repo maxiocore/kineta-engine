@@ -291,32 +291,74 @@ export default function ClientFinancing() {
           </div>
         )}
 
-        {/* Show card even for pending/approved applications */}
+        {/* Show application status card for pending/approved/rejected applications */}
         {activeApplications.length === 0 && applications.length > 0 && (
-          <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                  <Landmark className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold">طلب التمويل الخاص بك</h3>
-                  <p className="text-muted-foreground">
-                    {applications[0].status === "pending" && "طلبك قيد المراجعة، سنقوم بإعلامك فور الموافقة"}
-                    {applications[0].status === "approved" && "تمت الموافقة على طلبك! سيتم تفعيل التمويل قريباً"}
-                    {applications[0].status === "rejected" && "عذراً، تم رفض الطلب. يمكنك تقديم طلب جديد"}
-                  </p>
-                  <Badge className={`mt-2 ${
-                    applications[0].status === "pending" ? "bg-yellow-500/20 text-yellow-400" :
-                    applications[0].status === "approved" ? "bg-green-500/20 text-green-400" :
-                    "bg-red-500/20 text-red-400"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card className="overflow-hidden">
+              <div className={`h-2 ${
+                applications[0].status === "pending" || applications[0].status === "under_review" 
+                  ? "bg-gradient-to-r from-yellow-500 to-orange-500" 
+                  : applications[0].status === "approved" 
+                    ? "bg-gradient-to-r from-green-500 to-emerald-500"
+                    : "bg-gradient-to-r from-red-500 to-rose-500"
+              }`} />
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+                  <div className={`w-20 h-20 rounded-2xl flex items-center justify-center ${
+                    applications[0].status === "pending" || applications[0].status === "under_review"
+                      ? "bg-gradient-to-br from-yellow-500/20 to-orange-500/20"
+                      : applications[0].status === "approved"
+                        ? "bg-gradient-to-br from-green-500/20 to-emerald-500/20"
+                        : "bg-gradient-to-br from-red-500/20 to-rose-500/20"
                   }`}>
-                    {statusConfig[applications[0].status]?.label}
-                  </Badge>
+                    {applications[0].status === "pending" || applications[0].status === "under_review" ? (
+                      <Clock className="h-10 w-10 text-yellow-400" />
+                    ) : applications[0].status === "approved" ? (
+                      <CheckCircle2 className="h-10 w-10 text-green-400" />
+                    ) : (
+                      <XCircle className="h-10 w-10 text-red-400" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-xl font-bold">طلب التمويل #{applications[0].application_number}</h3>
+                      <Badge className={`${statusConfig[applications[0].status]?.color}`}>
+                        {statusConfig[applications[0].status]?.icon}
+                        <span className="mr-1">{statusConfig[applications[0].status]?.label}</span>
+                      </Badge>
+                    </div>
+                    <p className="text-muted-foreground mb-3">
+                      {(applications[0].status === "pending" || applications[0].status === "under_review") && "طلبك قيد المراجعة من فريقنا، سنقوم بإعلامك فور اتخاذ القرار عبر البريد الإلكتروني"}
+                      {applications[0].status === "approved" && "تمت الموافقة على طلبك! سيتم إضافة الرصيد لحسابك وتفعيل التمويل قريباً"}
+                      {applications[0].status === "rejected" && `عذراً، تم رفض الطلب. ${applications[0].rejection_reason || "يمكنك تقديم طلب جديد"}`}
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 p-4 bg-muted/30 rounded-xl">
+                      <div>
+                        <p className="text-xs text-muted-foreground">المبلغ المطلوب</p>
+                        <p className="text-lg font-bold text-primary">{applications[0].requested_amount.toLocaleString()} ر.س</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">خطة التمويل</p>
+                        <p className="font-semibold">{applications[0].financing_plans?.name_ar || "-"}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">عدد الأقساط</p>
+                        <p className="font-semibold">{applications[0].financing_plans?.installments_count || "-"} قسط</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">تاريخ التقديم</p>
+                        <p className="font-semibold">{format(new Date(applications[0].submitted_at), "dd/MM/yyyy", { locale: ar })}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         )}
 
         {/* Select Active Application if multiple */}
