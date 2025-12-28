@@ -1,6 +1,7 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { CreditCard, Calendar, Wallet, Landmark, Shield, CheckCircle2 } from "lucide-react";
-import { format, addMonths } from "date-fns";
+import { CreditCard, Calendar, Wallet, Landmark, Shield, CheckCircle2, Clock } from "lucide-react";
+import { format, addMonths, differenceInDays, differenceInHours, differenceInMinutes, differenceInSeconds } from "date-fns";
 import { ar } from "date-fns/locale";
 
 interface EnhancedFinancingCardProps {
@@ -14,6 +15,13 @@ interface EnhancedFinancingCardProps {
   contractNumber?: string;
   installmentsCount?: number;
   paidInstallments?: number;
+}
+
+interface CountdownTime {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
 }
 
 export default function EnhancedFinancingCard({
@@ -40,6 +48,35 @@ export default function EnhancedFinancingCard({
 
   const paymentDate = getNextPaymentDate();
   const progressPercentage = totalBalance > 0 ? (paidAmount / totalBalance) * 100 : 0;
+
+  // Countdown state
+  const [countdown, setCountdown] = useState<CountdownTime>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const calculateCountdown = () => {
+      const now = new Date();
+      const target = paymentDate;
+      
+      if (target <= now) {
+        return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+      }
+
+      const days = differenceInDays(target, now);
+      const hours = differenceInHours(target, now) % 24;
+      const minutes = differenceInMinutes(target, now) % 60;
+      const seconds = differenceInSeconds(target, now) % 60;
+
+      return { days, hours, minutes, seconds };
+    };
+
+    setCountdown(calculateCountdown());
+
+    const interval = setInterval(() => {
+      setCountdown(calculateCountdown());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [paymentDate]);
 
   return (
     <motion.div
@@ -147,7 +184,7 @@ export default function EnhancedFinancingCard({
           {nextInstallmentAmount && (
             <div className="mx-6 mb-4">
               <div className="bg-gradient-to-r from-amber-500/10 to-yellow-500/10 rounded-2xl p-4 border border-amber-500/20">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-lg">
                       <Calendar className="h-6 w-6 text-slate-900" />
@@ -161,12 +198,81 @@ export default function EnhancedFinancingCard({
                   </div>
                   <div className="text-left">
                     <p className="text-slate-400 text-xs">تاريخ الاستحقاق</p>
-                    <p className="text-amber-400 font-bold text-sm">
-                      يوم 30 من كل شهر
-                    </p>
-                    <p className="text-slate-300 text-xs">
+                    <p className="text-slate-300 text-sm">
                       {format(paymentDate, "dd MMMM yyyy", { locale: ar })}
                     </p>
+                  </div>
+                </div>
+
+                {/* Countdown Timer */}
+                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
+                  <div className="flex items-center justify-center gap-1 mb-2">
+                    <Clock className="h-4 w-4 text-amber-400" />
+                    <p className="text-slate-400 text-xs">الوقت المتبقي للسداد</p>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 sm:gap-4" dir="ltr">
+                    {/* Seconds */}
+                    <motion.div 
+                      key={countdown.seconds}
+                      initial={{ scale: 1.1, opacity: 0.7 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="flex flex-col items-center"
+                    >
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center border border-slate-600 shadow-inner">
+                        <span className="text-xl sm:text-2xl font-mono font-bold text-white">
+                          {countdown.seconds.toString().padStart(2, '0')}
+                        </span>
+                      </div>
+                      <span className="text-slate-500 text-xs mt-1">ثانية</span>
+                    </motion.div>
+
+                    <span className="text-amber-400 text-xl font-bold">:</span>
+
+                    {/* Minutes */}
+                    <motion.div 
+                      key={countdown.minutes}
+                      initial={{ scale: 1.05 }}
+                      animate={{ scale: 1 }}
+                      className="flex flex-col items-center"
+                    >
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center border border-slate-600 shadow-inner">
+                        <span className="text-xl sm:text-2xl font-mono font-bold text-white">
+                          {countdown.minutes.toString().padStart(2, '0')}
+                        </span>
+                      </div>
+                      <span className="text-slate-500 text-xs mt-1">دقيقة</span>
+                    </motion.div>
+
+                    <span className="text-amber-400 text-xl font-bold">:</span>
+
+                    {/* Hours */}
+                    <motion.div 
+                      key={countdown.hours}
+                      initial={{ scale: 1.05 }}
+                      animate={{ scale: 1 }}
+                      className="flex flex-col items-center"
+                    >
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center border border-slate-600 shadow-inner">
+                        <span className="text-xl sm:text-2xl font-mono font-bold text-white">
+                          {countdown.hours.toString().padStart(2, '0')}
+                        </span>
+                      </div>
+                      <span className="text-slate-500 text-xs mt-1">ساعة</span>
+                    </motion.div>
+
+                    <span className="text-amber-400 text-xl font-bold">:</span>
+
+                    {/* Days */}
+                    <motion.div 
+                      className="flex flex-col items-center"
+                    >
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-gradient-to-br from-amber-500/20 to-yellow-500/20 flex items-center justify-center border border-amber-500/30 shadow-inner">
+                        <span className="text-xl sm:text-2xl font-mono font-bold text-amber-400">
+                          {countdown.days.toString().padStart(2, '0')}
+                        </span>
+                      </div>
+                      <span className="text-amber-400 text-xs mt-1 font-medium">يوم</span>
+                    </motion.div>
                   </div>
                 </div>
               </div>
