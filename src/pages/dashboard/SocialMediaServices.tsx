@@ -212,54 +212,54 @@ const ServiceCard = ({
 
   // Grid View
   return (
-    <Card className="h-full border border-border/50 bg-card hover:border-primary/30 transition-all rounded-xl overflow-hidden group">
-      <CardContent className="p-3 flex flex-col h-full">
+    <Card className="h-full border border-border/50 bg-card hover:border-primary/30 transition-all rounded-lg overflow-hidden group min-w-0">
+      <CardContent className="p-2 sm:p-3 flex flex-col h-full min-w-0">
         {/* Header */}
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <div className={`w-10 h-10 rounded-lg ${platform.bgColor} flex items-center justify-center shrink-0`}>
-            {CustomIcon ? <CustomIcon /> : Icon && <Icon className={cn("w-5 h-5", platform.textColor || "text-white")} />}
+        <div className="flex items-start justify-between gap-1.5 mb-1.5">
+          <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg ${platform.bgColor} flex items-center justify-center shrink-0`}>
+            {CustomIcon ? <CustomIcon /> : Icon && <Icon className={cn("w-4 h-4", platform.textColor || "text-white")} />}
           </div>
-          <div className="text-left">
-            <p className="text-lg font-bold text-primary">{pricePerK.toFixed(2)}</p>
-            <p className="text-[10px] text-muted-foreground">ر.س/1000</p>
+          <div className="text-left shrink-0">
+            <p className="text-sm sm:text-base font-bold text-primary leading-none">{pricePerK.toFixed(2)}</p>
+            <p className="text-[9px] text-muted-foreground">ر.س</p>
           </div>
         </div>
 
         {/* Title */}
-        <h3 className="font-medium text-xs leading-relaxed mb-2 line-clamp-2 group-hover:text-primary transition-colors flex-1">
+        <h3 className="font-medium text-[11px] sm:text-xs leading-snug mb-1.5 line-clamp-2 group-hover:text-primary transition-colors flex-1 min-w-0">
           {service.name}
         </h3>
 
         {/* Meta */}
-        <div className="flex flex-wrap items-center gap-1 text-[10px] text-muted-foreground mb-2">
+        <div className="flex flex-wrap items-center gap-0.5 text-[9px] text-muted-foreground mb-1.5 min-w-0">
           {service.external_service_id && (
-            <button onClick={copyServiceId} className="px-1.5 py-0.5 rounded bg-muted/50 hover:bg-muted">
+            <span className="px-1 py-0.5 rounded bg-muted/50 truncate max-w-[60px]">
               #{service.external_service_id}
-            </button>
+            </span>
           )}
-          <span className="px-1.5 py-0.5 rounded bg-muted/50">
+          <span className="px-1 py-0.5 rounded bg-muted/50 whitespace-nowrap">
             {features.min.toLocaleString()}-{features.max.toLocaleString()}
           </span>
           {(service.refill_enabled || features.refill) && (
-            <Badge className="bg-green-500/15 text-green-600 border-0 text-[9px] px-1 py-0">ضمان</Badge>
+            <Badge className="bg-green-500/15 text-green-600 border-0 text-[8px] px-1 py-0">ضمان</Badge>
           )}
         </div>
 
         {/* Actions */}
-        <div className="flex gap-1.5 mt-auto">
+        <div className="flex gap-1 mt-auto">
           <Button
             variant="ghost"
             size="icon"
             onClick={(e) => { e.stopPropagation(); onToggleFavorite(service.id); }}
-            className={cn("h-8 w-8 rounded-lg shrink-0", isFavorite ? "text-rose-500" : "hover:text-rose-500")}
+            className={cn("h-7 w-7 rounded-md shrink-0", isFavorite ? "text-rose-500" : "hover:text-rose-500")}
           >
-            <Heart className={cn("w-3.5 h-3.5", isFavorite && "fill-current")} />
+            <Heart className={cn("w-3 h-3", isFavorite && "fill-current")} />
           </Button>
           <Button
             onClick={() => onOrder(service)}
-            className={`flex-1 bg-gradient-to-r ${platform.gradient} text-white rounded-lg h-8 text-xs`}
+            className={`flex-1 bg-gradient-to-r ${platform.gradient} text-white rounded-md h-7 text-[10px] sm:text-xs px-2`}
           >
-            <ShoppingCart className="w-3.5 h-3.5 ml-1" />
+            <ShoppingCart className="w-3 h-3 ml-0.5" />
             اطلب
           </Button>
         </div>
@@ -492,8 +492,8 @@ const SocialMediaServices = () => {
 
   return (
     <ClientDashboardLayout>
-      <PullToRefresh onRefresh={handleRefresh} className="h-full overflow-x-hidden w-full">
-        <div className="w-full max-w-7xl mx-auto space-y-4 pb-8 px-3 sm:px-4 md:px-6" dir="rtl">
+      <PullToRefresh onRefresh={handleRefresh} className="h-full w-full overflow-x-hidden overflow-y-auto">
+        <div className="w-full min-w-0 max-w-full space-y-4 pb-8 px-2 sm:px-4" dir="rtl">
           
           {/* Hero Header - Compact */}
           <motion.div
@@ -552,8 +552,8 @@ const SocialMediaServices = () => {
           </motion.div>
 
           {/* Platform Tabs - Compact */}
-          <div className="overflow-x-auto scrollbar-none -mx-3 px-3 sm:-mx-4 sm:px-4">
-            <div className="flex gap-1.5 min-w-max py-1">
+          <div className="w-full overflow-x-auto scrollbar-none">
+            <div className="flex gap-1.5 min-w-max py-1 px-1">
               {socialNetworks.map((network) => {
                 const Icon = network.icon;
                 const CustomIcon = (network as any).customIcon;
@@ -645,41 +645,43 @@ const SocialMediaServices = () => {
           </div>
 
           {/* Services Grid/List */}
-          {filteredServices.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                <Search className="w-7 h-7 text-primary" />
+          <div className="w-full min-w-0">
+            {filteredServices.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <Search className="w-7 h-7 text-primary" />
+                </div>
+                <h3 className="text-base font-bold mb-1">لا توجد خدمات</h3>
+                <p className="text-muted-foreground text-xs mb-3">
+                  {searchQuery ? "لم يتم العثور على خدمات" : "سيتم إضافة الخدمات قريباً"}
+                </p>
+                <Button variant="outline" size="sm" onClick={() => { setSearchQuery(""); setSelectedNetwork("all"); }} className="h-8 text-xs">
+                  إعادة ضبط
+                </Button>
               </div>
-              <h3 className="text-base font-bold mb-1">لا توجد خدمات</h3>
-              <p className="text-muted-foreground text-xs mb-3">
-                {searchQuery ? "لم يتم العثور على خدمات" : "سيتم إضافة الخدمات قريباً"}
-              </p>
-              <Button variant="outline" size="sm" onClick={() => { setSearchQuery(""); setSelectedNetwork("all"); }} className="h-8 text-xs">
-                إعادة ضبط
-              </Button>
-            </div>
-          ) : (
-            <div className={cn(
-              "grid gap-3",
-              viewMode === "grid" 
-                ? "grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4" 
-                : "grid-cols-1"
-            )}>
-              {filteredServices.map((service, index) => (
-                <ServiceCard
-                  key={service.id}
-                  service={service}
-                  index={index}
-                  onOrder={handleSelectService}
-                  isFavorite={favorites.includes(service.id)}
-                  onToggleFavorite={toggleFavorite}
-                  parseFeatures={parseFeatures}
-                  convertToSAR={convertToSAR}
-                  viewMode={viewMode}
-                />
-              ))}
-            </div>
-          )}
+            ) : (
+              <div className={cn(
+                "grid gap-2 sm:gap-3 w-full",
+                viewMode === "grid" 
+                  ? "grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4" 
+                  : "grid-cols-1"
+              )}>
+                {filteredServices.map((service, index) => (
+                  <ServiceCard
+                    key={service.id}
+                    service={service}
+                    index={index}
+                    onOrder={handleSelectService}
+                    isFavorite={favorites.includes(service.id)}
+                    onToggleFavorite={toggleFavorite}
+                    parseFeatures={parseFeatures}
+                    convertToSAR={convertToSAR}
+                    viewMode={viewMode}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Order Dialog */}
