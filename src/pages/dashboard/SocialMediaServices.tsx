@@ -76,6 +76,7 @@ import { notifyNewOrder } from "@/lib/adminNotifyService";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import PullToRefresh from "@/components/ui/pull-to-refresh";
 import ServicesPageSkeleton from "@/components/dashboard/ServicesPageSkeleton";
+import { SocialLinkPreview } from "@/components/services/SocialLinkPreview";
 
 interface Service {
   id: string;
@@ -1098,7 +1099,7 @@ const SocialMediaServices = () => {
 
                         {/* Link Input */}
                         <motion.div 
-                          className="space-y-2"
+                          className="space-y-3"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: 0.4 }}
@@ -1119,6 +1120,9 @@ const SocialMediaServices = () => {
                               <Globe className="w-5 h-5 text-muted-foreground" />
                             </div>
                           </div>
+                          
+                          {/* Social Link Preview */}
+                          <SocialLinkPreview url={link} />
                         </motion.div>
 
                         {/* Quantity Input */}
