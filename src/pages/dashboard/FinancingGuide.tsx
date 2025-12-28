@@ -80,12 +80,18 @@ const benefits = [
 ];
 
 const eligibilityRequirements = [
+  "أن تكون صاحب مشروع قائم أو ترغب في البدء بمشروع جديد",
+  "أن يكون سجلك الائتماني خالياً من المتعثرات",
+  "الحد الأدنى للعمر 21 سنة",
   "أن يكون المتقدم سعودي الجنسية أو مقيم بإقامة سارية",
-  "أن يكون عمر المتقدم 21 سنة فأكثر",
-  "توفر هوية وطنية أو إقامة سارية المفعول",
   "رقم جوال مسجل باسم المتقدم",
   "بريد إلكتروني فعّال",
-  "سجل نظيف من التعثرات السابقة",
+];
+
+const requiredDocuments = [
+  { icon: FileText, title: "صورة الهوية الوطنية", description: "صورة واضحة من الوجهين" },
+  { icon: Landmark, title: "كشف حساب بنكي", description: "كشف حساب لآخر 3 أشهر" },
+  { icon: Shield, title: "تقرير سمة الائتماني", description: "تقرير حديث من سمة الائتمانية" },
 ];
 
 const prohibitedActions = [
@@ -326,6 +332,34 @@ export default function FinancingGuide() {
               </div>
             </CardContent>
           </Card>
+        </motion.div>
+
+        {/* Required Documents Section */}
+        <motion.div variants={itemVariants}>
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" />
+            المستندات المطلوبة
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {requiredDocuments.map((doc, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Card className="h-full hover:border-primary/50 transition-all hover:shadow-lg">
+                  <CardContent className="p-6">
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mb-4">
+                      <doc.icon className="h-7 w-7 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">{doc.title}</h3>
+                    <p className="text-muted-foreground text-sm">{doc.description}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
 
         {/* Important Notes */}
