@@ -163,145 +163,108 @@ const ServiceCard = ({
 
   if (viewMode === "list") {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.02 }}
-      >
-        <Card className="border border-border/50 bg-card hover:border-primary/30 transition-all rounded-xl hover:shadow-md overflow-hidden">
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center gap-3">
-              {/* Platform Icon */}
-              <div className={`w-12 h-12 rounded-xl ${platform.bgColor} flex items-center justify-center shrink-0 shadow-md`}>
-                {CustomIcon ? <CustomIcon /> : Icon && <Icon className={cn("w-6 h-6", platform.textColor || "text-white")} />}
-              </div>
+      <Card className="border border-border/50 bg-card hover:border-primary/30 transition-all rounded-lg overflow-hidden">
+        <CardContent className="p-2.5 sm:p-3">
+          <div className="flex items-center gap-2.5">
+            {/* Platform Icon */}
+            <div className={`w-10 h-10 rounded-lg ${platform.bgColor} flex items-center justify-center shrink-0`}>
+              {CustomIcon ? <CustomIcon /> : Icon && <Icon className={cn("w-5 h-5", platform.textColor || "text-white")} />}
+            </div>
 
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <h3 className="font-semibold text-sm line-clamp-1">{service.name}</h3>
-                  <span className="text-lg font-bold text-primary shrink-0">{pricePerK.toFixed(2)} ر.س</span>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
-                  {service.external_service_id && (
-                    <button onClick={copyServiceId} className="flex items-center gap-1 hover:text-primary">
-                      <Copy className="w-3 h-3" />
-                      #{service.external_service_id}
-                    </button>
-                  )}
-                  <span className="flex items-center gap-1">
-                    <Target className="w-3 h-3" />
-                    {features.min.toLocaleString()} - {features.max.toLocaleString()}
-                  </span>
-                  {(service.refill_enabled || features.refill) && (
-                    <Badge className="bg-green-500/15 text-green-600 border-0 text-[10px] px-1.5 py-0.5">
-                      <RefreshCw className="w-2.5 h-2.5 ml-0.5" />
-                      ضمان
-                    </Badge>
-                  )}
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-2 shrink-0">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => { e.stopPropagation(); onToggleFavorite(service.id); }}
-                  className={cn("h-9 w-9 rounded-lg", isFavorite ? "text-rose-500" : "hover:text-rose-500")}
-                >
-                  <Heart className={cn("w-4 h-4", isFavorite && "fill-current")} />
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => onOrder(service)}
-                  className={`bg-gradient-to-r ${platform.gradient} text-white rounded-lg px-4`}
-                >
-                  <ShoppingCart className="w-4 h-4 ml-1" />
-                  اطلب
-                </Button>
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium text-xs line-clamp-1">{service.name}</h3>
+              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mt-0.5">
+                {service.external_service_id && (
+                  <button onClick={copyServiceId} className="hover:text-primary">#{service.external_service_id}</button>
+                )}
+                <span>{features.min.toLocaleString()}-{features.max.toLocaleString()}</span>
+                {(service.refill_enabled || features.refill) && (
+                  <Badge className="bg-green-500/15 text-green-600 border-0 text-[9px] px-1 py-0">ضمان</Badge>
+                )}
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+
+            {/* Price & Actions */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-sm font-bold text-primary">{pricePerK.toFixed(2)}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => { e.stopPropagation(); onToggleFavorite(service.id); }}
+                className={cn("h-8 w-8 rounded-md", isFavorite ? "text-rose-500" : "hover:text-rose-500")}
+              >
+                <Heart className={cn("w-3.5 h-3.5", isFavorite && "fill-current")} />
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => onOrder(service)}
+                className={`bg-gradient-to-r ${platform.gradient} text-white rounded-md h-8 px-3 text-xs`}
+              >
+                اطلب
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   // Grid View
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.03 }}
-      className="h-full"
-    >
-      <Card className="h-full border border-border/50 bg-card hover:border-primary/30 transition-all rounded-2xl hover:shadow-lg overflow-hidden group">
-        {/* Top Accent */}
-        <div className={`h-1 bg-gradient-to-r ${platform.gradient} opacity-0 group-hover:opacity-100 transition-opacity`} />
-        
-        <CardContent className="p-4 flex flex-col h-full">
-          {/* Header */}
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div className={`w-12 h-12 rounded-xl ${platform.bgColor} flex items-center justify-center shadow-md shrink-0`}>
-              {CustomIcon ? <CustomIcon /> : Icon && <Icon className={cn("w-6 h-6", platform.textColor || "text-white")} />}
-            </div>
-            <div className="text-left">
-              <p className="text-2xl font-bold text-primary">{pricePerK.toFixed(2)}</p>
-              <p className="text-xs text-muted-foreground">ر.س / 1000</p>
-            </div>
+    <Card className="h-full border border-border/50 bg-card hover:border-primary/30 transition-all rounded-xl overflow-hidden group">
+      <CardContent className="p-3 flex flex-col h-full">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <div className={`w-10 h-10 rounded-lg ${platform.bgColor} flex items-center justify-center shrink-0`}>
+            {CustomIcon ? <CustomIcon /> : Icon && <Icon className={cn("w-5 h-5", platform.textColor || "text-white")} />}
           </div>
-
-          {/* Title */}
-          <h3 className="font-semibold text-sm leading-relaxed mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-            {service.name}
-          </h3>
-
-          {/* Meta */}
-          <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground mb-3 mt-auto">
-            {service.external_service_id && (
-              <button onClick={copyServiceId} className="flex items-center gap-1 px-2 py-1 rounded bg-muted/50 hover:bg-muted transition-colors">
-                <Copy className="w-3 h-3" />
-                #{service.external_service_id}
-              </button>
-            )}
-            <span className="flex items-center gap-1 px-2 py-1 rounded bg-muted/50">
-              <Target className="w-3 h-3" />
-              {features.min.toLocaleString()} - {features.max.toLocaleString()}
-            </span>
+          <div className="text-left">
+            <p className="text-lg font-bold text-primary">{pricePerK.toFixed(2)}</p>
+            <p className="text-[10px] text-muted-foreground">ر.س/1000</p>
           </div>
+        </div>
 
-          {/* Badges */}
-          {(service.refill_enabled || features.refill) && (
-            <div className="mb-3">
-              <Badge className="bg-green-500/15 text-green-600 border-0 text-[10px] px-2 py-1">
-                <RefreshCw className="w-3 h-3 ml-1" />
-                ضمان التعويض
-              </Badge>
-            </div>
+        {/* Title */}
+        <h3 className="font-medium text-xs leading-relaxed mb-2 line-clamp-2 group-hover:text-primary transition-colors flex-1">
+          {service.name}
+        </h3>
+
+        {/* Meta */}
+        <div className="flex flex-wrap items-center gap-1 text-[10px] text-muted-foreground mb-2">
+          {service.external_service_id && (
+            <button onClick={copyServiceId} className="px-1.5 py-0.5 rounded bg-muted/50 hover:bg-muted">
+              #{service.external_service_id}
+            </button>
           )}
+          <span className="px-1.5 py-0.5 rounded bg-muted/50">
+            {features.min.toLocaleString()}-{features.max.toLocaleString()}
+          </span>
+          {(service.refill_enabled || features.refill) && (
+            <Badge className="bg-green-500/15 text-green-600 border-0 text-[9px] px-1 py-0">ضمان</Badge>
+          )}
+        </div>
 
-          {/* Actions */}
-          <div className="flex gap-2 mt-auto">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => { e.stopPropagation(); onToggleFavorite(service.id); }}
-              className={cn("h-10 w-10 rounded-xl shrink-0", isFavorite ? "bg-rose-500/15 text-rose-500" : "hover:bg-rose-500/10 hover:text-rose-500")}
-            >
-              <Heart className={cn("w-4 h-4", isFavorite && "fill-current")} />
-            </Button>
-            <Button
-              onClick={() => onOrder(service)}
-              className={`flex-1 bg-gradient-to-r ${platform.gradient} text-white rounded-xl h-10 text-sm shadow-md hover:shadow-lg transition-shadow`}
-            >
-              <ShoppingCart className="w-4 h-4 ml-1.5" />
-              اطلب الآن
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
+        {/* Actions */}
+        <div className="flex gap-1.5 mt-auto">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => { e.stopPropagation(); onToggleFavorite(service.id); }}
+            className={cn("h-8 w-8 rounded-lg shrink-0", isFavorite ? "text-rose-500" : "hover:text-rose-500")}
+          >
+            <Heart className={cn("w-3.5 h-3.5", isFavorite && "fill-current")} />
+          </Button>
+          <Button
+            onClick={() => onOrder(service)}
+            className={`flex-1 bg-gradient-to-r ${platform.gradient} text-white rounded-lg h-8 text-xs`}
+          >
+            <ShoppingCart className="w-3.5 h-3.5 ml-1" />
+            اطلب
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -529,271 +492,193 @@ const SocialMediaServices = () => {
 
   return (
     <ClientDashboardLayout>
-      <PullToRefresh onRefresh={handleRefresh} className="h-full overflow-x-hidden">
-        <div className="w-full max-w-full space-y-5 pb-8 px-4 md:px-6" dir="rtl">
+      <PullToRefresh onRefresh={handleRefresh} className="h-full overflow-x-hidden w-full">
+        <div className="w-full max-w-7xl mx-auto space-y-4 pb-8 px-3 sm:px-4 md:px-6" dir="rtl">
           
-          {/* Hero Header */}
+          {/* Hero Header - Compact */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/70 p-5 sm:p-6 lg:p-8"
+            className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary via-primary/90 to-primary/70 p-4 sm:p-5"
           >
             {/* Decorative Elements */}
-            <div className="absolute top-0 left-0 w-40 h-40 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-            <div className="absolute bottom-0 right-0 w-60 h-60 bg-black/10 rounded-full blur-3xl translate-x-1/4 translate-y-1/3" />
+            <div className="absolute top-0 left-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
             
             <div className="relative z-10">
               {/* Top Row */}
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 flex-wrap mb-2">
-                    <motion.div 
-                      className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/15 rounded-full border border-emerald-500/30"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                    >
-                      <motion.div
-                        className="w-1.5 h-1.5 rounded-full bg-emerald-400"
-                        animate={{ scale: [1, 1.3, 1], opacity: [1, 0.6, 1] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                      />
-                      <span className="text-[10px] sm:text-xs font-semibold text-emerald-400">متاح الآن</span>
-                    </motion.div>
-                    <Badge className="bg-white/15 text-white border-0 text-[10px] sm:text-xs">
-                      <TrendingUp className="w-3 h-3 ml-1" />
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+                    <div className="flex items-center gap-1 px-2 py-0.5 bg-emerald-500/15 rounded-full border border-emerald-500/30">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="text-[10px] font-semibold text-emerald-400">متاح</span>
+                    </div>
+                    <Badge className="bg-white/15 text-white border-0 text-[10px]">
+                      <TrendingUp className="w-2.5 h-2.5 ml-0.5" />
                       الأكثر طلباً
                     </Badge>
                   </div>
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1">
+                  <h1 className="text-lg sm:text-xl font-bold text-white truncate">
                     خدمات السوشيال ميديا
                   </h1>
-                  <p className="text-white/70 text-xs sm:text-sm max-w-md hidden sm:block">
-                    زد متابعيك وتفاعلك على جميع منصات التواصل الاجتماعي بأفضل الأسعار
+                  <p className="text-white/70 text-xs hidden sm:block truncate">
+                    زد متابعيك وتفاعلك على جميع المنصات
                   </p>
                 </div>
                 
                 <Link to="/dashboard/our-services">
-                  <motion.div 
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center hover:bg-white/25 transition-colors border border-white/10"
-                  >
-                    <ArrowLeft className="w-5 h-5 text-white" />
-                  </motion.div>
+                  <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center hover:bg-white/25 transition-colors shrink-0">
+                    <ArrowLeft className="w-4 h-4 text-white" />
+                  </div>
                 </Link>
               </div>
               
-              {/* Stats Row */}
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 border border-white/10">
-                  <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
-                    <Activity className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="text-right">
-                    <p className="text-white font-bold text-sm">{socialMediaServices.length}</p>
-                    <p className="text-white/60 text-[10px]">خدمة متاحة</p>
-                  </div>
+              {/* Stats Row - Compact */}
+              <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 -mx-1 px-1">
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/10 shrink-0">
+                  <Activity className="w-3.5 h-3.5 text-white" />
+                  <span className="text-white text-xs font-medium">{socialMediaServices.length} خدمة</span>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 border border-white/10">
-                  <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
-                    <Zap className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="text-right">
-                    <p className="text-white font-bold text-sm">فوري - 24س</p>
-                    <p className="text-white/60 text-[10px]">وقت التنفيذ</p>
-                  </div>
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/10 shrink-0">
+                  <Zap className="w-3.5 h-3.5 text-white" />
+                  <span className="text-white text-xs font-medium">تنفيذ فوري</span>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-white/20 to-white/10 border border-white/20">
-                  <span className="text-white/80 text-xs">رصيدك:</span>
-                  <span className="font-bold text-white text-sm">{balance.toFixed(2)} ر.س</span>
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/15 shrink-0">
+                  <Wallet className="w-3.5 h-3.5 text-white" />
+                  <span className="text-white text-xs font-bold">{balance.toFixed(2)} ر.س</span>
                 </div>
               </div>
+            </div>
+          </motion.div>
 
-              {/* Quick Stats - Desktop */}
-              <div className="hidden lg:grid grid-cols-4 gap-3 mt-5">
-                {[
-                  { icon: Zap, label: "تنفيذ سريع", value: "فوري" },
-                  { icon: Shield, label: "ضمان التعويض", value: "100%" },
-                  { icon: Users, label: "عملاء سعداء", value: "+5000" },
-                  { icon: Award, label: "منصات متعددة", value: "+15" },
-                ].map((stat, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 + i * 0.1 }}
-                    className="p-3 rounded-xl bg-white/10 text-center border border-white/10"
+          {/* Platform Tabs - Compact */}
+          <div className="overflow-x-auto scrollbar-none -mx-3 px-3 sm:-mx-4 sm:px-4">
+            <div className="flex gap-1.5 min-w-max py-1">
+              {socialNetworks.map((network) => {
+                const Icon = network.icon;
+                const CustomIcon = (network as any).customIcon;
+                const isSelected = selectedNetwork === network.id;
+                
+                return (
+                  <button
+                    key={network.id}
+                    onClick={() => setSelectedNetwork(network.id)}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all shrink-0 text-xs font-medium",
+                      isSelected
+                        ? `bg-gradient-to-r ${network.gradient} text-white shadow-sm`
+                        : "bg-card border border-border hover:border-primary/50"
+                    )}
                   >
-                    <stat.icon className="w-5 h-5 text-white/80 mx-auto mb-1" />
-                    <p className="text-white font-bold text-sm">{stat.value}</p>
-                    <p className="text-white/50 text-[10px]">{stat.label}</p>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Platform Tabs */}
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent pb-2 -mx-4 px-4">
-              <div className="flex gap-2 min-w-max">
-                {socialNetworks.map((network) => {
-                  const Icon = network.icon;
-                  const CustomIcon = (network as any).customIcon;
-                  const isSelected = selectedNetwork === network.id;
-                  
-                  return (
-                    <button
-                      key={network.id}
-                      onClick={() => setSelectedNetwork(network.id)}
-                      className={cn(
-                        "flex items-center gap-2 px-4 py-2.5 rounded-full transition-all shrink-0 border",
-                        isSelected
-                          ? `bg-gradient-to-r ${network.gradient} text-white border-transparent shadow-md`
-                          : "bg-card border-border hover:border-primary/50"
+                    <div className={cn("w-5 h-5 rounded-full flex items-center justify-center", !isSelected && network.bgColor)}>
+                      {CustomIcon ? (
+                        <div className={isSelected ? "text-white" : network.textColor || "text-white"}>
+                          <CustomIcon />
+                        </div>
+                      ) : Icon && (
+                        <Icon className={cn("w-3 h-3", isSelected ? "text-white" : network.textColor || "text-white")} />
                       )}
-                    >
-                      <div className={cn(
-                        "flex items-center justify-center w-6 h-6 rounded-full",
-                        !isSelected && network.bgColor
-                      )}>
-                        {CustomIcon ? (
-                          <div className={isSelected ? "text-white" : network.textColor || "text-white"}>
-                            <CustomIcon />
-                          </div>
-                        ) : Icon && (
-                          <Icon className={cn("w-4 h-4", isSelected ? "text-white" : network.textColor || "text-white")} />
-                        )}
-                      </div>
-                      <span className={cn(
-                        "text-sm font-medium whitespace-nowrap",
-                        isSelected ? "text-white" : "text-foreground"
-                      )}>
-                        {network.name}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+                    </div>
+                    <span className="whitespace-nowrap">{network.name}</span>
+                  </button>
+                );
+              })}
             </div>
-          </motion.div>
+          </div>
 
-          {/* Search & Filters */}
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="bg-card rounded-xl border border-border p-4"
-          >
-            <div className="flex flex-col sm:flex-row gap-3">
+          {/* Search & Filters - Compact */}
+          <div className="bg-card rounded-lg border border-border p-3">
+            <div className="flex gap-2">
               {/* Search */}
-              <div className="relative flex-1">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <div className="relative flex-1 min-w-0">
+                <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="ابحث عن خدمة..."
+                  placeholder="ابحث..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pr-10 h-11 rounded-xl bg-background border-border"
+                  className="pr-9 h-9 rounded-lg text-sm"
                 />
               </div>
               
               {/* Sort & View */}
-              <div className="flex items-center gap-2">
-                <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                  <SelectTrigger className="w-[140px] h-11 rounded-xl bg-background border-border">
-                    <SlidersHorizontal className="w-4 h-4 ml-2" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="price-asc">السعر: الأقل</SelectItem>
-                    <SelectItem value="price-desc">السعر: الأعلى</SelectItem>
-                    <SelectItem value="name">الاسم</SelectItem>
-                  </SelectContent>
-                </Select>
+              <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                <SelectTrigger className="w-24 sm:w-28 h-9 rounded-lg text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="price-asc">الأقل سعراً</SelectItem>
+                  <SelectItem value="price-desc">الأعلى سعراً</SelectItem>
+                  <SelectItem value="name">الاسم</SelectItem>
+                </SelectContent>
+              </Select>
 
-                <div className="flex items-center gap-1 p-1 rounded-xl bg-muted">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setViewMode("grid")}
-                    className={cn("h-9 w-9 rounded-lg", viewMode === "grid" && "bg-primary text-primary-foreground")}
-                  >
-                    <Grid3X3 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setViewMode("list")}
-                    className={cn("h-9 w-9 rounded-lg", viewMode === "list" && "bg-primary text-primary-foreground")}
-                  >
-                    <LayoutList className="w-4 h-4" />
-                  </Button>
-                </div>
+              <div className="hidden sm:flex items-center gap-0.5 p-0.5 rounded-lg bg-muted">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setViewMode("grid")}
+                  className={cn("h-8 w-8 rounded-md", viewMode === "grid" && "bg-primary text-primary-foreground")}
+                >
+                  <Grid3X3 className="w-3.5 h-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setViewMode("list")}
+                  className={cn("h-8 w-8 rounded-md", viewMode === "list" && "bg-primary text-primary-foreground")}
+                >
+                  <LayoutList className="w-3.5 h-3.5" />
+                </Button>
               </div>
             </div>
 
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-              <span className="text-xs text-muted-foreground">
-                عرض {filteredServices.length} من {socialMediaServices.length} خدمة
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-border">
+              <span className="text-[11px] text-muted-foreground">
+                {filteredServices.length} من {socialMediaServices.length} خدمة
               </span>
               {searchQuery && (
-                <Button variant="ghost" size="sm" onClick={() => setSearchQuery("")} className="h-7 text-xs">
-                  مسح البحث
+                <Button variant="ghost" size="sm" onClick={() => setSearchQuery("")} className="h-6 text-[11px] px-2">
+                  مسح
                 </Button>
               )}
             </div>
-          </motion.div>
+          </div>
 
           {/* Services Grid/List */}
           {filteredServices.length === 0 ? (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-16"
-            >
-              <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <Search className="w-10 h-10 text-primary" />
+            <div className="text-center py-12">
+              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <Search className="w-7 h-7 text-primary" />
               </div>
-              <h3 className="text-lg font-bold mb-2">لا توجد خدمات</h3>
-              <p className="text-muted-foreground text-sm mb-4">
-                {searchQuery ? "لم يتم العثور على خدمات تطابق البحث" : "سيتم إضافة الخدمات قريباً"}
+              <h3 className="text-base font-bold mb-1">لا توجد خدمات</h3>
+              <p className="text-muted-foreground text-xs mb-3">
+                {searchQuery ? "لم يتم العثور على خدمات" : "سيتم إضافة الخدمات قريباً"}
               </p>
-              <Button variant="outline" size="sm" onClick={() => { setSearchQuery(""); setSelectedNetwork("all"); }}>
-                إعادة ضبط الفلاتر
+              <Button variant="outline" size="sm" onClick={() => { setSearchQuery(""); setSelectedNetwork("all"); }} className="h-8 text-xs">
+                إعادة ضبط
               </Button>
-            </motion.div>
+            </div>
           ) : (
-            <AnimatePresence mode="wait">
-              <motion.div 
-                key={viewMode}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className={cn(
-                  "grid gap-4",
-                  viewMode === "grid" 
-                    ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
-                    : "grid-cols-1"
-                )}
-              >
-                {filteredServices.map((service, index) => (
-                  <ServiceCard
-                    key={service.id}
-                    service={service}
-                    index={index}
-                    onOrder={handleSelectService}
-                    isFavorite={favorites.includes(service.id)}
-                    onToggleFavorite={toggleFavorite}
-                    parseFeatures={parseFeatures}
-                    convertToSAR={convertToSAR}
-                    viewMode={viewMode}
-                  />
-                ))}
-              </motion.div>
-            </AnimatePresence>
+            <div className={cn(
+              "grid gap-3",
+              viewMode === "grid" 
+                ? "grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4" 
+                : "grid-cols-1"
+            )}>
+              {filteredServices.map((service, index) => (
+                <ServiceCard
+                  key={service.id}
+                  service={service}
+                  index={index}
+                  onOrder={handleSelectService}
+                  isFavorite={favorites.includes(service.id)}
+                  onToggleFavorite={toggleFavorite}
+                  parseFeatures={parseFeatures}
+                  convertToSAR={convertToSAR}
+                  viewMode={viewMode}
+                />
+              ))}
+            </div>
           )}
         </div>
 
