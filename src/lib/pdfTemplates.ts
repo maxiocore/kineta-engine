@@ -3,7 +3,7 @@ import html2canvas from 'html2canvas';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 
-// Format amount in Arabic style
+// Format amount in Arabic style with SAR
 const formatAmountArabic = (amount: number): string => {
   return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 };
@@ -20,7 +20,6 @@ const formatDateArabic = (date: string | Date): string => {
 
 // Create HTML template and convert to PDF
 const createPDFFromHTML = async (htmlContent: string, fileName: string) => {
-  // Create a temporary container
   const container = document.createElement('div');
   container.innerHTML = htmlContent;
   container.style.position = 'absolute';
@@ -31,7 +30,6 @@ const createPDFFromHTML = async (htmlContent: string, fileName: string) => {
   document.body.appendChild(container);
 
   try {
-    // Wait for fonts to load
     await document.fonts.ready;
     
     const canvas = await html2canvas(container, {
@@ -59,201 +57,351 @@ const createPDFFromHTML = async (htmlContent: string, fileName: string) => {
   }
 };
 
-// Common styles
-const commonStyles = `
+// Bank-style template styles - Fully RTL
+const bankStyles = `
   * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
   }
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  .receipt {
+    width: 210mm;
+    min-height: 297mm;
+    background: #fff;
     direction: rtl;
     text-align: right;
   }
-  .receipt-container {
-    width: 210mm;
-    min-height: 297mm;
-    background: white;
-    padding: 0;
-    font-size: 12px;
-    color: #333;
+  
+  /* Header Section */
+  .bank-header {
+    background: linear-gradient(to left, #00805A, #004d36);
+    padding: 25px 30px;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    align-items: center;
   }
-  .header {
-    background: linear-gradient(135deg, #00805A 0%, #006644 100%);
-    padding: 20px;
-    text-align: center;
-    color: white;
+  .bank-header.blue {
+    background: linear-gradient(to left, #1e40af, #1e3a8a);
   }
-  .header-blue {
-    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  .bank-header.purple {
+    background: linear-gradient(to left, #7c3aed, #5b21b6);
   }
-  .header-purple {
-    background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  .bank-header.gold {
+    background: linear-gradient(to left, #d97706, #92400e);
   }
-  .header-gold {
-    background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+  .bank-logo {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    gap: 15px;
   }
-  .logo-circle {
-    width: 60px;
-    height: 60px;
-    background: white;
-    border-radius: 50%;
-    margin: 0 auto 10px;
+  .logo-icon {
+    width: 55px;
+    height: 55px;
+    background: #fff;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 28px;
     font-weight: bold;
     color: #00805A;
   }
-  .header-title {
-    font-size: 20px;
+  .logo-icon.blue { color: #1e40af; }
+  .logo-icon.purple { color: #7c3aed; }
+  .logo-icon.gold { color: #d97706; }
+  .bank-name {
+    color: #fff;
+  }
+  .bank-name h1 {
+    font-size: 22px;
     font-weight: bold;
-    margin-bottom: 5px;
+    margin: 0;
   }
-  .header-subtitle {
-    font-size: 14px;
-    opacity: 0.9;
+  .bank-name span {
+    font-size: 11px;
+    opacity: 0.85;
   }
-  .info-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 15px 25px;
-    gap: 20px;
+  .receipt-type {
+    color: #fff;
+    text-align: left;
   }
-  .info-box {
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    border-radius: 8px;
-    padding: 12px 15px;
-    min-width: 140px;
-  }
-  .info-label {
-    font-size: 10px;
-    color: #64748B;
-    margin-bottom: 5px;
-  }
-  .info-value {
-    font-size: 13px;
+  .receipt-type h2 {
+    font-size: 18px;
     font-weight: 600;
-    color: #1E293B;
+    margin: 0;
+    background: rgba(255,255,255,0.15);
+    padding: 8px 20px;
+    border-radius: 25px;
   }
-  .info-value.primary {
-    color: #00805A;
+  
+  /* Meta Info Bar */
+  .meta-bar {
+    background: #f8fafc;
+    border-bottom: 2px solid #e2e8f0;
+    padding: 12px 30px;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    align-items: center;
   }
+  .meta-item {
+    text-align: center;
+  }
+  .meta-label {
+    font-size: 10px;
+    color: #64748b;
+    margin-bottom: 3px;
+  }
+  .meta-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e293b;
+  }
+  .meta-value.primary { color: #00805A; }
+  .meta-value.blue { color: #1e40af; }
+  .meta-value.purple { color: #7c3aed; }
+  
+  /* Status Badge */
   .status-badge {
     display: inline-block;
-    padding: 6px 16px;
+    padding: 6px 20px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 600;
-    color: white;
+    color: #fff;
   }
-  .status-completed { background: #22C55E; }
-  .status-pending { background: #EAB308; }
-  .status-failed { background: #EF4444; }
-  .section-header {
+  .status-completed { background: #22c55e; }
+  .status-pending { background: #eab308; }
+  .status-failed { background: #ef4444; }
+  
+  /* Section Headers */
+  .section-title {
     background: #00805A;
-    color: white;
-    padding: 10px 25px;
-    font-size: 14px;
+    color: #fff;
+    padding: 10px 30px;
+    font-size: 13px;
     font-weight: 600;
-    margin: 10px 25px;
-    border-radius: 6px;
-    text-align: center;
-  }
-  .section-header-blue { background: #2563EB; }
-  .section-header-purple { background: #7C3AED; }
-  .section-header-gold { background: #D97706; }
-  .detail-row {
+    margin: 0;
     display: flex;
-    justify-content: space-between;
-    padding: 12px 25px;
-    border-bottom: 1px solid #F1F5F9;
+    flex-direction: row-reverse;
+    align-items: center;
+    gap: 10px;
   }
-  .detail-row:nth-child(even) {
-    background: #F8FAFC;
+  .section-title.blue { background: #1e40af; }
+  .section-title.purple { background: #7c3aed; }
+  .section-title.gold { background: #d97706; }
+  .section-title::before {
+    content: '◄';
+    font-size: 10px;
   }
-  .detail-label {
-    color: #64748B;
+  
+  /* Data Table */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .data-row {
+    display: flex;
+    flex-direction: row-reverse;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .data-row:nth-child(even) {
+    background: #f8fafc;
+  }
+  .data-cell {
+    padding: 12px 30px;
     font-size: 12px;
+    flex: 1;
   }
-  .detail-value {
-    color: #1E293B;
+  .data-cell.label {
+    color: #64748b;
     font-weight: 500;
-    font-size: 12px;
   }
-  .total-box {
-    background: #00805A;
-    color: white;
-    margin: 15px 25px;
-    padding: 15px 25px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .total-box-blue { background: #2563EB; }
-  .total-label {
-    font-size: 14px;
+  .data-cell.value {
+    color: #1e293b;
     font-weight: 600;
+    text-align: left;
   }
-  .total-value {
-    font-size: 22px;
-    font-weight: bold;
+  .data-cell.highlight {
+    color: #00805A;
   }
-  .signature-section {
-    background: #F8FAFC;
-    margin: 20px 25px;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #E2E8F0;
+  .data-cell.blue { color: #1e40af; }
+  .data-cell.green { color: #16a34a; }
+  .data-cell.red { color: #ef4444; }
+  
+  /* Total Box */
+  .total-section {
+    margin: 20px 30px;
+    background: linear-gradient(to left, #00805A, #004d36);
+    border-radius: 12px;
+    padding: 20px 25px;
     display: flex;
+    flex-direction: row-reverse;
     justify-content: space-between;
     align-items: center;
   }
-  .signature-icon {
-    width: 40px;
-    height: 40px;
-    background: #00805A;
+  .total-section.blue {
+    background: linear-gradient(to left, #1e40af, #1e3a8a);
+  }
+  .total-section.purple {
+    background: linear-gradient(to left, #7c3aed, #5b21b6);
+  }
+  .total-label {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .total-amount {
+    color: #fff;
+    font-size: 26px;
+    font-weight: bold;
+    direction: ltr;
+  }
+  .total-currency {
+    font-size: 14px;
+    margin-right: 5px;
+    opacity: 0.9;
+  }
+  
+  /* Digital Signature Section */
+  .signature-box {
+    margin: 25px 30px;
+    background: linear-gradient(to left, #f0fdf4, #dcfce7);
+    border: 2px solid #22c55e;
+    border-radius: 12px;
+    padding: 18px 25px;
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    gap: 20px;
+  }
+  .signature-box.blue {
+    background: linear-gradient(to left, #eff6ff, #dbeafe);
+    border-color: #3b82f6;
+  }
+  .signature-box.purple {
+    background: linear-gradient(to left, #f5f3ff, #ede9fe);
+    border-color: #8b5cf6;
+  }
+  .sig-icon {
+    width: 50px;
+    height: 50px;
+    background: #22c55e;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-size: 18px;
+    color: #fff;
+    font-size: 24px;
+    flex-shrink: 0;
   }
-  .signature-text {
+  .sig-icon.blue { background: #3b82f6; }
+  .sig-icon.purple { background: #8b5cf6; }
+  .sig-content {
     flex: 1;
-    margin-right: 15px;
+    text-align: right;
   }
-  .signature-title {
-    color: #00805A;
+  .sig-title {
+    color: #16a34a;
+    font-size: 14px;
     font-weight: 600;
-    font-size: 12px;
+    margin-bottom: 4px;
   }
-  .signature-subtitle {
-    color: #64748B;
-    font-size: 10px;
-  }
-  .footer {
-    text-align: center;
-    padding: 20px 25px;
-    border-top: 1px solid #E2E8F0;
-    margin-top: 20px;
-  }
-  .footer-text {
-    color: #64748B;
+  .sig-title.blue { color: #2563eb; }
+  .sig-title.purple { color: #7c3aed; }
+  .sig-code {
+    color: #64748b;
     font-size: 11px;
-    margin-bottom: 5px;
+  }
+  .sig-code span {
+    background: #fff;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 10px;
+    margin-right: 5px;
+    direction: ltr;
+    display: inline-block;
+  }
+  .sig-date {
+    text-align: left;
+    color: #64748b;
+    font-size: 10px;
+    line-height: 1.5;
+  }
+  
+  /* Footer */
+  .bank-footer {
+    border-top: 2px solid #e2e8f0;
+    margin-top: 30px;
+    padding: 20px 30px;
+    text-align: center;
+  }
+  .footer-logo {
+    font-size: 16px;
+    font-weight: bold;
+    color: #00805A;
+    margin-bottom: 8px;
+  }
+  .footer-logo.blue { color: #1e40af; }
+  .footer-logo.purple { color: #7c3aed; }
+  .footer-text {
+    color: #94a3b8;
+    font-size: 10px;
+    margin-bottom: 4px;
   }
   .footer-bar {
-    background: #00805A;
-    height: 6px;
+    height: 8px;
+    background: linear-gradient(to left, #00805A, #22c55e);
     margin-top: 15px;
+    border-radius: 4px;
   }
-  .footer-bar-blue { background: #2563EB; }
+  .footer-bar.blue {
+    background: linear-gradient(to left, #1e40af, #3b82f6);
+  }
+  .footer-bar.purple {
+    background: linear-gradient(to left, #7c3aed, #a855f7);
+  }
+  
+  /* QR Code placeholder */
+  .qr-section {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: center;
+    gap: 30px;
+    padding: 15px 30px;
+    background: #f8fafc;
+    margin: 15px 30px;
+    border-radius: 8px;
+  }
+  .qr-box {
+    width: 60px;
+    height: 60px;
+    background: #fff;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: #94a3b8;
+  }
+  .qr-info {
+    text-align: right;
+  }
+  .qr-info h4 {
+    font-size: 12px;
+    color: #1e293b;
+    margin: 0 0 5px 0;
+  }
+  .qr-info p {
+    font-size: 10px;
+    color: #64748b;
+    margin: 0;
+  }
 `;
 
 // ==================== DEPOSIT RECEIPT - Arabic ====================
@@ -275,6 +423,7 @@ interface DepositReceiptData {
 export const generateDepositReceipt = async (data: DepositReceiptData) => {
   const receiptNumber = `DEP-${data.id.slice(0, 8).toUpperCase()}`;
   const signatureCode = `SIG-${Date.now().toString(36).toUpperCase().slice(0, 8)}`;
+  const verifyCode = `VRF-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
   
   const statusLabels: Record<string, { text: string; class: string }> = {
     pending: { text: 'قيد الانتظار', class: 'status-pending' },
@@ -285,94 +434,125 @@ export const generateDepositReceipt = async (data: DepositReceiptData) => {
   const statusInfo = statusLabels[data.status] || { text: data.status, class: 'status-pending' };
 
   const html = `
-    <style>${commonStyles}</style>
-    <div class="receipt-container">
-      <div class="header">
-        <div class="logo-circle">M</div>
-        <div class="header-title">ماكسيو كور</div>
-        <div class="header-subtitle">إيصال إيداع</div>
+    <style>${bankStyles}</style>
+    <div class="receipt">
+      <!-- Header -->
+      <div class="bank-header">
+        <div class="bank-logo">
+          <div class="logo-icon">M</div>
+          <div class="bank-name">
+            <h1>ماكسيو كور</h1>
+            <span>MAXIOCORE Digital Services</span>
+          </div>
+        </div>
+        <div class="receipt-type">
+          <h2>إيصال إيداع</h2>
+        </div>
       </div>
       
-      <div class="info-row">
-        <div class="info-box">
-          <div class="info-label">التاريخ</div>
-          <div class="info-value">${formatDateArabic(data.created_at)}</div>
+      <!-- Meta Bar -->
+      <div class="meta-bar">
+        <div class="meta-item">
+          <div class="meta-label">رقم الإيصال</div>
+          <div class="meta-value primary">${receiptNumber}</div>
         </div>
-        <div style="text-align: center; padding: 10px;">
+        <div class="meta-item">
           <span class="${statusInfo.class} status-badge">${statusInfo.text}</span>
         </div>
-        <div class="info-box">
-          <div class="info-label">رقم الإيصال</div>
-          <div class="info-value primary">${receiptNumber}</div>
+        <div class="meta-item">
+          <div class="meta-label">تاريخ العملية</div>
+          <div class="meta-value">${formatDateArabic(data.created_at)}</div>
         </div>
       </div>
       
-      <div class="section-header">معلومات العميل</div>
-      <div class="detail-row">
-        <div class="detail-value">${data.user_name || '-'}</div>
-        <div class="detail-label">اسم العميل</div>
-      </div>
-      <div class="detail-row">
-        <div class="detail-value">${data.user_email || '-'}</div>
-        <div class="detail-label">البريد الإلكتروني</div>
-      </div>
-      
-      <div class="section-header">تفاصيل المعاملة</div>
-      ${data.payment_method ? `
-      <div class="detail-row">
-        <div class="detail-value">${data.payment_method}</div>
-        <div class="detail-label">طريقة الدفع</div>
-      </div>
-      ` : ''}
-      ${data.transaction_id ? `
-      <div class="detail-row">
-        <div class="detail-value">${data.transaction_id}</div>
-        <div class="detail-label">رقم العملية</div>
-      </div>
-      ` : ''}
-      
-      <div class="section-header">تفاصيل المبلغ</div>
-      <div class="detail-row">
-        <div class="detail-value">${formatAmountArabic(data.amount)} ر.س</div>
-        <div class="detail-label">مبلغ الإيداع</div>
-      </div>
-      ${data.bonus_amount && data.bonus_amount > 0 ? `
-      <div class="detail-row" style="background: #F0FDF4;">
-        <div class="detail-value" style="color: #16A34A;">+${formatAmountArabic(data.bonus_amount)} ر.س</div>
-        <div class="detail-label" style="color: #16A34A;">المكافأة</div>
-      </div>
-      ` : ''}
-      ${data.fee_amount && data.fee_amount > 0 ? `
-      <div class="detail-row" style="background: #FEF2F2;">
-        <div class="detail-value" style="color: #DC2626;">-${formatAmountArabic(data.fee_amount)} ر.س</div>
-        <div class="detail-label" style="color: #DC2626;">الرسوم</div>
-      </div>
-      ` : ''}
-      
-      <div class="total-box">
-        <div class="total-value">${formatAmountArabic(data.total_credited)} ر.س</div>
-        <div class="total-label">إجمالي المضاف للرصيد</div>
-      </div>
-      
-      <div class="signature-section">
-        <div class="signature-icon">✓</div>
-        <div class="signature-text">
-          <div class="signature-title">توقيع رقمي معتمد</div>
-          <div class="signature-subtitle">كود التحقق: ${signatureCode}</div>
+      <!-- Customer Info -->
+      <div class="section-title">بيانات العميل</div>
+      <div class="data-table">
+        <div class="data-row">
+          <div class="data-cell label">اسم العميل</div>
+          <div class="data-cell value">${data.user_name || 'عميل'}</div>
+        </div>
+        <div class="data-row">
+          <div class="data-cell label">البريد الإلكتروني</div>
+          <div class="data-cell value">${data.user_email || '-'}</div>
         </div>
       </div>
       
-      <div class="footer">
-        <div class="footer-text">إيصال إلكتروني - لا يحتاج إلى توقيع يدوي</div>
-        <div class="footer-text">ماكسيو كور - منصة الخدمات الرقمية</div>
-        <div class="footer-text">support@maxiocore.com</div>
-        <div class="footer-text" style="font-size: 9px; margin-top: 10px;">رقم المرجع: ${receiptNumber} | تاريخ الإصدار: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}</div>
+      <!-- Transaction Details -->
+      <div class="section-title">تفاصيل المعاملة</div>
+      <div class="data-table">
+        ${data.payment_method ? `
+        <div class="data-row">
+          <div class="data-cell label">طريقة الدفع</div>
+          <div class="data-cell value">${data.payment_method}</div>
+        </div>
+        ` : ''}
+        ${data.transaction_id ? `
+        <div class="data-row">
+          <div class="data-cell label">رقم المرجع</div>
+          <div class="data-cell value" style="font-family: monospace; direction: ltr;">${data.transaction_id}</div>
+        </div>
+        ` : ''}
+      </div>
+      
+      <!-- Amount Details -->
+      <div class="section-title">تفاصيل المبالغ</div>
+      <div class="data-table">
+        <div class="data-row">
+          <div class="data-cell label">مبلغ الإيداع</div>
+          <div class="data-cell value">${formatAmountArabic(data.amount)} ر.س</div>
+        </div>
+        ${data.bonus_amount && data.bonus_amount > 0 ? `
+        <div class="data-row" style="background: #f0fdf4;">
+          <div class="data-cell label green">المكافأة المضافة</div>
+          <div class="data-cell value green">+ ${formatAmountArabic(data.bonus_amount)} ر.س</div>
+        </div>
+        ` : ''}
+        ${data.fee_amount && data.fee_amount > 0 ? `
+        <div class="data-row" style="background: #fef2f2;">
+          <div class="data-cell label red">رسوم المعاملة</div>
+          <div class="data-cell value red">- ${formatAmountArabic(data.fee_amount)} ر.س</div>
+        </div>
+        ` : ''}
+      </div>
+      
+      <!-- Total -->
+      <div class="total-section">
+        <div class="total-label">إجمالي المبلغ المضاف للرصيد</div>
+        <div class="total-amount"><span class="total-currency">ر.س</span>${formatAmountArabic(data.total_credited)}</div>
+      </div>
+      
+      <!-- Digital Signature -->
+      <div class="signature-box">
+        <div class="sig-icon">✓</div>
+        <div class="sig-content">
+          <div class="sig-title">تم التحقق والاعتماد رقمياً</div>
+          <div class="sig-code">
+            كود التحقق: <span>${signatureCode}</span>
+            كود التأكيد: <span>${verifyCode}</span>
+          </div>
+        </div>
+        <div class="sig-date">
+          تاريخ الإصدار<br/>
+          ${format(new Date(), 'dd/MM/yyyy')}<br/>
+          ${format(new Date(), 'HH:mm:ss')}
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div class="bank-footer">
+        <div class="footer-logo">ماكسيو كور</div>
+        <div class="footer-text">هذا إيصال إلكتروني معتمد ولا يحتاج إلى توقيع أو ختم</div>
+        <div class="footer-text">للاستفسارات: support@maxiocore.com</div>
+        <div class="footer-text" style="margin-top: 8px; font-size: 9px;">
+          رقم المرجع: ${receiptNumber} | تاريخ الإصدار: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
+        </div>
         <div class="footer-bar"></div>
       </div>
     </div>
   `;
 
-  await createPDFFromHTML(html, `إيداع-${receiptNumber}.pdf`);
+  await createPDFFromHTML(html, `إيصال-إيداع-${receiptNumber}.pdf`);
 };
 
 // ==================== CASHBACK RECEIPT - Arabic ====================
@@ -391,82 +571,118 @@ interface CashbackReceiptData {
 export const generateCashbackReceipt = async (data: CashbackReceiptData) => {
   const receiptNumber = `CB-${data.id.slice(0, 8).toUpperCase()}`;
   const signatureCode = `SIG-${Date.now().toString(36).toUpperCase().slice(0, 8)}`;
+  const verifyCode = `VRF-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
   
   const typeLabels: Record<string, { text: string; class: string }> = {
-    earned: { text: 'مكتسب', class: 'status-completed' },
-    withdrawn: { text: 'مسحوب', class: 'status-pending' },
-    expired: { text: 'منتهي', class: 'status-failed' },
+    earned: { text: 'كاش باك مكتسب', class: 'status-completed' },
+    withdrawn: { text: 'تم السحب', class: 'status-pending' },
+    expired: { text: 'منتهي الصلاحية', class: 'status-failed' },
   };
   const typeInfo = typeLabels[data.type] || { text: data.type, class: 'status-pending' };
   const isPositive = data.amount > 0;
 
   const html = `
-    <style>${commonStyles}</style>
-    <div class="receipt-container">
-      <div class="header">
-        <div class="logo-circle">M</div>
-        <div class="header-title">ماكسيو كور</div>
-        <div class="header-subtitle">إيصال الكاش باك</div>
+    <style>${bankStyles}</style>
+    <div class="receipt">
+      <!-- Header -->
+      <div class="bank-header">
+        <div class="bank-logo">
+          <div class="logo-icon">M</div>
+          <div class="bank-name">
+            <h1>ماكسيو كور</h1>
+            <span>MAXIOCORE Digital Services</span>
+          </div>
+        </div>
+        <div class="receipt-type">
+          <h2>إيصال كاش باك</h2>
+        </div>
       </div>
       
-      <div class="info-row">
-        <div class="info-box">
-          <div class="info-label">التاريخ</div>
-          <div class="info-value">${formatDateArabic(data.created_at)}</div>
+      <!-- Meta Bar -->
+      <div class="meta-bar">
+        <div class="meta-item">
+          <div class="meta-label">رقم الإيصال</div>
+          <div class="meta-value primary">${receiptNumber}</div>
         </div>
-        <div style="text-align: center; padding: 10px;">
+        <div class="meta-item">
           <span class="${typeInfo.class} status-badge">${typeInfo.text}</span>
         </div>
-        <div class="info-box">
-          <div class="info-label">رقم الإيصال</div>
-          <div class="info-value primary">${receiptNumber}</div>
+        <div class="meta-item">
+          <div class="meta-label">تاريخ العملية</div>
+          <div class="meta-value">${formatDateArabic(data.created_at)}</div>
         </div>
       </div>
       
-      <div class="section-header">تفاصيل المعاملة</div>
-      ${data.user_name ? `
-      <div class="detail-row">
-        <div class="detail-value">${data.user_name}</div>
-        <div class="detail-label">اسم العميل</div>
-      </div>
-      ` : ''}
-      ${data.user_email ? `
-      <div class="detail-row">
-        <div class="detail-value">${data.user_email}</div>
-        <div class="detail-label">البريد الإلكتروني</div>
-      </div>
-      ` : ''}
-      <div class="detail-row">
-        <div class="detail-value">${data.description_ar || data.description || 'معاملة كاش باك'}</div>
-        <div class="detail-label">الوصف</div>
+      <!-- Customer Info -->
+      <div class="section-title">بيانات العميل</div>
+      <div class="data-table">
+        ${data.user_name ? `
+        <div class="data-row">
+          <div class="data-cell label">اسم العميل</div>
+          <div class="data-cell value">${data.user_name}</div>
+        </div>
+        ` : ''}
+        ${data.user_email ? `
+        <div class="data-row">
+          <div class="data-cell label">البريد الإلكتروني</div>
+          <div class="data-cell value">${data.user_email}</div>
+        </div>
+        ` : ''}
       </div>
       
-      <div class="section-header">تفاصيل المبلغ</div>
-      <div class="total-box" style="background: ${isPositive ? '#00805A' : '#EF4444'};">
-        <div class="total-value">${isPositive ? '+' : ''}${formatAmountArabic(data.amount)} ر.س</div>
+      <!-- Transaction Details -->
+      <div class="section-title">تفاصيل العملية</div>
+      <div class="data-table">
+        <div class="data-row">
+          <div class="data-cell label">نوع العملية</div>
+          <div class="data-cell value">${typeInfo.text}</div>
+        </div>
+        <div class="data-row">
+          <div class="data-cell label">الوصف</div>
+          <div class="data-cell value">${data.description_ar || data.description || 'معاملة كاش باك'}</div>
+        </div>
+      </div>
+      
+      <!-- Total -->
+      <div class="total-section" style="background: ${isPositive ? 'linear-gradient(to left, #00805A, #004d36)' : 'linear-gradient(to left, #ef4444, #dc2626)'};">
         <div class="total-label">مبلغ الكاش باك</div>
+        <div class="total-amount"><span class="total-currency">ر.س</span>${isPositive ? '+' : ''}${formatAmountArabic(data.amount)}</div>
       </div>
       
       ${data.balance_after !== undefined ? `
-      <div class="detail-row" style="background: #F0FDF4;">
-        <div class="detail-value" style="color: #00805A; font-size: 14px; font-weight: bold;">${formatAmountArabic(data.balance_after)} ر.س</div>
-        <div class="detail-label">الرصيد بعد المعاملة</div>
+      <div class="data-table">
+        <div class="data-row" style="background: #f0fdf4;">
+          <div class="data-cell label green" style="font-weight: 600;">رصيد الكاش باك بعد العملية</div>
+          <div class="data-cell value green" style="font-size: 16px; font-weight: bold;">${formatAmountArabic(data.balance_after)} ر.س</div>
+        </div>
       </div>
       ` : ''}
       
-      <div class="signature-section">
-        <div class="signature-icon">✓</div>
-        <div class="signature-text">
-          <div class="signature-title">توقيع رقمي معتمد</div>
-          <div class="signature-subtitle">كود التحقق: ${signatureCode}</div>
+      <!-- Digital Signature -->
+      <div class="signature-box">
+        <div class="sig-icon">✓</div>
+        <div class="sig-content">
+          <div class="sig-title">تم التحقق والاعتماد رقمياً</div>
+          <div class="sig-code">
+            كود التحقق: <span>${signatureCode}</span>
+            كود التأكيد: <span>${verifyCode}</span>
+          </div>
+        </div>
+        <div class="sig-date">
+          تاريخ الإصدار<br/>
+          ${format(new Date(), 'dd/MM/yyyy')}<br/>
+          ${format(new Date(), 'HH:mm:ss')}
         </div>
       </div>
       
-      <div class="footer">
-        <div class="footer-text">إيصال إلكتروني - لا يحتاج إلى توقيع يدوي</div>
-        <div class="footer-text">ماكسيو كور - منصة الخدمات الرقمية</div>
-        <div class="footer-text">support@maxiocore.com</div>
-        <div class="footer-text" style="font-size: 9px; margin-top: 10px;">رقم المرجع: ${receiptNumber} | تاريخ الإصدار: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}</div>
+      <!-- Footer -->
+      <div class="bank-footer">
+        <div class="footer-logo">ماكسيو كور</div>
+        <div class="footer-text">هذا إيصال إلكتروني معتمد ولا يحتاج إلى توقيع أو ختم</div>
+        <div class="footer-text">للاستفسارات: support@maxiocore.com</div>
+        <div class="footer-text" style="margin-top: 8px; font-size: 9px;">
+          رقم المرجع: ${receiptNumber} | تاريخ الإصدار: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
+        </div>
         <div class="footer-bar"></div>
       </div>
     </div>
@@ -494,110 +710,145 @@ interface OrderReceiptData {
 export const generateOrderReceipt = async (data: OrderReceiptData) => {
   const receiptNumber = data.order_number;
   const signatureCode = `SIG-${Date.now().toString(36).toUpperCase().slice(0, 8)}`;
+  const verifyCode = `VRF-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
   
   const statusLabels: Record<string, { text: string; class: string }> = {
     pending: { text: 'قيد الانتظار', class: 'status-pending' },
     processing: { text: 'جاري المعالجة', class: 'status-pending' },
     in_progress: { text: 'قيد التنفيذ', class: 'status-pending' },
     completed: { text: 'مكتمل', class: 'status-completed' },
-    partial: { text: 'جزئي', class: 'status-pending' },
+    partial: { text: 'مكتمل جزئياً', class: 'status-pending' },
     cancelled: { text: 'ملغي', class: 'status-failed' },
-    refunded: { text: 'مسترد', class: 'status-failed' },
+    refunded: { text: 'تم الاسترداد', class: 'status-failed' },
     confirmed: { text: 'مؤكد', class: 'status-completed' },
   };
   const statusInfo = statusLabels[data.status] || { text: data.status, class: 'status-pending' };
   const subtotal = data.total_price + (data.discount_amount || 0);
 
   const html = `
-    <style>${commonStyles}</style>
-    <div class="receipt-container">
-      <div class="header header-blue">
-        <div class="logo-circle" style="color: #2563EB;">M</div>
-        <div class="header-title">ماكسيو كور</div>
-        <div class="header-subtitle">إيصال الطلب</div>
+    <style>${bankStyles}</style>
+    <div class="receipt">
+      <!-- Header -->
+      <div class="bank-header blue">
+        <div class="bank-logo">
+          <div class="logo-icon blue">M</div>
+          <div class="bank-name">
+            <h1>ماكسيو كور</h1>
+            <span>MAXIOCORE Digital Services</span>
+          </div>
+        </div>
+        <div class="receipt-type">
+          <h2>إيصال طلب</h2>
+        </div>
       </div>
       
-      <div class="info-row">
-        <div class="info-box">
-          <div class="info-label">التاريخ</div>
-          <div class="info-value">${formatDateArabic(data.created_at)}</div>
+      <!-- Meta Bar -->
+      <div class="meta-bar">
+        <div class="meta-item">
+          <div class="meta-label">رقم الطلب</div>
+          <div class="meta-value blue">${receiptNumber}</div>
         </div>
-        <div style="text-align: center; padding: 10px;">
+        <div class="meta-item">
           <span class="${statusInfo.class} status-badge">${statusInfo.text}</span>
         </div>
-        <div class="info-box">
-          <div class="info-label">رقم الطلب</div>
-          <div class="info-value" style="color: #2563EB;">${receiptNumber}</div>
+        <div class="meta-item">
+          <div class="meta-label">تاريخ الطلب</div>
+          <div class="meta-value">${formatDateArabic(data.created_at)}</div>
         </div>
       </div>
       
-      <div class="section-header section-header-blue">معلومات العميل</div>
-      ${data.user_name ? `
-      <div class="detail-row">
-        <div class="detail-value">${data.user_name}</div>
-        <div class="detail-label">الاسم</div>
+      <!-- Customer Info -->
+      <div class="section-title blue">بيانات العميل</div>
+      <div class="data-table">
+        ${data.user_name ? `
+        <div class="data-row">
+          <div class="data-cell label">اسم العميل</div>
+          <div class="data-cell value">${data.user_name}</div>
+        </div>
+        ` : ''}
+        ${data.user_email ? `
+        <div class="data-row">
+          <div class="data-cell label">البريد الإلكتروني</div>
+          <div class="data-cell value">${data.user_email}</div>
+        </div>
+        ` : ''}
       </div>
-      ` : ''}
-      ${data.user_email ? `
-      <div class="detail-row">
-        <div class="detail-value">${data.user_email}</div>
-        <div class="detail-label">البريد الإلكتروني</div>
-      </div>
-      ` : ''}
       
-      <div class="section-header section-header-blue">تفاصيل الخدمة</div>
-      <div class="detail-row">
-        <div class="detail-value">${data.service_name.length > 50 ? data.service_name.substring(0, 50) + '...' : data.service_name}</div>
-        <div class="detail-label">الخدمة</div>
+      <!-- Service Details -->
+      <div class="section-title blue">تفاصيل الخدمة</div>
+      <div class="data-table">
+        <div class="data-row">
+          <div class="data-cell label">اسم الخدمة</div>
+          <div class="data-cell value">${data.service_name.length > 60 ? data.service_name.substring(0, 60) + '...' : data.service_name}</div>
+        </div>
+        <div class="data-row">
+          <div class="data-cell label">الكمية المطلوبة</div>
+          <div class="data-cell value">${data.quantity.toLocaleString('ar-SA')}</div>
+        </div>
+        ${data.link ? `
+        <div class="data-row">
+          <div class="data-cell label">الرابط</div>
+          <div class="data-cell value" style="word-break: break-all; font-size: 10px; color: #1e40af; direction: ltr; text-align: left;">${data.link.length > 60 ? data.link.substring(0, 60) + '...' : data.link}</div>
+        </div>
+        ` : ''}
       </div>
-      <div class="detail-row">
-        <div class="detail-value">${data.quantity.toLocaleString('ar-SA')}</div>
-        <div class="detail-label">الكمية</div>
-      </div>
-      ${data.link ? `
-      <div class="detail-row">
-        <div class="detail-value" style="word-break: break-all; font-size: 10px; color: #2563EB;">${data.link.length > 50 ? data.link.substring(0, 50) + '...' : data.link}</div>
-        <div class="detail-label">الرابط</div>
-      </div>
-      ` : ''}
       
-      <div class="section-header section-header-blue">تفاصيل الدفع</div>
-      <div class="detail-row">
-        <div class="detail-value">${formatAmountArabic(subtotal)} ر.س</div>
-        <div class="detail-label">المبلغ الأساسي</div>
+      <!-- Payment Details -->
+      <div class="section-title blue">تفاصيل الدفع</div>
+      <div class="data-table">
+        <div class="data-row">
+          <div class="data-cell label">المبلغ الأساسي</div>
+          <div class="data-cell value">${formatAmountArabic(subtotal)} ر.س</div>
+        </div>
+        ${data.discount_amount && data.discount_amount > 0 ? `
+        <div class="data-row" style="background: #f0fdf4;">
+          <div class="data-cell label green">الخصم</div>
+          <div class="data-cell value green">- ${formatAmountArabic(data.discount_amount)} ر.س</div>
+        </div>
+        ` : ''}
       </div>
-      ${data.discount_amount && data.discount_amount > 0 ? `
-      <div class="detail-row" style="background: #F0FDF4;">
-        <div class="detail-value" style="color: #16A34A;">-${formatAmountArabic(data.discount_amount)} ر.س</div>
-        <div class="detail-label" style="color: #16A34A;">الخصم</div>
-      </div>
-      ` : ''}
       
-      <div class="total-box total-box-blue">
-        <div class="total-value">${formatAmountArabic(data.total_price)} ر.س</div>
-        <div class="total-label">الإجمالي</div>
+      <!-- Total -->
+      <div class="total-section blue">
+        <div class="total-label">إجمالي المبلغ المدفوع</div>
+        <div class="total-amount"><span class="total-currency">ر.س</span>${formatAmountArabic(data.total_price)}</div>
       </div>
       
       ${data.completed_at ? `
-      <div style="text-align: center; padding: 10px; color: #16A34A; font-size: 12px;">
-        تاريخ الإكمال: ${formatDateArabic(data.completed_at)}
+      <div class="data-table">
+        <div class="data-row" style="background: #f0fdf4;">
+          <div class="data-cell label green">تاريخ الإكمال</div>
+          <div class="data-cell value green">${formatDateArabic(data.completed_at)}</div>
+        </div>
       </div>
       ` : ''}
       
-      <div class="signature-section">
-        <div class="signature-icon" style="background: #2563EB;">✓</div>
-        <div class="signature-text">
-          <div class="signature-title" style="color: #2563EB;">توقيع رقمي معتمد</div>
-          <div class="signature-subtitle">كود التحقق: ${signatureCode}</div>
+      <!-- Digital Signature -->
+      <div class="signature-box blue">
+        <div class="sig-icon blue">✓</div>
+        <div class="sig-content">
+          <div class="sig-title blue">تم التحقق والاعتماد رقمياً</div>
+          <div class="sig-code">
+            كود التحقق: <span>${signatureCode}</span>
+            كود التأكيد: <span>${verifyCode}</span>
+          </div>
+        </div>
+        <div class="sig-date">
+          تاريخ الإصدار<br/>
+          ${format(new Date(), 'dd/MM/yyyy')}<br/>
+          ${format(new Date(), 'HH:mm:ss')}
         </div>
       </div>
       
-      <div class="footer">
-        <div class="footer-text">إيصال إلكتروني - لا يحتاج إلى توقيع يدوي</div>
-        <div class="footer-text">ماكسيو كور - منصة الخدمات الرقمية</div>
-        <div class="footer-text">support@maxiocore.com</div>
-        <div class="footer-text" style="font-size: 9px; margin-top: 10px;">رقم المرجع: ${receiptNumber} | تاريخ الإصدار: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}</div>
-        <div class="footer-bar footer-bar-blue"></div>
+      <!-- Footer -->
+      <div class="bank-footer">
+        <div class="footer-logo blue">ماكسيو كور</div>
+        <div class="footer-text">هذا إيصال إلكتروني معتمد ولا يحتاج إلى توقيع أو ختم</div>
+        <div class="footer-text">للاستفسارات: support@maxiocore.com</div>
+        <div class="footer-text" style="margin-top: 8px; font-size: 9px;">
+          رقم المرجع: ${receiptNumber} | تاريخ الإصدار: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
+        </div>
+        <div class="footer-bar blue"></div>
       </div>
     </div>
   `;
@@ -623,125 +874,178 @@ export const generateChallengeCertificate = async (data: ChallengeCertificateDat
   const certificateNumber = `CH-${data.id.slice(0, 8).toUpperCase()}`;
   const signatureCode = `SIG-${Date.now().toString(36).toUpperCase().slice(0, 8)}`;
 
+  const certStyles = `
+    ${bankStyles}
+    .cert-container {
+      width: 297mm;
+      min-height: 210mm;
+      background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+      padding: 25px;
+      direction: rtl;
+      text-align: center;
+    }
+    .cert-frame {
+      border: 5px solid #7c3aed;
+      border-radius: 15px;
+      padding: 35px;
+      min-height: 170mm;
+      background: rgba(255,255,255,0.8);
+    }
+    .cert-header-box {
+      background: linear-gradient(135deg, #7c3aed, #5b21b6);
+      color: #fff;
+      padding: 20px 50px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+    }
+    .cert-main-title {
+      font-size: 32px;
+      font-weight: bold;
+      margin: 0;
+    }
+    .cert-sub {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-top: 5px;
+    }
+    .presented-to {
+      color: #64748b;
+      font-size: 14px;
+      margin: 25px 0 10px;
+    }
+    .winner-name {
+      font-size: 38px;
+      color: #7c3aed;
+      font-weight: bold;
+      margin: 10px 0 30px;
+    }
+    .challenge-card {
+      background: #faf5ff;
+      border: 2px solid #c4b5fd;
+      border-radius: 12px;
+      padding: 25px;
+      max-width: 450px;
+      margin: 20px auto;
+    }
+    .challenge-title {
+      font-size: 20px;
+      color: #5b21b6;
+      font-weight: bold;
+    }
+    .stats-flex {
+      display: flex;
+      flex-direction: row-reverse;
+      justify-content: center;
+      gap: 25px;
+      margin: 30px 0;
+    }
+    .stat-item {
+      background: #fff;
+      border-radius: 12px;
+      padding: 18px 30px;
+      min-width: 130px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .stat-item.gold {
+      background: #fef9c3;
+      border: 2px solid #facc15;
+    }
+    .stat-item.green {
+      background: #f0fdf4;
+      border: 2px solid #22c55e;
+    }
+    .stat-num {
+      font-size: 28px;
+      font-weight: bold;
+      color: #7c3aed;
+    }
+    .stat-item.gold .stat-num { color: #ca8a04; }
+    .stat-item.green .stat-num { color: #16a34a; }
+    .stat-txt {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 5px;
+    }
+    .cert-date {
+      color: #64748b;
+      font-size: 13px;
+      margin-top: 25px;
+    }
+    .cert-footer-row {
+      display: flex;
+      flex-direction: row-reverse;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 40px;
+      padding: 0 30px;
+    }
+    .cert-code {
+      color: #a1a1aa;
+      font-size: 10px;
+    }
+    .cert-seal {
+      text-align: center;
+    }
+    .seal-circle {
+      width: 55px;
+      height: 55px;
+      background: #7c3aed;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 24px;
+      margin: 0 auto;
+    }
+    .seal-text {
+      font-size: 10px;
+      color: #7c3aed;
+      margin-top: 6px;
+    }
+  `;
+
   const html = `
-    <style>
-      ${commonStyles}
-      .certificate-container {
-        width: 297mm;
-        min-height: 210mm;
-        background: linear-gradient(135deg, #F8FAFF 0%, #EEF2FF 100%);
-        padding: 20px;
-        text-align: center;
-        direction: rtl;
-      }
-      .certificate-border {
-        border: 4px solid #6366F1;
-        border-radius: 12px;
-        padding: 30px;
-        min-height: 180mm;
-      }
-      .cert-header {
-        background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
-        color: white;
-        padding: 20px 40px;
-        border-radius: 8px;
-        margin-bottom: 30px;
-      }
-      .cert-title {
-        font-size: 28px;
-        font-weight: bold;
-        margin-bottom: 5px;
-      }
-      .cert-subtitle {
-        font-size: 14px;
-        opacity: 0.9;
-      }
-      .user-name {
-        font-size: 32px;
-        color: #6366F1;
-        font-weight: bold;
-        margin: 20px 0;
-      }
-      .challenge-box {
-        background: #F8FAFC;
-        border: 2px solid #6366F1;
-        border-radius: 8px;
-        padding: 20px;
-        margin: 20px auto;
-        max-width: 500px;
-      }
-      .challenge-title {
-        font-size: 18px;
-        color: #6366F1;
-        font-weight: bold;
-      }
-      .stats-row {
-        display: flex;
-        justify-content: center;
-        gap: 30px;
-        margin: 25px 0;
-      }
-      .stat-box {
-        background: #F0FDF4;
-        border-radius: 8px;
-        padding: 15px 25px;
-        min-width: 120px;
-      }
-      .stat-box.gold {
-        background: #FEF9C3;
-      }
-      .stat-value {
-        font-size: 24px;
-        font-weight: bold;
-        color: #16A34A;
-      }
-      .stat-box.gold .stat-value {
-        color: #CA8A04;
-      }
-      .stat-label {
-        font-size: 11px;
-        color: #64748B;
-      }
-    </style>
-    <div class="certificate-container">
-      <div class="certificate-border">
-        <div class="cert-header">
-          <div class="cert-title">شهادة إنجاز التحدي</div>
-          <div class="cert-subtitle">Certificate of Achievement</div>
+    <style>${certStyles}</style>
+    <div class="cert-container">
+      <div class="cert-frame">
+        <div class="cert-header-box">
+          <h1 class="cert-main-title">شهادة إنجاز التحدي</h1>
+          <p class="cert-sub">Certificate of Achievement</p>
         </div>
         
-        <div style="color: #64748B; font-size: 14px; margin: 20px 0;">تُمنح هذه الشهادة بكل فخر إلى</div>
+        <p class="presented-to">تُمنح هذه الشهادة بكل فخر واعتزاز إلى</p>
         
-        <div class="user-name">${data.user_name || 'عميل مميز'}</div>
+        <h2 class="winner-name">${data.user_name || 'عميل مميز'}</h2>
         
-        <div style="color: #64748B; font-size: 13px;">لإكمال التحدي بنجاح</div>
+        <p style="color: #64748b; font-size: 14px;">لإتمام التحدي التالي بنجاح</p>
         
-        <div class="challenge-box">
+        <div class="challenge-card">
           <div class="challenge-title">${data.title_ar || data.title}</div>
         </div>
         
-        <div class="stats-row">
-          <div class="stat-box">
-            <div class="stat-value">${data.current_value}/${data.target_value}</div>
-            <div class="stat-label">الهدف المحقق</div>
+        <div class="stats-flex">
+          <div class="stat-item green">
+            <div class="stat-num">${data.current_value}/${data.target_value}</div>
+            <div class="stat-txt">الهدف المحقق</div>
           </div>
-          <div class="stat-box gold">
-            <div class="stat-value">+${data.reward_points}</div>
-            <div class="stat-label">النقاط المكتسبة</div>
+          <div class="stat-item gold">
+            <div class="stat-num">+${data.reward_points}</div>
+            <div class="stat-txt">النقاط المكتسبة</div>
           </div>
         </div>
         
-        <div style="color: #64748B; font-size: 12px; margin-top: 30px;">
+        <p class="cert-date">
           تاريخ الإنجاز: ${format(new Date(data.completed_at), 'dd MMMM yyyy', { locale: ar })}
-        </div>
+        </p>
         
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px; padding: 0 40px;">
-          <div style="color: #94A3B8; font-size: 10px;">رقم الشهادة: ${certificateNumber}</div>
-          <div style="text-align: center;">
-            <div style="width: 50px; height: 50px; background: #6366F1; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">✓</div>
-            <div style="color: #6366F1; font-size: 10px; margin-top: 5px;">توقيع رقمي معتمد</div>
+        <div class="cert-footer-row">
+          <div class="cert-code">رقم الشهادة: ${certificateNumber}</div>
+          <div class="cert-seal">
+            <div class="seal-circle">✓</div>
+            <div class="seal-text">توقيع رقمي معتمد</div>
           </div>
-          <div style="color: #94A3B8; font-size: 10px;">كود التحقق: ${signatureCode}</div>
+          <div class="cert-code">كود التحقق: ${signatureCode}</div>
         </div>
       </div>
     </div>
@@ -769,104 +1073,107 @@ export const generateBadgeCertificate = async (data: BadgeCertificateData) => {
   const signatureCode = `SIG-${Date.now().toString(36).toUpperCase().slice(0, 8)}`;
   const tierLabels = ['', 'برونزي', 'فضي', 'ذهبي', 'بلاتيني', 'ماسي'];
 
+  const badgeStyles = `
+    ${bankStyles}
+    .badge-cert {
+      width: 297mm;
+      min-height: 210mm;
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      padding: 25px;
+      direction: rtl;
+      text-align: center;
+    }
+    .badge-frame {
+      border: 5px solid #d97706;
+      border-radius: 15px;
+      padding: 35px;
+      min-height: 170mm;
+      background: rgba(255,255,255,0.85);
+    }
+    .badge-header {
+      background: linear-gradient(135deg, #d97706, #92400e);
+      color: #fff;
+      padding: 20px 50px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+    }
+    .badge-icon-lg {
+      width: 90px;
+      height: 90px;
+      background: linear-gradient(135deg, #fcd34d, #f59e0b);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin: 20px auto;
+      border: 5px solid #fff;
+      box-shadow: 0 6px 20px rgba(217, 119, 6, 0.35);
+    }
+    .tier-txt {
+      color: #d97706;
+      font-size: 15px;
+      margin-bottom: 20px;
+    }
+    .badge-winner {
+      font-size: 36px;
+      color: #92400e;
+      font-weight: bold;
+      margin: 15px 0 30px;
+    }
+    .badge-box {
+      background: #fef9c3;
+      border: 2px solid #fbbf24;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 380px;
+      margin: 0 auto;
+    }
+    .badge-name-ar {
+      font-size: 22px;
+      color: #92400e;
+      font-weight: bold;
+    }
+    .badge-name-en {
+      font-size: 12px;
+      color: #b45309;
+      margin-top: 6px;
+    }
+  `;
+
   const html = `
-    <style>
-      ${commonStyles}
-      .certificate-container {
-        width: 297mm;
-        min-height: 210mm;
-        background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
-        padding: 20px;
-        text-align: center;
-        direction: rtl;
-      }
-      .certificate-border {
-        border: 4px solid #D97706;
-        border-radius: 12px;
-        padding: 30px;
-        min-height: 180mm;
-      }
-      .cert-header {
-        background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
-        color: white;
-        padding: 20px 40px;
-        border-radius: 8px;
-        margin-bottom: 30px;
-      }
-      .badge-icon {
-        width: 80px;
-        height: 80px;
-        background: linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%);
-        border-radius: 50%;
-        margin: 20px auto;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 36px;
-        border: 4px solid white;
-        box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);
-      }
-      .tier-label {
-        color: #D97706;
-        font-size: 14px;
-        margin-bottom: 20px;
-      }
-      .user-name {
-        font-size: 32px;
-        color: #D97706;
-        font-weight: bold;
-        margin: 20px 0;
-      }
-      .badge-box {
-        background: #FEF3C7;
-        border: 2px solid #D97706;
-        border-radius: 8px;
-        padding: 20px;
-        margin: 20px auto;
-        max-width: 400px;
-      }
-      .badge-name {
-        font-size: 20px;
-        color: #92400E;
-        font-weight: bold;
-      }
-      .badge-name-en {
-        font-size: 12px;
-        color: #B45309;
-        margin-top: 5px;
-      }
-    </style>
-    <div class="certificate-container">
-      <div class="certificate-border">
-        <div class="cert-header">
-          <div style="font-size: 28px; font-weight: bold; margin-bottom: 5px;">شهادة الشارة</div>
-          <div style="font-size: 14px; opacity: 0.9;">Certificate of Recognition</div>
+    <style>${badgeStyles}</style>
+    <div class="badge-cert">
+      <div class="badge-frame">
+        <div class="badge-header">
+          <h1 style="font-size: 30px; font-weight: bold; margin: 0;">شهادة الشارة</h1>
+          <p style="font-size: 14px; opacity: 0.9; margin-top: 5px;">Certificate of Recognition</p>
         </div>
         
-        <div class="badge-icon">${data.icon || data.tier}</div>
+        <div class="badge-icon-lg">${data.icon || data.tier}</div>
         
-        <div class="tier-label">المستوى ${data.tier}: ${tierLabels[data.tier] || 'النخبة'}</div>
+        <p class="tier-txt">المستوى ${data.tier}: ${tierLabels[data.tier] || 'النخبة'}</p>
         
-        <div style="color: #64748B; font-size: 14px;">تُمنح هذه الشارة بكل تقدير إلى</div>
+        <p style="color: #64748b; font-size: 14px;">تُمنح هذه الشارة بكل تقدير واحترام إلى</p>
         
-        <div class="user-name">${data.user_name || 'عميل مميز'}</div>
+        <h2 class="badge-winner">${data.user_name || 'عميل مميز'}</h2>
         
         <div class="badge-box">
-          <div class="badge-name">${data.name_ar || data.name}</div>
+          <div class="badge-name-ar">${data.name_ar || data.name}</div>
           <div class="badge-name-en">${data.name}</div>
         </div>
         
-        <div style="color: #64748B; font-size: 12px; margin-top: 30px;">
+        <p style="color: #64748b; font-size: 13px; margin-top: 30px;">
           تاريخ المنح: ${format(new Date(data.awarded_at), 'dd MMMM yyyy', { locale: ar })}
-        </div>
+        </p>
         
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px; padding: 0 40px;">
-          <div style="color: #94A3B8; font-size: 10px;">رقم الشهادة: ${certificateNumber}</div>
+        <div class="cert-footer-row" style="display: flex; flex-direction: row-reverse; justify-content: space-between; align-items: center; margin-top: 40px; padding: 0 30px;">
+          <div style="color: #a1a1aa; font-size: 10px;">رقم الشهادة: ${certificateNumber}</div>
           <div style="text-align: center;">
-            <div style="width: 50px; height: 50px; background: #D97706; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">✓</div>
-            <div style="color: #D97706; font-size: 10px; margin-top: 5px;">توقيع رقمي معتمد</div>
+            <div style="width: 55px; height: 55px; background: #d97706; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; margin: 0 auto;">✓</div>
+            <div style="font-size: 10px; color: #d97706; margin-top: 6px;">توقيع رقمي معتمد</div>
           </div>
-          <div style="color: #94A3B8; font-size: 10px;">كود التحقق: ${signatureCode}</div>
+          <div style="color: #a1a1aa; font-size: 10px;">كود التحقق: ${signatureCode}</div>
         </div>
       </div>
     </div>
@@ -898,6 +1205,7 @@ interface RewardsStatementData {
 export const generateRewardsStatement = async (data: RewardsStatementData) => {
   const statementNumber = `RWD-${Date.now().toString(36).toUpperCase()}`;
   const signatureCode = `SIG-${Date.now().toString(36).toUpperCase().slice(0, 8)}`;
+  const verifyCode = `VRF-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
   
   const typeLabelsAr: Record<string, string> = {
     earned: 'مكتسب',
@@ -906,135 +1214,128 @@ export const generateRewardsStatement = async (data: RewardsStatementData) => {
     expired: 'منتهي',
   };
 
-  const transactionsHTML = data.transactions.slice(0, 8).map((tx, i) => {
+  const transactionsHTML = data.transactions.slice(0, 10).map((tx, i) => {
     const isPositive = tx.points > 0;
     return `
-      <div class="detail-row" style="background: ${i % 2 === 0 ? '#FFFFFF' : '#F8FAFC'};">
-        <div class="detail-value" style="color: ${isPositive ? '#16A34A' : '#EF4444'}; font-weight: bold;">${isPositive ? '+' : ''}${tx.points}</div>
-        <div class="detail-value" style="flex: 1; text-align: center;">${typeLabelsAr[tx.type] || tx.type}</div>
-        <div class="detail-value" style="flex: 2;">${(tx.description_ar || tx.description || '-').substring(0, 30)}</div>
-        <div class="detail-label">${format(new Date(tx.created_at), 'dd/MM/yy')}</div>
+      <div class="data-row" style="background: ${i % 2 === 0 ? '#fff' : '#f8fafc'};">
+        <div class="data-cell" style="flex: 1; color: ${isPositive ? '#16a34a' : '#ef4444'}; font-weight: bold; text-align: center;">${isPositive ? '+' : ''}${tx.points}</div>
+        <div class="data-cell" style="flex: 1; text-align: center;">${typeLabelsAr[tx.type] || tx.type}</div>
+        <div class="data-cell" style="flex: 2;">${(tx.description_ar || tx.description || '-').substring(0, 35)}</div>
+        <div class="data-cell" style="flex: 1; text-align: left; color: #64748b;">${format(new Date(tx.created_at), 'dd/MM/yy')}</div>
       </div>
     `;
   }).join('');
 
   const html = `
-    <style>${commonStyles}
-      .stats-grid {
-        display: flex;
-        gap: 15px;
-        padding: 15px 25px;
-        justify-content: center;
-      }
-      .stat-card {
-        background: #F0FDF4;
-        border: 1px solid #22C55E;
-        border-radius: 8px;
-        padding: 15px;
-        min-width: 100px;
-        text-align: center;
-      }
-      .stat-card.blue {
-        background: #EFF6FF;
-        border-color: #3B82F6;
-      }
-      .stat-card.red {
-        background: #FEF2F2;
-        border-color: #EF4444;
-      }
-      .stat-number {
-        font-size: 22px;
-        font-weight: bold;
-        color: #22C55E;
-      }
-      .stat-card.blue .stat-number { color: #3B82F6; }
-      .stat-card.red .stat-number { color: #EF4444; }
-      .stat-text {
-        font-size: 10px;
-        color: #64748B;
-        margin-top: 5px;
-      }
-    </style>
-    <div class="receipt-container">
-      <div class="header header-purple">
-        <div class="logo-circle" style="color: #7C3AED;">M</div>
-        <div class="header-title">ماكسيو كور</div>
-        <div class="header-subtitle">كشف حساب المكافآت</div>
+    <style>${bankStyles}</style>
+    <div class="receipt">
+      <!-- Header -->
+      <div class="bank-header purple">
+        <div class="bank-logo">
+          <div class="logo-icon purple">M</div>
+          <div class="bank-name">
+            <h1>ماكسيو كور</h1>
+            <span>MAXIOCORE Digital Services</span>
+          </div>
+        </div>
+        <div class="receipt-type">
+          <h2>كشف حساب المكافآت</h2>
+        </div>
       </div>
       
-      <div class="info-row">
-        <div class="info-box">
-          <div class="info-label">تاريخ الإصدار</div>
-          <div class="info-value">${format(new Date(), 'dd/MM/yyyy')}</div>
+      <!-- Meta Bar -->
+      <div class="meta-bar">
+        <div class="meta-item">
+          <div class="meta-label">رقم الكشف</div>
+          <div class="meta-value purple">${statementNumber}</div>
         </div>
         ${data.tier_name_ar || data.tier_name ? `
-        <div style="text-align: center; padding: 10px;">
-          <span class="status-badge" style="background: #7C3AED;">${data.tier_name_ar || data.tier_name}</span>
+        <div class="meta-item">
+          <span class="status-badge" style="background: #7c3aed;">${data.tier_name_ar || data.tier_name}</span>
         </div>
         ` : ''}
-        <div class="info-box">
-          <div class="info-label">رقم الكشف</div>
-          <div class="info-value" style="color: #7C3AED;">${statementNumber}</div>
+        <div class="meta-item">
+          <div class="meta-label">تاريخ الإصدار</div>
+          <div class="meta-value">${format(new Date(), 'dd/MM/yyyy')}</div>
         </div>
       </div>
       
+      <!-- Account Holder -->
       ${data.user_name || data.user_email ? `
-      <div class="section-header section-header-purple">صاحب الحساب</div>
-      ${data.user_name ? `
-      <div class="detail-row">
-        <div class="detail-value">${data.user_name}</div>
-        <div class="detail-label">الاسم</div>
+      <div class="section-title purple">صاحب الحساب</div>
+      <div class="data-table">
+        ${data.user_name ? `
+        <div class="data-row">
+          <div class="data-cell label">الاسم</div>
+          <div class="data-cell value">${data.user_name}</div>
+        </div>
+        ` : ''}
+        ${data.user_email ? `
+        <div class="data-row">
+          <div class="data-cell label">البريد الإلكتروني</div>
+          <div class="data-cell value">${data.user_email}</div>
+        </div>
+        ` : ''}
       </div>
-      ` : ''}
-      ${data.user_email ? `
-      <div class="detail-row">
-        <div class="detail-value">${data.user_email}</div>
-        <div class="detail-label">البريد الإلكتروني</div>
-      </div>
-      ` : ''}
       ` : ''}
       
-      <div class="section-header section-header-purple">ملخص النقاط</div>
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-number">${data.available_points.toLocaleString('ar-SA')}</div>
-          <div class="stat-text">المتاحة</div>
+      <!-- Points Summary -->
+      <div class="section-title purple">ملخص النقاط</div>
+      <div style="display: flex; flex-direction: row-reverse; gap: 15px; padding: 15px 30px;">
+        <div style="flex: 1; background: #f0fdf4; border: 2px solid #22c55e; border-radius: 10px; padding: 18px; text-align: center;">
+          <div style="font-size: 26px; font-weight: bold; color: #16a34a;">${data.available_points.toLocaleString('ar-SA')}</div>
+          <div style="font-size: 11px; color: #64748b; margin-top: 5px;">النقاط المتاحة</div>
         </div>
-        <div class="stat-card blue">
-          <div class="stat-number">${data.total_points.toLocaleString('ar-SA')}</div>
-          <div class="stat-text">إجمالي المكتسبة</div>
+        <div style="flex: 1; background: #eff6ff; border: 2px solid #3b82f6; border-radius: 10px; padding: 18px; text-align: center;">
+          <div style="font-size: 26px; font-weight: bold; color: #2563eb;">${data.total_points.toLocaleString('ar-SA')}</div>
+          <div style="font-size: 11px; color: #64748b; margin-top: 5px;">إجمالي المكتسب</div>
         </div>
-        <div class="stat-card red">
-          <div class="stat-number">${data.redeemed_points.toLocaleString('ar-SA')}</div>
-          <div class="stat-text">المستبدلة</div>
-        </div>
-      </div>
-      
-      ${data.transactions && data.transactions.length > 0 ? `
-      <div class="section-header section-header-purple">آخر المعاملات</div>
-      <div class="detail-row" style="background: #F1F5F9; font-weight: bold;">
-        <div class="detail-label">النقاط</div>
-        <div class="detail-label" style="flex: 1; text-align: center;">النوع</div>
-        <div class="detail-label" style="flex: 2;">الوصف</div>
-        <div class="detail-label">التاريخ</div>
-      </div>
-      ${transactionsHTML}
-      ` : ''}
-      
-      <div class="signature-section">
-        <div class="signature-icon" style="background: #7C3AED;">✓</div>
-        <div class="signature-text">
-          <div class="signature-title" style="color: #7C3AED;">توقيع رقمي معتمد</div>
-          <div class="signature-subtitle">كود التحقق: ${signatureCode}</div>
+        <div style="flex: 1; background: #fef2f2; border: 2px solid #ef4444; border-radius: 10px; padding: 18px; text-align: center;">
+          <div style="font-size: 26px; font-weight: bold; color: #dc2626;">${data.redeemed_points.toLocaleString('ar-SA')}</div>
+          <div style="font-size: 11px; color: #64748b; margin-top: 5px;">النقاط المستبدلة</div>
         </div>
       </div>
       
-      <div class="footer">
-        <div class="footer-text">إيصال إلكتروني - لا يحتاج إلى توقيع يدوي</div>
-        <div class="footer-text">ماكسيو كور - منصة الخدمات الرقمية</div>
-        <div class="footer-text">support@maxiocore.com</div>
-        <div class="footer-text" style="font-size: 9px; margin-top: 10px;">رقم المرجع: ${statementNumber} | تاريخ الإصدار: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}</div>
-        <div class="footer-bar" style="background: #7C3AED;"></div>
+      <!-- Transactions -->
+      ${data.transactions.length > 0 ? `
+      <div class="section-title purple">سجل المعاملات</div>
+      <div class="data-table">
+        <div class="data-row" style="background: #f1f5f9; font-weight: 600;">
+          <div class="data-cell" style="flex: 1; text-align: center;">النقاط</div>
+          <div class="data-cell" style="flex: 1; text-align: center;">النوع</div>
+          <div class="data-cell" style="flex: 2;">الوصف</div>
+          <div class="data-cell" style="flex: 1; text-align: left;">التاريخ</div>
+        </div>
+        ${transactionsHTML}
+      </div>
+      ` : ''}
+      
+      <!-- Digital Signature -->
+      <div class="signature-box purple">
+        <div class="sig-icon purple">✓</div>
+        <div class="sig-content">
+          <div class="sig-title purple">تم التحقق والاعتماد رقمياً</div>
+          <div class="sig-code">
+            كود التحقق: <span>${signatureCode}</span>
+            كود التأكيد: <span>${verifyCode}</span>
+          </div>
+        </div>
+        <div class="sig-date">
+          تاريخ الإصدار<br/>
+          ${format(new Date(), 'dd/MM/yyyy')}<br/>
+          ${format(new Date(), 'HH:mm:ss')}
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div class="bank-footer">
+        <div class="footer-logo purple">ماكسيو كور</div>
+        <div class="footer-text">هذا كشف إلكتروني معتمد ولا يحتاج إلى توقيع أو ختم</div>
+        <div class="footer-text">للاستفسارات: support@maxiocore.com</div>
+        <div class="footer-text" style="margin-top: 8px; font-size: 9px;">
+          رقم المرجع: ${statementNumber} | تاريخ الإصدار: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
+        </div>
+        <div class="footer-bar purple"></div>
       </div>
     </div>
   `;
