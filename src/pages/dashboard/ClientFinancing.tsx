@@ -395,41 +395,41 @@ export default function ClientFinancing() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
-          <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0" dir="rtl">
-            <TabsList className="bg-muted/50 inline-flex w-max sm:w-auto gap-1 p-1 h-auto">
-              <TabsTrigger
-                value="overview" 
-                className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap"
-              >
-                نظرة عامة
-              </TabsTrigger>
+          <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+            <TabsList className="bg-muted/50 inline-flex w-max sm:w-auto gap-1 p-1 h-auto flex-row-reverse" dir="rtl">
               <TabsTrigger 
-                value="applications" 
+                value="plans" 
                 className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap"
               >
-                طلباتي ({applications.length})
+                خطط التمويل
               </TabsTrigger>
               {activeApplications.length > 0 && (
                 <>
-                  <TabsTrigger 
-                    value="installments" 
-                    className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap"
-                  >
-                    جدول الأقساط
-                  </TabsTrigger>
                   <TabsTrigger 
                     value="contract" 
                     className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap"
                   >
                     العقد
                   </TabsTrigger>
+                  <TabsTrigger 
+                    value="installments" 
+                    className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap"
+                  >
+                    جدول الأقساط
+                  </TabsTrigger>
                 </>
               )}
               <TabsTrigger 
-                value="plans" 
+                value="applications" 
                 className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap"
               >
-                خطط التمويل
+                طلباتي ({applications.length})
+              </TabsTrigger>
+              <TabsTrigger 
+                value="overview" 
+                className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap"
+              >
+                نظرة عامة
               </TabsTrigger>
             </TabsList>
           </div>
