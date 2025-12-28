@@ -525,10 +525,11 @@ export default function AdminFinancing() {
                           {format(new Date(app.submitted_at), "dd/MM/yyyy", { locale: ar })}
                         </td>
                         <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
                             <Button
                               size="sm"
                               variant="ghost"
+                              title="عرض التفاصيل"
                               onClick={() => {
                                 setSelectedApplication(app);
                                 setShowDetailsDialog(true);
@@ -536,12 +537,13 @@ export default function AdminFinancing() {
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            {app.status === "pending" && (
+                            {(app.status === "pending" || app.status === "under_review") && (
                               <>
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  className="text-green-400 hover:text-green-300"
+                                  className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
+                                  title="موافقة"
                                   onClick={() => {
                                     setSelectedApplication(app);
                                     setApprovalData({ approved_amount: app.requested_amount.toString(), admin_notes: "" });
@@ -553,7 +555,8 @@ export default function AdminFinancing() {
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  className="text-red-400 hover:text-red-300"
+                                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                  title="رفض"
                                   onClick={() => {
                                     setSelectedApplication(app);
                                     setRejectionData({ rejection_reason: "" });
@@ -563,6 +566,20 @@ export default function AdminFinancing() {
                                   <X className="h-4 w-4" />
                                 </Button>
                               </>
+                            )}
+                            {app.status === "active" && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                                title="إدارة الأقساط"
+                                onClick={() => {
+                                  setSelectedApplication(app);
+                                  setShowDetailsDialog(true);
+                                }}
+                              >
+                                <CreditCard className="h-4 w-4" />
+                              </Button>
                             )}
                           </div>
                         </td>

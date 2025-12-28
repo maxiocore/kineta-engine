@@ -157,28 +157,29 @@ export default function ClientFinancing() {
     enabled: !!user?.id,
   });
 
-  // Fetch installments for selected application
+  // Get first active application for installments query
+  const activeApp = selectedApplication || applications.find(a => a.status === "active");
+
+  // Fetch installments for selected/active application
   const { data: installments = [] } = useQuery({
-    queryKey: ["my-financing-installments", selectedApplication?.id],
+    queryKey: ["my-financing-installments", activeApp?.id],
     queryFn: async () => {
-      if (!selectedApplication?.id) return [];
+      if (!activeApp?.id) return [];
       const { data, error } = await supabase
         .from("financing_installments")
         .select("*")
-        .eq("application_id", selectedApplication.id)
+        .eq("application_id", activeApp.id)
         .order("installment_number");
       if (error) throw error;
       return data as FinancingInstallment[];
     },
-    enabled: !!selectedApplication?.id,
+    enabled: !!activeApp?.id,
   });
 
   const activeApplications = applications.filter(a => a.status === "active");
   
-  // Auto-select first active application if none selected
-  if (activeApplications.length > 0 && !selectedApplication) {
-    setSelectedApplication(activeApplications[0]);
-  }
+  // Get the selected or first active application
+  const currentApplication = selectedApplication || activeApplications[0];
   
   const totalPaid = installments.filter(i => i.status === "paid").reduce((sum, i) => sum + i.amount, 0);
   const totalRemaining = installments.filter(i => i.status !== "paid").reduce((sum, i) => sum + i.amount, 0);
@@ -231,17 +232,17 @@ export default function ClientFinancing() {
         </div>
 
         {/* Bank Card for Active Financing */}
-        {activeApplications.length > 0 && selectedApplication && (
+        {activeApplications.length > 0 && currentApplication && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <FinancingBankCard
-              userName={selectedApplication.full_name}
-              totalBalance={selectedApplication.approved_amount || selectedApplication.requested_amount}
+              userName={currentApplication.full_name}
+              totalBalance={currentApplication.approved_amount || currentApplication.requested_amount}
               paidAmount={totalPaid}
               remainingAmount={totalRemaining}
               nextInstallmentAmount={nextInstallment?.amount}
               nextInstallmentDate={nextInstallment ? new Date(nextInstallment.due_date) : undefined}
-              planName={selectedApplication.financing_plans?.name_ar}
-              contractNumber={selectedApplication.contract_number || undefined}
+              planName={currentApplication.financing_plans?.name_ar}
+              contractNumber={currentApplication.contract_number || undefined}
             />
             
             {/* Stats Cards */}
@@ -290,6 +291,34 @@ export default function ClientFinancing() {
           </div>
         )}
 
+        {/* Show card even for pending/approved applications */}
+        {activeApplications.length === 0 && applications.length > 0 && (
+          <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                  <Landmark className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold">طلب التمويل الخاص بك</h3>
+                  <p className="text-muted-foreground">
+                    {applications[0].status === "pending" && "طلبك قيد المراجعة، سنقوم بإعلامك فور الموافقة"}
+                    {applications[0].status === "approved" && "تمت الموافقة على طلبك! سيتم تفعيل التمويل قريباً"}
+                    {applications[0].status === "rejected" && "عذراً، تم رفض الطلب. يمكنك تقديم طلب جديد"}
+                  </p>
+                  <Badge className={`mt-2 ${
+                    applications[0].status === "pending" ? "bg-yellow-500/20 text-yellow-400" :
+                    applications[0].status === "approved" ? "bg-green-500/20 text-green-400" :
+                    "bg-red-500/20 text-red-400"
+                  }`}>
+                    {statusConfig[applications[0].status]?.label}
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Select Active Application if multiple */}
         {activeApplications.length > 1 && (
           <div className="flex flex-wrap gap-2">
@@ -297,7 +326,7 @@ export default function ClientFinancing() {
             {activeApplications.map((app) => (
               <Button
                 key={app.id}
-                variant={selectedApplication?.id === app.id ? "default" : "outline"}
+                variant={currentApplication?.id === app.id ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedApplication(app)}
               >
