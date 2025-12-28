@@ -17,6 +17,9 @@ export type EmailType =
   | 'tier_upgrade'
   | 'challenge_completed'
   | 'refund_processed'
+  | 'financing_approved'
+  | 'financing_rejected'
+  | 'financing_new_application'
   | 'custom';
 
 interface SendEmailParams {
@@ -306,5 +309,56 @@ export async function sendCustomEmail(
     type: 'custom',
     data: customData,
     customSubject: customData.subject,
+  });
+}
+
+// Financing email functions
+export async function sendFinancingApprovedEmail(
+  email: string,
+  data: {
+    name: string;
+    applicationNumber: string;
+    amount: number;
+    installmentsCount: number;
+    monthlyInstallment: number;
+  }
+): Promise<EmailResult> {
+  return sendEmail({
+    to: email,
+    type: 'financing_approved',
+    data,
+  });
+}
+
+export async function sendFinancingRejectedEmail(
+  email: string,
+  data: {
+    name: string;
+    applicationNumber: string;
+    rejectionReason?: string;
+  }
+): Promise<EmailResult> {
+  return sendEmail({
+    to: email,
+    type: 'financing_rejected',
+    data,
+  });
+}
+
+export async function sendFinancingNewApplicationEmail(
+  adminEmail: string,
+  data: {
+    applicantName: string;
+    applicantEmail: string;
+    applicantPhone: string;
+    applicationNumber: string;
+    requestedAmount: number;
+    serviceDescription?: string;
+  }
+): Promise<EmailResult> {
+  return sendEmail({
+    to: adminEmail,
+    type: 'financing_new_application',
+    data,
   });
 }
