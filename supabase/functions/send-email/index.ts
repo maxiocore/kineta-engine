@@ -31,6 +31,8 @@ type EmailType =
   | 'financing_approved'
   | 'financing_rejected'
   | 'financing_new_application'
+  | 'financing_documents_required'
+  | 'financing_under_review'
   | 'custom';
 
 interface EmailRequest {

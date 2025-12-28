@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,11 +29,27 @@ import {
   TrendingUp,
   CreditCard,
   FileSignature,
-  RefreshCw
+  RefreshCw,
+  FileQuestion,
+  Send,
+  Edit,
+  MoreHorizontal
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import { sendFinancingApprovedEmail, sendFinancingRejectedEmail } from "@/lib/emailService";
+import { 
+  sendFinancingApprovedEmail, 
+  sendFinancingRejectedEmail,
+  sendFinancingDocumentsRequiredEmail,
+  sendFinancingUnderReviewEmail
+} from "@/lib/emailService";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface FinancingApplication {
   id: string;
@@ -64,10 +79,6 @@ interface FinancingApplication {
     name_ar: string;
     installments_count: number;
   };
-  profiles?: {
-    full_name: string;
-    email: string;
-  };
 }
 
 interface FinancingInstallment {
@@ -84,6 +95,7 @@ interface FinancingInstallment {
 const statusConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
   pending: { label: "قيد الانتظار", color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30", icon: <Clock className="h-3 w-3" /> },
   under_review: { label: "قيد المراجعة", color: "bg-blue-500/20 text-blue-400 border-blue-500/30", icon: <Eye className="h-3 w-3" /> },
+  documents_required: { label: "مستندات مطلوبة", color: "bg-purple-500/20 text-purple-400 border-purple-500/30", icon: <FileQuestion className="h-3 w-3" /> },
   approved: { label: "موافق عليه", color: "bg-green-500/20 text-green-400 border-green-500/30", icon: <CheckCircle2 className="h-3 w-3" /> },
   rejected: { label: "مرفوض", color: "bg-red-500/20 text-red-400 border-red-500/30", icon: <XCircle className="h-3 w-3" /> },
   active: { label: "نشط", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30", icon: <TrendingUp className="h-3 w-3" /> },
@@ -109,8 +121,12 @@ export default function AdminFinancing() {
   const [approvalData, setApprovalData] = useState({ approved_amount: "", admin_notes: "" });
   const [rejectionData, setRejectionData] = useState({ rejection_reason: "" });
   const [showRejectionDialog, setShowRejectionDialog] = useState(false);
+  const [showDocumentsDialog, setShowDocumentsDialog] = useState(false);
+  const [documentsData, setDocumentsData] = useState({ required_documents: "", admin_notes: "" });
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editData, setEditData] = useState({ status: "", admin_notes: "" });
 
-  // Fetch applications
+  // Fetch applications - removed foreign key reference that doesn't exist
   const { data: applications = [], isLoading } = useQuery({
     queryKey: ["financing-applications", statusFilter],
     queryFn: async () => {
@@ -118,8 +134,7 @@ export default function AdminFinancing() {
         .from("financing_applications")
         .select(`
           *,
-          financing_plans (name_ar, installments_count),
-          profiles!financing_applications_user_id_fkey (full_name, email)
+          financing_plans (name_ar, installments_count)
         `)
         .order("submitted_at", { ascending: false });
 
@@ -128,7 +143,10 @@ export default function AdminFinancing() {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching applications:", error);
+        throw error;
+      }
       return data as unknown as FinancingApplication[];
     },
   });
@@ -155,13 +173,93 @@ export default function AdminFinancing() {
     queryFn: async () => {
       const { data: apps } = await supabase.from("financing_applications").select("status, requested_amount, approved_amount");
       
-      const pending = apps?.filter(a => a.status === "pending").length || 0;
+      const pending = apps?.filter(a => a.status === "pending" || a.status === "documents_required").length || 0;
       const active = apps?.filter(a => a.status === "active").length || 0;
       const completed = apps?.filter(a => a.status === "completed").length || 0;
       const totalFinanced = apps?.filter(a => ["active", "completed"].includes(a.status))
         .reduce((sum, a) => sum + (a.approved_amount || 0), 0) || 0;
 
       return { pending, active, completed, totalFinanced };
+    },
+  });
+
+  // Set to under review mutation
+  const underReviewMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const application = applications.find(a => a.id === id);
+      if (!application) throw new Error("Application not found");
+
+      const { error } = await supabase
+        .from("financing_applications")
+        .update({
+          status: "under_review",
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      // Send email notification
+      try {
+        await sendFinancingUnderReviewEmail(application.email, {
+          name: application.full_name,
+          applicationNumber: application.application_number,
+        });
+      } catch (emailError) {
+        console.error("Failed to send under review email:", emailError);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["financing-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["financing-stats"] });
+      toast.success("تم تحويل الطلب إلى قيد المراجعة وإرسال إشعار للعميل");
+    },
+    onError: (error) => {
+      toast.error("حدث خطأ أثناء تحديث الطلب");
+      console.error(error);
+    },
+  });
+
+  // Request documents mutation
+  const requestDocumentsMutation = useMutation({
+    mutationFn: async ({ id, required_documents, admin_notes }: { id: string; required_documents: string; admin_notes: string }) => {
+      const application = applications.find(a => a.id === id);
+      if (!application) throw new Error("Application not found");
+
+      const { error } = await supabase
+        .from("financing_applications")
+        .update({
+          status: "documents_required",
+          admin_notes: `المستندات المطلوبة: ${required_documents}\n\n${admin_notes}`,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      // Send email notification
+      try {
+        await sendFinancingDocumentsRequiredEmail(application.email, {
+          name: application.full_name,
+          applicationNumber: application.application_number,
+          requiredDocuments: required_documents,
+          adminNotes: admin_notes,
+        });
+      } catch (emailError) {
+        console.error("Failed to send documents required email:", emailError);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["financing-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["financing-stats"] });
+      toast.success("تم طلب المستندات الإضافية وإرسال إشعار للعميل");
+      setShowDocumentsDialog(false);
+      setSelectedApplication(null);
+      setDocumentsData({ required_documents: "", admin_notes: "" });
+    },
+    onError: (error) => {
+      toast.error("حدث خطأ أثناء طلب المستندات");
+      console.error(error);
     },
   });
 
@@ -190,13 +288,15 @@ export default function AdminFinancing() {
       const plan = application.financing_plans;
       if (plan) {
         const installmentAmount = approved_amount / plan.installments_count;
-        const installments = [];
+        const installmentsToCreate = [];
         
         for (let i = 1; i <= plan.installments_count; i++) {
           const dueDate = new Date();
           dueDate.setMonth(dueDate.getMonth() + i);
+          // Set to 30th of each month
+          dueDate.setDate(30);
           
-          installments.push({
+          installmentsToCreate.push({
             application_id: id,
             installment_number: i,
             amount: installmentAmount,
@@ -205,12 +305,11 @@ export default function AdminFinancing() {
           });
         }
 
-        const { error: installmentError } = await supabase
+        await supabase
           .from("financing_installments")
-          .insert(installments);
+          .insert(installmentsToCreate);
 
         // Add financing amount to user balance
-        // First get current balance
         const { data: currentBalance } = await supabase
           .from("user_balances")
           .select("balance")
@@ -219,7 +318,6 @@ export default function AdminFinancing() {
 
         const newBalance = (currentBalance?.balance || 0) + approved_amount;
         
-        // Update or insert balance
         await supabase
           .from("user_balances")
           .upsert({ 
@@ -242,7 +340,7 @@ export default function AdminFinancing() {
             notes: `رصيد تمويل - طلب رقم ${application.application_number}`
           });
 
-        // Send email notification using unified email service
+        // Send email notification
         try {
           await sendFinancingApprovedEmail(application.email, {
             name: application.full_name,
@@ -251,7 +349,6 @@ export default function AdminFinancing() {
             installmentsCount: plan.installments_count,
             monthlyInstallment: installmentAmount,
           });
-          console.log("Financing approval email sent successfully");
         } catch (emailError) {
           console.error("Failed to send approval email:", emailError);
         }
@@ -292,7 +389,7 @@ export default function AdminFinancing() {
 
       if (error) throw error;
 
-      // Send rejection email using unified email service
+      // Send rejection email
       if (application) {
         try {
           await sendFinancingRejectedEmail(application.email, {
@@ -300,7 +397,6 @@ export default function AdminFinancing() {
             applicationNumber: application.application_number,
             rejectionReason: rejection_reason,
           });
-          console.log("Financing rejection email sent successfully");
         } catch (emailError) {
           console.error("Failed to send rejection email:", emailError);
         }
@@ -315,6 +411,33 @@ export default function AdminFinancing() {
     },
     onError: (error) => {
       toast.error("حدث خطأ أثناء رفض الطلب");
+      console.error(error);
+    },
+  });
+
+  // Edit application mutation
+  const editApplicationMutation = useMutation({
+    mutationFn: async ({ id, status, admin_notes }: { id: string; status: string; admin_notes: string }) => {
+      const { error } = await supabase
+        .from("financing_applications")
+        .update({
+          status,
+          admin_notes,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["financing-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["financing-stats"] });
+      toast.success("تم تحديث الطلب بنجاح");
+      setShowEditDialog(false);
+      setSelectedApplication(null);
+    },
+    onError: (error) => {
+      toast.error("حدث خطأ أثناء تحديث الطلب");
       console.error(error);
     },
   });
@@ -460,6 +583,7 @@ export default function AdminFinancing() {
                   <SelectItem value="all">جميع الحالات</SelectItem>
                   <SelectItem value="pending">قيد الانتظار</SelectItem>
                   <SelectItem value="under_review">قيد المراجعة</SelectItem>
+                  <SelectItem value="documents_required">مستندات مطلوبة</SelectItem>
                   <SelectItem value="approved">موافق عليه</SelectItem>
                   <SelectItem value="active">نشط</SelectItem>
                   <SelectItem value="completed">مكتمل</SelectItem>
@@ -525,63 +649,104 @@ export default function AdminFinancing() {
                           {format(new Date(app.submitted_at), "dd/MM/yyyy", { locale: ar })}
                         </td>
                         <td className="py-3 px-4">
-                          <div className="flex items-center gap-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              title="عرض التفاصيل"
-                              onClick={() => {
-                                setSelectedApplication(app);
-                                setShowDetailsDialog(true);
-                              }}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            {(app.status === "pending" || app.status === "under_review") && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
-                                  title="موافقة"
-                                  onClick={() => {
-                                    setSelectedApplication(app);
-                                    setApprovalData({ approved_amount: app.requested_amount.toString(), admin_notes: "" });
-                                    setShowApprovalDialog(true);
-                                  }}
-                                >
-                                  <Check className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                                  title="رفض"
-                                  onClick={() => {
-                                    setSelectedApplication(app);
-                                    setRejectionData({ rejection_reason: "" });
-                                    setShowRejectionDialog(true);
-                                  }}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </>
-                            )}
-                            {app.status === "active" && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
-                                title="إدارة الأقساط"
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuItem
                                 onClick={() => {
                                   setSelectedApplication(app);
                                   setShowDetailsDialog(true);
                                 }}
                               >
-                                <CreditCard className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
+                                <Eye className="h-4 w-4 ml-2" />
+                                عرض التفاصيل
+                              </DropdownMenuItem>
+                              
+                              {app.status === "pending" && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() => underReviewMutation.mutate(app.id)}
+                                    className="text-blue-400"
+                                  >
+                                    <Eye className="h-4 w-4 ml-2" />
+                                    بدء المراجعة
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                              
+                              {(app.status === "pending" || app.status === "under_review" || app.status === "documents_required") && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setSelectedApplication(app);
+                                      setDocumentsData({ required_documents: "", admin_notes: "" });
+                                      setShowDocumentsDialog(true);
+                                    }}
+                                    className="text-purple-400"
+                                  >
+                                    <FileQuestion className="h-4 w-4 ml-2" />
+                                    طلب مستندات
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setSelectedApplication(app);
+                                      setApprovalData({ approved_amount: app.requested_amount.toString(), admin_notes: "" });
+                                      setShowApprovalDialog(true);
+                                    }}
+                                    className="text-green-400"
+                                  >
+                                    <Check className="h-4 w-4 ml-2" />
+                                    الموافقة
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setSelectedApplication(app);
+                                      setRejectionData({ rejection_reason: "" });
+                                      setShowRejectionDialog(true);
+                                    }}
+                                    className="text-red-400"
+                                  >
+                                    <X className="h-4 w-4 ml-2" />
+                                    الرفض
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                              
+                              {app.status === "active" && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setSelectedApplication(app);
+                                      setShowDetailsDialog(true);
+                                    }}
+                                    className="text-blue-400"
+                                  >
+                                    <CreditCard className="h-4 w-4 ml-2" />
+                                    إدارة الأقساط
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                              
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedApplication(app);
+                                  setEditData({ status: app.status, admin_notes: app.admin_notes || "" });
+                                  setShowEditDialog(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4 ml-2" />
+                                تعديل الطلب
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </td>
                       </motion.tr>
                     ))}
@@ -604,6 +769,19 @@ export default function AdminFinancing() {
             
             {selectedApplication && (
               <div className="space-y-6">
+                {/* Status Badge */}
+                <div className="flex items-center justify-between">
+                  <Badge className={`${statusConfig[selectedApplication.status]?.color} flex items-center gap-1`}>
+                    {statusConfig[selectedApplication.status]?.icon}
+                    {statusConfig[selectedApplication.status]?.label}
+                  </Badge>
+                  {selectedApplication.reviewed_at && (
+                    <span className="text-sm text-muted-foreground">
+                      آخر تحديث: {format(new Date(selectedApplication.reviewed_at), "dd/MM/yyyy HH:mm", { locale: ar })}
+                    </span>
+                  )}
+                </div>
+
                 {/* Applicant Info */}
                 <Card>
                   <CardHeader className="pb-3">
@@ -617,11 +795,17 @@ export default function AdminFinancing() {
                     <div><span className="text-muted-foreground">الهوية:</span> {selectedApplication.national_id}</div>
                     <div><span className="text-muted-foreground">الهاتف:</span> {selectedApplication.phone}</div>
                     <div><span className="text-muted-foreground">البريد:</span> {selectedApplication.email}</div>
+                    {selectedApplication.address && (
+                      <div className="col-span-2"><span className="text-muted-foreground">العنوان:</span> {selectedApplication.address}</div>
+                    )}
                     {selectedApplication.company_name && (
                       <div><span className="text-muted-foreground">الشركة:</span> {selectedApplication.company_name}</div>
                     )}
                     {selectedApplication.commercial_register && (
                       <div><span className="text-muted-foreground">السجل التجاري:</span> {selectedApplication.commercial_register}</div>
+                    )}
+                    {selectedApplication.tax_number && (
+                      <div><span className="text-muted-foreground">الرقم الضريبي:</span> {selectedApplication.tax_number}</div>
                     )}
                   </CardContent>
                 </Card>
@@ -644,6 +828,26 @@ export default function AdminFinancing() {
                     )}
                   </CardContent>
                 </Card>
+
+                {/* Admin Notes */}
+                {selectedApplication.admin_notes && (
+                  <Card className="bg-blue-500/10 border-blue-500/30">
+                    <CardContent className="p-4">
+                      <h4 className="font-medium text-blue-400 mb-2">ملاحظات الإدارة</h4>
+                      <p className="text-sm whitespace-pre-wrap">{selectedApplication.admin_notes}</p>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Rejection Reason */}
+                {selectedApplication.rejection_reason && (
+                  <Card className="bg-red-500/10 border-red-500/30">
+                    <CardContent className="p-4">
+                      <h4 className="font-medium text-red-400 mb-2">سبب الرفض</h4>
+                      <p className="text-sm">{selectedApplication.rejection_reason}</p>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Installments */}
                 {installments.length > 0 && (
@@ -694,6 +898,56 @@ export default function AdminFinancing() {
                   </Card>
                 )}
 
+                {/* Action Buttons for pending applications */}
+                {(selectedApplication.status === "pending" || selectedApplication.status === "under_review" || selectedApplication.status === "documents_required") && (
+                  <div className="flex flex-wrap gap-2 pt-4 border-t">
+                    {selectedApplication.status === "pending" && (
+                      <Button
+                        variant="outline"
+                        onClick={() => underReviewMutation.mutate(selectedApplication.id)}
+                        disabled={underReviewMutation.isPending}
+                      >
+                        <Eye className="h-4 w-4 ml-2" />
+                        بدء المراجعة
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      className="text-purple-400 border-purple-500/30 hover:bg-purple-500/10"
+                      onClick={() => {
+                        setDocumentsData({ required_documents: "", admin_notes: "" });
+                        setShowDocumentsDialog(true);
+                        setShowDetailsDialog(false);
+                      }}
+                    >
+                      <FileQuestion className="h-4 w-4 ml-2" />
+                      طلب مستندات
+                    </Button>
+                    <Button
+                      className="bg-green-600 hover:bg-green-700"
+                      onClick={() => {
+                        setApprovalData({ approved_amount: selectedApplication.requested_amount.toString(), admin_notes: "" });
+                        setShowApprovalDialog(true);
+                        setShowDetailsDialog(false);
+                      }}
+                    >
+                      <Check className="h-4 w-4 ml-2" />
+                      الموافقة
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => {
+                        setRejectionData({ rejection_reason: "" });
+                        setShowRejectionDialog(true);
+                        setShowDetailsDialog(false);
+                      }}
+                    >
+                      <X className="h-4 w-4 ml-2" />
+                      الرفض
+                    </Button>
+                  </div>
+                )}
+
                 {/* Contract Notice */}
                 {selectedApplication.status === "active" && (
                   <Card className="bg-amber-500/10 border-amber-500/30">
@@ -729,6 +983,11 @@ export default function AdminFinancing() {
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
+              <div className="p-3 rounded-lg bg-muted/30 text-sm">
+                <p><strong>رقم الطلب:</strong> {selectedApplication?.application_number}</p>
+                <p><strong>العميل:</strong> {selectedApplication?.full_name}</p>
+                <p><strong>المبلغ المطلوب:</strong> {selectedApplication?.requested_amount.toFixed(2)} ر.س</p>
+              </div>
               <div>
                 <Label>المبلغ الموافق عليه (ر.س)</Label>
                 <Input
@@ -738,13 +997,16 @@ export default function AdminFinancing() {
                 />
               </div>
               <div>
-                <Label>ملاحظات الإدارة</Label>
+                <Label>ملاحظات الإدارة (اختياري)</Label>
                 <Textarea
                   value={approvalData.admin_notes}
                   onChange={(e) => setApprovalData({ ...approvalData, admin_notes: e.target.value })}
                   placeholder="ملاحظات اختيارية..."
                 />
               </div>
+              <p className="text-sm text-muted-foreground">
+                سيتم إضافة المبلغ لرصيد العميل وإنشاء جدول الأقساط وإرسال إشعار بالبريد الإلكتروني.
+              </p>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowApprovalDialog(false)}>إلغاء</Button>
@@ -758,7 +1020,7 @@ export default function AdminFinancing() {
                     });
                   }
                 }}
-                disabled={approveMutation.isPending}
+                disabled={approveMutation.isPending || !approvalData.approved_amount}
                 className="bg-green-600 hover:bg-green-700"
               >
                 {approveMutation.isPending ? "جاري المعالجة..." : "تأكيد الموافقة"}
@@ -777,8 +1039,12 @@ export default function AdminFinancing() {
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
+              <div className="p-3 rounded-lg bg-muted/30 text-sm">
+                <p><strong>رقم الطلب:</strong> {selectedApplication?.application_number}</p>
+                <p><strong>العميل:</strong> {selectedApplication?.full_name}</p>
+              </div>
               <div>
-                <Label>سبب الرفض</Label>
+                <Label>سبب الرفض <span className="text-red-400">*</span></Label>
                 <Textarea
                   value={rejectionData.rejection_reason}
                   onChange={(e) => setRejectionData({ rejection_reason: e.target.value })}
@@ -786,10 +1052,14 @@ export default function AdminFinancing() {
                   required
                 />
               </div>
+              <p className="text-sm text-muted-foreground">
+                سيتم إرسال إشعار بالرفض للعميل عبر البريد الإلكتروني.
+              </p>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowRejectionDialog(false)}>إلغاء</Button>
               <Button
+                variant="destructive"
                 onClick={() => {
                   if (selectedApplication && rejectionData.rejection_reason) {
                     rejectMutation.mutate({
@@ -799,9 +1069,123 @@ export default function AdminFinancing() {
                   }
                 }}
                 disabled={rejectMutation.isPending || !rejectionData.rejection_reason}
-                variant="destructive"
               >
                 {rejectMutation.isPending ? "جاري المعالجة..." : "تأكيد الرفض"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Documents Required Dialog */}
+        <Dialog open={showDocumentsDialog} onOpenChange={setShowDocumentsDialog}>
+          <DialogContent dir="rtl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-purple-400">
+                <FileQuestion className="h-5 w-5" />
+                طلب مستندات إضافية
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="p-3 rounded-lg bg-muted/30 text-sm">
+                <p><strong>رقم الطلب:</strong> {selectedApplication?.application_number}</p>
+                <p><strong>العميل:</strong> {selectedApplication?.full_name}</p>
+              </div>
+              <div>
+                <Label>المستندات المطلوبة <span className="text-red-400">*</span></Label>
+                <Textarea
+                  value={documentsData.required_documents}
+                  onChange={(e) => setDocumentsData({ ...documentsData, required_documents: e.target.value })}
+                  placeholder="مثال: صورة الهوية، كشف حساب بنكي، إثبات الدخل..."
+                  required
+                />
+              </div>
+              <div>
+                <Label>ملاحظات إضافية (اختياري)</Label>
+                <Textarea
+                  value={documentsData.admin_notes}
+                  onChange={(e) => setDocumentsData({ ...documentsData, admin_notes: e.target.value })}
+                  placeholder="أي ملاحظات إضافية..."
+                />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                سيتم إرسال إشعار للعميل بالمستندات المطلوبة عبر البريد الإلكتروني.
+              </p>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowDocumentsDialog(false)}>إلغاء</Button>
+              <Button
+                onClick={() => {
+                  if (selectedApplication && documentsData.required_documents) {
+                    requestDocumentsMutation.mutate({
+                      id: selectedApplication.id,
+                      required_documents: documentsData.required_documents,
+                      admin_notes: documentsData.admin_notes,
+                    });
+                  }
+                }}
+                disabled={requestDocumentsMutation.isPending || !documentsData.required_documents}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                <Send className="h-4 w-4 ml-2" />
+                {requestDocumentsMutation.isPending ? "جاري الإرسال..." : "إرسال الطلب"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Dialog */}
+        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+          <DialogContent dir="rtl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Edit className="h-5 w-5" />
+                تعديل طلب التمويل
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="p-3 rounded-lg bg-muted/30 text-sm">
+                <p><strong>رقم الطلب:</strong> {selectedApplication?.application_number}</p>
+                <p><strong>العميل:</strong> {selectedApplication?.full_name}</p>
+              </div>
+              <div>
+                <Label>الحالة</Label>
+                <Select value={editData.status} onValueChange={(v) => setEditData({ ...editData, status: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">قيد الانتظار</SelectItem>
+                    <SelectItem value="under_review">قيد المراجعة</SelectItem>
+                    <SelectItem value="documents_required">مستندات مطلوبة</SelectItem>
+                    <SelectItem value="cancelled">ملغي</SelectItem>
+                    <SelectItem value="defaulted">متعثر</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>ملاحظات الإدارة</Label>
+                <Textarea
+                  value={editData.admin_notes}
+                  onChange={(e) => setEditData({ ...editData, admin_notes: e.target.value })}
+                  placeholder="ملاحظات..."
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowEditDialog(false)}>إلغاء</Button>
+              <Button
+                onClick={() => {
+                  if (selectedApplication) {
+                    editApplicationMutation.mutate({
+                      id: selectedApplication.id,
+                      status: editData.status,
+                      admin_notes: editData.admin_notes,
+                    });
+                  }
+                }}
+                disabled={editApplicationMutation.isPending}
+              >
+                {editApplicationMutation.isPending ? "جاري الحفظ..." : "حفظ التغييرات"}
               </Button>
             </DialogFooter>
           </DialogContent>
