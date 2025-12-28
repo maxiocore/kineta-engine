@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { 
   Landmark, 
@@ -16,6 +16,7 @@ import {
   CheckCircle2, 
   XCircle, 
   AlertTriangle,
+  AlertCircle,
   CreditCard,
   Calendar,
   Plus,
@@ -25,12 +26,15 @@ import {
   TrendingUp,
   DollarSign,
   ChevronRight,
+  ChevronDown,
   Calculator,
   BookOpen,
   UserCheck,
   Eye,
   Receipt,
-  ScrollText
+  ScrollText,
+  Percent,
+  Check
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -500,96 +504,214 @@ export default function ClientFinancing() {
           {/* Applications Tab */}
           <TabsContent value="applications" className="space-y-4">
             {applications.length === 0 ? (
-              <Card>
+              <Card className="border-dashed">
                 <CardContent className="p-8 text-center">
-                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 200 }}
+                    className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 mx-auto mb-4 flex items-center justify-center"
+                  >
+                    <FileText className="h-10 w-10 text-emerald-400" />
+                  </motion.div>
                   <h3 className="text-lg font-semibold mb-2">لا توجد طلبات تمويل</h3>
                   <p className="text-muted-foreground mb-4">ابدأ بتقديم طلب تمويل للحصول على خدماتك الآن</p>
-                  <Button asChild>
-                    <Link to="/dashboard/financing/apply">
-                      <Plus className="h-4 w-4 ml-2" />
-                      تقديم طلب
-                    </Link>
-                  </Button>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button asChild className="bg-gradient-to-r from-emerald-500 to-teal-600">
+                      <Link to="/dashboard/financing/apply">
+                        <Plus className="h-4 w-4 ml-2" />
+                        تقديم طلب جديد
+                      </Link>
+                    </Button>
+                  </motion.div>
                 </CardContent>
               </Card>
             ) : (
               <div className="space-y-4">
-                {applications.map((app) => (
-                  <motion.div key={app.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                    <Card className={`transition-all ${selectedApplication?.id === app.id ? "ring-2 ring-primary" : ""}`}>
-                      <CardContent className="p-4">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <h4 className="font-semibold">#{app.application_number}</h4>
-                              <Badge className={statusConfig[app.status]?.color || "bg-muted"}>
-                                {statusConfig[app.status]?.icon}
-                                <span className="mr-1">{statusConfig[app.status]?.label || app.status}</span>
-                              </Badge>
+                {/* Applications Header */}
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-lg">جميع الطلبات ({applications.length})</h3>
+                  <Button asChild size="sm" className="bg-gradient-to-r from-emerald-500 to-teal-600">
+                    <Link to="/dashboard/financing/apply">
+                      <Plus className="h-4 w-4 ml-1" />
+                      طلب جديد
+                    </Link>
+                  </Button>
+                </div>
+
+                {applications.map((app, index) => (
+                  <motion.div 
+                    key={app.id} 
+                    initial={{ opacity: 0, y: 20 }} 
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card className={`overflow-hidden transition-all duration-300 hover:shadow-lg ${
+                      selectedApplication?.id === app.id ? "ring-2 ring-primary shadow-lg" : ""
+                    } ${app.status === 'active' ? 'border-emerald-500/30' : ''}`}>
+                      {/* Status Bar */}
+                      <div className={`h-1.5 ${
+                        app.status === 'active' ? 'bg-gradient-to-r from-emerald-400 to-teal-500' :
+                        app.status === 'approved' ? 'bg-gradient-to-r from-blue-400 to-cyan-500' :
+                        app.status === 'pending' ? 'bg-gradient-to-r from-amber-400 to-yellow-500' :
+                        app.status === 'rejected' ? 'bg-gradient-to-r from-red-400 to-rose-500' :
+                        'bg-muted'
+                      }`} />
+                      
+                      <CardContent className="p-4 sm:p-5">
+                        {/* Header Row */}
+                        <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                              app.status === 'active' ? 'bg-emerald-500/20' :
+                              app.status === 'approved' ? 'bg-blue-500/20' :
+                              app.status === 'pending' ? 'bg-amber-500/20' :
+                              app.status === 'rejected' ? 'bg-red-500/20' :
+                              'bg-muted'
+                            }`}>
+                              {statusConfig[app.status]?.icon || <FileText className="h-5 w-5" />}
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                              <div>
-                                <span className="text-muted-foreground">المبلغ المطلوب:</span>
-                                <p className="font-medium">{app.requested_amount} ر.س</p>
-                              </div>
-                              {app.approved_amount && (
-                                <div>
-                                  <span className="text-muted-foreground">المبلغ المعتمد:</span>
-                                  <p className="font-medium text-emerald-400">{app.approved_amount} ر.س</p>
-                                </div>
-                              )}
-                              <div>
-                                <span className="text-muted-foreground">الخطة:</span>
-                                <p className="font-medium">{app.financing_plans?.name_ar}</p>
-                              </div>
-                              <div>
-                                <span className="text-muted-foreground">تاريخ التقديم:</span>
-                                <p className="font-medium">{format(new Date(app.submitted_at), "dd/MM/yyyy", { locale: ar })}</p>
-                              </div>
+                            <div>
+                              <h4 className="font-bold text-lg">#{app.application_number}</h4>
+                              <p className="text-xs text-muted-foreground">
+                                {format(new Date(app.submitted_at), "dd MMMM yyyy", { locale: ar })}
+                              </p>
                             </div>
-                            {app.rejection_reason && (
-                              <div className="mt-3 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
-                                <p className="text-sm text-red-400">
-                                  <strong>سبب الرفض:</strong> {app.rejection_reason}
-                                </p>
-                              </div>
-                            )}
                           </div>
-                          {app.status === "active" && (
-                            <Button variant="outline" size="sm" onClick={() => setSelectedApplication(selectedApplication?.id === app.id ? null : app)}>
-                              <Eye className="h-4 w-4 ml-2" />
-                              {selectedApplication?.id === app.id ? "إخفاء الأقساط" : "عرض الأقساط"}
-                            </Button>
-                          )}
+                          <Badge className={`${statusConfig[app.status]?.color || "bg-muted"} px-3 py-1`}>
+                            {statusConfig[app.status]?.label || app.status}
+                          </Badge>
                         </div>
 
-                        {/* Installments */}
-                        {selectedApplication?.id === app.id && installments.length > 0 && (
-                          <div className="mt-4 pt-4 border-t border-border">
-                            <h5 className="font-medium mb-3">جدول الأقساط</h5>
-                            <div className="space-y-2">
-                              {installments.map((inst) => (
-                                <div key={inst.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold">
-                                      {inst.installment_number}
-                                    </div>
-                                    <div>
-                                      <p className="font-medium">{inst.amount.toFixed(2)} ر.س</p>
-                                      <p className="text-xs text-muted-foreground">
-                                        {format(new Date(inst.due_date), "dd MMMM yyyy", { locale: ar })}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <Badge className={installmentStatusConfig[inst.status]?.color}>
-                                    {installmentStatusConfig[inst.status]?.label}
-                                  </Badge>
-                                </div>
-                              ))}
+                        {/* Details Grid */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                          <div className="p-3 rounded-lg bg-muted/50">
+                            <p className="text-xs text-muted-foreground mb-1">المبلغ المطلوب</p>
+                            <p className="font-bold text-base">{app.requested_amount.toLocaleString("ar-SA")} <span className="text-xs text-muted-foreground">ر.س</span></p>
+                          </div>
+                          {app.approved_amount && (
+                            <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                              <p className="text-xs text-emerald-400 mb-1">المبلغ المعتمد</p>
+                              <p className="font-bold text-base text-emerald-400">{app.approved_amount.toLocaleString("ar-SA")} <span className="text-xs">ر.س</span></p>
+                            </div>
+                          )}
+                          <div className="p-3 rounded-lg bg-muted/50">
+                            <p className="text-xs text-muted-foreground mb-1">خطة التمويل</p>
+                            <p className="font-medium text-sm">{app.financing_plans?.name_ar || "-"}</p>
+                          </div>
+                          <div className="p-3 rounded-lg bg-muted/50">
+                            <p className="text-xs text-muted-foreground mb-1">عدد الأقساط</p>
+                            <p className="font-bold text-base">{app.financing_plans?.installments_count || "-"} <span className="text-xs text-muted-foreground">قسط</span></p>
+                          </div>
+                        </div>
+
+                        {/* Rejection Reason */}
+                        {app.rejection_reason && (
+                          <motion.div 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30"
+                          >
+                            <div className="flex items-start gap-2">
+                              <AlertCircle className="h-4 w-4 text-red-400 flex-shrink-0 mt-0.5" />
+                              <div>
+                                <p className="text-sm font-medium text-red-400">سبب الرفض:</p>
+                                <p className="text-sm text-red-300/80">{app.rejection_reason}</p>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+
+                        {/* Administrative Fee Notice for Active */}
+                        {app.status === 'active' && (
+                          <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Percent className="h-4 w-4 text-blue-400" />
+                                <span className="text-sm text-blue-300">رسوم إدارية 5% تُضاف مع آخر قسط</span>
+                              </div>
+                              <span className="font-bold text-blue-400">
+                                {((app.approved_amount || app.requested_amount) * 0.05).toLocaleString("ar-SA")} ر.س
+                              </span>
                             </div>
                           </div>
                         )}
+
+                        {/* Action Button */}
+                        {app.status === "active" && (
+                          <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                            <Button 
+                              variant="outline" 
+                              className="w-full"
+                              onClick={() => setSelectedApplication(selectedApplication?.id === app.id ? null : app)}
+                            >
+                              <Eye className="h-4 w-4 ml-2" />
+                              {selectedApplication?.id === app.id ? "إخفاء الأقساط" : "عرض جدول الأقساط"}
+                              <ChevronDown className={`h-4 w-4 mr-2 transition-transform ${selectedApplication?.id === app.id ? 'rotate-180' : ''}`} />
+                            </Button>
+                          </motion.div>
+                        )}
+
+                        {/* Installments Accordion */}
+                        <AnimatePresence>
+                          {selectedApplication?.id === app.id && installments.length > 0 && (
+                            <motion.div 
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="mt-4 pt-4 border-t border-border overflow-hidden"
+                            >
+                              <div className="flex items-center justify-between mb-3">
+                                <h5 className="font-semibold flex items-center gap-2">
+                                  <Calendar className="h-4 w-4 text-primary" />
+                                  جدول الأقساط
+                                </h5>
+                                <span className="text-xs text-muted-foreground">
+                                  {installments.filter(i => i.status === 'paid').length} / {installments.length} مدفوع
+                                </span>
+                              </div>
+                              <div className="space-y-2">
+                                {installments.map((inst, i) => (
+                                  <motion.div 
+                                    key={inst.id} 
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: i * 0.05 }}
+                                    className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+                                      inst.status === 'paid' 
+                                        ? 'bg-emerald-500/10 border border-emerald-500/20' 
+                                        : inst.status === 'pending' 
+                                          ? 'bg-amber-500/10 border border-amber-500/20' 
+                                          : 'bg-muted/50 border border-border'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
+                                        inst.status === 'paid' 
+                                          ? 'bg-emerald-500 text-white' 
+                                          : inst.status === 'pending'
+                                            ? 'bg-amber-500/20 text-amber-400 border-2 border-amber-500'
+                                            : 'bg-muted text-muted-foreground'
+                                      }`}>
+                                        {inst.status === 'paid' ? <Check className="h-5 w-5" /> : inst.installment_number}
+                                      </div>
+                                      <div>
+                                        <p className="font-bold">{inst.amount.toLocaleString("ar-SA")} ر.س</p>
+                                        <p className="text-xs text-muted-foreground">
+                                          {format(new Date(inst.due_date), "dd MMMM yyyy", { locale: ar })}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <Badge className={`${installmentStatusConfig[inst.status]?.color} px-2 py-0.5 text-xs`}>
+                                      {installmentStatusConfig[inst.status]?.label}
+                                    </Badge>
+                                  </motion.div>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </CardContent>
                     </Card>
                   </motion.div>
