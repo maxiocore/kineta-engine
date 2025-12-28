@@ -76,8 +76,8 @@ export default function SignPromissoryNote() {
         for (const admin of admins) {
           await supabase.from("notifications").insert({
             user_id: admin.user_id,
-            title: "تم توقيع السند التنفيذي",
-            message: `قام العميل بتوقيع السند التنفيذي للطلب رقم ${application?.application_number}. يمكنك الآن تفعيل التمويل.`,
+            title: "تم توقيع الكمبيالة",
+            message: `قام العميل بتوقيع الكمبيالة للطلب رقم ${application?.application_number}. يمكنك الآن تفعيل التمويل.`,
             type: "success",
           });
         }
@@ -86,7 +86,7 @@ export default function SignPromissoryNote() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["financing-application-promissory"] });
       queryClient.invalidateQueries({ queryKey: ["my-financing-applications"] });
-      toast.success("تم توقيع السند التنفيذي بنجاح! سيتم تفعيل التمويل قريباً بعد التحقق");
+      toast.success("تم توقيع الكمبيالة بنجاح! سيتم تفعيل التمويل قريباً بعد التحقق");
     },
     onError: (error) => {
       toast.error("حدث خطأ أثناء حفظ التوقيع");
@@ -129,8 +129,8 @@ export default function SignPromissoryNote() {
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
             {application.promissory_note_url 
-              ? "تم توقيع السند التنفيذي مسبقاً" 
-              : "هذا الطلب غير جاهز لتوقيع السند التنفيذي حالياً"}
+              ? "تم توقيع الكمبيالة مسبقاً" 
+              : "هذا الطلب غير جاهز لتوقيع الكمبيالة حالياً"}
           </AlertDescription>
         </Alert>
         <Button onClick={() => navigate("/dashboard/financing")} className="mt-4">
@@ -159,9 +159,12 @@ export default function SignPromissoryNote() {
               <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600">
                 <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
-              السند التنفيذي
+              الكمبيالة
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
+              كمبيالة تجارية وفق نظام الأوراق التجارية السعودي
+            </p>
+            <p className="text-xs text-muted-foreground">
               طلب رقم: {application.application_number}
             </p>
           </div>
@@ -181,8 +184,8 @@ export default function SignPromissoryNote() {
                     <FileText className="h-8 w-8 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white">سند لأمر</h2>
-                    <p className="text-indigo-300 text-sm">سند تنفيذي وفق نظام التنفيذ السعودي</p>
+                    <h2 className="text-2xl font-bold text-white">كمبيالة تجارية</h2>
+                    <p className="text-indigo-300 text-sm">ورقة تجارية وفق نظام الأوراق التجارية السعودي</p>
                   </div>
                 </div>
                 <Badge className={`text-sm px-4 py-2 ${isSigned ? "bg-emerald-500" : "bg-yellow-500"}`}>
@@ -213,45 +216,88 @@ export default function SignPromissoryNote() {
               </div>
 
               {/* Promissory Note Content */}
-              <div className="p-6 bg-slate-900/50 border-2 border-slate-700 rounded-xl">
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-amber-400 mb-2">سند لأمر</h3>
-                  <p className="text-sm text-muted-foreground">
-                    التاريخ: {format(new Date(), "dd/MM/yyyy", { locale: ar })}
-                  </p>
+              <div className="p-6 bg-slate-900/50 border-2 border-amber-600/50 rounded-xl">
+                {/* كمبيالة Header */}
+                <div className="text-center mb-6 pb-4 border-b-2 border-amber-500/30">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground">المبلغ بالأرقام</p>
+                      <p className="font-bold text-xl text-amber-400">{amount.toLocaleString()} ر.س</p>
+                    </div>
+                    <div className="text-center">
+                      <h3 className="text-3xl font-bold text-amber-400 mb-1">كمبيالة</h3>
+                      <p className="text-xs text-muted-foreground">BILL OF EXCHANGE</p>
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs text-muted-foreground">التاريخ</p>
+                      <p className="font-bold">{format(new Date(), "dd/MM/yyyy", { locale: ar })}</p>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="space-y-4 text-sm leading-relaxed">
-                  <p className="text-center text-lg">
-                    أتعهد أنا الموقع أدناه <span className="font-bold text-amber-400">{application.full_name}</span>
-                  </p>
-                  <p className="text-center text-lg">
-                    صاحب هوية رقم <span className="font-bold font-mono text-amber-400">{application.national_id}</span>
-                  </p>
-                  <p className="text-center text-lg mt-4">
-                    بأن أدفع لأمر <span className="font-bold text-emerald-400">شركة علي صالح الشهري القابضة</span>
-                  </p>
-                  <p className="text-center text-lg">
-                    (سجل تجاري رقم: <span className="font-mono">4030554749</span>)
-                  </p>
-                  <p className="text-center text-2xl font-bold text-primary my-6">
-                    مبلغ وقدره: {amount.toLocaleString()} ريال سعودي
-                  </p>
-                  <p className="text-center text-lg">
-                    يُسدد على <span className="font-bold">{application.financing_plans?.installments_count || 1}</span> قسط شهري متساوي
-                  </p>
-                  <p className="text-center text-lg">
-                    بقيمة <span className="font-bold">{installmentAmount.toLocaleString()}</span> ريال للقسط الواحد
-                  </p>
-                  <p className="text-center text-lg mt-4">
-                    تُستحق في يوم <span className="font-bold">30</span> من كل شهر ميلادي
-                  </p>
+                <div className="space-y-5 text-sm leading-relaxed">
+                  {/* مكان الإنشاء */}
+                  <div className="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg">
+                    <span className="text-muted-foreground">مكان الإنشاء:</span>
+                    <span className="font-bold">المملكة العربية السعودية</span>
+                  </div>
+
+                  {/* الساحب (المدين) */}
+                  <div className="p-4 border border-slate-600 rounded-lg">
+                    <p className="text-amber-400 font-bold mb-2">الساحب (المسحوب عليه):</p>
+                    <p className="text-lg">
+                      أنا الموقع أدناه <span className="font-bold text-amber-400">{application.full_name}</span>
+                    </p>
+                    <p className="text-lg">
+                      هوية رقم: <span className="font-bold font-mono text-amber-400">{application.national_id}</span>
+                    </p>
+                  </div>
+
+                  {/* المستفيد */}
+                  <div className="p-4 border border-emerald-600/50 rounded-lg bg-emerald-500/5">
+                    <p className="text-emerald-400 font-bold mb-2">المستفيد (لأمر):</p>
+                    <p className="text-lg">
+                      <span className="font-bold text-emerald-400">شركة علي صالح الشهري القابضة</span>
+                    </p>
+                    <p className="text-sm">سجل تجاري رقم: <span className="font-mono">4030554749</span></p>
+                  </div>
+
+                  {/* المبلغ */}
+                  <div className="p-4 bg-primary/10 border-2 border-primary/30 rounded-lg text-center">
+                    <p className="text-sm text-muted-foreground mb-1">مبلغ وقدره</p>
+                    <p className="text-2xl font-bold text-primary">{amount.toLocaleString()} ريال سعودي</p>
+                    <p className="text-sm text-muted-foreground mt-1">(فقط {amount.toLocaleString()} ريال سعودي لا غير)</p>
+                  </div>
+
+                  {/* شروط السداد */}
+                  <div className="p-4 bg-slate-800/30 rounded-lg">
+                    <p className="text-amber-400 font-bold mb-3">شروط السداد:</p>
+                    <div className="grid gap-2">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">عدد الأقساط:</span>
+                        <span className="font-bold">{application.financing_plans?.installments_count || 1} قسط شهري</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">قيمة القسط:</span>
+                        <span className="font-bold">{installmentAmount.toLocaleString()} ريال</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">تاريخ الاستحقاق:</span>
+                        <span className="font-bold">يوم 30 من كل شهر ميلادي</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* الشرط الإضافي */}
+                  <div className="p-3 bg-slate-700/30 rounded-lg text-center text-sm">
+                    <p>هذه الكمبيالة صادرة بموجب عقد تمويل رقم: <span className="font-bold text-primary">{application.contract_number}</span></p>
+                  </div>
                 </div>
 
-                <div className="mt-8 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <div className="mt-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
                   <p className="text-sm text-red-400 text-center">
                     <AlertTriangle className="h-4 w-4 inline ml-1" />
-                    هذا السند قابل للتنفيذ مباشرة دون الحاجة إلى حكم قضائي وفقاً لنظام التنفيذ السعودي
+                    هذه الكمبيالة ورقة تجارية قابلة للتنفيذ وفقاً لنظام الأوراق التجارية السعودي
                   </p>
                 </div>
               </div>
@@ -281,20 +327,20 @@ export default function SignPromissoryNote() {
 
               {/* Signature Section */}
               <div className="space-y-4 pt-6 border-t">
-                <h3 className="font-bold text-lg">توقيع المدين</h3>
+                <h3 className="font-bold text-lg">توقيع الساحب (المسحوب عليه)</h3>
                 
                 {!isSigned ? (
                   <div className="space-y-4">
                     {!showSignature ? (
-                      <div className="p-6 border-2 border-dashed border-indigo-500/50 rounded-xl text-center">
-                        <AlertTriangle className="h-12 w-12 text-indigo-400 mx-auto mb-3" />
-                        <p className="text-muted-foreground mb-4">يجب توقيع السند التنفيذي للموافقة على الالتزام بالسداد</p>
+                      <div className="p-6 border-2 border-dashed border-amber-500/50 rounded-xl text-center">
+                        <PenTool className="h-12 w-12 text-amber-400 mx-auto mb-3" />
+                        <p className="text-muted-foreground mb-4">يجب توقيع الكمبيالة للموافقة على الالتزام بالسداد</p>
                         <Button 
                           onClick={() => setShowSignature(true)}
-                          className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600"
+                          className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
                         >
                           <PenTool className="h-4 w-4 ml-2" />
-                          التوقيع الآن
+                          توقيع الكمبيالة
                         </Button>
                       </div>
                     ) : (
@@ -309,7 +355,7 @@ export default function SignPromissoryNote() {
                           <Check className="h-6 w-6 text-white" />
                         </div>
                         <div>
-                          <p className="font-bold text-emerald-400">تم توقيع السند التنفيذي بنجاح</p>
+                          <p className="font-bold text-emerald-400">تم توقيع الكمبيالة بنجاح</p>
                           <p className="text-sm text-muted-foreground">
                             سيتم تفعيل التمويل بعد التحقق من الإدارة
                           </p>
