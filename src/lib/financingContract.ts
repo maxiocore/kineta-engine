@@ -1,5 +1,4 @@
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 
@@ -70,625 +69,403 @@ const numberToArabicWords = (num: number): string => {
 };
 
 export async function generateFinancingContract(data: FinancingContractData): Promise<void> {
-  const contractHtml = `
-    <!DOCTYPE html>
-    <html dir="rtl" lang="ar">
-    <head>
-      <meta charset="UTF-8">
-      <style>
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          font-family: 'Segoe UI', 'Arial', 'Tahoma', sans-serif;
-        }
-        
-        .contract-page {
-          width: 210mm;
-          min-height: 297mm;
-          background: #ffffff;
-          direction: rtl;
-          text-align: right;
-          padding: 0;
-        }
-        
-        /* Header */
-        .header {
-          background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-          padding: 30px 40px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          border-bottom: 4px solid #f59e0b;
-        }
-        
-        .logo-section {
-          display: flex;
-          align-items: center;
-          gap: 15px;
-        }
-        
-        .logo-box {
-          width: 60px;
-          height: 60px;
-          background: linear-gradient(135deg, #f59e0b, #eab308);
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 28px;
-          font-weight: 900;
-          color: #1e293b;
-        }
-        
-        .company-info {
-          color: #ffffff;
-        }
-        
-        .company-name {
-          font-size: 22px;
-          font-weight: 800;
-          color: #f59e0b;
-        }
-        
-        .company-sub {
-          font-size: 12px;
-          color: #94a3b8;
-          margin-top: 2px;
-        }
-        
-        .contract-title-box {
-          background: rgba(245, 158, 11, 0.15);
-          padding: 12px 30px;
-          border-radius: 30px;
-          border: 1px solid rgba(245, 158, 11, 0.3);
-        }
-        
-        .contract-title {
-          font-size: 20px;
-          font-weight: 700;
-          color: #ffffff;
-        }
-        
-        /* Info Bar */
-        .info-bar {
-          background: #f8fafc;
-          padding: 20px 40px;
-          display: flex;
-          justify-content: space-between;
-          border-bottom: 2px solid #e2e8f0;
-        }
-        
-        .info-item {
-          text-align: center;
-        }
-        
-        .info-label {
-          font-size: 11px;
-          color: #64748b;
-          font-weight: 600;
-          margin-bottom: 4px;
-        }
-        
-        .info-value {
-          font-size: 14px;
-          font-weight: 700;
-          color: #1e293b;
-        }
-        
-        .info-value.gold {
-          color: #f59e0b;
-        }
-        
-        /* Content */
-        .content {
-          padding: 30px 40px;
-        }
-        
-        .section {
-          margin-bottom: 25px;
-        }
-        
-        .section-title {
-          font-size: 16px;
-          font-weight: 700;
-          color: #1e293b;
-          padding-bottom: 10px;
-          border-bottom: 2px solid #e2e8f0;
-          margin-bottom: 15px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        
-        .section-icon {
-          width: 24px;
-          height: 24px;
-          background: linear-gradient(135deg, #f59e0b, #eab308);
-          border-radius: 6px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #1e293b;
-          font-size: 12px;
-        }
-        
-        /* Parties */
-        .parties-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px;
-        }
-        
-        .party-box {
-          padding: 20px;
-          border-radius: 12px;
-          border: 2px solid #e2e8f0;
-        }
-        
-        .party-box.first {
-          background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(234, 179, 8, 0.05));
-          border-color: rgba(245, 158, 11, 0.3);
-        }
-        
-        .party-box.second {
-          background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(20, 184, 166, 0.05));
-          border-color: rgba(16, 185, 129, 0.3);
-        }
-        
-        .party-title {
-          font-size: 14px;
-          font-weight: 700;
-          margin-bottom: 12px;
-        }
-        
-        .party-title.first {
-          color: #f59e0b;
-        }
-        
-        .party-title.second {
-          color: #10b981;
-        }
-        
-        .party-row {
-          display: flex;
-          justify-content: space-between;
-          padding: 6px 0;
-          font-size: 12px;
-          border-bottom: 1px dashed #e2e8f0;
-        }
-        
-        .party-label {
-          color: #64748b;
-        }
-        
-        .party-value {
-          font-weight: 600;
-          color: #1e293b;
-        }
-        
-        /* Terms */
-        .term-box {
-          background: #f8fafc;
-          padding: 12px 16px;
-          border-radius: 8px;
-          margin-bottom: 8px;
-          border-right: 4px solid #f59e0b;
-        }
-        
-        .term-number {
-          display: inline-block;
-          background: #f59e0b;
-          color: #ffffff;
-          padding: 2px 10px;
-          border-radius: 15px;
-          font-size: 11px;
-          font-weight: 700;
-          margin-left: 8px;
-        }
-        
-        .term-text {
-          font-size: 12px;
-          line-height: 1.8;
-          color: #334155;
-        }
-        
-        .term-highlight {
-          color: #10b981;
-          font-weight: 700;
-        }
-        
-        /* Installments Table */
-        .table-wrapper {
-          overflow: hidden;
-          border-radius: 12px;
-          border: 2px solid #e2e8f0;
-        }
-        
-        table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-        
-        th {
-          background: #1e293b;
-          color: #ffffff;
-          padding: 12px;
-          font-size: 12px;
-          font-weight: 600;
-          text-align: right;
-        }
-        
-        td {
-          padding: 10px 12px;
-          font-size: 12px;
-          border-bottom: 1px solid #e2e8f0;
-          text-align: right;
-        }
-        
-        tr:nth-child(even) {
-          background: #f8fafc;
-        }
-        
-        tfoot td {
-          background: #f59e0b;
-          color: #1e293b;
-          font-weight: 700;
-        }
-        
-        /* Signature Section */
-        .signature-section {
-          margin-top: 30px;
-          padding-top: 20px;
-          border-top: 2px solid #e2e8f0;
-        }
-        
-        .signature-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 40px;
-          margin-top: 20px;
-        }
-        
-        .signature-box {
-          text-align: center;
-          padding: 20px;
-          border: 2px dashed #e2e8f0;
-          border-radius: 12px;
-          min-height: 120px;
-        }
-        
-        .signature-title {
-          font-size: 14px;
-          font-weight: 700;
-          color: #1e293b;
-          margin-bottom: 10px;
-        }
-        
-        .signature-img {
-          max-height: 60px;
-          margin: 10px auto;
-        }
-        
-        .signature-date {
-          font-size: 11px;
-          color: #64748b;
-          margin-top: 10px;
-        }
-        
-        /* Footer */
-        .footer {
-          background: #1e293b;
-          padding: 15px 40px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-top: 30px;
-        }
-        
-        .footer-text {
-          font-size: 10px;
-          color: #94a3b8;
-        }
-        
-        .footer-logo {
-          color: #f59e0b;
-          font-weight: 700;
-          font-size: 14px;
-        }
-        
-        /* Stamp */
-        .stamp {
-          width: 80px;
-          height: 80px;
-          border: 3px solid #10b981;
-          border-radius: 50%;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          color: #10b981;
-          font-size: 10px;
-          font-weight: 700;
-          text-align: center;
-          margin: 0 auto;
-          transform: rotate(-15deg);
-        }
-      </style>
-    </head>
-    <body>
-      <div class="contract-page">
-        <!-- Header -->
-        <div class="header">
-          <div class="logo-section">
-            <div class="logo-box">M</div>
-            <div class="company-info">
-              <div class="company-name">MaxioCore</div>
-              <div class="company-sub">شركة علي صالح الشهري القابضة</div>
-            </div>
-          </div>
-          <div class="contract-title-box">
-            <div class="contract-title">عقد التمويل</div>
-          </div>
-        </div>
-        
-        <!-- Info Bar -->
-        <div class="info-bar">
-          <div class="info-item">
-            <div class="info-label">رقم العقد</div>
-            <div class="info-value gold">${data.contractNumber}</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">رقم الطلب</div>
-            <div class="info-value">${data.applicationNumber}</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">تاريخ العقد</div>
-            <div class="info-value">${formatDateArabic(data.contractDate)}</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">مبلغ التمويل</div>
-            <div class="info-value gold">${formatAmountArabic(data.amount)} ر.س</div>
-          </div>
-        </div>
-        
-        <!-- Content -->
-        <div class="content">
-          <!-- Parties Section -->
-          <div class="section">
-            <div class="section-title">
-              <div class="section-icon">👥</div>
-              أطراف العقد
-            </div>
-            <div class="parties-grid">
-              <!-- First Party -->
-              <div class="party-box first">
-                <div class="party-title first">الطرف الأول (الممول)</div>
-                <div class="party-row">
-                  <span class="party-label">اسم الشركة:</span>
-                  <span class="party-value">شركة علي صالح الشهري القابضة</span>
-                </div>
-                <div class="party-row">
-                  <span class="party-label">السجل التجاري:</span>
-                  <span class="party-value">4030554749</span>
-                </div>
-                <div class="party-row">
-                  <span class="party-label">العنوان:</span>
-                  <span class="party-value">المملكة العربية السعودية</span>
-                </div>
-              </div>
-              
-              <!-- Second Party -->
-              <div class="party-box second">
-                <div class="party-title second">الطرف الثاني (المستفيد)</div>
-                <div class="party-row">
-                  <span class="party-label">الاسم الكامل:</span>
-                  <span class="party-value">${data.clientName}</span>
-                </div>
-                <div class="party-row">
-                  <span class="party-label">رقم الهوية:</span>
-                  <span class="party-value">${data.nationalId}</span>
-                </div>
-                <div class="party-row">
-                  <span class="party-label">رقم الجوال:</span>
-                  <span class="party-value">${data.phone}</span>
-                </div>
-                <div class="party-row">
-                  <span class="party-label">البريد الإلكتروني:</span>
-                  <span class="party-value">${data.email}</span>
-                </div>
-                <div class="party-row">
-                  <span class="party-label">العنوان:</span>
-                  <span class="party-value">${data.address}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Terms Section -->
-          <div class="section">
-            <div class="section-title">
-              <div class="section-icon">📋</div>
-              بنود وشروط العقد
-            </div>
-            
-            <div class="term-box">
-              <span class="term-number">البند الأول</span>
-              <span class="term-text">
-                يوافق الطرف الأول على تمويل الطرف الثاني بمبلغ 
-                <span class="term-highlight">${formatAmountArabic(data.amount)} ر.س</span>
-                (فقط ${numberToArabicWords(Math.floor(data.amount))} ريال سعودي لا غير).
-              </span>
-            </div>
-            
-            <div class="term-box">
-              <span class="term-number">البند الثاني</span>
-              <span class="term-text">
-                يقر الطرف الثاني بأن التمويل سيُستخدم حصرياً لشراء خدمات من منصة ماكسيوكور، ولا يمكن سحبه نقداً أو تحويله لأي جهة أخرى.
-              </span>
-            </div>
-            
-            <div class="term-box">
-              <span class="term-number">البند الثالث</span>
-              <span class="term-text">
-                يلتزم الطرف الثاني بسداد مبلغ التمويل على 
-                <span class="term-highlight">${data.installmentsCount} أقساط شهرية</span>
-                متساوية، تُستحق في يوم 30 من كل شهر ميلادي.
-              </span>
-            </div>
-            
-            <div class="term-box">
-              <span class="term-number">البند الرابع</span>
-              <span class="term-text">
-                هذا التمويل بدون فوائد أو رسوم إضافية، بشرط الالتزام بمواعيد السداد المحددة في هذا العقد.
-              </span>
-            </div>
-            
-            <div class="term-box">
-              <span class="term-number">البند الخامس</span>
-              <span class="term-text">
-                في حال تأخر السداد لمدة تتجاوز 30 يوماً، يحق للطرف الأول اتخاذ الإجراءات القانونية اللازمة لتحصيل المستحقات.
-              </span>
-            </div>
-            
-            <div class="term-box">
-              <span class="term-number">البند السادس</span>
-              <span class="term-text">
-                يقر الطرف الثاني بصحة جميع البيانات المقدمة ويتحمل المسؤولية الكاملة في حال تقديم بيانات غير صحيحة.
-              </span>
-            </div>
-            
-            <div class="term-box">
-              <span class="term-number">البند السابع</span>
-              <span class="term-text">
-                يخضع هذا العقد للأنظمة والقوانين المعمول بها في المملكة العربية السعودية، وأي نزاع ينشأ عنه يختص به القضاء السعودي.
-              </span>
-            </div>
-          </div>
-          
-          <!-- Installments Table -->
-          <div class="section">
-            <div class="section-title">
-              <div class="section-icon">📅</div>
-              جدول الأقساط
-            </div>
-            <div class="table-wrapper">
-              <table>
-                <thead>
-                  <tr>
-                    <th>رقم القسط</th>
-                    <th>المبلغ</th>
-                    <th>تاريخ الاستحقاق</th>
-                    <th>الحالة</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${data.installments.map(inst => `
-                    <tr>
-                      <td><strong>${inst.number}</strong></td>
-                      <td>${formatAmountArabic(inst.amount)} ر.س</td>
-                      <td>${formatDateArabic(inst.dueDate)}</td>
-                      <td>قيد الانتظار</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td><strong>الإجمالي</strong></td>
-                    <td><strong>${formatAmountArabic(data.amount)} ر.س</strong></td>
-                    <td colspan="2"></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-          
-          <!-- Signature Section -->
-          <div class="section signature-section">
-            <div class="section-title">
-              <div class="section-icon">✍️</div>
-              التوقيعات
-            </div>
-            <div class="signature-grid">
-              <!-- First Party Signature -->
-              <div class="signature-box">
-                <div class="signature-title">توقيع الطرف الأول</div>
-                <div class="stamp">
-                  <div>شركة علي صالح</div>
-                  <div>الشهري القابضة</div>
-                  <div style="font-size: 8px;">4030554749</div>
-                </div>
-                <div class="signature-date">التاريخ: ${formatDateArabic(data.contractDate)}</div>
-              </div>
-              
-              <!-- Second Party Signature -->
-              <div class="signature-box">
-                <div class="signature-title">توقيع الطرف الثاني</div>
-                ${data.signatureData ? `<img src="${data.signatureData}" class="signature-img" alt="توقيع" />` : '<div style="height: 60px;"></div>'}
-                <div class="signature-date">${data.clientName}</div>
-                <div class="signature-date">التاريخ: ${formatDateArabic(new Date())}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Footer -->
-        <div class="footer">
-          <div class="footer-text">
-            هذا العقد ملزم قانونياً للطرفين | السجل التجاري: 4030554749
-          </div>
-          <div class="footer-logo">MaxioCore</div>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
 
-  const container = document.createElement('div');
-  container.innerHTML = contractHtml;
-  container.style.position = 'absolute';
-  container.style.left = '-9999px';
-  container.style.top = '0';
-  container.style.width = '210mm';
-  container.style.background = 'white';
-  document.body.appendChild(container);
+  const pageWidth = 210;
+  const pageHeight = 297;
+  const margin = 15;
+  const contentWidth = pageWidth - (margin * 2);
+  let yPos = 0;
 
-  try {
-    await document.fonts.ready;
-    
-    const canvas = await html2canvas(container, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      backgroundColor: '#ffffff',
-    });
+  // Colors
+  const primaryColor: [number, number, number] = [245, 158, 11]; // Amber
+  const darkColor: [number, number, number] = [30, 41, 59]; // Slate 800
+  const grayColor: [number, number, number] = [100, 116, 139]; // Slate 500
+  const lightGray: [number, number, number] = [248, 250, 252]; // Slate 50
+  const greenColor: [number, number, number] = [16, 185, 129]; // Emerald
 
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    });
-
-    const imgWidth = 210;
-    const pageHeight = 297;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    
-    let heightLeft = imgHeight;
-    let position = 0;
-
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-
-    while (heightLeft >= 0) {
-      position = heightLeft - imgHeight;
+  // Helper function to add new page if needed
+  const checkNewPage = (neededHeight: number) => {
+    if (yPos + neededHeight > pageHeight - margin) {
       pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      yPos = margin;
+      return true;
     }
+    return false;
+  };
 
-    pdf.save(`عقد_التمويل_${data.contractNumber}.pdf`);
-  } finally {
-    document.body.removeChild(container);
+  // Helper to draw rounded rectangle
+  const drawRoundedRect = (x: number, y: number, w: number, h: number, r: number, fill: [number, number, number], stroke?: [number, number, number]) => {
+    pdf.setFillColor(...fill);
+    if (stroke) {
+      pdf.setDrawColor(...stroke);
+      pdf.setLineWidth(0.3);
+    }
+    pdf.roundedRect(x, y, w, h, r, r, stroke ? 'FD' : 'F');
+  };
+
+  // ============= HEADER =============
+  // Dark header background
+  pdf.setFillColor(...darkColor);
+  pdf.rect(0, 0, pageWidth, 35, 'F');
+  
+  // Amber accent line
+  pdf.setFillColor(...primaryColor);
+  pdf.rect(0, 35, pageWidth, 2, 'F');
+
+  // Logo box
+  pdf.setFillColor(...primaryColor);
+  pdf.roundedRect(margin, 8, 18, 18, 3, 3, 'F');
+  pdf.setTextColor(...darkColor);
+  pdf.setFontSize(14);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('M', margin + 9, 20, { align: 'center' });
+
+  // Company name
+  pdf.setTextColor(...primaryColor);
+  pdf.setFontSize(16);
+  pdf.text('MaxioCore', margin + 22, 15);
+  pdf.setTextColor(148, 163, 184);
+  pdf.setFontSize(9);
+  pdf.text('شركة علي صالح الشهري القابضة', margin + 22, 23);
+
+  // Contract title on the left (RTL)
+  pdf.setFillColor(245, 158, 11, 0.15);
+  pdf.setDrawColor(...primaryColor);
+  pdf.setLineWidth(0.5);
+  drawRoundedRect(pageWidth - margin - 45, 10, 40, 14, 7, [50, 55, 65], primaryColor);
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(12);
+  pdf.text('عقد التمويل', pageWidth - margin - 25, 19, { align: 'center' });
+
+  yPos = 42;
+
+  // ============= INFO BAR =============
+  pdf.setFillColor(...lightGray);
+  pdf.rect(0, 37, pageWidth, 22, 'F');
+  pdf.setDrawColor(226, 232, 240);
+  pdf.setLineWidth(0.3);
+  pdf.line(0, 59, pageWidth, 59);
+
+  const infoItems = [
+    { label: 'رقم العقد', value: data.contractNumber, gold: true },
+    { label: 'رقم الطلب', value: data.applicationNumber, gold: false },
+    { label: 'تاريخ العقد', value: formatDateArabic(data.contractDate), gold: false },
+    { label: 'مبلغ التمويل', value: `${formatAmountArabic(data.amount)} ر.س`, gold: true },
+  ];
+
+  const infoWidth = contentWidth / 4;
+  infoItems.forEach((item, index) => {
+    const x = pageWidth - margin - (index + 1) * infoWidth + infoWidth / 2;
+    pdf.setFontSize(8);
+    pdf.setTextColor(...grayColor);
+    pdf.text(item.label, x, 44, { align: 'center' });
+    pdf.setFontSize(10);
+    if (item.gold) {
+      pdf.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    } else {
+      pdf.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
+    }
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(item.value, x, 52, { align: 'center' });
+    pdf.setFont('helvetica', 'normal');
+  });
+
+  yPos = 65;
+
+  // ============= PARTIES SECTION =============
+  // Section title
+  pdf.setFillColor(...primaryColor);
+  pdf.roundedRect(pageWidth - margin - 8, yPos, 6, 6, 1, 1, 'F');
+  pdf.setTextColor(...darkColor);
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('أطراف العقد', pageWidth - margin - 12, yPos + 5, { align: 'right' });
+  pdf.setFont('helvetica', 'normal');
+  
+  // Underline
+  pdf.setDrawColor(226, 232, 240);
+  pdf.setLineWidth(0.5);
+  pdf.line(margin, yPos + 10, pageWidth - margin, yPos + 10);
+  
+  yPos += 18;
+
+  // Party boxes
+  const partyBoxWidth = (contentWidth - 8) / 2;
+  const partyBoxHeight = 38;
+
+  // First Party (Right side)
+  drawRoundedRect(pageWidth - margin - partyBoxWidth, yPos, partyBoxWidth, partyBoxHeight, 3, [255, 251, 235], primaryColor);
+  pdf.setTextColor(...primaryColor);
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('الطرف الأول (الممول)', pageWidth - margin - 5, yPos + 7, { align: 'right' });
+  pdf.setFont('helvetica', 'normal');
+  
+  pdf.setTextColor(...darkColor);
+  pdf.setFontSize(8);
+  const party1Data = [
+    ['اسم الشركة:', 'شركة علي صالح الشهري القابضة'],
+    ['السجل التجاري:', '4030554749'],
+    ['العنوان:', 'المملكة العربية السعودية'],
+  ];
+  party1Data.forEach((row, i) => {
+    pdf.setTextColor(...grayColor);
+    pdf.text(row[0], pageWidth - margin - 5, yPos + 14 + (i * 7), { align: 'right' });
+    pdf.setTextColor(...darkColor);
+    pdf.text(row[1], pageWidth - margin - 35, yPos + 14 + (i * 7), { align: 'right' });
+  });
+
+  // Second Party (Left side)
+  drawRoundedRect(margin, yPos, partyBoxWidth, partyBoxHeight, 3, [236, 253, 245], greenColor);
+  pdf.setTextColor(...greenColor);
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('الطرف الثاني (المستفيد)', margin + partyBoxWidth - 5, yPos + 7, { align: 'right' });
+  pdf.setFont('helvetica', 'normal');
+  
+  pdf.setFontSize(8);
+  const party2Data = [
+    ['الاسم:', data.clientName],
+    ['رقم الهوية:', data.nationalId],
+    ['الجوال:', data.phone],
+  ];
+  party2Data.forEach((row, i) => {
+    pdf.setTextColor(...grayColor);
+    pdf.text(row[0], margin + partyBoxWidth - 5, yPos + 14 + (i * 7), { align: 'right' });
+    pdf.setTextColor(...darkColor);
+    pdf.text(row[1], margin + partyBoxWidth - 25, yPos + 14 + (i * 7), { align: 'right' });
+  });
+
+  yPos += partyBoxHeight + 12;
+
+  // ============= TERMS SECTION =============
+  checkNewPage(80);
+  
+  pdf.setFillColor(...primaryColor);
+  pdf.roundedRect(pageWidth - margin - 8, yPos, 6, 6, 1, 1, 'F');
+  pdf.setTextColor(...darkColor);
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('بنود وشروط العقد', pageWidth - margin - 12, yPos + 5, { align: 'right' });
+  pdf.setFont('helvetica', 'normal');
+  
+  pdf.setDrawColor(226, 232, 240);
+  pdf.line(margin, yPos + 10, pageWidth - margin, yPos + 10);
+  
+  yPos += 16;
+
+  const terms = [
+    `يوافق الطرف الأول على تمويل الطرف الثاني بمبلغ ${formatAmountArabic(data.amount)} ر.س (فقط ${numberToArabicWords(Math.floor(data.amount))} ريال سعودي).`,
+    'يقر الطرف الثاني بأن التمويل سيُستخدم حصرياً لشراء خدمات من منصة ماكسيوكور.',
+    `يلتزم الطرف الثاني بسداد مبلغ التمويل على ${data.installmentsCount} أقساط شهرية متساوية.`,
+    'هذا التمويل بدون فوائد أو رسوم إضافية، بشرط الالتزام بمواعيد السداد.',
+    'في حال تأخر السداد لمدة تتجاوز 30 يوماً، يحق للطرف الأول اتخاذ الإجراءات القانونية.',
+    'يقر الطرف الثاني بصحة جميع البيانات المقدمة ويتحمل المسؤولية الكاملة.',
+    'يخضع هذا العقد للأنظمة والقوانين المعمول بها في المملكة العربية السعودية.',
+  ];
+
+  terms.forEach((term, index) => {
+    checkNewPage(14);
+    
+    // Term box background
+    pdf.setFillColor(...lightGray);
+    pdf.roundedRect(margin, yPos, contentWidth, 11, 2, 2, 'F');
+    
+    // Amber right border
+    pdf.setFillColor(...primaryColor);
+    pdf.rect(pageWidth - margin - 2, yPos + 1, 2, 9, 'F');
+    
+    // Badge
+    pdf.setFillColor(...primaryColor);
+    pdf.roundedRect(pageWidth - margin - 28, yPos + 2, 22, 7, 3, 3, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(7);
+    pdf.text(`البند ${index + 1}`, pageWidth - margin - 17, yPos + 7, { align: 'center' });
+    
+    // Term text
+    pdf.setTextColor(51, 65, 85);
+    pdf.setFontSize(8);
+    const lines = pdf.splitTextToSize(term, contentWidth - 40);
+    pdf.text(lines, pageWidth - margin - 32, yPos + 7, { align: 'right' });
+    
+    yPos += 13;
+  });
+
+  yPos += 8;
+
+  // ============= INSTALLMENTS TABLE =============
+  checkNewPage(60);
+  
+  pdf.setFillColor(...primaryColor);
+  pdf.roundedRect(pageWidth - margin - 8, yPos, 6, 6, 1, 1, 'F');
+  pdf.setTextColor(...darkColor);
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('جدول الأقساط', pageWidth - margin - 12, yPos + 5, { align: 'right' });
+  pdf.setFont('helvetica', 'normal');
+  
+  pdf.setDrawColor(226, 232, 240);
+  pdf.line(margin, yPos + 10, pageWidth - margin, yPos + 10);
+  
+  yPos += 16;
+
+  // Table header
+  pdf.setFillColor(...darkColor);
+  pdf.roundedRect(margin, yPos, contentWidth, 10, 2, 2, 'F');
+  
+  const colWidths = [contentWidth * 0.15, contentWidth * 0.25, contentWidth * 0.35, contentWidth * 0.25];
+  const headers = ['رقم القسط', 'المبلغ', 'تاريخ الاستحقاق', 'الحالة'];
+  
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(9);
+  let xPos = pageWidth - margin;
+  headers.forEach((header, i) => {
+    xPos -= colWidths[i];
+    pdf.text(header, xPos + colWidths[i] / 2, yPos + 7, { align: 'center' });
+  });
+
+  yPos += 12;
+
+  // Table rows
+  data.installments.forEach((inst, index) => {
+    checkNewPage(10);
+    
+    if (index % 2 === 0) {
+      pdf.setFillColor(...lightGray);
+      pdf.rect(margin, yPos - 2, contentWidth, 9, 'F');
+    }
+    
+    pdf.setTextColor(...darkColor);
+    pdf.setFontSize(8);
+    
+    xPos = pageWidth - margin;
+    const rowData = [
+      inst.number.toString(),
+      `${formatAmountArabic(inst.amount)} ر.س`,
+      formatDateArabic(inst.dueDate),
+      'قيد الانتظار'
+    ];
+    
+    rowData.forEach((cell, i) => {
+      xPos -= colWidths[i];
+      pdf.text(cell, xPos + colWidths[i] / 2, yPos + 4, { align: 'center' });
+    });
+    
+    pdf.setDrawColor(226, 232, 240);
+    pdf.line(margin, yPos + 7, pageWidth - margin, yPos + 7);
+    
+    yPos += 9;
+  });
+
+  // Total row
+  pdf.setFillColor(...primaryColor);
+  pdf.rect(margin, yPos - 2, contentWidth, 10, 'F');
+  pdf.setTextColor(...darkColor);
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('الإجمالي', pageWidth - margin - colWidths[0] / 2, yPos + 5, { align: 'center' });
+  pdf.text(`${formatAmountArabic(data.amount)} ر.س`, pageWidth - margin - colWidths[0] - colWidths[1] / 2, yPos + 5, { align: 'center' });
+  pdf.setFont('helvetica', 'normal');
+
+  yPos += 18;
+
+  // ============= SIGNATURES SECTION =============
+  checkNewPage(70);
+  
+  pdf.setFillColor(...primaryColor);
+  pdf.roundedRect(pageWidth - margin - 8, yPos, 6, 6, 1, 1, 'F');
+  pdf.setTextColor(...darkColor);
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('التوقيعات', pageWidth - margin - 12, yPos + 5, { align: 'right' });
+  pdf.setFont('helvetica', 'normal');
+  
+  pdf.setDrawColor(226, 232, 240);
+  pdf.line(margin, yPos + 10, pageWidth - margin, yPos + 10);
+  
+  yPos += 18;
+
+  const sigBoxWidth = (contentWidth - 15) / 2;
+  const sigBoxHeight = 50;
+
+  // First Party Signature (Right)
+  pdf.setDrawColor(226, 232, 240);
+  pdf.setLineWidth(0.5);
+  pdf.setLineDashPattern([2, 2], 0);
+  pdf.roundedRect(pageWidth - margin - sigBoxWidth, yPos, sigBoxWidth, sigBoxHeight, 3, 3, 'S');
+  pdf.setLineDashPattern([], 0);
+  
+  pdf.setTextColor(...darkColor);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('توقيع الطرف الأول', pageWidth - margin - sigBoxWidth / 2, yPos + 10, { align: 'center' });
+  pdf.setFont('helvetica', 'normal');
+  
+  // Company stamp
+  pdf.setDrawColor(...greenColor);
+  pdf.setLineWidth(1);
+  pdf.circle(pageWidth - margin - sigBoxWidth / 2, yPos + 28, 12, 'S');
+  pdf.setTextColor(...greenColor);
+  pdf.setFontSize(6);
+  pdf.text('شركة علي صالح', pageWidth - margin - sigBoxWidth / 2, yPos + 25, { align: 'center' });
+  pdf.text('الشهري القابضة', pageWidth - margin - sigBoxWidth / 2, yPos + 29, { align: 'center' });
+  pdf.setFontSize(5);
+  pdf.text('4030554749', pageWidth - margin - sigBoxWidth / 2, yPos + 33, { align: 'center' });
+  
+  pdf.setTextColor(...grayColor);
+  pdf.setFontSize(7);
+  pdf.text(`التاريخ: ${formatDateArabic(data.contractDate)}`, pageWidth - margin - sigBoxWidth / 2, yPos + 46, { align: 'center' });
+
+  // Second Party Signature (Left)
+  pdf.setDrawColor(226, 232, 240);
+  pdf.setLineWidth(0.5);
+  pdf.setLineDashPattern([2, 2], 0);
+  pdf.roundedRect(margin, yPos, sigBoxWidth, sigBoxHeight, 3, 3, 'S');
+  pdf.setLineDashPattern([], 0);
+  
+  pdf.setTextColor(...darkColor);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('توقيع الطرف الثاني', margin + sigBoxWidth / 2, yPos + 10, { align: 'center' });
+  pdf.setFont('helvetica', 'normal');
+  
+  // Client signature
+  if (data.signatureData) {
+    try {
+      pdf.addImage(data.signatureData, 'PNG', margin + sigBoxWidth / 2 - 20, yPos + 14, 40, 18);
+    } catch (e) {
+      console.error('Error adding signature image:', e);
+    }
   }
+  
+  pdf.setTextColor(...darkColor);
+  pdf.setFontSize(8);
+  pdf.text(data.clientName, margin + sigBoxWidth / 2, yPos + 38, { align: 'center' });
+  pdf.setTextColor(...grayColor);
+  pdf.setFontSize(7);
+  pdf.text(`التاريخ: ${formatDateArabic(new Date())}`, margin + sigBoxWidth / 2, yPos + 46, { align: 'center' });
+
+  yPos += sigBoxHeight + 15;
+
+  // ============= FOOTER =============
+  const footerY = pageHeight - 12;
+  pdf.setFillColor(...darkColor);
+  pdf.rect(0, footerY - 8, pageWidth, 20, 'F');
+  
+  pdf.setTextColor(148, 163, 184);
+  pdf.setFontSize(7);
+  pdf.text('هذا العقد ملزم قانونياً للطرفين | السجل التجاري: 4030554749', margin, footerY, { align: 'left' });
+  
+  pdf.setTextColor(...primaryColor);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('MaxioCore', pageWidth - margin, footerY, { align: 'right' });
+
+  // Save PDF
+  pdf.save(`عقد_التمويل_${data.contractNumber}.pdf`);
 }
