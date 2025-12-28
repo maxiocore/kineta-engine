@@ -79,7 +79,7 @@ export default function SignContract() {
           await supabase.from("notifications").insert({
             user_id: admin.user_id,
             title: "تم توقيع عقد التمويل",
-            message: `قام العميل بتوقيع عقد التمويل رقم ${application?.application_number}. يمكنك الآن إرسال السند التنفيذي.`,
+            message: `قام العميل بتوقيع عقد التمويل رقم ${application?.application_number}. يمكنك الآن إرسال الكمبيالة.`,
             type: "success",
           });
         }
@@ -88,7 +88,7 @@ export default function SignContract() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["financing-application"] });
       queryClient.invalidateQueries({ queryKey: ["my-financing-applications"] });
-      toast.success("تم توقيع العقد بنجاح! سيتم إرسال السند التنفيذي قريباً");
+      toast.success("تم توقيع العقد بنجاح! سيتم إرسال الكمبيالة قريباً");
     },
     onError: (error) => {
       toast.error("حدث خطأ أثناء حفظ التوقيع");

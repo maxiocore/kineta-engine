@@ -360,7 +360,7 @@ export default function AdminFinancing() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["financing-applications"] });
       queryClient.invalidateQueries({ queryKey: ["financing-stats"] });
-      toast.success("تم تأكيد توقيع العقد وإرسال السند التنفيذي للعميل");
+      toast.success("تم تأكيد توقيع العقد وإرسال الكمبيالة للعميل");
     },
     onError: (error) => {
       toast.error("حدث خطأ أثناء إرسال السند");
@@ -857,7 +857,7 @@ export default function AdminFinancing() {
                                           monthlyInstallment: installmentAmount,
                                           startDate: new Date().toISOString(),
                                         }).then(() => {
-                                          toast.success("تم إعادة إرسال السند التنفيذي");
+                                          toast.success("تم إعادة إرسال الكمبيالة");
                                         }).catch(() => {
                                           toast.error("فشل إرسال السند");
                                         });
@@ -1158,7 +1158,7 @@ export default function AdminFinancing() {
                 />
               </div>
               <p className="text-sm text-muted-foreground">
-                سيتم إرسال عقد التمويل للعميل للتوقيع عليه. بعد توقيع العقد سيتم إرسال السند التنفيذي.
+                سيتم إرسال عقد التمويل للعميل للتوقيع عليه. بعد توقيع العقد سيتم إرسال الكمبيالة.
               </p>
             </div>
             <DialogFooter>
@@ -1304,7 +1304,7 @@ export default function AdminFinancing() {
               </div>
               <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
                 <p className="text-sm text-emerald-400">
-                  ✅ تأكد من استلام السند التنفيذي موقعاً من العميل قبل المتابعة.
+                  ✅ تأكد من استلام الكمبيالة موقعة من العميل قبل المتابعة.
                 </p>
               </div>
               <p className="text-sm text-muted-foreground">
