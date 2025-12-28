@@ -41,7 +41,8 @@ import {
   sendFinancingApprovedEmail, 
   sendFinancingRejectedEmail,
   sendFinancingDocumentsRequiredEmail,
-  sendFinancingUnderReviewEmail
+  sendFinancingUnderReviewEmail,
+  sendFinancingPromissoryNoteEmail
 } from "@/lib/emailService";
 import {
   DropdownMenu,
@@ -96,6 +97,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.R
   pending: { label: "قيد الانتظار", color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30", icon: <Clock className="h-3 w-3" /> },
   under_review: { label: "قيد المراجعة", color: "bg-blue-500/20 text-blue-400 border-blue-500/30", icon: <Eye className="h-3 w-3" /> },
   documents_required: { label: "مستندات مطلوبة", color: "bg-purple-500/20 text-purple-400 border-purple-500/30", icon: <FileQuestion className="h-3 w-3" /> },
+  awaiting_signature: { label: "بانتظار التوقيع", color: "bg-orange-500/20 text-orange-400 border-orange-500/30", icon: <FileSignature className="h-3 w-3" /> },
   approved: { label: "موافق عليه", color: "bg-green-500/20 text-green-400 border-green-500/30", icon: <CheckCircle2 className="h-3 w-3" /> },
   rejected: { label: "مرفوض", color: "bg-red-500/20 text-red-400 border-red-500/30", icon: <XCircle className="h-3 w-3" /> },
   active: { label: "نشط", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30", icon: <TrendingUp className="h-3 w-3" /> },
@@ -125,6 +127,7 @@ export default function AdminFinancing() {
   const [documentsData, setDocumentsData] = useState({ required_documents: "", admin_notes: "" });
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editData, setEditData] = useState({ status: "", admin_notes: "" });
+  const [showActivateDialog, setShowActivateDialog] = useState(false);
 
   // Fetch applications - removed foreign key reference that doesn't exist
   const { data: applications = [], isLoading } = useQuery({
@@ -263,29 +266,69 @@ export default function AdminFinancing() {
     },
   });
 
-  // Approve mutation
+  // Approve mutation (sends promissory note - preliminary approval)
   const approveMutation = useMutation({
     mutationFn: async ({ id, approved_amount, admin_notes }: { id: string; approved_amount: number; admin_notes: string }) => {
       const application = applications.find(a => a.id === id);
       if (!application) throw new Error("Application not found");
 
-      // Update application status
+      const contractNumber = `CNT-${Date.now()}`;
+      const plan = application.financing_plans;
+      const installmentAmount = plan ? approved_amount / plan.installments_count : approved_amount;
+
+      // Update application status to awaiting_signature
       const { error: updateError } = await supabase
         .from("financing_applications")
         .update({
-          status: "approved",
+          status: "awaiting_signature",
           approved_amount,
           admin_notes,
           reviewed_at: new Date().toISOString(),
-          approved_at: new Date().toISOString(),
-          contract_number: `CNT-${Date.now()}`,
+          contract_number: contractNumber,
         })
         .eq("id", id);
 
       if (updateError) throw updateError;
 
-      // Create installments and add balance to user
+      // Send promissory note email to customer
+      try {
+        await sendFinancingPromissoryNoteEmail(application.email, {
+          name: application.full_name,
+          nationalId: application.national_id,
+          applicationNumber: application.application_number,
+          contractNumber,
+          amount: approved_amount,
+          installmentsCount: plan?.installments_count || 1,
+          monthlyInstallment: installmentAmount,
+          startDate: new Date().toISOString(),
+        });
+      } catch (emailError) {
+        console.error("Failed to send promissory note email:", emailError);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["financing-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["financing-stats"] });
+      toast.success("تم إرسال السند التنفيذي للعميل للتوقيع عليه");
+      setShowApprovalDialog(false);
+      setSelectedApplication(null);
+    },
+    onError: (error) => {
+      toast.error("حدث خطأ أثناء إرسال السند التنفيذي");
+      console.error(error);
+    },
+  });
+
+  // Activate financing mutation (after receiving signed promissory note)
+  const activateMutation = useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const application = applications.find(a => a.id === id);
+      if (!application) throw new Error("Application not found");
+      if (!application.approved_amount) throw new Error("No approved amount");
+
+      const approved_amount = application.approved_amount;
       const plan = application.financing_plans;
+
       if (plan) {
         const installmentAmount = approved_amount / plan.installments_count;
         const installmentsToCreate = [];
@@ -293,7 +336,6 @@ export default function AdminFinancing() {
         for (let i = 1; i <= plan.installments_count; i++) {
           const dueDate = new Date();
           dueDate.setMonth(dueDate.getMonth() + i);
-          // Set to 30th of each month
           dueDate.setDate(30);
           
           installmentsToCreate.push({
@@ -340,7 +382,7 @@ export default function AdminFinancing() {
             notes: `رصيد تمويل - طلب رقم ${application.application_number}`
           });
 
-        // Send email notification
+        // Send approved email notification
         try {
           await sendFinancingApprovedEmail(application.email, {
             name: application.full_name,
@@ -354,21 +396,25 @@ export default function AdminFinancing() {
         }
       }
 
-      // Update status to active
+      // Update status to active with signed date
       await supabase
         .from("financing_applications")
-        .update({ status: "active" })
+        .update({ 
+          status: "active",
+          approved_at: new Date().toISOString(),
+          contract_signed_at: new Date().toISOString()
+        })
         .eq("id", id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["financing-applications"] });
       queryClient.invalidateQueries({ queryKey: ["financing-stats"] });
-      toast.success("تمت الموافقة على طلب التمويل وإرسال إشعار للعميل");
-      setShowApprovalDialog(false);
+      toast.success("تم تفعيل التمويل وإضافة الرصيد لحساب العميل");
+      setShowActivateDialog(false);
       setSelectedApplication(null);
     },
     onError: (error) => {
-      toast.error("حدث خطأ أثناء الموافقة على الطلب");
+      toast.error("حدث خطأ أثناء تفعيل التمويل");
       console.error(error);
     },
   });
@@ -718,6 +764,48 @@ export default function AdminFinancing() {
                                 </>
                               )}
                               
+                              {app.status === "awaiting_signature" && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setSelectedApplication(app);
+                                      setShowActivateDialog(true);
+                                    }}
+                                    className="text-emerald-400"
+                                  >
+                                    <CheckCircle2 className="h-4 w-4 ml-2" />
+                                    تفعيل التمويل (تم استلام السند)
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      // Resend promissory note
+                                      if (app.financing_plans) {
+                                        const installmentAmount = (app.approved_amount || app.requested_amount) / app.financing_plans.installments_count;
+                                        sendFinancingPromissoryNoteEmail(app.email, {
+                                          name: app.full_name,
+                                          nationalId: app.national_id,
+                                          applicationNumber: app.application_number,
+                                          contractNumber: app.contract_number || `CNT-${Date.now()}`,
+                                          amount: app.approved_amount || app.requested_amount,
+                                          installmentsCount: app.financing_plans.installments_count,
+                                          monthlyInstallment: installmentAmount,
+                                          startDate: new Date().toISOString(),
+                                        }).then(() => {
+                                          toast.success("تم إعادة إرسال السند التنفيذي");
+                                        }).catch(() => {
+                                          toast.error("فشل إرسال السند");
+                                        });
+                                      }
+                                    }}
+                                    className="text-orange-400"
+                                  >
+                                    <Send className="h-4 w-4 ml-2" />
+                                    إعادة إرسال السند
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                              
                               {app.status === "active" && (
                                 <>
                                   <DropdownMenuSeparator />
@@ -1005,7 +1093,7 @@ export default function AdminFinancing() {
                 />
               </div>
               <p className="text-sm text-muted-foreground">
-                سيتم إضافة المبلغ لرصيد العميل وإنشاء جدول الأقساط وإرسال إشعار بالبريد الإلكتروني.
+                سيتم إرسال السند التنفيذي للعميل للتوقيع عليه. لن يُضاف الرصيد إلا بعد استلام السند الموقع وتفعيل التمويل.
               </p>
             </div>
             <DialogFooter>
@@ -1023,7 +1111,8 @@ export default function AdminFinancing() {
                 disabled={approveMutation.isPending || !approvalData.approved_amount}
                 className="bg-green-600 hover:bg-green-700"
               >
-                {approveMutation.isPending ? "جاري المعالجة..." : "تأكيد الموافقة"}
+                <FileSignature className="h-4 w-4 ml-2" />
+                {approveMutation.isPending ? "جاري الإرسال..." : "إرسال السند التنفيذي"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -1133,6 +1222,52 @@ export default function AdminFinancing() {
           </DialogContent>
         </Dialog>
 
+        {/* Activate Financing Dialog */}
+        <Dialog open={showActivateDialog} onOpenChange={setShowActivateDialog}>
+          <DialogContent dir="rtl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-emerald-400">
+                <CheckCircle2 className="h-5 w-5" />
+                تفعيل التمويل
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="p-3 rounded-lg bg-muted/30 text-sm">
+                <p><strong>رقم الطلب:</strong> {selectedApplication?.application_number}</p>
+                <p><strong>العميل:</strong> {selectedApplication?.full_name}</p>
+                <p><strong>المبلغ الموافق عليه:</strong> {selectedApplication?.approved_amount?.toFixed(2)} ر.س</p>
+              </div>
+              <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+                <p className="text-sm text-emerald-400">
+                  ✅ تأكد من استلام السند التنفيذي موقعاً من العميل قبل المتابعة.
+                </p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                بالضغط على "تأكيد التفعيل" سيتم:
+              </p>
+              <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
+                <li>إضافة مبلغ التمويل لرصيد العميل</li>
+                <li>إنشاء جدول الأقساط</li>
+                <li>إرسال إشعار للعميل بتفعيل التمويل</li>
+              </ul>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowActivateDialog(false)}>إلغاء</Button>
+              <Button
+                onClick={() => {
+                  if (selectedApplication) {
+                    activateMutation.mutate({ id: selectedApplication.id });
+                  }
+                }}
+                disabled={activateMutation.isPending}
+                className="bg-emerald-600 hover:bg-emerald-700"
+              >
+                {activateMutation.isPending ? "جاري التفعيل..." : "تأكيد التفعيل"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Edit Dialog */}
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
           <DialogContent dir="rtl">
@@ -1157,6 +1292,7 @@ export default function AdminFinancing() {
                     <SelectItem value="pending">قيد الانتظار</SelectItem>
                     <SelectItem value="under_review">قيد المراجعة</SelectItem>
                     <SelectItem value="documents_required">مستندات مطلوبة</SelectItem>
+                    <SelectItem value="awaiting_signature">بانتظار التوقيع</SelectItem>
                     <SelectItem value="cancelled">ملغي</SelectItem>
                     <SelectItem value="defaulted">متعثر</SelectItem>
                   </SelectContent>

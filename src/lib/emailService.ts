@@ -23,6 +23,7 @@ export type EmailType =
   | 'financing_documents_required'
   | 'financing_under_review'
   | 'financing_application_received'
+  | 'financing_promissory_note'
   | 'custom';
 
 interface SendEmailParams {
@@ -409,6 +410,26 @@ export async function sendFinancingApplicationReceivedEmail(
   return sendEmail({
     to: email,
     type: 'financing_application_received',
+    data,
+  });
+}
+
+export async function sendFinancingPromissoryNoteEmail(
+  email: string,
+  data: {
+    name: string;
+    nationalId: string;
+    applicationNumber: string;
+    contractNumber: string;
+    amount: number;
+    installmentsCount: number;
+    monthlyInstallment: number;
+    startDate: string;
+  }
+): Promise<EmailResult> {
+  return sendEmail({
+    to: email,
+    type: 'financing_promissory_note',
     data,
   });
 }

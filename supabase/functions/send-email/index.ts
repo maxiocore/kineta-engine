@@ -34,6 +34,7 @@ type EmailType =
   | 'financing_documents_required'
   | 'financing_under_review'
   | 'financing_application_received'
+  | 'financing_promissory_note'
   | 'custom';
 
 interface EmailRequest {
@@ -787,6 +788,92 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           ${createNoticeBox('⏳ عادةً ما يتم مراجعة الطلبات خلال 24-48 ساعة عمل.', '#f0f9ff', '#0369a1', '#0ea5e9')}
           
           ${createCTAButton('متابعة طلبك')}
+        `
+      };
+
+    case 'financing_promissory_note':
+      const installmentDates = [];
+      const startDateObj = new Date(data.startDate);
+      for (let i = 1; i <= data.installmentsCount; i++) {
+        const dueDate = new Date(startDateObj);
+        dueDate.setMonth(dueDate.getMonth() + i);
+        dueDate.setDate(30);
+        installmentDates.push({
+          num: i,
+          date: dueDate.toLocaleDateString('ar-SA'),
+          amount: formatAmountArabic(data.monthlyInstallment)
+        });
+      }
+      
+      return {
+        subject: `📋 السند التنفيذي - طلب التمويل #${data.applicationNumber}`,
+        content: `
+          ${createIconCircle('📋', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          ${createGreeting(`مرحباً ${data.name}`)}
+          ${createMessage('تمت الموافقة المبدئية على طلب التمويل الخاص بك! يرجى مراجعة السند التنفيذي أدناه والتوقيع عليه وإرساله لنا لإتمام العملية.')}
+          
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 14px; border: 2px solid #f59e0b; margin-bottom: 25px;">
+            <tr>
+              <td style="padding: 25px;">
+                <h2 style="margin: 0 0 20px; text-align: center; color: #f59e0b; font-size: 24px; border-bottom: 2px solid #f59e0b; padding-bottom: 15px;">📜 سند لأمر</h2>
+                
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 20px;">
+                  <tr>
+                    <td style="padding: 8px 0; color: #94a3b8; width: 40%;">رقم العقد:</td>
+                    <td style="padding: 8px 0; color: #fff; font-weight: bold;">${data.contractNumber}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #94a3b8;">رقم الطلب:</td>
+                    <td style="padding: 8px 0; color: #fff; font-weight: bold;">${data.applicationNumber}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #94a3b8;">التاريخ:</td>
+                    <td style="padding: 8px 0; color: #fff;">${new Date().toLocaleDateString('ar-SA')}</td>
+                  </tr>
+                </table>
+                
+                <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                  <p style="margin: 0 0 15px; color: #e2e8f0; font-size: 15px; line-height: 1.8; text-align: right;">
+                    أتعهد أنا الموقع أدناه:
+                  </p>
+                  <p style="margin: 0 0 10px; color: #fff;"><strong>الاسم:</strong> ${data.name}</p>
+                  <p style="margin: 0 0 10px; color: #fff;"><strong>رقم الهوية:</strong> ${data.nationalId}</p>
+                  <p style="margin: 0 0 15px; color: #e2e8f0; font-size: 15px; line-height: 1.8; text-align: right;">
+                    بأن أدفع لأمر شركة ماكسيو كور للخدمات الرقمية مبلغاً وقدره:
+                  </p>
+                  <p style="margin: 0; text-align: center; font-size: 28px; font-weight: bold; color: #f59e0b;">${formatAmountArabic(data.amount)} ريال سعودي</p>
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                  <h3 style="margin: 0 0 15px; color: #f59e0b; font-size: 16px;">جدول السداد (${data.installmentsCount} قسط):</h3>
+                  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                    <tr style="background: rgba(255,255,255,0.1);">
+                      <th style="padding: 10px; color: #94a3b8; text-align: right; border-bottom: 1px solid #334155;">القسط</th>
+                      <th style="padding: 10px; color: #94a3b8; text-align: right; border-bottom: 1px solid #334155;">تاريخ الاستحقاق</th>
+                      <th style="padding: 10px; color: #94a3b8; text-align: right; border-bottom: 1px solid #334155;">المبلغ</th>
+                    </tr>
+                    ${installmentDates.map(inst => `
+                      <tr>
+                        <td style="padding: 10px; color: #fff; border-bottom: 1px solid #334155;">القسط ${inst.num}</td>
+                        <td style="padding: 10px; color: #fff; border-bottom: 1px solid #334155;">${inst.date}</td>
+                        <td style="padding: 10px; color: #22c55e; font-weight: bold; border-bottom: 1px solid #334155;">${inst.amount} ر.س</td>
+                      </tr>
+                    `).join('')}
+                  </table>
+                </div>
+                
+                <div style="border: 2px dashed #475569; border-radius: 10px; padding: 20px; margin-top: 20px;">
+                  <p style="margin: 0 0 15px; color: #94a3b8; text-align: center;">مكان التوقيع</p>
+                  <div style="height: 60px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 10px;"></div>
+                  <p style="margin: 0; color: #64748b; text-align: center; font-size: 12px;">التاريخ: .....................</p>
+                </div>
+              </td>
+            </tr>
+          </table>
+          
+          ${createNoticeBox('⚠️ تنبيه مهم: يرجى طباعة هذا السند والتوقيع عليه وإرساله عبر البريد الإلكتروني أو الواتساب لإتمام عملية التمويل. لن يتم إضافة الرصيد لحسابك إلا بعد استلام السند الموقع.', '#fef3c7', '#92400e', '#f59e0b')}
+          
+          ${createMessage('للتواصل والإرسال: info@maxiocore.com')}
         `
       };
 
