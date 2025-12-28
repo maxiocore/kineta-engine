@@ -171,99 +171,96 @@ const ClientServicesHome = () => {
       setIsLoading(true);
     }
     try {
-      // Fetch service counts
-      const { count: socialCount } = await supabase
-        .from('services')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active')
-        .or('category.ilike.%instagram%,category.ilike.%facebook%,category.ilike.%twitter%,category.ilike.%youtube%,category.ilike.%tiktok%,category.ilike.%social%,category.ilike.%telegram%,name.ilike.%متابع%,name.ilike.%لايك%');
+      // Run ALL queries in parallel for maximum performance
+      const [
+        socialResult,
+        designResult,
+        devResult,
+        digitalResult,
+        totalServicesResult,
+        ordersResult
+      ] = await Promise.all([
+        // Service counts - parallel
+        supabase
+          .from('services')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active')
+          .or('category.ilike.%instagram%,category.ilike.%facebook%,category.ilike.%twitter%,category.ilike.%youtube%,category.ilike.%tiktok%,category.ilike.%social%,category.ilike.%telegram%,name.ilike.%متابع%,name.ilike.%لايك%'),
+        
+        supabase
+          .from('services')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active')
+          .or('category.ilike.%design%,category.ilike.%تصميم%,name.ilike.%تصميم%,name.ilike.%شعار%,name.ilike.%لوجو%'),
+        
+        supabase
+          .from('services')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active')
+          .or('category.ilike.%dev%,category.ilike.%برمجة%,category.ilike.%تطوير%,name.ilike.%موقع%,name.ilike.%تطبيق%,name.ilike.%برمجة%'),
+        
+        supabase
+          .from('services')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active')
+          .or('category.ilike.%marketing%,category.ilike.%تسويق%,category.ilike.%digital%,category.ilike.%رقمي%,name.ilike.%seo%,name.ilike.%إعلان%,name.ilike.%حملة%,name.ilike.%تسويق%'),
+        
+        // Total services count
+        supabase
+          .from('services')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active'),
+        
+        // Get all orders with status for counting (single query instead of 4)
+        supabase
+          .from('orders')
+          .select('status, created_at')
+      ]);
 
-      const { count: designCount } = await supabase
-        .from('services')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active')
-        .or('category.ilike.%design%,category.ilike.%تصميم%,name.ilike.%تصميم%,name.ilike.%شعار%,name.ilike.%لوجو%');
-
-      const { count: devCount } = await supabase
-        .from('services')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active')
-        .or('category.ilike.%dev%,category.ilike.%برمجة%,category.ilike.%تطوير%,name.ilike.%موقع%,name.ilike.%تطبيق%,name.ilike.%برمجة%');
-
-      const { count: digitalCount } = await supabase
-        .from('services')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active')
-        .or('category.ilike.%marketing%,category.ilike.%تسويق%,category.ilike.%digital%,category.ilike.%رقمي%,name.ilike.%seo%,name.ilike.%إعلان%,name.ilike.%حملة%,name.ilike.%تسويق%');
-
-      // Fetch global stats
-      const { count: totalServicesCount } = await supabase
-        .from('services')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
-
-      const { count: totalOrdersCount } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true });
-
-      const { count: pendingOrdersCount } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
-
-      const { count: inProgressOrdersCount } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'in_progress');
-
-      const { count: completedOrdersCount } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'completed');
+      // Process orders data locally instead of multiple queries
+      const orders = ordersResult.data || [];
+      const totalOrdersCount = orders.length;
+      const pendingOrdersCount = orders.filter(o => o.status === 'pending').length;
+      const inProgressOrdersCount = orders.filter(o => o.status === 'in_progress').length;
+      const completedOrdersCount = orders.filter(o => o.status === 'completed').length;
 
       setServicesCount({
-        social: socialCount || 0,
-        design: designCount || 0,
-        dev: devCount || 0,
-        digital: digitalCount || 0
+        social: socialResult.count || 0,
+        design: designResult.count || 0,
+        dev: devResult.count || 0,
+        digital: digitalResult.count || 0
       });
 
       setGlobalStats({
-        totalServices: totalServicesCount || 0,
-        totalOrders: totalOrdersCount || 0,
-        pendingOrders: pendingOrdersCount || 0,
-        inProgressOrders: inProgressOrdersCount || 0,
-        completedOrders: completedOrdersCount || 0
+        totalServices: totalServicesResult.count || 0,
+        totalOrders: totalOrdersCount,
+        pendingOrders: pendingOrdersCount,
+        inProgressOrders: inProgressOrdersCount,
+        completedOrders: completedOrdersCount
       });
 
-      // Fetch weekly orders data
+      // Process weekly data from the same orders query (no additional queries!)
       const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
       const weekData: Array<{ day: string; orders: number; completed: number }> = [];
       
       for (let i = 6; i >= 0; i--) {
         const date = new Date();
         date.setDate(date.getDate() - i);
-        const startOfDay = new Date(date.setHours(0, 0, 0, 0)).toISOString();
-        const endOfDay = new Date(date.setHours(23, 59, 59, 999)).toISOString();
+        const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+        const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
         
-        const { count: dayOrders } = await supabase
-          .from('orders')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', startOfDay)
-          .lte('created_at', endOfDay);
-
-        const { count: dayCompleted } = await supabase
-          .from('orders')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'completed')
-          .gte('created_at', startOfDay)
-          .lte('created_at', endOfDay);
-
-        const dayIndex = new Date(date).getDay();
+        const dayOrders = orders.filter(o => {
+          const orderDate = new Date(o.created_at);
+          return orderDate >= startOfDay && orderDate <= endOfDay;
+        });
+        
+        const dayCompleted = dayOrders.filter(o => o.status === 'completed').length;
+        const dayIndex = date.getDay();
+        
         weekData.push({
           day: days[dayIndex],
-          orders: dayOrders || 0,
-          completed: dayCompleted || 0
+          orders: dayOrders.length,
+          completed: dayCompleted
         });
       }
       
