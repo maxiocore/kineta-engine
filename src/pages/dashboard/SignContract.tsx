@@ -149,15 +149,58 @@ export default function SignContract() {
     );
   }
 
+  // Check if financing is already active or completed
+  const isFinancingActive = ["active", "approved", "completed"].includes(application.status);
+  const hasContractSigned = !!application.contract_signed_at || !!application.contract_document_url;
+  
+  // If financing is active, show success message
+  if (isFinancingActive) {
+    return (
+      <ClientDashboardLayout>
+        <div className="space-y-4" dir="rtl">
+          <Alert className="bg-emerald-500/10 border-emerald-500/30">
+            <Check className="h-4 w-4 text-emerald-400" />
+            <AlertDescription className="text-emerald-400">
+              تم تفعيل التمويل بنجاح! يمكنك الآن استخدام رصيد التمويل لشراء الخدمات.
+            </AlertDescription>
+          </Alert>
+          <Button onClick={() => navigate("/dashboard/financing")} className="mt-4">
+            <ArrowRight className="h-4 w-4 ml-2" />
+            العودة للتمويل
+          </Button>
+        </div>
+      </ClientDashboardLayout>
+    );
+  }
+
+  // If contract already signed and waiting for promissory note or activation
+  if (hasContractSigned && application.status !== "awaiting_contract") {
+    return (
+      <ClientDashboardLayout>
+        <div className="space-y-4" dir="rtl">
+          <Alert className="bg-primary/10 border-primary/30">
+            <FileText className="h-4 w-4 text-primary" />
+            <AlertDescription>
+              تم توقيع العقد بنجاح. 
+              {application.status === "awaiting_signature" && " يرجى توقيع الكمبيالة لإتمام عملية التمويل."}
+            </AlertDescription>
+          </Alert>
+          <Button onClick={() => navigate("/dashboard/financing")} className="mt-4">
+            <ArrowRight className="h-4 w-4 ml-2" />
+            العودة للتمويل
+          </Button>
+        </div>
+      </ClientDashboardLayout>
+    );
+  }
+
   if (application.status !== "awaiting_contract") {
     return (
       <ClientDashboardLayout>
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            {application.contract_signed_at 
-              ? "تم توقيع هذا العقد مسبقاً" 
-              : "هذا الطلب غير جاهز للتوقيع حالياً"}
+            هذا الطلب غير جاهز للتوقيع حالياً
           </AlertDescription>
         </Alert>
         <Button onClick={() => navigate("/dashboard/financing")} className="mt-4">
