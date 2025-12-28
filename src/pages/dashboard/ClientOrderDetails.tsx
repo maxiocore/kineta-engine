@@ -512,7 +512,7 @@ const ClientOrderDetails = () => {
   const generateArabicPDF = useCallback(async () => {
     if (!order || !user) return;
     
-    toast.loading('جاري إنشاء الفاتورة العربية...');
+    toast.loading('جاري إنشاء الفاتورة...');
 
     // Fetch customer profile
     const { data: profile } = await supabase
@@ -521,9 +521,9 @@ const ClientOrderDetails = () => {
       .eq('id', user.id)
       .single();
 
-    const customerName = profile?.full_name || user.user_metadata?.full_name || 'غير محدد';
-    const customerEmail = profile?.email || user.email || 'غير محدد';
-    const customerPhone = user.phone || user.user_metadata?.phone || 'غير متوفر';
+    const customerName = profile?.full_name || user.user_metadata?.full_name || 'العميل';
+    const customerEmail = profile?.email || user.email || '-';
+    const customerPhone = user.phone || user.user_metadata?.phone || '-';
     
     const statusLabels: Record<string, string> = {
       pending: 'قيد الانتظار',
@@ -537,298 +537,215 @@ const ClientOrderDetails = () => {
 
     const getStatusColor = (status: string) => {
       switch (status) {
-        case 'completed': return { bg: '#DCFCE7', text: '#166534', border: '#86EFAC' };
-        case 'pending': return { bg: '#FEF9C3', text: '#854D0E', border: '#FDE047' };
+        case 'completed': return { bg: '#D1FAE5', text: '#065F46' };
+        case 'pending': return { bg: '#FEF3C7', text: '#92400E' };
         case 'in_progress':
-        case 'processing': return { bg: '#DBEAFE', text: '#1E40AF', border: '#93C5FD' };
+        case 'processing': return { bg: '#DBEAFE', text: '#1E40AF' };
         case 'cancelled':
-        case 'refunded': return { bg: '#FEE2E2', text: '#991B1B', border: '#FCA5A5' };
-        default: return { bg: '#F3F4F6', text: '#374151', border: '#D1D5DB' };
+        case 'refunded': return { bg: '#FEE2E2', text: '#991B1B' };
+        default: return { bg: '#F3F4F6', text: '#374151' };
       }
     };
 
     const unitPrice = order.service?.price || 0;
     const basePrice = unitPrice * (order.quantity || 1);
     const statusStyle = getStatusColor(order.status);
+    const invoiceDate = format(new Date(order.created_at), 'dd/MM/yyyy');
+    const invoiceTime = format(new Date(order.created_at), 'HH:mm');
 
-    // Generate QR Code as SVG
-    const qrData = `INV:${order.order_number}|AMT:${order.total_price}|DATE:${format(new Date(order.created_at), 'yyyyMMdd')}`;
-    const generateQRCodeSVG = (data: string) => {
-      // Simple QR-like pattern generator (visual representation)
-      const size = 100;
-      const cellSize = 4;
-      const cells = Math.floor(size / cellSize);
-      let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">`;
-      svg += `<rect width="${size}" height="${size}" fill="white"/>`;
-      
-      // Generate pseudo-random pattern based on data
-      const hash = data.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0);
-      for (let i = 0; i < cells; i++) {
-        for (let j = 0; j < cells; j++) {
-          const seed = (hash + i * cells + j) % 100;
-          if (seed < 45 || (i < 3 && j < 3) || (i < 3 && j > cells - 4) || (i > cells - 4 && j < 3)) {
-            svg += `<rect x="${j * cellSize}" y="${i * cellSize}" width="${cellSize}" height="${cellSize}" fill="#1a1a1a"/>`;
-          }
-        }
-      }
-      // Position detection patterns
-      const drawPositionPattern = (x: number, y: number) => {
-        svg += `<rect x="${x}" y="${y}" width="28" height="28" fill="#1a1a1a"/>`;
-        svg += `<rect x="${x + 4}" y="${y + 4}" width="20" height="20" fill="white"/>`;
-        svg += `<rect x="${x + 8}" y="${y + 8}" width="12" height="12" fill="#1a1a1a"/>`;
-      };
-      drawPositionPattern(0, 0);
-      drawPositionPattern(size - 28, 0);
-      drawPositionPattern(0, size - 28);
-      svg += '</svg>';
-      return svg;
-    };
-
-    const qrCodeSVG = generateQRCodeSVG(qrData);
-    const qrCodeBase64 = `data:image/svg+xml;base64,${btoa(qrCodeSVG)}`;
-
-    // Create hidden container for HTML invoice - Premium Modern Design
+    // Create clean professional invoice HTML
     const container = document.createElement('div');
     container.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 595px; background: white;';
+    
+    // Load Cairo font for Arabic support
+    const fontLink = document.createElement('link');
+    fontLink.href = 'https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap';
+    fontLink.rel = 'stylesheet';
+    document.head.appendChild(fontLink);
+    
+    // Wait for font to load
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     container.innerHTML = `
-      <div style="direction: rtl; font-family: 'Cairo', 'Tajawal', 'Noto Kufi Arabic', system-ui, sans-serif; background: linear-gradient(180deg, #FAFBFC 0%, #FFFFFF 100%); min-height: 842px; position: relative;">
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+        * { font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif !important; }
+      </style>
+      <div style="direction: rtl; font-family: 'Cairo', sans-serif; background: #ffffff; min-height: 842px; position: relative; padding: 0;">
         
-        <!-- Premium Header with Glass Effect -->
-        <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%); padding: 0; position: relative; overflow: hidden;">
-          <!-- Animated Gradient Orbs -->
-          <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(99,102,241,0.4) 0%, transparent 70%); border-radius: 50%; filter: blur(40px);"></div>
-          <div style="position: absolute; bottom: -30px; left: 20%; width: 150px; height: 150px; background: radial-gradient(circle, rgba(236,72,153,0.3) 0%, transparent 70%); border-radius: 50%; filter: blur(30px);"></div>
-          <div style="position: absolute; top: 30%; left: -30px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(34,211,238,0.3) 0%, transparent 70%); border-radius: 50%; filter: blur(25px);"></div>
+        <!-- Header -->
+        <div style="background: #1F2937; padding: 30px 40px;">
+          <table style="width: 100%;">
+            <tr>
+              <td style="width: 50%;">
+                <p style="color: #FFFFFF; font-size: 28px; font-weight: 800; margin: 0; letter-spacing: 2px;">MAXIOCORE</p>
+                <p style="color: #9CA3AF; font-size: 12px; margin: 8px 0 0; font-weight: 400;">منصة الخدمات الرقمية</p>
+              </td>
+              <td style="width: 50%; text-align: left;">
+                <p style="color: #9CA3AF; font-size: 11px; margin: 0; font-weight: 600;">فاتورة ضريبية مبسطة</p>
+                <p style="color: #FFFFFF; font-size: 14px; margin: 5px 0 0; font-weight: 700;">TAX INVOICE</p>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Invoice Info Bar -->
+        <div style="background: #4F46E5; padding: 16px 40px;">
+          <table style="width: 100%;">
+            <tr>
+              <td>
+                <span style="color: rgba(255,255,255,0.7); font-size: 12px;">رقم الفاتورة:</span>
+                <span style="color: #FFFFFF; font-size: 16px; font-weight: 700; margin-right: 8px;">#ORD-${order.order_number}</span>
+              </td>
+              <td style="text-align: left;">
+                <span style="background: ${statusStyle.bg}; color: ${statusStyle.text}; padding: 6px 20px; border-radius: 20px; font-size: 12px; font-weight: 700;">${statusLabels[order.status] || order.status}</span>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Main Content -->
+        <div style="padding: 30px 40px;">
           
-          <div style="padding: 40px 50px 35px; position: relative; z-index: 1;">
-            <table style="width: 100%;">
+          <!-- Two Column Info -->
+          <table style="width: 100%; margin-bottom: 25px;">
+            <tr>
+              <td style="width: 48%; vertical-align: top; padding-left: 15px;">
+                <div style="background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px;">
+                  <p style="color: #6B7280; font-size: 11px; margin: 0 0 12px; font-weight: 600; border-bottom: 1px solid #E5E7EB; padding-bottom: 8px;">بيانات العميل</p>
+                  <table style="width: 100%;">
+                    <tr>
+                      <td style="padding: 6px 0;">
+                        <p style="color: #9CA3AF; font-size: 10px; margin: 0;">الاسم</p>
+                        <p style="color: #111827; font-size: 13px; font-weight: 700; margin: 3px 0 0;">${customerName}</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 6px 0;">
+                        <p style="color: #9CA3AF; font-size: 10px; margin: 0;">البريد الإلكتروني</p>
+                        <p style="color: #374151; font-size: 11px; font-weight: 600; margin: 3px 0 0; direction: ltr; text-align: right;">${customerEmail}</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 6px 0;">
+                        <p style="color: #9CA3AF; font-size: 10px; margin: 0;">رقم الجوال</p>
+                        <p style="color: #374151; font-size: 12px; font-weight: 600; margin: 3px 0 0; direction: ltr; text-align: right;">${customerPhone}</p>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </td>
+              <td style="width: 48%; vertical-align: top; padding-right: 15px;">
+                <div style="background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px;">
+                  <p style="color: #6B7280; font-size: 11px; margin: 0 0 12px; font-weight: 600; border-bottom: 1px solid #E5E7EB; padding-bottom: 8px;">تفاصيل الفاتورة</p>
+                  <table style="width: 100%;">
+                    <tr>
+                      <td style="padding: 6px 0;">
+                        <p style="color: #9CA3AF; font-size: 10px; margin: 0;">تاريخ الإصدار</p>
+                        <p style="color: #111827; font-size: 14px; font-weight: 700; margin: 3px 0 0;">${invoiceDate}</p>
+                        <p style="color: #9CA3AF; font-size: 10px; margin: 2px 0 0;">${invoiceTime}</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 6px 0;">
+                        <p style="color: #9CA3AF; font-size: 10px; margin: 0;">التصنيف</p>
+                        <p style="color: #374151; font-size: 12px; font-weight: 600; margin: 3px 0 0;">${order.service?.category || 'عام'}</p>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Service Details Table -->
+          <div style="margin-bottom: 25px;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background: #1F2937;">
+                  <th style="color: #FFFFFF; font-size: 11px; font-weight: 600; padding: 12px 15px; text-align: right; border-radius: 6px 0 0 0;">الخدمة</th>
+                  <th style="color: #FFFFFF; font-size: 11px; font-weight: 600; padding: 12px 15px; text-align: center;">الكمية</th>
+                  <th style="color: #FFFFFF; font-size: 11px; font-weight: 600; padding: 12px 15px; text-align: center;">سعر الوحدة</th>
+                  <th style="color: #FFFFFF; font-size: 11px; font-weight: 600; padding: 12px 15px; text-align: left; border-radius: 0 6px 0 0;">المجموع</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="background: #F9FAFB; border-bottom: 1px solid #E5E7EB;">
+                  <td style="padding: 15px; font-size: 12px; color: #111827; font-weight: 600; max-width: 200px;">
+                    ${order.service?.name || 'خدمة'}
+                  </td>
+                  <td style="padding: 15px; font-size: 13px; color: #4F46E5; font-weight: 700; text-align: center;">
+                    ${(order.quantity || 1).toLocaleString()}
+                  </td>
+                  <td style="padding: 15px; font-size: 12px; color: #374151; font-weight: 600; text-align: center;">
+                    ${unitPrice.toFixed(4)} ر.س
+                  </td>
+                  <td style="padding: 15px; font-size: 13px; color: #111827; font-weight: 700; text-align: left;">
+                    ${basePrice.toFixed(2)} ر.س
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Payment Summary -->
+          <div style="margin-bottom: 25px;">
+            <table style="width: 100%; max-width: 350px; margin-right: auto;">
               <tr>
-                <td style="vertical-align: middle; width: 55%;">
-                  <div style="display: flex; align-items: center; gap: 15px;">
-                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(99,102,241,0.4);">
-                      <span style="font-size: 28px; font-weight: 900; color: white; font-family: 'Arial Black', sans-serif;">M</span>
-                    </div>
-                    <div>
-                      <h1 style="color: white; font-size: 32px; font-weight: 800; margin: 0; letter-spacing: 3px; font-family: 'Cairo', sans-serif; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">MAXIOCORE</h1>
-                      <p style="color: rgba(255,255,255,0.6); font-size: 11px; margin: 6px 0 0; font-weight: 500; letter-spacing: 2px;">DIGITAL SERVICES PLATFORM</p>
-                    </div>
-                  </div>
-                </td>
-                <td style="text-align: left; vertical-align: middle;">
-                  <div style="background: rgba(255,255,255,0.08); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 18px 28px; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,0.2);">
-                    <p style="color: rgba(255,255,255,0.5); font-size: 10px; margin: 0; font-weight: 600; letter-spacing: 1px;">فاتورة ضريبية مبسطة</p>
-                    <p style="color: white; font-size: 16px; margin: 6px 0 0; font-weight: 700; letter-spacing: 2px;">TAX INVOICE</p>
-                  </div>
-                </td>
+                <td style="padding: 8px 0; color: #6B7280; font-size: 12px;">المجموع الفرعي</td>
+                <td style="padding: 8px 0; color: #111827; font-size: 12px; font-weight: 600; text-align: left;">${basePrice.toFixed(2)} ر.س</td>
+              </tr>
+              ${order.discount_amount && order.discount_amount > 0 ? `
+              <tr>
+                <td style="padding: 8px 0; color: #059669; font-size: 12px;">الخصم</td>
+                <td style="padding: 8px 0; color: #059669; font-size: 12px; font-weight: 600; text-align: left;">- ${order.discount_amount.toFixed(2)} ر.س</td>
+              </tr>
+              ` : ''}
+              <tr>
+                <td style="padding: 8px 0; color: #6B7280; font-size: 12px;">ضريبة القيمة المضافة (0%)</td>
+                <td style="padding: 8px 0; color: #6B7280; font-size: 12px; text-align: left;">0.00 ر.س</td>
+              </tr>
+              <tr style="border-top: 2px solid #1F2937;">
+                <td style="padding: 15px 0 8px; color: #111827; font-size: 14px; font-weight: 700;">الإجمالي</td>
+                <td style="padding: 15px 0 8px; color: #4F46E5; font-size: 18px; font-weight: 800; text-align: left;">${order.total_price.toFixed(2)} ر.س</td>
               </tr>
             </table>
           </div>
-        </div>
-
-        <!-- Invoice Number Banner - Gradient Strip -->
-        <div style="background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 35%, #a855f7 65%, #ec4899 100%); padding: 20px 50px; position: relative;">
-          <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%);"></div>
-          <table style="width: 100%; position: relative; z-index: 1;">
-            <tr>
-              <td style="text-align: right;">
-                <span style="color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600;">رقم الفاتورة</span>
-                <span style="color: white; font-size: 20px; font-weight: 800; margin-right: 12px; font-family: 'JetBrains Mono', 'Courier New', monospace; letter-spacing: 3px; text-shadow: 0 2px 8px rgba(0,0,0,0.2);">#ORD-${order.order_number}</span>
-              </td>
-              <td style="text-align: left;">
-                <span style="display: inline-block; background: ${statusStyle.bg}; color: ${statusStyle.text}; border: 2px solid ${statusStyle.border}; padding: 10px 28px; border-radius: 50px; font-size: 13px; font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                  ${statusLabels[order.status] || order.status}
-                </span>
-              </td>
-            </tr>
-          </table>
-        </div>
-
-        <!-- Main Content Area -->
-        <div style="padding: 35px 50px;">
-          
-          <!-- Info Cards Row -->
-          <table style="width: 100%; border-collapse: separate; border-spacing: 16px 0; margin-bottom: 28px;">
-            <tr>
-              <!-- Customer Info Card -->
-              <td style="width: 50%; vertical-align: top;">
-                <div style="background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%); border: 1px solid #e2e8f0; border-radius: 20px; padding: 22px 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); position: relative; overflow: hidden;">
-                  <div style="position: absolute; top: -20px; left: -20px; width: 80px; height: 80px; background: linear-gradient(135deg, rgba(99,102,241,0.1) 0%, transparent 70%); border-radius: 50%;"></div>
-                  <div style="display: flex; align-items: center; margin-bottom: 18px; position: relative;">
-                    <div style="width: 42px; height: 42px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-left: 12px; box-shadow: 0 4px 12px rgba(99,102,241,0.3);">
-                      <span style="font-size: 20px;">👤</span>
-                    </div>
-                    <p style="color: #1e293b; font-size: 14px; font-weight: 700; margin: 0;">بيانات العميل</p>
-                  </div>
-                  <table style="width: 100%;">
-                    <tr>
-                      <td style="padding: 10px 0;">
-                        <p style="color: #94a3b8; font-size: 11px; margin: 0; font-weight: 600;">الاسم</p>
-                        <p style="color: #0f172a; font-size: 15px; font-weight: 700; margin: 5px 0 0;">${customerName}</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 10px 0; border-top: 1px solid #f1f5f9;">
-                        <p style="color: #94a3b8; font-size: 11px; margin: 0; font-weight: 600;">البريد الإلكتروني</p>
-                        <p style="color: #475569; font-size: 12px; font-weight: 600; margin: 5px 0 0; direction: ltr; text-align: right;">${customerEmail}</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 10px 0; border-top: 1px solid #f1f5f9;">
-                        <p style="color: #94a3b8; font-size: 11px; margin: 0; font-weight: 600;">رقم الجوال</p>
-                        <p style="color: #475569; font-size: 13px; font-weight: 600; margin: 5px 0 0; direction: ltr; text-align: right;">${customerPhone}</p>
-                      </td>
-                    </tr>
-                  </table>
-                </div>
-              </td>
-              <!-- Invoice Date Card -->
-              <td style="width: 50%; vertical-align: top;">
-                <div style="background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%); border: 1px solid #e2e8f0; border-radius: 20px; padding: 22px 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); position: relative; overflow: hidden;">
-                  <div style="position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; background: linear-gradient(135deg, rgba(236,72,153,0.1) 0%, transparent 70%); border-radius: 50%;"></div>
-                  <div style="display: flex; align-items: center; margin-bottom: 18px; position: relative;">
-                    <div style="width: 42px; height: 42px; background: linear-gradient(135deg, #0f172a 0%, #334155 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-left: 12px; box-shadow: 0 4px 12px rgba(15,23,42,0.3);">
-                      <span style="font-size: 20px;">📄</span>
-                    </div>
-                    <p style="color: #1e293b; font-size: 14px; font-weight: 700; margin: 0;">تفاصيل الفاتورة</p>
-                  </div>
-                  <table style="width: 100%;">
-                    <tr>
-                      <td style="padding: 10px 0;">
-                        <p style="color: #94a3b8; font-size: 11px; margin: 0; font-weight: 600;">تاريخ الإصدار</p>
-                        <p style="color: #0f172a; font-size: 18px; font-weight: 800; margin: 5px 0 0;">${format(new Date(order.created_at), 'yyyy/MM/dd')}</p>
-                        <p style="color: #94a3b8; font-size: 11px; margin: 3px 0 0;">${format(new Date(order.created_at), 'hh:mm a')}</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 10px 0; border-top: 1px solid #f1f5f9;">
-                        <p style="color: #94a3b8; font-size: 11px; margin: 0; font-weight: 600;">التصنيف</p>
-                        <p style="color: #475569; font-size: 13px; font-weight: 600; margin: 5px 0 0;">${order.service?.category || 'عام'}</p>
-                      </td>
-                    </tr>
-                  </table>
-                </div>
-              </td>
-            </tr>
-          </table>
-
-          <!-- Service Details Card - Premium Design -->
-          <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.06);">
-            <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 18px 28px; position: relative;">
-              <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(90deg, transparent 0%, rgba(99,102,241,0.1) 50%, transparent 100%);"></div>
-              <h3 style="color: white; font-size: 15px; font-weight: 700; margin: 0; display: flex; align-items: center; position: relative;">
-                <span style="display: inline-block; width: 10px; height: 10px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 50%; margin-left: 12px; box-shadow: 0 0 12px rgba(34,197,94,0.5);"></span>
-                تفاصيل الخدمة
-              </h3>
-            </div>
-            <div style="padding: 28px;">
-              <div style="margin-bottom: 24px;">
-                <p style="color: #94a3b8; font-size: 11px; margin: 0; font-weight: 600; margin-bottom: 10px;">اسم الخدمة</p>
-                <p style="color: #0f172a; font-size: 15px; font-weight: 700; margin: 0; line-height: 1.8; padding: 16px 20px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 14px; border-right: 5px solid #6366f1;">${order.service?.name || 'غير محدد'}</p>
-              </div>
-              <table style="width: 100%;">
-                <tr>
-                  <td style="width: 50%; padding: 18px 0; border-top: 1px solid #f1f5f9;">
-                    <p style="color: #94a3b8; font-size: 11px; margin: 0; font-weight: 600;">الكمية المطلوبة</p>
-                    <p style="color: #6366f1; font-size: 32px; font-weight: 900; margin: 10px 0 0; letter-spacing: -1px;">${(order.quantity || 1).toLocaleString('ar-SA')}</p>
-                  </td>
-                  <td style="width: 50%; padding: 18px 0; border-top: 1px solid #f1f5f9; text-align: left;">
-                    <p style="color: #94a3b8; font-size: 11px; margin: 0; font-weight: 600;">سعر الوحدة</p>
-                    <p style="color: #0f172a; font-size: 20px; font-weight: 700; margin: 10px 0 0;">${unitPrice.toFixed(4)} <span style="font-size: 13px; color: #94a3b8; font-weight: 600;">ر.س</span></p>
-                  </td>
-                </tr>
-              </table>
-            </div>
-          </div>
-
-          <!-- Payment Summary Card -->
-          <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.06);">
-            <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 18px 28px; position: relative;">
-              <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(90deg, transparent 0%, rgba(245,158,11,0.1) 50%, transparent 100%);"></div>
-              <h3 style="color: white; font-size: 15px; font-weight: 700; margin: 0; display: flex; align-items: center; position: relative;">
-                <span style="display: inline-block; width: 10px; height: 10px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 50%; margin-left: 12px; box-shadow: 0 0 12px rgba(245,158,11,0.5);"></span>
-                ملخص الدفع
-              </h3>
-            </div>
-            <div style="padding: 24px 28px;">
-              <table style="width: 100%;">
-                <tr>
-                  <td style="padding: 14px 0; color: #64748b; font-size: 14px; font-weight: 500;">المجموع الفرعي</td>
-                  <td style="padding: 14px 0; color: #1e293b; font-size: 15px; font-weight: 600; text-align: left;">${basePrice.toFixed(2)} ر.س</td>
-                </tr>
-                ${order.discount_amount && order.discount_amount > 0 ? `
-                <tr>
-                  <td style="padding: 14px 0; color: #22c55e; font-size: 14px; font-weight: 500; border-top: 1px solid #f1f5f9;">
-                    <span style="display: inline-block; background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;">خصم</span>
-                  </td>
-                  <td style="padding: 14px 0; color: #22c55e; font-size: 15px; font-weight: 700; text-align: left; border-top: 1px solid #f1f5f9;">- ${order.discount_amount.toFixed(2)} ر.س</td>
-                </tr>
-                ` : ''}
-                <tr>
-                  <td style="padding: 14px 0; color: #94a3b8; font-size: 13px; font-weight: 500; border-top: 1px solid #f1f5f9;">ضريبة القيمة المضافة (0%)</td>
-                  <td style="padding: 14px 0; color: #94a3b8; font-size: 13px; text-align: left; border-top: 1px solid #f1f5f9;">0.00 ر.س</td>
-                </tr>
-              </table>
-            </div>
-            <!-- Grand Total Section -->
-            <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); padding: 24px 28px; position: relative;">
-              <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(90deg, rgba(99,102,241,0.1) 0%, rgba(236,72,153,0.1) 100%);"></div>
-              <table style="width: 100%; position: relative;">
-                <tr>
-                  <td>
-                    <p style="color: rgba(255,255,255,0.6); font-size: 12px; margin: 0; font-weight: 600;">الإجمالي المستحق</p>
-                    <p style="color: white; font-size: 32px; font-weight: 900; margin: 10px 0 0; letter-spacing: -1px;">${order.total_price.toFixed(2)} <span style="font-size: 16px; font-weight: 600; opacity: 0.8;">ريال سعودي</span></p>
-                  </td>
-                  <td style="text-align: left; vertical-align: bottom;">
-                    <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 16px;">
-                      <p style="color: rgba(255,255,255,0.5); font-size: 11px; margin: 0; font-weight: 600;">SAR</p>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-            </div>
-          </div>
 
           ${order.link ? `
-          <!-- Link Section -->
-          <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1px solid #bfdbfe; border-radius: 16px; padding: 20px 24px; margin-bottom: 20px;">
-            <p style="color: #1e40af; font-size: 12px; margin: 0 0 10px; font-weight: 700; display: flex; align-items: center;">
-              <span style="display: inline-block; margin-left: 8px; font-size: 16px;">🔗</span> الرابط المستهدف
-            </p>
-            <p style="color: #1e3a8a; font-size: 11px; margin: 0; word-break: break-all; direction: ltr; text-align: left; font-family: 'JetBrains Mono', monospace; background: white; padding: 12px 16px; border-radius: 10px; border: 1px solid #93c5fd;">${order.link}</p>
+          <!-- Target Link -->
+          <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 6px; padding: 12px 15px; margin-bottom: 20px;">
+            <p style="color: #1E40AF; font-size: 10px; margin: 0 0 5px; font-weight: 600;">الرابط المستهدف</p>
+            <p style="color: #1E3A8A; font-size: 10px; margin: 0; word-break: break-all; direction: ltr; text-align: left;">${order.link}</p>
           </div>
           ` : ''}
 
         </div>
 
-        <!-- Premium Footer -->
-        <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); border-top: 1px solid #e2e8f0;">
-          <div style="padding: 28px 50px;">
-            <table style="width: 100%;">
-              <tr>
-                <td style="vertical-align: middle; width: 70%;">
-                  <p style="color: #475569; font-size: 12px; margin: 0; line-height: 1.8; font-weight: 500;">
-                    <span style="color: #0f172a; font-weight: 700;">ملاحظة:</span> فاتورة إلكترونية صادرة من منصة MAXIOCORE
-                  </p>
-                  <p style="color: #94a3b8; font-size: 10px; margin: 10px 0 0;">
-                    تاريخ الإصدار: ${format(new Date(), 'dd/MM/yyyy')} - ${format(new Date(), 'HH:mm')} • لا تحتاج إلى توقيع أو ختم
-                  </p>
-                  <div style="margin-top: 14px; display: flex; gap: 20px;">
-                    <span style="color: #64748b; font-size: 11px; font-weight: 500;">📧 info@maxiocore.com</span>
-                    <span style="color: #64748b; font-size: 11px; font-weight: 500;">🌐 www.maxiocore.com</span>
-                  </div>
-                </td>
-                <td style="text-align: left; vertical-align: middle;">
-                  <div style="background: white; padding: 12px; border-radius: 16px; border: 2px solid #e2e8f0; display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                    <img src="${qrCodeBase64}" width="75" height="75" style="display: block; border-radius: 8px;" />
-                    <p style="color: #64748b; font-size: 9px; margin: 8px 0 0; text-align: center; font-weight: 600;">امسح للتحقق</p>
-                  </div>
-                </td>
-              </tr>
-            </table>
-          </div>
-          <!-- Gradient Bottom Bar -->
-          <div style="height: 6px; background: linear-gradient(90deg, #1a1a2e 0%, #6366f1 33%, #ec4899 66%, #f59e0b 100%);"></div>
+        <!-- Footer -->
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; background: #F9FAFB; border-top: 1px solid #E5E7EB; padding: 20px 40px;">
+          <table style="width: 100%;">
+            <tr>
+              <td style="vertical-align: middle;">
+                <p style="color: #6B7280; font-size: 10px; margin: 0; line-height: 1.6;">
+                  فاتورة إلكترونية صادرة من منصة MAXIOCORE
+                </p>
+                <p style="color: #9CA3AF; font-size: 9px; margin: 5px 0 0;">
+                  تاريخ الطباعة: ${format(new Date(), 'dd/MM/yyyy HH:mm')}
+                </p>
+                <p style="color: #9CA3AF; font-size: 9px; margin: 5px 0 0;">
+                  info@maxiocore.com | www.maxiocore.com
+                </p>
+              </td>
+              <td style="text-align: left; vertical-align: middle;">
+                <p style="color: #6B7280; font-size: 9px; margin: 0; text-align: center;">شكراً لتعاملكم معنا</p>
+              </td>
+            </tr>
+          </table>
         </div>
+        
+        <!-- Bottom Bar -->
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #1F2937 0%, #4F46E5 100%);"></div>
         
       </div>
     `;
@@ -854,18 +771,19 @@ const ClientOrderDetails = () => {
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`فاتورة-${order.order_number}.pdf`);
+      pdf.save(`فاتورة-ORD-${order.order_number}.pdf`);
 
       toast.dismiss();
-      toast.success('تم تحميل الفاتورة العربية بنجاح');
-    } catch (error) {
+      toast.success('تم تحميل الفاتورة بنجاح');
+    } catch (err) {
+      console.error('Error generating PDF:', err);
       toast.dismiss();
-      toast.error('حدث خطأ في إنشاء الفاتورة');
-      console.error(error);
+      toast.error('حدث خطأ أثناء إنشاء الفاتورة');
     } finally {
       document.body.removeChild(container);
+      document.head.removeChild(fontLink);
     }
-  }, [order]);
+  }, [order, user]);
 
   const shareViaWhatsApp = useCallback(() => {
     if (!order) return;
