@@ -14,6 +14,7 @@ import SystemInfoSettings from "@/components/admin/settings/SystemInfoSettings";
 import MaintenanceSettings from "@/components/admin/settings/MaintenanceSettings";
 import AppearanceSettings from "@/components/admin/settings/AppearanceSettings";
 import AuditLogsSettings from "@/components/admin/settings/AuditLogsSettings";
+import { WhatsAppSettings } from "@/components/admin/settings/WhatsAppSettings";
 
 const AdminSettings = () => {
   const { settings, loading, saving, updateSetting, updateMultipleSettings, refetch } = useSystemSettings();
@@ -105,6 +106,9 @@ const AdminSettings = () => {
           />
           
           <AppearanceSettings />
+          
+          {/* WhatsApp Settings */}
+          <WhatsAppSettings />
           
           {/* Audit Logs - Full width */}
           <AuditLogsSettings />
