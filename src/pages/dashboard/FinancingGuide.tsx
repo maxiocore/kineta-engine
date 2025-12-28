@@ -89,7 +89,7 @@ const eligibilityRequirements = [
 ];
 
 const requiredDocuments = [
-  { icon: FileText, title: "صورة الهوية الوطنية", description: "صورة واضحة من الوجهين" },
+  { icon: FileText, title: "صورة الهوية الوطنية", description: "صورة واضحة للهوية" },
   { icon: Landmark, title: "كشف حساب بنكي", description: "كشف حساب لآخر 3 أشهر" },
   { icon: Shield, title: "تقرير سمة الائتماني", description: "تقرير حديث من سمة الائتمانية" },
 ];
