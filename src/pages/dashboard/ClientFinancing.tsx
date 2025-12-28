@@ -395,17 +395,44 @@ export default function ClientFinancing() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
-          <TabsList className="bg-muted/50 flex-wrap flex-row-reverse justify-end">
-            <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
-            <TabsTrigger value="applications">طلباتي ({applications.length})</TabsTrigger>
-            {activeApplications.length > 0 && (
-              <>
-                <TabsTrigger value="installments">جدول الأقساط</TabsTrigger>
-                <TabsTrigger value="contract">العقد</TabsTrigger>
-              </>
-            )}
-            <TabsTrigger value="plans">خطط التمويل</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+            <TabsList className="bg-muted/50 inline-flex w-max sm:w-auto gap-1 p-1 h-auto flex-row-reverse">
+              <TabsTrigger 
+                value="overview" 
+                className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap"
+              >
+                نظرة عامة
+              </TabsTrigger>
+              <TabsTrigger 
+                value="applications" 
+                className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap"
+              >
+                طلباتي ({applications.length})
+              </TabsTrigger>
+              {activeApplications.length > 0 && (
+                <>
+                  <TabsTrigger 
+                    value="installments" 
+                    className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap"
+                  >
+                    جدول الأقساط
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="contract" 
+                    className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap"
+                  >
+                    العقد
+                  </TabsTrigger>
+                </>
+              )}
+              <TabsTrigger 
+                value="plans" 
+                className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap"
+              >
+                خطط التمويل
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
