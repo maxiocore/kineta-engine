@@ -212,36 +212,38 @@ export default function ClientFinancing() {
     <ClientDashboardLayout>
       <div className="space-y-6" dir="rtl">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600">
-                <Landmark className="h-6 w-6 text-white" />
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600">
+                <Landmark className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               التمويل المرن
             </h1>
-            <p className="text-muted-foreground mt-1">احصل على خدماتك الآن وادفع لاحقاً بدون فوائد</p>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">احصل على خدماتك الآن وادفع لاحقاً بدون فوائد</p>
           </div>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           {canApplyForNew ? (
-            <Button asChild className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700">
+            <Button asChild size="sm" className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700">
               <Link to="/dashboard/financing/apply">
                 <Plus className="h-4 w-4 ml-2" />
                 تقديم طلب تمويل
               </Link>
             </Button>
           ) : (
-            <div className="text-left">
-              <Button disabled className="bg-muted text-muted-foreground cursor-not-allowed">
+            <div className="w-full sm:w-auto">
+              <Button disabled size="sm" className="w-full sm:w-auto bg-muted text-muted-foreground cursor-not-allowed">
                 <AlertTriangle className="h-4 w-4 ml-2" />
                 تقديم طلب جديد
               </Button>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-1 text-center sm:text-right">
                 {hasPendingApplication 
                   ? "لديك طلب قيد المراجعة" 
                   : `يجب سداد ${3 - paidInstallmentsCount} أقساط إضافية`}
               </p>
             </div>
           )}
+          </div>
         </div>
 
         {/* Quick Links */}
@@ -255,12 +257,12 @@ export default function ClientFinancing() {
             >
               <Link to={link.href}>
                 <Card className="h-full hover:border-primary/50 transition-all group cursor-pointer">
-                  <CardContent className="p-4">
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${link.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
-                      <link.icon className="h-6 w-6 text-white" />
+                  <CardContent className="p-3 sm:p-4">
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br ${link.color} flex items-center justify-center mb-2 sm:mb-3 group-hover:scale-110 transition-transform`}>
+                      <link.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                     </div>
-                    <h3 className="font-semibold text-sm">{link.title}</h3>
-                    <p className="text-xs text-muted-foreground mt-1">{link.description}</p>
+                    <h3 className="font-semibold text-xs sm:text-sm line-clamp-1">{link.title}</h3>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 line-clamp-2">{link.description}</p>
                   </CardContent>
                 </Card>
               </Link>
@@ -563,18 +565,18 @@ export default function ClientFinancing() {
             ) : (
               <div className="space-y-4">
                 {/* Applications Header */}
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-lg">جميع الطلبات ({applications.length})</h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <h3 className="font-semibold text-base sm:text-lg">جميع الطلبات ({applications.length})</h3>
                   {canApplyForNew ? (
-                    <Button asChild size="sm" className="bg-gradient-to-r from-emerald-500 to-teal-600">
+                    <Button asChild size="sm" className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-600">
                       <Link to="/dashboard/financing/apply">
                         <Plus className="h-4 w-4 ml-1" />
                         طلب جديد
                       </Link>
                     </Button>
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-amber-500 border-amber-500/30 bg-amber-500/10">
+                    <div className="flex items-center justify-center sm:justify-end">
+                      <Badge variant="outline" className="text-amber-500 border-amber-500/30 bg-amber-500/10 text-xs">
                         <AlertTriangle className="h-3 w-3 ml-1" />
                         {hasPendingApplication 
                           ? "طلب قيد المراجعة" 
@@ -669,13 +671,13 @@ export default function ClientFinancing() {
 
                         {/* Administrative Fee Notice for Active */}
                         {app.status === 'active' && (
-                          <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                            <div className="flex items-center justify-between">
+                          <div className="mb-4 p-2 sm:p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                               <div className="flex items-center gap-2">
-                                <Percent className="h-4 w-4 text-blue-400" />
-                                <span className="text-sm text-blue-300">رسوم إدارية 5% تُضاف مع آخر قسط</span>
+                                <Percent className="h-4 w-4 text-blue-400 flex-shrink-0" />
+                                <span className="text-xs sm:text-sm text-blue-300">رسوم إدارية 5% تُضاف مع آخر قسط</span>
                               </div>
-                              <span className="font-bold text-blue-400">
+                              <span className="font-bold text-blue-400 text-sm sm:text-base mr-6 sm:mr-0">
                                 {((app.approved_amount || app.requested_amount) * 0.05).toLocaleString("ar-SA")} ر.س
                               </span>
                             </div>
