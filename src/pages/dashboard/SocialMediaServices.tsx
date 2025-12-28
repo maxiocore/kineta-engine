@@ -674,39 +674,39 @@ const PlatformSelector = ({
             transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
             className="overflow-hidden"
           >
-            <div className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border/50 shadow-xl overflow-hidden">
+            <div className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border/50 shadow-xl overflow-hidden" dir="rtl">
               {/* Subcategories Header */}
-              <div className="flex items-center justify-between p-4 border-b border-border/30 bg-gradient-to-l from-transparent to-muted/20">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => { setActivePlatform(null); setSubcategories([]); }}
-                  className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-                <div className="flex items-center gap-3">
-                  <div className="text-left">
-                    <h4 className="font-bold text-base">{networks.find(n => n.id === activePlatform)?.name}</h4>
-                    <p className="text-xs text-muted-foreground">
-                      {loadingSubcategories ? "جاري التحميل..." : `${subcategories.length} قسم فرعي`}
-                    </p>
-                  </div>
+              <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border/30 bg-gradient-to-r from-transparent to-muted/20">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center shadow-lg",
+                    "w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg shrink-0",
                     networks.find(n => n.id === activePlatform)?.bgColor || "bg-primary"
                   )}>
                     {(() => {
                       const network = networks.find(n => n.id === activePlatform);
-                      if (!network) return <Sparkles className="w-5 h-5 text-white" />;
+                      if (!network) return <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />;
                       const CustomIcon = (network as any).customIcon;
                       const Icon = network.icon;
                       if (CustomIcon) return <div className={network.textColor || "text-white"}><CustomIcon /></div>;
-                      if (Icon) return <Icon className={cn("w-5 h-5", network.textColor || "text-white")} />;
-                      return <Sparkles className="w-5 h-5 text-white" />;
+                      if (Icon) return <Icon className={cn("w-4 h-4 sm:w-5 sm:h-5", network.textColor || "text-white")} />;
+                      return <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />;
                     })()}
                   </div>
+                  <div className="text-right">
+                    <h4 className="font-bold text-sm sm:text-base">{networks.find(n => n.id === activePlatform)?.name}</h4>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">
+                      {loadingSubcategories ? "جاري التحميل..." : `${subcategories.length} قسم فرعي`}
+                    </p>
+                  </div>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => { setActivePlatform(null); setSubcategories([]); }}
+                  className="h-7 w-7 sm:h-8 sm:w-8 rounded-full hover:bg-destructive/10 hover:text-destructive shrink-0"
+                >
+                  <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </Button>
               </div>
 
               {/* Subcategories Content */}
