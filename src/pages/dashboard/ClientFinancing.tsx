@@ -444,7 +444,7 @@ export default function ClientFinancing() {
   const features = [
     { icon: Sparkles, title: "بدون فوائد", description: "تمويل إسلامي متوافق مع الشريعة بدون أي فوائد أو رسوم خفية", color: "bg-gradient-to-br from-emerald-500 to-teal-600" },
     { icon: Zap, title: "موافقة سريعة", description: "الموافقة على طلبك خلال 24 ساعة عمل فقط", color: "bg-gradient-to-br from-amber-500 to-orange-600" },
-    { icon: Shield, title: "آمن وموثوق", description: "بياناتك محمية بأعلى معايير الأمان والخصوصية", color: "bg-gradient-to-br from-blue-500 to-indigo-600" },
+    { icon: Shield, title: "تمويل داخلي", description: "التمويل لشراء خدماتنا فقط وليس نقدياً - يُضاف كرصيد لحسابك", color: "bg-gradient-to-br from-blue-500 to-indigo-600" },
     { icon: Gift, title: "مكافآت حصرية", description: "احصل على نقاط مكافآت مع كل دفعة في الموعد", color: "bg-gradient-to-br from-purple-500 to-violet-600" },
   ];
 
@@ -493,9 +493,10 @@ export default function ClientFinancing() {
                   transition={{ delay: 0.2 }}
                   className="text-white/80 text-base sm:text-lg mb-6 max-w-2xl leading-relaxed"
                 >
-                  تمويل بدون فوائد لخدمات البرمجة والتصميم ومواقع التواصل. 
-                  مبالغ من <span className="font-bold text-white">100</span> حتى <span className="font-bold text-white">100,000</span> ريال 
+                  تمويل داخلي بدون فوائد لشراء خدمات البرمجة والتصميم ومواقع التواصل. 
+                  مبالغ من <span className="font-bold text-white">100</span> حتى <span className="font-bold text-white">50,000</span> ريال 
                   بأقساط تصل إلى <span className="font-bold text-white">12 شهر</span>.
+                  <span className="block text-sm text-amber-300 mt-2">⚠️ التمويل ليس نقدياً - فقط لشراء خدماتنا داخل المنصة</span>
                 </motion.p>
 
                 {/* Admin Fee Badge */}
@@ -550,7 +551,7 @@ export default function ClientFinancing() {
                 className="grid grid-cols-2 gap-3 w-full lg:w-auto"
               >
                 {[
-                  { label: "الحد الأقصى", value: "100,000", suffix: "ر.س", icon: CircleDollarSign },
+                  { label: "الحد الأقصى", value: "50,000", suffix: "ر.س", icon: CircleDollarSign },
                   { label: "أقصى مدة", value: "12", suffix: "شهر", icon: Calendar },
                   { label: "رسوم إدارية", value: "500", suffix: "ر.س", icon: Receipt },
                   { label: "نسبة الفائدة", value: "0", suffix: "%", icon: Percent },
@@ -1169,7 +1170,7 @@ export default function ClientFinancing() {
                           <Target className="h-5 w-5 text-blue-400" />
                           <span className="font-semibold">الحد الأقصى للتمويل</span>
                         </div>
-                        <p className="text-2xl font-black text-primary">100,000 ر.س</p>
+                        <p className="text-2xl font-black text-primary">50,000 ر.س</p>
                       </div>
                     </div>
                   </div>
