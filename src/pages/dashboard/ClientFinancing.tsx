@@ -28,10 +28,12 @@ import {
   Calculator,
   BookOpen,
   UserCheck,
-  Eye
+  Eye,
+  Receipt
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import FinancingBankCard from "@/components/financing/FinancingBankCard";
 
 interface FinancingPlan {
   id: string;
@@ -172,6 +174,12 @@ export default function ClientFinancing() {
   });
 
   const activeApplications = applications.filter(a => a.status === "active");
+  
+  // Auto-select first active application if none selected
+  if (activeApplications.length > 0 && !selectedApplication) {
+    setSelectedApplication(activeApplications[0]);
+  }
+  
   const totalPaid = installments.filter(i => i.status === "paid").reduce((sum, i) => sum + i.amount, 0);
   const totalRemaining = installments.filter(i => i.status !== "paid").reduce((sum, i) => sum + i.amount, 0);
   const nextInstallment = installments.find(i => i.status === "pending");
@@ -222,49 +230,80 @@ export default function ClientFinancing() {
           ))}
         </div>
 
-        {/* Active Financing Stats */}
-        {activeApplications.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border-emerald-500/20">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">المبلغ المدفوع</p>
-                    <p className="text-2xl font-bold text-emerald-400">{totalPaid.toFixed(2)} ر.س</p>
-                  </div>
-                  <CheckCircle2 className="h-8 w-8 text-emerald-400/50" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/20">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">المبلغ المتبقي</p>
-                    <p className="text-2xl font-bold text-yellow-400">{totalRemaining.toFixed(2)} ر.س</p>
-                  </div>
-                  <DollarSign className="h-8 w-8 text-yellow-400/50" />
-                </div>
-              </CardContent>
-            </Card>
-
-            {nextInstallment && (
-              <Card className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border-blue-500/20">
+        {/* Bank Card for Active Financing */}
+        {activeApplications.length > 0 && selectedApplication && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <FinancingBankCard
+              userName={selectedApplication.full_name}
+              totalBalance={selectedApplication.approved_amount || selectedApplication.requested_amount}
+              paidAmount={totalPaid}
+              remainingAmount={totalRemaining}
+              nextInstallmentAmount={nextInstallment?.amount}
+              nextInstallmentDate={nextInstallment ? new Date(nextInstallment.due_date) : undefined}
+              planName={selectedApplication.financing_plans?.name_ar}
+              contractNumber={selectedApplication.contract_number || undefined}
+            />
+            
+            {/* Stats Cards */}
+            <div className="space-y-4">
+              <Card className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border-emerald-500/20">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground">القسط القادم</p>
-                      <p className="text-xl font-bold text-blue-400">{nextInstallment.amount.toFixed(2)} ر.س</p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(nextInstallment.due_date), "dd MMMM yyyy", { locale: ar })}
-                      </p>
+                      <p className="text-sm text-muted-foreground">المبلغ المدفوع</p>
+                      <p className="text-2xl font-bold text-emerald-400">{totalPaid.toFixed(2)} ر.س</p>
                     </div>
-                    <Calendar className="h-8 w-8 text-blue-400/50" />
+                    <CheckCircle2 className="h-8 w-8 text-emerald-400/50" />
                   </div>
                 </CardContent>
               </Card>
-            )}
+
+              <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">المبلغ المتبقي</p>
+                      <p className="text-2xl font-bold text-yellow-400">{totalRemaining.toFixed(2)} ر.س</p>
+                    </div>
+                    <DollarSign className="h-8 w-8 text-yellow-400/50" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {nextInstallment && (
+                <Card className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border-blue-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">القسط القادم - يوم 30</p>
+                        <p className="text-xl font-bold text-blue-400">{nextInstallment.amount.toFixed(2)} ر.س</p>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(nextInstallment.due_date), "dd MMMM yyyy", { locale: ar })}
+                        </p>
+                      </div>
+                      <Calendar className="h-8 w-8 text-blue-400/50" />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Select Active Application if multiple */}
+        {activeApplications.length > 1 && (
+          <div className="flex flex-wrap gap-2">
+            <span className="text-sm text-muted-foreground self-center">اختر التمويل:</span>
+            {activeApplications.map((app) => (
+              <Button
+                key={app.id}
+                variant={selectedApplication?.id === app.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedApplication(app)}
+              >
+                #{app.application_number}
+              </Button>
+            ))}
           </div>
         )}
 
@@ -292,8 +331,8 @@ export default function ClientFinancing() {
                   </div>
                   <h2 className="text-3xl font-bold mb-2">تمويل مرن لخدماتك</h2>
                   <p className="text-white/80 mb-6 max-w-lg">
-                    احصل على خدمات البرمجة والتصميم ومواقع التواصل الآن وادفع على أقساط شهرية تصل إلى 6 أشهر.
-                    الرصيد يُضاف لحسابك مباشرة ولا يمكن سحبه.
+                    احصل على خدمات البرمجة والتصميم ومواقع التواصل الآن وادفع على أقساط شهرية تصل إلى 12 شهر للمبالغ الكبيرة.
+                    الرصيد يُضاف لحسابك مباشرة ولا يمكن سحبه. القسط يوم 30 من كل شهر.
                   </p>
                   <div className="flex flex-wrap gap-3">
                     <Button asChild size="lg" className="bg-white text-emerald-600 hover:bg-white/90">

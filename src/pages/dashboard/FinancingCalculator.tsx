@@ -71,7 +71,7 @@ export default function FinancingCalculator() {
     };
   }, [amount, selectedPlan]);
 
-  // Generate installments schedule
+  // Generate installments schedule - due on 30th of each month
   const installmentsSchedule = useMemo(() => {
     if (!calculation) return [];
     
@@ -79,13 +79,14 @@ export default function FinancingCalculator() {
     const today = new Date();
     
     for (let i = 1; i <= calculation.installmentsCount; i++) {
-      const dueDate = new Date(today);
-      dueDate.setMonth(dueDate.getMonth() + i);
+      // Set due date to 30th of month
+      const dueDate = new Date(today.getFullYear(), today.getMonth() + i, 30);
       
       schedule.push({
         number: i,
         amount: calculation.monthlyInstallment,
         dueDate: dueDate.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
+        dueDateRaw: dueDate,
       });
     }
     
@@ -238,7 +239,7 @@ export default function FinancingCalculator() {
                           <div>
                             <p className="font-medium">القسط {installment.number}</p>
                             <p className="text-sm text-muted-foreground">
-                              {installment.dueDate}
+                              يوم 30 - {installment.dueDate}
                             </p>
                           </div>
                         </div>
