@@ -9,3 +9,4 @@ export { DesignOrderCard } from './DesignOrderCard';
 export { DevOrderCard } from './DevOrderCard';
 export { DesignOrdersList } from './DesignOrdersList';
 export { DevOrdersList } from './DevOrdersList';
+export { OrdersSectionCards, SectionHeader } from './OrdersSectionCards';

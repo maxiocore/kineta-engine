@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { 
-  ShoppingBag, Plus, Share2, Palette, Code, Grid3X3, Megaphone
+  ShoppingBag, Plus, ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
@@ -12,14 +12,14 @@ import { toast } from "sonner";
 import { isWithinInterval, startOfDay, endOfDay } from "date-fns";
 
 import { 
-  OrdersTypeTabs, 
   OrderType, 
   ModernOrdersStats, 
   ModernOrdersSearch,
-  ModernOrdersList,
   ModernOrdersTable,
   DesignOrdersList,
-  DevOrdersList
+  DevOrdersList,
+  OrdersSectionCards,
+  SectionHeader
 } from "@/components/orders/modern";
 
 interface Service {
@@ -48,14 +48,6 @@ interface Order {
   start_count: number | null;
   remains: number | null;
   service: Service;
-}
-
-interface OrderStatusHistory {
-  id: string;
-  old_status: string | null;
-  new_status: string;
-  created_at: string;
-  notes: string | null;
 }
 
 // Define category mappings for order types
@@ -101,7 +93,7 @@ const ClientOrders = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [activeType, setActiveType] = useState<OrderType>("all");
+  const [activeSection, setActiveSection] = useState<OrderType | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -148,7 +140,6 @@ const ClientOrders = () => {
   };
 
   const handleViewOrder = async (order: Order) => {
-    // Navigate to order details page instead of opening sheet
     navigate(`/dashboard/orders/${order.id}`);
   };
 
@@ -192,12 +183,12 @@ const ClientOrders = () => {
     return result;
   }, [orders]);
 
-  // Get current type orders
-  const currentTypeOrders = activeType === 'all' ? orders : ordersByType[activeType];
+  // Get current section orders
+  const currentSectionOrders = activeSection ? ordersByType[activeSection] : [];
 
   // Apply filters
   const filteredOrders = useMemo(() => {
-    return currentTypeOrders.filter(order => {
+    return currentSectionOrders.filter(order => {
       const matchesSearch = 
         order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) || 
         order.service?.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -215,7 +206,7 @@ const ClientOrders = () => {
       
       return matchesSearch && matchesStatus && matchesDate;
     });
-  }, [currentTypeOrders, searchQuery, statusFilter, dateRange]);
+  }, [currentSectionOrders, searchQuery, statusFilter, dateRange]);
 
   // Stats
   const stats = useMemo(() => ({
@@ -230,7 +221,7 @@ const ClientOrders = () => {
     ).length,
   }), [filteredOrders]);
 
-  // Calculate spending (only completed orders count as actual spending)
+  // Calculate spending
   const totalSpent = useMemo(() => 
     filteredOrders
       .filter(o => o.status === 'completed' || o.status === 'in_progress' || o.status === 'processing')
@@ -238,7 +229,6 @@ const ClientOrders = () => {
     [filteredOrders]
   );
 
-  // Today's spending
   const todaySpent = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -251,7 +241,7 @@ const ClientOrders = () => {
       .reduce((sum, o) => sum + o.total_price, 0);
   }, [filteredOrders]);
 
-  // Counts for tabs
+  // Counts for section cards
   const typeCounts = useMemo(() => ({
     all: orders.length,
     social: ordersByType.social.length,
@@ -260,9 +250,9 @@ const ClientOrders = () => {
     dev: ordersByType.dev.length,
   }), [orders, ordersByType]);
 
-  // Get empty state based on type
+  // Get empty state based on section
   const getEmptyState = () => {
-    switch (activeType) {
+    switch (activeSection) {
       case 'social':
         return { 
           title: "لا توجد طلبات مواقع تواصل", 
@@ -296,185 +286,189 @@ const ClientOrders = () => {
   return (
     <ClientDashboardLayout>
       <motion.div 
-        className="space-y-4 md:space-y-6 pb-8" 
+        className="space-y-6 pb-8" 
         dir="rtl"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        {/* Modern Header with Gradient */}
+        {/* Main Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-xl md:rounded-2xl bg-gradient-to-l from-primary/15 via-primary/5 to-transparent p-4 md:p-6 border border-primary/20"
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-primary/15 via-primary/5 to-transparent p-6 border border-primary/20"
         >
-          {/* Decorative Background */}
           <div className="absolute top-0 left-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 right-1/2 w-40 h-40 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            {/* Title Section */}
-            <div className="flex items-center gap-3 md:gap-4">
+            <div className="flex items-center gap-4">
               <motion.div 
                 className="relative"
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400 }}
               >
-                <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/25">
-                  <ShoppingBag className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/25">
+                  <ShoppingBag className="w-7 h-7 md:w-8 md:h-8 text-white" />
                 </div>
               </motion.div>
               
               <div className="flex flex-col">
-                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">طلباتي</h1>
-                <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
-                  إدارة ومتابعة جميع طلباتك
+                <h1 className="text-2xl md:text-3xl font-bold text-foreground">سجل طلباتي</h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                  اختر القسم لعرض سجل الطلبات الخاص به
                 </p>
               </div>
             </div>
 
-            {/* Action Button & Quick Stats */}
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              {/* Quick Type Counts - Mobile */}
-              <div className="flex items-center gap-1 sm:hidden flex-wrap">
-                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-primary/10 border border-primary/20">
-                  <Grid3X3 className="w-3 h-3 text-primary" />
-                  <span className="text-[10px] font-bold text-primary">{typeCounts.all}</span>
-                </div>
-                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-pink-500/10 border border-pink-500/20">
-                  <Share2 className="w-2.5 h-2.5 text-pink-500" />
-                  <span className="text-[10px] font-bold text-pink-500">{typeCounts.social}</span>
-                </div>
-                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20">
-                  <Megaphone className="w-2.5 h-2.5 text-orange-500" />
-                  <span className="text-[10px] font-bold text-orange-500">{typeCounts.marketing}</span>
-                </div>
-                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-violet-500/10 border border-violet-500/20">
-                  <Palette className="w-2.5 h-2.5 text-violet-500" />
-                  <span className="text-[10px] font-bold text-violet-500">{typeCounts.design}</span>
-                </div>
-                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
-                  <Code className="w-2.5 h-2.5 text-emerald-500" />
-                  <span className="text-[10px] font-bold text-emerald-500">{typeCounts.dev}</span>
-                </div>
-              </div>
-
-              {/* New Order Button */}
-              <motion.div 
-                whileHover={{ scale: 1.02 }} 
-                whileTap={{ scale: 0.98 }}
-                className="mr-auto sm:mr-0"
+            <motion.div 
+              whileHover={{ scale: 1.02 }} 
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button 
+                onClick={() => navigate('/dashboard/our-services')} 
+                className="gap-2 rounded-xl text-base px-5 py-2.5 h-auto shadow-lg shadow-primary/20"
               >
-                <Button 
-                  onClick={() => navigate('/dashboard/our-services')} 
-                  className="gap-2 rounded-lg md:rounded-xl text-sm md:text-base px-3 md:px-5 py-2 md:py-2.5 h-auto shadow-lg shadow-primary/20"
-                >
-                  <Plus className="w-4 h-4 md:w-5 md:h-5" />
-                  <span>طلب جديد</span>
-                </Button>
+                <Plus className="w-5 h-5" />
+                <span>طلب جديد</span>
+              </Button>
+            </motion.div>
+          </div>
+
+          {/* Total Orders Summary */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="relative mt-6 flex items-center gap-3 text-sm text-muted-foreground"
+          >
+            <span className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary font-bold">
+              {orders.length} طلب إجمالي
+            </span>
+            <span>•</span>
+            <span>تصفح الأقسام أدناه لعرض تفاصيل الطلبات</span>
+          </motion.div>
+        </motion.div>
+
+        {/* Animated Content Area */}
+        <AnimatePresence mode="wait">
+          {!activeSection ? (
+            /* Section Cards View */
+            <motion.div
+              key="section-cards"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* Instructions */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="mb-6 p-4 rounded-xl bg-muted/50 border border-border/50"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <ArrowRight className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">اختر قسم لعرض سجل الطلبات</h3>
+                    <p className="text-sm text-muted-foreground">
+                      انقر على أي قسم لعرض جميع الطلبات المتعلقة به وتتبع حالتها
+                    </p>
+                  </div>
+                </div>
               </motion.div>
-            </div>
-          </div>
 
-          {/* Desktop Quick Type Stats */}
-          <div className="relative mt-4 hidden sm:flex items-center gap-2 flex-wrap">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
-              <Grid3X3 className="w-4 h-4 text-primary" />
-              <span className="text-sm font-bold text-primary">{typeCounts.all}</span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-500/10 border border-pink-500/20">
-              <Share2 className="w-4 h-4 text-pink-500" />
-              <span className="text-sm font-bold text-pink-500">{typeCounts.social}</span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
-              <Megaphone className="w-4 h-4 text-orange-500" />
-              <span className="text-sm font-bold text-orange-500">{typeCounts.marketing}</span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/10 border border-violet-500/20">
-              <Palette className="w-4 h-4 text-violet-500" />
-              <span className="text-sm font-bold text-violet-500">{typeCounts.design}</span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-              <Code className="w-4 h-4 text-emerald-500" />
-              <span className="text-sm font-bold text-emerald-500">{typeCounts.dev}</span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Type Tabs */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.08 }}
-        >
-          <OrdersTypeTabs 
-            activeType={activeType} 
-            onTypeChange={setActiveType}
-            counts={typeCounts}
-          />
-        </motion.div>
-
-        {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.12 }}
-        >
-          <ModernOrdersStats stats={stats} totalSpent={totalSpent} todaySpent={todaySpent} />
-        </motion.div>
-
-        {/* Search & Filters */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.16 }}
-        >
-          <ModernOrdersSearch
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
-            dateRange={dateRange}
-            setDateRange={setDateRange}
-            onRefresh={handleRefresh}
-            onExport={handleExport}
-            isRefreshing={isRefreshing}
-            filteredCount={filteredOrders.length}
-            totalCount={currentTypeOrders.length}
-          />
-        </motion.div>
-
-        {/* Orders Display - Different views for each type */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          {activeType === 'social' || activeType === 'all' || activeType === 'marketing' ? (
-            <ModernOrdersTable
-              orders={filteredOrders}
-              loading={loading}
-              onViewOrder={handleViewOrder}
-              emptyTitle={emptyState.title}
-              emptyDescription={emptyState.description}
-            />
-          ) : activeType === 'design' ? (
-            <DesignOrdersList
-              orders={filteredOrders}
-              loading={loading}
-              onViewOrder={handleViewOrder}
-              emptyTitle={emptyState.title}
-              emptyDescription={emptyState.description}
-            />
+              {/* Section Cards */}
+              <OrdersSectionCards
+                activeSection={null}
+                onSectionClick={(section) => setActiveSection(section)}
+                counts={typeCounts}
+              />
+            </motion.div>
           ) : (
-            <DevOrdersList
-              orders={filteredOrders}
-              loading={loading}
-              onViewOrder={handleViewOrder}
-              emptyTitle={emptyState.title}
-              emptyDescription={emptyState.description}
-            />
+            /* Section Orders View */
+            <motion.div
+              key={`section-${activeSection}`}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6"
+            >
+              {/* Section Header */}
+              <SectionHeader
+                section={activeSection}
+                count={typeCounts[activeSection]}
+                onBack={() => setActiveSection(null)}
+              />
+
+              {/* Stats */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <ModernOrdersStats stats={stats} totalSpent={totalSpent} todaySpent={todaySpent} />
+              </motion.div>
+
+              {/* Search & Filters */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+              >
+                <ModernOrdersSearch
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  statusFilter={statusFilter}
+                  setStatusFilter={setStatusFilter}
+                  dateRange={dateRange}
+                  setDateRange={setDateRange}
+                  onRefresh={handleRefresh}
+                  onExport={handleExport}
+                  isRefreshing={isRefreshing}
+                  filteredCount={filteredOrders.length}
+                  totalCount={currentSectionOrders.length}
+                />
+              </motion.div>
+
+              {/* Orders Display */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                {activeSection === 'design' ? (
+                  <DesignOrdersList
+                    orders={filteredOrders}
+                    loading={loading}
+                    onViewOrder={handleViewOrder}
+                    emptyTitle={emptyState.title}
+                    emptyDescription={emptyState.description}
+                  />
+                ) : activeSection === 'dev' ? (
+                  <DevOrdersList
+                    orders={filteredOrders}
+                    loading={loading}
+                    onViewOrder={handleViewOrder}
+                    emptyTitle={emptyState.title}
+                    emptyDescription={emptyState.description}
+                  />
+                ) : (
+                  <ModernOrdersTable
+                    orders={filteredOrders}
+                    loading={loading}
+                    onViewOrder={handleViewOrder}
+                    emptyTitle={emptyState.title}
+                    emptyDescription={emptyState.description}
+                  />
+                )}
+              </motion.div>
+            </motion.div>
           )}
-        </motion.div>
+        </AnimatePresence>
       </motion.div>
     </ClientDashboardLayout>
   );
