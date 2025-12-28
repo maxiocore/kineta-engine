@@ -486,7 +486,7 @@ const BrowseServiceCard = ({
     </motion.div>
   );
 };
-// Platform selector with animations - Enhanced Grid Design
+// Platform selector with animations - Enhanced Grid Design with Subcategories
 const PlatformSelector = ({ 
   networks, 
   selected, 
@@ -499,15 +499,80 @@ const PlatformSelector = ({
   getServiceCount: (id: string) => number;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const initialCount = 20;
+  const [activePlatform, setActivePlatform] = useState<string | null>(null);
+  const [subcategories, setSubcategories] = useState<any[]>([]);
+  const [loadingSubcategories, setLoadingSubcategories] = useState(false);
+  
+  const initialCount = 14;
   const displayedNetworks = isExpanded ? networks : networks.slice(0, initialCount);
   const hasMore = networks.length > initialCount;
 
+  // Fetch subcategories when a platform is clicked
+  const fetchSubcategories = async (platformSlug: string) => {
+    if (platformSlug === 'all') {
+      setActivePlatform(null);
+      setSubcategories([]);
+      return;
+    }
+    
+    setLoadingSubcategories(true);
+    try {
+      // First get the parent category ID
+      const { data: parentCat } = await supabase
+        .from('categories')
+        .select('id')
+        .ilike('slug', `%${platformSlug}%`)
+        .is('parent_id', null)
+        .single();
+      
+      if (parentCat) {
+        // Then get subcategories
+        const { data: subs } = await supabase
+          .from('categories')
+          .select('id, name, name_ar, slug, icon, color')
+          .eq('parent_id', parentCat.id)
+          .eq('is_active', true)
+          .order('display_order');
+        
+        setSubcategories(subs || []);
+        setActivePlatform(platformSlug);
+      } else {
+        setSubcategories([]);
+        setActivePlatform(platformSlug);
+      }
+    } catch (error) {
+      console.error('Error fetching subcategories:', error);
+      setSubcategories([]);
+    } finally {
+      setLoadingSubcategories(false);
+    }
+  };
+
+  const handlePlatformClick = (networkId: string) => {
+    onSelect(networkId);
+    fetchSubcategories(networkId);
+  };
+
+  const getSubcategoryIcon = (iconName: string | null) => {
+    const icons: Record<string, any> = {
+      Users: () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+      Heart: () => <Heart className="w-4 h-4" />,
+      Eye: () => <Eye className="w-4 h-4" />,
+      ThumbsUp: () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"/></svg>,
+      MessageCircle: () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>,
+      Play: () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>,
+      Repeat: () => <RefreshCw className="w-4 h-4" />,
+      Share2: () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>,
+      Bookmark: () => <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>,
+    };
+    return icons[iconName || 'Users'] || icons.Users;
+  };
+
   return (
     <div className="space-y-4">
-      {/* Platforms Grid - Enhanced Design like reference image */}
+      {/* Platforms Grid - Responsive and Consistent */}
       <motion.div 
-        className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3"
+        className="grid grid-cols-7 gap-2 sm:gap-3"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -516,31 +581,30 @@ const PlatformSelector = ({
           const Icon = network.icon;
           const CustomIcon = (network as any).customIcon;
           const isSelected = selected === network.id;
+          const isActive = activePlatform === network.id;
 
           return (
             <motion.button
               key={network.id}
               variants={itemVariants}
-              whileHover={{ scale: 1.08, y: -3 }}
+              whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => onSelect(network.id)}
-              className="flex flex-col items-center gap-2 group"
+              onClick={() => handlePlatformClick(network.id)}
+              className="flex flex-col items-center gap-1.5 group"
             >
-              {/* Platform Icon Circle */}
+              {/* Platform Icon */}
               <div className="relative">
                 <motion.div 
                   className={cn(
-                    "w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center transition-all duration-300 relative overflow-hidden",
+                    "w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 relative overflow-hidden",
                     network.bgColor,
-                    isSelected 
-                      ? "ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg scale-105" 
-                      : "hover:shadow-xl"
+                    isSelected || isActive
+                      ? "ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg" 
+                      : "hover:shadow-lg hover:scale-105"
                   )}
-                  animate={isSelected ? { rotate: [0, -3, 3, 0] } : {}}
-                  transition={{ duration: 0.4 }}
                 >
                   {/* Shine effect */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-black/10 pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/10 pointer-events-none" />
                   
                   {/* Icon */}
                   <div className="relative z-10">
@@ -549,21 +613,21 @@ const PlatformSelector = ({
                         <CustomIcon />
                       </div>
                     ) : Icon && (
-                      <Icon className={cn("w-5 h-5 sm:w-6 sm:h-6", network.textColor || "text-white")} />
+                      <Icon className={cn("w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6", network.textColor || "text-white")} />
                     )}
                   </div>
                 </motion.div>
 
                 {/* Selection indicator */}
                 <AnimatePresence>
-                  {isSelected && (
+                  {(isSelected || isActive) && (
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       exit={{ scale: 0 }}
-                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center border-2 border-background shadow-md"
+                      className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-primary flex items-center justify-center border-2 border-background"
                     >
-                      <CheckCircle2 className="w-3 h-3 text-primary-foreground" />
+                      <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-primary-foreground" />
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -571,8 +635,8 @@ const PlatformSelector = ({
               
               {/* Platform Name */}
               <span className={cn(
-                "text-[10px] sm:text-xs font-medium text-center leading-tight transition-colors duration-200 max-w-[70px] line-clamp-1",
-                isSelected ? "text-primary font-bold" : "text-muted-foreground group-hover:text-foreground"
+                "text-[9px] sm:text-[10px] md:text-xs font-medium text-center leading-tight transition-colors duration-200 max-w-[60px] sm:max-w-[70px] line-clamp-1",
+                isSelected || isActive ? "text-primary font-bold" : "text-muted-foreground group-hover:text-foreground"
               )}>
                 {network.name}
               </span>
@@ -585,7 +649,7 @@ const PlatformSelector = ({
       {hasMore && (
         <motion.button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full py-2.5 px-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card transition-all duration-300 flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+          className="w-full py-2 px-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card transition-all duration-300 flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground"
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
         >
@@ -595,9 +659,128 @@ const PlatformSelector = ({
           >
             <ChevronDown className="w-4 h-4" />
           </motion.span>
-          <span>{isExpanded ? "عرض أقل" : `عرض المزيد (${networks.length - initialCount}+)`}</span>
+          <span>{isExpanded ? "عرض أقل" : `عرض المزيد`}</span>
         </motion.button>
       )}
+
+      {/* Subcategories Section */}
+      <AnimatePresence mode="wait">
+        {activePlatform && activePlatform !== 'all' && (
+          <motion.div
+            key={activePlatform}
+            initial={{ opacity: 0, height: 0, y: -10 }}
+            animate={{ opacity: 1, height: "auto", y: 0 }}
+            exit={{ opacity: 0, height: 0, y: -10 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="overflow-hidden"
+          >
+            <div className="bg-card/60 backdrop-blur-sm rounded-xl border border-border/40 p-3 sm:p-4">
+              {/* Subcategories Header */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center",
+                    networks.find(n => n.id === activePlatform)?.bgColor || "bg-primary"
+                  )}>
+                    {(() => {
+                      const network = networks.find(n => n.id === activePlatform);
+                      if (!network) return <Sparkles className="w-4 h-4 text-white" />;
+                      const CustomIcon = (network as any).customIcon;
+                      const Icon = network.icon;
+                      if (CustomIcon) return <div className={network.textColor || "text-white"}><CustomIcon /></div>;
+                      if (Icon) return <Icon className={cn("w-4 h-4", network.textColor || "text-white")} />;
+                      return <Sparkles className="w-4 h-4 text-white" />;
+                    })()}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm">{networks.find(n => n.id === activePlatform)?.name}</h4>
+                    <p className="text-[10px] text-muted-foreground">
+                      {loadingSubcategories ? "جاري التحميل..." : `${subcategories.length} قسم فرعي`}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { setActivePlatform(null); setSubcategories([]); }}
+                  className="h-7 px-2"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* Subcategories Grid */}
+              {loadingSubcategories ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="h-12 rounded-lg bg-muted/50 animate-pulse" />
+                  ))}
+                </div>
+              ) : subcategories.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                  {/* All in this platform */}
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => onSelect(activePlatform)}
+                    className={cn(
+                      "p-2.5 sm:p-3 rounded-lg border transition-all duration-200 text-right flex items-center gap-2",
+                      selected === activePlatform
+                        ? "bg-primary/15 border-primary text-primary"
+                        : "bg-card/80 border-border/50 hover:border-primary/40 hover:bg-muted/30"
+                    )}
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-muted/60 flex items-center justify-center shrink-0">
+                      <Grid3X3 className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-xs truncate">الكل</p>
+                    </div>
+                  </motion.button>
+
+                  {/* Subcategories */}
+                  {subcategories.map((sub, idx) => {
+                    const SubIcon = getSubcategoryIcon(sub.icon);
+                    return (
+                      <motion.button
+                        key={sub.id}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: idx * 0.03 }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => onSelect(sub.slug)}
+                        className={cn(
+                          "p-2.5 sm:p-3 rounded-lg border transition-all duration-200 text-right flex items-center gap-2",
+                          selected === sub.slug
+                            ? "bg-primary/15 border-primary text-primary"
+                            : "bg-card/80 border-border/50 hover:border-primary/40 hover:bg-muted/30"
+                        )}
+                      >
+                        <div className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                          selected === sub.slug ? "bg-primary/20" : "bg-muted/60"
+                        )}>
+                          <SubIcon />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-xs truncate">{sub.name_ar}</p>
+                        </div>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-center text-sm text-muted-foreground py-4">
+                  لا توجد أقسام فرعية لهذه المنصة
+                </p>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
