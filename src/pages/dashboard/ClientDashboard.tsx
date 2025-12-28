@@ -40,7 +40,7 @@ import {
 import { Link } from "react-router-dom";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import SpendingChart from "@/components/dashboard/SpendingChart";
-import BalanceSummary from "@/components/dashboard/BalanceSummary";
+import EnhancedBalanceSummary from "@/components/dashboard/EnhancedBalanceSummary";
 import LatestOrderTracker from "@/components/dashboard/LatestOrderTracker";
 import FavoriteServices from "@/components/dashboard/FavoriteServices";
 import SmartNotifications from "@/components/dashboard/SmartNotifications";
@@ -925,11 +925,13 @@ const ClientDashboard = () => {
             ))}
           </div>
 
-          {/* Balance Summary */}
-          <BalanceSummary 
-            balance={balanceData.balance}
-            totalDeposited={balanceData.totalDeposited}
-            totalSpent={balanceData.totalSpent}
+          {/* Enhanced Balance Summary */}
+          <EnhancedBalanceSummary 
+            balanceData={balanceData}
+            cashbackData={cashbackData}
+            pointsData={pointsData}
+            isLoading={false}
+            onRefresh={() => fetchDashboardData(false)}
           />
         </section>
 
