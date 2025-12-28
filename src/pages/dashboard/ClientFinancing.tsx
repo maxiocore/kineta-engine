@@ -368,7 +368,7 @@ const installmentStatusConfig: Record<string, { label: string; color: string }> 
 };
 
 // Execution Fee constant
-const EXECUTION_FEE = 500;
+const ADMIN_FEE = 500; // رسوم إدارية ثابتة
 
 export default function ClientFinancing() {
   const { user } = useAuth();
@@ -498,7 +498,7 @@ export default function ClientFinancing() {
                   بأقساط تصل إلى <span className="font-bold text-white">12 شهر</span>.
                 </motion.p>
 
-                {/* Execution Fee Badge */}
+                {/* Admin Fee Badge */}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -506,7 +506,7 @@ export default function ClientFinancing() {
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6"
                 >
                   <Coins className="h-5 w-5 text-amber-300" />
-                  <span className="text-white text-sm">رسوم تنفيذ الطلب: <span className="font-bold text-amber-300">{EXECUTION_FEE} ر.س</span> (تُضاف لأول قسط)</span>
+                  <span className="text-white text-sm">رسوم إدارية ثابتة: <span className="font-bold text-amber-300">{ADMIN_FEE} ر.س</span> (تُضاف لآخر قسط)</span>
                 </motion.div>
 
                 <motion.div 
@@ -552,7 +552,7 @@ export default function ClientFinancing() {
                 {[
                   { label: "الحد الأقصى", value: "100,000", suffix: "ر.س", icon: CircleDollarSign },
                   { label: "أقصى مدة", value: "12", suffix: "شهر", icon: Calendar },
-                  { label: "رسوم التنفيذ", value: "500", suffix: "ر.س", icon: Receipt },
+                  { label: "رسوم إدارية", value: "500", suffix: "ر.س", icon: Receipt },
                   { label: "نسبة الفائدة", value: "0", suffix: "%", icon: Percent },
                 ].map((stat, i) => (
                   <motion.div
@@ -738,12 +738,12 @@ export default function ClientFinancing() {
                       {applications[0].status === "rejected" && `عذراً، تم رفض الطلب. ${applications[0].rejection_reason || ""}`}
                     </p>
                     
-                    {/* Execution Fee Notice */}
+                    {/* Admin Fee Notice */}
                     <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 mb-4">
                       <div className="flex items-center gap-2">
                         <Coins className="h-4 w-4 text-blue-400" />
                         <span className="text-sm text-blue-300">
-                          رسوم تنفيذ الطلب: <span className="font-bold">{EXECUTION_FEE} ر.س</span> (تُضاف لأول قسط)
+                          رسوم إدارية ثابتة: <span className="font-bold">{ADMIN_FEE} ر.س</span> (تُضاف لآخر قسط)
                         </span>
                       </div>
                     </div>
@@ -911,19 +911,14 @@ export default function ClientFinancing() {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-bold text-lg mb-2">هيكل الرسوم</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                       <div className="p-4 rounded-xl bg-card/80 backdrop-blur-sm">
-                        <p className="text-2xl font-black text-amber-500">{EXECUTION_FEE} ر.س</p>
-                        <p className="text-sm text-muted-foreground">رسوم تنفيذ الطلب</p>
-                        <p className="text-xs text-muted-foreground/80 mt-1">تُضاف لأول قسط</p>
-                      </div>
-                      <div className="p-4 rounded-xl bg-card/80 backdrop-blur-sm">
-                        <p className="text-2xl font-black text-emerald-500">5%</p>
-                        <p className="text-sm text-muted-foreground">رسوم إدارية</p>
+                        <p className="text-2xl font-black text-amber-500">{ADMIN_FEE} ر.س</p>
+                        <p className="text-sm text-muted-foreground">رسوم إدارية ثابتة</p>
                         <p className="text-xs text-muted-foreground/80 mt-1">تُضاف لآخر قسط</p>
                       </div>
                       <div className="p-4 rounded-xl bg-card/80 backdrop-blur-sm">
-                        <p className="text-2xl font-black text-blue-500">0%</p>
+                        <p className="text-2xl font-black text-emerald-500">0%</p>
                         <p className="text-sm text-muted-foreground">فوائد</p>
                         <p className="text-xs text-muted-foreground/80 mt-1">بدون فوائد نهائياً</p>
                       </div>
