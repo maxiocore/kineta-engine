@@ -100,7 +100,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.R
   under_review: { label: "قيد المراجعة", color: "bg-blue-500/20 text-blue-400 border-blue-500/30", icon: <Eye className="h-3 w-3" /> },
   documents_required: { label: "مستندات مطلوبة", color: "bg-purple-500/20 text-purple-400 border-purple-500/30", icon: <FileQuestion className="h-3 w-3" /> },
   awaiting_contract: { label: "بانتظار توقيع العقد", color: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30", icon: <FileText className="h-3 w-3" /> },
-  awaiting_signature: { label: "بانتظار توقيع السند", color: "bg-orange-500/20 text-orange-400 border-orange-500/30", icon: <FileSignature className="h-3 w-3" /> },
+  awaiting_signature: { label: "بانتظار توقيع الكمبيالة", color: "bg-orange-500/20 text-orange-400 border-orange-500/30", icon: <FileSignature className="h-3 w-3" /> },
   approved: { label: "موافق عليه", color: "bg-green-500/20 text-green-400 border-green-500/30", icon: <CheckCircle2 className="h-3 w-3" /> },
   rejected: { label: "مرفوض", color: "bg-red-500/20 text-red-400 border-red-500/30", icon: <XCircle className="h-3 w-3" /> },
   active: { label: "نشط", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30", icon: <TrendingUp className="h-3 w-3" /> },
@@ -363,7 +363,7 @@ export default function AdminFinancing() {
       toast.success("تم تأكيد توقيع العقد وإرسال الكمبيالة للعميل");
     },
     onError: (error) => {
-      toast.error("حدث خطأ أثناء إرسال السند");
+      toast.error("حدث خطأ أثناء إرسال الكمبيالة");
       console.error(error);
     },
   });
@@ -680,7 +680,7 @@ export default function AdminFinancing() {
                   <SelectItem value="under_review">قيد المراجعة</SelectItem>
                   <SelectItem value="documents_required">مستندات مطلوبة</SelectItem>
                   <SelectItem value="awaiting_contract">بانتظار توقيع العقد</SelectItem>
-                  <SelectItem value="awaiting_signature">بانتظار توقيع السند</SelectItem>
+                  <SelectItem value="awaiting_signature">بانتظار توقيع الكمبيالة</SelectItem>
                   <SelectItem value="approved">موافق عليه</SelectItem>
                   <SelectItem value="active">نشط</SelectItem>
                   <SelectItem value="completed">مكتمل</SelectItem>
@@ -824,7 +824,7 @@ export default function AdminFinancing() {
                                     disabled={sendPromissoryNoteMutation.isPending}
                                   >
                                     <FileSignature className="h-4 w-4 ml-2" />
-                                    تأكيد توقيع العقد وإرسال السند
+                                    تأكيد توقيع العقد وإرسال الكمبيالة
                                   </DropdownMenuItem>
                                 </>
                               )}
@@ -840,7 +840,7 @@ export default function AdminFinancing() {
                                     className="text-emerald-400"
                                   >
                                     <CheckCircle2 className="h-4 w-4 ml-2" />
-                                    تفعيل التمويل (تم استلام السند)
+                                    تفعيل التمويل (تم استلام الكمبيالة)
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     onClick={() => {
@@ -859,14 +859,14 @@ export default function AdminFinancing() {
                                         }).then(() => {
                                           toast.success("تم إعادة إرسال الكمبيالة");
                                         }).catch(() => {
-                                          toast.error("فشل إرسال السند");
+                                          toast.error("فشل إرسال الكمبيالة");
                                         });
                                       }
                                     }}
                                     className="text-orange-400"
                                   >
                                     <Send className="h-4 w-4 ml-2" />
-                                    إعادة إرسال السند
+                                    إعادة إرسال الكمبيالة
                                   </DropdownMenuItem>
                                 </>
                               )}
