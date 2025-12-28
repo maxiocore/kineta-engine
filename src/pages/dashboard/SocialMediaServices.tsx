@@ -681,8 +681,8 @@ const SocialMediaServices = () => {
 
   return (
     <ClientDashboardLayout>
-      <PullToRefresh onRefresh={handleRefresh} className="h-full">
-        <div className="space-y-4 sm:space-y-6 lg:space-y-8 pb-8" dir="rtl">
+      <PullToRefresh onRefresh={handleRefresh} className="h-full overflow-x-hidden">
+        <div className="w-full max-w-full overflow-x-hidden space-y-4 sm:space-y-6 lg:space-y-8 pb-8 px-4 md:px-6" dir="rtl">
           {/* Hero Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
