@@ -417,6 +417,15 @@ const AdminFinancialHub = () => {
           : `تم خصم ${amount.toLocaleString('ar-SA')} ر.س من رصيدك${reason ? `. السبب: ${reason}` : ""}`,
         type: action === "add" ? "success" : "warning",
       });
+
+      // إرسال إيميل للمستخدم
+      try {
+        await supabase.functions.invoke('notify-balance-change', {
+          body: { userId, action, amount, newBalance, reason }
+        });
+      } catch (e) {
+        console.error("Failed to send balance change email:", e);
+      }
     },
     onSuccess: () => {
       toast.success(balanceAction === "add" ? "تم إضافة الرصيد بنجاح" : "تم خصم الرصيد بنجاح");
