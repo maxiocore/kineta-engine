@@ -147,69 +147,140 @@ export default function FinancingEligibility() {
     setEligibilityResult(null);
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.4 }
+    }
+  };
+
   return (
     <ClientDashboardLayout>
       <motion.div
         className="space-y-6 max-w-3xl mx-auto"
         dir="rtl"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
       >
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <motion.div 
+          variants={itemVariants}
+          className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+        >
           <div>
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600">
+              <motion.div 
+                className="p-2 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
                 <Shield className="h-6 w-6 text-white" />
-              </div>
+              </motion.div>
               التحقق من الأهلية
             </h1>
             <p className="text-muted-foreground mt-1">
               تحقق من أهليتك للتمويل خلال دقيقتين
             </p>
           </div>
-          <Button asChild variant="outline">
-            <Link to="/dashboard/financing">
-              <ArrowLeft className="h-4 w-4 ml-2" />
-              العودة للتمويل
-            </Link>
-          </Button>
-        </div>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button asChild variant="outline">
+              <Link to="/dashboard/financing">
+                <ArrowLeft className="h-4 w-4 ml-2" />
+                العودة للتمويل
+              </Link>
+            </Button>
+          </motion.div>
+        </motion.div>
 
         <AnimatePresence mode="wait">
           {!showResult ? (
             <motion.div
               key="form"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              initial={{ opacity: 0, y: 20, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.98 }}
+              transition={{ duration: 0.3 }}
             >
               {/* Progress */}
-              <Card className="mb-6">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-muted-foreground">
-                      الخطوة {step} من {totalSteps}
-                    </span>
-                    <span className="text-sm font-medium">{Math.round(progress)}%</span>
-                  </div>
-                  <Progress value={progress} className="h-2" />
-                </CardContent>
-              </Card>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Card className="mb-6 overflow-hidden">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-muted-foreground">
+                        الخطوة {step} من {totalSteps}
+                      </span>
+                      <motion.span 
+                        className="text-sm font-medium"
+                        key={progress}
+                        initial={{ scale: 1.2, color: "hsl(var(--primary))" }}
+                        animate={{ scale: 1, color: "hsl(var(--foreground))" }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {Math.round(progress)}%
+                      </motion.span>
+                    </div>
+                    <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+                      <motion.div 
+                        className="absolute inset-y-0 right-0 bg-gradient-to-l from-emerald-500 to-teal-600 rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progress}%` }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
 
               {/* Form Steps */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    {step === 1 && <User className="h-5 w-5" />}
-                    {step === 2 && <FileText className="h-5 w-5" />}
-                    {step === 3 && <CreditCard className="h-5 w-5" />}
-                    {step === 1 && "المعلومات الشخصية"}
-                    {step === 2 && "المستندات والتوثيق"}
-                    {step === 3 && "معلومات إضافية"}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <Card className="overflow-hidden">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <motion.div
+                        key={step}
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: "spring", stiffness: 200 }}
+                      >
+                        {step === 1 && <User className="h-5 w-5" />}
+                        {step === 2 && <FileText className="h-5 w-5" />}
+                        {step === 3 && <CreditCard className="h-5 w-5" />}
+                      </motion.div>
+                      <motion.span
+                        key={`title-${step}`}
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 }}
+                      >
+                        {step === 1 && "المعلومات الشخصية"}
+                        {step === 2 && "المستندات والتوثيق"}
+                        {step === 3 && "معلومات إضافية"}
+                      </motion.span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
                   <AnimatePresence mode="wait">
                     {step === 1 && (
                       <motion.div
@@ -403,25 +474,30 @@ export default function FinancingEligibility() {
 
                   {/* Navigation */}
                   <div className="flex justify-between pt-4 border-t border-border">
-                    <Button
-                      variant="outline"
-                      onClick={handleBack}
-                      disabled={step === 1}
-                    >
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                      السابق
-                    </Button>
-                    <Button
-                      onClick={handleNext}
-                      className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
-                    >
-                      {step === totalSteps ? "تحقق الآن" : "التالي"}
-                      {step !== totalSteps && <ArrowLeft className="h-4 w-4 mr-2" />}
-                    </Button>
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button
+                        variant="outline"
+                        onClick={handleBack}
+                        disabled={step === 1}
+                      >
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                        السابق
+                      </Button>
+                    </motion.div>
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button
+                        onClick={handleNext}
+                        className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
+                      >
+                        {step === totalSteps ? "تحقق الآن" : "التالي"}
+                        {step !== totalSteps && <ArrowLeft className="h-4 w-4 mr-2" />}
+                      </Button>
+                    </motion.div>
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
+          </motion.div>
           ) : (
             <motion.div
               key="result"
