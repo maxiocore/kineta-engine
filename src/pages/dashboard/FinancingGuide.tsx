@@ -436,13 +436,13 @@ export default function FinancingGuide() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Accordion type="single" collapsible className="w-full">
+              <Accordion type="single" collapsible className="w-full" dir="rtl">
                 {faqs.map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index}`}>
-                    <AccordionTrigger className="text-right">
+                    <AccordionTrigger className="text-right flex-row-reverse justify-between">
                       {faq.question}
                     </AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground">
+                    <AccordionContent className="text-muted-foreground text-right">
                       {faq.answer}
                     </AccordionContent>
                   </AccordionItem>
