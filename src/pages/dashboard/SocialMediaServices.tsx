@@ -1,6 +1,6 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useExchangeRate } from "@/hooks/useExchangeRate";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -9,14 +9,11 @@ import {
   Instagram,
   Facebook,
   Youtube,
-  Twitter,
   Linkedin,
-  Music2,
   Send,
   Globe,
   Loader2,
   Ghost,
-  Radio,
   Wallet,
   Star,
   Sparkles,
@@ -27,11 +24,19 @@ import {
   ShoppingCart,
   Copy,
   TrendingUp,
-  Package,
   Target,
   Clock,
-  ChevronDown,
-  Layers,
+  Activity,
+  Rocket,
+  Shield,
+  Users,
+  Award,
+  Grid3X3,
+  LayoutList,
+  SlidersHorizontal,
+  Eye,
+  ArrowLeft,
+  Check,
   X,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -39,17 +44,25 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { notifyNewOrder } from "@/lib/adminNotifyService";
-import { useIsMobile } from "@/hooks/use-mobile";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
+import PullToRefresh from "@/components/ui/pull-to-refresh";
+import FeaturedOffersSection from "@/components/offers/FeaturedOffersSection";
+import ServicesPageSkeleton from "@/components/dashboard/ServicesPageSkeleton";
 
 interface Service {
   id: string;
@@ -63,17 +76,6 @@ interface Service {
   external_service_id: string | null;
   refill_enabled: boolean | null;
   refill_days: number | null;
-}
-
-interface Category {
-  id: string;
-  name: string;
-  name_ar: string;
-  slug: string;
-  icon: string | null;
-  color: string | null;
-  parent_id: string | null;
-  display_order: number | null;
 }
 
 // أيقونات SVG مخصصة للمنصات
@@ -117,42 +119,354 @@ const ThreadsIcon = () => (
 );
 
 const socialNetworks = [
-  { id: 'all', name: 'الكل', keywords: [], icon: Sparkles, color: 'bg-gradient-to-r from-orange-500 to-amber-500', iconColor: 'text-white' },
-  { id: 'facebook', name: 'فيسبوك', keywords: ['facebook', 'فيسبوك', 'فيس بوك', 'fb'], icon: Facebook, color: 'bg-[#1877F2]', iconColor: 'text-white' },
-  { id: 'instagram', name: 'انستقرام', keywords: ['instagram', 'انستقرام', 'انستا', 'insta'], icon: Instagram, color: 'bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#F77737]', iconColor: 'text-white' },
-  { id: 'tiktok', name: 'تيك توك', keywords: ['tiktok', 'تيك توك', 'تيكتوك', 'tik tok'], customIcon: TikTokIcon, color: 'bg-black', iconColor: 'text-white' },
-  { id: 'youtube', name: 'يوتيوب', keywords: ['youtube', 'يوتيوب', 'يوتوب', 'yt'], icon: Youtube, color: 'bg-[#FF0000]', iconColor: 'text-white' },
-  { id: 'twitter', name: 'تويتر', keywords: ['twitter', 'تويتر', 'x ', ' x', 'اكس'], icon: X, color: 'bg-black', iconColor: 'text-white' },
-  { id: 'spotify', name: 'سبوتيفاي', keywords: ['spotify', 'سبوتيفاي', 'سبوتفاي'], customIcon: SpotifyIcon, color: 'bg-[#1DB954]', iconColor: 'text-white' },
-  { id: 'snapchat', name: 'سناب شات', keywords: ['snapchat', 'سناب شات', 'سناب', 'snap'], icon: Ghost, color: 'bg-[#FFFC00]', iconColor: 'text-black' },
-  { id: 'telegram', name: 'تيليجرام', keywords: ['telegram', 'تيليجرام', 'تلجرام', 'تليجرام'], icon: Send, color: 'bg-[#0088CC]', iconColor: 'text-white' },
-  { id: 'discord', name: 'ديسكورد', keywords: ['discord', 'ديسكورد', 'دسكورد'], customIcon: DiscordIcon, color: 'bg-[#5865F2]', iconColor: 'text-white' },
-  { id: 'twitch', name: 'تويتش', keywords: ['twitch', 'تويتش', 'توتش'], customIcon: TwitchIcon, color: 'bg-[#9146FF]', iconColor: 'text-white' },
-  { id: 'website', name: 'زيارات', keywords: ['website', 'زيار', 'visit', 'traffic', 'موقع', 'ويب'], icon: Globe, color: 'bg-[#10B981]', iconColor: 'text-white' },
-  { id: 'reviews', name: 'تقييمات', keywords: ['review', 'تقييم', 'rating', 'google'], icon: Star, color: 'bg-[#F59E0B]', iconColor: 'text-white' },
-  { id: 'google', name: 'جوجل', keywords: ['google', 'جوجل', 'قوقل'], customIcon: GoogleIcon, color: 'bg-white border border-border', iconColor: '' },
-  { id: 'linkedin', name: 'لينكدإن', keywords: ['linkedin', 'لينكدان', 'لينكد ان', 'لينكدإن'], icon: Linkedin, color: 'bg-[#0A66C2]', iconColor: 'text-white' },
-  { id: 'threads', name: 'ثريدز', keywords: ['threads', 'ثريدز', 'ثردز'], customIcon: ThreadsIcon, color: 'bg-black', iconColor: 'text-white' },
+  { id: 'all', name: 'الكل', keywords: [], icon: Sparkles, color: 'from-orange-500 to-amber-500', bgColor: 'bg-gradient-to-r from-orange-500 to-amber-500' },
+  { id: 'instagram', name: 'انستقرام', keywords: ['instagram', 'انستقرام', 'انستا', 'insta'], icon: Instagram, color: 'from-[#833AB4] via-[#FD1D1D] to-[#F77737]', bgColor: 'bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#F77737]' },
+  { id: 'tiktok', name: 'تيك توك', keywords: ['tiktok', 'تيك توك', 'تيكتوك', 'tik tok'], customIcon: TikTokIcon, color: 'from-black to-gray-800', bgColor: 'bg-black' },
+  { id: 'youtube', name: 'يوتيوب', keywords: ['youtube', 'يوتيوب', 'يوتوب', 'yt'], icon: Youtube, color: 'from-[#FF0000] to-[#CC0000]', bgColor: 'bg-[#FF0000]' },
+  { id: 'facebook', name: 'فيسبوك', keywords: ['facebook', 'فيسبوك', 'فيس بوك', 'fb'], icon: Facebook, color: 'from-[#1877F2] to-[#0D65D9]', bgColor: 'bg-[#1877F2]' },
+  { id: 'twitter', name: 'تويتر', keywords: ['twitter', 'تويتر', 'x ', ' x', 'اكس'], icon: X, color: 'from-black to-gray-800', bgColor: 'bg-black' },
+  { id: 'spotify', name: 'سبوتيفاي', keywords: ['spotify', 'سبوتيفاي', 'سبوتفاي'], customIcon: SpotifyIcon, color: 'from-[#1DB954] to-[#19A349]', bgColor: 'bg-[#1DB954]' },
+  { id: 'snapchat', name: 'سناب شات', keywords: ['snapchat', 'سناب شات', 'سناب', 'snap'], icon: Ghost, color: 'from-[#FFFC00] to-[#FFE100]', bgColor: 'bg-[#FFFC00]', iconColor: 'text-black' },
+  { id: 'telegram', name: 'تيليجرام', keywords: ['telegram', 'تيليجرام', 'تلجرام', 'تليجرام'], icon: Send, color: 'from-[#0088CC] to-[#0077B5]', bgColor: 'bg-[#0088CC]' },
+  { id: 'discord', name: 'ديسكورد', keywords: ['discord', 'ديسكورد', 'دسكورد'], customIcon: DiscordIcon, color: 'from-[#5865F2] to-[#4752C4]', bgColor: 'bg-[#5865F2]' },
+  { id: 'twitch', name: 'تويتش', keywords: ['twitch', 'تويتش', 'توتش'], customIcon: TwitchIcon, color: 'from-[#9146FF] to-[#7C2FE6]', bgColor: 'bg-[#9146FF]' },
+  { id: 'linkedin', name: 'لينكدإن', keywords: ['linkedin', 'لينكدان', 'لينكد ان', 'لينكدإن'], icon: Linkedin, color: 'from-[#0A66C2] to-[#0855A5]', bgColor: 'bg-[#0A66C2]' },
+  { id: 'google', name: 'جوجل', keywords: ['google', 'جوجل', 'قوقل'], customIcon: GoogleIcon, color: 'from-white to-gray-100', bgColor: 'bg-white border border-border' },
+  { id: 'threads', name: 'ثريدز', keywords: ['threads', 'ثريدز', 'ثردز'], customIcon: ThreadsIcon, color: 'from-black to-gray-800', bgColor: 'bg-black' },
+  { id: 'website', name: 'زيارات', keywords: ['website', 'زيار', 'visit', 'traffic', 'موقع', 'ويب'], icon: Globe, color: 'from-[#10B981] to-[#059669]', bgColor: 'bg-[#10B981]' },
+  { id: 'reviews', name: 'تقييمات', keywords: ['review', 'تقييم', 'rating'], icon: Star, color: 'from-[#F59E0B] to-[#D97706]', bgColor: 'bg-[#F59E0B]' },
 ];
+
+// Live Indicator Component
+const LiveIndicator = () => (
+  <motion.div 
+    className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/15 rounded-full border border-emerald-500/30"
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+  >
+    <motion.div
+      className="w-1.5 h-1.5 rounded-full bg-emerald-500"
+      animate={{ scale: [1, 1.3, 1], opacity: [1, 0.6, 1] }}
+      transition={{ duration: 1.5, repeat: Infinity }}
+    />
+    <span className="text-[10px] sm:text-xs font-semibold text-emerald-500">متاح الآن</span>
+  </motion.div>
+);
+
+// Stat Badge Component
+const StatBadge = ({ icon: Icon, value, label, delay = 0 }: { icon: any; value: string; label: string; delay?: number }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay }}
+    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/10"
+  >
+    <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
+      <Icon className="w-4 h-4 text-white" />
+    </div>
+    <div className="text-right">
+      <p className="text-white font-bold text-sm">{value}</p>
+      <p className="text-white/60 text-[10px]">{label}</p>
+    </div>
+  </motion.div>
+);
+
+// Modern Social Service Card (Grid View)
+const SocialServiceCard = ({ 
+  service, 
+  index, 
+  onOrder, 
+  isFavorite,
+  onToggleFavorite,
+  parseFeatures,
+  convertToSAR,
+}: { 
+  service: Service; 
+  index: number; 
+  onOrder: (service: Service) => void;
+  isFavorite: boolean;
+  onToggleFavorite: (id: string) => void;
+  parseFeatures: (features: any) => { min: number; max: number; rate: number; refill: boolean; cancel: boolean };
+  convertToSAR: (price: number) => number;
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const features = parseFeatures(service.features);
+  const pricePerK = convertToSAR(service.price);
+
+  // Find matching platform
+  const getPlatformIcon = () => {
+    const text = `${service.name} ${service.category}`.toLowerCase();
+    for (const network of socialNetworks) {
+      if (network.id !== 'all' && network.keywords.some(k => text.includes(k))) {
+        return network;
+      }
+    }
+    return socialNetworks[0]; // default
+  };
+  
+  const platform = getPlatformIcon();
+  const Icon = platform.icon;
+  const CustomIcon = (platform as any).customIcon;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.03, duration: 0.4 }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      className="group h-full"
+    >
+      <Card className="h-full relative overflow-hidden border border-border/50 bg-card/95 backdrop-blur-sm hover:border-primary/30 transition-all duration-500 rounded-2xl hover:shadow-xl hover:shadow-primary/5">
+        {/* Gradient Overlay on Hover */}
+        <motion.div 
+          className={`absolute inset-0 bg-gradient-to-br ${platform.color} opacity-0 group-hover:opacity-5`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isHovered ? 0.05 : 0 }}
+          transition={{ duration: 0.3 }}
+        />
+
+        {/* Top Accent Line */}
+        <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${platform.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+
+        <CardContent className="relative z-10 p-4 sm:p-5 h-full flex flex-col">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-3 mb-4">
+            {/* Icon */}
+            <motion.div 
+              animate={{ rotate: isHovered ? 5 : 0, scale: isHovered ? 1.05 : 1 }}
+              transition={{ duration: 0.3 }}
+              className="relative shrink-0"
+            >
+              <div className={`absolute inset-0 bg-gradient-to-br ${platform.color} blur-lg opacity-30 group-hover:opacity-50 transition-opacity`} />
+              <div className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl ${platform.bgColor} flex items-center justify-center shadow-lg`}>
+                {CustomIcon ? (
+                  <CustomIcon />
+                ) : Icon ? (
+                  <Icon className={cn("w-6 h-6 sm:w-7 sm:h-7", platform.iconColor || "text-white")} />
+                ) : null}
+              </div>
+            </motion.div>
+
+            {/* Price & Badges */}
+            <div className="text-left flex flex-col items-end gap-2">
+              <motion.div 
+                animate={{ scale: isHovered ? 1.05 : 1 }}
+                className="flex items-baseline gap-1"
+              >
+                <span className="text-2xl sm:text-3xl font-bold text-primary">
+                  {pricePerK.toFixed(2)}
+                </span>
+                <span className="text-xs text-muted-foreground font-medium">ر.س</span>
+              </motion.div>
+              
+              <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                {(service.refill_enabled || features.refill) && (
+                  <Badge className="bg-green-500/15 text-green-600 border-0 text-[10px] px-1.5 py-0.5 gap-0.5">
+                    <RefreshCw className="w-2.5 h-2.5" />
+                    ضمان
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Service Name */}
+          <h3 className="font-bold text-sm sm:text-base leading-snug mb-2 group-hover:text-primary transition-colors line-clamp-2">
+            {service.name}
+          </h3>
+
+          {/* Description */}
+          {service.description && (
+            <p className="text-xs text-muted-foreground/80 line-clamp-2 mb-3 leading-relaxed flex-grow">
+              {service.description}
+            </p>
+          )}
+
+          {/* Meta Info */}
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mb-4 mt-auto">
+            {service.external_service_id && (
+              <span className="flex items-center gap-1 px-2 py-1 rounded-md bg-muted/50">
+                <span dir="ltr">#{service.external_service_id}</span>
+              </span>
+            )}
+            <span className="flex items-center gap-1 px-2 py-1 rounded-md bg-muted/50">
+              <Target className="w-3 h-3" />
+              <span dir="ltr">{features.min.toLocaleString()} - {features.max.toLocaleString()}</span>
+            </span>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleFavorite(service.id);
+              }}
+              className={cn(
+                "h-9 w-9 rounded-xl shrink-0",
+                isFavorite 
+                  ? "bg-rose-500/15 text-rose-500 hover:bg-rose-500/25" 
+                  : "hover:bg-rose-500/10 hover:text-rose-500"
+              )}
+            >
+              <Heart className={cn("w-4 h-4", isFavorite && "fill-current")} />
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => onOrder(service)}
+              className={`flex-1 bg-gradient-to-r ${platform.color} hover:opacity-90 text-white rounded-xl h-9 sm:h-10 text-xs shadow-md hover:shadow-lg transition-shadow`}
+            >
+              <ShoppingCart className="w-3.5 h-3.5 ml-1.5" />
+              اطلب الآن
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+};
+
+// List View Card
+const SocialServiceListCard = ({ 
+  service, 
+  index, 
+  onOrder, 
+  isFavorite,
+  onToggleFavorite,
+  parseFeatures,
+  convertToSAR,
+}: { 
+  service: Service; 
+  index: number; 
+  onOrder: (service: Service) => void;
+  isFavorite: boolean;
+  onToggleFavorite: (id: string) => void;
+  parseFeatures: (features: any) => { min: number; max: number; rate: number; refill: boolean; cancel: boolean };
+  convertToSAR: (price: number) => number;
+}) => {
+  const features = parseFeatures(service.features);
+  const pricePerK = convertToSAR(service.price);
+
+  // Find matching platform
+  const getPlatformIcon = () => {
+    const text = `${service.name} ${service.category}`.toLowerCase();
+    for (const network of socialNetworks) {
+      if (network.id !== 'all' && network.keywords.some(k => text.includes(k))) {
+        return network;
+      }
+    }
+    return socialNetworks[0];
+  };
+  
+  const platform = getPlatformIcon();
+  const Icon = platform.icon;
+  const CustomIcon = (platform as any).customIcon;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.02 }}
+      className="group"
+    >
+      <Card className="relative overflow-hidden border border-border/50 bg-card/95 backdrop-blur-sm hover:border-primary/30 transition-all duration-300 rounded-xl hover:shadow-lg">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Icon */}
+            <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-xl ${platform.bgColor} flex items-center justify-center shadow-md shrink-0`}>
+              {CustomIcon ? (
+                <CustomIcon />
+              ) : Icon ? (
+                <Icon className={cn("w-5 h-5 sm:w-7 sm:h-7", platform.iconColor || "text-white")} />
+              ) : null}
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2 mb-1">
+                <h3 className="font-bold text-sm sm:text-base truncate group-hover:text-primary transition-colors">
+                  {service.name}
+                </h3>
+                <span className="text-lg sm:text-xl font-bold text-primary shrink-0">
+                  {pricePerK.toFixed(2)} ر.س
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {service.external_service_id && (
+                    <span className="text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">
+                      #{service.external_service_id}
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <Target className="w-3 h-3" />
+                    {features.min.toLocaleString()} - {features.max.toLocaleString()}
+                  </span>
+                  {(service.refill_enabled || features.refill) && (
+                    <Badge className="bg-green-500/15 text-green-600 border-0 text-[10px] px-1.5 py-0.5">
+                      <RefreshCw className="w-2.5 h-2.5 ml-0.5" />
+                      ضمان
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleFavorite(service.id);
+                    }}
+                    className={cn(
+                      "h-8 px-2 rounded-lg",
+                      isFavorite 
+                        ? "text-rose-500 hover:bg-rose-500/10" 
+                        : "hover:text-rose-500 hover:bg-rose-500/10"
+                    )}
+                  >
+                    <Heart className={cn("w-3.5 h-3.5", isFavorite && "fill-current")} />
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => onOrder(service)}
+                    className={`h-8 px-3 bg-gradient-to-r ${platform.color} hover:opacity-90 text-white rounded-lg text-xs`}
+                  >
+                    <ShoppingCart className="w-3.5 h-3.5 ml-1" />
+                    اطلب
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+};
 
 const SocialMediaServices = () => {
   const { user } = useAuth();
   const { favorites, toggleFavorite } = useFavorites();
   const navigate = useNavigate();
   const { convertToSAR } = useExchangeRate();
-  const isMobile = useIsMobile();
   
   const [selectedNetwork, setSelectedNetwork] = useState("all");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [link, setLink] = useState("");
   const [quantity, setQuantity] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showOrderDialog, setShowOrderDialog] = useState(false);
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [sortBy, setSortBy] = useState<"price-asc" | "price-desc" | "name">("price-asc");
+  const [balance, setBalance] = useState(0);
 
-  // جلب الرصيد
+  // Fetch balance
   const { data: userBalance, refetch: refetchBalance } = useQuery({
     queryKey: ["user-balance", user?.id],
     queryFn: async () => {
@@ -163,39 +477,14 @@ const SocialMediaServices = () => {
     enabled: !!user?.id,
   });
 
-  // جلب إحصائيات المستخدم
-  const { data: userStats } = useQuery({
-    queryKey: ["user-stats", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data: orders } = await supabase
-        .from("orders")
-        .select("id, total_price, status")
-        .eq("user_id", user.id);
-      return { 
-        totalOrders: orders?.length || 0, 
-        totalSpent: orders?.reduce((sum, o) => sum + (o.total_price || 0), 0) || 0 
-      };
-    },
-    enabled: !!user?.id,
-  });
+  useEffect(() => {
+    if (userBalance) {
+      setBalance(userBalance.balance);
+    }
+  }, [userBalance]);
 
-  // جلب الفئات
-  const { data: categories = [] } = useQuery({
-    queryKey: ["categories-social"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("is_active", true)
-        .order("display_order", { ascending: true });
-      if (error) throw error;
-      return data as Category[];
-    },
-  });
-
-  // جلب الخدمات
-  const { data: services = [], isLoading } = useQuery({
+  // Fetch services
+  const { data: services = [], isLoading, refetch } = useQuery({
     queryKey: ["services-social"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -208,7 +497,12 @@ const SocialMediaServices = () => {
     },
   });
 
-  // تصفية خدمات السوشيال ميديا
+  const handleRefresh = async () => {
+    await refetch();
+    toast.success("تم تحديث الخدمات");
+  };
+
+  // Filter social media services
   const designDevKeywords = ['تصميم', 'شعار', 'لوجو', 'design', 'logo', 'بنر', 'banner', 'هوية', 'برمجة', 'تطوير', 'dev', 'development', 'app'];
   
   const socialMediaServices = useMemo(() => {
@@ -218,7 +512,7 @@ const SocialMediaServices = () => {
     });
   }, [services]);
 
-  // الحصول على خدمات الشبكة
+  // Get services by network
   const getServicesByNetwork = useCallback((networkId: string) => {
     if (networkId === 'all') return socialMediaServices;
     const network = socialNetworks.find(n => n.id === networkId);
@@ -229,21 +523,10 @@ const SocialMediaServices = () => {
     });
   }, [socialMediaServices]);
 
-  // إحصاء خدمات كل منصة
-  const networkCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    socialNetworks.forEach(network => {
-      counts[network.id] = getServicesByNetwork(network.id).length;
-    });
-    return counts;
-  }, [getServicesByNetwork]);
-
-  // تصفية الخدمات
+  // Filter and sort services
   const filteredServices = useMemo(() => {
     let filtered = getServicesByNetwork(selectedNetwork);
-    if (selectedCategory) {
-      filtered = filtered.filter(s => s.category_id === selectedCategory);
-    }
+    
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(s =>
@@ -252,21 +535,22 @@ const SocialMediaServices = () => {
         s.external_service_id?.includes(query)
       );
     }
-    return filtered;
-  }, [selectedNetwork, selectedCategory, searchQuery, getServicesByNetwork]);
-
-  // تجميع الخدمات حسب الفئة
-  const groupedServices = useMemo(() => {
-    const groups: Record<string, Service[]> = {};
-    filteredServices.forEach(service => {
-      const catId = service.category_id || 'other';
-      if (!groups[catId]) groups[catId] = [];
-      groups[catId].push(service);
+    
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "price-asc":
+          return a.price - b.price;
+        case "price-desc":
+          return b.price - a.price;
+        case "name":
+          return a.name.localeCompare(b.name);
+        default:
+          return 0;
+      }
     });
-    return groups;
-  }, [filteredServices]);
+  }, [selectedNetwork, searchQuery, sortBy, getServicesByNetwork]);
 
-  // تحليل الخصائص
+  // Parse features
   const parseFeatures = (features: any) => {
     const defaults = { min: 10, max: 100000, rate: 0, refill: false, cancel: false };
     if (!features) return defaults;
@@ -284,7 +568,7 @@ const SocialMediaServices = () => {
     }
   };
 
-  // حساب السعر
+  // Calculate total price
   const totalPrice = useMemo(() => {
     if (!selectedService || !quantity) return 0;
     const qty = parseInt(quantity) || 0;
@@ -292,7 +576,7 @@ const SocialMediaServices = () => {
     return convertToSAR(priceInUSD);
   }, [selectedService, quantity, convertToSAR]);
 
-  // اختيار خدمة
+  // Handle service selection
   const handleSelectService = (service: Service) => {
     setSelectedService(service);
     const features = parseFeatures(service.features);
@@ -300,20 +584,7 @@ const SocialMediaServices = () => {
     setShowOrderDialog(true);
   };
 
-  // Toggle category expansion
-  const toggleCategory = (catId: string) => {
-    setExpandedCategories(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(catId)) {
-        newSet.delete(catId);
-      } else {
-        newSet.add(catId);
-      }
-      return newSet;
-    });
-  };
-
-  // إرسال الطلب
+  // Submit order
   const handleSubmit = async () => {
     if (!user) { toast.error("يجب تسجيل الدخول"); return; }
     if (!selectedService || !link || !quantity) { toast.error("يرجى ملء جميع الحقول"); return; }
@@ -400,140 +671,118 @@ const SocialMediaServices = () => {
     }
   };
 
-  // الحصول على اسم الفئة
-  const getCategoryName = (catId: string) => {
-    const cat = categories.find(c => c.id === catId);
-    return cat?.name_ar || cat?.name || catId;
-  };
-
-  // نسخ رقم الخدمة
-  const copyServiceId = (id: string) => {
-    navigator.clipboard.writeText(id);
-    toast.success("تم نسخ رقم الخدمة");
-  };
-
-  // حالة التحميل
   if (isLoading) {
     return (
       <ClientDashboardLayout>
-        <div className="w-full h-full overflow-hidden">
-          <div className="p-4 space-y-4 max-w-full">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-20 rounded-xl" />)}
-            </div>
-            <Skeleton className="h-12 rounded-xl w-full" />
-            <div className="flex gap-2 overflow-hidden">
-              {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-16 w-16 rounded-xl shrink-0" />)}
-            </div>
-            <div className="space-y-3">
-              {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-16 rounded-xl w-full" />)}
-            </div>
-          </div>
-        </div>
+        <ServicesPageSkeleton title="خدمات السوشيال ميديا" color="blue" />
       </ClientDashboardLayout>
     );
   }
 
   return (
     <ClientDashboardLayout>
-      <div dir="rtl" className="w-full h-full overflow-x-hidden overflow-y-auto bg-background">
-        <div className="w-full max-w-full p-4 md:p-6 space-y-5">
-          
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {/* Balance Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              onClick={() => navigate('/dashboard/deposit')}
-              className="bg-gradient-to-bl from-primary to-primary/80 text-primary-foreground rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all col-span-1"
-            >
-              <div className="flex items-center justify-end gap-2 mb-2">
-                <span className="text-xs opacity-90">رصيدك</span>
-                <Wallet className="w-5 h-5" />
-              </div>
-              <p className="text-xl font-bold text-left" dir="ltr">{(userBalance?.balance || 0).toFixed(2)}</p>
-              <p className="text-[11px] opacity-80 text-right">ريال سعودي</p>
-            </motion.div>
-
-            {/* Orders Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 }}
-              className="bg-card border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center justify-end gap-2 mb-2">
-                <span className="text-xs text-muted-foreground">طلباتي</span>
-                <TrendingUp className="w-5 h-5 text-blue-500" />
-              </div>
-              <p className="text-xl font-bold">{userStats?.totalOrders || 0}</p>
-              <p className="text-[11px] text-muted-foreground">طلب مكتمل</p>
-            </motion.div>
-
-            {/* Favorites Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-card border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center justify-end gap-2 mb-2">
-                <span className="text-xs text-muted-foreground">المفضلة</span>
-                <Heart className="w-5 h-5 text-rose-500" />
-              </div>
-              <p className="text-xl font-bold">{favorites.length}</p>
-              <p className="text-[11px] text-muted-foreground">خدمة محفوظة</p>
-            </motion.div>
-
-            {/* Services Count Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="bg-card border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center justify-end gap-2 mb-2">
-                <span className="text-xs text-muted-foreground">الخدمات</span>
-                <Layers className="w-5 h-5 text-emerald-500" />
-              </div>
-              <p className="text-xl font-bold">{filteredServices.length}</p>
-              <p className="text-[11px] text-muted-foreground">خدمة متاحة</p>
-            </motion.div>
-          </div>
-
-          {/* Search Bar */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
+      <PullToRefresh onRefresh={handleRefresh} className="h-full">
+        <div className="space-y-4 sm:space-y-6 lg:space-y-8 pb-8" dir="rtl">
+          {/* Hero Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="relative w-full"
+            className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-4 sm:p-6 lg:p-8"
           >
-            <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
-            <Input
-              type="text"
-              placeholder="ابحث عن خدمة بالاسم أو رقم الخدمة..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-12 pr-12 pl-12 rounded-xl border-border bg-card text-sm"
-            />
-            {searchQuery && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSearchQuery("")}
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-8 w-8"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            )}
+            {/* Decorative Elements */}
+            <div className="absolute top-0 left-0 w-40 sm:w-72 h-40 sm:h-72 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+            <div className="absolute bottom-0 right-0 w-60 sm:w-96 h-60 sm:h-96 bg-black/10 rounded-full blur-3xl translate-x-1/4 translate-y-1/3" />
+            
+            {/* Floating Icons */}
+            <motion.div 
+              className="absolute top-4 left-4 opacity-15 hidden md:block"
+              animate={{ y: [0, -8, 0], rotate: [0, 8, 0] }}
+              transition={{ duration: 4, repeat: Infinity }}
+            >
+              <Instagram className="w-12 h-12 text-white" />
+            </motion.div>
+            <motion.div 
+              className="absolute bottom-8 left-1/4 opacity-15 hidden md:block"
+              animate={{ y: [0, 8, 0], rotate: [0, -8, 0] }}
+              transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+            >
+              <Youtube className="w-10 h-10 text-white" />
+            </motion.div>
+            
+            <div className="relative z-10">
+              {/* Top Row */}
+              <div className="flex items-start justify-between gap-4 mb-4 sm:mb-6">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-wrap mb-2">
+                    <LiveIndicator />
+                    <Badge className="bg-white/15 text-white border-0 text-[10px] sm:text-xs">
+                      <TrendingUp className="w-3 h-3 ml-1" />
+                      الأكثر طلباً
+                    </Badge>
+                  </div>
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 sm:mb-2">
+                    خدمات السوشيال ميديا
+                  </h1>
+                  <p className="text-white/70 text-xs sm:text-sm max-w-lg hidden sm:block">
+                    زد متابعيك وتفاعلك على جميع منصات التواصل الاجتماعي بأفضل الأسعار
+                  </p>
+                </div>
+                
+                <Link to="/dashboard/our-services">
+                  <motion.div 
+                    whileHover={{ scale: 1.05, x: 5 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center cursor-pointer hover:bg-white/25 transition-colors border border-white/10"
+                  >
+                    <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  </motion.div>
+                </Link>
+              </div>
+              
+              {/* Stats Row */}
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <StatBadge icon={Activity} value={`${socialMediaServices.length}`} label="خدمة متاحة" delay={0.1} />
+                <StatBadge icon={Zap} value="فوري - 24 ساعة" label="وقت التنفيذ" delay={0.2} />
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-white/20 to-white/10 backdrop-blur-md border border-white/20"
+                >
+                  <span className="text-white/80 text-xs">رصيدك:</span>
+                  <span className="font-bold text-white text-sm sm:text-base">{balance.toFixed(2)} ر.س</span>
+                </motion.div>
+              </div>
+
+              {/* Quick Features - Desktop Only */}
+              <div className="hidden lg:grid grid-cols-4 gap-3 mt-6">
+                {[
+                  { icon: Zap, label: "تنفيذ سريع", value: "فوري" },
+                  { icon: Shield, label: "ضمان التعويض", value: "100%" },
+                  { icon: Users, label: "عملاء سعداء", value: "+5000" },
+                  { icon: Award, label: "منصات متعددة", value: "+15" },
+                ].map((stat, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 + i * 0.1 }}
+                    className="p-3 rounded-xl bg-white/10 backdrop-blur-sm text-center border border-white/10"
+                  >
+                    <stat.icon className="w-5 h-5 text-white/80 mx-auto mb-1" />
+                    <p className="text-white font-bold text-sm">{stat.value}</p>
+                    <p className="text-white/50 text-[10px]">{stat.label}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </motion.div>
 
-          {/* Platform Tabs - Horizontal Scrollable */}
+          {/* Platform Tabs */}
           <motion.div 
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
+            transition={{ delay: 0.1 }}
             className="w-full overflow-hidden"
           >
             <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent pb-2">
@@ -546,31 +795,29 @@ const SocialMediaServices = () => {
                   return (
                     <button
                       key={network.id}
-                      onClick={() => {
-                        setSelectedNetwork(network.id);
-                        setSelectedCategory("");
-                      }}
+                      onClick={() => setSelectedNetwork(network.id)}
                       className={cn(
                         "flex items-center gap-2 px-4 py-2.5 rounded-full transition-all shrink-0 border",
                         isSelected
-                          ? `${network.color} ${network.iconColor} border-transparent shadow-md`
+                          ? `bg-gradient-to-r ${network.color} text-white border-transparent shadow-md`
                           : "bg-card border-border hover:border-primary/50 hover:bg-muted/50"
                       )}
                     >
                       <div className={cn(
                         "flex items-center justify-center w-6 h-6 rounded-full",
-                        !isSelected && network.color,
-                        !isSelected && network.iconColor
+                        !isSelected && network.bgColor
                       )}>
                         {CustomIcon ? (
-                          <CustomIcon />
+                          <div className={isSelected ? "text-white" : ""}>
+                            <CustomIcon />
+                          </div>
                         ) : Icon ? (
-                          <Icon className="w-4 h-4" />
+                          <Icon className={cn("w-4 h-4", isSelected ? "text-white" : network.iconColor || "text-white")} />
                         ) : null}
                       </div>
                       <span className={cn(
                         "text-sm font-medium whitespace-nowrap",
-                        isSelected ? network.iconColor : "text-foreground"
+                        isSelected ? "text-white" : "text-foreground"
                       )}>
                         {network.name}
                       </span>
@@ -581,151 +828,158 @@ const SocialMediaServices = () => {
             </div>
           </motion.div>
 
-          {/* Services List */}
+          {/* Search & Filters Bar */}
           <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="space-y-3 w-full"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 p-3 sm:p-4"
           >
-            {filteredServices.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center bg-card border border-border rounded-xl">
-                <Search className="w-14 h-14 text-muted-foreground/30 mb-4" />
-                <h3 className="font-semibold text-lg text-foreground mb-2">لا توجد خدمات</h3>
-                <p className="text-sm text-muted-foreground mb-4">جرب البحث بكلمات مختلفة</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="rounded-lg"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setSelectedCategory("");
-                    setSelectedNetwork("all");
-                  }}
-                >
-                  إعادة ضبط الفلاتر
-                </Button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+                <Input
+                  placeholder="ابحث عن خدمة..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pr-10 h-10 sm:h-11 text-sm rounded-xl bg-background/50 border-border/50 focus:border-primary/50 placeholder:text-muted-foreground/50"
+                />
               </div>
-            ) : (
-              Object.entries(groupedServices).map(([catId, catServices]) => (
-                <Collapsible 
-                  key={catId}
-                  defaultOpen={true}
-                  open={expandedCategories.size === 0 || expandedCategories.has(catId)}
-                  onOpenChange={() => toggleCategory(catId)}
-                >
-                  <CollapsibleTrigger asChild>
-                    <button className="w-full flex items-center justify-between p-4 bg-card/80 backdrop-blur border border-border rounded-xl hover:bg-muted/50 transition-colors">
-                      <ChevronDown className={cn(
-                        "w-5 h-5 text-muted-foreground transition-transform duration-200",
-                        (expandedCategories.size === 0 || expandedCategories.has(catId)) && "rotate-180"
-                      )} />
-                      <div className="flex items-center gap-3">
-                        <Badge variant="secondary" className="text-xs px-2.5 py-1 bg-primary/10 text-primary">
-                          {catServices.length}
-                        </Badge>
-                        <span className="font-bold text-base">{getCategoryName(catId)}</span>
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Layers className="w-4 h-4 text-primary" />
-                        </div>
-                      </div>
-                    </button>
-                  </CollapsibleTrigger>
-                  
-                  <CollapsibleContent className="data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
-                    <div className="mt-3 space-y-3">
-                      {catServices.map((service) => {
-                        const features = parseFeatures(service.features);
-                        const isFav = favorites.includes(service.id);
-                        const pricePerK = convertToSAR(service.price);
-                        
-                        return (
-                          <div
-                            key={service.id}
-                            className="w-full bg-card border border-border rounded-xl overflow-hidden hover:border-primary/50 hover:shadow-md transition-all"
-                          >
-                            {/* Service Content */}
-                            <div className="p-4">
-                              {/* Top Row: Title + Favorite */}
-                              <div className="flex items-start gap-3 mb-4">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleFavorite(service.id);
-                                  }}
-                                  className={cn(
-                                    "shrink-0 p-2 rounded-lg transition-all",
-                                    isFav 
-                                      ? "bg-rose-500/15 text-rose-500" 
-                                      : "bg-muted/60 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10"
-                                  )}
-                                >
-                                  <Heart className={cn("w-4 h-4", isFav && "fill-current")} />
-                                </button>
-                                <h4 className="font-semibold text-sm text-foreground leading-relaxed flex-1 text-right">
-                                  {service.name}
-                                </h4>
-                              </div>
-                              
-                              {/* Meta Row */}
-                              <div className="flex flex-wrap items-center justify-end gap-2 text-xs text-muted-foreground mb-4">
-                                {service.external_service_id && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      copyServiceId(service.external_service_id!);
-                                    }}
-                                    className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 hover:bg-muted transition-colors"
-                                  >
-                                    <Copy className="w-3 h-3" />
-                                    <span dir="ltr">#{service.external_service_id}</span>
-                                  </button>
-                                )}
-                                <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
-                                  <Target className="w-3 h-3" />
-                                  <span dir="ltr">{features.min.toLocaleString()} - {features.max.toLocaleString()}</span>
-                                </span>
-                                {service.refill_days && (
-                                  <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
-                                    <Clock className="w-3 h-3" />
-                                    {service.refill_days} يوم
-                                  </span>
-                                )}
-                                {(service.refill_enabled || features.refill) && (
-                                  <Badge className="text-[10px] px-2 py-1 bg-green-500/15 text-green-600 border-0 gap-1">
-                                    <RefreshCw className="w-3 h-3" />
-                                    تعويض
-                                  </Badge>
-                                )}
-                              </div>
+              
+              {/* Sort & View Controls */}
+              <div className="flex items-center gap-2">
+                {/* Sort Dropdown */}
+                <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                  <SelectTrigger className="w-[130px] sm:w-[150px] h-10 sm:h-11 rounded-xl text-xs sm:text-sm bg-background/50 border-border/50">
+                    <SlidersHorizontal className="w-3.5 h-3.5 ml-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border z-50">
+                    <SelectItem value="price-asc">السعر: الأقل</SelectItem>
+                    <SelectItem value="price-desc">السعر: الأعلى</SelectItem>
+                    <SelectItem value="name">الاسم</SelectItem>
+                  </SelectContent>
+                </Select>
 
-                              {/* Bottom Row: Price + Order Button */}
-                              <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                                <Button
-                                  size="default"
-                                  onClick={() => handleSelectService(service)}
-                                  className="rounded-lg gap-2 px-5"
-                                >
-                                  <ShoppingCart className="w-4 h-4" />
-                                  اطلب الآن
-                                </Button>
-                                <div className="text-left">
-                                  <p className="text-xl font-bold text-primary" dir="ltr">
-                                    {pricePerK.toFixed(2)} <span className="text-sm">ر.س</span>
-                                  </p>
-                                  <p className="text-[11px] text-muted-foreground text-right">لكل 1000</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              ))
-            )}
+                {/* View Toggle */}
+                <div className="flex items-center gap-1 p-1 rounded-xl bg-muted/50">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setViewMode("grid")}
+                    className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg transition-colors ${
+                      viewMode === "grid" 
+                        ? "bg-primary text-primary-foreground shadow-md" 
+                        : "hover:bg-muted"
+                    }`}
+                  >
+                    <Grid3X3 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setViewMode("list")}
+                    className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg transition-colors ${
+                      viewMode === "list" 
+                        ? "bg-primary text-primary-foreground shadow-md" 
+                        : "hover:bg-muted"
+                    }`}
+                  >
+                    <LayoutList className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Results Count */}
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
+              <span className="text-xs text-muted-foreground">
+                عرض {filteredServices.length} من {socialMediaServices.length} خدمة
+              </span>
+              {searchQuery && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSearchQuery("")}
+                  className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  مسح البحث
+                </Button>
+              )}
+            </div>
           </motion.div>
+
+          {/* Featured Offers Section */}
+          <FeaturedOffersSection category="smm" />
+
+          {/* Services Grid/List */}
+          {filteredServices.length === 0 ? (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-16 sm:py-20"
+            >
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Search className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold mb-2">لا توجد خدمات</h3>
+              <p className="text-muted-foreground text-sm max-w-md mx-auto px-4">
+                {searchQuery ? "لم يتم العثور على خدمات تطابق البحث" : "سيتم إضافة الخدمات قريباً"}
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedNetwork("all");
+                }}
+                className="mt-4"
+              >
+                إعادة ضبط الفلاتر
+              </Button>
+            </motion.div>
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.div 
+                key={viewMode}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className={`grid gap-3 sm:gap-4 ${
+                  viewMode === "grid" 
+                    ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
+                    : "grid-cols-1"
+                }`}
+              >
+                {filteredServices.map((service, index) => (
+                  viewMode === "grid" ? (
+                    <SocialServiceCard
+                      key={service.id}
+                      service={service}
+                      index={index}
+                      onOrder={handleSelectService}
+                      isFavorite={favorites.includes(service.id)}
+                      onToggleFavorite={toggleFavorite}
+                      parseFeatures={parseFeatures}
+                      convertToSAR={convertToSAR}
+                    />
+                  ) : (
+                    <SocialServiceListCard
+                      key={service.id}
+                      service={service}
+                      index={index}
+                      onOrder={handleSelectService}
+                      isFavorite={favorites.includes(service.id)}
+                      onToggleFavorite={toggleFavorite}
+                      parseFeatures={parseFeatures}
+                      convertToSAR={convertToSAR}
+                    />
+                  )
+                ))}
+              </motion.div>
+            </AnimatePresence>
+          )}
         </div>
 
         {/* Order Dialog */}
@@ -858,7 +1112,7 @@ const SocialMediaServices = () => {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+      </PullToRefresh>
     </ClientDashboardLayout>
   );
 };
