@@ -60,8 +60,9 @@ export default function SignContract() {
       const { error } = await supabase
         .from("financing_applications")
         .update({
+          status: "awaiting_signature", // Update status to awaiting promissory note
           contract_signed_at: new Date().toISOString(),
-          contract_document_url: signature, // Store signature temporarily
+          contract_document_url: signature,
         })
         .eq("id", applicationId);
 
