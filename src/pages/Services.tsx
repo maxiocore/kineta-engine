@@ -461,22 +461,7 @@ const Services = () => {
                 />
               </div>
               
-              <div className="flex gap-2 sm:gap-3 items-center justify-between">
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="flex-1 sm:w-[180px] sm:flex-none h-9 sm:h-10 text-xs sm:text-sm">
-                    <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4 ml-1.5 sm:ml-2" />
-                    <SelectValue placeholder="جميع الأقسام" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">جميع الأقسام ({totalServices})</SelectItem>
-                    {categories.map(cat => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat} ({services?.filter(s => s.category === cat).length})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
+              <div className="flex gap-2 sm:gap-3 items-center justify-end">
                 <div className="flex gap-1">
                   <Button variant="ghost" size="sm" onClick={expandAll} className="h-9 w-9 sm:h-10 sm:w-10 p-0">
                     <ChevronDown className="h-4 w-4" />
