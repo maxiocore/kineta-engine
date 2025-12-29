@@ -193,20 +193,17 @@ const Careers = () => {
 
   const remoteWorkBenefits = [
     { icon: Globe, title: "اعمل من أي مكان", description: "نؤمن بالحرية الكاملة في اختيار مكان عملك" },
-    { icon: Laptop, title: "معدات حديثة", description: "نوفر لك أحدث الأجهزة والأدوات" },
     { icon: Calendar, title: "ساعات مرنة", description: "تحكم في جدولك بما يناسب حياتك" },
-    { icon: Wifi, title: "بدل إنترنت", description: "نتحمل تكاليف الاتصال بالكامل" }
+    { icon: Home, title: "بيئة عمل مريحة", description: "اعمل من منزلك بكل راحة" }
   ];
 
   const companyBenefits = [
-    { icon: Heart, title: "تأمين صحي شامل", description: "تغطية طبية كاملة لك ولعائلتك" },
     { icon: TrendingUp, title: "نمو مهني سريع", description: "فرص ترقية وتطوير مستمر" },
     { icon: DollarSign, title: "رواتب تنافسية", description: "أجور أعلى من معدل السوق" },
     { icon: Award, title: "مكافآت الأداء", description: "حوافز ربع سنوية وسنوية" },
     { icon: Zap, title: "تدريب مستمر", description: "ميزانية تعلم سنوية لكل موظف" },
     { icon: Users, title: "فريق متميز", description: "اعمل مع أفضل المواهب" },
-    { icon: Shield, title: "أمان وظيفي", description: "استقرار وضمانات طويلة المدى" },
-    { icon: Headphones, title: "دعم نفسي", description: "جلسات استشارية مجانية" }
+    { icon: Shield, title: "أمان وظيفي", description: "استقرار وضمانات طويلة المدى" }
   ];
 
   const workCulture = [
