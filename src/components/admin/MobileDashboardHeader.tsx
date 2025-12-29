@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Sparkles, RefreshCw, Calendar, Activity, Zap } from "lucide-react";
+import { Sparkles, RefreshCw, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -23,38 +23,30 @@ const MobileDashboardHeader = ({ onRefresh, isRefreshing }: MobileDashboardHeade
       <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-full blur-2xl" />
       <div className="absolute bottom-0 left-0 w-16 h-16 bg-accent/10 rounded-full blur-xl" />
       
-      {/* Animated particles */}
-      <motion.div
-        className="absolute top-2 left-1/4 w-1 h-1 bg-primary/50 rounded-full"
-        animate={{ y: [0, -6, 0], opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 2, repeat: Infinity }}
-      />
-      
-      <div className="relative z-10 flex items-center justify-between flex-row-reverse">
-        <div className="flex items-center gap-2.5 flex-row-reverse">
+      <div className="relative z-10 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           <motion.div
-            className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20"
+            className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"
             animate={{ rotate: [0, 3, -3, 0] }}
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
           >
-            <Sparkles className="w-5 h-5 text-primary-foreground" />
+            <Sparkles className="w-4 h-4 text-primary-foreground" />
           </motion.div>
-          <div className="text-right">
-            <h1 className="text-base font-bold">لوحة التحكم</h1>
-            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground flex-row-reverse">
-              <Calendar className="w-3 h-3" />
-              <span>{currentDate}</span>
+          <div className="min-w-0">
+            <h1 className="text-sm font-bold truncate">لوحة التحكم</h1>
+            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+              <Calendar className="w-2.5 h-2.5 shrink-0" />
+              <span className="truncate">{currentDate}</span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-row-reverse">
+        <div className="flex items-center gap-1.5 shrink-0">
           <motion.div 
-            className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-success/10 border border-success/20 flex-row-reverse"
+            className="flex items-center gap-1 px-2 py-1 rounded-full bg-success/10 border border-success/20"
             animate={{ opacity: [1, 0.7, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <Activity className="w-3 h-3 text-success" />
             <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
             <span className="text-[10px] text-success font-medium">مباشر</span>
           </motion.div>
@@ -64,9 +56,9 @@ const MobileDashboardHeader = ({ onRefresh, isRefreshing }: MobileDashboardHeade
             size="icon"
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="h-8 w-8 hover:bg-primary/10 hover:border-primary/30"
+            className="h-7 w-7 hover:bg-primary/10 hover:border-primary/30"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin" : ""}`} />
           </Button>
         </div>
       </div>
