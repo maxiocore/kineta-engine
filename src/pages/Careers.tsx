@@ -249,11 +249,11 @@ const Careers = () => {
             </p>
 
             <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 text-lg px-8 py-6">
+              <Button size="lg" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 text-lg px-8 py-6 text-white font-bold shadow-lg">
                 <Briefcase className="w-5 h-5 ml-2" />
                 استكشف الوظائف
               </Button>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-2">
+              <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-2 bg-background/80 backdrop-blur-sm text-foreground font-bold">
                 <Users className="w-5 h-5 ml-2" />
                 تعرف على فريقنا
               </Button>
