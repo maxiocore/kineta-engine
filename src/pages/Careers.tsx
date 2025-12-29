@@ -209,7 +209,7 @@ const Careers = () => {
   const workCulture = [
     { number: "100%", label: "عمل عن بُعد" },
     { number: "+15", label: "جنسية في الفريق" },
-    { number: "4.9", label: "تقييم الموظفين" },
+    { number: "5", label: "تقييم الموظفين" },
     { number: "90%", label: "معدل الاحتفاظ" }
   ];
 
