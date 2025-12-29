@@ -187,7 +187,6 @@ const Careers = () => {
   };
 
   const benefits = [
-    { icon: Heart, title: "تأمين صحي شامل", description: "تأمين طبي لك ولعائلتك" },
     { icon: Rocket, title: "فرص نمو مهني", description: "دورات تدريبية وتطوير مستمر" },
     { icon: Coffee, title: "بيئة عمل مريحة", description: "مكاتب حديثة ومرافق متكاملة" },
     { icon: Trophy, title: "مكافآت وحوافز", description: "نظام مكافآت بناءً على الأداء" }
