@@ -15,27 +15,121 @@ interface MobileTopServicesProps {
   services: TopService[];
 }
 
-// دالة لمعالجة النص المختلط (عربي + إنجليزي + أرقام)
-const formatMixedText = (text: string) => {
-  // تقسيم النص حسب الأنماط: أرقام مع شرطات، كلمات إنجليزية كاملة
-  const parts = text.split(/(\d+[\d,.-]*\d*|[A-Za-z]+(?:\s+[A-Za-z]+)*)/g);
+interface ParsedServiceName {
+  parts: Array<{
+    text: string;
+    type: 'arabic' | 'english' | 'range' | 'separator';
+  }>;
+}
+
+// Parser لتفكيك النص إلى أجزاء منفصلة
+const parseServiceName = (name: string): ParsedServiceName => {
+  const parts: ParsedServiceName['parts'] = [];
   
-  return parts.map((part, index) => {
-    if (!part) return null;
-    
-    // إذا كان الجزء يحتوي على أرقام أو كلمات إنجليزية
-    const isLtr = /^[\d,.\-\s]+$/.test(part) || /^[A-Za-z\s]+$/.test(part);
-    
-    if (isLtr && part.trim()) {
-      return (
-        <span key={index} dir="ltr" className="bidi-ltr">
-          {part}
-        </span>
-      );
+  const rangePattern = /(\d+[\d,]*\s*[-–]\s*\d+[\d,]*)/g;
+  const englishPattern = /([A-Z][A-Z\s]+[A-Z])/g;
+  const singleEnglishPattern = /\b([A-Za-z]{2,})\b/g;
+  
+  const ranges = [...name.matchAll(rangePattern)];
+  const englishWords = [...name.matchAll(englishPattern)];
+  const singleWords = [...name.matchAll(singleEnglishPattern)];
+  
+  const markers: Array<{start: number; end: number; text: string; type: 'english' | 'range'}> = [];
+  
+  ranges.forEach(match => {
+    if (match.index !== undefined) {
+      markers.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        text: match[0],
+        type: 'range'
+      });
     }
-    
-    return part;
   });
+  
+  englishWords.forEach(match => {
+    if (match.index !== undefined) {
+      markers.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        text: match[0],
+        type: 'english'
+      });
+    }
+  });
+  
+  singleWords.forEach(match => {
+    if (match.index !== undefined) {
+      const overlaps = markers.some(m => 
+        (match.index! >= m.start && match.index! < m.end) ||
+        (match.index! + match[0].length > m.start && match.index! + match[0].length <= m.end)
+      );
+      if (!overlaps && /^[A-Z]/.test(match[0])) {
+        markers.push({
+          start: match.index,
+          end: match.index + match[0].length,
+          text: match[0],
+          type: 'english'
+        });
+      }
+    }
+  });
+  
+  markers.sort((a, b) => a.start - b.start);
+  
+  let lastEnd = 0;
+  markers.forEach(marker => {
+    if (marker.start > lastEnd) {
+      const arabicText = name.substring(lastEnd, marker.start).trim();
+      if (arabicText) {
+        parts.push({ text: arabicText, type: 'arabic' });
+      }
+    }
+    parts.push({ text: marker.text, type: marker.type });
+    lastEnd = marker.end;
+  });
+  
+  if (lastEnd < name.length) {
+    const remainingText = name.substring(lastEnd).trim();
+    if (remainingText) {
+      parts.push({ text: remainingText, type: 'arabic' });
+    }
+  }
+  
+  if (parts.length === 0) {
+    parts.push({ text: name, type: 'arabic' });
+  }
+  
+  return { parts };
+};
+
+// مكون لعرض اسم الخدمة المفكك
+const ServiceNameDisplay = ({ name, className }: { name: string; className?: string }) => {
+  const { parts } = parseServiceName(name);
+  
+  return (
+    <div dir="rtl" className={cn("bidi-isolate-rtl text-right min-w-0 truncate", className)}>
+      {parts.map((part, index) => {
+        if (part.type === 'arabic') {
+          return <span key={index}>{part.text}</span>;
+        }
+        
+        if (part.type === 'range' || part.type === 'english') {
+          return (
+            <span 
+              key={index} 
+              dir="ltr" 
+              className="bidi-isolate-ltr mx-0.5"
+            >
+              {part.text}
+            </span>
+          );
+        }
+        
+        return <span key={index} className="mx-0.5">{part.text}</span>;
+      })}
+    </div>
+  );
 };
 
 const MobileTopServices = ({ services }: MobileTopServicesProps) => {
@@ -84,7 +178,7 @@ const MobileTopServices = ({ services }: MobileTopServicesProps) => {
             <Star className="w-4 h-4 text-warning" />
           </div>
         </div>
-        {/* زر عرض الكل على اليسار */}
+        {/* زر عرض الكل على اليسار - السهم معكوس */}
         <Link 
           to="/admin/services"
           className="flex flex-row-reverse items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
@@ -128,13 +222,15 @@ const MobileTopServices = ({ services }: MobileTopServicesProps) => {
                   </div>
                   
                   {/* Service Info - وسط */}
-                  <div className="flex-1 min-w-0 text-right bidi-rtl">
-                    <p className="text-xs font-medium truncate" dir="rtl">
-                      {formatMixedText(service.name)}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">
-                      <span dir="ltr" className="bidi-ltr">{service.orders.toLocaleString('en-US')}</span>
-                      <span className="me-1">طلب</span>
+                  <div className="flex-1 min-w-0">
+                    {/* اسم الخدمة مع تفكيك النص المختلط */}
+                    <ServiceNameDisplay 
+                      name={service.name} 
+                      className="text-xs font-medium"
+                    />
+                    <p className="text-[10px] text-muted-foreground text-right">
+                      <span dir="ltr" className="bidi-isolate-ltr">{service.orders.toLocaleString('en-US')}</span>
+                      <span> طلب</span>
                     </p>
                   </div>
                   
@@ -142,7 +238,7 @@ const MobileTopServices = ({ services }: MobileTopServicesProps) => {
                   {service.trend && service.trend > 0 && (
                     <div className="flex flex-row-reverse items-center gap-0.5 text-[9px] text-success shrink-0">
                       <TrendingUp className="w-2.5 h-2.5 ms-0.5" />
-                      <span dir="ltr" className="bidi-ltr">{service.trend}٪</span>
+                      <span dir="ltr" className="bidi-isolate-ltr">{service.trend}٪</span>
                     </div>
                   )}
                   
@@ -150,7 +246,7 @@ const MobileTopServices = ({ services }: MobileTopServicesProps) => {
                   <div className="shrink-0 text-start">
                     <div className="flex items-center gap-1">
                       <span className="text-xs font-bold text-success" dir="ltr">
-                        {service.revenue.toLocaleString("en-US")}
+                        <span className="bidi-isolate-ltr">{service.revenue.toLocaleString("en-US")}</span>
                       </span>
                       <span className="text-[9px] text-muted-foreground">ر.س</span>
                     </div>

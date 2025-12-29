@@ -18,6 +18,134 @@ interface TopServicesCardProps {
   services: TopService[];
 }
 
+interface ParsedServiceName {
+  parts: Array<{
+    text: string;
+    type: 'arabic' | 'english' | 'range' | 'separator';
+  }>;
+}
+
+// Parser لتفكيك النص إلى أجزاء منفصلة
+const parseServiceName = (name: string): ParsedServiceName => {
+  const parts: ParsedServiceName['parts'] = [];
+  
+  // Regex patterns
+  const rangePattern = /(\d+[\d,]*\s*[-–]\s*\d+[\d,]*)/g;
+  const englishPattern = /([A-Z][A-Z\s]+[A-Z])/g; // كلمات إنجليزية كبيرة مثل NO REFILL
+  const singleEnglishPattern = /\b([A-Za-z]{2,})\b/g; // كلمات إنجليزية فردية
+  
+  // استخراج كل الـ matches
+  const ranges = [...name.matchAll(rangePattern)];
+  const englishWords = [...name.matchAll(englishPattern)];
+  const singleWords = [...name.matchAll(singleEnglishPattern)];
+  
+  // إنشاء map للمواقع
+  const markers: Array<{start: number; end: number; text: string; type: 'english' | 'range'}> = [];
+  
+  ranges.forEach(match => {
+    if (match.index !== undefined) {
+      markers.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        text: match[0],
+        type: 'range'
+      });
+    }
+  });
+  
+  englishWords.forEach(match => {
+    if (match.index !== undefined) {
+      markers.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        text: match[0],
+        type: 'english'
+      });
+    }
+  });
+  
+  // إضافة كلمات إنجليزية فردية غير موجودة بالفعل
+  singleWords.forEach(match => {
+    if (match.index !== undefined) {
+      const overlaps = markers.some(m => 
+        (match.index! >= m.start && match.index! < m.end) ||
+        (match.index! + match[0].length > m.start && match.index! + match[0].length <= m.end)
+      );
+      if (!overlaps && /^[A-Z]/.test(match[0])) {
+        markers.push({
+          start: match.index,
+          end: match.index + match[0].length,
+          text: match[0],
+          type: 'english'
+        });
+      }
+    }
+  });
+  
+  // ترتيب حسب الموقع
+  markers.sort((a, b) => a.start - b.start);
+  
+  // بناء الأجزاء
+  let lastEnd = 0;
+  markers.forEach(marker => {
+    // إضافة النص العربي قبل هذا الـ marker
+    if (marker.start > lastEnd) {
+      const arabicText = name.substring(lastEnd, marker.start).trim();
+      if (arabicText) {
+        parts.push({ text: arabicText, type: 'arabic' });
+      }
+    }
+    
+    // إضافة الـ marker نفسه
+    parts.push({ text: marker.text, type: marker.type });
+    lastEnd = marker.end;
+  });
+  
+  // إضافة أي نص متبقي
+  if (lastEnd < name.length) {
+    const remainingText = name.substring(lastEnd).trim();
+    if (remainingText) {
+      parts.push({ text: remainingText, type: 'arabic' });
+    }
+  }
+  
+  // إذا لم يتم العثور على أي markers، أعد النص كاملاً
+  if (parts.length === 0) {
+    parts.push({ text: name, type: 'arabic' });
+  }
+  
+  return { parts };
+};
+
+// مكون لعرض اسم الخدمة المفكك
+const ServiceNameDisplay = ({ name }: { name: string }) => {
+  const { parts } = parseServiceName(name);
+  
+  return (
+    <div dir="rtl" className="bidi-isolate-rtl text-right min-w-0 truncate">
+      {parts.map((part, index) => {
+        if (part.type === 'arabic') {
+          return <span key={index}>{part.text}</span>;
+        }
+        
+        if (part.type === 'range' || part.type === 'english') {
+          return (
+            <span 
+              key={index} 
+              dir="ltr" 
+              className="bidi-isolate-ltr mx-0.5"
+            >
+              {part.text}
+            </span>
+          );
+        }
+        
+        return <span key={index} className="mx-0.5">{part.text}</span>;
+      })}
+    </div>
+  );
+};
+
 const getRankIcon = (index: number) => {
   switch (index) {
     case 0:
@@ -57,29 +185,6 @@ const getProgressColor = (index: number) => {
   }
 };
 
-// دالة لمعالجة النص المختلط (عربي + إنجليزي + أرقام)
-const formatMixedText = (text: string) => {
-  // تقسيم النص حسب الأنماط: أرقام مع شرطات، كلمات إنجليزية كاملة
-  const parts = text.split(/(\d+[\d,.-]*\d*|[A-Za-z]+(?:\s+[A-Za-z]+)*)/g);
-  
-  return parts.map((part, index) => {
-    if (!part) return null;
-    
-    // إذا كان الجزء يحتوي على أرقام أو كلمات إنجليزية
-    const isLtr = /^[\d,.\-\s]+$/.test(part) || /^[A-Za-z\s]+$/.test(part);
-    
-    if (isLtr && part.trim()) {
-      return (
-        <span key={index} dir="ltr" className="bidi-ltr">
-          {part}
-        </span>
-      );
-    }
-    
-    return part;
-  });
-};
-
 const TopServicesCard = ({ services }: TopServicesCardProps) => {
   const navigate = useNavigate();
   const maxRevenue = Math.max(...services.map((s) => s.revenue), 1);
@@ -102,7 +207,7 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
               <Star className="w-4 h-4 text-warning" />
             </motion.div>
           </CardTitle>
-          {/* زر عرض الكل على اليسار */}
+          {/* زر عرض الكل على اليسار - السهم معكوس */}
           <Button
             variant="ghost"
             size="sm"
@@ -141,19 +246,20 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
                 </motion.div>
 
                 {/* Service Info - وسط */}
-                <div className="flex-1 min-w-0 text-right bidi-rtl">
-                  <p className="text-sm font-semibold truncate" dir="rtl">
-                    {formatMixedText(service.name)}
+                <div className="flex-1 min-w-0">
+                  {/* اسم الخدمة مع تفكيك النص المختلط */}
+                  <p className="text-sm font-semibold">
+                    <ServiceNameDisplay name={service.name} />
                   </p>
                   <div className="flex flex-row-reverse items-center gap-2 mt-1 flex-wrap">
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
-                      <span dir="ltr" className="bidi-ltr">{service.orders.toLocaleString('en-US')}</span>
-                      <span className="me-1">طلب</span>
+                      <span dir="ltr" className="bidi-isolate-ltr">{service.orders.toLocaleString('en-US')}</span>
+                      <span className="me-1"> طلب</span>
                     </Badge>
                     {service.trend > 0 && (
                       <span className="flex flex-row-reverse items-center gap-0.5 text-[10px] text-success">
                         <TrendingUp className="w-2.5 h-2.5" />
-                        <span dir="ltr" className="bidi-ltr">+{service.trend}٪</span>
+                        <span dir="ltr" className="bidi-isolate-ltr">+{service.trend}٪</span>
                       </span>
                     )}
                   </div>
@@ -162,7 +268,7 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
                 {/* Revenue - على اليسار */}
                 <div className="shrink-0 text-start">
                   <p className="text-base sm:text-lg font-bold" dir="ltr">
-                    {service.revenue.toLocaleString('en-US')}
+                    <span className="bidi-isolate-ltr">{service.revenue.toLocaleString('en-US')}</span>
                   </p>
                   <p className="text-[10px] text-muted-foreground text-start">ر.س</p>
                 </div>

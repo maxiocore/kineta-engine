@@ -4,25 +4,35 @@
 @tailwind components;
 @tailwind utilities;
 
-/* RTL Bidi Fix Classes */
+/* Bidi Isolation Classes - للنصوص المختلطة */
+.bidi-isolate-ltr {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline;
+}
+
+.bidi-isolate-rtl {
+  direction: rtl;
+  unicode-bidi: isolate;
+}
+
+/* Fallback classes */
 .bidi-fix {
-  unicode-bidi: plaintext;
+  unicode-bidi: isolate;
 }
 
 .bidi-plaintext {
-  unicode-bidi: plaintext;
+  unicode-bidi: isolate;
 }
 
-/* LTR content inside RTL - for English text and numbers */
 .bidi-ltr {
   unicode-bidi: isolate;
   direction: ltr;
   display: inline;
 }
 
-/* RTL container for mixed content */
 .bidi-rtl {
-  unicode-bidi: plaintext;
+  unicode-bidi: isolate;
   direction: rtl;
 }
 

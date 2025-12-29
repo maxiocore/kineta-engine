@@ -18,27 +18,122 @@ interface TopServicesWidgetProps {
   maxRevenue?: number;
 }
 
-// دالة لمعالجة النص المختلط (عربي + إنجليزي + أرقام)
-const formatMixedText = (text: string) => {
-  // تقسيم النص حسب الأنماط: أرقام مع شرطات، كلمات إنجليزية كاملة
-  const parts = text.split(/(\d+[\d,.-]*\d*|[A-Za-z]+(?:\s+[A-Za-z]+)*)/g);
+interface ParsedServiceName {
+  parts: Array<{
+    text: string;
+    type: 'arabic' | 'english' | 'range' | 'separator';
+  }>;
+}
+
+// Parser لتفكيك النص إلى أجزاء منفصلة
+const parseServiceName = (name: string): ParsedServiceName => {
+  const parts: ParsedServiceName['parts'] = [];
   
-  return parts.map((part, index) => {
-    if (!part) return null;
-    
-    // إذا كان الجزء يحتوي على أرقام أو كلمات إنجليزية
-    const isLtr = /^[\d,.\-\s]+$/.test(part) || /^[A-Za-z\s]+$/.test(part);
-    
-    if (isLtr && part.trim()) {
-      return (
-        <span key={index} dir="ltr" className="bidi-ltr">
-          {part}
-        </span>
-      );
+  // Regex patterns
+  const rangePattern = /(\d+[\d,]*\s*[-–]\s*\d+[\d,]*)/g;
+  const englishPattern = /([A-Z][A-Z\s]+[A-Z])/g;
+  const singleEnglishPattern = /\b([A-Za-z]{2,})\b/g;
+  
+  const ranges = [...name.matchAll(rangePattern)];
+  const englishWords = [...name.matchAll(englishPattern)];
+  const singleWords = [...name.matchAll(singleEnglishPattern)];
+  
+  const markers: Array<{start: number; end: number; text: string; type: 'english' | 'range'}> = [];
+  
+  ranges.forEach(match => {
+    if (match.index !== undefined) {
+      markers.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        text: match[0],
+        type: 'range'
+      });
     }
-    
-    return part;
   });
+  
+  englishWords.forEach(match => {
+    if (match.index !== undefined) {
+      markers.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        text: match[0],
+        type: 'english'
+      });
+    }
+  });
+  
+  singleWords.forEach(match => {
+    if (match.index !== undefined) {
+      const overlaps = markers.some(m => 
+        (match.index! >= m.start && match.index! < m.end) ||
+        (match.index! + match[0].length > m.start && match.index! + match[0].length <= m.end)
+      );
+      if (!overlaps && /^[A-Z]/.test(match[0])) {
+        markers.push({
+          start: match.index,
+          end: match.index + match[0].length,
+          text: match[0],
+          type: 'english'
+        });
+      }
+    }
+  });
+  
+  markers.sort((a, b) => a.start - b.start);
+  
+  let lastEnd = 0;
+  markers.forEach(marker => {
+    if (marker.start > lastEnd) {
+      const arabicText = name.substring(lastEnd, marker.start).trim();
+      if (arabicText) {
+        parts.push({ text: arabicText, type: 'arabic' });
+      }
+    }
+    parts.push({ text: marker.text, type: marker.type });
+    lastEnd = marker.end;
+  });
+  
+  if (lastEnd < name.length) {
+    const remainingText = name.substring(lastEnd).trim();
+    if (remainingText) {
+      parts.push({ text: remainingText, type: 'arabic' });
+    }
+  }
+  
+  if (parts.length === 0) {
+    parts.push({ text: name, type: 'arabic' });
+  }
+  
+  return { parts };
+};
+
+// مكون لعرض اسم الخدمة المفكك
+const ServiceNameDisplay = ({ name, className }: { name: string; className?: string }) => {
+  const { parts } = parseServiceName(name);
+  
+  return (
+    <div dir="rtl" className={cn("bidi-isolate-rtl text-right min-w-0 truncate", className)}>
+      {parts.map((part, index) => {
+        if (part.type === 'arabic') {
+          return <span key={index}>{part.text}</span>;
+        }
+        
+        if (part.type === 'range' || part.type === 'english') {
+          return (
+            <span 
+              key={index} 
+              dir="ltr" 
+              className="bidi-isolate-ltr mx-0.5"
+            >
+              {part.text}
+            </span>
+          );
+        }
+        
+        return <span key={index} className="mx-0.5">{part.text}</span>;
+      })}
+    </div>
+  );
 };
 
 const TopServicesWidget = ({ services, maxRevenue }: TopServicesWidgetProps) => {
@@ -79,7 +174,7 @@ const TopServicesWidget = ({ services, maxRevenue }: TopServicesWidgetProps) => 
             <span>أفضل الخدمات</span>
             <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-warning" />
           </CardTitle>
-          {/* زر عرض الكل على اليسار */}
+          {/* زر عرض الكل على اليسار - السهم معكوس */}
           <Link to="/admin/services">
             <Button variant="ghost" size="sm" className="gap-1 text-[9px] sm:text-[10px] h-6 sm:h-7 flex flex-row-reverse items-center">
               <span>عرض الكل</span>
@@ -123,13 +218,15 @@ const TopServicesWidget = ({ services, maxRevenue }: TopServicesWidgetProps) => 
                   </motion.span>
                   
                   {/* Service Name & Orders - وسط */}
-                  <div className="flex-1 min-w-0 text-right bidi-rtl">
-                    <p className="font-medium text-[9px] sm:text-[10px] lg:text-xs truncate group-hover:text-primary transition-colors" dir="rtl">
-                      {formatMixedText(service.name)}
-                    </p>
-                    <p className="text-[8px] sm:text-[9px] text-muted-foreground">
-                      <span dir="ltr" className="bidi-ltr">{service.orders.toLocaleString("en-US")}</span>
-                      <span className="me-1">طلب</span>
+                  <div className="flex-1 min-w-0">
+                    {/* اسم الخدمة مع تفكيك النص المختلط */}
+                    <ServiceNameDisplay 
+                      name={service.name} 
+                      className="font-medium text-[9px] sm:text-[10px] lg:text-xs group-hover:text-primary transition-colors"
+                    />
+                    <p className="text-[8px] sm:text-[9px] text-muted-foreground text-right">
+                      <span dir="ltr" className="bidi-isolate-ltr">{service.orders.toLocaleString("en-US")}</span>
+                      <span> طلب</span>
                     </p>
                   </div>
                   
@@ -137,14 +234,14 @@ const TopServicesWidget = ({ services, maxRevenue }: TopServicesWidgetProps) => 
                   {service.trend && service.trend > 0 && (
                     <span className="flex flex-row-reverse items-center text-[8px] sm:text-[9px] text-success shrink-0">
                       <TrendingUp className="w-2 h-2 sm:w-2.5 sm:h-2.5 ms-0.5" />
-                      <span dir="ltr" className="bidi-ltr">{service.trend}٪</span>
+                      <span dir="ltr" className="bidi-isolate-ltr">{service.trend}٪</span>
                     </span>
                   )}
                   
                   {/* Revenue - على اليسار */}
                   <div className="shrink-0 text-start">
                     <span className="font-bold text-[9px] sm:text-[10px] lg:text-xs text-success" dir="ltr">
-                      {service.revenue.toLocaleString("en-US")}
+                      <span className="bidi-isolate-ltr">{service.revenue.toLocaleString("en-US")}</span>
                     </span>
                     <span className="text-[7px] sm:text-[8px] text-muted-foreground ms-0.5">ر.س</span>
                   </div>
