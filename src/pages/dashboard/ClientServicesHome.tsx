@@ -375,22 +375,22 @@ const ClientServicesHome = () => {
     },
     {
       id: 'dev',
-      title: 'خدمات البرمجة',
+      title: 'خدمات البرمجة والتطوير',
       subtitle: 'Development',
-      description: 'مواقع وتطبيقات بأحدث التقنيات',
+      description: 'حلول برمجية احترافية بأحدث التقنيات',
       icon: Code,
       path: '/dashboard/dev-services',
-      gradient: 'from-emerald-500 via-green-500 to-teal-500',
-      bgGradient: 'from-emerald-500/20 via-green-500/10 to-transparent',
+      gradient: 'from-emerald-500 via-cyan-500 to-teal-500',
+      bgGradient: 'from-emerald-500/20 via-cyan-500/10 to-transparent',
       shadowColor: 'shadow-emerald-500/25',
       count: servicesCount.dev,
       platforms: [
-        { icon: Globe2, label: 'مواقع', color: 'from-emerald-500 to-teal-600' },
-        { icon: Smartphone, label: 'تطبيقات', color: 'from-green-500 to-emerald-600' },
-        { icon: Code, label: 'برمجة', color: 'from-teal-500 to-cyan-600' },
-        { icon: TrendingUp, label: 'SEO', color: 'from-lime-500 to-green-600' },
+        { icon: Globe2, label: 'مواقع ويب', color: 'from-cyan-500 to-blue-600' },
+        { icon: Smartphone, label: 'تطبيقات جوال', color: 'from-purple-500 to-violet-600' },
+        { icon: Code, label: 'متاجر إلكترونية', color: 'from-pink-500 to-rose-600' },
+        { icon: TrendingUp, label: 'أنظمة متكاملة', color: 'from-emerald-500 to-teal-600' },
       ],
-      features: ['تقنيات حديثة', 'دعم فني', 'سيو متقدم']
+      features: ['تقنيات حديثة', 'دعم متواصل', 'ضمان الجودة']
     },
     {
       id: 'digital',
