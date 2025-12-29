@@ -428,22 +428,22 @@ const AdminDashboard = () => {
 
   // Mobile-optimized dashboard content
   const mobileDashboardContent = (
-    <div className="space-y-3" dir="rtl">
+    <div className="space-y-2 sm:space-y-3" dir="rtl">
       <MobileDashboardHeader onRefresh={handleRefresh} isRefreshing={isRefreshing} />
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full grid grid-cols-2 h-9 p-0.5 bg-secondary/50">
-          <TabsTrigger value="overview" className="text-xs gap-1 data-[state=active]:bg-background">
-            <Sparkles className="w-3 h-3" />
+        <TabsList className="w-full grid grid-cols-2 h-8 sm:h-9 p-0.5 bg-secondary/50">
+          <TabsTrigger value="overview" className="text-[10px] sm:text-xs gap-0.5 sm:gap-1 data-[state=active]:bg-background">
+            <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
             نظرة عامة
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="text-xs gap-1 data-[state=active]:bg-background">
-            <BarChart3 className="w-3 h-3" />
+          <TabsTrigger value="analytics" className="text-[10px] sm:text-xs gap-0.5 sm:gap-1 data-[state=active]:bg-background">
+            <BarChart3 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
             الإحصائيات
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-3 mt-3">
+        <TabsContent value="overview" className="space-y-2 sm:space-y-3 mt-2 sm:mt-3">
           <MobileDashboardStats stats={statsData} />
           <MobileLiveOrdersChart />
           <MobileRevenueCard
@@ -457,7 +457,7 @@ const AdminDashboard = () => {
           <MobileActivityFeed activities={activities} />
         </TabsContent>
 
-        <TabsContent value="analytics" className="mt-3">
+        <TabsContent value="analytics" className="mt-2 sm:mt-3">
           <AdvancedDashboardCharts
             orders={chartData.orders}
             deposits={chartData.deposits}

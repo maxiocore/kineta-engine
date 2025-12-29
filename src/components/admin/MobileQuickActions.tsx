@@ -36,17 +36,17 @@ const MobileQuickActions = () => {
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-card rounded-xl border border-border/40 p-3"
+      className="bg-card rounded-lg sm:rounded-xl border border-border/40 p-2 sm:p-3"
       dir="rtl"
     >
-      <div className="flex items-center gap-2 mb-3 flex-row-reverse justify-end">
-        <div className="p-1.5 rounded-lg bg-primary/10">
-          <Settings className="w-4 h-4 text-primary" />
+      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3 flex-row-reverse justify-end">
+        <div className="p-1 sm:p-1.5 rounded-lg bg-primary/10">
+          <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
         </div>
-        <span className="text-sm font-semibold">إجراءات سريعة</span>
+        <span className="text-xs sm:text-sm font-semibold">إجراءات سريعة</span>
       </div>
       
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
         {quickActions.map((action, index) => (
           <motion.div
             key={action.href}
@@ -57,15 +57,15 @@ const MobileQuickActions = () => {
             <Link to={action.href}>
               <motion.div
                 whileTap={{ scale: 0.92 }}
-                className="flex flex-col items-center gap-1.5 p-2 rounded-lg bg-secondary/40 hover:bg-secondary/60 active:bg-secondary/80 transition-colors"
+                className="flex flex-col items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2 rounded-lg bg-secondary/40 hover:bg-secondary/60 active:bg-secondary/80 transition-colors"
               >
                 <div className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center shadow-sm",
+                  "w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shadow-sm",
                   `bg-gradient-to-br ${action.color}`
                 )}>
-                  <action.icon className="w-4 h-4 text-white" />
+                  <action.icon className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                 </div>
-                <span className="text-[9px] font-medium text-center leading-tight">{action.label}</span>
+                <span className="text-[8px] sm:text-[9px] font-medium text-center leading-tight">{action.label}</span>
               </motion.div>
             </Link>
           </motion.div>
