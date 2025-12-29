@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { MaintenanceProvider } from "@/hooks/useMaintenanceMode";
 import { ThemeProvider } from "next-themes";
@@ -123,7 +123,7 @@ const App = () => (
               <MaintenanceGuard>
                 <Routes>
                   <Route path="/" element={<Index />} />
-                  <Route path="/our-services" element={<Services />} />
+                  <Route path="/our-services" element={<Navigate to="/services" replace />} />
                   <Route path="/category/:slug" element={<CategoryDetails />} />
                   <Route path="/services" element={<OurServices />} />
                   <Route path="/about" element={<About />} />
