@@ -26,6 +26,10 @@ import DigitalMarketingServices from "./pages/DigitalMarketingServices";
 import Careers from "./pages/Careers";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import PaymentMethods from "./pages/PaymentMethods";
+import PaymentPolicy from "./pages/PaymentPolicy";
+import RefundPolicy from "./pages/RefundPolicy";
+import FinancingInfo from "./pages/FinancingInfo";
 import GettingStarted from "./pages/developers/GettingStarted";
 import ApiReference from "./pages/developers/ApiReference";
 import CodeExamples from "./pages/developers/CodeExamples";
@@ -139,6 +143,10 @@ const App = () => (
                   <Route path="/careers" element={<Careers />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                   <Route path="/terms-of-service" element={<TermsOfService />} />
+                  <Route path="/payment-methods" element={<PaymentMethods />} />
+                  <Route path="/payment-policy" element={<PaymentPolicy />} />
+                  <Route path="/refund-policy" element={<RefundPolicy />} />
+                  <Route path="/financing" element={<FinancingInfo />} />
                   <Route path="/developers/getting-started" element={<GettingStarted />} />
                   <Route path="/developers/api-reference" element={<ApiReference />} />
                   <Route path="/developers/examples" element={<CodeExamples />} />

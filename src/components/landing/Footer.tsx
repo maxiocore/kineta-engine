@@ -18,11 +18,11 @@ const footerLinks = {
     { label: "الوظائف", href: "/careers" },
     { label: "تواصل معنا", href: "/contact" },
   ],
-  "المطورين": [
-    { label: "البدء السريع", href: "/developers/getting-started" },
-    { label: "مرجع API", href: "/developers/api-reference" },
-    { label: "أمثلة الكود", href: "/developers/examples" },
-    { label: "SDK & Tools", href: "/developers/sdk" },
+  "المدفوعات": [
+    { label: "التمويل", href: "/financing" },
+    { label: "طرق الدفع", href: "/payment-methods" },
+    { label: "سياسة الدفع", href: "/payment-policy" },
+    { label: "سياسة الاسترجاع", href: "/refund-policy" },
   ],
   "الدعم": [
     { label: "الأسعار", href: "/pricing" },
