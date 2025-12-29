@@ -278,7 +278,7 @@ const FinancingSection = () => {
             >
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
-                  { icon: CheckCircle2, text: "تمويل إسلامي متوافق" },
+                  { icon: CheckCircle2, text: "تمويل داخلي متوافق" },
                   { icon: CheckCircle2, text: "إجراءات سريعة وسهلة" },
                   { icon: CheckCircle2, text: "بدون كفيل أو ضامن" },
                 ].map((item, i) => (
