@@ -253,33 +253,47 @@ const AdminEmails = () => {
   };
 
   const handleSendEmail = async () => {
-    if (!newEmail.recipient_email || !newEmail.subject || !newEmail.content) {
+    if (newEmail.type === 'single' && !newEmail.recipient_email) {
+      toast.error("يرجى إدخال البريد الإلكتروني للمستلم");
+      return;
+    }
+    if (!newEmail.subject || !newEmail.content) {
       toast.error("يرجى ملء جميع الحقول المطلوبة");
       return;
     }
     
     setSendingEmail(true);
     
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    const { error } = await supabase
-      .from('emails')
-      .insert({
-        recipient_email: newEmail.recipient_email,
-        subject: newEmail.subject,
-        content: newEmail.content,
-        template_id: newEmail.template_id || null,
-        status: 'pending',
-        sent_by: user?.id
+    try {
+      const { data, error } = await supabase.functions.invoke('send-email', {
+        body: {
+          type: newEmail.type,
+          to: newEmail.recipient_email,
+          emailType: 'custom',
+          data: {
+            title: newEmail.subject,
+            message: newEmail.content
+          },
+          customSubject: newEmail.subject,
+          customContent: newEmail.content
+        }
       });
-    
-    if (error) {
-      console.error('Error sending email:', error);
-      toast.error("حدث خطأ في إرسال البريد");
-    } else {
-      toast.success("تم إضافة البريد للإرسال");
+      
+      if (error) throw error;
+      
+      if (newEmail.type === 'all') {
+        toast.success(`تم إرسال البريد لجميع المستخدمين بنجاح (${data?.results?.success || 0} رسالة)`);
+      } else {
+        toast.success("تم إرسال البريد بنجاح");
+      }
+      
       setNewEmailDialogOpen(false);
       setNewEmail({ type: "single", template_id: "", recipient_email: "", subject: "", content: "" });
+      fetchEmails();
+      fetchStats();
+    } catch (error: any) {
+      console.error('Error sending email:', error);
+      toast.error("حدث خطأ في إرسال البريد: " + (error.message || "خطأ غير معروف"));
     }
     
     setSendingEmail(false);
@@ -518,14 +532,21 @@ const AdminEmails = () => {
                     </Select>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">المستلم</label>
-                  <Input 
-                    placeholder="البريد الإلكتروني" 
-                    value={newEmail.recipient_email}
-                    onChange={(e) => setNewEmail(prev => ({ ...prev, recipient_email: e.target.value }))}
-                  />
-                </div>
+                {newEmail.type === 'single' && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">المستلم</label>
+                    <Input 
+                      placeholder="البريد الإلكتروني" 
+                      value={newEmail.recipient_email}
+                      onChange={(e) => setNewEmail(prev => ({ ...prev, recipient_email: e.target.value }))}
+                    />
+                  </div>
+                )}
+                {newEmail.type === 'all' && (
+                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
+                    <p className="text-sm text-primary font-medium">سيتم إرسال الرسالة لجميع المستخدمين المسجلين</p>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">العنوان</label>
                   <Input 
