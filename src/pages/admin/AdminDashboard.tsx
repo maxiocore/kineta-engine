@@ -34,6 +34,7 @@ import MobileTopServices from "@/components/admin/MobileTopServices";
 import LiveOrdersChart from "@/components/admin/LiveOrdersChart";
 import MobileLiveOrdersChart from "@/components/admin/MobileLiveOrdersChart";
 import AnimatedCounter from "@/components/admin/AnimatedCounter";
+import { MobileOverviewStats } from "@/components/admin/MobileOverviewStats";
 
 interface DashboardStats {
   totalUsers: number;
@@ -449,60 +450,18 @@ const AdminDashboard = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-4 mt-3">
-          {/* Stats Grid - Clean Design like Analytics */}
-          <div className="grid grid-cols-2 gap-3">
-            {statsData.map((stat, index) => {
-              const Icon = stat.icon;
-              const cardColors = [
-                { bg: 'from-primary/10 to-primary/5', icon: 'bg-primary/20', iconColor: 'text-primary' },
-                { bg: 'from-amber-500/10 to-amber-500/5', icon: 'bg-amber-500/20', iconColor: 'text-amber-500' },
-                { bg: 'from-green-500/10 to-green-500/5', icon: 'bg-green-500/20', iconColor: 'text-green-500' },
-                { bg: 'from-purple-500/10 to-purple-500/5', icon: 'bg-purple-500/20', iconColor: 'text-purple-500' },
-              ];
-              const colors = cardColors[index % cardColors.length];
-              
-              return (
-                <motion.div
-                  key={stat.title}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={stat.onClick}
-                  className={cn(
-                    "rounded-xl border border-border/50 p-3 cursor-pointer",
-                    "active:bg-secondary/50 transition-all",
-                    "relative overflow-hidden bg-gradient-to-br",
-                    colors.bg
-                  )}
-                >
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-                  <div className="relative">
-                    <div className="flex items-center gap-2">
-                      <div className={cn("p-2 rounded-lg shrink-0", colors.icon)}>
-                        <Icon className={cn("w-4 h-4", colors.iconColor)} />
-                      </div>
-                      <p className="text-[10px] text-muted-foreground truncate">{stat.shortTitle}</p>
-                    </div>
-                    <div className="flex items-baseline gap-2 mt-2">
-                      <span className="text-xl font-bold">
-                        <AnimatedCounter value={stat.value} suffix={stat.suffix} duration={1} />
-                      </span>
-                      {stat.trend !== undefined && stat.trend !== 0 && (
-                        <span className={cn(
-                          "text-[9px] font-medium",
-                          stat.trend > 0 ? "text-green-500" : "text-red-500"
-                        )}>
-                          {stat.trend > 0 ? "↑" : "↓"}{Math.abs(stat.trend)}%
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
+        <TabsContent value="overview" className="space-y-3 mt-3">
+          {/* Stats Grid - New Component */}
+          <MobileOverviewStats
+            totalUsers={stats.totalUsers}
+            usersTrend={stats.usersTrend}
+            pendingOrders={stats.pendingOrders}
+            ordersTrend={stats.ordersTrend}
+            completedOrders={stats.completedOrders}
+            monthlyRevenue={stats.monthlyRevenue}
+            revenueTrend={stats.revenueTrend}
+            onNavigate={navigate}
+          />
 
           {/* Live Orders Chart */}
           <MobileLiveOrdersChart />
