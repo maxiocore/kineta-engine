@@ -7,7 +7,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 const useRealStats = () => {
-  return useQuery({
+  const [bonusOrders, setBonusOrders] = useState(0);
+  
+  const query = useQuery({
     queryKey: ["hero-real-stats"],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_public_stats");
@@ -34,6 +36,23 @@ const useRealStats = () => {
     },
     staleTime: 1000 * 60 * 5,
   });
+
+  // إضافة 13 طلب كل 4 دقائق (240000 مللي ثانية)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBonusOrders(prev => prev + 13);
+    }, 240000); // 4 دقائق
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return {
+    ...query,
+    data: query.data ? {
+      ...query.data,
+      completedOrders: query.data.completedOrders + bonusOrders,
+    } : undefined,
+  };
 };
 
 const HeroSection = () => {
