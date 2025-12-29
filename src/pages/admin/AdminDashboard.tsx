@@ -438,23 +438,25 @@ const AdminDashboard = () => {
     <div className="space-y-3" dir="rtl">
       <MobileDashboardHeader onRefresh={handleRefresh} isRefreshing={isRefreshing} />
       
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full px-1">
-        <TabsList className="w-full grid grid-cols-2 h-12 p-1 bg-secondary/60 backdrop-blur-sm rounded-xl border border-border/30 shadow-sm">
-          <TabsTrigger 
-            value="overview" 
-            className="flex items-center justify-center gap-2 text-sm font-medium rounded-lg transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground"
-          >
-            <Sparkles className="w-4 h-4 shrink-0" />
-            <span className="truncate">نظرة عامة</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="analytics" 
-            className="flex items-center justify-center gap-2 text-sm font-medium rounded-lg transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent data-[state=active]:to-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-md data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground"
-          >
-            <BarChart3 className="w-4 h-4 shrink-0" />
-            <span className="truncate">الإحصائيات</span>
-          </TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="px-3">
+          <TabsList className="w-full h-12 p-1 bg-secondary/60 backdrop-blur-sm rounded-xl border border-border/30 shadow-sm flex">
+            <TabsTrigger 
+              value="overview" 
+              className="flex-1 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=inactive]:text-muted-foreground"
+            >
+              <Sparkles className="w-4 h-4 flex-shrink-0" />
+              <span>نظرة عامة</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="analytics" 
+              className="flex-1 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent data-[state=active]:to-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-md data-[state=inactive]:text-muted-foreground"
+            >
+              <BarChart3 className="w-4 h-4 flex-shrink-0" />
+              <span>الإحصائيات</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="overview" className="space-y-3 mt-3">
           {/* Stats Grid - New Component */}
