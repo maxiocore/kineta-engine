@@ -141,8 +141,8 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex w-full" dir="rtl">
-      {/* Desktop Sidebar - Fixed Right */}
+    <div className="min-h-screen bg-background flex w-full max-w-full overflow-x-hidden" dir="rtl">
+      {/* Desktop Sidebar - Fixed Right - Hidden on mobile with display:none */}
       <aside className="hidden lg:flex flex-col fixed top-0 right-0 h-full w-[260px] z-40 bg-card border-l border-border/50">
         {/* Logo Section */}
         <div className="p-4 border-b border-border/40">
@@ -468,8 +468,8 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1 lg:mr-[260px] min-h-screen pt-14 lg:pt-0 pb-16 lg:pb-0">
-        <div className="p-2.5 sm:p-4 lg:p-6 max-w-7xl mx-auto pb-4 lg:pb-8">
+      <main className="flex-1 lg:mr-[260px] min-h-screen pt-14 lg:pt-0 pb-16 lg:pb-0 w-full max-w-full min-w-0 overflow-x-hidden">
+        <div className="p-2 sm:p-4 lg:p-6 lg:max-w-7xl lg:mx-auto pb-4 lg:pb-8 w-full max-w-full min-w-0">
           {children}
         </div>
       </main>
