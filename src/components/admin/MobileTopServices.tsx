@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Star, TrendingUp, ChevronRight, Trophy, Medal, Award } from "lucide-react";
+import { Star, TrendingUp, ChevronLeft, Trophy, Medal, Award } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +36,15 @@ const MobileTopServices = ({ services }: MobileTopServicesProps) => {
     }
   };
 
+  const getProgressColor = (index: number) => {
+    switch (index) {
+      case 0: return "bg-gradient-to-l from-yellow-500 to-amber-500";
+      case 1: return "bg-gradient-to-l from-slate-400 to-slate-500";
+      case 2: return "bg-gradient-to-l from-amber-600 to-orange-600";
+      default: return "bg-primary";
+    }
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
@@ -44,8 +53,8 @@ const MobileTopServices = ({ services }: MobileTopServicesProps) => {
       dir="rtl"
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-border/30 flex-row-reverse">
-        <div className="flex items-center gap-2 flex-row-reverse">
+      <div className="flex items-center justify-between p-3 border-b border-border/30">
+        <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-lg bg-warning/10">
             <Star className="w-4 h-4 text-warning" />
           </div>
@@ -53,10 +62,10 @@ const MobileTopServices = ({ services }: MobileTopServicesProps) => {
         </div>
         <Link 
           to="/admin/services"
-          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors flex-row-reverse"
+          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
         >
           عرض الكل
-          <ChevronRight className="w-3 h-3 rotate-180" />
+          <ChevronLeft className="w-3 h-3" />
         </Link>
       </div>
       
@@ -74,7 +83,7 @@ const MobileTopServices = ({ services }: MobileTopServicesProps) => {
             return (
               <motion.div
                 key={service.id}
-                initial={{ opacity: 0, x: -10 }}
+                initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
                 whileTap={{ scale: 0.99 }}
@@ -83,50 +92,46 @@ const MobileTopServices = ({ services }: MobileTopServicesProps) => {
                   "hover:bg-secondary/20 active:bg-secondary/40"
                 )}
               >
-                <div className="flex items-center gap-2 mb-1.5 flex-row-reverse">
+                <div className="flex items-center gap-2 mb-1.5">
                   {/* Rank Badge */}
                   <div className={cn(
-                    "w-7 h-7 rounded-lg flex items-center justify-center border bg-gradient-to-bl",
+                    "w-7 h-7 rounded-lg flex items-center justify-center border bg-gradient-to-br shrink-0",
                     getRankColor(index)
                   )}>
                     {getRankIcon(index)}
                   </div>
                   
                   {/* Service Info */}
-                  <div className="flex-1 min-w-0 text-right">
+                  <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium truncate">{service.name}</p>
                     <p className="text-[10px] text-muted-foreground">
-                      {service.orders.toLocaleString('en-US')} طلب
+                      {service.orders.toLocaleString('ar-SA')} طلب
                     </p>
                   </div>
                   
-                  {/* Revenue & Trend */}
-                  <div className="text-left shrink-0">
-                    <div className="flex items-center gap-1 flex-row-reverse justify-end">
+                  {/* Trend */}
+                  {service.trend && service.trend > 0 && (
+                    <div className="flex items-center gap-0.5 text-[9px] text-success shrink-0">
+                      <TrendingUp className="w-2.5 h-2.5" />
+                      {service.trend}٪
+                    </div>
+                  )}
+                  
+                  {/* Revenue */}
+                  <div className="shrink-0 text-left">
+                    <div className="flex items-center gap-1">
                       <span className="text-xs font-bold text-success">
-                        {service.revenue.toLocaleString("en-US")}
+                        {service.revenue.toLocaleString("ar-SA")}
                       </span>
                       <span className="text-[9px] text-muted-foreground">ر.س</span>
                     </div>
-                    {service.trend && service.trend > 0 && (
-                      <div className="flex items-center gap-0.5 text-[9px] text-success justify-start flex-row-reverse">
-                        <TrendingUp className="w-2.5 h-2.5" />
-                        {service.trend}%
-                      </div>
-                    )}
                   </div>
                 </div>
                 
                 {/* Progress Bar */}
                 <div className="h-1 rounded-full bg-secondary overflow-hidden mr-9">
                   <motion.div
-                    className={cn(
-                      "h-full rounded-full",
-                      index === 0 ? "bg-gradient-to-r from-yellow-500 to-amber-500" :
-                      index === 1 ? "bg-gradient-to-r from-slate-400 to-slate-500" :
-                      index === 2 ? "bg-gradient-to-r from-amber-600 to-orange-600" :
-                      "bg-primary"
-                    )}
+                    className={cn("h-full rounded-full", getProgressColor(index))}
                     initial={{ width: 0 }}
                     animate={{ width: `${percentage}%` }}
                     transition={{ delay: index * 0.1, duration: 0.5 }}
