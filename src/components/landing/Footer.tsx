@@ -18,6 +18,12 @@ const footerLinks = {
     { label: "الوظائف", href: "/careers" },
     { label: "تواصل معنا", href: "/contact" },
   ],
+  "المطورين": [
+    { label: "البدء السريع", href: "/developers/getting-started" },
+    { label: "مرجع API", href: "/developers/api-reference" },
+    { label: "أمثلة الكود", href: "/developers/examples" },
+    { label: "SDK & Tools", href: "/developers/sdk" },
+  ],
   "الدعم": [
     { label: "الأسعار", href: "/pricing" },
     { label: "تتبع الطلب", href: "/track-order" },
@@ -337,7 +343,7 @@ const Footer = () => {
           {/* Links Section - Horizontal on Mobile */}
           <motion.div 
             variants={itemVariants}
-            className="grid grid-cols-3 gap-6 sm:gap-8 md:gap-12"
+            className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 md:gap-12"
           >
             {Object.entries(footerLinks).map(([category, links], categoryIndex) => (
               <motion.div 

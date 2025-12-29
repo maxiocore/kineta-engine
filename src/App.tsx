@@ -26,6 +26,10 @@ import DigitalMarketingServices from "./pages/DigitalMarketingServices";
 import Careers from "./pages/Careers";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import GettingStarted from "./pages/developers/GettingStarted";
+import ApiReference from "./pages/developers/ApiReference";
+import CodeExamples from "./pages/developers/CodeExamples";
+import SdkDownloads from "./pages/developers/SdkDownloads";
 
 // Client Dashboard
 import ClientDashboard from "./pages/dashboard/ClientDashboard";
@@ -133,6 +137,10 @@ const App = () => (
                   <Route path="/careers" element={<Careers />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                   <Route path="/terms-of-service" element={<TermsOfService />} />
+                  <Route path="/developers/getting-started" element={<GettingStarted />} />
+                  <Route path="/developers/api-reference" element={<ApiReference />} />
+                  <Route path="/developers/examples" element={<CodeExamples />} />
+                  <Route path="/developers/sdk" element={<SdkDownloads />} />
                   <Route path="/auth" element={<Auth />} />
                   
                   {/* Client Dashboard Routes */}
