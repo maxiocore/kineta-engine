@@ -2060,10 +2060,12 @@ export type Database = {
       }
       support_tickets: {
         Row: {
+          category: string
           created_at: string | null
           description: string
           id: string
           priority: Database["public"]["Enums"]["ticket_priority"]
+          related_order_id: string | null
           status: Database["public"]["Enums"]["ticket_status"]
           subject: string
           ticket_number: string | null
@@ -2071,10 +2073,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          category?: string
           created_at?: string | null
           description: string
           id?: string
           priority?: Database["public"]["Enums"]["ticket_priority"]
+          related_order_id?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           subject: string
           ticket_number?: string | null
@@ -2082,17 +2086,27 @@ export type Database = {
           user_id: string
         }
         Update: {
+          category?: string
           created_at?: string | null
           description?: string
           id?: string
           priority?: Database["public"]["Enums"]["ticket_priority"]
+          related_order_id?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           subject?: string
           ticket_number?: string | null
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_related_order_id_fkey"
+            columns: ["related_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_settings: {
         Row: {
