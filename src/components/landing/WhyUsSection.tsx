@@ -1,5 +1,6 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
+import { Link } from "react-router-dom";
 import { 
   Zap, 
   Shield, 
@@ -274,20 +275,21 @@ const WhyUsSection = () => {
           transition={{ duration: 0.4, delay: 0.3 }}
           className="flex justify-center mt-10 md:mt-14"
         >
-          <motion.a
-            href="/services"
-            className="group inline-flex items-center gap-2.5 px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-semibold text-sm md:text-base shadow-xl hover:shadow-2xl hover:shadow-primary/25 transition-all duration-300"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <span>اكتشف خدماتنا</span>
+          <Link to="/services">
             <motion.div
-              animate={{ x: [0, -4, 0] }}
-              transition={{ duration: 1.2, repeat: Infinity }}
+              className="group inline-flex items-center gap-2.5 px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-semibold text-sm md:text-base shadow-xl hover:shadow-2xl hover:shadow-primary/25 transition-all duration-300"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
+              <span>اكتشف خدماتنا</span>
+              <motion.div
+                animate={{ x: [0, -4, 0] }}
+                transition={{ duration: 1.2, repeat: Infinity }}
+              >
+                <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
+              </motion.div>
             </motion.div>
-          </motion.a>
+          </Link>
         </motion.div>
 
         {/* Bottom Tagline */}
