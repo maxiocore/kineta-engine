@@ -35,6 +35,7 @@ import LiveOrdersChart from "@/components/admin/LiveOrdersChart";
 import MobileLiveOrdersChart from "@/components/admin/MobileLiveOrdersChart";
 import AnimatedCounter from "@/components/admin/AnimatedCounter";
 import { MobileOverviewStats } from "@/components/admin/MobileOverviewStats";
+import MobileAdminDashboard from "@/components/admin/MobileAdminDashboard";
 
 interface DashboardStats {
   totalUsers: number;
@@ -435,72 +436,26 @@ const AdminDashboard = () => {
 
   // Mobile-optimized dashboard content
   const mobileDashboardContent = (
-    <div className="space-y-3" dir="rtl">
-      <MobileDashboardHeader onRefresh={handleRefresh} isRefreshing={isRefreshing} />
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="px-3">
-          <TabsList className="w-full h-12 p-1 bg-secondary/60 backdrop-blur-sm rounded-xl border border-border/30 shadow-sm flex">
-            <TabsTrigger 
-              value="overview" 
-              className="flex-1 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=inactive]:text-muted-foreground"
-            >
-              <Sparkles className="w-4 h-4 flex-shrink-0" />
-              <span>نظرة عامة</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="analytics" 
-              className="flex-1 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent data-[state=active]:to-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-md data-[state=inactive]:text-muted-foreground"
-            >
-              <BarChart3 className="w-4 h-4 flex-shrink-0" />
-              <span>الإحصائيات</span>
-            </TabsTrigger>
-          </TabsList>
-        </div>
-
-        <TabsContent value="overview" className="space-y-3 mt-3">
-          {/* Stats Grid - New Component */}
-          <MobileOverviewStats
-            totalUsers={stats.totalUsers}
-            usersTrend={stats.usersTrend}
-            pendingOrders={stats.pendingOrders}
-            ordersTrend={stats.ordersTrend}
-            completedOrders={stats.completedOrders}
-            monthlyRevenue={stats.monthlyRevenue}
-            revenueTrend={stats.revenueTrend}
-            onNavigate={navigate}
-          />
-
-          {/* Live Orders Chart */}
-          <MobileLiveOrdersChart />
-          
-          {/* Revenue Card */}
-          <MobileRevenueCard
-            totalRevenue={stats.totalRevenue}
-            monthlyRevenue={stats.monthlyRevenue}
-            weeklyRevenue={stats.weeklyRevenue}
-            revenueTrend={stats.revenueTrend}
-          />
-          
-          {/* Quick Actions */}
-          <MobileQuickActions />
-          
-          {/* Top Services */}
-          <MobileTopServices services={topServices} />
-          
-          {/* Activity Feed */}
-          <MobileActivityFeed activities={activities} />
-        </TabsContent>
-
-        <TabsContent value="analytics" className="mt-3">
-          <AdvancedDashboardCharts
-            orders={chartData.orders}
-            deposits={chartData.deposits}
-            users={chartData.users}
-          />
-        </TabsContent>
-      </Tabs>
-    </div>
+    <MobileAdminDashboard
+      stats={{
+        totalUsers: stats.totalUsers,
+        pendingOrders: stats.pendingOrders,
+        completedOrders: stats.completedOrders,
+        totalRevenue: stats.totalRevenue,
+        monthlyRevenue: stats.monthlyRevenue,
+        weeklyRevenue: stats.weeklyRevenue,
+        usersTrend: stats.usersTrend,
+        ordersTrend: stats.ordersTrend,
+        revenueTrend: stats.revenueTrend,
+      }}
+      activities={activities}
+      topServices={topServices}
+      chartData={chartData}
+      onRefresh={handleRefresh}
+      isRefreshing={isRefreshing}
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+    />
   );
 
   // Desktop dashboard content
