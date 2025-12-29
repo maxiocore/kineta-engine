@@ -96,7 +96,7 @@ const MobileTopServices = ({ services }: MobileTopServicesProps) => {
                   <div className="flex-1 min-w-0 text-right">
                     <p className="text-xs font-medium truncate">{service.name}</p>
                     <p className="text-[10px] text-muted-foreground">
-                      {service.orders.toLocaleString('ar-SA')} طلب
+                      {service.orders.toLocaleString('en-US')} طلب
                     </p>
                   </div>
                   
@@ -104,7 +104,7 @@ const MobileTopServices = ({ services }: MobileTopServicesProps) => {
                   <div className="text-left shrink-0">
                     <div className="flex items-center gap-1 flex-row-reverse justify-end">
                       <span className="text-xs font-bold text-success">
-                        {service.revenue.toLocaleString("ar-SA")}
+                        {service.revenue.toLocaleString("en-US")}
                       </span>
                       <span className="text-[9px] text-muted-foreground">ر.س</span>
                     </div>

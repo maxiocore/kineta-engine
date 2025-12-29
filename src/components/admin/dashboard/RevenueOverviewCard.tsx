@@ -135,7 +135,7 @@ const RevenueOverviewCard = ({
             </div>
             <Progress value={targetProgress} className="h-2" />
             <p className="text-[10px] text-muted-foreground mt-1.5 text-left">
-              {monthlyRevenue.toLocaleString('ar-SA')} / {monthlyTarget.toLocaleString('ar-SA')} ر.س
+              {monthlyRevenue.toLocaleString('en-US')} / {monthlyTarget.toLocaleString('en-US')} ر.س
             </p>
           </div>
 
@@ -158,7 +158,7 @@ const RevenueOverviewCard = ({
                   <stat.icon className={cn("w-4 h-4", stat.color)} />
                 </div>
                 <p className="text-lg sm:text-xl font-bold text-right">
-                  {stat.value.toLocaleString('ar-SA')}
+                  {stat.value.toLocaleString('en-US')}
                   <span className="text-xs font-normal text-muted-foreground mr-1">ر.س</span>
                 </p>
                 <p className="text-[10px] sm:text-xs text-muted-foreground text-right">{stat.label}</p>

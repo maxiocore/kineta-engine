@@ -31,7 +31,7 @@ const QuickStatsRow = ({
   const stats: QuickStat[] = [
     {
       label: "رصيد المستخدمين",
-      value: `${totalBalance.toLocaleString('ar-SA')} ر.س`,
+      value: `${totalBalance.toLocaleString('en-US')} ر.س`,
       icon: Wallet,
       color: "text-primary",
       bgGradient: "from-primary/20 via-primary/10 to-primary/5",
@@ -40,7 +40,7 @@ const QuickStatsRow = ({
     },
     {
       label: "إجمالي الإيداعات",
-      value: `${totalDeposits.toLocaleString('ar-SA')} ر.س`,
+      value: `${totalDeposits.toLocaleString('en-US')} ر.س`,
       icon: CreditCard,
       color: "text-success",
       bgGradient: "from-success/20 via-success/10 to-success/5",
@@ -49,7 +49,7 @@ const QuickStatsRow = ({
     },
     {
       label: "تذاكر الدعم المفتوحة",
-      value: openTickets.toLocaleString('ar-SA'),
+      value: openTickets.toLocaleString('en-US'),
       icon: TicketCheck,
       color: openTickets > 0 ? "text-warning" : "text-success",
       bgGradient: openTickets > 0 ? "from-warning/20 via-warning/10 to-warning/5" : "from-success/20 via-success/10 to-success/5",
@@ -57,7 +57,7 @@ const QuickStatsRow = ({
     },
     {
       label: "رسائل جديدة",
-      value: pendingMessages.toLocaleString('ar-SA'),
+      value: pendingMessages.toLocaleString('en-US'),
       icon: MessageSquare,
       color: pendingMessages > 0 ? "text-accent" : "text-muted-foreground",
       bgGradient: pendingMessages > 0 ? "from-accent/20 via-accent/10 to-accent/5" : "from-muted/20 via-muted/10 to-muted/5",
