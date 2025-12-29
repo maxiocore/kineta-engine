@@ -121,51 +121,51 @@ const MobileAdminDashboard = ({
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       {/* Header with Tabs */}
-      <div className="sticky top-14 z-30 bg-background/95 backdrop-blur-sm border-b border-border/50 px-4 py-3">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+      <div className="bg-background border-b border-border/50 px-4 py-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/25">
               <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-sm font-bold">لوحة التحكم</h1>
-              <p className="text-[10px] text-muted-foreground">مرحباً بك</p>
+              <h1 className="text-base font-bold">لوحة التحكم</h1>
+              <p className="text-xs text-muted-foreground">مرحباً بك</p>
             </div>
           </div>
           <motion.button
             whileTap={{ scale: 0.9, rotate: 180 }}
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="w-9 h-9 rounded-xl bg-secondary/60 flex items-center justify-center"
+            className="w-10 h-10 rounded-xl bg-secondary/60 flex items-center justify-center border border-border/50"
           >
             <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
           </motion.button>
         </div>
 
-        {/* Custom Tabs */}
-        <div className="w-full h-11 p-1 bg-secondary/50 rounded-xl grid grid-cols-2 gap-1">
+        {/* Custom Tabs - Fixed Layout */}
+        <div className="w-full h-12 p-1.5 bg-secondary/50 rounded-xl flex gap-2">
           <button 
             onClick={() => setActiveTab("overview")}
             className={cn(
-              "rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5",
+              "flex-1 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2",
               activeTab === "overview" 
-                ? "bg-primary text-primary-foreground shadow-sm" 
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-primary text-primary-foreground shadow-md" 
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
             )}
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            <Sparkles className="w-4 h-4" />
             نظرة عامة
           </button>
           <button 
             onClick={() => setActiveTab("analytics")}
             className={cn(
-              "rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5",
+              "flex-1 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2",
               activeTab === "analytics" 
-                ? "bg-accent text-accent-foreground shadow-sm" 
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-accent text-accent-foreground shadow-md" 
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
             )}
           >
-            <BarChart3 className="w-3.5 h-3.5" />
+            <BarChart3 className="w-4 h-4" />
             الإحصائيات
           </button>
         </div>
