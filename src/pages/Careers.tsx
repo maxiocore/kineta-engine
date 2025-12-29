@@ -210,7 +210,7 @@ const Careers = () => {
     { number: "100%", label: "عمل عن بُعد" },
     { number: "+15", label: "جنسية في الفريق" },
     { number: "5", label: "تقييم الموظفين" },
-    { number: "100%", label: "معدل الاحتفاظ" }
+    { number: "99%", label: "معدل الاحتفاظ" }
   ];
 
   return (
