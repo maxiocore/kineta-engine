@@ -376,9 +376,11 @@ const AdminDashboard = () => {
     setIsRefreshing(false);
   }, []);
 
+  // Stats data with short labels for mobile
   const statsData = [
     {
       title: "إجمالي المستخدمين",
+      shortTitle: "المستخدمين",
       value: stats.totalUsers,
       icon: Users,
       gradient: "from-primary/20 to-primary/5",
@@ -389,6 +391,7 @@ const AdminDashboard = () => {
     },
     {
       title: "الطلبات المعلقة",
+      shortTitle: "المعلقة",
       value: stats.pendingOrders,
       icon: Clock,
       gradient: "from-warning/20 to-warning/5",
@@ -399,6 +402,7 @@ const AdminDashboard = () => {
     },
     {
       title: "الطلبات المكتملة",
+      shortTitle: "المكتملة",
       value: stats.completedOrders,
       icon: CheckCircle,
       gradient: "from-success/20 to-success/5",
@@ -408,6 +412,7 @@ const AdminDashboard = () => {
     },
     {
       title: "الإيرادات الشهرية",
+      shortTitle: "الإيرادات",
       value: stats.monthlyRevenue,
       icon: DollarSign,
       gradient: "from-accent/20 to-accent/5",
@@ -445,26 +450,18 @@ const AdminDashboard = () => {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 mt-3">
-          {/* Stats Grid - Premium Design */}
+          {/* Stats Grid - Clean Design like Analytics */}
           <div className="grid grid-cols-2 gap-3">
             {statsData.map((stat, index) => {
               const Icon = stat.icon;
-              const gradientColors = [
-                'from-primary/10 to-primary/5',
-                'from-green-500/10 to-green-500/5',
-                'from-blue-500/10 to-blue-500/5',
-                'from-purple-500/10 to-purple-500/5',
-                'from-amber-500/10 to-amber-500/5',
-                'from-pink-500/10 to-pink-500/5',
+              const cardColors = [
+                { bg: 'from-primary/10 to-primary/5', icon: 'bg-primary/20', iconColor: 'text-primary' },
+                { bg: 'from-amber-500/10 to-amber-500/5', icon: 'bg-amber-500/20', iconColor: 'text-amber-500' },
+                { bg: 'from-green-500/10 to-green-500/5', icon: 'bg-green-500/20', iconColor: 'text-green-500' },
+                { bg: 'from-purple-500/10 to-purple-500/5', icon: 'bg-purple-500/20', iconColor: 'text-purple-500' },
               ];
-              const decorColors = [
-                'bg-primary/10',
-                'bg-green-500/10',
-                'bg-blue-500/10',
-                'bg-purple-500/10',
-                'bg-amber-500/10',
-                'bg-pink-500/10',
-              ];
+              const colors = cardColors[index % cardColors.length];
+              
               return (
                 <motion.div
                   key={stat.title}
@@ -475,30 +472,27 @@ const AdminDashboard = () => {
                   onClick={stat.onClick}
                   className={cn(
                     "rounded-xl border border-border/50 p-3 cursor-pointer",
-                    "hover:border-primary/30 active:bg-secondary/50 transition-all",
+                    "active:bg-secondary/50 transition-all",
                     "relative overflow-hidden bg-gradient-to-br",
-                    gradientColors[index % gradientColors.length]
+                    colors.bg
                   )}
                 >
-                  <div className={cn(
-                    "absolute top-0 right-0 w-14 h-14 rounded-full -translate-y-1/2 translate-x-1/2",
-                    decorColors[index % decorColors.length]
-                  )} />
-                  <div className="relative flex flex-col h-full">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className={cn("p-2 rounded-lg shadow-sm shrink-0", stat.iconBg)}>
-                        <Icon className="w-4 h-4 text-white" />
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                  <div className="relative">
+                    <div className="flex items-center gap-2">
+                      <div className={cn("p-2 rounded-lg shrink-0", colors.icon)}>
+                        <Icon className={cn("w-4 h-4", colors.iconColor)} />
                       </div>
-                      <p className="text-[10px] text-muted-foreground leading-tight line-clamp-2 flex-1">{stat.title}</p>
+                      <p className="text-[10px] text-muted-foreground truncate">{stat.shortTitle}</p>
                     </div>
-                    <div className="flex items-baseline justify-between gap-1 mt-auto">
-                      <span className="text-lg font-bold">
+                    <div className="flex items-baseline gap-2 mt-2">
+                      <span className="text-xl font-bold">
                         <AnimatedCounter value={stat.value} suffix={stat.suffix} duration={1} />
                       </span>
                       {stat.trend !== undefined && stat.trend !== 0 && (
                         <span className={cn(
-                          "text-[9px] font-medium px-1.5 py-0.5 rounded-full",
-                          stat.trend > 0 ? "text-success bg-success/10" : "text-destructive bg-destructive/10"
+                          "text-[9px] font-medium",
+                          stat.trend > 0 ? "text-green-500" : "text-red-500"
                         )}>
                           {stat.trend > 0 ? "↑" : "↓"}{Math.abs(stat.trend)}%
                         </span>
