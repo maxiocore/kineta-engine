@@ -1,216 +1,174 @@
 import { motion, useInView } from "framer-motion";
-import { useRef, useState, useEffect } from "react";
+import { useRef } from "react";
 import { 
   Zap, 
   Shield, 
   Clock, 
   HeadphonesIcon, 
-  Sparkles, 
-  Target,
+  Sparkles,
   ArrowLeft,
   CheckCircle2,
-  Users,
-  Rocket,
-  Star,
-  Globe
+  Award,
+  Target,
+  TrendingUp
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const features = [
   {
     icon: Zap,
-    title: "سرعة فائقة في التنفيذ",
-    description: "نبدأ العمل على مشروعك فور الموافقة مع التزام صارم بالمواعيد المحددة",
+    title: "تنفيذ سريع ودقيق",
+    description: "نبدأ العمل على مشروعك فوراً مع التزام صارم بالمواعيد والجودة العالية",
     highlights: ["بدء فوري", "تسليم سريع", "متابعة مستمرة"],
-    gradient: "from-yellow-500 to-orange-500",
-    bgGradient: "from-yellow-500/10 to-orange-500/10"
+    color: "from-yellow-500 to-orange-500",
+    iconBg: "bg-yellow-500/10 dark:bg-yellow-500/20",
+    borderColor: "group-hover:border-yellow-500/30"
   },
   {
     icon: Shield,
-    title: "ضمان الجودة والرضا",
-    description: "نضمن لك جودة عالية في كل خدمة مع إمكانية التعديل حتى تحصل على النتيجة المثالية",
-    highlights: ["ضمان شامل", "تعديلات مجانية", "جودة معتمدة"],
-    gradient: "from-emerald-500 to-teal-500",
-    bgGradient: "from-emerald-500/10 to-teal-500/10"
+    title: "ضمان الجودة الشامل",
+    description: "نضمن لك جودة استثنائية في كل خدمة مع تعديلات مجانية حتى رضاك التام",
+    highlights: ["ضمان 100%", "تعديلات مجانية", "جودة معتمدة"],
+    color: "from-emerald-500 to-teal-500",
+    iconBg: "bg-emerald-500/10 dark:bg-emerald-500/20",
+    borderColor: "group-hover:border-emerald-500/30"
   },
   {
     icon: Clock,
-    title: "متاحون على مدار الساعة",
-    description: "فريقنا جاهز لخدمتك في أي وقت مع دعم فني متواصل طوال أيام الأسبوع",
-    highlights: ["دعم 24/7", "استجابة سريعة", "متابعة دائمة"],
-    gradient: "from-blue-500 to-cyan-500",
-    bgGradient: "from-blue-500/10 to-cyan-500/10"
+    title: "دعم على مدار الساعة",
+    description: "فريقنا متاح 24/7 لخدمتك والرد على استفساراتك في أي وقت",
+    highlights: ["دعم 24/7", "استجابة فورية", "متابعة دائمة"],
+    color: "from-blue-500 to-cyan-500",
+    iconBg: "bg-blue-500/10 dark:bg-blue-500/20",
+    borderColor: "group-hover:border-blue-500/30"
   },
   {
     icon: HeadphonesIcon,
     title: "فريق خبراء متخصص",
-    description: "نخبة من المتخصصين في التسويق والتصميم والبرمجة لتحقيق أهدافك",
+    description: "نخبة من المحترفين في التسويق والتصميم والبرمجة لتحقيق أهدافك",
     highlights: ["خبرة واسعة", "تخصصات متنوعة", "احترافية عالية"],
-    gradient: "from-violet-500 to-purple-500",
-    bgGradient: "from-violet-500/10 to-purple-500/10"
+    color: "from-violet-500 to-purple-500",
+    iconBg: "bg-violet-500/10 dark:bg-violet-500/20",
+    borderColor: "group-hover:border-violet-500/30"
   },
+];
+
+const additionalBenefits = [
+  { icon: Award, text: "أفضل أسعار في السوق" },
+  { icon: Target, text: "نتائج مضمونة وقابلة للقياس" },
+  { icon: TrendingUp, text: "نمو مستمر لأعمالك" },
 ];
 
 const WhyUsSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
 
-  // Dummy counters state
-  const [bonusUsers, setBonusUsers] = useState(() => Math.floor(Math.random() * (33 - 15 + 1)) + 15);
-  const [bonusOrders, setBonusOrders] = useState(() => Math.floor(Math.random() * (33 - 15 + 1)) + 15);
-  const [bonusServices, setBonusServices] = useState(() => Math.floor(Math.random() * (50 - 20 + 1)) + 20);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setBonusUsers(prev => prev + Math.floor(Math.random() * (33 - 15 + 1)) + 15);
-      setBonusOrders(prev => prev + Math.floor(Math.random() * (33 - 15 + 1)) + 15);
-      setBonusServices(prev => prev + Math.floor(Math.random() * (50 - 20 + 1)) + 20);
-    }, 3600000); // كل ساعة
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const stats = [
-    { icon: Users, value: `+${bonusUsers}`, label: "عميل سعيد", color: "text-primary" },
-    { icon: Rocket, value: `+${bonusOrders}`, label: "طلب منفذ", color: "text-emerald-500" },
-    { icon: Star, value: "100%", label: "نسبة الرضا", color: "text-yellow-500" },
-    { icon: Globe, value: `+${bonusServices}`, label: "خدمة متاحة", color: "text-blue-500" },
-  ];
-
   return (
-    <section ref={containerRef} className="py-24 md:py-32 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/5 to-background" />
+    <section ref={containerRef} className="py-16 md:py-24 lg:py-32 relative overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-secondary/30 via-background to-background" />
       
-      {/* Animated Mesh Gradient */}
-      <div className="absolute inset-0 opacity-30">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full"
+          className="absolute top-20 right-10 w-72 h-72 rounded-full opacity-20"
           style={{
-            background: "radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, transparent 70%)",
+            background: "radial-gradient(circle, hsl(var(--primary) / 0.3) 0%, transparent 70%)",
           }}
           animate={{
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full"
-          style={{
-            background: "radial-gradient(circle, hsl(var(--accent) / 0.1) 0%, transparent 70%)",
-          }}
-          animate={{
-            x: [0, -30, 0],
-            y: [0, -50, 0],
+            x: [0, 30, 0],
+            y: [0, -20, 0],
+            scale: [1, 1.1, 1],
           }}
           transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
         />
+        <motion.div
+          className="absolute bottom-20 left-10 w-96 h-96 rounded-full opacity-15"
+          style={{
+            background: "radial-gradient(circle, hsl(var(--accent) / 0.25) 0%, transparent 70%)",
+          }}
+          animate={{
+            x: [0, -20, 0],
+            y: [0, 30, 0],
+            scale: [1, 1.15, 1],
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+        />
       </div>
 
-      <div className="container px-4 relative z-10">
+      <div className="container px-4 sm:px-6 relative z-10">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16 md:mb-20"
+          className="text-center mb-12 lg:mb-16"
         >
           <motion.div 
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/10 border border-primary/20 mb-8"
-            initial={{ opacity: 0, scale: 0.8 }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/10 border border-primary/20 mb-6 lg:mb-8"
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={isInView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
           >
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold text-primary">مميزاتنا</span>
+            <span className="text-sm font-semibold text-primary">لماذا نحن الخيار الأفضل</span>
           </motion.div>
           
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-            لماذا{" "}
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 lg:mb-6">
+            مميزات تجعلنا{" "}
             <span className="relative inline-block">
               <span className="bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
-                تختارنا؟
+                الخيار الأمثل
               </span>
               <motion.div
-                className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-l from-primary to-accent rounded-full"
+                className="absolute -bottom-1 lg:-bottom-2 left-0 right-0 h-1 bg-gradient-to-l from-primary to-accent rounded-full"
                 initial={{ scaleX: 0 }}
                 animate={isInView ? { scaleX: 1 } : {}}
-                transition={{ duration: 0.8, delay: 0.4 }}
+                transition={{ duration: 0.8, delay: 0.5 }}
               />
             </span>
           </h2>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
             نقدم لك تجربة استثنائية تجمع بين الجودة والسرعة والدعم المتواصل
           </p>
-
-          {/* Stats Grid */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.5 }}
-            className="grid grid-cols-2 gap-4 max-w-xl mx-auto mt-10"
-          >
-            {stats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                transition={{ delay: 0.6 + index * 0.1 }}
-                whileHover={{ scale: 1.03 }}
-                className="p-4 md:p-5 rounded-2xl bg-card/60 backdrop-blur-xl border border-border/50 hover:border-primary/30 transition-all duration-300"
-              >
-                <div className="flex flex-col items-center text-center gap-2">
-                  <stat.icon className={`w-6 h-6 ${stat.color} opacity-80`} />
-                  <span className={`text-2xl md:text-3xl font-bold ${stat.color}`}>
-                    {stat.value}
-                  </span>
-                  <span className="text-sm text-muted-foreground">{stat.label}</span>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
         </motion.div>
 
         {/* Features Grid */}
-        <div className="grid md:grid-cols-2 gap-6 lg:gap-8 max-w-5xl mx-auto">
+        <div className="grid sm:grid-cols-2 gap-4 lg:gap-6 max-w-5xl mx-auto mb-12 lg:mb-16">
           {features.map((feature, index) => (
             <motion.div
               key={feature.title}
               initial={{ opacity: 0, y: 40 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: index * 0.15 }}
+              transition={{ duration: 0.6, delay: 0.2 + index * 0.1 }}
               className="group"
             >
               <motion.div 
-                className="relative h-full p-6 md:p-8 rounded-3xl bg-card/60 backdrop-blur-xl border border-border/50 hover:border-primary/30 transition-all duration-500 overflow-hidden"
+                className={`relative h-full p-5 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl bg-card/80 backdrop-blur-xl border border-border/50 ${feature.borderColor} transition-all duration-500 overflow-hidden`}
                 whileHover={{ y: -5 }}
               >
-                {/* Background Gradient on Hover */}
+                {/* Background Glow */}
                 <motion.div
-                  className={`absolute inset-0 bg-gradient-to-br ${feature.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
-                />
-                
-                {/* Glow Effect */}
-                <motion.div
-                  className={`absolute -top-24 -left-24 w-48 h-48 bg-gradient-to-br ${feature.gradient} rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500`}
+                  className={`absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br ${feature.color} rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500`}
                 />
 
                 <div className="relative z-10">
                   {/* Header */}
-                  <div className="flex items-start gap-4 mb-6">
+                  <div className="flex items-start gap-4 mb-4 lg:mb-5">
                     <motion.div
-                      className={`flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.gradient} p-3.5 shadow-lg`}
+                      className={`flex-shrink-0 w-12 h-12 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl bg-gradient-to-br ${feature.color} p-3 shadow-lg`}
                       whileHover={{ rotate: 5, scale: 1.05 }}
                       transition={{ type: "spring", stiffness: 300 }}
                     >
                       <feature.icon className="w-full h-full text-white" />
                     </motion.div>
                     
-                    <div>
-                      <h3 className="text-xl md:text-2xl font-bold mb-2 group-hover:text-primary transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg lg:text-xl font-bold mb-1 lg:mb-2 group-hover:text-primary transition-colors">
                         {feature.title}
                       </h3>
-                      <p className="text-muted-foreground leading-relaxed">
+                      <p className="text-sm lg:text-base text-muted-foreground leading-relaxed">
                         {feature.description}
                       </p>
                     </div>
@@ -223,11 +181,11 @@ const WhyUsSection = () => {
                         key={highlight}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                        transition={{ duration: 0.4, delay: 0.5 + index * 0.1 + i * 0.1 }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/80 text-sm text-muted-foreground"
+                        transition={{ duration: 0.4, delay: 0.4 + index * 0.1 + i * 0.1 }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${feature.iconBg} text-xs sm:text-sm font-medium`}
                       >
                         <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-                        {highlight}
+                        <span className="text-foreground/80">{highlight}</span>
                       </motion.div>
                     ))}
                   </div>
@@ -235,7 +193,7 @@ const WhyUsSection = () => {
 
                 {/* Bottom Gradient Line */}
                 <motion.div
-                  className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${feature.gradient}`}
+                  className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${feature.color}`}
                   initial={{ scaleX: 0 }}
                   whileHover={{ scaleX: 1 }}
                   transition={{ duration: 0.4 }}
@@ -246,46 +204,79 @@ const WhyUsSection = () => {
           ))}
         </div>
 
-        {/* CTA Button */}
+        {/* Additional Benefits */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.8 }}
-          className="flex justify-center mt-12 md:mt-16"
+          transition={{ delay: 0.7 }}
+          className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:gap-8 mb-10 lg:mb-12"
         >
-          <motion.a
-            href="/services"
-            className="group inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-semibold text-lg shadow-xl hover:shadow-2xl hover:shadow-primary/25 transition-all duration-300"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <span>اكتشف خدماتنا</span>
+          {additionalBenefits.map((benefit, index) => (
             <motion.div
-              animate={{ x: [0, -5, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
+              key={benefit.text}
+              initial={{ opacity: 0, x: -20 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ delay: 0.8 + index * 0.1 }}
+              className="flex items-center gap-2 text-sm sm:text-base text-muted-foreground"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <benefit.icon className="w-4 h-4 text-primary" />
+              </div>
+              <span>{benefit.text}</span>
             </motion.div>
-          </motion.a>
+          ))}
         </motion.div>
 
-        {/* Decorative Bottom Element */}
+        {/* CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.9 }}
+          className="flex justify-center"
+        >
+          <Link to="/our-services">
+            <motion.div
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              className="relative group"
+            >
+              <motion.div
+                className="absolute -inset-1 rounded-2xl bg-gradient-to-l from-primary via-accent to-primary opacity-40 blur-lg group-hover:opacity-70 transition-opacity"
+              />
+              <Button 
+                size="lg"
+                className="relative bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-xl hover:shadow-2xl px-6 sm:px-8 py-5 sm:py-6 rounded-2xl text-base sm:text-lg font-bold"
+              >
+                <span>اكتشف جميع خدماتنا</span>
+                <motion.div
+                  animate={{ x: [0, -5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  className="mr-2"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </motion.div>
+              </Button>
+            </motion.div>
+          </Link>
+        </motion.div>
+
+        {/* Decorative Element */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 1 }}
-          className="flex justify-center mt-12"
+          transition={{ delay: 1.1 }}
+          className="flex justify-center mt-10 lg:mt-12"
         >
-          <div className="flex items-center gap-4 text-muted-foreground">
+          <div className="flex items-center gap-3 text-muted-foreground">
             <motion.div 
               className="w-2 h-2 rounded-full bg-primary"
-              animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+              animate={{ scale: [1, 1.4, 1], opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
             <span className="text-sm">شريكك الموثوق للنجاح الرقمي</span>
             <motion.div 
               className="w-2 h-2 rounded-full bg-accent"
-              animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+              animate={{ scale: [1, 1.4, 1], opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 2, repeat: Infinity, delay: 1 }}
             />
           </div>
