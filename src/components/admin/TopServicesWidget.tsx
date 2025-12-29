@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
-import { Package, Eye, TrendingUp, Star } from "lucide-react";
+import { Package, Eye, TrendingUp, Star, ChevronLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +17,34 @@ interface TopServicesWidgetProps {
   services: TopService[];
   maxRevenue?: number;
 }
+
+// Helper function to format mixed text with proper BIDI handling
+const formatServiceName = (name: string) => {
+  // Pattern to match English text, numbers with ranges, or special keywords
+  const mixedPattern = /(NO REFILL|REFILL|[\d,]+[-–][\d,]+|[\d,]+K?[-–][\d,]+K?|\d+K?)/gi;
+  
+  const parts = name.split(mixedPattern);
+  const matches = name.match(mixedPattern) || [];
+  
+  let result: React.ReactNode[] = [];
+  let matchIndex = 0;
+  
+  parts.forEach((part, index) => {
+    if (part) {
+      result.push(<span key={`text-${index}`}>{part}</span>);
+    }
+    if (matchIndex < matches.length && index < parts.length - 1) {
+      result.push(
+        <span key={`match-${matchIndex}`} dir="ltr" className="bidi-plaintext inline-block">
+          {matches[matchIndex]}
+        </span>
+      );
+      matchIndex++;
+    }
+  });
+  
+  return result.length > 0 ? result : name;
+};
 
 const TopServicesWidget = ({ services, maxRevenue }: TopServicesWidgetProps) => {
   const max = maxRevenue || Math.max(...services.map(s => s.revenue), 1);
@@ -44,8 +71,8 @@ const TopServicesWidget = ({ services, maxRevenue }: TopServicesWidgetProps) => 
         </CardTitle>
         <Link to="/admin/services">
           <Button variant="ghost" size="sm" className="gap-1 text-[9px] sm:text-[10px] h-6 sm:h-7 flex flex-row-reverse">
-            عرض الكل
-            <Eye className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+            <span>عرض الكل</span>
+            <ChevronLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5 scale-x-[-1]" />
           </Button>
         </Link>
       </CardHeader>
@@ -68,10 +95,11 @@ const TopServicesWidget = ({ services, maxRevenue }: TopServicesWidgetProps) => 
                 transition={{ delay: index * 0.08 }}
                 className="group"
               >
-                <div className="flex flex-row-reverse items-center gap-1.5 sm:gap-2 mb-1">
+                <div className="flex flex-row-reverse items-center justify-between gap-2 sm:gap-3 min-w-0 mb-1">
+                  {/* Rank Badge */}
                   <motion.span 
                     className={cn(
-                      "w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 rounded-md flex items-center justify-center text-[9px] sm:text-[10px] font-bold shadow-sm",
+                      "w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 rounded-md flex items-center justify-center text-[9px] sm:text-[10px] font-bold shadow-sm shrink-0",
                       index < 3 
                         ? `bg-gradient-to-br ${getRankStyle(index)} text-primary-foreground`
                         : "bg-secondary text-muted-foreground"
@@ -81,48 +109,54 @@ const TopServicesWidget = ({ services, maxRevenue }: TopServicesWidgetProps) => 
                     {index + 1}
                   </motion.span>
                   
-                  <div className="flex-1 min-w-0 text-right">
-                    <div className="flex flex-row-reverse items-center justify-between gap-1">
-                      <p className="font-medium text-[9px] sm:text-[10px] lg:text-xs truncate group-hover:text-primary transition-colors">
-                        {service.name}
+                  {/* Service Name & Orders */}
+                  <div className="flex-1 min-w-0 text-right" dir="rtl">
+                    <div className="flex flex-row-reverse items-center justify-between gap-1 min-w-0">
+                      <p className="font-medium text-[9px] sm:text-[10px] lg:text-xs truncate group-hover:text-primary transition-colors bidi-plaintext" dir="rtl">
+                        {formatServiceName(service.name)}
                       </p>
                       {service.trend && service.trend > 0 && (
                         <span className="flex flex-row-reverse items-center text-[8px] sm:text-[9px] text-success shrink-0">
                           <TrendingUp className="w-2 h-2 sm:w-2.5 sm:h-2.5 me-0.5" />
-                          <span dir="ltr" className="bidi-fix">{service.trend}٪</span>
+                          <span dir="ltr" className="bidi-plaintext">{service.trend}٪</span>
                         </span>
                       )}
                     </div>
-                    <p className="text-[8px] sm:text-[9px] text-muted-foreground">{service.orders} طلب</p>
+                    <p className="text-[8px] sm:text-[9px] text-muted-foreground">
+                      <span dir="ltr" className="bidi-plaintext">{service.orders.toLocaleString("ar-SA")}</span> طلب
+                    </p>
                   </div>
                   
-                  <div className="text-end shrink-0">
+                  {/* Revenue */}
+                  <div className="shrink-0 text-end">
                     <span className="font-bold text-[9px] sm:text-[10px] lg:text-xs text-success" dir="ltr">
                       {service.revenue.toLocaleString("ar-SA")}
                     </span>
-                    <span className="text-[7px] sm:text-[8px] text-muted-foreground me-0.5">ر.س</span>
+                    <span className="text-[7px] sm:text-[8px] text-muted-foreground me-0.5"> ر.س</span>
                   </div>
                 </div>
                 
-                {/* Progress Bar */}
+                {/* Progress Bar - RTL (starts from right) */}
                 <div className="me-6 sm:me-7 lg:me-8">
                   <motion.div
                     className="h-0.5 sm:h-1 rounded-full bg-secondary overflow-hidden"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.08 + 0.15 }}
+                    style={{ direction: 'rtl' }}
                   >
                     <motion.div
                       className={cn(
                         "h-full rounded-full",
-                        index === 0 ? "bg-gradient-to-l from-yellow-500 to-amber-500" :
-                        index === 1 ? "bg-gradient-to-l from-slate-400 to-slate-500" :
-                        index === 2 ? "bg-gradient-to-l from-amber-600 to-orange-600" :
+                        index === 0 ? "bg-gradient-to-r from-yellow-500 to-amber-500" :
+                        index === 1 ? "bg-gradient-to-r from-slate-400 to-slate-500" :
+                        index === 2 ? "bg-gradient-to-r from-amber-600 to-orange-600" :
                         "bg-primary"
                       )}
                       initial={{ width: 0 }}
                       animate={{ width: `${percentage}%` }}
                       transition={{ delay: index * 0.08 + 0.2, duration: 0.6, ease: "easeOut" }}
+                      style={{ marginRight: 0, marginLeft: 'auto' }}
                     />
                   </motion.div>
                 </div>

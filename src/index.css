@@ -9,6 +9,16 @@
   unicode-bidi: plaintext;
 }
 
+.bidi-plaintext {
+  unicode-bidi: plaintext;
+}
+
+/* RTL Progress Bar Fix */
+[dir="rtl"] .progress-rtl,
+.progress-rtl {
+  transform: scaleX(-1);
+}
+
 @layer base {
   :root {
     --background: 210 20% 98%;
