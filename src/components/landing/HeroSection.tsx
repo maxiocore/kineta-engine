@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const useRealStats = () => {
   const [bonusOrders, setBonusOrders] = useState(0);
+  const [bonusUsers, setBonusUsers] = useState(() => Math.floor(Math.random() * (33 - 15 + 1)) + 15);
   
   const query = useQuery({
     queryKey: ["hero-real-stats"],
@@ -41,7 +42,17 @@ const useRealStats = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setBonusOrders(prev => prev + 13);
-    }, 240000); // 4 دقائق
+    }, 240000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // إضافة 15-33 عميل كل ساعة (3600000 مللي ثانية)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const randomUsers = Math.floor(Math.random() * (33 - 15 + 1)) + 15;
+      setBonusUsers(prev => prev + randomUsers);
+    }, 3600000);
 
     return () => clearInterval(interval);
   }, []);
@@ -50,6 +61,7 @@ const useRealStats = () => {
     ...query,
     data: query.data ? {
       ...query.data,
+      totalUsers: query.data.totalUsers + bonusUsers,
       completedOrders: query.data.completedOrders + bonusOrders,
     } : undefined,
   };
