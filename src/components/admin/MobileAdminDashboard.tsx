@@ -142,31 +142,57 @@ const MobileAdminDashboard = ({
           </motion.button>
         </div>
 
-        {/* Custom Tabs - Fixed Layout */}
-        <div className="w-full h-12 p-1.5 bg-secondary/50 rounded-xl flex gap-2">
+        {/* Custom Tabs - Grid Layout */}
+        <div 
+          className="w-full p-1.5 bg-secondary/50 rounded-xl"
+          style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '1fr 1fr', 
+            gap: '8px',
+            minHeight: '48px'
+          }}
+        >
           <button 
             onClick={() => setActiveTab("overview")}
-            className={cn(
-              "flex-1 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2",
-              activeTab === "overview" 
-                ? "bg-primary text-primary-foreground shadow-md" 
-                : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-            )}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 500,
+              padding: '8px 12px',
+              backgroundColor: activeTab === "overview" ? 'hsl(var(--primary))' : 'transparent',
+              color: activeTab === "overview" ? 'hsl(var(--primary-foreground))' : 'hsl(var(--muted-foreground))',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
           >
-            <Sparkles className="w-4 h-4" />
-            نظرة عامة
+            <Sparkles style={{ width: '16px', height: '16px' }} />
+            <span>نظرة عامة</span>
           </button>
           <button 
             onClick={() => setActiveTab("analytics")}
-            className={cn(
-              "flex-1 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2",
-              activeTab === "analytics" 
-                ? "bg-accent text-accent-foreground shadow-md" 
-                : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-            )}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 500,
+              padding: '8px 12px',
+              backgroundColor: activeTab === "analytics" ? 'hsl(var(--accent))' : 'transparent',
+              color: activeTab === "analytics" ? 'hsl(var(--accent-foreground))' : 'hsl(var(--muted-foreground))',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
           >
-            <BarChart3 className="w-4 h-4" />
-            الإحصائيات
+            <BarChart3 style={{ width: '16px', height: '16px' }} />
+            <span>الإحصائيات</span>
           </button>
         </div>
       </div>
