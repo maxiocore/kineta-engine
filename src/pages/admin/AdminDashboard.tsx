@@ -17,6 +17,7 @@ import { ar } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 import DashboardSkeleton from "@/components/admin/DashboardSkeleton";
 import AdvancedDashboardCharts from "@/components/admin/AdvancedDashboardCharts";
 import DashboardHeader from "@/components/admin/dashboard/DashboardHeader";
@@ -26,13 +27,13 @@ import TopServicesCard from "@/components/admin/dashboard/TopServicesCard";
 import ActivityFeedCard from "@/components/admin/dashboard/ActivityFeedCard";
 import RevenueOverviewCard from "@/components/admin/dashboard/RevenueOverviewCard";
 import MobileDashboardHeader from "@/components/admin/MobileDashboardHeader";
-import MobileDashboardStats from "@/components/admin/MobileDashboardStats";
 import MobileRevenueCard from "@/components/admin/MobileRevenueCard";
 import MobileActivityFeed from "@/components/admin/MobileActivityFeed";
 import MobileQuickActions from "@/components/admin/MobileQuickActions";
 import MobileTopServices from "@/components/admin/MobileTopServices";
 import LiveOrdersChart from "@/components/admin/LiveOrdersChart";
 import MobileLiveOrdersChart from "@/components/admin/MobileLiveOrdersChart";
+import AnimatedCounter from "@/components/admin/AnimatedCounter";
 
 interface DashboardStats {
   totalUsers: number;
@@ -428,23 +429,63 @@ const AdminDashboard = () => {
 
   // Mobile-optimized dashboard content
   const mobileDashboardContent = (
-    <div className="space-y-2 sm:space-y-3" dir="rtl">
+    <div className="space-y-3" dir="rtl">
       <MobileDashboardHeader onRefresh={handleRefresh} isRefreshing={isRefreshing} />
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full grid grid-cols-2 h-8 sm:h-9 p-0.5 bg-secondary/50">
-          <TabsTrigger value="overview" className="text-[10px] sm:text-xs gap-0.5 sm:gap-1 data-[state=active]:bg-background">
-            <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+        <TabsList className="w-full grid grid-cols-2 h-10 p-0.5 bg-secondary/50 rounded-lg">
+          <TabsTrigger value="overview" className="text-xs gap-1.5 data-[state=active]:bg-background rounded-md">
+            <Sparkles className="w-3.5 h-3.5" />
             نظرة عامة
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="text-[10px] sm:text-xs gap-0.5 sm:gap-1 data-[state=active]:bg-background">
-            <BarChart3 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+          <TabsTrigger value="analytics" className="text-xs gap-1.5 data-[state=active]:bg-background rounded-md">
+            <BarChart3 className="w-3.5 h-3.5" />
             الإحصائيات
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-2 sm:space-y-3 mt-2 sm:mt-3">
-          <MobileDashboardStats stats={statsData} />
+        <TabsContent value="overview" className="space-y-3 mt-3">
+          {/* Stats Grid - Same style as Analytics */}
+          <div className="grid grid-cols-2 gap-2">
+            {statsData.map((stat, index) => {
+              const Icon = stat.icon;
+              return (
+                <motion.div
+                  key={stat.title}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={stat.onClick}
+                  className="bg-card rounded-xl border border-border/50 p-3 cursor-pointer hover:border-primary/30 active:bg-secondary/50 transition-all relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 w-12 h-12 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                  <div className="relative flex items-center gap-2">
+                    <div className={cn("p-2 rounded-lg shadow-sm", stat.iconBg)}>
+                      <Icon className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] text-muted-foreground truncate">{stat.title}</p>
+                      <div className="flex items-center gap-1">
+                        <span className="text-base font-bold">
+                          <AnimatedCounter value={stat.value} suffix={stat.suffix} duration={1} />
+                        </span>
+                        {stat.trend !== undefined && stat.trend !== 0 && (
+                          <span className={cn(
+                            "text-[9px] font-medium",
+                            stat.trend > 0 ? "text-success" : "text-destructive"
+                          )}>
+                            {stat.trend > 0 ? "↑" : "↓"}{Math.abs(stat.trend)}%
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
           <MobileLiveOrdersChart />
           <MobileRevenueCard
             totalRevenue={stats.totalRevenue}
@@ -457,7 +498,7 @@ const AdminDashboard = () => {
           <MobileActivityFeed activities={activities} />
         </TabsContent>
 
-        <TabsContent value="analytics" className="mt-2 sm:mt-3">
+        <TabsContent value="analytics" className="mt-3">
           <AdvancedDashboardCharts
             orders={chartData.orders}
             deposits={chartData.deposits}
