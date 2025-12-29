@@ -242,7 +242,7 @@ const TestimonialsSection = () => {
 
               {/* Dots */}
               <div className="flex gap-2">
-                {testimonials.map((_, index) => (
+              {testimonials.map((_, index) => (
                   <motion.button
                     key={index}
                     onClick={() => {
@@ -255,11 +255,14 @@ const TestimonialsSection = () => {
                   >
                     <motion.div
                       animate={{
-                        width: index === activeIndex ? 24 : 8,
-                        backgroundColor: index === activeIndex ? "hsl(var(--primary))" : "hsl(var(--muted-foreground) / 0.3)"
+                        width: index === activeIndex ? 24 : 8
                       }}
                       transition={{ duration: 0.3 }}
-                      className="h-2 rounded-full"
+                      className={`h-2 rounded-full transition-colors duration-300 ${
+                        index === activeIndex 
+                          ? "bg-primary" 
+                          : "bg-muted-foreground/30"
+                      }`}
                     />
                   </motion.button>
                 ))}
