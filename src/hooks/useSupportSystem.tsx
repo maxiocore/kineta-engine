@@ -181,20 +181,25 @@ export const useSupportSystem = (isAdmin = false) => {
       
       if (error) throw error;
       
-      // إرسال إشعار بالبريد الإلكتروني
-      try {
-        await supabase.functions.invoke('send-email', {
-          body: {
-            type: 'new_ticket',
-            ticketNumber: newTicket.ticket_number,
-            subject: data.subject,
-            priority: data.priority,
-            userEmail: user.email,
-            userName: user.user_metadata?.full_name || 'مستخدم'
-          }
-        });
-      } catch (emailError) {
-        console.error('Error sending email notification:', emailError);
+      // إرسال إشعار بالبريد الإلكتروني للأدمن
+      if (user.email) {
+        try {
+          await supabase.functions.invoke('send-email', {
+            body: {
+              to: user.email,
+              type: 'new_ticket',
+              data: {
+                ticketNumber: newTicket.ticket_number,
+                subject: data.subject,
+                priority: data.priority,
+                userEmail: user.email,
+                userName: user.user_metadata?.full_name || 'مستخدم'
+              }
+            }
+          });
+        } catch (emailError) {
+          console.error('Error sending email notification:', emailError);
+        }
       }
       
       toast({ title: 'تم', description: 'تم إنشاء التذكرة بنجاح وسيتم الرد عليك قريباً' });
@@ -237,19 +242,24 @@ export const useSupportSystem = (isAdmin = false) => {
       // إرسال إشعار بالبريد
       const ticket = tickets.find(t => t.id === ticketId);
       if (ticket) {
-        try {
-          await supabase.functions.invoke('send-email', {
-            body: {
-              type: 'ticket_reply',
-              ticketNumber: ticket.ticket_number,
-              subject: ticket.subject,
-              message: message.trim(),
-              isAdmin,
-              recipientEmail: isAdmin ? ticket.user_email : undefined
-            }
-          });
-        } catch (emailError) {
-          console.error('Error sending email notification:', emailError);
+        const recipientEmail = isAdmin ? ticket.user_email : undefined;
+        if (recipientEmail) {
+          try {
+            await supabase.functions.invoke('send-email', {
+              body: {
+                to: recipientEmail,
+                type: 'ticket_reply',
+                data: {
+                  ticketNumber: ticket.ticket_number,
+                  subject: ticket.subject,
+                  message: message.trim(),
+                  isAdmin
+                }
+              }
+            });
+          } catch (emailError) {
+            console.error('Error sending email notification:', emailError);
+          }
         }
       }
       
@@ -281,16 +291,18 @@ export const useSupportSystem = (isAdmin = false) => {
       }
       
       // إرسال إيميل للعميل بتحديث حالة التذكرة
-      if (ticket && isAdmin) {
+      if (ticket && isAdmin && ticket.user_email) {
         try {
           await supabase.functions.invoke('send-email', {
             body: {
+              to: ticket.user_email,
               type: 'ticket_status_changed',
-              ticketNumber: ticket.ticket_number,
-              subject: ticket.subject,
-              oldStatus: oldStatus,
-              newStatus: status,
-              recipientEmail: ticket.user_email
+              data: {
+                ticketNumber: ticket.ticket_number,
+                subject: ticket.subject,
+                oldStatus: oldStatus,
+                newStatus: status
+              }
             }
           });
         } catch (emailError) {
