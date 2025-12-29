@@ -162,11 +162,20 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
           </Link>
         </div>
 
-        {/* Actions Row */}
+        {/* Actions Row with Logout */}
         <div className="p-3 border-b border-border/30 flex items-center justify-between">
           <div className="flex items-center gap-1">
             <NotificationBell />
             <ThemeToggle />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={handleSignOut}
+              title="تسجيل الخروج"
+            >
+              <LogOut className="w-5 h-5" />
+            </Button>
           </div>
           <Link to="/" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
             ← العودة
@@ -279,10 +288,19 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
             </div>
           </div>
           
-          {/* Actions */}
+          {/* Actions with Logout */}
           <div className="flex items-center gap-0.5">
             <NotificationBell />
             <ThemeToggle />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-10 h-10 text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={handleSignOut}
+              title="تسجيل الخروج"
+            >
+              <LogOut className="w-5 h-5" />
+            </Button>
           </div>
         </div>
       </div>
