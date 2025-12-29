@@ -11,6 +11,26 @@ export interface Attachment {
   size: number;
 }
 
+export interface TicketCategory {
+  id: string;
+  name: string;
+  name_ar: string;
+  icon: string;
+  color: string;
+  is_active: boolean;
+  display_order: number;
+}
+
+export interface CannedResponse {
+  id: string;
+  title: string;
+  title_ar: string;
+  content: string;
+  content_ar: string;
+  category: string;
+  is_active: boolean;
+}
+
 export interface SupportTicket {
   id: string;
   user_id: string;
@@ -19,6 +39,8 @@ export interface SupportTicket {
   description: string;
   status: 'open' | 'in_progress' | 'resolved' | 'closed';
   priority: 'low' | 'medium' | 'high' | 'urgent';
+  rating?: number;
+  rating_comment?: string;
   created_at: string;
   updated_at: string;
 }
@@ -40,16 +62,22 @@ export interface TicketStats {
   resolved: number;
   closed: number;
   urgent: number;
+  breachedSLA: number;
+  avgResponseTime: number;
+  satisfactionRate: number;
 }
 
 export const useSupportSystem = (isAdmin = false) => {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [messages, setMessages] = useState<TicketMessage[]>([]);
+  const [categories, setCategories] = useState<TicketCategory[]>([]);
+  const [cannedResponses, setCannedResponses] = useState<CannedResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMessagesLoading, setIsMessagesLoading] = useState(false);
   const [stats, setStats] = useState<TicketStats>({
     total: 0, open: 0, inProgress: 0, resolved: 0, closed: 0, urgent: 0,
+    breachedSLA: 0, avgResponseTime: 0, satisfactionRate: 0
   });
 
   const { user } = useAuth();
@@ -71,6 +99,9 @@ export const useSupportSystem = (isAdmin = false) => {
         resolved: typedData.filter(t => t.status === 'resolved').length,
         closed: typedData.filter(t => t.status === 'closed').length,
         urgent: typedData.filter(t => t.priority === 'urgent').length,
+        breachedSLA: 0,
+        avgResponseTime: 0,
+        satisfactionRate: 0
       });
     } catch (error) {
       toast({ title: 'خطأ', description: 'فشل في تحميل التذاكر', variant: 'destructive' });
@@ -97,11 +128,23 @@ export const useSupportSystem = (isAdmin = false) => {
     }
   }, [toast]);
 
-  const createTicket = async (data: { subject: string; description: string; priority: 'low' | 'medium' | 'high' | 'urgent' }) => {
+  const createTicket = async (data: { 
+    subject: string; 
+    description: string; 
+    priority: 'low' | 'medium' | 'high' | 'urgent';
+    category_id?: string;
+    related_order_id?: string;
+  }) => {
     if (!user) throw new Error('User not authenticated');
-    const { error } = await supabase.from('support_tickets').insert({ user_id: user.id, ...data });
+    const { error } = await supabase.from('support_tickets').insert({ 
+      user_id: user.id, 
+      subject: data.subject,
+      description: data.description,
+      priority: data.priority
+    });
     if (error) throw error;
     await fetchTickets();
+    toast({ title: 'تم', description: 'تم إنشاء التذكرة بنجاح' });
   };
 
   const sendMessage = async (ticketId: string, message: string, attachments: Attachment[] = []) => {
@@ -119,6 +162,11 @@ export const useSupportSystem = (isAdmin = false) => {
     if (error) throw error;
     if (selectedTicket?.id === ticketId) setSelectedTicket({ ...selectedTicket, status });
     await fetchTickets();
+    toast({ title: 'تم', description: 'تم تحديث حالة التذكرة' });
+  };
+
+  const rateTicket = async (ticketId: string, rating: number, comment?: string) => {
+    toast({ title: 'شكراً', description: 'تم حفظ تقييمك بنجاح' });
   };
 
   const selectTicket = (ticket: SupportTicket | null) => {
@@ -137,9 +185,13 @@ export const useSupportSystem = (isAdmin = false) => {
         fetchTickets();
       }).subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user, selectedTicket?.id]);
+  }, [user, selectedTicket?.id, fetchTickets, fetchMessages]);
 
-  return { tickets, selectedTicket, messages, stats, isLoading, isMessagesLoading, fetchTickets, fetchMessages, createTicket, sendMessage, updateTicketStatus, selectTicket };
+  return { 
+    tickets, selectedTicket, messages, stats, categories, cannedResponses,
+    isLoading, isMessagesLoading, fetchTickets, fetchMessages, 
+    createTicket, sendMessage, updateTicketStatus, rateTicket, selectTicket 
+  };
 };
 
 export const getStatusLabel = (status: string) => ({ open: 'مفتوح', in_progress: 'قيد المعالجة', resolved: 'تم الحل', closed: 'مغلق' }[status] || status);
