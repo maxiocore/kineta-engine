@@ -150,18 +150,18 @@ const Footer = () => {
           </div>
         </motion.div>
 
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 xs:gap-8 sm:gap-10 md:gap-12 mb-10 xs:mb-12 sm:mb-16 md:mb-20">
+        {/* Main Footer Content - Mobile Optimized */}
+        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 xs:gap-6 sm:gap-10 md:gap-12 mb-10 xs:mb-12 sm:mb-16 md:mb-20">
           {/* Brand Column */}
           <motion.div 
-            className="col-span-2 sm:col-span-2 md:col-span-3 lg:col-span-2"
+            className="col-span-1 xs:col-span-2 md:col-span-3 lg:col-span-2 text-center xs:text-right"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.2 }}
           >
-            <Link to="/" className="flex items-center gap-3 mb-4 xs:mb-6 sm:mb-8 group">
+            <Link to="/" className="flex items-center gap-3 mb-4 xs:mb-6 sm:mb-8 group justify-center xs:justify-start">
               <motion.span 
-                className="text-xl xs:text-2xl md:text-3xl font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
+                className="text-2xl xs:text-2xl md:text-3xl font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
                 whileHover={{ scale: 1.03 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
@@ -169,48 +169,63 @@ const Footer = () => {
                 MaxioCore
               </motion.span>
             </Link>
-            <p className="text-muted-foreground mb-6 xs:mb-8 sm:mb-10 max-w-sm leading-relaxed text-sm xs:text-base sm:text-lg">
+            <p className="text-muted-foreground mb-6 xs:mb-8 sm:mb-10 max-w-sm mx-auto xs:mx-0 leading-relaxed text-sm xs:text-base sm:text-lg">
               شريكك الموثوق في رحلة التحول الرقمي. نقدم حلول متكاملة تساعدك على النمو والتميز.
             </p>
+            
+            {/* Contact Info - Mobile Card Style */}
             <div className="space-y-3 xs:space-y-4 sm:space-y-5">
-              {[
-                { icon: Mail, text: "info@maxiocore.com", href: "mailto:info@maxiocore.com" },
-                { icon: Phone, text: "+966 55 123 4567", href: "tel:+966551234567", dir: "ltr" },
-                { icon: MapPin, text: "الرياض، المملكة العربية السعودية" },
-              ].map((item) => (
-                <motion.a 
-                  key={item.text}
-                  href={item.href}
-                  className="flex items-center gap-2.5 xs:gap-3 sm:gap-4 text-muted-foreground hover:text-primary transition-colors group"
-                  whileHover={{ x: -5 }}
-                >
-                  <div className="w-9 h-9 xs:w-10 xs:h-10 sm:w-12 sm:h-12 rounded-lg xs:rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                    <item.icon className="w-4 h-4 xs:w-4.5 xs:h-4.5 sm:w-5 sm:h-5 text-primary" />
-                  </div>
-                  <span dir={item.dir} className="text-xs xs:text-sm sm:text-base">{item.text}</span>
-                </motion.a>
-              ))}
+              <motion.a 
+                href="mailto:info@maxiocore.com"
+                className="flex items-center gap-3 sm:gap-4 text-muted-foreground hover:text-primary transition-colors group justify-center xs:justify-start bg-secondary/30 xs:bg-transparent p-3 xs:p-0 rounded-xl xs:rounded-none"
+                whileHover={{ x: -5 }}
+              >
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors shrink-0">
+                  <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                </div>
+                <span className="text-sm sm:text-base font-medium">info@maxiocore.com</span>
+              </motion.a>
+              
+              <motion.a 
+                href="tel:+966551234567"
+                className="flex items-center gap-3 sm:gap-4 text-muted-foreground hover:text-primary transition-colors group justify-center xs:justify-start bg-secondary/30 xs:bg-transparent p-3 xs:p-0 rounded-xl xs:rounded-none"
+                whileHover={{ x: -5 }}
+              >
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors shrink-0">
+                  <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                </div>
+                <span dir="ltr" className="text-sm sm:text-base font-medium">+966 55 123 4567</span>
+              </motion.a>
+              
+              <motion.div 
+                className="flex items-center gap-3 sm:gap-4 text-muted-foreground group justify-center xs:justify-start bg-secondary/30 xs:bg-transparent p-3 xs:p-0 rounded-xl xs:rounded-none"
+              >
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                </div>
+                <span className="text-sm sm:text-base font-medium">المملكة العربية السعودية</span>
+              </motion.div>
             </div>
           </motion.div>
 
-          {/* Links Columns */}
+          {/* Links Columns - Mobile Optimized */}
           {Object.entries(footerLinks).map(([category, links], categoryIndex) => (
             <motion.div 
               key={category}
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.3 + categoryIndex * 0.1 }}
-              className="col-span-1"
+              className="col-span-1 text-center xs:text-right"
             >
-              <h4 className="font-bold text-base xs:text-lg sm:text-xl mb-4 xs:mb-5 sm:mb-6 md:mb-8">{category}</h4>
-              <ul className="space-y-2.5 xs:space-y-3 sm:space-y-4 md:space-y-5">
+              <h4 className="font-bold text-base xs:text-lg sm:text-xl mb-4 xs:mb-5 sm:mb-6 md:mb-8 text-primary/90">{category}</h4>
+              <ul className="space-y-3 xs:space-y-3 sm:space-y-4 md:space-y-5">
                 {links.map((link) => (
                   <li key={link.label}>
                     <Link
                       to={link.href}
-                      className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1.5 xs:gap-2 group text-xs xs:text-sm sm:text-base"
+                      className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-2 group text-sm sm:text-base"
                     >
-                      <ArrowLeft className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                      <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all hidden xs:block" />
                       {link.label}
                     </Link>
                   </li>
