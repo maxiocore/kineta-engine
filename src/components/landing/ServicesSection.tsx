@@ -106,7 +106,7 @@ const ServicesSection = () => {
       color: "text-violet-500" 
     },
     { 
-      value: stats?.satisfactionRate || 98, 
+      value: 100, 
       suffix: "%", 
       label: "نسبة الرضا", 
       icon: Star,
