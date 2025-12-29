@@ -13,6 +13,82 @@ export interface Attachment {
 
 export type TicketCategory = 'general' | 'orders' | 'issues' | 'financing' | 'payments';
 
+// أقسام التذاكر
+export const ticketCategories: { value: TicketCategory; label: string; icon: string; color: string }[] = [
+  { value: 'general', label: 'عام', icon: 'MessageSquare', color: 'bg-slate-500/15 text-slate-500 border-slate-500/30' },
+  { value: 'orders', label: 'الطلبات', icon: 'ShoppingCart', color: 'bg-blue-500/15 text-blue-500 border-blue-500/30' },
+  { value: 'issues', label: 'المشاكل', icon: 'AlertTriangle', color: 'bg-red-500/15 text-red-500 border-red-500/30' },
+  { value: 'financing', label: 'التمويل', icon: 'Banknote', color: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30' },
+  { value: 'payments', label: 'المدفوعات', icon: 'CreditCard', color: 'bg-purple-500/15 text-purple-500 border-purple-500/30' },
+];
+
+export const getCategoryLabel = (category: string) => {
+  const cat = ticketCategories.find(c => c.value === category);
+  return cat?.label || 'عام';
+};
+
+export const getCategoryColor = (category: string) => {
+  const cat = ticketCategories.find(c => c.value === category);
+  return cat?.color || 'bg-muted text-muted-foreground';
+};
+
+// دوال مساعدة للعرض
+export const getStatusLabel = (status: string) => {
+  const labels: Record<string, string> = {
+    open: 'مفتوحة',
+    in_progress: 'قيد المعالجة',
+    resolved: 'تم الحل',
+    closed: 'مغلقة'
+  };
+  return labels[status] || status;
+};
+
+export const getStatusColor = (status: string) => {
+  const colors: Record<string, string> = {
+    open: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30',
+    in_progress: 'bg-amber-500/15 text-amber-500 border-amber-500/30',
+    resolved: 'bg-sky-500/15 text-sky-500 border-sky-500/30',
+    closed: 'bg-slate-500/15 text-slate-400 border-slate-500/30'
+  };
+  return colors[status] || 'bg-muted text-muted-foreground';
+};
+
+export const getPriorityLabel = (priority: string) => {
+  const labels: Record<string, string> = {
+    low: 'منخفضة',
+    medium: 'متوسطة',
+    high: 'عالية',
+    urgent: 'عاجلة'
+  };
+  return labels[priority] || priority;
+};
+
+export const getPriorityColor = (priority: string) => {
+  const colors: Record<string, string> = {
+    low: 'bg-slate-500/15 text-slate-400 border-slate-500/30',
+    medium: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+    high: 'bg-orange-500/15 text-orange-400 border-orange-500/30',
+    urgent: 'bg-red-500/15 text-red-400 border-red-500/30'
+  };
+  return colors[priority] || 'bg-muted text-muted-foreground';
+};
+
+export const formatRelativeTime = (date: string) => {
+  const d = new Date(date);
+  const now = new Date();
+  const diff = now.getTime() - d.getTime();
+  const minutes = Math.floor(diff / (1000 * 60));
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  
+  if (minutes < 1) return 'الآن';
+  if (minutes < 60) return `منذ ${minutes} د`;
+  if (hours < 24) return `منذ ${hours} س`;
+  if (days === 1) return 'أمس';
+  if (days < 7) return `منذ ${days} أيام`;
+  return d.toLocaleDateString('ar-SA');
+};
+
 export interface SupportTicket {
   id: string;
   user_id: string;
@@ -500,80 +576,4 @@ export const useSupportSystem = (isAdmin = false) => {
     selectTicket,
     uploadAttachment
   };
-};
-
-// أقسام التذاكر
-export const ticketCategories: { value: TicketCategory; label: string; icon: string; color: string }[] = [
-  { value: 'general', label: 'عام', icon: 'MessageSquare', color: 'bg-slate-500/15 text-slate-500 border-slate-500/30' },
-  { value: 'orders', label: 'الطلبات', icon: 'ShoppingCart', color: 'bg-blue-500/15 text-blue-500 border-blue-500/30' },
-  { value: 'issues', label: 'المشاكل', icon: 'AlertTriangle', color: 'bg-red-500/15 text-red-500 border-red-500/30' },
-  { value: 'financing', label: 'التمويل', icon: 'Banknote', color: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30' },
-  { value: 'payments', label: 'المدفوعات', icon: 'CreditCard', color: 'bg-purple-500/15 text-purple-500 border-purple-500/30' },
-];
-
-export const getCategoryLabel = (category: string) => {
-  const cat = ticketCategories.find(c => c.value === category);
-  return cat?.label || 'عام';
-};
-
-export const getCategoryColor = (category: string) => {
-  const cat = ticketCategories.find(c => c.value === category);
-  return cat?.color || 'bg-muted text-muted-foreground';
-};
-
-// دوال مساعدة للعرض
-export const getStatusLabel = (status: string) => {
-  const labels: Record<string, string> = {
-    open: 'مفتوحة',
-    in_progress: 'قيد المعالجة',
-    resolved: 'تم الحل',
-    closed: 'مغلقة'
-  };
-  return labels[status] || status;
-};
-
-export const getStatusColor = (status: string) => {
-  const colors: Record<string, string> = {
-    open: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30',
-    in_progress: 'bg-amber-500/15 text-amber-500 border-amber-500/30',
-    resolved: 'bg-sky-500/15 text-sky-500 border-sky-500/30',
-    closed: 'bg-slate-500/15 text-slate-400 border-slate-500/30'
-  };
-  return colors[status] || 'bg-muted text-muted-foreground';
-};
-
-export const getPriorityLabel = (priority: string) => {
-  const labels: Record<string, string> = {
-    low: 'منخفضة',
-    medium: 'متوسطة',
-    high: 'عالية',
-    urgent: 'عاجلة'
-  };
-  return labels[priority] || priority;
-};
-
-export const getPriorityColor = (priority: string) => {
-  const colors: Record<string, string> = {
-    low: 'bg-slate-500/15 text-slate-400 border-slate-500/30',
-    medium: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-    high: 'bg-orange-500/15 text-orange-400 border-orange-500/30',
-    urgent: 'bg-red-500/15 text-red-400 border-red-500/30'
-  };
-  return colors[priority] || 'bg-muted text-muted-foreground';
-};
-
-export const formatRelativeTime = (date: string) => {
-  const d = new Date(date);
-  const now = new Date();
-  const diff = now.getTime() - d.getTime();
-  const minutes = Math.floor(diff / (1000 * 60));
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  
-  if (minutes < 1) return 'الآن';
-  if (minutes < 60) return `منذ ${minutes} د`;
-  if (hours < 24) return `منذ ${hours} س`;
-  if (days === 1) return 'أمس';
-  if (days < 7) return `منذ ${days} أيام`;
-  return d.toLocaleDateString('ar-SA');
 };
