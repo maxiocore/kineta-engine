@@ -140,14 +140,58 @@ const mainServices = [
   },
 ];
 
-// Global companies that trust us
+// Global companies that trust us - with real logos
 const trustedCompanies = [
-  { name: "Google", logo: "G" },
-  { name: "Meta", logo: "M" },
-  { name: "Amazon", logo: "A" },
-  { name: "Microsoft", logo: "MS" },
-  { name: "Apple", logo: "🍎" },
-  { name: "Netflix", logo: "N" },
+  { 
+    name: "Google", 
+    logo: "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png",
+    url: "https://www.google.com"
+  },
+  { 
+    name: "Meta", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Meta_Platforms_Inc._logo.svg/800px-Meta_Platforms_Inc._logo.svg.png",
+    url: "https://about.meta.com"
+  },
+  { 
+    name: "Amazon", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/1200px-Amazon_logo.svg.png",
+    url: "https://www.amazon.com"
+  },
+  { 
+    name: "Microsoft", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Microsoft_logo_%282012%29.svg/1200px-Microsoft_logo_%282012%29.svg.png",
+    url: "https://www.microsoft.com"
+  },
+  { 
+    name: "Apple", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/800px-Apple_logo_black.svg.png",
+    url: "https://www.apple.com"
+  },
+  { 
+    name: "Netflix", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Netflix_2015_logo.svg/1200px-Netflix_2015_logo.svg.png",
+    url: "https://www.netflix.com"
+  },
+  { 
+    name: "Spotify", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Spotify_logo_without_text.svg/800px-Spotify_logo_without_text.svg.png",
+    url: "https://www.spotify.com"
+  },
+  { 
+    name: "Adobe", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Adobe_Corporate_Logo.svg/1200px-Adobe_Corporate_Logo.svg.png",
+    url: "https://www.adobe.com"
+  },
+  { 
+    name: "Shopify", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Shopify_logo_2018.svg/1200px-Shopify_logo_2018.svg.png",
+    url: "https://www.shopify.com"
+  },
+  { 
+    name: "Slack", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Slack_icon_2019.svg/800px-Slack_icon_2019.svg.png",
+    url: "https://slack.com"
+  },
 ];
 
 // Animated Counter Component
@@ -544,18 +588,26 @@ const TrustedCompaniesSection = () => {
           </p>
         </motion.div>
 
-        <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+        <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
           {trustedCompanies.map((company, index) => (
-            <motion.div
+            <motion.a
               key={company.name}
+              href={company.url}
+              target="_blank"
+              rel="noopener noreferrer"
               initial={{ opacity: 0, scale: 0.5 }}
               animate={isInView ? { opacity: 1, scale: 1 } : {}}
               transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.1 }}
-              className="flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-card border border-border/50 shadow-lg cursor-pointer hover:border-primary/50 transition-all"
+              whileHover={{ scale: 1.15, y: -5 }}
+              className="flex items-center justify-center w-24 h-16 sm:w-32 sm:h-20 rounded-2xl bg-card border border-border/50 shadow-lg cursor-pointer hover:border-primary/50 hover:shadow-xl transition-all p-3 sm:p-4"
             >
-              <span className="text-2xl sm:text-3xl font-bold text-muted-foreground">{company.logo}</span>
-            </motion.div>
+              <img 
+                src={company.logo} 
+                alt={company.name}
+                className="max-w-full max-h-full object-contain grayscale hover:grayscale-0 transition-all duration-300"
+                loading="lazy"
+              />
+            </motion.a>
           ))}
         </div>
       </div>
