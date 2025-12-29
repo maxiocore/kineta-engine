@@ -4,27 +4,19 @@ import {
   Plus, 
   MessageCircle, 
   Clock, 
-  CheckCircle, 
-  Send, 
-  AlertCircle,
+  CheckCircle,
   Sparkles,
-  ChevronRight,
-  User,
+  ChevronLeft,
   Loader2,
-  MessageSquare,
-  Zap,
+  Inbox,
   Shield,
-  Hash,
-  ArrowLeft,
-  Ticket,
-  XCircle
+  ArrowLeft
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -33,14 +25,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { notifyNewTicket, notifyTicketReply } from "@/lib/adminNotifyService";
+import { notifyNewTicket } from "@/lib/adminNotifyService";
 import { z } from "zod";
-import { FileAttachment, AttachmentDisplay } from "@/components/support/FileAttachment";
+import { 
+  useSupportSystem, 
+  getStatusLabel, 
+  getStatusColor, 
+  getPriorityLabel, 
+  getPriorityColor,
+  formatRelativeTime,
+  SupportTicket
+} from "@/hooks/useSupportSystem";
+import { ChatInterface } from "@/components/support/ChatInterface";
+import { cn } from "@/lib/utils";
 
 const ticketSchema = z.object({
   subject: z.string().trim().min(5, "الموضوع يجب أن يكون 5 أحرف على الأقل").max(200, "الموضوع يجب أن يكون أقل من 200 حرف"),
@@ -48,58 +49,16 @@ const ticketSchema = z.object({
   priority: z.enum(["low", "medium", "high", "urgent"]),
 });
 
-const messageSchema = z.object({
-  message: z.string().trim().min(1, "الرسالة مطلوبة").max(1000, "الرسالة يجب أن تكون أقل من 1000 حرف"),
-});
-
-interface Ticket {
-  id: string;
-  ticket_number: string | null;
-  subject: string;
-  description: string;
-  status: "open" | "in_progress" | "resolved" | "closed";
-  priority: "low" | "medium" | "high" | "urgent";
-  created_at: string;
-  updated_at: string;
-}
-
-interface Attachment {
-  name: string;
-  url: string;
-  type: string;
-  size: number;
-}
-
-interface TicketMessage {
-  id: string;
-  ticket_id: string;
-  sender_id: string;
-  message: string;
-  is_admin: boolean;
-  created_at: string;
-  attachments?: Attachment[];
-}
-
 type ViewMode = "list" | "new" | "chat";
 
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case "open": return "مفتوح";
-    case "in_progress": return "قيد المعالجة";
-    case "resolved": return "تم الحل";
-    case "closed": return "مغلق";
-    default: return status;
-  }
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.08 } }
 };
 
-const getStatusStyles = (status: string) => {
-  switch (status) {
-    case "open": return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
-    case "in_progress": return "bg-amber-500/10 text-amber-500 border-amber-500/20";
-    case "resolved": return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-    case "closed": return "bg-muted text-muted-foreground border-muted";
-    default: return "bg-muted text-muted-foreground border-muted";
-  }
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
 };
 
 const getStatusIcon = (status: string) => {
@@ -112,61 +71,10 @@ const getStatusIcon = (status: string) => {
   }
 };
 
-const getPriorityLabel = (priority: string) => {
-  switch (priority) {
-    case "low": return "منخفضة";
-    case "medium": return "متوسطة";
-    case "high": return "عالية";
-    case "urgent": return "عاجلة";
-    default: return priority;
-  }
-};
-
-const getPriorityStyles = (priority: string) => {
-  switch (priority) {
-    case "low": return "bg-slate-500/10 text-slate-400 border-slate-500/20";
-    case "medium": return "bg-blue-500/10 text-blue-400 border-blue-500/20";
-    case "high": return "bg-orange-500/10 text-orange-400 border-orange-500/20";
-    case "urgent": return "bg-red-500/10 text-red-400 border-red-500/20 animate-pulse";
-    default: return "bg-muted text-muted-foreground";
-  }
-};
-
-const formatDate = (date: string) => {
-  const d = new Date(date);
-  const now = new Date();
-  const diff = now.getTime() - d.getTime();
-  const minutes = Math.floor(diff / (1000 * 60));
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  
-  if (minutes < 1) return "الآن";
-  if (minutes < 60) return `منذ ${minutes} دقيقة`;
-  if (hours < 24) return `منذ ${hours} ساعة`;
-  if (days === 1) return "أمس";
-  if (days < 7) return `منذ ${days} أيام`;
-  return d.toLocaleDateString("ar-SA");
-};
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.08 } }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
-
 const ClientSupport = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [messages, setMessages] = useState<TicketMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{ subject?: string; description?: string; message?: string }>({});
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [errors, setErrors] = useState<{ subject?: string; description?: string }>({});
   const isMobile = useIsMobile();
   
   const [newTicket, setNewTicket] = useState({
@@ -174,65 +82,22 @@ const ClientSupport = () => {
     description: "",
     priority: "medium" as "low" | "medium" | "high" | "urgent",
   });
-  const [newMessage, setNewMessage] = useState("");
-  const [messageAttachments, setMessageAttachments] = useState<Attachment[]>([]);
   
   const { user } = useAuth();
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (user) {
-      fetchTickets();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const fetchTickets = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("support_tickets")
-        .select("*")
-        .order("created_at", { ascending: false });
-      
-      if (error) throw error;
-      setTickets(data || []);
-    } catch (error) {
-      toast({
-        title: "خطأ",
-        description: "فشل في تحميل التذاكر",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchMessages = async (ticketId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("ticket_messages")
-        .select("*")
-        .eq("ticket_id", ticketId)
-        .order("created_at", { ascending: true });
-      
-      if (error) throw error;
-      const typedData = (data || []).map(msg => ({
-        ...msg,
-        attachments: Array.isArray(msg.attachments) ? (msg.attachments as unknown as Attachment[]) : [],
-        is_admin: msg.is_admin || false
-      }));
-      setMessages(typedData);
-    } catch (error) {
-      toast({
-        title: "خطأ",
-        description: "فشل في تحميل الرسائل",
-        variant: "destructive",
-      });
-    }
-  };
+  const {
+    tickets,
+    selectedTicket,
+    messages,
+    stats,
+    isLoading,
+    isMessagesLoading,
+    createTicket,
+    sendMessage,
+    selectTicket,
+    rateTicket
+  } = useSupportSystem(false); // false = not admin
 
   const handleCreateTicket = async () => {
     const result = ticketSchema.safeParse(newTicket);
@@ -251,18 +116,10 @@ const ClientSupport = () => {
     
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from("support_tickets").insert({
-        user_id: user.id,
+      await createTicket({
         subject: newTicket.subject.trim(),
         description: newTicket.description.trim(),
         priority: newTicket.priority,
-      });
-      
-      if (error) throw error;
-      
-      toast({
-        title: "تم إنشاء التذكرة",
-        description: "سيتم الرد عليك في أقرب وقت",
       });
       
       // Notify admins about new ticket
@@ -276,7 +133,6 @@ const ClientSupport = () => {
       
       setNewTicket({ subject: "", description: "", priority: "medium" });
       setViewMode("list");
-      fetchTickets();
     } catch (error) {
       toast({
         title: "خطأ",
@@ -288,257 +144,40 @@ const ClientSupport = () => {
     }
   };
 
-  const handleSendMessage = async () => {
-    const result = messageSchema.safeParse({ message: newMessage });
-    if (!result.success) {
-      setErrors({ message: result.error.errors[0].message });
-      return;
-    }
-    setErrors({});
-
-    if (!user || !selectedTicket) return;
-    
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase.from("ticket_messages").insert([{
-        ticket_id: selectedTicket.id,
-        sender_id: user.id,
-        message: newMessage.trim(),
-        is_admin: false,
-        attachments: messageAttachments.length > 0 ? JSON.stringify(messageAttachments) : null,
-      }]);
-      
-      if (error) throw error;
-      
-      // Notify admins about ticket reply
-      notifyTicketReply({
-        ticketNumber: selectedTicket.ticket_number || '',
-        userName: user.user_metadata?.full_name,
-        userEmail: user.email || '',
-        subject: selectedTicket.subject,
-        message: newMessage.trim(),
-      });
-      
-      setNewMessage("");
-      setMessageAttachments([]);
-      fetchMessages(selectedTicket.id);
-    } catch (error) {
-      toast({
-        title: "خطأ",
-        description: "فشل في إرسال الرسالة",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleSendMessage = async (message: string, attachments?: any[]) => {
+    if (!selectedTicket) return;
+    await sendMessage(selectedTicket.id, message, attachments || []);
   };
 
-  const openTicketChat = (ticket: Ticket) => {
-    setSelectedTicket(ticket);
+  const openTicketChat = (ticket: SupportTicket) => {
+    selectTicket(ticket);
     setViewMode("chat");
-    fetchMessages(ticket.id);
   };
 
   const goBack = () => {
     setViewMode("list");
-    setSelectedTicket(null);
+    selectTicket(null);
     setNewTicket({ subject: "", description: "", priority: "medium" });
     setErrors({});
   };
 
-  const openCount = tickets.filter(t => t.status === "open").length;
-  const inProgressCount = tickets.filter(t => t.status === "in_progress").length;
-  const resolvedCount = tickets.filter(t => t.status === "resolved" || t.status === "closed").length;
-
   const statsData = [
-    { label: "مفتوحة", value: openCount, icon: MessageCircle, gradient: "from-emerald-500 to-teal-500", bg: "bg-emerald-500/10" },
-    { label: "قيد المعالجة", value: inProgressCount, icon: Clock, gradient: "from-amber-500 to-orange-500", bg: "bg-amber-500/10" },
-    { label: "تم الحل", value: resolvedCount, icon: CheckCircle, gradient: "from-blue-500 to-indigo-500", bg: "bg-blue-500/10" },
+    { label: "مفتوحة", value: stats.open, icon: MessageCircle, gradient: "from-emerald-500 to-teal-500", bg: "bg-emerald-500/10" },
+    { label: "قيد المعالجة", value: stats.inProgress, icon: Clock, gradient: "from-amber-500 to-orange-500", bg: "bg-amber-500/10" },
+    { label: "تم الحل", value: stats.resolved + stats.closed, icon: CheckCircle, gradient: "from-blue-500 to-indigo-500", bg: "bg-blue-500/10" },
   ];
 
-  // Chat View Component
-  const ChatView = () => (
-    <motion.div 
-      className="flex flex-col h-[calc(100vh-120px)]"
+  // New Ticket Form
+  const NewTicketForm = () => (
+    <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-    >
-      {/* Chat Header */}
-      <Card className="border-border/30 mb-4">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={goBack}
-              className="shrink-0 rounded-xl hover:bg-secondary"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <motion.div 
-              className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"
-              animate={{ rotate: [0, 5, -5, 0] }}
-              transition={{ duration: 4, repeat: Infinity }}
-            >
-              <HeadphonesIcon className="w-6 h-6 text-primary-foreground" />
-            </motion.div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-lg truncate">{selectedTicket?.subject}</h3>
-              <div className="flex items-center gap-2 mt-1 flex-wrap">
-                {selectedTicket?.ticket_number && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-mono bg-secondary text-muted-foreground">
-                    <Hash className="w-3 h-3" />
-                    {selectedTicket.ticket_number}
-                  </span>
-                )}
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusStyles(selectedTicket?.status || "open")}`}>
-                  {getStatusIcon(selectedTicket?.status || "open")}
-                  {getStatusLabel(selectedTicket?.status || "open")}
-                </span>
-                <Badge variant="outline" className={`text-xs ${getPriorityStyles(selectedTicket?.priority || "medium")}`}>
-                  {getPriorityLabel(selectedTicket?.priority || "medium")}
-                </Badge>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Messages */}
-      <Card className="border-border/30 flex-1 flex flex-col overflow-hidden">
-        <ScrollArea className="flex-1 px-4 py-6">
-          <div className="space-y-4">
-            {/* Original Description */}
-            <motion.div 
-              className="flex justify-end"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-            >
-              <div className="max-w-[85%] relative">
-                <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-2xl rounded-tr-md p-4 shadow-lg shadow-primary/20">
-                  <p className="text-sm leading-relaxed">{selectedTicket?.description}</p>
-                  <p className="text-xs text-primary-foreground/60 mt-3 flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {selectedTicket && formatDate(selectedTicket.created_at)}
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-            
-            <AnimatePresence>
-              {messages.map((msg, index) => (
-                <motion.div 
-                  key={msg.id} 
-                  className={`flex ${msg.is_admin ? "justify-start" : "justify-end"}`}
-                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ delay: index * 0.05, type: "spring", stiffness: 200 }}
-                >
-                  <div className="max-w-[85%] relative">
-                    <div className={`rounded-2xl p-4 ${
-                      msg.is_admin 
-                        ? "bg-secondary/80 backdrop-blur-sm rounded-tl-md border border-border/50" 
-                        : "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-tr-md shadow-lg shadow-primary/20"
-                    }`}>
-                      {msg.is_admin && (
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                            <HeadphonesIcon className="w-3.5 h-3.5 text-primary" />
-                          </div>
-                          <span className="text-xs font-semibold text-primary">فريق الدعم</span>
-                        </div>
-                      )}
-                      <p className="text-sm leading-relaxed">{msg.message}</p>
-                      {msg.attachments && msg.attachments.length > 0 && (
-                        <AttachmentDisplay attachments={msg.attachments} />
-                      )}
-                      <p className={`text-xs mt-3 flex items-center gap-1 ${msg.is_admin ? "text-muted-foreground" : "text-primary-foreground/60"}`}>
-                        <Clock className="w-3 h-3" />
-                        {formatDate(msg.created_at)}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-            <div ref={messagesEndRef} />
-          </div>
-        </ScrollArea>
-
-        {/* Message Input */}
-        <div className="p-4 border-t border-border/50 bg-background/80 backdrop-blur-sm">
-          {selectedTicket?.status !== "closed" ? (
-            <div className="space-y-3">
-              {user && selectedTicket && (
-                <FileAttachment
-                  userId={user.id}
-                  ticketId={selectedTicket.id}
-                  attachments={messageAttachments}
-                  onAttachmentsChange={setMessageAttachments}
-                  disabled={isSubmitting}
-                />
-              )}
-              
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Input
-                    placeholder="اكتب رسالتك..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
-                    className="bg-secondary/50 border-border/50 pr-4 pl-12 h-12 rounded-xl"
-                  />
-                </div>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button 
-                    onClick={handleSendMessage} 
-                    disabled={isSubmitting || (!newMessage.trim() && messageAttachments.length === 0)}
-                    size="icon"
-                    className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20"
-                  >
-                    {isSubmitting ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <Send className="w-5 h-5" />
-                    )}
-                  </Button>
-                </motion.div>
-              </div>
-              {errors.message && (
-                <motion.p 
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-xs text-destructive"
-                >
-                  {errors.message}
-                </motion.p>
-              )}
-            </div>
-          ) : (
-            <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm py-4 bg-muted/50 rounded-xl">
-              <Shield className="w-4 h-4" />
-              <span>هذه التذكرة مغلقة</span>
-            </div>
-          )}
-        </div>
-      </Card>
-    </motion.div>
-  );
-
-  // New Ticket Form View
-  const NewTicketView = () => (
-    <motion.div 
       className="space-y-6"
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
     >
-      {/* Header */}
       <Card className="border-border/30">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-3 mb-6">
             <Button 
               variant="ghost" 
               size="icon" 
@@ -547,124 +186,70 @@ const ClientSupport = () => {
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <motion.div 
-              className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20"
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <Zap className="w-6 h-6 text-primary-foreground" />
-            </motion.div>
             <div>
-              <h2 className="font-bold text-xl">تذكرة جديدة</h2>
+              <h2 className="text-xl font-bold">تذكرة جديدة</h2>
               <p className="text-sm text-muted-foreground">أخبرنا كيف يمكننا مساعدتك</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Form */}
-      <Card className="border-border/30">
-        <CardContent className="p-6 space-y-6">
-          <div>
-            <label className="text-sm font-medium mb-3 block">الموضوع</label>
-            <Input 
-              placeholder="أدخل موضوع التذكرة" 
-              className="bg-secondary/50 h-12 rounded-xl"
-              value={newTicket.subject}
-              onChange={(e) => setNewTicket({ ...newTicket, subject: e.target.value })}
-            />
-            {errors.subject && (
-              <motion.p 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-sm text-destructive mt-2 flex items-center gap-1"
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">الموضوع</label>
+              <Input
+                placeholder="أدخل موضوع التذكرة..."
+                value={newTicket.subject}
+                onChange={(e) => setNewTicket({ ...newTicket, subject: e.target.value })}
+                className="bg-secondary/50"
+              />
+              {errors.subject && (
+                <p className="text-xs text-destructive mt-1">{errors.subject}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">الأولوية</label>
+              <Select
+                value={newTicket.priority}
+                onValueChange={(value: "low" | "medium" | "high" | "urgent") => 
+                  setNewTicket({ ...newTicket, priority: value })
+                }
               >
-                <XCircle className="w-4 h-4" />
-                {errors.subject}
-              </motion.p>
-            )}
-          </div>
-          
-          <div>
-            <label className="text-sm font-medium mb-3 block">الأولوية</label>
-            <Select 
-              value={newTicket.priority}
-              onValueChange={(value: "low" | "medium" | "high" | "urgent") => setNewTicket({ ...newTicket, priority: value })}
-            >
-              <SelectTrigger className="bg-secondary/50 h-12 rounded-xl">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">
-                  <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-slate-400" />
-                    منخفضة
-                  </span>
-                </SelectItem>
-                <SelectItem value="medium">
-                  <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-blue-400" />
-                    متوسطة
-                  </span>
-                </SelectItem>
-                <SelectItem value="high">
-                  <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-orange-400" />
-                    عالية
-                  </span>
-                </SelectItem>
-                <SelectItem value="urgent">
-                  <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
-                    عاجلة
-                  </span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div>
-            <label className="text-sm font-medium mb-3 block">الرسالة</label>
-            <Textarea 
-              placeholder="اشرح مشكلتك أو استفسارك بالتفصيل..." 
-              className="bg-secondary/50 min-h-40 rounded-xl resize-none"
-              value={newTicket.description}
-              onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
-            />
-            {errors.description && (
-              <motion.p 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-sm text-destructive mt-2 flex items-center gap-1"
-              >
-                <XCircle className="w-4 h-4" />
-                {errors.description}
-              </motion.p>
-            )}
-          </div>
-          
-          <div className="flex gap-3 pt-4">
+                <SelectTrigger className="bg-secondary/50">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">منخفضة</SelectItem>
+                  <SelectItem value="medium">متوسطة</SelectItem>
+                  <SelectItem value="high">عالية</SelectItem>
+                  <SelectItem value="urgent">عاجلة</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">الوصف</label>
+              <Textarea
+                placeholder="اشرح مشكلتك بالتفصيل..."
+                value={newTicket.description}
+                onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
+                className="min-h-[150px] bg-secondary/50"
+              />
+              {errors.description && (
+                <p className="text-xs text-destructive mt-1">{errors.description}</p>
+              )}
+            </div>
+
             <Button 
-              variant="outline" 
-              onClick={goBack}
-              className="flex-1 h-12 rounded-xl"
-            >
-              إلغاء
-            </Button>
-            <Button 
-              className="flex-1 h-12 rounded-xl bg-gradient-to-l from-primary to-primary/80 shadow-lg shadow-primary/20"
               onClick={handleCreateTicket}
               disabled={isSubmitting}
+              className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90"
             >
               {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 ms-2 animate-spin" />
-                  جاري الإرسال...
-                </>
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
-                  <Send className="w-4 h-4 ms-2" />
-                  إرسال التذكرة
+                  <Plus className="w-5 h-5 ml-2" />
+                  إنشاء التذكرة
                 </>
               )}
             </Button>
@@ -674,215 +259,188 @@ const ClientSupport = () => {
     </motion.div>
   );
 
-  // Tickets List View
-  const ListView = () => (
+  // Tickets List
+  const TicketsList = () => (
     <motion.div 
-      className="space-y-6"
+      className="space-y-4"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      {/* Header */}
-      <motion.div 
-        className="flex flex-col gap-4 md:flex-row md:items-center justify-between"
-        variants={itemVariants}
-      >
-        <div className="flex items-center gap-4">
-          <motion.div 
-            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20"
-            animate={{ rotate: [0, 10, -10, 0] }}
-            transition={{ duration: 4, repeat: Infinity, repeatDelay: 2 }}
-          >
-            <HeadphonesIcon className="w-7 h-7 text-primary-foreground" />
-          </motion.div>
-          <div>
-            <h1 className="font-display text-2xl md:text-3xl font-bold">الدعم الفني</h1>
-            <p className="text-sm text-muted-foreground">نحن هنا لمساعدتك على مدار الساعة</p>
-          </div>
-        </div>
-        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button 
-            className="bg-gradient-to-l from-primary to-primary/80 hover:opacity-90 h-12 text-base w-full md:w-auto px-6 rounded-xl shadow-lg shadow-primary/20"
-            onClick={() => setViewMode("new")}
-          >
-            <Plus className="w-5 h-5 ms-2" />
-            تذكرة جديدة
-          </Button>
-        </motion.div>
-      </motion.div>
-
-      {/* Stats */}
-      <motion.div 
-        className="grid grid-cols-3 gap-3"
-        variants={itemVariants}
-      >
+      {/* Stats Cards */}
+      <div className="grid grid-cols-3 gap-3">
         {statsData.map((stat, index) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            whileHover={{ y: -4, transition: { duration: 0.2 } }}
-          >
-            <Card className="border-border/30 overflow-hidden relative group">
-              <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-5 transition-opacity`} />
-              <CardContent className="p-4">
-                <div className="flex flex-col items-center gap-2 text-center">
-                  <motion.div 
-                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.gradient} p-2.5 shadow-lg`}
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                  >
-                    <stat.icon className="w-full h-full text-white" />
-                  </motion.div>
-                  <div>
-                    <motion.p 
-                      className="text-2xl font-bold"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.2 + index * 0.1, type: "spring" }}
-                    >
-                      {stat.value}
-                    </motion.p>
-                    <p className="text-xs text-muted-foreground">{stat.label}</p>
-                  </div>
+          <motion.div key={index} variants={itemVariants}>
+            <Card className={cn(
+              "relative overflow-hidden border-border/30 transition-all duration-300",
+              stat.bg
+            )}>
+              <CardContent className="p-3 text-center">
+                <div className={cn(
+                  "w-8 h-8 mx-auto mb-2 rounded-lg flex items-center justify-center",
+                  `bg-gradient-to-br ${stat.gradient}`
+                )}>
+                  <stat.icon className="w-4 h-4 text-white" />
                 </div>
+                <p className="text-xl font-bold">{stat.value}</p>
+                <p className="text-xs text-muted-foreground">{stat.label}</p>
               </CardContent>
             </Card>
           </motion.div>
         ))}
+      </div>
+
+      {/* New Ticket Button */}
+      <motion.div variants={itemVariants}>
+        <Button 
+          onClick={() => setViewMode("new")}
+          className="w-full h-12 rounded-xl bg-gradient-to-l from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/20"
+        >
+          <Plus className="w-5 h-5 ml-2" />
+          تذكرة جديدة
+        </Button>
       </motion.div>
 
       {/* Tickets List */}
-      <motion.div variants={itemVariants}>
-        <Card className="border-border/30 overflow-hidden">
-          <div className="p-4 border-b border-border/50 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-primary" />
-              <h2 className="font-semibold text-lg">التذاكر السابقة</h2>
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      ) : tickets.length === 0 ? (
+        <Card className="border-border/30">
+          <CardContent className="py-12 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+              <Inbox className="w-8 h-8 text-muted-foreground" />
             </div>
-            <Badge variant="secondary" className="rounded-full">{tickets.length}</Badge>
-          </div>
-          <CardContent className="p-0">
-            {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-16 gap-4">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                >
-                  <Loader2 className="w-10 h-10 text-primary" />
-                </motion.div>
-                <p className="text-sm text-muted-foreground">جاري التحميل...</p>
-              </div>
-            ) : tickets.length === 0 ? (
-              <motion.div 
-                className="text-center py-16 px-4"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-              >
-                <motion.div
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <HeadphonesIcon className="w-20 h-20 mx-auto mb-6 text-muted-foreground/20" />
-                </motion.div>
-                <h3 className="font-semibold text-lg mb-2">لا توجد تذاكر حالياً</h3>
-                <p className="text-sm text-muted-foreground mb-6">ابدأ محادثة جديدة مع فريق الدعم</p>
-                <Button onClick={() => setViewMode("new")} className="rounded-xl">
-                  <Plus className="w-4 h-4 ms-2" />
-                  إنشاء تذكرة
-                </Button>
-              </motion.div>
-            ) : (
-              <div className="divide-y divide-border/30">
-                <AnimatePresence>
-                  {tickets.map((ticket, index) => (
-                    <motion.div
-                      key={ticket.id}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ delay: index * 0.05 }}
-                      whileHover={{ backgroundColor: "hsl(var(--secondary)/0.5)" }}
-                      className="p-4 cursor-pointer transition-colors group"
-                      onClick={() => openTicketChat(ticket)}
-                    >
-                      <div className="flex items-center gap-4">
-                        <motion.div 
-                          className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/10 shrink-0"
-                          whileHover={{ scale: 1.1, rotate: 5 }}
-                        >
-                          <Ticket className="w-6 h-6 text-primary" />
-                        </motion.div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            {ticket.ticket_number && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-mono bg-secondary text-muted-foreground">
-                                <Hash className="w-3 h-3" />
-                                {ticket.ticket_number}
-                              </span>
-                            )}
-                            <p className="font-semibold truncate">{ticket.subject}</p>
-                            {ticket.status === "open" && (
-                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground line-clamp-1">{ticket.description}</p>
-                        </div>
-                        <div className="hidden sm:flex flex-col items-end gap-2 shrink-0">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className={`text-xs ${getPriorityStyles(ticket.priority)}`}>
-                              {getPriorityLabel(ticket.priority)}
-                            </Badge>
-                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusStyles(ticket.status)}`}>
-                              {getStatusIcon(ticket.status)}
-                              {getStatusLabel(ticket.status)}
-                            </span>
-                          </div>
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {formatDate(ticket.created_at)}
-                          </span>
-                        </div>
-                        <motion.div
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
-                          whileHover={{ x: -4 }}
-                        >
-                          <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                        </motion.div>
-                      </div>
-                      <div className="sm:hidden flex items-center gap-2 mt-3 pt-3 border-t border-border/30">
-                        {ticket.ticket_number && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-mono bg-secondary text-muted-foreground">
-                            <Hash className="w-3 h-3" />
-                            {ticket.ticket_number}
-                          </span>
-                        )}
-                        <Badge variant="outline" className={`text-xs ${getPriorityStyles(ticket.priority)}`}>
-                          {getPriorityLabel(ticket.priority)}
-                        </Badge>
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusStyles(ticket.status)}`}>
-                          {getStatusLabel(ticket.status)}
-                        </span>
-                        <span className="text-xs text-muted-foreground mr-auto">{formatDate(ticket.created_at)}</span>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            )}
+            <h3 className="font-medium mb-2">لا توجد تذاكر</h3>
+            <p className="text-sm text-muted-foreground mb-4">لم تقم بإنشاء أي تذاكر دعم بعد</p>
+            <Button onClick={() => setViewMode("new")} variant="outline">
+              <Plus className="w-4 h-4 ml-2" />
+              إنشاء تذكرة
+            </Button>
           </CardContent>
         </Card>
-      </motion.div>
+      ) : (
+        <div className="space-y-3">
+          {tickets.map((ticket, index) => (
+            <motion.div
+              key={ticket.id}
+              variants={itemVariants}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+            >
+              <Card 
+                className={cn(
+                  "border-border/30 cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-primary/30",
+                  ticket.priority === "urgent" && "border-red-500/30 bg-red-500/5"
+                )}
+                onClick={() => openTicketChat(ticket)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className={cn(
+                      "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                      ticket.status === "open" ? "bg-emerald-500/10" :
+                      ticket.status === "in_progress" ? "bg-amber-500/10" :
+                      "bg-blue-500/10"
+                    )}>
+                      {getStatusIcon(ticket.status)}
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium truncate">{ticket.subject}</h4>
+                        {ticket.ticket_number && (
+                          <span className="text-xs text-muted-foreground font-mono shrink-0">
+                            #{ticket.ticket_number}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-1 mb-2">
+                        {ticket.description}
+                      </p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="outline" className={cn("text-xs", getStatusColor(ticket.status))}>
+                          {getStatusIcon(ticket.status)}
+                          <span className="mr-1">{getStatusLabel(ticket.status)}</span>
+                        </Badge>
+                        <Badge variant="outline" className={cn("text-xs", getPriorityColor(ticket.priority))}>
+                          {getPriorityLabel(ticket.priority)}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {formatRelativeTime(ticket.created_at)}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <ChevronLeft className="w-5 h-5 text-muted-foreground shrink-0" />
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+
+  // Chat View
+  const ChatView = () => (
+    <motion.div 
+      className="h-[calc(100vh-120px)]"
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+    >
+      {selectedTicket && (
+        <Card className="border-border/30 h-full overflow-hidden">
+          <ChatInterface
+            ticket={selectedTicket}
+            messages={messages}
+            isLoading={isMessagesLoading}
+            isAdmin={false}
+            currentUserId={user?.id}
+            onSendMessage={handleSendMessage}
+            onBack={goBack}
+            onRate={(rating, comment) => selectedTicket && rateTicket(selectedTicket.id, rating, comment)}
+          />
+        </Card>
+      )}
     </motion.div>
   );
 
   return (
     <ClientDashboardLayout>
-      <div className="px-1" dir="rtl">
+      <div className="p-4 md:p-6 max-w-3xl mx-auto">
+        {/* Header - only show in list view */}
+        {viewMode === "list" && (
+          <motion.div 
+            className="mb-6"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <motion.div 
+                className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20"
+                animate={{ rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 4, repeat: Infinity }}
+              >
+                <HeadphonesIcon className="w-6 h-6 text-primary-foreground" />
+              </motion.div>
+              <div>
+                <h1 className="text-2xl font-bold">الدعم الفني</h1>
+                <p className="text-sm text-muted-foreground">نحن هنا لمساعدتك</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Main Content */}
         <AnimatePresence mode="wait">
-          {viewMode === "list" && <ListView key="list" />}
-          {viewMode === "new" && <NewTicketView key="new" />}
-          {viewMode === "chat" && selectedTicket && <ChatView key="chat" />}
+          {viewMode === "list" && <TicketsList key="list" />}
+          {viewMode === "new" && <NewTicketForm key="new" />}
+          {viewMode === "chat" && <ChatView key="chat" />}
         </AnimatePresence>
       </div>
     </ClientDashboardLayout>
