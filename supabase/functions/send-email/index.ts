@@ -1386,6 +1386,15 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
   }
 }
 
+interface BulkEmailRequest {
+  type: 'single' | 'group' | 'all' | 'newsletter';
+  recipients?: string[];
+  emailType: EmailType;
+  data: Record<string, any>;
+  customSubject?: string;
+  customContent?: string;
+}
+
 const handler = async (req: Request): Promise<Response> => {
   console.log("Send email function called");
   
@@ -1394,48 +1403,142 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
   try {
-    const { to, type, data, customSubject, customContent }: EmailRequest = await req.json();
+    const body = await req.json();
     
-    console.log(`Sending ${type} email to ${to}`);
-    console.log("Email data:", JSON.stringify(data));
-
-    const { subject, content } = getEmailContent(type, data);
-    const finalSubject = customSubject || subject;
-    const finalContent = customContent || content;
-    
-    const html = getEmailWrapper(finalContent, finalSubject);
-
-    const emailResponse = await resend.emails.send({
-      from: "MaxioCore <info@maxiocore.com>",
-      to: [to],
-      subject: finalSubject,
-      html: html,
-    });
-
-    console.log("Email sent successfully:", emailResponse);
-
-    // Log email in database
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    await supabase.from('emails').insert({
-      recipient_email: to,
-      recipient_name: data.name || null,
-      subject: finalSubject,
-      content: html,
-      status: 'sent',
-      sent_at: new Date().toISOString(),
-    });
-
-    return new Response(
-      JSON.stringify({ success: true, data: emailResponse }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+    // Check if it's a bulk request or single request
+    if (body.type && ['single', 'group', 'all', 'newsletter'].includes(body.type)) {
+      // Bulk email handling
+      const { type: sendType, recipients, emailType, data, customSubject, customContent } = body as BulkEmailRequest;
+      
+      let emailList: string[] = [];
+      
+      if (sendType === 'single' && body.to) {
+        emailList = [body.to];
+      } else if (sendType === 'group' && recipients && recipients.length > 0) {
+        emailList = recipients;
+      } else if (sendType === 'all' || sendType === 'newsletter') {
+        // Get all users' emails
+        const { data: profiles, error } = await supabase
+          .from('profiles')
+          .select('email')
+          .not('email', 'is', null);
+        
+        if (error) {
+          console.error("Error fetching users:", error);
+          throw new Error("Failed to fetch users");
+        }
+        
+        emailList = profiles?.map(p => p.email).filter(Boolean) as string[] || [];
       }
-    );
+      
+      console.log(`Sending ${emailType} email to ${emailList.length} recipients`);
+      
+      const results = {
+        success: 0,
+        failed: 0,
+        errors: [] as string[]
+      };
+      
+      // Process emails in batches
+      for (const email of emailList) {
+        try {
+          const { subject, content } = getEmailContent(emailType || 'custom', { ...data, email });
+          const finalSubject = customSubject || subject;
+          const finalContent = customContent || content;
+          const html = getEmailWrapper(finalContent, finalSubject);
+          
+          const emailResponse = await resend.emails.send({
+            from: "MaxioCore <info@maxiocore.com>",
+            to: [email],
+            subject: finalSubject,
+            html: html,
+          });
+          
+          // Log to database
+          await supabase.from('emails').insert({
+            recipient_email: email,
+            recipient_name: data.name || null,
+            subject: finalSubject,
+            content: html,
+            status: 'delivered',
+            sent_at: new Date().toISOString(),
+          });
+          
+          results.success++;
+          console.log(`Email sent to ${email}`);
+          
+        } catch (emailError: any) {
+          results.failed++;
+          results.errors.push(`${email}: ${emailError.message}`);
+          console.error(`Failed to send to ${email}:`, emailError);
+          
+          // Log failed email
+          await supabase.from('emails').insert({
+            recipient_email: email,
+            subject: customSubject || 'إشعار من MaxioCore',
+            content: customContent || '',
+            status: 'failed',
+            error_message: emailError.message,
+          });
+        }
+      }
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          results,
+          message: `تم إرسال ${results.success} رسالة بنجاح، فشل ${results.failed}`
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+      
+    } else {
+      // Legacy single email request
+      const { to, type, data, customSubject, customContent } = body as EmailRequest;
+      
+      console.log(`Sending ${type} email to ${to}`);
+      console.log("Email data:", JSON.stringify(data));
+
+      const { subject, content } = getEmailContent(type, data);
+      const finalSubject = customSubject || subject;
+      const finalContent = customContent || content;
+      
+      const html = getEmailWrapper(finalContent, finalSubject);
+
+      const emailResponse = await resend.emails.send({
+        from: "MaxioCore <info@maxiocore.com>",
+        to: [to],
+        subject: finalSubject,
+        html: html,
+      });
+
+      console.log("Email sent successfully:", emailResponse);
+
+      await supabase.from('emails').insert({
+        recipient_email: to,
+        recipient_name: data.name || null,
+        subject: finalSubject,
+        content: html,
+        status: 'delivered',
+        sent_at: new Date().toISOString(),
+      });
+
+      return new Response(
+        JSON.stringify({ success: true, data: emailResponse }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
   } catch (error: any) {
     console.error("Error in send-email function:", error);
     
