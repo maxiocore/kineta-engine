@@ -15,6 +15,7 @@ const HeroSection = () => {
     { icon: TrendingUp, label: "تسويق رقمي", color: "bg-blue-500/10 text-blue-500" },
     { icon: Globe, label: "تطوير ويب", color: "bg-violet-500/10 text-violet-500" },
     { icon: Sparkles, label: "تصميم إبداعي", color: "bg-pink-500/10 text-pink-500" },
+    { icon: Zap, label: "خدمات رقمية", color: "bg-emerald-500/10 text-emerald-500" },
   ];
 
   return (
