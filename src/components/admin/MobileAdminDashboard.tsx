@@ -119,9 +119,9 @@ const MobileAdminDashboard = ({
   };
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
+    <div className="min-h-screen bg-background w-full max-w-full overflow-x-hidden" dir="rtl">
       {/* Header with Tabs */}
-      <div className="bg-background border-b border-border/50 px-4 py-4">
+      <div className="bg-background border-b border-border/50 px-3 sm:px-4 py-4 w-full max-w-full">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/25">
@@ -142,56 +142,30 @@ const MobileAdminDashboard = ({
           </motion.button>
         </div>
 
-        {/* Custom Tabs - Grid Layout */}
-        <div 
-          className="w-full p-1.5 bg-secondary/50 rounded-xl"
-          style={{ 
-            display: 'grid', 
-            gridTemplateColumns: '1fr 1fr', 
-            gap: '8px',
-            minHeight: '48px'
-          }}
-        >
+        {/* Custom Tabs - Flex Layout with overflow control */}
+        <div className="w-full p-1.5 bg-secondary/50 rounded-xl flex gap-2 overflow-x-auto min-w-0">
           <button 
             onClick={() => setActiveTab("overview")}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 500,
-              padding: '8px 12px',
-              backgroundColor: activeTab === "overview" ? 'hsl(var(--primary))' : 'transparent',
-              color: activeTab === "overview" ? 'hsl(var(--primary-foreground))' : 'hsl(var(--muted-foreground))',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
+            className={cn(
+              "flex-1 min-w-0 shrink-0 flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium py-2.5 px-3 transition-all whitespace-nowrap",
+              activeTab === "overview" 
+                ? "bg-primary text-primary-foreground shadow-md" 
+                : "text-muted-foreground hover:bg-secondary/50"
+            )}
           >
-            <Sparkles style={{ width: '16px', height: '16px' }} />
+            <Sparkles className="w-4 h-4 shrink-0" />
             <span>نظرة عامة</span>
           </button>
           <button 
             onClick={() => setActiveTab("analytics")}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 500,
-              padding: '8px 12px',
-              backgroundColor: activeTab === "analytics" ? 'hsl(var(--accent))' : 'transparent',
-              color: activeTab === "analytics" ? 'hsl(var(--accent-foreground))' : 'hsl(var(--muted-foreground))',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
+            className={cn(
+              "flex-1 min-w-0 shrink-0 flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium py-2.5 px-3 transition-all whitespace-nowrap",
+              activeTab === "analytics" 
+                ? "bg-accent text-accent-foreground shadow-md" 
+                : "text-muted-foreground hover:bg-secondary/50"
+            )}
           >
-            <BarChart3 style={{ width: '16px', height: '16px' }} />
+            <BarChart3 className="w-4 h-4 shrink-0" />
             <span>الإحصائيات</span>
           </button>
         </div>
@@ -199,9 +173,9 @@ const MobileAdminDashboard = ({
 
       {/* Overview Content */}
       {activeTab === "overview" && (
-        <div className="px-4 space-y-4 pt-4 pb-20">
-          {/* Stats Grid - 2x2 */}
-          <div className="grid grid-cols-2 gap-3">
+        <div className="px-3 sm:px-4 space-y-4 pt-4 pb-20 w-full max-w-full overflow-x-hidden">
+          {/* Stats Grid - Responsive */}
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 w-full min-w-0">
             {/* Users */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -321,15 +295,15 @@ const MobileAdminDashboard = ({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-card rounded-xl border border-border/40 p-3"
+            className="bg-card rounded-xl border border-border/40 p-3 w-full min-w-0 overflow-hidden"
           >
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                 <Settings className="w-3.5 h-3.5 text-primary" />
               </div>
               <span className="text-xs font-semibold">إجراءات سريعة</span>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2 w-full min-w-0">
               {quickActions.map((action, i) => (
                 <Link key={action.href} to={action.href}>
                   <motion.div
@@ -357,7 +331,7 @@ const MobileAdminDashboard = ({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-card rounded-xl border border-border/40 overflow-hidden"
+            className="bg-card rounded-xl border border-border/40 overflow-hidden w-full min-w-0"
           >
             <div className="flex items-center justify-between p-3 border-b border-border/30">
               <div className="flex items-center gap-2">
@@ -470,7 +444,7 @@ const MobileAdminDashboard = ({
 
       {/* Analytics Content */}
       {activeTab === "analytics" && (
-        <div className="px-4 pt-4 pb-20">
+        <div className="px-3 sm:px-4 pt-4 pb-20 w-full max-w-full overflow-x-hidden min-w-0">
           <AdvancedDashboardCharts
             orders={chartData.orders}
             deposits={chartData.deposits}
