@@ -446,7 +446,7 @@ const AdminDashboard = () => {
 
         <TabsContent value="overview" className="space-y-3 mt-3">
           {/* Stats Grid - Same style as Analytics */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             {statsData.map((stat, index) => {
               const Icon = stat.icon;
               return (
@@ -459,26 +459,26 @@ const AdminDashboard = () => {
                   onClick={stat.onClick}
                   className="bg-card rounded-xl border border-border/50 p-3 cursor-pointer hover:border-primary/30 active:bg-secondary/50 transition-all relative overflow-hidden"
                 >
-                  <div className="absolute top-0 right-0 w-12 h-12 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-                  <div className="relative flex items-center gap-2">
-                    <div className={cn("p-2 rounded-lg shadow-sm", stat.iconBg)}>
-                      <Icon className="w-4 h-4 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[10px] text-muted-foreground truncate">{stat.title}</p>
-                      <div className="flex items-center gap-1">
-                        <span className="text-base font-bold">
-                          <AnimatedCounter value={stat.value} suffix={stat.suffix} duration={1} />
-                        </span>
-                        {stat.trend !== undefined && stat.trend !== 0 && (
-                          <span className={cn(
-                            "text-[9px] font-medium",
-                            stat.trend > 0 ? "text-success" : "text-destructive"
-                          )}>
-                            {stat.trend > 0 ? "↑" : "↓"}{Math.abs(stat.trend)}%
-                          </span>
-                        )}
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                  <div className="relative">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className={cn("p-2 rounded-xl shadow-sm shrink-0", stat.iconBg)}>
+                        <Icon className="w-4 h-4 text-white" />
                       </div>
+                      <p className="text-[11px] text-muted-foreground leading-tight line-clamp-2">{stat.title}</p>
+                    </div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-xl font-bold">
+                        <AnimatedCounter value={stat.value} suffix={stat.suffix} duration={1} />
+                      </span>
+                      {stat.trend !== undefined && stat.trend !== 0 && (
+                        <span className={cn(
+                          "text-[10px] font-medium flex items-center gap-0.5",
+                          stat.trend > 0 ? "text-success" : "text-destructive"
+                        )}>
+                          {stat.trend > 0 ? "↑" : "↓"}{Math.abs(stat.trend)}%
+                        </span>
+                      )}
                     </div>
                   </div>
                 </motion.div>
