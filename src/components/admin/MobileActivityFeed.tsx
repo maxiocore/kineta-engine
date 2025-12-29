@@ -79,7 +79,7 @@ const MobileActivityFeed = ({ activities }: MobileActivityFeedProps) => {
                 {activity.isNew && (
                   <Badge className="h-4 text-[8px] px-1 bg-primary/10 text-primary border-0 shrink-0">جديد</Badge>
                 )}
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground shrink-0 rotate-180" />
               </motion.div>
             );
           })}

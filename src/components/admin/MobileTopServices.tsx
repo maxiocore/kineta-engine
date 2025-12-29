@@ -56,7 +56,7 @@ const MobileTopServices = ({ services }: MobileTopServicesProps) => {
           className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors flex-row-reverse"
         >
           عرض الكل
-          <ChevronRight className="w-3 h-3" />
+          <ChevronRight className="w-3 h-3 rotate-180" />
         </Link>
       </div>
       

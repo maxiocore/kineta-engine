@@ -36,20 +36,20 @@ const activityConfig: Record<string, { icon: LucideIcon; color: string; bgColor:
 
 const MobileActivityList = ({ activities, onViewAll }: MobileActivityListProps) => {
   return (
-    <div className="bg-card rounded-xl border border-border/40 overflow-hidden">
+    <div className="bg-card rounded-xl border border-border/40 overflow-hidden" dir="rtl">
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-border/30">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between p-3 border-b border-border/30 flex-row-reverse">
+        <div className="flex items-center gap-2 flex-row-reverse">
           <Clock className="w-4 h-4 text-primary" />
           <span className="text-sm font-semibold">النشاط الأخير</span>
         </div>
         {onViewAll && (
           <button 
             onClick={onViewAll}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors flex-row-reverse"
           >
             عرض الكل
-            <ChevronLeft className="w-3 h-3" />
+            <ChevronLeft className="w-3 h-3 rotate-180" />
           </button>
         )}
       </div>
@@ -69,18 +69,18 @@ const MobileActivityList = ({ activities, onViewAll }: MobileActivityListProps) 
             return (
               <motion.div
                 key={activity.id}
-                initial={{ opacity: 0, x: 10 }}
+                initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="flex items-center gap-3 p-3 hover:bg-secondary/30 transition-colors"
+                className="flex items-center gap-3 p-3 hover:bg-secondary/30 transition-colors flex-row-reverse"
               >
                 <div className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                  "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 relative",
                   config.bgColor, config.color
                 )}>
                   <Icon className="w-4 h-4" />
                   {activity.isNew && (
-                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-success rounded-full" />
+                    <span className="absolute -top-0.5 -start-0.5 w-2 h-2 bg-success rounded-full" />
                   )}
                 </div>
                 

@@ -83,27 +83,27 @@ const OrdersFilters = ({
   statusOptions,
 }: OrdersFiltersProps) => {
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <div className="space-y-3 sm:space-y-4" dir="rtl">
       {/* Quick Tabs */}
       <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
         <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 pb-1">
-          <TabsList className="w-max sm:w-full justify-start bg-secondary/40 p-1 h-auto flex gap-1 rounded-xl">
+          <TabsList className="w-max sm:w-full justify-start bg-secondary/40 p-1 h-auto flex gap-1 rounded-xl flex-row-reverse">
             <TabsTrigger value="all" className="text-[10px] sm:text-xs data-[state=active]:bg-background rounded-lg px-2 sm:px-3 py-1.5 whitespace-nowrap">
               الكل
             </TabsTrigger>
-            <TabsTrigger value="pending" className="text-[10px] sm:text-xs data-[state=active]:bg-background rounded-lg px-2 sm:px-3 py-1.5 gap-1 whitespace-nowrap">
+            <TabsTrigger value="pending" className="text-[10px] sm:text-xs data-[state=active]:bg-background rounded-lg px-2 sm:px-3 py-1.5 gap-1 whitespace-nowrap flex-row-reverse">
               <Clock className="w-3 h-3" />
               انتظار ({stats.pending})
             </TabsTrigger>
-            <TabsTrigger value="in_progress" className="text-[10px] sm:text-xs data-[state=active]:bg-background rounded-lg px-2 sm:px-3 py-1.5 gap-1 whitespace-nowrap">
+            <TabsTrigger value="in_progress" className="text-[10px] sm:text-xs data-[state=active]:bg-background rounded-lg px-2 sm:px-3 py-1.5 gap-1 whitespace-nowrap flex-row-reverse">
               <Activity className="w-3 h-3" />
               تنفيذ ({stats.in_progress})
             </TabsTrigger>
-            <TabsTrigger value="completed" className="text-[10px] sm:text-xs data-[state=active]:bg-background rounded-lg px-2 sm:px-3 py-1.5 gap-1 whitespace-nowrap">
+            <TabsTrigger value="completed" className="text-[10px] sm:text-xs data-[state=active]:bg-background rounded-lg px-2 sm:px-3 py-1.5 gap-1 whitespace-nowrap flex-row-reverse">
               <CheckCircle className="w-3 h-3" />
               مكتمل
             </TabsTrigger>
-            <TabsTrigger value="cancelled" className="text-[10px] sm:text-xs data-[state=active]:bg-background rounded-lg px-2 sm:px-3 py-1.5 gap-1 whitespace-nowrap">
+            <TabsTrigger value="cancelled" className="text-[10px] sm:text-xs data-[state=active]:bg-background rounded-lg px-2 sm:px-3 py-1.5 gap-1 whitespace-nowrap flex-row-reverse">
               <XCircle className="w-3 h-3" />
               ملغي ({stats.cancelled})
             </TabsTrigger>

@@ -21,21 +21,22 @@ const ServicesHeader = ({
     <motion.div 
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-wrap items-center justify-between gap-3"
+      className="flex flex-wrap items-center justify-between gap-3 flex-row-reverse"
+      dir="rtl"
     >
       {/* Title Section */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-row-reverse">
         <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0 shadow-lg shadow-primary/25">
           <Package className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         </div>
-        <div>
+        <div className="text-right">
           <h1 className="text-lg sm:text-xl font-bold text-foreground">إدارة الخدمات</h1>
           <p className="text-xs sm:text-sm text-muted-foreground">{servicesCount} خدمة متاحة</p>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-row-reverse">
         <Button 
           onClick={onAddNew}
           size="sm"

@@ -142,31 +142,32 @@ const NotificationBell = () => {
       
       <PopoverContent 
         className="w-80 p-0" 
-        align="end"
+        align="start"
         sideOffset={8}
+        dir="rtl"
       >
         <div className="p-4 border-b border-border/50">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-row-reverse">
             <h4 className="font-semibold">الإشعارات</h4>
-            <div className="flex gap-1">
+            <div className="flex gap-1 flex-row-reverse">
               {notifications.length > 0 && (
                 <>
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="h-7 text-xs"
+                    className="h-7 text-xs gap-1 flex-row-reverse"
                     onClick={markAllAsRead}
                   >
-                    <CheckCheck className="w-3 h-3 ml-1" />
+                    <CheckCheck className="w-3 h-3" />
                     قراءة الكل
                   </Button>
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="h-7 text-xs text-destructive hover:text-destructive"
+                    className="h-7 text-xs text-destructive hover:text-destructive gap-1 flex-row-reverse"
                     onClick={clearAll}
                   >
-                    <X className="w-3 h-3 ml-1" />
+                    <X className="w-3 h-3" />
                     مسح
                   </Button>
                 </>
