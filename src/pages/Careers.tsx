@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -19,13 +19,22 @@ import {
   Upload, 
   Send, 
   Building2, 
-  Users, 
-  Rocket,
-  Heart,
-  Trophy,
-  Coffee,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  Globe,
+  Laptop,
+  Coffee,
+  Heart,
+  Zap,
+  Users,
+  TrendingUp,
+  Shield,
+  Wifi,
+  Home,
+  Calendar,
+  DollarSign,
+  Award,
+  Headphones
 } from "lucide-react";
 
 interface JobPosting {
@@ -109,7 +118,6 @@ const Careers = () => {
     try {
       let resumeUrl = null;
 
-      // Upload resume if provided
       if (resumeFile) {
         const fileExt = resumeFile.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -127,7 +135,6 @@ const Careers = () => {
         resumeUrl = publicUrl;
       }
 
-      // Submit application
       const { error } = await supabase
         .from('job_applications')
         .insert({
@@ -146,22 +153,20 @@ const Careers = () => {
 
       if (error) throw error;
 
-      // Send notification email
-      await supabase.functions.invoke('contact-form', {
+      // Send notification emails
+      await supabase.functions.invoke('career-notification', {
         body: {
-          name: formData.fullName,
-          email: formData.email,
-          phone: formData.phone,
-          subject: `طلب توظيف جديد - ${selectedJob.title_ar}`,
-          message: `تم تقديم طلب توظيف جديد لوظيفة: ${selectedJob.title_ar}\n\nالاسم: ${formData.fullName}\nالبريد الإلكتروني: ${formData.email}\nالهاتف: ${formData.phone || 'غير محدد'}\nسنوات الخبرة: ${formData.yearsOfExperience || 'غير محدد'}\nالشركة الحالية: ${formData.currentCompany || 'غير محدد'}\nالراتب المتوقع: ${formData.expectedSalary || 'غير محدد'}`
+          type: 'new_application',
+          applicantName: formData.fullName,
+          applicantEmail: formData.email,
+          jobTitle: selectedJob.title_ar
         }
       });
 
-      toast.success("تم إرسال طلبك بنجاح!", {
-        description: "سنتواصل معك قريباً"
+      toast.success("تم إرسال طلبك بنجاح! 🎉", {
+        description: "سنراجع طلبك ونتواصل معك قريباً"
       });
 
-      // Reset form
       setFormData({
         fullName: "",
         email: "",
@@ -186,22 +191,40 @@ const Careers = () => {
     }
   };
 
-  const benefits = [
-    { icon: Heart, title: "تأمين صحي شامل", description: "تأمين طبي لك ولعائلتك" },
-    { icon: Rocket, title: "فرص نمو مهني", description: "دورات تدريبية وتطوير مستمر" },
-    { icon: Coffee, title: "بيئة عمل مريحة", description: "مكاتب حديثة ومرافق متكاملة" },
-    { icon: Trophy, title: "مكافآت وحوافز", description: "نظام مكافآت بناءً على الأداء" }
+  const remoteWorkBenefits = [
+    { icon: Globe, title: "اعمل من أي مكان", description: "نؤمن بالحرية الكاملة في اختيار مكان عملك" },
+    { icon: Laptop, title: "معدات حديثة", description: "نوفر لك أحدث الأجهزة والأدوات" },
+    { icon: Calendar, title: "ساعات مرنة", description: "تحكم في جدولك بما يناسب حياتك" },
+    { icon: Wifi, title: "بدل إنترنت", description: "نتحمل تكاليف الاتصال بالكامل" }
+  ];
+
+  const companyBenefits = [
+    { icon: Heart, title: "تأمين صحي شامل", description: "تغطية طبية كاملة لك ولعائلتك" },
+    { icon: TrendingUp, title: "نمو مهني سريع", description: "فرص ترقية وتطوير مستمر" },
+    { icon: DollarSign, title: "رواتب تنافسية", description: "أجور أعلى من معدل السوق" },
+    { icon: Award, title: "مكافآت الأداء", description: "حوافز ربع سنوية وسنوية" },
+    { icon: Zap, title: "تدريب مستمر", description: "ميزانية تعلم سنوية لكل موظف" },
+    { icon: Users, title: "فريق متميز", description: "اعمل مع أفضل المواهب" },
+    { icon: Shield, title: "أمان وظيفي", description: "استقرار وضمانات طويلة المدى" },
+    { icon: Headphones, title: "دعم نفسي", description: "جلسات استشارية مجانية" }
+  ];
+
+  const workCulture = [
+    { number: "100%", label: "عمل عن بُعد" },
+    { number: "+15", label: "جنسية في الفريق" },
+    { number: "4.9", label: "تقييم الموظفين" },
+    { number: "90%", label: "معدل الاحتفاظ" }
   ];
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       <Header />
       
-      {/* Hero Section */}
-      <section className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-emerald-500/5 to-teal-500/10" />
-        <div className="absolute top-20 right-20 w-72 h-72 bg-green-500/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 left-20 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl" />
+      {/* Hero Section - Remote First */}
+      <section className="relative py-24 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-purple-500/5 to-blue-500/10" />
+        <div className="absolute top-20 right-20 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 left-20 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl" />
         
         <div className="container mx-auto px-4 relative z-10">
           <motion.div
@@ -210,25 +233,63 @@ const Careers = () => {
             transition={{ duration: 0.8 }}
             className="text-center max-w-4xl mx-auto"
           >
-            <Badge className="mb-6 bg-green-500/20 text-green-400 border-green-500/30 text-lg px-6 py-2">
-              <Briefcase className="w-5 h-5 ml-2" />
-              انضم إلى فريقنا
+            <Badge className="mb-6 bg-gradient-to-r from-primary/20 to-purple-500/20 text-primary border-primary/30 text-lg px-6 py-3">
+              <Home className="w-5 h-5 ml-2" />
+              شركة تعمل عن بُعد بالكامل
             </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              <span className="bg-gradient-to-l from-green-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent">
-                ابنِ مستقبلك معنا
+            
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6">
+              <span className="bg-gradient-to-l from-primary via-purple-500 to-blue-500 bg-clip-text text-transparent">
+                اعمل من أي مكان
               </span>
+              <br />
+              <span className="text-foreground">في العالم</span>
             </h1>
-            <p className="text-xl text-muted-foreground leading-relaxed">
-              نبحث عن مواهب استثنائية للانضمام إلى فريقنا المتميز. 
-              اكتشف الفرص المتاحة وابدأ رحلتك المهنية معنا.
+            
+            <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed mb-8 max-w-3xl mx-auto">
+              نحن فريق موزع عالمياً يؤمن بأن أفضل المواهب لا تحدها الحدود الجغرافية.
+              انضم إلينا واعمل من منزلك، مقهاك المفضل، أو من أي مكان يلهمك.
             </p>
+
+            <div className="flex flex-wrap justify-center gap-4">
+              <Button size="lg" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 text-lg px-8 py-6">
+                <Briefcase className="w-5 h-5 ml-2" />
+                استكشف الوظائف
+              </Button>
+              <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-2">
+                <Users className="w-5 h-5 ml-2" />
+                تعرف على فريقنا
+              </Button>
+            </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Why Join Us Section */}
+      {/* Work Culture Stats */}
       <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {workCulture.map((stat, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="text-center"
+              >
+                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-l from-primary to-purple-500 bg-clip-text text-transparent mb-2">
+                  {stat.number}
+                </div>
+                <div className="text-muted-foreground font-medium">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Remote Work Benefits */}
+      <section className="py-20">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -236,12 +297,18 @@ const Careers = () => {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl font-bold mb-4">لماذا تنضم إلينا؟</h2>
-            <p className="text-muted-foreground">نقدم بيئة عمل محفزة ومزايا تنافسية</p>
+            <Badge className="mb-4 bg-blue-500/20 text-blue-400 border-blue-500/30">
+              <Wifi className="w-4 h-4 ml-1" />
+              Remote First
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">لماذا العمل عن بُعد معنا؟</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              نوفر لك كل ما تحتاجه للعمل بكفاءة وراحة من أي مكان
+            </p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {benefits.map((benefit, index) => (
+            {remoteWorkBenefits.map((benefit, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
@@ -249,12 +316,12 @@ const Careers = () => {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="h-full text-center hover:shadow-lg transition-all hover:-translate-y-1 border-green-500/20">
-                  <CardContent className="pt-6">
-                    <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-                      <benefit.icon className="w-7 h-7 text-white" />
+                <Card className="h-full text-center hover:shadow-xl transition-all hover:-translate-y-2 border-primary/20 bg-gradient-to-b from-primary/5 to-transparent">
+                  <CardContent className="pt-8 pb-6">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/30">
+                      <benefit.icon className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="font-bold mb-2">{benefit.title}</h3>
+                    <h3 className="font-bold text-lg mb-2">{benefit.title}</h3>
                     <p className="text-sm text-muted-foreground">{benefit.description}</p>
                   </CardContent>
                 </Card>
@@ -264,8 +331,8 @@ const Careers = () => {
         </div>
       </section>
 
-      {/* Job Listings Section */}
-      <section className="py-16">
+      {/* Company Benefits */}
+      <section className="py-20 bg-gradient-to-b from-muted/50 to-background">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -273,16 +340,65 @@ const Careers = () => {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl font-bold mb-4">الوظائف المتاحة</h2>
-            <p className="text-muted-foreground">اكتشف الفرص الوظيفية المتاحة حالياً</p>
+            <Badge className="mb-4 bg-green-500/20 text-green-400 border-green-500/30">
+              <Heart className="w-4 h-4 ml-1" />
+              المزايا والفوائد
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">نهتم براحتك وسعادتك</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              حزمة مزايا شاملة تضمن لك التوازن بين العمل والحياة
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {companyBenefits.map((benefit, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <Card className="h-full hover:shadow-lg transition-all hover:border-primary/30 group">
+                  <CardContent className="p-5 flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                      <benefit.icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold mb-1">{benefit.title}</h3>
+                      <p className="text-sm text-muted-foreground">{benefit.description}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Job Listings Section */}
+      <section className="py-20" id="jobs">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
+              <Briefcase className="w-4 h-4 ml-1" />
+              الفرص المتاحة
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">الوظائف المتاحة حالياً</h2>
+            <p className="text-muted-foreground text-lg">جميع وظائفنا عن بُعد بالكامل - اعمل من أي مكان!</p>
           </motion.div>
 
           {isLoading ? (
             <div className="flex justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-green-500" />
+              <Loader2 className="w-10 h-10 animate-spin text-primary" />
             </div>
           ) : jobs && jobs.length > 0 ? (
-            <div className="grid gap-6">
+            <div className="grid gap-4 max-w-4xl mx-auto">
               {jobs.map((job, index) => (
                 <motion.div
                   key={job.id}
@@ -291,81 +407,117 @@ const Careers = () => {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Card className={`hover:shadow-lg transition-all hover:-translate-y-1 ${job.is_featured ? 'border-green-500/50 bg-green-500/5' : ''}`}>
+                  <Card className={`hover:shadow-xl transition-all hover:-translate-y-1 group ${job.is_featured ? 'border-primary/50 bg-gradient-to-r from-primary/5 to-purple-500/5 ring-1 ring-primary/20' : ''}`}>
                     <CardContent className="p-6">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-xl font-bold">{job.title_ar}</h3>
+                          <div className="flex items-center gap-3 mb-3">
+                            <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{job.title_ar}</h3>
                             {job.is_featured && (
-                              <Badge className="bg-green-500 text-white">مميز</Badge>
+                              <Badge className="bg-gradient-to-r from-primary to-purple-600 text-white border-0">
+                                <Zap className="w-3 h-3 ml-1" />
+                                مميز
+                              </Badge>
                             )}
+                            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/30">
+                              <Globe className="w-3 h-3 ml-1" />
+                              Remote
+                            </Badge>
                           </div>
-                          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
+                          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-3">
+                            <span className="flex items-center gap-1.5">
                               <Building2 className="w-4 h-4" />
                               {job.department_ar}
                             </span>
-                            <span className="flex items-center gap-1">
+                            <span className="flex items-center gap-1.5">
                               <MapPin className="w-4 h-4" />
-                              {job.location_ar}
+                              {job.location_ar || "عن بُعد - من أي مكان"}
                             </span>
-                            <span className="flex items-center gap-1">
+                            <span className="flex items-center gap-1.5">
                               <Clock className="w-4 h-4" />
                               {employmentTypeLabels[job.employment_type] || job.employment_type}
                             </span>
+                            {job.salary_range_ar && (
+                              <span className="flex items-center gap-1.5 text-primary font-medium">
+                                <DollarSign className="w-4 h-4" />
+                                {job.salary_range_ar}
+                              </span>
+                            )}
                           </div>
                           {job.description_ar && (
-                            <p className="mt-3 text-muted-foreground line-clamp-2">{job.description_ar}</p>
+                            <p className="text-muted-foreground line-clamp-2">{job.description_ar}</p>
                           )}
                         </div>
                         <Dialog>
                           <DialogTrigger asChild>
                             <Button 
                               onClick={() => setSelectedJob(job)}
-                              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                              size="lg"
+                              className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 shadow-lg shadow-primary/20"
                             >
+                              <Send className="w-4 h-4 ml-2" />
                               تقدم الآن
                             </Button>
                           </DialogTrigger>
                           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
                             <DialogHeader>
-                              <DialogTitle className="text-2xl">{job.title_ar}</DialogTitle>
+                              <DialogTitle className="text-2xl flex items-center gap-2">
+                                {job.title_ar}
+                                <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/30">
+                                  Remote
+                                </Badge>
+                              </DialogTitle>
                             </DialogHeader>
                             
                             <div className="space-y-6 mt-4">
-                              {/* Job Details */}
                               <div className="flex flex-wrap gap-3">
-                                <Badge variant="outline" className="gap-1">
-                                  <Building2 className="w-3 h-3" />
+                                <Badge variant="outline" className="gap-1.5 py-1.5">
+                                  <Building2 className="w-3.5 h-3.5" />
                                   {job.department_ar}
                                 </Badge>
-                                <Badge variant="outline" className="gap-1">
-                                  <MapPin className="w-3 h-3" />
-                                  {job.location_ar}
+                                <Badge variant="outline" className="gap-1.5 py-1.5">
+                                  <Globe className="w-3.5 h-3.5" />
+                                  عمل عن بُعد 100%
                                 </Badge>
-                                <Badge variant="outline" className="gap-1">
-                                  <Clock className="w-3 h-3" />
+                                <Badge variant="outline" className="gap-1.5 py-1.5">
+                                  <Clock className="w-3.5 h-3.5" />
                                   {employmentTypeLabels[job.employment_type]}
                                 </Badge>
                                 {job.salary_range_ar && (
-                                  <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
+                                  <Badge className="bg-primary/10 text-primary border-primary/30 gap-1.5 py-1.5">
+                                    <DollarSign className="w-3.5 h-3.5" />
                                     {job.salary_range_ar}
                                   </Badge>
                                 )}
                               </div>
 
+                              <div className="bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-xl p-4 border border-primary/20">
+                                <div className="flex items-center gap-2 text-primary font-medium mb-2">
+                                  <Home className="w-5 h-5" />
+                                  هذه وظيفة عن بُعد بالكامل
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  يمكنك العمل من أي مكان في العالم. نوفر لك الأدوات والدعم اللازم للعمل بكفاءة.
+                                </p>
+                              </div>
+
                               {job.description_ar && (
                                 <div>
-                                  <h4 className="font-semibold mb-2">الوصف الوظيفي</h4>
+                                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                                    <Briefcase className="w-4 h-4 text-primary" />
+                                    الوصف الوظيفي
+                                  </h4>
                                   <p className="text-muted-foreground">{job.description_ar}</p>
                                 </div>
                               )}
 
                               {job.requirements_ar && job.requirements_ar.length > 0 && (
                                 <div>
-                                  <h4 className="font-semibold mb-2">المتطلبات</h4>
-                                  <ul className="space-y-1">
+                                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                                    <CheckCircle2 className="w-4 h-4 text-primary" />
+                                    المتطلبات
+                                  </h4>
+                                  <ul className="space-y-2">
                                     {(job.requirements_ar as string[]).map((req, i) => (
                                       <li key={i} className="flex items-start gap-2 text-muted-foreground">
                                         <CheckCircle2 className="w-4 h-4 mt-1 text-green-500 flex-shrink-0" />
@@ -378,7 +530,10 @@ const Careers = () => {
 
                               {/* Application Form */}
                               <form onSubmit={handleSubmit} className="space-y-4 border-t pt-6">
-                                <h4 className="font-semibold text-lg">تقديم الطلب</h4>
+                                <h4 className="font-semibold text-lg flex items-center gap-2">
+                                  <Send className="w-5 h-5 text-primary" />
+                                  تقديم الطلب
+                                </h4>
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div>
@@ -388,6 +543,7 @@ const Careers = () => {
                                       value={formData.fullName}
                                       onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
                                       required
+                                      className="mt-1"
                                     />
                                   </div>
                                   <div>
@@ -398,6 +554,7 @@ const Careers = () => {
                                       value={formData.email}
                                       onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                                       required
+                                      className="mt-1"
                                     />
                                   </div>
                                   <div>
@@ -406,75 +563,61 @@ const Careers = () => {
                                       id="phone"
                                       value={formData.phone}
                                       onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                                      className="mt-1"
                                     />
                                   </div>
                                   <div>
-                                    <Label htmlFor="yearsOfExperience">سنوات الخبرة</Label>
+                                    <Label htmlFor="experience">سنوات الخبرة</Label>
                                     <Input
-                                      id="yearsOfExperience"
+                                      id="experience"
                                       type="number"
-                                      min="0"
                                       value={formData.yearsOfExperience}
                                       onChange={(e) => setFormData(prev => ({ ...prev, yearsOfExperience: e.target.value }))}
+                                      className="mt-1"
                                     />
                                   </div>
                                   <div>
-                                    <Label htmlFor="currentCompany">الشركة الحالية</Label>
+                                    <Label htmlFor="linkedin">LinkedIn</Label>
                                     <Input
-                                      id="currentCompany"
-                                      value={formData.currentCompany}
-                                      onChange={(e) => setFormData(prev => ({ ...prev, currentCompany: e.target.value }))}
+                                      id="linkedin"
+                                      value={formData.linkedinUrl}
+                                      onChange={(e) => setFormData(prev => ({ ...prev, linkedinUrl: e.target.value }))}
+                                      placeholder="رابط حسابك"
+                                      className="mt-1"
                                     />
                                   </div>
                                   <div>
-                                    <Label htmlFor="expectedSalary">الراتب المتوقع</Label>
+                                    <Label htmlFor="portfolio">معرض الأعمال</Label>
                                     <Input
-                                      id="expectedSalary"
-                                      value={formData.expectedSalary}
-                                      onChange={(e) => setFormData(prev => ({ ...prev, expectedSalary: e.target.value }))}
-                                      placeholder="مثال: 10,000 - 15,000 ريال"
+                                      id="portfolio"
+                                      value={formData.portfolioUrl}
+                                      onChange={(e) => setFormData(prev => ({ ...prev, portfolioUrl: e.target.value }))}
+                                      placeholder="رابط معرض أعمالك"
+                                      className="mt-1"
                                     />
                                   </div>
                                 </div>
 
                                 <div>
-                                  <Label htmlFor="linkedinUrl">رابط LinkedIn</Label>
-                                  <Input
-                                    id="linkedinUrl"
-                                    value={formData.linkedinUrl}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, linkedinUrl: e.target.value }))}
-                                    placeholder="https://linkedin.com/in/..."
-                                  />
-                                </div>
-
-                                <div>
-                                  <Label htmlFor="portfolioUrl">رابط معرض الأعمال</Label>
-                                  <Input
-                                    id="portfolioUrl"
-                                    value={formData.portfolioUrl}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, portfolioUrl: e.target.value }))}
-                                    placeholder="https://..."
-                                  />
-                                </div>
-
-                                <div>
-                                  <Label htmlFor="resume">السيرة الذاتية (PDF)</Label>
-                                  <div className="mt-1">
-                                    <label className="flex items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                                      <div className="text-center">
-                                        <Upload className="w-6 h-6 mx-auto mb-1 text-muted-foreground" />
-                                        <span className="text-sm text-muted-foreground">
-                                          {resumeFile ? resumeFile.name : "اضغط لرفع السيرة الذاتية"}
-                                        </span>
-                                      </div>
-                                      <input
-                                        type="file"
-                                        id="resume"
-                                        accept=".pdf,.doc,.docx"
-                                        className="hidden"
-                                        onChange={handleFileChange}
-                                      />
-                                    </label>
+                                  <Label htmlFor="resume">السيرة الذاتية</Label>
+                                  <div className="mt-1 flex items-center gap-4">
+                                    <Input
+                                      id="resume"
+                                      type="file"
+                                      accept=".pdf,.doc,.docx"
+                                      onChange={handleFileChange}
+                                      className="hidden"
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      onClick={() => document.getElementById('resume')?.click()}
+                                      className="gap-2"
+                                    >
+                                      <Upload className="w-4 h-4" />
+                                      {resumeFile ? resumeFile.name : "اختر ملف"}
+                                    </Button>
+                                    <span className="text-xs text-muted-foreground">PDF, DOC (الحد: 5MB)</span>
                                   </div>
                                 </div>
 
@@ -484,24 +627,23 @@ const Careers = () => {
                                     id="coverLetter"
                                     value={formData.coverLetter}
                                     onChange={(e) => setFormData(prev => ({ ...prev, coverLetter: e.target.value }))}
-                                    placeholder="اكتب رسالة قصيرة تعرف فيها بنفسك ولماذا تريد الانضمام إلينا..."
+                                    placeholder="لماذا تريد الانضمام إلينا؟"
                                     rows={4}
+                                    className="mt-1"
                                   />
                                 </div>
 
-                                <Button 
-                                  type="submit" 
-                                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                                <Button
+                                  type="submit"
                                   disabled={isSubmitting}
+                                  className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 py-6"
+                                  size="lg"
                                 >
                                   {isSubmitting ? (
-                                    <>
-                                      <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                                      جاري الإرسال...
-                                    </>
+                                    <Loader2 className="w-5 h-5 animate-spin" />
                                   ) : (
                                     <>
-                                      <Send className="w-4 h-4 ml-2" />
+                                      <Send className="w-5 h-5 ml-2" />
                                       إرسال الطلب
                                     </>
                                   )}
@@ -517,37 +659,51 @@ const Careers = () => {
               ))}
             </div>
           ) : (
-            <Card className="text-center py-12">
-              <CardContent>
-                <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-bold mb-2">لا توجد وظائف متاحة حالياً</h3>
-                <p className="text-muted-foreground mb-4">
-                  نحن دائماً نبحث عن المواهب المميزة. أرسل سيرتك الذاتية وسنتواصل معك عند توفر فرص مناسبة.
-                </p>
-                <Button asChild variant="outline">
-                  <a href="/contact">تواصل معنا</a>
-                </Button>
-              </CardContent>
-            </Card>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-16"
+            >
+              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
+                <Coffee className="w-12 h-12 text-muted-foreground" />
+              </div>
+              <h3 className="text-2xl font-bold mb-2">لا توجد وظائف متاحة حالياً</h3>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                نحن دائماً نبحث عن مواهب متميزة. أرسل سيرتك الذاتية وسنتواصل معك عند توفر فرص مناسبة.
+              </p>
+              <Button variant="outline" size="lg">
+                <Send className="w-4 h-4 ml-2" />
+                أرسل سيرتك الذاتية
+              </Button>
+            </motion.div>
           )}
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-green-500/10 via-emerald-500/10 to-teal-500/10">
-        <div className="container mx-auto px-4 text-center">
+      <section className="py-20 bg-gradient-to-br from-primary/10 via-purple-500/10 to-blue-500/10">
+        <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            className="text-center max-w-3xl mx-auto"
           >
-            <h2 className="text-3xl font-bold mb-4">لم تجد الوظيفة المناسبة؟</h2>
-            <p className="text-muted-foreground mb-6">
-              أرسل لنا سيرتك الذاتية وسنحتفظ بها للفرص المستقبلية
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              لم تجد الوظيفة المناسبة؟
+            </h2>
+            <p className="text-muted-foreground text-lg mb-8">
+              لا تقلق! أرسل سيرتك الذاتية وسنحتفظ بها للفرص المستقبلية المناسبة لمهاراتك.
             </p>
-            <Button asChild size="lg" className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700">
-              <a href="/contact">تواصل معنا</a>
-            </Button>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Button size="lg" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700">
+                <Send className="w-5 h-5 ml-2" />
+                أرسل طلباً عاماً
+              </Button>
+              <Button size="lg" variant="outline">
+                تابعنا على LinkedIn
+              </Button>
+            </div>
           </motion.div>
         </div>
       </section>
