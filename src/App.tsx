@@ -51,6 +51,8 @@ import ClientBalanceLogs from "./pages/dashboard/ClientBalanceLogs";
 import ClientDesignServices from "./pages/dashboard/ClientDesignServices";
 import ClientDevServices from "./pages/dashboard/ClientDevServices";
 import ClientDigitalServices from "./pages/dashboard/ClientDigitalServices";
+import DigitalServiceOrder from "./pages/dashboard/DigitalServiceOrder";
+import ClientDigitalOrders from "./pages/dashboard/ClientDigitalOrders";
 import ClientServicesHome from "./pages/dashboard/ClientServicesHome";
 import DesignServiceOrder from "./pages/dashboard/DesignServiceOrder";
 import ClientCashback from "./pages/dashboard/ClientCashback";
@@ -237,6 +239,16 @@ const App = () => (
                   <Route path="/dashboard/digital-services" element={
                     <ProtectedRoute>
                       <ClientDigitalServices />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/digital-services/order" element={
+                    <ProtectedRoute>
+                      <DigitalServiceOrder />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/digital-orders" element={
+                    <ProtectedRoute>
+                      <ClientDigitalOrders />
                     </ProtectedRoute>
                   } />
                   <Route path="/dashboard/social-services" element={

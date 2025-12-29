@@ -501,7 +501,7 @@ const ClientDigitalServices = () => {
   };
 
   const handleOrderClick = (service: Service) => {
-    navigate(`/dashboard/services?serviceId=${service.id}`);
+    navigate(`/dashboard/digital-services/order?serviceId=${service.id}`);
   };
 
   if (isLoading) {
@@ -587,7 +587,16 @@ const ClientDigitalServices = () => {
                   <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                   <span>العودة للخدمات</span>
                 </Link>
-                <LiveIndicator />
+                <div className="flex items-center gap-2">
+                  <Link
+                    to="/dashboard/digital-orders"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 text-white/80 hover:bg-white/20 transition-colors text-xs font-medium border border-white/10"
+                  >
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>طلباتي</span>
+                  </Link>
+                  <LiveIndicator />
+                </div>
               </div>
 
               {/* Title & Stats */}
