@@ -479,21 +479,15 @@ const AdminSupport = () => {
               />
             )}
             
-            <div className="flex gap-2" dir="rtl">
-              <div className="relative flex-1 min-w-0 overflow-hidden">
-                <textarea
+            <div className="flex gap-2">
+              <div className="relative flex-1 min-w-0">
+                <Input
                   placeholder="اكتب ردك للعميل..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                  rows={1}
-                  className="flex h-12 w-full rounded-xl border border-border/50 bg-secondary/50 px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none overflow-hidden text-right"
-                  style={{ direction: 'rtl', textAlign: 'right' }}
+                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
+                  className="bg-secondary/50 border-border/50 px-4 h-12 rounded-xl text-right"
+                  dir="rtl"
                 />
               </div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
