@@ -302,12 +302,12 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 250 }}
-              className="absolute top-0 right-0 h-full w-[85vw] max-w-[320px] bg-card border-l border-border/50 flex flex-col"
+              className="absolute top-0 right-0 h-full w-[85vw] max-w-[320px] bg-card border-l border-border/50 flex flex-col overflow-hidden"
               onClick={(e) => e.stopPropagation()}
               dir="rtl"
             >
               {/* Mobile Menu Header */}
-              <div className="p-3 border-b border-border/40 flex items-center justify-between">
+              <div className="shrink-0 p-3 border-b border-border/40 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center">
                     <Shield className="w-5 h-5 text-white" />
@@ -333,7 +333,7 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
               </div>
 
               {/* Mobile Search */}
-              <div className="p-3 border-b border-border/30">
+              <div className="shrink-0 p-3 border-b border-border/30">
                 <div className="relative">
                   <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input 
@@ -343,8 +343,8 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                 </div>
               </div>
 
-              {/* Mobile Navigation */}
-              <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
+              {/* Mobile Navigation - Scrollable */}
+              <nav className="flex-1 min-h-0 overflow-y-auto p-2 space-y-0.5">
                 {adminNavItems.map((item, index) => {
                   const badge = navBadges[item.href];
                   const active = isActive(item.href);
@@ -389,10 +389,10 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                 })}
               </nav>
 
-              {/* Mobile Admin Info */}
-              <div className="p-3 border-t border-border/40 bg-secondary/20">
+              {/* Mobile Admin Info - Always visible at bottom */}
+              <div className="shrink-0 p-3 border-t border-border/40 bg-card">
                 <div className="flex items-center gap-2 mb-3 p-2 rounded-lg bg-secondary/40">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shrink-0">
                     <Shield className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -405,11 +405,11 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                 </div>
                 <Button 
                   variant="outline" 
-                  className="w-full h-10 gap-2 rounded-lg border-destructive/30 text-destructive hover:bg-destructive/10 text-sm"
+                  className="w-full h-10 gap-2 rounded-lg border-destructive/30 text-destructive hover:bg-destructive/10 text-sm font-medium"
                   onClick={handleSignOut}
                 >
                   <LogOut className="w-4 h-4" />
-                  الخروج
+                  تسجيل الخروج
                 </Button>
               </div>
             </motion.div>
