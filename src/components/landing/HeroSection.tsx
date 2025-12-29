@@ -445,42 +445,6 @@ const HeroSection = () => {
             </Link>
           </motion.div>
 
-          {/* Stats Row */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.8 }}
-            className="flex flex-wrap justify-center gap-6 xs:gap-8 md:gap-16"
-          >
-            {[
-              { value: stats?.totalUsers || 0, suffix: "+", label: "عميل سعيد", icon: Users, color: "text-primary" },
-              { value: stats?.completedOrders || 0, suffix: "+", label: "مشروع ناجح", icon: Award, color: "text-emerald-500" },
-              { value: stats?.satisfactionRate || 98, suffix: "%", label: "معدل الرضا", icon: TrendingUp, color: "text-violet-500" },
-            ].map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                transition={{ delay: 0.9 + index * 0.1 }}
-                whileHover={{ scale: 1.05 }}
-                className="text-center group"
-              >
-                <div className="flex items-center justify-center gap-1.5 xs:gap-2 mb-1 xs:mb-2">
-                  <stat.icon className={`w-5 h-5 xs:w-6 xs:h-6 ${stat.color} opacity-70 group-hover:opacity-100 transition-opacity`} />
-                  <span className={`text-2xl xs:text-3xl md:text-4xl font-bold ${stat.color}`}>
-                    {isLoading ? (
-                      <span className="inline-block w-12 h-8 bg-muted animate-pulse rounded" />
-                    ) : (
-                      <>
-                        {stat.value.toLocaleString()}{stat.suffix}
-                      </>
-                    )}
-                  </span>
-                </div>
-                <span className="text-muted-foreground text-xs xs:text-sm">{stat.label}</span>
-              </motion.div>
-            ))}
-          </motion.div>
         </div>
       </motion.div>
 
