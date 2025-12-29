@@ -35,7 +35,7 @@ const MobileStatCard = ({
       onClick={onClick}
       dir="rtl"
       className={cn(
-        "relative overflow-hidden rounded-xl p-3 cursor-pointer group",
+        "relative overflow-hidden rounded-lg sm:rounded-xl p-2 sm:p-3 cursor-pointer group",
         "bg-card border border-border/50 hover:border-primary/30",
         "active:bg-secondary/50 transition-all duration-200"
       )}
@@ -46,26 +46,26 @@ const MobileStatCard = ({
         `bg-gradient-to-bl ${gradient}`
       )} />
       
-      <div className="relative z-10 flex items-center gap-2 justify-between">
+      <div className="relative z-10 flex items-center gap-1.5 sm:gap-2 justify-between">
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] text-muted-foreground truncate mb-1">{title}</p>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-lg font-bold leading-none">
+          <p className="text-[9px] sm:text-[11px] text-muted-foreground truncate mb-0.5 sm:mb-1">{title}</p>
+          <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+            <span className="text-sm sm:text-lg font-bold leading-none">
               <AnimatedCounter value={value} suffix={suffix} duration={1} />
             </span>
             {trend !== undefined && trend !== 0 && (
               <span className={cn(
-                "flex items-center gap-0.5 text-[10px] font-medium",
+                "flex items-center gap-0.5 text-[8px] sm:text-[10px] font-medium",
                 trend > 0 ? "text-success" : "text-destructive"
               )}>
-                {trend > 0 ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
+                {trend > 0 ? <TrendingUp className="w-2 h-2 sm:w-2.5 sm:h-2.5" /> : <TrendingDown className="w-2 h-2 sm:w-2.5 sm:h-2.5" />}
                 {Math.abs(trend)}%
               </span>
             )}
           </div>
         </div>
-        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm", iconBg)}>
-          <Icon className="w-5 h-5 text-white" />
+        <div className={cn("w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 shadow-sm", iconBg)}>
+          <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
         </div>
       </div>
     </motion.div>
@@ -87,7 +87,7 @@ interface MobileDashboardStatsProps {
 
 const MobileDashboardStats = ({ stats }: MobileDashboardStatsProps) => {
   return (
-    <div className="grid grid-cols-2 gap-2" dir="rtl">
+    <div className="grid grid-cols-2 gap-1.5 sm:gap-2" dir="rtl">
       {stats.map((stat, index) => (
         <MobileStatCard
           key={stat.title}
