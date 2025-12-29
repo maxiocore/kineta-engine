@@ -444,11 +444,27 @@ const AdminDashboard = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-3 mt-3">
-          {/* Stats Grid - Same style as Analytics */}
+        <TabsContent value="overview" className="space-y-4 mt-3">
+          {/* Stats Grid - Premium Design */}
           <div className="grid grid-cols-2 gap-3">
             {statsData.map((stat, index) => {
               const Icon = stat.icon;
+              const gradientColors = [
+                'from-primary/10 to-primary/5',
+                'from-green-500/10 to-green-500/5',
+                'from-blue-500/10 to-blue-500/5',
+                'from-purple-500/10 to-purple-500/5',
+                'from-amber-500/10 to-amber-500/5',
+                'from-pink-500/10 to-pink-500/5',
+              ];
+              const decorColors = [
+                'bg-primary/10',
+                'bg-green-500/10',
+                'bg-blue-500/10',
+                'bg-purple-500/10',
+                'bg-amber-500/10',
+                'bg-pink-500/10',
+              ];
               return (
                 <motion.div
                   key={stat.title}
@@ -457,24 +473,32 @@ const AdminDashboard = () => {
                   transition={{ delay: index * 0.05 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={stat.onClick}
-                  className="bg-card rounded-xl border border-border/50 p-3 cursor-pointer hover:border-primary/30 active:bg-secondary/50 transition-all relative overflow-hidden"
+                  className={cn(
+                    "rounded-xl border border-border/50 p-3 cursor-pointer",
+                    "hover:border-primary/30 active:bg-secondary/50 transition-all",
+                    "relative overflow-hidden bg-gradient-to-br",
+                    gradientColors[index % gradientColors.length]
+                  )}
                 >
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-                  <div className="relative">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className={cn("p-2 rounded-xl shadow-sm shrink-0", stat.iconBg)}>
+                  <div className={cn(
+                    "absolute top-0 right-0 w-14 h-14 rounded-full -translate-y-1/2 translate-x-1/2",
+                    decorColors[index % decorColors.length]
+                  )} />
+                  <div className="relative flex flex-col h-full">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className={cn("p-2 rounded-lg shadow-sm shrink-0", stat.iconBg)}>
                         <Icon className="w-4 h-4 text-white" />
                       </div>
-                      <p className="text-[11px] text-muted-foreground leading-tight line-clamp-2">{stat.title}</p>
+                      <p className="text-[10px] text-muted-foreground leading-tight line-clamp-2 flex-1">{stat.title}</p>
                     </div>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-xl font-bold">
+                    <div className="flex items-baseline justify-between gap-1 mt-auto">
+                      <span className="text-lg font-bold">
                         <AnimatedCounter value={stat.value} suffix={stat.suffix} duration={1} />
                       </span>
                       {stat.trend !== undefined && stat.trend !== 0 && (
                         <span className={cn(
-                          "text-[10px] font-medium flex items-center gap-0.5",
-                          stat.trend > 0 ? "text-success" : "text-destructive"
+                          "text-[9px] font-medium px-1.5 py-0.5 rounded-full",
+                          stat.trend > 0 ? "text-success bg-success/10" : "text-destructive bg-destructive/10"
                         )}>
                           {stat.trend > 0 ? "↑" : "↓"}{Math.abs(stat.trend)}%
                         </span>
@@ -486,15 +510,24 @@ const AdminDashboard = () => {
             })}
           </div>
 
+          {/* Live Orders Chart */}
           <MobileLiveOrdersChart />
+          
+          {/* Revenue Card */}
           <MobileRevenueCard
             totalRevenue={stats.totalRevenue}
             monthlyRevenue={stats.monthlyRevenue}
             weeklyRevenue={stats.weeklyRevenue}
             revenueTrend={stats.revenueTrend}
           />
+          
+          {/* Quick Actions */}
           <MobileQuickActions />
+          
+          {/* Top Services */}
           <MobileTopServices services={topServices} />
+          
+          {/* Activity Feed */}
           <MobileActivityFeed activities={activities} />
         </TabsContent>
 
