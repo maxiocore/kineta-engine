@@ -158,6 +158,9 @@
     @apply bg-background text-foreground antialiased;
     font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+    direction: rtl;
+    text-align: right;
+    unicode-bidi: embed;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -167,18 +170,41 @@
   }
 
   /* RTL Support */
-  [dir="rtl"] input,
-  [dir="rtl"] textarea,
-  [dir="rtl"] select {
+  input,
+  textarea,
+  select {
     text-align: right;
+    direction: rtl;
   }
 
+  /* RTL Logical Properties */
   .ms-auto {
     margin-inline-start: auto;
   }
   
   .me-auto {
     margin-inline-end: auto;
+  }
+
+  /* RTL Arrow Icons - Flip directional arrows */
+  .rtl-flip {
+    transform: scaleX(-1);
+  }
+
+  /* RTL Progress bars - Start from right */
+  [dir="rtl"] [role="progressbar"] [data-state] {
+    transform-origin: right;
+  }
+
+  /* Numbers in RTL context */
+  .rtl-number {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
+  /* Currency formatting */
+  .currency-sar::after {
+    content: " ر.س";
   }
 }
 
