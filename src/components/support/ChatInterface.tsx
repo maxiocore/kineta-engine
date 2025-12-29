@@ -2,20 +2,17 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Send, 
-  Paperclip, 
   Clock, 
-  User, 
   HeadphonesIcon,
   Loader2,
   ArrowRight,
   Star,
-  MessageSquare,
   Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import {
   Popover,
@@ -205,7 +202,6 @@ export const ChatInterface = ({
             <AnimatePresence>
               {messages.map((msg, index) => {
                 const isFromAdmin = msg.is_admin;
-                const isFromCurrentUser = msg.sender_id === currentUserId;
                 
                 return (
                   <motion.div 
@@ -226,13 +222,12 @@ export const ChatInterface = ({
                         {isFromAdmin && (
                           <div className="flex items-center gap-2 mb-2">
                             <Avatar className="w-6 h-6">
-                              <AvatarImage src={msg.sender?.avatar_url || ''} />
                               <AvatarFallback className="bg-primary/10 text-primary text-xs">
                                 <HeadphonesIcon className="w-3.5 h-3.5" />
                               </AvatarFallback>
                             </Avatar>
                             <span className="text-xs font-semibold text-primary">
-                              {msg.sender?.full_name || 'فريق الدعم'}
+                              فريق الدعم
                             </span>
                           </div>
                         )}

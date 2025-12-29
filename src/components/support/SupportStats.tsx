@@ -60,21 +60,21 @@ export const SupportStats = ({ stats, compact = false }: SupportStatsProps) => {
     },
     { 
       label: 'تجاوز SLA', 
-      value: stats.breachedSLA, 
+      value: stats.breachedSLA || 0, 
       icon: Zap, 
       color: 'text-orange-500',
       bg: 'bg-orange-500/10'
     },
     { 
       label: 'متوسط الرد', 
-      value: `${stats.avgResponseTime}س`, 
+      value: `${stats.avgResponseTime || 0}س`, 
       icon: TrendingUp, 
       color: 'text-blue-500',
       bg: 'bg-blue-500/10'
     },
     { 
       label: 'رضا العملاء', 
-      value: `${stats.satisfactionRate}%`, 
+      value: `${stats.satisfactionRate || 0}%`, 
       icon: Star, 
       color: 'text-amber-500',
       bg: 'bg-amber-500/10'
@@ -95,7 +95,7 @@ export const SupportStats = ({ stats, compact = false }: SupportStatsProps) => {
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className={cn("p-2 rounded-lg", stat.bg)}>
-                    <stat.icon className={cn("w-4 h-4 bg-gradient-to-r bg-clip-text", stat.gradient)} style={{ color: 'transparent', backgroundImage: `linear-gradient(to right, var(--tw-gradient-stops))` }} />
+                    <stat.icon className="w-4 h-4 text-foreground" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{stat.value}</p>
