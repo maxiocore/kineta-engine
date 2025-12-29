@@ -11,6 +11,8 @@ export interface Attachment {
   size: number;
 }
 
+export type TicketCategory = 'general' | 'orders' | 'issues' | 'financing' | 'payments';
+
 export interface SupportTicket {
   id: string;
   user_id: string;
@@ -19,10 +21,13 @@ export interface SupportTicket {
   description: string;
   status: 'open' | 'in_progress' | 'resolved' | 'closed';
   priority: 'low' | 'medium' | 'high' | 'urgent';
+  category: TicketCategory;
+  related_order_id: string | null;
   created_at: string;
   updated_at: string;
   user_email?: string;
   user_name?: string;
+  order_number?: string;
 }
 
 export interface TicketMessage {
@@ -44,6 +49,7 @@ export interface TicketStats {
   urgent: number;
   todayNew: number;
   avgResponseTime: string;
+  byCategory: Record<TicketCategory, number>;
 }
 
 export const useSupportSystem = (isAdmin = false) => {
@@ -55,7 +61,8 @@ export const useSupportSystem = (isAdmin = false) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stats, setStats] = useState<TicketStats>({
     total: 0, open: 0, inProgress: 0, resolved: 0, closed: 0, urgent: 0,
-    todayNew: 0, avgResponseTime: '0'
+    todayNew: 0, avgResponseTime: '0',
+    byCategory: { general: 0, orders: 0, issues: 0, financing: 0, payments: 0 }
   });
 
   const channelRef = useRef<RealtimeChannel | null>(null);
@@ -69,6 +76,17 @@ export const useSupportSystem = (isAdmin = false) => {
       new Date(t.created_at).toDateString() === today
     );
 
+    const byCategory: Record<TicketCategory, number> = {
+      general: 0, orders: 0, issues: 0, financing: 0, payments: 0
+    };
+    
+    ticketsList.forEach(t => {
+      const cat = t.category as TicketCategory;
+      if (byCategory[cat] !== undefined) {
+        byCategory[cat]++;
+      }
+    });
+
     setStats({
       total: ticketsList.length,
       open: ticketsList.filter(t => t.status === 'open').length,
@@ -77,7 +95,8 @@ export const useSupportSystem = (isAdmin = false) => {
       closed: ticketsList.filter(t => t.status === 'closed').length,
       urgent: ticketsList.filter(t => t.priority === 'urgent').length,
       todayNew: todayTickets.length,
-      avgResponseTime: '< 2h'
+      avgResponseTime: '< 2h',
+      byCategory
     });
   }, []);
 
@@ -99,23 +118,46 @@ export const useSupportSystem = (isAdmin = false) => {
       
       if (error) throw error;
       
-      // جلب بيانات المستخدمين للأدمن
+      // جلب بيانات المستخدمين والطلبات
       let enrichedTickets = data || [];
       
-      if (isAdmin && enrichedTickets.length > 0) {
-        const userIds = [...new Set(enrichedTickets.map(t => t.user_id))];
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, email, full_name')
-          .in('id', userIds);
+      if (enrichedTickets.length > 0) {
+        // جلب بيانات المستخدمين للأدمن
+        if (isAdmin) {
+          const userIds = [...new Set(enrichedTickets.map(t => t.user_id))];
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, email, full_name')
+            .in('id', userIds);
+          
+          if (profiles) {
+            const profileMap = new Map(profiles.map(p => [p.id, p]));
+            enrichedTickets = enrichedTickets.map(ticket => ({
+              ...ticket,
+              user_email: profileMap.get(ticket.user_id)?.email,
+              user_name: profileMap.get(ticket.user_id)?.full_name
+            }));
+          }
+        }
         
-        if (profiles) {
-          const profileMap = new Map(profiles.map(p => [p.id, p]));
-          enrichedTickets = enrichedTickets.map(ticket => ({
-            ...ticket,
-            user_email: profileMap.get(ticket.user_id)?.email,
-            user_name: profileMap.get(ticket.user_id)?.full_name
-          }));
+        // جلب أرقام الطلبات المرتبطة
+        const orderIds = enrichedTickets
+          .filter(t => t.related_order_id)
+          .map(t => t.related_order_id);
+        
+        if (orderIds.length > 0) {
+          const { data: orders } = await supabase
+            .from('orders')
+            .select('id, order_number')
+            .in('id', orderIds);
+          
+          if (orders) {
+            const orderMap = new Map(orders.map(o => [o.id, o.order_number]));
+            enrichedTickets = enrichedTickets.map(ticket => ({
+              ...ticket,
+              order_number: ticket.related_order_id ? orderMap.get(ticket.related_order_id) : undefined
+            }));
+          }
         }
       }
       
@@ -163,6 +205,9 @@ export const useSupportSystem = (isAdmin = false) => {
     subject: string; 
     description: string; 
     priority: 'low' | 'medium' | 'high' | 'urgent';
+    category: TicketCategory;
+    related_order_id?: string | null;
+    attachments?: Attachment[];
   }) => {
     if (!user) throw new Error('User not authenticated');
     
@@ -174,14 +219,27 @@ export const useSupportSystem = (isAdmin = false) => {
           user_id: user.id, 
           subject: data.subject.trim(),
           description: data.description.trim(),
-          priority: data.priority
+          priority: data.priority,
+          category: data.category,
+          related_order_id: data.related_order_id || null
         })
         .select()
         .single();
       
       if (error) throw error;
       
-      // إرسال إشعار بالبريد الإلكتروني للأدمن
+      // إذا كان هناك مرفقات، أضفها كرسالة أولى
+      if (data.attachments && data.attachments.length > 0) {
+        await supabase.from('ticket_messages').insert([{
+          ticket_id: newTicket.id,
+          sender_id: user.id,
+          message: 'مرفقات التذكرة',
+          is_admin: false,
+          attachments: data.attachments as any
+        }]);
+      }
+      
+      // إرسال إشعار بالبريد الإلكتروني
       if (user.email) {
         try {
           await supabase.functions.invoke('send-email', {
@@ -192,6 +250,7 @@ export const useSupportSystem = (isAdmin = false) => {
                 ticketNumber: newTicket.ticket_number,
                 subject: data.subject,
                 priority: data.priority,
+                category: getCategoryLabel(data.category),
                 userEmail: user.email,
                 userName: user.user_metadata?.full_name || 'مستخدم'
               }
@@ -215,21 +274,52 @@ export const useSupportSystem = (isAdmin = false) => {
     }
   };
 
+  // رفع مرفق
+  const uploadAttachment = async (file: File): Promise<Attachment | null> => {
+    if (!user) return null;
+    
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('ticket-attachments')
+        .upload(fileName, file);
+      
+      if (uploadError) throw uploadError;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('ticket-attachments')
+        .getPublicUrl(fileName);
+      
+      return {
+        name: file.name,
+        url: publicUrl,
+        type: file.type,
+        size: file.size
+      };
+    } catch (error) {
+      console.error('Error uploading attachment:', error);
+      toast({ title: 'خطأ', description: 'فشل في رفع المرفق', variant: 'destructive' });
+      return null;
+    }
+  };
+
   // إرسال رسالة
   const sendMessage = async (ticketId: string, message: string, attachments: Attachment[] = []) => {
-    if (!user || !message.trim()) return;
+    if (!user || (!message.trim() && attachments.length === 0)) return;
     
     setIsSubmitting(true);
     try {
       const { error } = await supabase
         .from('ticket_messages')
-        .insert({
+        .insert([{
           ticket_id: ticketId,
           sender_id: user.id,
-          message: message.trim(),
+          message: message.trim() || 'مرفق',
           is_admin: isAdmin,
-          attachments: attachments.length > 0 ? JSON.stringify(attachments) : null,
-        });
+          attachments: attachments.length > 0 ? (attachments as any) : null,
+        }]);
       
       if (error) throw error;
       
@@ -407,17 +497,37 @@ export const useSupportSystem = (isAdmin = false) => {
     createTicket,
     sendMessage,
     updateTicketStatus,
-    selectTicket
+    selectTicket,
+    uploadAttachment
   };
+};
+
+// أقسام التذاكر
+export const ticketCategories: { value: TicketCategory; label: string; icon: string; color: string }[] = [
+  { value: 'general', label: 'عام', icon: 'MessageSquare', color: 'bg-slate-500/15 text-slate-500 border-slate-500/30' },
+  { value: 'orders', label: 'الطلبات', icon: 'ShoppingCart', color: 'bg-blue-500/15 text-blue-500 border-blue-500/30' },
+  { value: 'issues', label: 'المشاكل', icon: 'AlertTriangle', color: 'bg-red-500/15 text-red-500 border-red-500/30' },
+  { value: 'financing', label: 'التمويل', icon: 'Banknote', color: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30' },
+  { value: 'payments', label: 'المدفوعات', icon: 'CreditCard', color: 'bg-purple-500/15 text-purple-500 border-purple-500/30' },
+];
+
+export const getCategoryLabel = (category: string) => {
+  const cat = ticketCategories.find(c => c.value === category);
+  return cat?.label || 'عام';
+};
+
+export const getCategoryColor = (category: string) => {
+  const cat = ticketCategories.find(c => c.value === category);
+  return cat?.color || 'bg-muted text-muted-foreground';
 };
 
 // دوال مساعدة للعرض
 export const getStatusLabel = (status: string) => {
   const labels: Record<string, string> = {
-    open: 'جديد',
+    open: 'مفتوحة',
     in_progress: 'قيد المعالجة',
     resolved: 'تم الحل',
-    closed: 'مغلق'
+    closed: 'مغلقة'
   };
   return labels[status] || status;
 };

@@ -50,6 +50,7 @@ interface ModernChatInterfaceProps {
   onSendMessage: (message: string, attachments?: Attachment[]) => Promise<void>;
   onBack?: () => void;
   onStatusChange?: (status: SupportTicket['status']) => void;
+  onUploadAttachment?: (file: File) => Promise<Attachment | null>;
 }
 
 export const ModernChatInterface = ({
@@ -62,26 +63,56 @@ export const ModernChatInterface = ({
   onSendMessage,
   onBack,
   onStatusChange,
+  onUploadAttachment,
 }: ModernChatInterfaceProps) => {
   const [newMessage, setNewMessage] = useState('');
   const [isFocused, setIsFocused] = useState(false);
+  const [pendingAttachments, setPendingAttachments] = useState<Attachment[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !onUploadAttachment) return;
+    
+    setIsUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        if (file.size > 10 * 1024 * 1024) continue;
+        const attachment = await onUploadAttachment(file);
+        if (attachment) {
+          setPendingAttachments(prev => [...prev, attachment]);
+        }
+      }
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setPendingAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSend = async () => {
-    if (!newMessage.trim() || isSubmitting) return;
+    if ((!newMessage.trim() && pendingAttachments.length === 0) || isSubmitting) return;
     
     const messageToSend = newMessage;
+    const attachmentsToSend = [...pendingAttachments];
     setNewMessage('');
+    setPendingAttachments([]);
     
     try {
-      await onSendMessage(messageToSend);
+      await onSendMessage(messageToSend, attachmentsToSend);
     } catch (error) {
       setNewMessage(messageToSend);
+      setPendingAttachments(attachmentsToSend);
     }
   };
 
@@ -319,12 +350,54 @@ export const ModernChatInterface = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*,.pdf,.doc,.docx,.txt"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          
+          {/* Pending attachments */}
+          {pendingAttachments.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {pendingAttachments.map((att, idx) => (
+                <div key={idx} className="flex items-center gap-1 px-2 py-1 bg-secondary rounded-lg text-xs">
+                  <Paperclip className="w-3 h-3" />
+                  <span className="max-w-[100px] truncate">{att.name}</span>
+                  <button onClick={() => removeAttachment(idx)} className="hover:text-destructive">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          
           <div className={cn(
             "flex items-end gap-2 p-2 rounded-2xl border transition-all duration-200",
             isFocused 
               ? "border-primary/50 bg-secondary/50 shadow-lg shadow-primary/5" 
               : "border-border/50 bg-secondary/30"
           )}>
+            {/* Attachment button */}
+            {onUploadAttachment && (
+              <motion.button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary hover:bg-secondary/80 transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {isUploading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Paperclip className="w-5 h-5 text-muted-foreground" />
+                )}
+              </motion.button>
+            )}
+            
             <Textarea
               ref={textareaRef}
               placeholder={isAdmin ? "اكتب ردك للعميل..." : "اكتب رسالتك..."}
@@ -339,14 +412,14 @@ export const ModernChatInterface = ({
             />
             <motion.button
               onClick={handleSend}
-              disabled={isSubmitting || !newMessage.trim()}
+              disabled={isSubmitting || (!newMessage.trim() && pendingAttachments.length === 0)}
               className={cn(
                 "w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200",
-                newMessage.trim() 
+                (newMessage.trim() || pendingAttachments.length > 0)
                   ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40" 
                   : "bg-secondary text-muted-foreground"
               )}
-              whileHover={{ scale: newMessage.trim() ? 1.05 : 1 }}
+              whileHover={{ scale: (newMessage.trim() || pendingAttachments.length > 0) ? 1.05 : 1 }}
               whileTap={{ scale: 0.95 }}
             >
               {isSubmitting ? (
