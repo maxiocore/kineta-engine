@@ -81,22 +81,22 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
+      staggerChildren: 0.05,
+      delayChildren: 0.1
     }
   }
 };
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  hidden: { opacity: 0, y: 20, scale: 0.98 },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
     transition: {
       type: "spring" as const,
-      stiffness: 100,
-      damping: 15
+      stiffness: 200,
+      damping: 20
     }
   }
 };
@@ -137,16 +137,16 @@ const WhyUsSection = () => {
       <div className="container px-4 relative z-10">
         {/* Section Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.4 }}
           className="text-center mb-12 md:mb-16"
         >
           <motion.div 
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={isInView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            transition={{ duration: 0.3 }}
             whileHover={{ scale: 1.05 }}
           >
             <motion.div
@@ -168,7 +168,7 @@ const WhyUsSection = () => {
                 className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-l from-primary to-accent rounded-full"
                 initial={{ scaleX: 0, opacity: 0 }}
                 animate={isInView ? { scaleX: 1, opacity: 1 } : {}}
-                transition={{ duration: 0.8, delay: 0.3 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
               />
             </span>
           </h2>
@@ -214,10 +214,10 @@ const WhyUsSection = () => {
                     {/* Stat Badge */}
                     <motion.div 
                       className="text-left"
-                      initial={{ opacity: 0, x: 10 }}
-                      animate={isInView ? { opacity: 1, x: 0 } : {}}
-                      transition={{ delay: 0.4 + index * 0.1 }}
-                    >
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={isInView ? { opacity: 1, x: 0 } : {}}
+                    transition={{ delay: 0.2 + index * 0.03 }}
+                  >
                       <div className={`text-lg md:text-xl font-bold bg-gradient-to-l ${feature.gradient} bg-clip-text text-transparent`}>
                         {feature.stat}
                       </div>
@@ -242,9 +242,9 @@ const WhyUsSection = () => {
                     {feature.highlights.map((highlight, i) => (
                       <motion.div
                         key={highlight}
-                        initial={{ opacity: 0, scale: 0.8 }}
+                        initial={{ opacity: 0, scale: 0.9 }}
                         animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                        transition={{ duration: 0.3, delay: 0.5 + index * 0.05 + i * 0.1 }}
+                        transition={{ duration: 0.2, delay: 0.2 + index * 0.02 + i * 0.05 }}
                         className="flex items-center gap-1 px-2 py-1 rounded-full bg-secondary/60 text-[10px] md:text-xs text-muted-foreground"
                       >
                         <CheckCircle2 className="w-2.5 h-2.5 md:w-3 md:h-3 text-primary" />
@@ -269,9 +269,9 @@ const WhyUsSection = () => {
 
         {/* CTA Button */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.8 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
           className="flex justify-center mt-10 md:mt-14"
         >
           <motion.a
@@ -294,7 +294,7 @@ const WhyUsSection = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 1 }}
+          transition={{ delay: 0.4 }}
           className="flex justify-center mt-8 md:mt-10"
         >
           <div className="flex items-center gap-3 text-muted-foreground">
