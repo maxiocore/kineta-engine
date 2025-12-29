@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { LucideIcon, TrendingUp, TrendingDown, ChevronLeft } from "lucide-react";
+import { LucideIcon, TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AnimatedCounter from "./AnimatedCounter";
 
@@ -46,19 +46,16 @@ const MobileStatCard = ({
         `bg-gradient-to-bl ${gradient}`
       )} />
       
-      <div className="relative z-10 flex items-center gap-2.5 flex-row-reverse">
-        <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shrink-0 shadow-sm", iconBg)}>
-          <Icon className="w-4 h-4 text-white" />
-        </div>
-        <div className="min-w-0 flex-1 text-right">
-          <p className="text-xs text-muted-foreground truncate">{title}</p>
-          <div className="flex items-center gap-1.5 justify-end flex-row-reverse">
-            <span className="text-base font-bold">
+      <div className="relative z-10 flex items-center gap-2 justify-between">
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] text-muted-foreground truncate mb-1">{title}</p>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-lg font-bold leading-none">
               <AnimatedCounter value={value} suffix={suffix} duration={1} />
             </span>
             {trend !== undefined && trend !== 0 && (
               <span className={cn(
-                "flex items-center gap-0.5 text-[10px] font-medium flex-row-reverse",
+                "flex items-center gap-0.5 text-[10px] font-medium",
                 trend > 0 ? "text-success" : "text-destructive"
               )}>
                 {trend > 0 ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
@@ -67,7 +64,9 @@ const MobileStatCard = ({
             )}
           </div>
         </div>
-        <ChevronLeft className="w-4 h-4 text-muted-foreground opacity-0 group-active:opacity-100 transition-opacity shrink-0 rotate-180" />
+        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm", iconBg)}>
+          <Icon className="w-5 h-5 text-white" />
+        </div>
       </div>
     </motion.div>
   );
