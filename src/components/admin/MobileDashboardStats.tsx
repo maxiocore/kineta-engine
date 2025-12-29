@@ -35,7 +35,7 @@ const MobileStatCard = ({
       onClick={onClick}
       dir="rtl"
       className={cn(
-        "relative overflow-hidden rounded-xl p-3 cursor-pointer group",
+        "relative overflow-hidden rounded-xl p-3.5 cursor-pointer group w-full",
         "bg-card border border-border/50 hover:border-primary/30",
         "active:bg-secondary/50 transition-all duration-200"
       )}
@@ -46,22 +46,22 @@ const MobileStatCard = ({
         `bg-gradient-to-bl ${gradient}`
       )} />
       
-      <div className="relative z-10 flex items-center gap-2.5 flex-row-reverse">
-        <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center shrink-0 shadow-sm", iconBg)}>
-          <Icon className="w-4 h-4 text-white" />
+      <div className="relative z-10 flex items-center gap-3 flex-row-reverse">
+        <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 shadow-sm", iconBg)}>
+          <Icon className="w-5 h-5 text-white" />
         </div>
         <div className="min-w-0 flex-1 text-right">
-          <p className="text-xs text-muted-foreground truncate">{title}</p>
-          <div className="flex items-center gap-1.5 justify-end flex-row-reverse">
-            <span className="text-base font-bold">
+          <p className="text-xs text-muted-foreground mb-0.5">{title}</p>
+          <div className="flex items-center gap-2 justify-end flex-row-reverse">
+            <span className="text-lg font-bold">
               <AnimatedCounter value={value} suffix={suffix} duration={1} />
             </span>
             {trend !== undefined && trend !== 0 && (
               <span className={cn(
-                "flex items-center gap-0.5 text-[10px] font-medium flex-row-reverse",
+                "flex items-center gap-0.5 text-xs font-medium flex-row-reverse",
                 trend > 0 ? "text-success" : "text-destructive"
               )}>
-                {trend > 0 ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
+                {trend > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                 {Math.abs(trend)}%
               </span>
             )}
@@ -88,7 +88,7 @@ interface MobileDashboardStatsProps {
 
 const MobileDashboardStats = ({ stats }: MobileDashboardStatsProps) => {
   return (
-    <div className="grid grid-cols-2 gap-2" dir="rtl">
+    <div className="grid grid-cols-1 gap-2.5" dir="rtl">
       {stats.map((stat, index) => (
         <MobileStatCard
           key={stat.title}

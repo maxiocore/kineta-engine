@@ -38,7 +38,7 @@ const EnhancedStatCard = ({
       onClick={onClick}
       dir="rtl"
       className={cn(
-        "relative overflow-hidden rounded-2xl p-4 sm:p-5 cursor-pointer group",
+        "relative overflow-hidden rounded-xl sm:rounded-2xl p-3 sm:p-5 cursor-pointer group w-full",
         "bg-card border border-border/50 hover:border-primary/30",
         "transition-all duration-300 hover:shadow-xl hover:shadow-primary/10"
       )}
@@ -68,16 +68,16 @@ const EnhancedStatCard = ({
 
       <div className="relative z-10">
         {/* Header Row */}
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex items-start justify-between mb-3 sm:mb-4">
           <motion.div
             className={cn(
-              "w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center shadow-lg",
+              "w-10 h-10 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg",
               iconBg
             )}
             whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
             transition={{ duration: 0.5 }}
           >
-            <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+            <Icon className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
           </motion.div>
 
           {trend !== undefined && trend !== 0 && (
@@ -103,19 +103,19 @@ const EnhancedStatCard = ({
         </div>
 
         {/* Value */}
-        <div className="space-y-1.5 text-right">
-          <div className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
+        <div className="space-y-1 sm:space-y-1.5 text-right">
+          <div className="text-xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
             <AnimatedCounter value={value} suffix={suffix} duration={1.5} />
           </div>
-          <p className="text-sm sm:text-base text-foreground font-semibold">
+          <p className="text-xs sm:text-base text-foreground font-semibold">
             {title}
           </p>
           {subtitle && (
-            <p className="text-xs text-muted-foreground">{subtitle}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">{subtitle}</p>
           )}
-          <div className="flex items-center justify-end gap-1 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center justify-end gap-1 text-[10px] sm:text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
             <span>عرض التفاصيل</span>
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
           </div>
         </div>
       </div>

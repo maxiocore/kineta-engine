@@ -70,7 +70,7 @@ const QuickStatsRow = ({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3"
       dir="rtl"
     >
       {stats.map((stat, index) => (
@@ -83,7 +83,7 @@ const QuickStatsRow = ({
           whileTap={{ scale: 0.98 }}
           onClick={() => stat.route && navigate(stat.route)}
           className={cn(
-            "relative flex items-center gap-3 p-3 sm:p-4 rounded-xl overflow-hidden",
+            "relative flex items-center gap-3 p-3 sm:p-4 rounded-xl overflow-hidden w-full",
             "bg-gradient-to-l border border-border/30 hover:border-border/50",
             "transition-all duration-300 cursor-pointer group",
             stat.bgGradient
@@ -96,10 +96,10 @@ const QuickStatsRow = ({
           )} />
 
           <div className={cn(
-            "relative p-2.5 rounded-xl bg-background/60 backdrop-blur-sm group-hover:scale-110 transition-transform shadow-sm",
+            "relative p-2 sm:p-2.5 rounded-xl bg-background/60 backdrop-blur-sm group-hover:scale-110 transition-transform shadow-sm",
             stat.color
           )}>
-            <stat.icon className="w-5 h-5" />
+            <stat.icon className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           
           <div className="min-w-0 flex-1 text-right">
@@ -112,7 +112,7 @@ const QuickStatsRow = ({
                 </span>
               )}
             </div>
-            <p className="text-[11px] sm:text-xs text-muted-foreground truncate">{stat.label}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{stat.label}</p>
           </div>
 
           {/* Hover indicator */}
