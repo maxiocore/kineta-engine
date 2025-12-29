@@ -141,7 +141,7 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex w-full rtl-root" dir="rtl" lang="ar">
+    <div className="min-h-screen bg-background flex w-full admin-rtl" dir="rtl" lang="ar">
       {/* Desktop Sidebar - Fixed Right - Hidden on mobile with display:none */}
       <aside className="hidden lg:flex flex-col fixed top-0 right-0 h-full w-[260px] z-40 bg-card border-l border-border/50">
         {/* Logo Section */}

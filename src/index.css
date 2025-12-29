@@ -4,56 +4,31 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== RTL ROOT - سياسة RTL إلزامية للأدمن ===== */
-.rtl-root,
-.rtl-root * {
+/* ===== Admin RTL - اتجاهات فقط بدون ترجمة ===== */
+.admin-rtl {
   direction: rtl;
-}
-
-.rtl-root {
   text-align: right;
 }
 
-/* عزل النص المختلط (عربي + أرقام + إنجليزي) لمنع انقلاب الترتيب */
-.rtl-root .bidi-rtl {
+/* معالجة النص المختلط (عربي + إنجليزي + أرقام) */
+.admin-rtl .mixed {
   direction: rtl;
   unicode-bidi: isolate;
 }
 
-.rtl-root .bidi-ltr,
-.rtl-root .ltr {
-  direction: ltr;
-  unicode-bidi: isolate;
-  display: inline;
-}
-
-.rtl-root .bidi-auto {
-  unicode-bidi: isolate;
-}
-
-/* حل قوي للشرطات والأرقام داخل النص العربي */
-.rtl-root .mixed-line {
-  direction: rtl;
-  unicode-bidi: isolate;
-}
-
-.rtl-root .mixed-line .ltr {
+.admin-rtl .ltr {
   direction: ltr;
   unicode-bidi: isolate;
   display: inline-block;
 }
 
-/* قلب الأسهم والـ chevrons في RTL */
-.rtl-root .rtl-flip {
+/* قلب الأسهم/chevrons في RTL */
+.admin-rtl .rtl-flip {
   transform: scaleX(-1);
 }
 
 /* Progress bars تبدأ من اليمين */
-.rtl-root .rtl-progress {
-  transform: scaleX(-1);
-}
-
-.rtl-root .rtl-progress .rtl-progress-text {
+.admin-rtl .rtl-progress {
   transform: scaleX(-1);
 }
 

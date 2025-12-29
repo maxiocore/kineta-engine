@@ -18,72 +18,25 @@ interface TopServicesWidgetProps {
   maxRevenue?: number;
 }
 
-// ترجمة الكلمات الإنجليزية الشائعة
-const translateEnglishTokens = (text: string): string => {
-  const translations: Record<string, string> = {
-    'NO REFILL': 'بدون تعويض',
-    'REFILL': 'تعويض',
-    'INSTANT': 'فوري',
-    'FAST': 'سريع',
-    'SLOW': 'بطيء',
-    'HIGH QUALITY': 'جودة عالية',
-    'LOW QUALITY': 'جودة منخفضة',
-    'PREMIUM': 'مميز',
-    'REAL': 'حقيقي',
-    'BOT': 'آلي',
-    'MIXED': 'مختلط',
-    'GUARANTEED': 'مضمون',
-    'LIFETIME': 'مدى الحياة',
-    'DROP': 'انخفاض',
-    'NO DROP': 'بدون انخفاض',
-  };
-  
-  let result = text;
-  Object.entries(translations).forEach(([en, ar]) => {
-    result = result.replace(new RegExp(en, 'gi'), ar);
-  });
-  
-  return result;
-};
-
 interface ParsedPart {
   text: string;
-  type: 'arabic' | 'english' | 'range';
+  isLtr: boolean;
 }
 
-// Parser محسّن لتفكيك النص
+// Parser لتفكيك النص المختلط (بدون ترجمة)
 const parseServiceName = (name: string): ParsedPart[] => {
-  const translatedName = translateEnglishTokens(name);
   const parts: ParsedPart[] = [];
+  const ltrPattern = /(\d+[\d,]*\s*[-–]\s*\d+[\d,]*)|([A-Za-z][A-Za-z\s]*[A-Za-z])|(\d+)/g;
   
-  const rangePattern = /(\d+[\d,]*\s*[-–]\s*\d+[\d,]*)/g;
-  const englishPattern = /([A-Za-z][A-Za-z\s]*[A-Za-z])/g;
-  
-  const markers: Array<{start: number; end: number; text: string; type: 'english' | 'range'}> = [];
-  
+  const markers: Array<{start: number; end: number; text: string}> = [];
   let match;
-  while ((match = rangePattern.exec(translatedName)) !== null) {
+  
+  while ((match = ltrPattern.exec(name)) !== null) {
     markers.push({
       start: match.index,
       end: match.index + match[0].length,
-      text: match[0],
-      type: 'range'
+      text: match[0]
     });
-  }
-  
-  while ((match = englishPattern.exec(translatedName)) !== null) {
-    const overlaps = markers.some(m => 
-      (match!.index >= m.start && match!.index < m.end) ||
-      (match!.index + match![0].length > m.start && match!.index + match![0].length <= m.end)
-    );
-    if (!overlaps) {
-      markers.push({
-        start: match.index,
-        end: match.index + match[0].length,
-        text: match[0],
-        type: 'english'
-      });
-    }
   }
   
   markers.sort((a, b) => a.start - b.start);
@@ -91,24 +44,24 @@ const parseServiceName = (name: string): ParsedPart[] => {
   let lastEnd = 0;
   markers.forEach(marker => {
     if (marker.start > lastEnd) {
-      const arabicText = translatedName.substring(lastEnd, marker.start).trim();
+      const arabicText = name.substring(lastEnd, marker.start).trim();
       if (arabicText) {
-        parts.push({ text: arabicText, type: 'arabic' });
+        parts.push({ text: arabicText, isLtr: false });
       }
     }
-    parts.push({ text: marker.text, type: marker.type });
+    parts.push({ text: marker.text, isLtr: true });
     lastEnd = marker.end;
   });
   
-  if (lastEnd < translatedName.length) {
-    const remainingText = translatedName.substring(lastEnd).trim();
+  if (lastEnd < name.length) {
+    const remainingText = name.substring(lastEnd).trim();
     if (remainingText) {
-      parts.push({ text: remainingText, type: 'arabic' });
+      parts.push({ text: remainingText, isLtr: false });
     }
   }
   
   if (parts.length === 0) {
-    parts.push({ text: translatedName, type: 'arabic' });
+    parts.push({ text: name, isLtr: false });
   }
   
   return parts;
@@ -119,12 +72,11 @@ const ServiceNameDisplay = ({ name, className }: { name: string; className?: str
   const parts = parseServiceName(name);
   
   return (
-    <div className={cn("mixed-line text-right min-w-0 truncate", className)}>
+    <div className={cn("mixed text-right min-w-0 truncate", className)}>
       {parts.map((part, index) => {
-        if (part.type === 'arabic') {
+        if (!part.isLtr) {
           return <span key={index}>{part.text}</span>;
         }
-        
         return (
           <span key={index} className="ltr mx-0.5">
             {part.text}
