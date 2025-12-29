@@ -65,3 +65,6 @@ verify_jwt = false
 
 [functions.financing-notification]
 verify_jwt = false
+
+[functions.career-notification]
+verify_jwt = false
