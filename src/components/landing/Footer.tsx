@@ -1,9 +1,9 @@
 import { motion, useInView } from "framer-motion";
-import { Mail, MapPin, Phone, ArrowLeft, Sparkles, Send, Heart } from "lucide-react";
+import { Mail, MapPin, Phone, ArrowLeft, Sparkles, Send, Heart, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 const footerLinks = {
   "الخدمات": [
@@ -65,214 +65,404 @@ const socialLinks = [
   },
 ];
 
+const contactInfo = [
+  { icon: Mail, text: "info@maxiocore.com", href: "mailto:info@maxiocore.com", label: "البريد الإلكتروني" },
+  { icon: Phone, text: "+966 55 123 4567", href: "tel:+966551234567", dir: "ltr" as const, label: "الهاتف" },
+  { icon: MapPin, text: "المملكة العربية السعودية", label: "الموقع" },
+];
+
 const Footer = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+  const isInView = useInView(containerRef, { once: true, margin: "-50px" });
+  const [hoveredLink, setHoveredLink] = useState<string | null>(null);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 100,
+        damping: 12,
+      },
+    },
+  };
 
   return (
-    <footer ref={containerRef} className="relative pt-16 xs:pt-20 sm:pt-24 md:pt-32 pb-6 xs:pb-8 overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/20 to-secondary/40" />
-      
-      {/* Decorative Elements */}
-      <div className="absolute inset-0 overflow-hidden">
+    <footer ref={containerRef} className="relative pt-20 sm:pt-28 md:pt-36 pb-8 overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/10 to-secondary/30" />
+        
+        {/* Floating Orbs */}
         <motion.div
-          className="absolute top-0 left-1/4 w-[300px] sm:w-[400px] md:w-[600px] h-[300px] sm:h-[400px] md:h-[600px] rounded-full"
+          className="absolute top-20 right-[10%] w-72 h-72 rounded-full opacity-20"
           style={{
-            background: "radial-gradient(circle, hsl(var(--primary) / 0.04) 0%, transparent 50%)",
-            filter: "blur(100px)",
+            background: "radial-gradient(circle, hsl(var(--primary)) 0%, transparent 70%)",
+            filter: "blur(80px)",
           }}
+          animate={{
+            y: [0, -30, 0],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute bottom-0 right-1/4 w-[350px] sm:w-[500px] md:w-[700px] h-[350px] sm:h-[500px] md:h-[700px] rounded-full"
+          className="absolute bottom-40 left-[15%] w-96 h-96 rounded-full opacity-15"
           style={{
-            background: "radial-gradient(circle, hsl(var(--accent) / 0.03) 0%, transparent 50%)",
-            filter: "blur(120px)",
+            background: "radial-gradient(circle, hsl(var(--accent)) 0%, transparent 70%)",
+            filter: "blur(100px)",
+          }}
+          animate={{
+            y: [0, 20, 0],
+            scale: [1, 1.15, 1],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
+        
+        {/* Grid Pattern */}
+        <div 
+          className="absolute inset-0 opacity-[0.02]"
+          style={{
+            backgroundImage: `linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)`,
+            backgroundSize: '50px 50px',
           }}
         />
       </div>
 
-      <div className="container px-3 xs:px-4 sm:px-6 relative z-10">
-        {/* Newsletter Section - Centered & Modern */}
+      <div className="container px-4 sm:px-6 relative z-10">
+        {/* Newsletter Section */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
-          className="relative -mt-8 xs:-mt-12 sm:-mt-16 md:-mt-20 lg:-mt-32 mb-10 xs:mb-12 sm:mb-16 md:mb-20 lg:mb-24"
+          initial={{ opacity: 0, y: 50, scale: 0.95 }}
+          animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
+          transition={{ duration: 0.8, type: "spring", stiffness: 80 }}
+          className="relative -mt-16 sm:-mt-24 md:-mt-32 mb-16 sm:mb-20 md:mb-28"
         >
-          <div className="relative p-5 xs:p-6 sm:p-8 md:p-10 lg:p-12 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-card/80 via-card/60 to-card/80 backdrop-blur-2xl border border-border/50 overflow-hidden shadow-xl sm:shadow-2xl">
-            {/* Inner Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
-            <motion.div
-              className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px"
-              style={{
-                background: "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.5), transparent)",
-              }}
-            />
+          <div className="relative p-6 sm:p-10 md:p-14 rounded-3xl overflow-hidden">
+            {/* Glass Background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-card/90 via-card/70 to-card/90 backdrop-blur-2xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
             
-            <div className="relative flex flex-col items-center text-center gap-4 xs:gap-5 sm:gap-6 md:gap-8">
+            {/* Animated Border */}
+            <motion.div
+              className="absolute inset-0 rounded-3xl"
+              style={{
+                background: "linear-gradient(90deg, hsl(var(--primary) / 0.3), hsl(var(--accent) / 0.3), hsl(var(--primary) / 0.3))",
+                backgroundSize: "200% 100%",
+                padding: "1px",
+              }}
+              animate={{
+                backgroundPosition: ["0% 0%", "200% 0%"],
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            >
+              <div className="w-full h-full bg-card rounded-3xl" />
+            </motion.div>
+            
+            {/* Sparkle Effects */}
+            {[...Array(5)].map((_, i) => (
               <motion.div
-                className="inline-flex items-center gap-1.5 xs:gap-2 px-3 xs:px-4 sm:px-5 py-2 xs:py-2.5 rounded-full bg-primary/15 border border-primary/30"
+                key={i}
+                className="absolute w-1 h-1 bg-primary rounded-full"
+                style={{
+                  left: `${15 + i * 20}%`,
+                  top: `${20 + (i % 3) * 30}%`,
+                }}
+                animate={{
+                  opacity: [0, 1, 0],
+                  scale: [0, 1.5, 0],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  delay: i * 0.4,
+                }}
+              />
+            ))}
+            
+            <div className="relative flex flex-col items-center text-center gap-6 sm:gap-8">
+              <motion.div
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/15 border border-primary/30"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                transition={{ delay: 0.2 }}
+                transition={{ delay: 0.3, type: "spring" }}
+                whileHover={{ scale: 1.05 }}
               >
-                <Sparkles className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-primary" />
-                <span className="text-xs xs:text-sm font-semibold text-primary">النشرة البريدية</span>
+                <motion.div
+                  animate={{ rotate: [0, 15, -15, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <Sparkles className="w-4 h-4 text-primary" />
+                </motion.div>
+                <span className="text-sm font-semibold text-primary">النشرة البريدية</span>
               </motion.div>
               
               <div>
-                <h3 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-bold mb-2 xs:mb-3 sm:mb-4">
-                  ابقَ على <span className="text-transparent bg-clip-text bg-gradient-to-l from-primary to-accent">اطلاع</span>
-                </h3>
-                <p className="text-muted-foreground max-w-md mx-auto text-sm xs:text-base sm:text-lg">
+                <motion.h3 
+                  className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ delay: 0.4 }}
+                >
+                  ابقَ على{" "}
+                  <span className="relative">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-l from-primary via-accent to-primary bg-[length:200%_100%] animate-[shimmer_3s_linear_infinite]">
+                      اطلاع
+                    </span>
+                    <motion.span
+                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-l from-primary to-accent"
+                      initial={{ scaleX: 0 }}
+                      animate={isInView ? { scaleX: 1 } : {}}
+                      transition={{ delay: 0.8, duration: 0.6 }}
+                    />
+                  </span>
+                </motion.h3>
+                <motion.p 
+                  className="text-muted-foreground max-w-md mx-auto text-sm sm:text-base md:text-lg"
+                  initial={{ opacity: 0 }}
+                  animate={isInView ? { opacity: 1 } : {}}
+                  transition={{ delay: 0.5 }}
+                >
                   احصل على أحدث النصائح والتحديثات مباشرة إلى بريدك
-                </p>
+                </motion.p>
               </div>
               
-              <div className="w-full max-w-lg">
-                <div className="flex gap-2 xs:gap-3 flex-col sm:flex-row">
-                  <Input
-                    type="email"
-                    placeholder="بريدك الإلكتروني"
-                    className="flex-1 h-11 xs:h-12 sm:h-14 bg-background/50 border-border/50 rounded-xl sm:rounded-2xl text-sm xs:text-base px-4 xs:px-5 sm:px-6 text-center sm:text-right"
-                    dir="ltr"
-                  />
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button className="h-11 xs:h-12 sm:h-14 px-5 xs:px-6 sm:px-8 w-full sm:w-auto bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-lg shadow-primary/30 rounded-xl sm:rounded-2xl text-sm xs:text-base font-semibold whitespace-nowrap">
-                      <Send className="w-4 h-4 xs:w-5 xs:h-5 ml-1.5 xs:ml-2" />
+              <motion.div 
+                className="w-full max-w-lg"
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: 0.6 }}
+              >
+                <div className="flex gap-3 flex-col sm:flex-row">
+                  <div className="relative flex-1">
+                    <Input
+                      type="email"
+                      placeholder="بريدك الإلكتروني"
+                      className="h-12 sm:h-14 bg-background/50 border-border/50 rounded-2xl text-base px-6 text-center sm:text-right transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+                      dir="ltr"
+                    />
+                  </div>
+                  <motion.div 
+                    whileHover={{ scale: 1.03 }} 
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    <Button className="h-12 sm:h-14 px-8 w-full sm:w-auto bg-gradient-to-l from-primary to-accent hover:opacity-90 text-primary-foreground shadow-lg shadow-primary/30 rounded-2xl text-base font-semibold group">
+                      <motion.span
+                        animate={{ x: [0, -3, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      >
+                        <Send className="w-5 h-5 ml-2 group-hover:rotate-12 transition-transform" />
+                      </motion.span>
                       اشترك الآن
                     </Button>
                   </motion.div>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </motion.div>
 
-        {/* Main Footer Content - Mobile Optimized */}
-        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 xs:gap-6 sm:gap-10 md:gap-12 mb-10 xs:mb-12 sm:mb-16 md:mb-20">
-          {/* Brand Column */}
+        {/* Main Footer Content */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          className="grid grid-cols-1 gap-10 sm:gap-12 md:gap-16 mb-12 sm:mb-16"
+        >
+          {/* Top Section - Brand & Contact */}
           <motion.div 
-            className="col-span-1 xs:col-span-2 md:col-span-3 lg:col-span-2 text-center xs:text-right"
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.2 }}
+            variants={itemVariants}
+            className="flex flex-col items-center text-center"
           >
-            <Link to="/" className="flex items-center gap-3 mb-4 xs:mb-6 sm:mb-8 group justify-center xs:justify-start">
+            <Link to="/" className="inline-block mb-6">
               <motion.span 
-                className="text-2xl xs:text-2xl md:text-3xl font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
-                whileHover={{ scale: 1.03 }}
+                className="text-3xl sm:text-4xl font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
+                whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
               >
                 MaxioCore
               </motion.span>
             </Link>
-            <p className="text-muted-foreground mb-6 xs:mb-8 sm:mb-10 max-w-sm mx-auto xs:mx-0 leading-relaxed text-sm xs:text-base sm:text-lg">
+            <p className="text-muted-foreground max-w-md leading-relaxed text-sm sm:text-base mb-8">
               شريكك الموثوق في رحلة التحول الرقمي. نقدم حلول متكاملة تساعدك على النمو والتميز.
             </p>
             
-            {/* Contact Info - Mobile Card Style */}
-            <div className="space-y-3 xs:space-y-4 sm:space-y-5">
-              <motion.a 
-                href="mailto:info@maxiocore.com"
-                className="flex items-center gap-3 sm:gap-4 text-muted-foreground hover:text-primary transition-colors group justify-center xs:justify-start bg-secondary/30 xs:bg-transparent p-3 xs:p-0 rounded-xl xs:rounded-none"
-                whileHover={{ x: -5 }}
-              >
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors shrink-0">
-                  <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                </div>
-                <span className="text-sm sm:text-base font-medium">info@maxiocore.com</span>
-              </motion.a>
-              
-              <motion.a 
-                href="tel:+966551234567"
-                className="flex items-center gap-3 sm:gap-4 text-muted-foreground hover:text-primary transition-colors group justify-center xs:justify-start bg-secondary/30 xs:bg-transparent p-3 xs:p-0 rounded-xl xs:rounded-none"
-                whileHover={{ x: -5 }}
-              >
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors shrink-0">
-                  <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                </div>
-                <span dir="ltr" className="text-sm sm:text-base font-medium">+966 55 123 4567</span>
-              </motion.a>
-              
-              <motion.div 
-                className="flex items-center gap-3 sm:gap-4 text-muted-foreground group justify-center xs:justify-start bg-secondary/30 xs:bg-transparent p-3 xs:p-0 rounded-xl xs:rounded-none"
-              >
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                  <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                </div>
-                <span className="text-sm sm:text-base font-medium">المملكة العربية السعودية</span>
-              </motion.div>
+            {/* Contact Cards - Mobile Optimized */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl">
+              {contactInfo.map((item, index) => (
+                <motion.a
+                  key={item.label}
+                  href={item.href}
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.03, y: -5 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group relative p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-secondary/50 to-secondary/30 border border-border/30 hover:border-primary/30 transition-all overflow-hidden"
+                >
+                  {/* Hover Glow */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-primary/0 group-hover:from-primary/5 group-hover:to-accent/5 transition-all duration-300" />
+                  
+                  <div className="relative flex flex-col items-center gap-3">
+                    <motion.div 
+                      className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors"
+                      whileHover={{ rotate: [0, -10, 10, 0] }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <item.icon className="w-5 h-5 text-primary" />
+                    </motion.div>
+                    <div className="text-center">
+                      <span className="block text-xs text-muted-foreground mb-1">{item.label}</span>
+                      <span dir={item.dir} className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                        {item.text}
+                      </span>
+                    </div>
+                  </div>
+                </motion.a>
+              ))}
             </div>
           </motion.div>
 
-          {/* Links Columns - Mobile Optimized */}
-          {Object.entries(footerLinks).map(([category, links], categoryIndex) => (
-            <motion.div 
-              key={category}
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.3 + categoryIndex * 0.1 }}
-              className="col-span-1 text-center xs:text-right"
+          {/* Links Section - Horizontal on Mobile */}
+          <motion.div 
+            variants={itemVariants}
+            className="grid grid-cols-3 gap-6 sm:gap-8 md:gap-12"
+          >
+            {Object.entries(footerLinks).map(([category, links], categoryIndex) => (
+              <motion.div 
+                key={category}
+                variants={itemVariants}
+                className="text-center"
+              >
+                <motion.h4 
+                  className="font-bold text-sm sm:text-base md:text-lg mb-4 sm:mb-6 text-transparent bg-clip-text bg-gradient-to-l from-primary to-accent"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  {category}
+                </motion.h4>
+                <ul className="space-y-2.5 sm:space-y-3">
+                  {links.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        to={link.href}
+                        className="relative text-muted-foreground hover:text-primary transition-colors inline-block text-xs sm:text-sm md:text-base group"
+                        onMouseEnter={() => setHoveredLink(link.label)}
+                        onMouseLeave={() => setHoveredLink(null)}
+                      >
+                        <span className="relative">
+                          {link.label}
+                          <motion.span
+                            className="absolute -bottom-0.5 left-0 right-0 h-px bg-gradient-to-l from-primary to-accent"
+                            initial={{ scaleX: 0 }}
+                            animate={{ scaleX: hoveredLink === link.label ? 1 : 0 }}
+                            transition={{ duration: 0.2 }}
+                          />
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Social Links */}
+          <motion.div 
+            variants={itemVariants}
+            className="flex flex-col items-center gap-6"
+          >
+            <motion.p 
+              className="text-sm text-muted-foreground"
+              initial={{ opacity: 0 }}
+              animate={isInView ? { opacity: 1 } : {}}
             >
-              <h4 className="font-bold text-base xs:text-lg sm:text-xl mb-4 xs:mb-5 sm:mb-6 md:mb-8 text-primary/90">{category}</h4>
-              <ul className="space-y-3 xs:space-y-3 sm:space-y-4 md:space-y-5">
-                {links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      to={link.href}
-                      className="text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-2 group text-sm sm:text-base"
-                    >
-                      <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all hidden xs:block" />
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          ))}
-        </div>
+              تابعنا على
+            </motion.p>
+            <div className="flex items-center justify-center gap-3 sm:gap-4">
+              {socialLinks.map((social, index) => (
+                <motion.a 
+                  key={social.name}
+                  href={social.href} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-secondary/50 border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition-all overflow-hidden group"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ delay: 0.5 + index * 0.1 }}
+                  whileHover={{ scale: 1.1, y: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-accent/0 group-hover:from-primary/10 group-hover:to-accent/10 transition-all duration-300" />
+                  <span className="relative z-10">{social.icon}</span>
+                </motion.a>
+              ))}
+            </div>
+          </motion.div>
+        </motion.div>
 
         {/* Bottom Bar */}
         <motion.div 
-          className="pt-6 xs:pt-8 sm:pt-10 border-t border-border/30 flex flex-col gap-4 xs:gap-5 sm:gap-6 md:flex-row items-center justify-between"
+          className="pt-8 border-t border-border/30"
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.8 }}
         >
-          <Link to="/" className="flex items-center order-1 md:order-1">
-            <motion.span 
-              className="text-lg xs:text-xl font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
-              whileHover={{ scale: 1.03 }}
-              transition={{ type: "spring", stiffness: 400, damping: 20 }}
-              style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
-            >
-              MaxioCore
-            </motion.span>
-          </Link>
-          
-          <p className="text-muted-foreground flex items-center gap-1.5 xs:gap-2 text-xs xs:text-sm order-3 md:order-2">
-            © {new Date().getFullYear()} MaxioCore. صنع بـ 
-            <Heart className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-red-500 fill-red-500 animate-pulse" />
-            في السعودية
-          </p>
-          
-          <div className="flex items-center gap-2 xs:gap-3 order-2 md:order-3">
-            {socialLinks.map((social) => (
-              <motion.a 
-                key={social.name}
-                href={social.href} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="w-9 h-9 xs:w-10 xs:h-10 sm:w-11 sm:h-11 rounded-lg xs:rounded-xl bg-secondary/50 border border-border/30 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition-all"
-                whileHover={{ scale: 1.1, y: -3 }}
-                whileTap={{ scale: 0.95 }}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <Link to="/" className="order-2 sm:order-1">
+              <motion.span 
+                className="text-lg font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
+                whileHover={{ scale: 1.05 }}
               >
-                {social.icon}
-              </motion.a>
-            ))}
+                MaxioCore
+              </motion.span>
+            </Link>
+            
+            <motion.p 
+              className="text-muted-foreground flex items-center gap-2 text-xs sm:text-sm order-3 sm:order-2"
+              whileHover={{ scale: 1.02 }}
+            >
+              © {new Date().getFullYear()} MaxioCore. صنع بـ 
+              <motion.span
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              >
+                <Heart className="w-4 h-4 text-red-500 fill-red-500" />
+              </motion.span>
+              في السعودية
+            </motion.p>
+            
+            <motion.a
+              href="#top"
+              onClick={(e) => {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="order-1 sm:order-3 w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary hover:bg-primary hover:text-primary-foreground transition-all"
+              whileHover={{ scale: 1.1, y: -3 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <motion.svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                animate={{ y: [0, -3, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </motion.svg>
+            </motion.a>
           </div>
         </motion.div>
       </div>
