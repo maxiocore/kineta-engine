@@ -1,312 +1,340 @@
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { Star, Quote, ChevronRight, ChevronLeft } from "lucide-react";
+import { Star, Quote, ChevronLeft, ChevronRight, MessageSquare, Sparkles, Heart } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+
+const testimonials = [
+  {
+    content: "غيّرت هذه المنصة استراتيجيتنا التسويقية بالكامل. شهدنا زيادة بنسبة 300% في العملاء المؤهلين خلال الربع الأول. خدمة استثنائية ودعم متميز.",
+    rating: 5,
+    category: "تسويق رقمي",
+    gradient: "from-cyan-500 to-blue-600",
+    emoji: "🚀",
+  },
+  {
+    content: "ميزات الأتمتة وحدها وفرت علينا ساعات لا تحصى. رؤى الذكاء الاصطناعي دقيقة وقابلة للتنفيذ بشكل مذهل. أنصح بها بشدة لكل صاحب عمل.",
+    rating: 5,
+    category: "إدارة حسابات",
+    gradient: "from-violet-500 to-purple-600",
+    emoji: "⚡",
+  },
+  {
+    content: "أفضل استثمار تسويقي قمنا به على الإطلاق. تتبع العائد استثنائي وفريق الدعم متجاوب بشكل لا يصدق. نتائج حقيقية في وقت قياسي.",
+    rating: 5,
+    category: "زيادة متابعين",
+    gradient: "from-emerald-500 to-teal-600",
+    emoji: "📈",
+  },
+  {
+    content: "التحليلات المتقدمة ساعدتنا على فهم جمهورنا بشكل أفضل. نتائج مذهلة في وقت قياسي. المنصة سهلة الاستخدام وفعالة جداً.",
+    rating: 5,
+    category: "تصميم إبداعي",
+    gradient: "from-amber-500 to-orange-600",
+    emoji: "🎨",
+  },
+  {
+    content: "تجربة رائعة من البداية للنهاية. فريق محترف وأسعار منافسة. سأعود للتعامل معهم مرة أخرى بكل تأكيد.",
+    rating: 5,
+    category: "برمجة وتطوير",
+    gradient: "from-rose-500 to-pink-600",
+    emoji: "💻",
+  },
+  {
+    content: "خدمة عملاء ممتازة ونتائج تفوق التوقعات. أنصح الجميع بتجربة خدماتهم المتميزة.",
+    rating: 5,
+    category: "حملات إعلانية",
+    gradient: "from-indigo-500 to-blue-600",
+    emoji: "📢",
+  },
+];
 
 const TestimonialsSection = () => {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(containerRef, { once: true, margin: "-50px" });
   const [activeIndex, setActiveIndex] = useState(0);
-  const [direction, setDirection] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-  const testimonials = [
-    {
-      name: "أحمد محمد",
-      role: "مدير تسويق",
-      content: "خدمة ممتازة وفريق محترف ساعدونا في زيادة مبيعاتنا بنسبة 150% خلال 3 أشهر فقط",
-      rating: 5,
-      avatar: "أ"
-    },
-    {
-      name: "سارة أحمد",
-      role: "صاحبة مشروع",
-      content: "تجربة رائعة من البداية للنهاية والتصميم كان مذهلاً والتسليم في الوقت المحدد",
-      rating: 5,
-      avatar: "س"
-    },
-    {
-      name: "خالد العمري",
-      role: "رائد أعمال",
-      content: "أفضل فريق تعاملت معه يفهمون احتياجات العميل ويقدمون حلول إبداعية تفوق التوقعات",
-      rating: 5,
-      avatar: "خ"
-    },
-    {
-      name: "نورة السالم",
-      role: "مديرة محتوى",
-      content: "احترافية عالية وسرعة في التنفيذ والنتائج كانت مبهرة وتجاوزت كل توقعاتي",
-      rating: 5,
-      avatar: "ن"
-    },
-    {
-      name: "فهد الحربي",
-      role: "مستثمر",
-      content: "تعاون مثمر ونتائج ملموسة والفريق متميز ويستحق الثقة سأعود للتعامل معهم",
-      rating: 5,
-      avatar: "ف"
-    },
-  ];
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % testimonials.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [isAutoPlaying]);
 
   const nextTestimonial = () => {
-    setDirection(1);
+    setIsAutoPlaying(false);
     setActiveIndex((prev) => (prev + 1) % testimonials.length);
   };
 
   const prevTestimonial = () => {
-    setDirection(-1);
+    setIsAutoPlaying(false);
     setActiveIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
   };
 
-  // Auto-play
-  useEffect(() => {
-    const timer = setInterval(nextTestimonial, 6000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const slideVariants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 100 : -100,
-      opacity: 0,
-      scale: 0.95,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-      scale: 1,
-    },
-    exit: (direction: number) => ({
-      x: direction > 0 ? -100 : 100,
-      opacity: 0,
-      scale: 0.95,
-    }),
-  };
-
   return (
-    <section ref={ref} className="py-16 sm:py-24 lg:py-32 relative overflow-hidden" dir="rtl">
+    <section ref={containerRef} className="py-16 sm:py-24 md:py-32 relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-primary/[0.02] to-background" />
-      
-      {/* Animated Background Elements */}
-      <motion.div
-        animate={{ 
-          rotate: [0, 360],
-          scale: [1, 1.1, 1]
-        }}
-        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-[0.03]"
-      >
-        <div className="w-full h-full rounded-full border-[40px] border-primary" />
-      </motion.div>
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-b from-secondary/10 via-background to-secondary/10" />
+        
+        {/* Animated Background Orbs */}
+        <motion.div
+          className="absolute top-1/4 right-0 w-[300px] sm:w-[400px] md:w-[500px] h-[300px] sm:h-[400px] md:h-[500px] rounded-full"
+          style={{
+            background: "radial-gradient(circle, hsl(var(--primary) / 0.08) 0%, transparent 60%)",
+            filter: "blur(80px)",
+          }}
+          animate={{
+            x: [0, 40, 0],
+            y: [0, -20, 0],
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-1/4 left-0 w-[250px] sm:w-[400px] md:w-[600px] h-[250px] sm:h-[400px] md:h-[600px] rounded-full"
+          style={{
+            background: "radial-gradient(circle, hsl(var(--accent) / 0.06) 0%, transparent 60%)",
+            filter: "blur(100px)",
+          }}
+          animate={{
+            x: [0, -30, 0],
+            y: [0, 30, 0],
+          }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+        />
+      </div>
 
-      <div className="container px-4 sm:px-6 relative z-10">
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-10 sm:mb-16"
-        >
+      {/* Floating Hearts */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {[...Array(5)].map((_, i) => (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={isInView ? { opacity: 1, scale: 1 } : {}}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-5"
+            key={i}
+            className="absolute"
+            style={{
+              top: `${15 + i * 18}%`,
+              right: `${5 + i * 8}%`,
+            }}
+            animate={{
+              y: [0, -20, 0],
+              opacity: [0.2, 0.5, 0.2],
+              rotate: [0, 10, -10, 0],
+            }}
+            transition={{
+              duration: 4 + i,
+              repeat: Infinity,
+              delay: i * 0.5,
+            }}
           >
-            <div className="flex gap-0.5">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-3 h-3 fill-primary text-primary" />
-              ))}
-            </div>
-            <span className="text-xs sm:text-sm font-semibold text-primary">+50,000 عميل راضٍ</span>
+            <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-primary/30 fill-primary/20" />
           </motion.div>
-          
-          <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold text-foreground">
-            ماذا يقول{" "}
-            <span className="bg-gradient-to-l from-primary to-violet-500 bg-clip-text text-transparent">
-              عملاؤنا
-            </span>
-          </h2>
-        </motion.div>
-
-        {/* Main Carousel */}
-        <div className="max-w-4xl mx-auto">
-          <div className="relative">
-            {/* Navigation Buttons - Desktop */}
-            <div className="hidden sm:block">
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={prevTestimonial}
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 lg:translate-x-20 z-10 w-12 h-12 rounded-full bg-card border border-border shadow-lg flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/50 transition-colors"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={nextTestimonial}
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 lg:-translate-x-20 z-10 w-12 h-12 rounded-full bg-card border border-border shadow-lg flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/50 transition-colors"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </motion.button>
-            </div>
-
-            {/* Card Container */}
-            <div className="relative min-h-[320px] sm:min-h-[280px]">
-              <AnimatePresence mode="wait" custom={direction}>
-                <motion.div
-                  key={activeIndex}
-                  custom={direction}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 0.4, ease: "easeInOut" }}
-                  className="absolute inset-0"
-                >
-                  <div className="h-full p-6 sm:p-10 lg:p-12 rounded-3xl bg-card border border-border/50 shadow-2xl shadow-primary/5">
-                    {/* Quote Icon */}
-                    <motion.div
-                      initial={{ scale: 0, rotate: -20 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      transition={{ duration: 0.5, delay: 0.2, type: "spring" }}
-                      className="mb-6"
-                    >
-                      <Quote className="w-10 h-10 sm:w-12 sm:h-12 text-primary/20" />
-                    </motion.div>
-
-                    {/* Content */}
-                    <motion.p
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: 0.1 }}
-                      className="text-lg sm:text-xl lg:text-2xl text-foreground font-medium leading-relaxed mb-8"
-                    >
-                      {testimonials[activeIndex].content}
-                    </motion.p>
-
-                    {/* Author & Rating */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: 0.2 }}
-                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-                    >
-                      <div className="flex items-center gap-4">
-                        <motion.div 
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ duration: 0.4, delay: 0.3, type: "spring" }}
-                          className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-primary to-violet-500 flex items-center justify-center shadow-lg shadow-primary/25"
-                        >
-                          <span className="text-white font-bold text-lg sm:text-xl">
-                            {testimonials[activeIndex].avatar}
-                          </span>
-                        </motion.div>
-                        <div>
-                          <div className="text-base sm:text-lg font-bold text-foreground">
-                            {testimonials[activeIndex].name}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {testimonials[activeIndex].role}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-1">
-                        {[...Array(testimonials[activeIndex].rating)].map((_, i) => (
-                          <motion.div
-                            key={i}
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ duration: 0.2, delay: 0.4 + i * 0.05 }}
-                          >
-                            <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
-                          </motion.div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            {/* Dots & Mobile Navigation */}
-            <div className="flex items-center justify-center gap-4 mt-8">
-              {/* Mobile Prev */}
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={prevTestimonial}
-                className="sm:hidden w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </motion.button>
-
-              {/* Dots */}
-              <div className="flex gap-2">
-              {testimonials.map((_, index) => (
-                  <motion.button
-                    key={index}
-                    onClick={() => {
-                      setDirection(index > activeIndex ? 1 : -1);
-                      setActiveIndex(index);
-                    }}
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="relative p-1"
-                  >
-                    <motion.div
-                      animate={{
-                        width: index === activeIndex ? 24 : 8
-                      }}
-                      transition={{ duration: 0.3 }}
-                      className={`h-2 rounded-full transition-colors duration-300 ${
-                        index === activeIndex 
-                          ? "bg-primary" 
-                          : "bg-muted-foreground/30"
-                      }`}
-                    />
-                  </motion.button>
-                ))}
-              </div>
-
-              {/* Mobile Next */}
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={nextTestimonial}
-                className="sm:hidden w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </motion.button>
-            </div>
-          </div>
-        </div>
-
-        {/* Trust Stats */}
+        ))}
+      </div>
+      
+      <div className="container px-4 relative z-10">
+        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="grid grid-cols-3 gap-4 sm:gap-8 max-w-2xl mx-auto mt-12 sm:mt-16"
+          transition={{ duration: 0.8 }}
+          className="text-center mb-12 sm:mb-16 md:mb-20"
         >
-          {[
-            { value: "4.9", label: "تقييم" },
-            { value: "50K+", label: "عميل" },
-            { value: "99%", label: "رضا" },
-          ].map((stat, index) => (
+          <motion.div 
+            className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-primary/10 border border-primary/20 mb-6 sm:mb-8"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : {}}
+          >
+            <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+            <span className="text-xs sm:text-sm font-semibold text-primary">تجارب حقيقية</span>
+          </motion.div>
+          
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6">
+            ماذا يقول{" "}
+            <span className="relative inline-block">
+              <span className="bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">عملاؤنا</span>
+              <motion.div
+                className="absolute -bottom-1 sm:-bottom-2 left-0 right-0 h-1 sm:h-1.5 bg-gradient-to-l from-primary to-accent rounded-full"
+                initial={{ scaleX: 0 }}
+                animate={isInView ? { scaleX: 1 } : {}}
+                transition={{ duration: 0.8, delay: 0.3 }}
+              />
+            </span>
+          </h2>
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
+            قصص نجاح حقيقية من عملاء وثقوا بنا لتحقيق أهدافهم
+          </p>
+        </motion.div>
+
+        {/* Desktop/Tablet Grid */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 max-w-6xl mx-auto">
+          {testimonials.map((testimonial, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={isInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
-              className="text-center p-4 sm:p-6 rounded-2xl bg-card/50 border border-border/30"
+              initial={{ opacity: 0, y: 50, scale: 0.95 }}
+              animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              whileHover={{ y: -8 }}
+              className="group"
             >
-              <div className="text-2xl sm:text-3xl lg:text-4xl font-black bg-gradient-to-r from-primary to-violet-500 bg-clip-text text-transparent">
-                {stat.value}
-              </div>
-              <div className="text-xs sm:text-sm text-muted-foreground mt-1">
-                {stat.label}
+              <div className="relative p-5 lg:p-6 rounded-3xl bg-card/60 backdrop-blur-xl border border-border/50 hover:border-primary/30 transition-all duration-500 h-full overflow-hidden">
+                {/* Glow Effect */}
+                <motion.div
+                  className={`absolute -top-16 -right-16 w-32 h-32 bg-gradient-to-br ${testimonial.gradient} rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500`}
+                />
+                
+                {/* Category Badge */}
+                <motion.div
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r ${testimonial.gradient} mb-4`}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <span className="text-sm">{testimonial.emoji}</span>
+                  <span className="text-xs font-medium text-white">{testimonial.category}</span>
+                </motion.div>
+
+                {/* Rating */}
+                <div className="flex gap-1 mb-4">
+                  {Array.from({ length: testimonial.rating }).map((_, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                      transition={{ delay: 0.4 + i * 0.05 }}
+                    >
+                      <Star className="w-4 h-4 fill-warning text-warning" />
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Quote Icon */}
+                <div className="absolute top-4 left-4 opacity-10">
+                  <Quote className="w-8 h-8 text-primary" />
+                </div>
+
+                {/* Content */}
+                <p className="text-sm lg:text-base leading-relaxed text-foreground/85 relative z-10">
+                  {testimonial.content}
+                </p>
+
+                {/* Decorative Line */}
+                <motion.div
+                  className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${testimonial.gradient}`}
+                  initial={{ scaleX: 0 }}
+                  whileHover={{ scaleX: 1 }}
+                  transition={{ duration: 0.4 }}
+                  style={{ transformOrigin: "right" }}
+                />
               </div>
             </motion.div>
           ))}
+        </div>
+
+        {/* Mobile Carousel */}
+        <div className="md:hidden">
+          <div className="relative overflow-hidden rounded-3xl">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeIndex}
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.3 }}
+                className="relative p-6 bg-card/70 backdrop-blur-xl border border-border/50 rounded-3xl"
+              >
+                {/* Glow */}
+                <div className={`absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br ${testimonials[activeIndex].gradient} rounded-full blur-[80px] opacity-20`} />
+
+                {/* Category Badge */}
+                <motion.div
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r ${testimonials[activeIndex].gradient} mb-4`}
+                >
+                  <span className="text-sm">{testimonials[activeIndex].emoji}</span>
+                  <span className="text-xs font-medium text-white">{testimonials[activeIndex].category}</span>
+                </motion.div>
+
+                {/* Rating */}
+                <div className="flex gap-1 mb-4">
+                  {Array.from({ length: testimonials[activeIndex].rating }).map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-warning text-warning" />
+                  ))}
+                </div>
+
+                {/* Quote Icon */}
+                <div className="absolute top-4 left-4 opacity-10">
+                  <Quote className="w-8 h-8 text-primary" />
+                </div>
+
+                {/* Content */}
+                <p className="text-base leading-relaxed text-foreground/85 relative z-10">
+                  {testimonials[activeIndex].content}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Navigation */}
+          <div className="flex justify-center items-center gap-3 mt-6">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={prevTestimonial}
+              className="w-10 h-10 rounded-xl hover:bg-primary/10 hover:border-primary/30"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+            
+            <div className="flex items-center gap-1.5">
+              {testimonials.map((_, index) => (
+                <motion.button
+                  key={index}
+                  onClick={() => {
+                    setIsAutoPlaying(false);
+                    setActiveIndex(index);
+                  }}
+                  className="relative p-1"
+                  whileHover={{ scale: 1.2 }}
+                >
+                  <span 
+                    className={`block w-2 h-2 rounded-full transition-all duration-300 ${
+                      index === activeIndex 
+                        ? 'bg-primary w-6' 
+                        : 'bg-border hover:bg-primary/50'
+                    }`} 
+                  />
+                </motion.button>
+              ))}
+            </div>
+            
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={nextTestimonial}
+              className="w-10 h-10 rounded-xl hover:bg-primary/10 hover:border-primary/30"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Trust Indicator */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.8 }}
+          className="flex justify-center mt-10 sm:mt-12 md:mt-16"
+        >
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 px-6 py-4 rounded-2xl bg-secondary/30 backdrop-blur-sm border border-border/30">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+              <span className="text-sm sm:text-base font-medium">+500 عميل راضٍ</span>
+            </div>
+            <div className="hidden sm:block w-px h-6 bg-border" />
+            <div className="flex items-center gap-1.5">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-4 h-4 fill-warning text-warning" />
+              ))}
+              <span className="text-sm sm:text-base font-medium mr-1">تقييم ممتاز</span>
+            </div>
+          </div>
         </motion.div>
       </div>
     </section>

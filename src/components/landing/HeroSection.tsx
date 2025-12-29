@@ -1,335 +1,523 @@
-import { motion } from "framer-motion";
-import { ArrowLeft, Sparkles, Shield, Zap, Globe, Star, TrendingUp, ChevronLeft } from "lucide-react";
+import { motion, useScroll, useTransform, useSpring, useInView } from "framer-motion";
+import { ArrowLeft, Sparkles, Code2, Palette, Share2, Rocket, Globe, Zap, Shield, Star, Play, CheckCircle2, TrendingUp, Users, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useRef, useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+const useRealStats = () => {
+  return useQuery({
+    queryKey: ["hero-real-stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_public_stats");
+      
+      if (error) throw error;
+      
+      const stats = data as {
+        total_orders: number;
+        completed_orders: number;
+        total_users: number;
+        total_services: number;
+        total_deposits: number;
+      };
+      
+      const satisfactionRate = stats.total_orders > 0 
+        ? Math.min(98, Math.round((stats.completed_orders / stats.total_orders) * 100)) 
+        : 98;
+      
+      return {
+        totalUsers: stats.total_users || 0,
+        completedOrders: stats.completed_orders || 0,
+        satisfactionRate,
+      };
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+};
 
 const HeroSection = () => {
-  const quickActions = [
-    { icon: TrendingUp, label: "تسويق", color: "from-blue-500 to-cyan-500", href: "/digital-marketing-services" },
-    { icon: Globe, label: "تطوير", color: "from-violet-500 to-purple-500", href: "/development-services" },
-    { icon: Sparkles, label: "تصميم", color: "from-pink-500 to-rose-500", href: "/design-services" },
-    { icon: Zap, label: "سوشيال", color: "from-amber-500 to-orange-500", href: "/social-media-services" },
+  const containerRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(heroRef, { once: true });
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [activeFeature, setActiveFeature] = useState(0);
+  const { data: stats, isLoading } = useRealStats();
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"]
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], [0, 100]);
+
+  const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 };
+  const mouseX = useSpring(0, springConfig);
+  const mouseY = useSpring(0, springConfig);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (rect) {
+        const x = (e.clientX - rect.left - rect.width / 2) / 50;
+        const y = (e.clientY - rect.top - rect.height / 2) / 50;
+        mouseX.set(x);
+        mouseY.set(y);
+        setMousePosition({ x: e.clientX, y: e.clientY });
+      }
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, [mouseX, mouseY]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveFeature((prev) => (prev + 1) % 4);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const services = [
+    { 
+      icon: Share2, 
+      title: "التسويق الرقمي",
+      desc: "نمو رقمي مضمون",
+      color: "from-cyan-500 via-blue-500 to-indigo-500",
+      glow: "cyan"
+    },
+    { 
+      icon: Code2, 
+      title: "البرمجة والتطوير",
+      desc: "مواقع وتطبيقات احترافية",
+      color: "from-emerald-500 via-green-500 to-teal-500",
+      glow: "emerald"
+    },
+    { 
+      icon: Palette, 
+      title: "التصميم الإبداعي",
+      desc: "هوية بصرية مميزة",
+      color: "from-violet-500 via-purple-500 to-fuchsia-500",
+      glow: "violet"
+    },
+    { 
+      icon: Globe, 
+      title: "خدمات رقمية",
+      desc: "حلول متكاملة ومتنوعة",
+      color: "from-amber-500 via-orange-500 to-red-500",
+      glow: "amber"
+    },
   ];
 
-  const stats = [
-    { value: "50K+", label: "عميل" },
-    { value: "100K+", label: "مشروع" },
-    { value: "99%", label: "رضا" },
+  const features = [
+    { text: "تفعيل فوري", icon: Zap },
+    { text: "دعم على مدار الساعة", icon: Shield },
+    { text: "أسعار تنافسية", icon: Star },
+    { text: "جودة مضمونة", icon: CheckCircle2 },
   ];
+
+  const floatingElements = Array.from({ length: 20 }, (_, i) => ({
+    id: i,
+    size: Math.random() * 8 + 4,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    duration: Math.random() * 15 + 10,
+    delay: Math.random() * 5,
+  }));
 
   return (
-    <section className="relative overflow-hidden bg-background" dir="rtl">
-      {/* Background - simplified for mobile */}
+    <section ref={containerRef} className="relative min-h-[100vh] flex items-center justify-center overflow-hidden">
+      {/* Dynamic Background */}
       <div className="absolute inset-0">
+        {/* Base Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-secondary/20" />
+        
+        {/* Animated Mesh Gradient */}
         <motion.div
-          animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.2, 0.15] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-0 right-0 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-gradient-to-br from-primary/30 to-violet-500/20 rounded-full blur-[80px] sm:blur-[120px]"
+          className="absolute inset-0 opacity-60 dark:opacity-40"
+          style={{
+            backgroundImage: `
+              radial-gradient(ellipse 80% 50% at 20% 40%, hsl(var(--primary) / 0.15) 0%, transparent 50%),
+              radial-gradient(ellipse 60% 60% at 80% 20%, hsl(var(--accent) / 0.12) 0%, transparent 50%),
+              radial-gradient(ellipse 50% 80% at 50% 80%, hsl(var(--primary) / 0.1) 0%, transparent 50%)
+            `,
+          }}
+          animate={{
+            backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
+          }}
+          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
         />
+
+        {/* Floating Particles */}
+        {floatingElements.map((el) => (
+          <motion.div
+            key={el.id}
+            className="absolute rounded-full bg-primary/20"
+            style={{
+              width: el.size,
+              height: el.size,
+              left: `${el.x}%`,
+              top: `${el.y}%`,
+            }}
+            animate={{
+              y: [0, -40, 0],
+              x: [0, 20, 0],
+              opacity: [0.2, 0.6, 0.2],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: el.duration,
+              repeat: Infinity,
+              delay: el.delay,
+              ease: "easeInOut",
+            }}
+          />
+        ))}
+
+        {/* Interactive Cursor Glow */}
         <motion.div
-          animate={{ scale: [1.1, 1, 1.1], opacity: [0.1, 0.15, 0.1] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute bottom-0 left-0 w-[250px] sm:w-[400px] h-[250px] sm:h-[400px] bg-gradient-to-tr from-blue-500/20 to-cyan-500/15 rounded-full blur-[60px] sm:blur-[100px]"
+          className="pointer-events-none fixed w-[600px] h-[600px] rounded-full"
+          style={{
+            background: "radial-gradient(circle, hsl(var(--primary) / 0.08) 0%, transparent 50%)",
+            left: mousePosition.x - 300,
+            top: mousePosition.y - 300,
+            filter: "blur(40px)",
+          }}
+        />
+
+        {/* Grid Pattern */}
+        <div 
+          className="absolute inset-0 opacity-[0.02] dark:opacity-[0.03]"
+          style={{
+            backgroundImage: `
+              linear-gradient(hsl(var(--foreground)) 1px, transparent 1px),
+              linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)
+            `,
+            backgroundSize: "60px 60px",
+          }}
         />
       </div>
 
-      <div className="container mx-auto px-4 relative z-10 pt-6 pb-8 sm:pt-28 sm:pb-20 lg:pt-32 lg:pb-24">
-        <div className="max-w-5xl mx-auto">
-          
-          {/* Mobile App Style Hero */}
-          <div className="lg:hidden">
-            {/* Welcome Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="mb-6"
+      {/* Hero Content */}
+      <motion.div 
+        ref={heroRef}
+        className="container relative z-10 px-4 pt-24 pb-16"
+        style={{ y }}
+      >
+        <div className="max-w-6xl mx-auto">
+          {/* Animated Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6 }}
+            className="flex justify-center mb-10"
+          >
+            <motion.div 
+              className="relative group cursor-pointer"
+              whileHover={{ scale: 1.02 }}
             >
-              <div className="p-5 rounded-3xl bg-gradient-to-br from-primary/10 via-violet-500/5 to-transparent border border-primary/20">
-                <div className="flex items-center gap-3 mb-3">
-                  <motion.div
-                    animate={{ rotate: [0, 10, -10, 0] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="text-2xl"
-                  >
-                    👋
-                  </motion.div>
-                  <span className="text-base font-medium text-foreground">مرحباً بك!</span>
-                </div>
-                <h1 className="text-2xl font-bold text-foreground leading-tight mb-2">
-                  نحوّل رؤيتك إلى{" "}
-                  <span className="bg-gradient-to-l from-primary to-violet-500 bg-clip-text text-transparent">
-                    واقع رقمي
-                  </span>
-                </h1>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  خدمات رقمية متكاملة بمعايير عالمية
-                </p>
-              </div>
-            </motion.div>
-
-            {/* Quick Actions Grid */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="mb-6"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-foreground">خدماتنا</h2>
-                <Link to="/our-services" className="flex items-center gap-1 text-xs text-primary font-medium">
-                  <span>عرض الكل</span>
-                  <ChevronLeft className="w-3 h-3" />
-                </Link>
-              </div>
-              <div className="grid grid-cols-4 gap-3">
-                {quickActions.map((action, index) => {
-                  const Icon = action.icon;
-                  return (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3, delay: 0.2 + index * 0.05 }}
-                    >
-                      <Link to={action.href}>
-                        <motion.div
-                          whileTap={{ scale: 0.95 }}
-                          className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-colors"
-                        >
-                          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center shadow-lg`}>
-                            <Icon className="w-5 h-5 text-white" />
-                          </div>
-                          <span className="text-[11px] font-medium text-foreground">{action.label}</span>
-                        </motion.div>
-                      </Link>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </motion.div>
-
-            {/* Stats Row */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="grid grid-cols-3 gap-3 mb-6"
-            >
-              {stats.map((stat, index) => (
+              <motion.div
+                className="absolute -inset-1 rounded-full bg-gradient-to-l from-primary via-accent to-primary opacity-20 blur-lg group-hover:opacity-40 transition-opacity"
+                animate={{
+                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                }}
+                transition={{ duration: 5, repeat: Infinity }}
+              />
+              <div className="relative flex items-center gap-3 px-6 py-3 rounded-full bg-background/80 backdrop-blur-xl border border-primary/20">
                 <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.4 + index * 0.05 }}
-                  className="p-4 rounded-2xl bg-card/60 border border-border/40 text-center"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
                 >
-                  <div className="text-xl font-bold bg-gradient-to-r from-primary to-violet-500 bg-clip-text text-transparent">
-                    {stat.value}
-                  </div>
-                  <div className="text-[10px] text-muted-foreground font-medium mt-0.5">
-                    {stat.label}
-                  </div>
+                  <Sparkles className="w-5 h-5 text-primary" />
                 </motion.div>
-              ))}
-            </motion.div>
-
-            {/* CTA Button */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              className="space-y-3"
-            >
-              <motion.div whileTap={{ scale: 0.98 }}>
-                <Button 
-                  asChild 
-                  size="lg" 
-                  className="w-full h-14 text-base rounded-2xl bg-gradient-to-r from-primary via-violet-600 to-blue-600 shadow-xl shadow-primary/25 font-bold"
-                >
-                  <Link to="/auth" className="flex items-center justify-center gap-2">
-                    <Zap className="w-5 h-5" />
-                    <span>ابدأ الآن مجاناً</span>
-                    <ArrowLeft className="w-5 h-5" />
-                  </Link>
-                </Button>
-              </motion.div>
-              <motion.div whileTap={{ scale: 0.98 }}>
-                <Button 
-                  asChild 
-                  variant="outline" 
-                  size="lg" 
-                  className="w-full h-12 text-sm rounded-2xl border-2"
-                >
-                  <Link to="/our-services">استكشف جميع الخدمات</Link>
-                </Button>
-              </motion.div>
-            </motion.div>
-
-            {/* Trust Badge */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
-              className="flex items-center justify-center gap-4 mt-6 pt-6 border-t border-border/30"
-            >
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Shield className="w-3.5 h-3.5 text-green-500" />
-                <span>آمن</span>
-              </div>
-              <div className="w-px h-3 bg-border" />
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Star className="w-3.5 h-3.5 text-amber-500" />
-                <span>4.9/5</span>
-              </div>
-              <div className="w-px h-3 bg-border" />
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Zap className="w-3.5 h-3.5 text-primary" />
-                <span>سريع</span>
+                <span className="font-semibold text-sm">منصة الخدمات الرقمية الأولى</span>
+                <motion.span
+                  className="w-2 h-2 rounded-full bg-success"
+                  animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
               </div>
             </motion.div>
-          </div>
+          </motion.div>
 
-          {/* Desktop Hero - Original Style */}
-          <div className="hidden lg:block text-center">
-            {/* Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-primary/10 via-violet-500/10 to-blue-500/10 border border-primary/20 mb-8"
-            >
-              <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }}>
-                <Sparkles className="w-4 h-4 text-primary" />
-              </motion.div>
-              <span className="text-sm font-semibold bg-gradient-to-r from-primary to-violet-500 bg-clip-text text-transparent">
-                المنصة الرقمية الأولى في المنطقة
-              </span>
-            </motion.div>
-
-            {/* Main Headline */}
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.1 }}
-              className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black leading-[1.05] tracking-tight mb-6"
-            >
-              <span className="block text-foreground">نحوّل رؤيتك إلى</span>
-              <span className="block mt-4">
-                <span className="relative">
-                  <span className="bg-gradient-to-r from-blue-500 via-violet-500 to-primary bg-clip-text text-transparent">
-                    واقع رقمي مذهل
-                  </span>
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: "100%" }}
-                    transition={{ duration: 0.8, delay: 0.8 }}
-                    className="absolute -bottom-3 right-0 h-2 bg-gradient-to-r from-blue-500 via-violet-500 to-primary rounded-full"
-                  />
+          {/* Main Headline */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            className="text-center mb-8"
+          >
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold leading-[1.1] tracking-tight">
+              <motion.span 
+                className="block mb-4"
+                initial={{ opacity: 0, x: -30 }}
+                animate={isInView ? { opacity: 1, x: 0 } : {}}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                حلول رقمية
+              </motion.span>
+              <motion.span 
+                className="relative inline-block"
+                initial={{ opacity: 0, x: 30 }}
+                animate={isInView ? { opacity: 1, x: 0 } : {}}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
+                <span className="relative z-10 bg-gradient-to-l from-primary via-accent to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
+                  متكاملة
                 </span>
-              </span>
-            </motion.h1>
-
-            {/* Subtitle */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-10"
-            >
-              خدمات رقمية متكاملة من التسويق والتطوير والتصميم{" "}
-              <span className="text-foreground font-medium">بمعايير عالمية وأسعار تنافسية</span>
-            </motion.p>
-
-            {/* Quick Actions */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex flex-wrap items-center justify-center gap-4 mb-10"
-            >
-              {quickActions.map((action, index) => {
-                const Icon = action.icon;
-                return (
-                  <motion.div
-                    key={index}
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Link to={action.href}>
-                      <div className={`flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r ${action.color} text-white shadow-lg font-medium`}>
-                        <Icon className="w-4 h-4" />
-                        <span>{action.label}</span>
-                      </div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-
-            {/* CTA Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-              className="flex items-center justify-center gap-4 mb-16"
-            >
-              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
-                <Button 
-                  asChild 
-                  size="lg" 
-                  className="h-16 px-12 text-lg rounded-2xl bg-gradient-to-r from-blue-600 via-violet-600 to-primary hover:opacity-90 shadow-2xl shadow-primary/30 font-bold group"
+                <motion.svg
+                  className="absolute -bottom-4 left-0 w-full"
+                  viewBox="0 0 300 12"
+                  fill="none"
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={isInView ? { pathLength: 1, opacity: 1 } : {}}
+                  transition={{ duration: 1, delay: 0.5 }}
                 >
-                  <Link to="/auth" className="flex items-center gap-3">
-                    <Zap className="w-5 h-5" />
-                    <span>ابدأ الآن مجاناً</span>
-                    <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-                  </Link>
-                </Button>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
-                <Button 
-                  asChild 
-                  variant="outline" 
-                  size="lg" 
-                  className="h-16 px-12 text-lg rounded-2xl border-2 font-semibold"
-                >
-                  <Link to="/our-services">استكشف الخدمات</Link>
-                </Button>
-              </motion.div>
-            </motion.div>
+                  <motion.path
+                    d="M2 10C50 3 100 3 150 6C200 9 250 5 298 2"
+                    stroke="url(#gradient)"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    fill="none"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 1, delay: 0.6 }}
+                  />
+                  <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="hsl(var(--primary))" />
+                      <stop offset="50%" stopColor="hsl(var(--accent))" />
+                      <stop offset="100%" stopColor="hsl(var(--primary))" />
+                    </linearGradient>
+                  </defs>
+                </motion.svg>
+              </motion.span>
+            </h1>
+          </motion.div>
 
-            {/* Stats */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.6 }}
-              className="flex items-center justify-center gap-12"
-            >
-              {[
-                { value: "50K+", label: "عميل نشط" },
-                { value: "100K+", label: "مشروع منجز" },
-                { value: "99.9%", label: "نسبة الرضا" },
-                { value: "24/7", label: "دعم متواصل" },
-              ].map((stat, index) => (
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="text-center text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed"
+          >
+            نجمع بين قوة{" "}
+            <span className="text-primary font-semibold">التسويق الذكي</span>
+            {" "}و{" "}
+            <span className="text-emerald-500 font-semibold">البرمجة المتقدمة</span>
+            {" "}و{" "}
+            <span className="text-violet-500 font-semibold">التصميم الإبداعي</span>
+            {" "}لتحقيق نجاحك الرقمي
+          </motion.p>
+
+          {/* Animated Features Carousel */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : {}}
+            transition={{ delay: 0.5 }}
+            className="flex justify-center gap-3 mb-12 flex-wrap"
+          >
+            {features.map((feature, index) => (
+              <motion.div
+                key={feature.text}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 ${
+                  activeFeature === index
+                    ? "bg-primary/10 border-primary/30 text-primary"
+                    : "bg-secondary/30 border-border/30 text-muted-foreground"
+                }`}
+                animate={{
+                  scale: activeFeature === index ? 1.05 : 1,
+                }}
+              >
+                <feature.icon className="w-4 h-4" />
+                <span className="text-sm font-medium">{feature.text}</span>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Services Cards - 3D Hover Effect */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 max-w-6xl mx-auto mb-14"
+          >
+            {services.map((service, index) => (
+              <motion.div
+                key={service.title}
+                initial={{ opacity: 0, y: 30 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: 0.6 + index * 0.1 }}
+                whileHover={{ y: -10, rotateX: 5, rotateY: -5 }}
+                style={{ transformStyle: "preserve-3d" }}
+                className="group relative cursor-pointer perspective-1000"
+              >
                 <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.7 + index * 0.1 }}
-                  className="text-center"
-                >
-                  <div className="text-4xl font-black bg-gradient-to-r from-primary to-violet-500 bg-clip-text text-transparent">
-                    {stat.value}
-                  </div>
-                  <div className="text-sm text-muted-foreground font-medium mt-1">{stat.label}</div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
+                  className={`absolute -inset-1 rounded-3xl bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-30 blur-2xl transition-all duration-500`}
+                />
+                <div className="relative p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl bg-card/60 backdrop-blur-xl border border-border/50 group-hover:border-primary/30 transition-all duration-500 overflow-hidden">
+                  {/* Shimmer Effect */}
+                  <motion.div
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{
+                      background: "linear-gradient(45deg, transparent 30%, hsl(var(--primary) / 0.05) 50%, transparent 70%)",
+                    }}
+                    animate={{
+                      x: ["-100%", "100%"],
+                    }}
+                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }}
+                  />
+                  
+                  {/* Icon */}
+                  <motion.div 
+                    className={`relative w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br ${service.color} p-2 sm:p-3 md:p-4 mb-3 sm:mb-4 md:mb-6 shadow-xl`}
+                    whileHover={{ scale: 1.1, rotate: 10 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <service.icon className="w-full h-full text-white" />
+                  </motion.div>
 
+                  <h3 className="text-sm sm:text-base md:text-xl font-bold mb-1 sm:mb-2 group-hover:text-primary transition-colors line-clamp-1">
+                    {service.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">
+                    {service.desc}
+                  </p>
+
+                  {/* Arrow */}
+                  <motion.div 
+                    className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-4 sm:left-6 md:left-8 opacity-0 group-hover:opacity-100 transition-all hidden sm:block"
+                    animate={{ x: [0, -5, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+                  </motion.div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* CTA Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            className="flex flex-col sm:flex-row gap-3 xs:gap-4 justify-center items-center mb-12 xs:mb-14 sm:mb-16 px-4"
+          >
+            <Link to="/auth?mode=signup">
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Button 
+                  size="lg" 
+                  className="group relative px-6 xs:px-8 sm:px-10 py-5 xs:py-6 sm:py-7 text-sm xs:text-base sm:text-lg font-semibold overflow-hidden rounded-xl xs:rounded-2xl w-full sm:w-auto"
+                >
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-l from-primary via-accent to-primary bg-[length:200%_100%]"
+                    animate={{
+                      backgroundPosition: ["0% 0%", "100% 0%", "0% 0%"],
+                    }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                  />
+                  <span className="relative z-10 flex items-center justify-center gap-2 xs:gap-3 text-primary-foreground">
+                    <Rocket className="w-4 h-4 xs:w-5 xs:h-5 group-hover:rotate-12 transition-transform" />
+                    ابدأ الآن مجاناً
+                    <ArrowLeft className="w-4 h-4 xs:w-5 xs:h-5 group-hover:-translate-x-1 transition-transform" />
+                  </span>
+                </Button>
+              </motion.div>
+            </Link>
+            <Link to="/our-services">
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="group px-6 xs:px-8 sm:px-10 py-5 xs:py-6 sm:py-7 text-sm xs:text-base sm:text-lg font-semibold border-2 rounded-xl xs:rounded-2xl bg-background/50 backdrop-blur-sm hover:bg-primary/5 hover:border-primary/50 transition-all w-full sm:w-auto"
+                >
+                  <Play className="w-4 h-4 xs:w-5 xs:h-5 ml-2 xs:ml-3 group-hover:scale-110 transition-transform" />
+                  شاهد كيف نعمل
+                </Button>
+              </motion.div>
+            </Link>
+          </motion.div>
+
+          {/* Stats Row */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.8 }}
+            className="flex flex-wrap justify-center gap-6 xs:gap-8 md:gap-16"
+          >
+            {[
+              { value: stats?.totalUsers || 0, suffix: "+", label: "عميل سعيد", icon: Users, color: "text-primary" },
+              { value: stats?.completedOrders || 0, suffix: "+", label: "مشروع ناجح", icon: Award, color: "text-emerald-500" },
+              { value: stats?.satisfactionRate || 98, suffix: "%", label: "معدل الرضا", icon: TrendingUp, color: "text-violet-500" },
+            ].map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                transition={{ delay: 0.9 + index * 0.1 }}
+                whileHover={{ scale: 1.05 }}
+                className="text-center group"
+              >
+                <div className="flex items-center justify-center gap-1.5 xs:gap-2 mb-1 xs:mb-2">
+                  <stat.icon className={`w-5 h-5 xs:w-6 xs:h-6 ${stat.color} opacity-70 group-hover:opacity-100 transition-opacity`} />
+                  <span className={`text-2xl xs:text-3xl md:text-4xl font-bold ${stat.color}`}>
+                    {isLoading ? (
+                      <span className="inline-block w-12 h-8 bg-muted animate-pulse rounded" />
+                    ) : (
+                      <>
+                        {stat.value.toLocaleString()}{stat.suffix}
+                      </>
+                    )}
+                  </span>
+                </div>
+                <span className="text-muted-foreground text-xs xs:text-sm">{stat.label}</span>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
+
+      {/* Scroll Indicator */}
+      <motion.div
+        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.2 }}
+      >
+        <motion.div
+          className="w-8 h-14 rounded-full border-2 border-primary/30 flex justify-center pt-3"
+          animate={{ y: [0, 5, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          <motion.div
+            className="w-2 h-3 rounded-full bg-primary"
+            animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        </motion.div>
+      </motion.div>
+
+      {/* CSS for gradient animation */}
+      <style>{`
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-gradient {
+          animation: gradient 4s linear infinite;
+        }
+        .perspective-1000 {
+          perspective: 1000px;
+        }
+      `}</style>
     </section>
   );
 };

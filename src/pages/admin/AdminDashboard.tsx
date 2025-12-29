@@ -17,7 +17,6 @@ import { ar } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
 import DashboardSkeleton from "@/components/admin/DashboardSkeleton";
 import AdvancedDashboardCharts from "@/components/admin/AdvancedDashboardCharts";
 import DashboardHeader from "@/components/admin/dashboard/DashboardHeader";
@@ -27,15 +26,13 @@ import TopServicesCard from "@/components/admin/dashboard/TopServicesCard";
 import ActivityFeedCard from "@/components/admin/dashboard/ActivityFeedCard";
 import RevenueOverviewCard from "@/components/admin/dashboard/RevenueOverviewCard";
 import MobileDashboardHeader from "@/components/admin/MobileDashboardHeader";
+import MobileDashboardStats from "@/components/admin/MobileDashboardStats";
 import MobileRevenueCard from "@/components/admin/MobileRevenueCard";
 import MobileActivityFeed from "@/components/admin/MobileActivityFeed";
 import MobileQuickActions from "@/components/admin/MobileQuickActions";
 import MobileTopServices from "@/components/admin/MobileTopServices";
 import LiveOrdersChart from "@/components/admin/LiveOrdersChart";
 import MobileLiveOrdersChart from "@/components/admin/MobileLiveOrdersChart";
-import AnimatedCounter from "@/components/admin/AnimatedCounter";
-import { MobileOverviewStats } from "@/components/admin/MobileOverviewStats";
-import MobileAdminDashboard from "@/components/admin/MobileAdminDashboard";
 
 interface DashboardStats {
   totalUsers: number;
@@ -378,11 +375,9 @@ const AdminDashboard = () => {
     setIsRefreshing(false);
   }, []);
 
-  // Stats data with short labels for mobile
   const statsData = [
     {
       title: "إجمالي المستخدمين",
-      shortTitle: "المستخدمين",
       value: stats.totalUsers,
       icon: Users,
       gradient: "from-primary/20 to-primary/5",
@@ -393,7 +388,6 @@ const AdminDashboard = () => {
     },
     {
       title: "الطلبات المعلقة",
-      shortTitle: "المعلقة",
       value: stats.pendingOrders,
       icon: Clock,
       gradient: "from-warning/20 to-warning/5",
@@ -404,7 +398,6 @@ const AdminDashboard = () => {
     },
     {
       title: "الطلبات المكتملة",
-      shortTitle: "المكتملة",
       value: stats.completedOrders,
       icon: CheckCircle,
       gradient: "from-success/20 to-success/5",
@@ -414,7 +407,6 @@ const AdminDashboard = () => {
     },
     {
       title: "الإيرادات الشهرية",
-      shortTitle: "الإيرادات",
       value: stats.monthlyRevenue,
       icon: DollarSign,
       gradient: "from-accent/20 to-accent/5",
@@ -436,26 +428,44 @@ const AdminDashboard = () => {
 
   // Mobile-optimized dashboard content
   const mobileDashboardContent = (
-    <MobileAdminDashboard
-      stats={{
-        totalUsers: stats.totalUsers,
-        pendingOrders: stats.pendingOrders,
-        completedOrders: stats.completedOrders,
-        totalRevenue: stats.totalRevenue,
-        monthlyRevenue: stats.monthlyRevenue,
-        weeklyRevenue: stats.weeklyRevenue,
-        usersTrend: stats.usersTrend,
-        ordersTrend: stats.ordersTrend,
-        revenueTrend: stats.revenueTrend,
-      }}
-      activities={activities}
-      topServices={topServices}
-      chartData={chartData}
-      onRefresh={handleRefresh}
-      isRefreshing={isRefreshing}
-      activeTab={activeTab}
-      setActiveTab={setActiveTab}
-    />
+    <div className="space-y-3" dir="rtl">
+      <MobileDashboardHeader onRefresh={handleRefresh} isRefreshing={isRefreshing} />
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full grid grid-cols-2 h-9 p-0.5 bg-secondary/50">
+          <TabsTrigger value="overview" className="text-xs gap-1 data-[state=active]:bg-background">
+            <Sparkles className="w-3 h-3" />
+            نظرة عامة
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="text-xs gap-1 data-[state=active]:bg-background">
+            <BarChart3 className="w-3 h-3" />
+            الإحصائيات
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-3 mt-3">
+          <MobileDashboardStats stats={statsData} />
+          <MobileLiveOrdersChart />
+          <MobileRevenueCard
+            totalRevenue={stats.totalRevenue}
+            monthlyRevenue={stats.monthlyRevenue}
+            weeklyRevenue={stats.weeklyRevenue}
+            revenueTrend={stats.revenueTrend}
+          />
+          <MobileQuickActions />
+          <MobileTopServices services={topServices} />
+          <MobileActivityFeed activities={activities} />
+        </TabsContent>
+
+        <TabsContent value="analytics" className="mt-3">
+          <AdvancedDashboardCharts
+            orders={chartData.orders}
+            deposits={chartData.deposits}
+            users={chartData.users}
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 
   // Desktop dashboard content

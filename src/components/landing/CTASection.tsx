@@ -1,8 +1,8 @@
 import { motion, useInView } from "framer-motion";
-import { ArrowLeft, Zap, Shield, Clock, Rocket, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Sparkles, Zap, Shield, Clock, Rocket, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 
 const benefits = [
   { icon: Zap, text: "تفعيل فوري" },
@@ -21,6 +21,23 @@ const floatingIcons = [
 const CTASection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+  const [timeLeft, setTimeLeft] = useState({ hours: 23, minutes: 59, seconds: 59 });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev.seconds > 0) {
+          return { ...prev, seconds: prev.seconds - 1 };
+        } else if (prev.minutes > 0) {
+          return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
+        } else if (prev.hours > 0) {
+          return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
+        }
+        return { hours: 23, minutes: 59, seconds: 59 };
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <section ref={containerRef} className="py-32 relative overflow-hidden">
@@ -128,6 +145,68 @@ const CTASection = () => {
             />
             
             <div className="relative">
+              {/* Badge */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                transition={{ delay: 0.2 }}
+                className="flex justify-center mb-8"
+              >
+                <motion.div 
+                  className="relative group"
+                  animate={{
+                    boxShadow: [
+                      "0 0 20px hsl(var(--primary) / 0.2)",
+                      "0 0 50px hsl(var(--primary) / 0.4)",
+                      "0 0 20px hsl(var(--primary) / 0.2)",
+                    ],
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <div className="flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-l from-primary/20 to-accent/20 border border-primary/30">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Sparkles className="w-5 h-5 text-primary" />
+                    </motion.div>
+                    <span className="font-semibold text-primary">عرض لفترة محدودة</span>
+                    <motion.span
+                      className="w-2 h-2 rounded-full bg-success"
+                      animate={{ scale: [1, 1.5, 1] }}
+                      transition={{ duration: 1, repeat: Infinity }}
+                    />
+                  </div>
+                </motion.div>
+              </motion.div>
+
+              {/* Countdown Timer */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: 0.3 }}
+                className="flex justify-center gap-4 mb-10"
+              >
+                {[
+                  { value: timeLeft.hours, label: "ساعة" },
+                  { value: timeLeft.minutes, label: "دقيقة" },
+                  { value: timeLeft.seconds, label: "ثانية" },
+                ].map((item, index) => (
+                  <div key={item.label} className="text-center">
+                    <motion.div
+                      className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-secondary/50 border border-border/50 flex items-center justify-center mb-2"
+                      animate={{ scale: item.label === "ثانية" ? [1, 1.05, 1] : 1 }}
+                      transition={{ duration: 1, repeat: Infinity }}
+                    >
+                      <span className="text-2xl md:text-3xl font-bold text-primary">
+                        {item.value.toString().padStart(2, '0')}
+                      </span>
+                    </motion.div>
+                    <span className="text-xs text-muted-foreground">{item.label}</span>
+                  </div>
+                ))}
+              </motion.div>
+
               {/* Headline */}
               <motion.h2
                 initial={{ opacity: 0, y: 20 }}

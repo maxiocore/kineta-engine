@@ -113,23 +113,23 @@ const MobileLiveOrdersChart = () => {
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-card rounded-lg sm:rounded-xl border border-border/40 p-2 sm:p-3 overflow-hidden relative"
+      className="bg-card rounded-xl border border-border/40 p-3 overflow-hidden relative"
       dir="rtl"
     >
       {/* Subtle animated background */}
       <div className="absolute inset-0 bg-gradient-to-bl from-primary/5 to-transparent pointer-events-none" />
-      <div className="absolute top-0 left-0 w-16 h-16 sm:w-20 sm:h-20 bg-primary/5 rounded-full blur-2xl" />
+      <div className="absolute top-0 left-0 w-20 h-20 bg-primary/5 rounded-full blur-2xl" />
       
       <div className="relative z-10">
         {/* Header */}
-        <div className="flex items-center justify-between mb-2 sm:mb-3 flex-row-reverse">
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-row-reverse">
-            <div className="p-1 sm:p-1.5 rounded-lg bg-primary/10">
-              <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+        <div className="flex items-center justify-between mb-3 flex-row-reverse">
+          <div className="flex items-center gap-2 flex-row-reverse">
+            <div className="p-1.5 rounded-lg bg-primary/10">
+              <Activity className="w-4 h-4 text-primary" />
             </div>
             <div className="text-right">
-              <span className="text-xs sm:text-sm font-semibold">الطلبات المباشرة</span>
-              <p className="text-[8px] sm:text-[9px] text-muted-foreground">
+              <span className="text-sm font-semibold">الطلبات المباشرة</span>
+              <p className="text-[9px] text-muted-foreground">
                 آخر تحديث: {format(lastUpdate, "HH:mm", { locale: ar })}
               </p>
             </div>
@@ -137,42 +137,42 @@ const MobileLiveOrdersChart = () => {
           <motion.div
             animate={{ scale: isLive ? [1, 1.1, 1] : 1 }}
             transition={{ duration: 2, repeat: isLive ? Infinity : 0 }}
-            className="flex items-center gap-0.5 sm:gap-1 px-1 sm:px-1.5 py-0.5 rounded-full bg-success/10 border border-success/20 flex-row-reverse"
+            className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-success/10 border border-success/20 flex-row-reverse"
           >
-            <Zap className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-success" />
-            <span className="text-[8px] sm:text-[9px] text-success font-medium">مباشر</span>
+            <Zap className="w-2.5 h-2.5 text-success" />
+            <span className="text-[9px] text-success font-medium">مباشر</span>
           </motion.div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-4 gap-1 sm:gap-1.5 mb-2 sm:mb-3">
+        <div className="grid grid-cols-4 gap-1.5 mb-3">
           <motion.div 
             whileTap={{ scale: 0.95 }}
-            className="p-1 sm:p-1.5 rounded-lg bg-secondary/40 text-center border border-border/20"
+            className="p-1.5 rounded-lg bg-secondary/40 text-center border border-border/20"
           >
-            <p className="text-sm sm:text-base font-bold">{todayStats.total.toLocaleString('ar-SA')}</p>
-            <p className="text-[8px] sm:text-[9px] text-muted-foreground">إجمالي</p>
+            <p className="text-base font-bold">{todayStats.total.toLocaleString('ar-SA')}</p>
+            <p className="text-[9px] text-muted-foreground">إجمالي</p>
           </motion.div>
           <motion.div 
             whileTap={{ scale: 0.95 }}
-            className="p-1 sm:p-1.5 rounded-lg bg-warning/10 text-center border border-warning/20"
+            className="p-1.5 rounded-lg bg-warning/10 text-center border border-warning/20"
           >
-            <p className="text-sm sm:text-base font-bold text-warning">{todayStats.pending.toLocaleString('ar-SA')}</p>
-            <p className="text-[8px] sm:text-[9px] text-muted-foreground">معلق</p>
+            <p className="text-base font-bold text-warning">{todayStats.pending.toLocaleString('ar-SA')}</p>
+            <p className="text-[9px] text-muted-foreground">معلق</p>
           </motion.div>
           <motion.div 
             whileTap={{ scale: 0.95 }}
-            className="p-1 sm:p-1.5 rounded-lg bg-success/10 text-center border border-success/20"
+            className="p-1.5 rounded-lg bg-success/10 text-center border border-success/20"
           >
-            <p className="text-sm sm:text-base font-bold text-success">{todayStats.completed.toLocaleString('ar-SA')}</p>
-            <p className="text-[8px] sm:text-[9px] text-muted-foreground">مكتمل</p>
+            <p className="text-base font-bold text-success">{todayStats.completed.toLocaleString('ar-SA')}</p>
+            <p className="text-[9px] text-muted-foreground">مكتمل</p>
           </motion.div>
           <motion.div 
             whileTap={{ scale: 0.95 }}
-            className="p-1 sm:p-1.5 rounded-lg bg-primary/10 text-center border border-primary/20"
+            className="p-1.5 rounded-lg bg-primary/10 text-center border border-primary/20"
           >
-            <p className="text-[10px] sm:text-xs font-bold text-primary">{todayStats.revenue.toLocaleString('ar-SA')}</p>
-            <p className="text-[8px] sm:text-[9px] text-muted-foreground">ر.س</p>
+            <p className="text-xs font-bold text-primary">{todayStats.revenue.toLocaleString('ar-SA')}</p>
+            <p className="text-[9px] text-muted-foreground">ر.س</p>
           </motion.div>
         </div>
 

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Sparkles, RefreshCw, Calendar } from "lucide-react";
+import { Sparkles, RefreshCw, Calendar, Activity, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -16,39 +16,47 @@ const MobileDashboardHeader = ({ onRefresh, isRefreshing }: MobileDashboardHeade
     <motion.div 
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative overflow-hidden rounded-xl bg-gradient-to-l from-primary/10 via-accent/5 to-transparent border border-border/40 p-2.5 sm:p-3"
+      className="relative overflow-hidden rounded-xl bg-gradient-to-l from-primary/10 via-accent/5 to-transparent border border-border/40 p-3"
       dir="rtl"
     >
       {/* Background decorations */}
-      <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 bg-primary/10 rounded-full blur-2xl" />
-      <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-16 sm:h-16 bg-accent/10 rounded-full blur-xl" />
+      <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-full blur-2xl" />
+      <div className="absolute bottom-0 left-0 w-16 h-16 bg-accent/10 rounded-full blur-xl" />
       
-      <div className="relative z-10 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
+      {/* Animated particles */}
+      <motion.div
+        className="absolute top-2 left-1/4 w-1 h-1 bg-primary/50 rounded-full"
+        animate={{ y: [0, -6, 0], opacity: [0.5, 1, 0.5] }}
+        transition={{ duration: 2, repeat: Infinity }}
+      />
+      
+      <div className="relative z-10 flex items-center justify-between flex-row-reverse">
+        <div className="flex items-center gap-2.5 flex-row-reverse">
           <motion.div
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"
+            className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20"
             animate={{ rotate: [0, 3, -3, 0] }}
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
           >
-            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-foreground" />
+            <Sparkles className="w-5 h-5 text-primary-foreground" />
           </motion.div>
-          <div className="min-w-0">
-            <h1 className="text-xs sm:text-sm font-bold truncate">لوحة التحكم</h1>
-            <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-muted-foreground">
-              <Calendar className="w-2.5 h-2.5 shrink-0" />
-              <span className="truncate max-w-[100px] sm:max-w-none">{currentDate}</span>
+          <div className="text-right">
+            <h1 className="text-base font-bold">لوحة التحكم</h1>
+            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground flex-row-reverse">
+              <Calendar className="w-3 h-3" />
+              <span>{currentDate}</span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+        <div className="flex items-center gap-2 flex-row-reverse">
           <motion.div 
-            className="flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-success/10 border border-success/20"
+            className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-success/10 border border-success/20 flex-row-reverse"
             animate={{ opacity: [1, 0.7, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
+            <Activity className="w-3 h-3 text-success" />
             <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-            <span className="text-[9px] sm:text-[10px] text-success font-medium">مباشر</span>
+            <span className="text-[10px] text-success font-medium">مباشر</span>
           </motion.div>
 
           <Button
@@ -56,9 +64,9 @@ const MobileDashboardHeader = ({ onRefresh, isRefreshing }: MobileDashboardHeade
             size="icon"
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="h-6 w-6 sm:h-7 sm:w-7 hover:bg-primary/10 hover:border-primary/30"
+            className="h-8 w-8 hover:bg-primary/10 hover:border-primary/30"
           >
-            <RefreshCw className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${isRefreshing ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
           </Button>
         </div>
       </div>

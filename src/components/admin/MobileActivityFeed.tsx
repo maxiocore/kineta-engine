@@ -35,17 +35,17 @@ const MobileActivityFeed = ({ activities }: MobileActivityFeedProps) => {
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-card rounded-lg sm:rounded-xl border border-border/40 p-2 sm:p-3"
+      className="bg-card rounded-xl border border-border/40 p-3"
       dir="rtl"
     >
-      <div className="flex items-center justify-between mb-2 sm:mb-2.5 flex-row-reverse">
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-row-reverse">
-          <div className="p-1 sm:p-1.5 rounded-lg bg-primary/10">
-            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+      <div className="flex items-center justify-between mb-2.5 flex-row-reverse">
+        <div className="flex items-center gap-2 flex-row-reverse">
+          <div className="p-1.5 rounded-lg bg-primary/10">
+            <Clock className="w-4 h-4 text-primary" />
           </div>
-          <span className="text-xs sm:text-sm font-semibold">النشاط الأخير</span>
+          <span className="text-sm font-semibold">النشاط الأخير</span>
         </div>
-        <Badge variant="secondary" className="text-[8px] sm:text-[10px] h-4 sm:h-5">
+        <Badge variant="secondary" className="text-[10px] h-5">
           {activities.length} نشاط
         </Badge>
       </div>

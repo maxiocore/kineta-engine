@@ -40,23 +40,23 @@ const MobileTopServices = ({ services }: MobileTopServicesProps) => {
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-card rounded-lg sm:rounded-xl border border-border/40 overflow-hidden"
+      className="bg-card rounded-xl border border-border/40 overflow-hidden"
       dir="rtl"
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-2 sm:p-3 border-b border-border/30 flex-row-reverse">
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-row-reverse">
-          <div className="p-1 sm:p-1.5 rounded-lg bg-warning/10">
-            <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-warning" />
+      <div className="flex items-center justify-between p-3 border-b border-border/30 flex-row-reverse">
+        <div className="flex items-center gap-2 flex-row-reverse">
+          <div className="p-1.5 rounded-lg bg-warning/10">
+            <Star className="w-4 h-4 text-warning" />
           </div>
-          <span className="text-xs sm:text-sm font-semibold">أفضل الخدمات</span>
+          <span className="text-sm font-semibold">أفضل الخدمات</span>
         </div>
         <Link 
           to="/admin/services"
-          className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs text-muted-foreground hover:text-primary transition-colors flex-row-reverse"
+          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors flex-row-reverse"
         >
           عرض الكل
-          <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+          <ChevronRight className="w-3 h-3" />
         </Link>
       </div>
       

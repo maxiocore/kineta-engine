@@ -1,238 +1,287 @@
 import { motion, useInView } from "framer-motion";
-import { Share2, Code2, Palette, Globe, ArrowLeft, Sparkles, Zap, Star, Users } from "lucide-react";
+import { ArrowLeft, Sparkles, Shield, Zap, Clock, HeadphonesIcon, Award, TrendingUp, Users, CheckCircle2, Star, Rocket, Globe, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { useRef, useState } from "react";
+import { useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+const useRealStats = () => {
+  return useQuery({
+    queryKey: ["landing-real-stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_public_stats");
+      
+      if (error) throw error;
+      
+      const stats = data as {
+        total_orders: number;
+        completed_orders: number;
+        total_users: number;
+        total_services: number;
+        total_deposits: number;
+      };
+      
+      const satisfactionRate = stats.total_orders > 0 
+        ? Math.min(98, Math.round((stats.completed_orders / stats.total_orders) * 100)) 
+        : 98;
+      
+      return {
+        totalOrders: stats.total_orders || 0,
+        completedOrders: stats.completed_orders || 0,
+        totalUsers: stats.total_users || 0,
+        totalServices: stats.total_services || 0,
+        satisfactionRate,
+      };
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+const features = [
+  {
+    icon: Zap,
+    title: "تفعيل فوري",
+    description: "نبدأ تنفيذ طلبك فور استلامه دون أي تأخير",
+    color: "from-amber-500 to-orange-500",
+    bgColor: "bg-amber-500/10",
+  },
+  {
+    icon: Shield,
+    title: "أمان مضمون",
+    description: "حماية كاملة لبياناتك ومعلوماتك الشخصية",
+    color: "from-emerald-500 to-teal-500",
+    bgColor: "bg-emerald-500/10",
+  },
+  {
+    icon: HeadphonesIcon,
+    title: "دعم متواصل",
+    description: "فريق دعم فني متاح على مدار الساعة لمساعدتك",
+    color: "from-blue-500 to-cyan-500",
+    bgColor: "bg-blue-500/10",
+  },
+  {
+    icon: CreditCard,
+    title: "دفع آمن",
+    description: "طرق دفع متعددة وآمنة تناسب الجميع",
+    color: "from-violet-500 to-purple-500",
+    bgColor: "bg-violet-500/10",
+  },
+];
+
+const benefits = [
+  "أسعار تنافسية لا تُقارن",
+  "ضمان جودة الخدمة",
+  "استرداد المبلغ عند الحاجة",
+  "تقارير مفصلة للطلبات",
+  "واجهة سهلة الاستخدام",
+  "تحديثات مستمرة",
+];
 
 const ServicesSection = () => {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(containerRef, { once: true, amount: 0.1 });
+  const { data: stats, isLoading } = useRealStats();
 
-  const services = [
+  const statsData = [
     { 
-      icon: Share2, 
-      title: "التسويق الرقمي",
-      subtitle: "نمو سريع ومستدام",
-      desc: "نصمم حملات تسويقية ذكية تصل بعلامتك لملايين العملاء المحتملين",
-      color: "from-blue-500 via-blue-600 to-cyan-500",
-      lightColor: "blue",
-      stats: "+300% نمو",
-      users: "15K+ عميل",
-      href: "/digital-marketing-services"
+      value: stats?.totalOrders || 0, 
+      suffix: "+", 
+      label: "طلب منفذ", 
+      icon: Rocket,
+      color: "text-primary" 
     },
     { 
-      icon: Code2, 
-      title: "التطوير والبرمجة",
-      subtitle: "حلول تقنية متقدمة",
-      desc: "نبني تطبيقات ومواقع احترافية بأحدث التقنيات العالمية",
-      color: "from-emerald-500 via-emerald-600 to-teal-500",
-      lightColor: "emerald",
-      stats: "+200 مشروع",
-      users: "99% رضا",
-      href: "/development-services"
+      value: stats?.totalUsers || 0, 
+      suffix: "+", 
+      label: "عميل سعيد", 
+      icon: Users,
+      color: "text-emerald-500" 
     },
     { 
-      icon: Palette, 
-      title: "التصميم الإبداعي",
-      subtitle: "هويات لا تُنسى",
-      desc: "نصمم هويات بصرية مميزة تعكس شخصية علامتك التجارية",
-      color: "from-violet-500 via-purple-600 to-pink-500",
-      lightColor: "violet",
-      stats: "+500 تصميم",
-      users: "100+ هوية",
-      href: "/design-services"
+      value: stats?.totalServices || 0, 
+      suffix: "+", 
+      label: "خدمة متاحة", 
+      icon: Globe,
+      color: "text-violet-500" 
     },
     { 
-      icon: Globe, 
-      title: "خدمات السوشيال",
-      subtitle: "تواجد رقمي قوي",
-      desc: "نزيد متابعيك ونبني لك حضوراً قوياً على جميع المنصات",
-      color: "from-amber-500 via-orange-500 to-red-500",
-      lightColor: "amber",
-      stats: "+1M متابع",
-      users: "5K+ حساب",
-      href: "/social-media-services"
+      value: 100, 
+      suffix: "%", 
+      label: "نسبة الرضا", 
+      icon: Star,
+      color: "text-amber-500" 
     },
   ];
 
   return (
-    <section ref={ref} className="py-20 sm:py-28 lg:py-32 relative overflow-hidden" dir="rtl">
+    <section ref={containerRef} className="py-12 xs:py-14 sm:py-20 md:py-28 relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/30 to-background" />
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/5 to-background" />
+        <motion.div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] sm:w-[600px] md:w-[800px] h-[400px] sm:h-[600px] md:h-[800px] rounded-full opacity-30"
+          style={{
+            background: "radial-gradient(circle, hsl(var(--primary) / 0.08) 0%, transparent 60%)",
+          }}
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ duration: 10, repeat: Infinity }}
+        />
+      </div>
       
-      {/* Decorative Elements */}
-      <div className="absolute top-20 right-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 left-10 w-96 h-96 bg-violet-500/5 rounded-full blur-3xl" />
-
-      <div className="container px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="container px-3 xs:px-4 sm:px-6 relative z-10">
         {/* Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center max-w-3xl mx-auto mb-16 sm:mb-20"
+          className="text-center mb-8 xs:mb-10 sm:mb-16"
         >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={isInView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-primary/10 via-violet-500/10 to-pink-500/10 border border-primary/20 mb-6"
+          <motion.div 
+            className="inline-flex items-center gap-1.5 xs:gap-2 px-3 xs:px-4 py-1.5 xs:py-2 rounded-full bg-primary/10 border border-primary/20 mb-4 xs:mb-6"
+            whileHover={{ scale: 1.05 }}
           >
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold bg-gradient-to-r from-primary to-violet-500 bg-clip-text text-transparent">
-              خدمات احترافية متكاملة
-            </span>
+            <Sparkles className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-primary" />
+            <span className="font-semibold text-primary text-xs xs:text-sm">لماذا تختارنا؟</span>
           </motion.div>
           
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black mb-6 leading-tight">
-            <span className="text-foreground">كل ما تحتاجه</span>
-            <br />
-            <span className="bg-gradient-to-r from-primary via-violet-500 to-pink-500 bg-clip-text text-transparent">
-              في مكان واحد
+          <h2 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 xs:mb-4 sm:mb-6 px-2">
+            منصة موثوقة{" "}
+            <span className="bg-gradient-to-l from-primary via-accent to-primary bg-clip-text text-transparent">
+              لنجاحك الرقمي
             </span>
           </h2>
-          <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
-            نقدم لك باقة متكاملة من الخدمات الرقمية المصممة خصيصاً لتحقيق أهداف أعمالك
+          
+          <p className="text-muted-foreground max-w-2xl mx-auto text-xs xs:text-sm sm:text-base md:text-lg leading-relaxed px-4">
+            نوفر لك كل ما تحتاجه لتنمية حضورك الرقمي بجودة عالية وأسعار منافسة
           </p>
         </motion.div>
 
-        {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 max-w-5xl mx-auto mb-16">
-          {services.map((service, index) => {
-            const Icon = service.icon;
-            return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 40 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                onMouseEnter={() => setHoveredIndex(index)}
-                onMouseLeave={() => setHoveredIndex(null)}
-              >
-                <Link to={service.href} className="block h-full">
-                  <div className="group relative h-full p-6 sm:p-8 rounded-3xl bg-card border border-border/50 hover:border-transparent transition-all duration-500 overflow-hidden">
-                    {/* Hover Gradient Background */}
-                    <div 
-                      className={`absolute inset-0 bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
-                    />
-                    
-                    {/* Glow Effect */}
-                    <motion.div
-                      initial={false}
-                      animate={{ 
-                        opacity: hoveredIndex === index ? 0.15 : 0,
-                        scale: hoveredIndex === index ? 1 : 0.8
-                      }}
-                      className={`absolute -top-20 -right-20 w-60 h-60 bg-gradient-to-br ${service.color} rounded-full blur-3xl`}
-                    />
+        {/* Live Stats Grid */}
+        <motion.div
+          className="grid grid-cols-2 gap-2.5 xs:gap-3 sm:gap-4 md:gap-6 max-w-4xl mx-auto mb-8 xs:mb-10 sm:mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.2 }}
+        >
+          {statsData.map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              className="relative p-3 xs:p-4 sm:p-6 rounded-xl xs:rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 text-center group hover:border-primary/30 transition-all duration-300"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={isInView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ delay: 0.3 + index * 0.1 }}
+              whileHover={{ y: -5 }}
+            >
+              <stat.icon className={`w-5 h-5 xs:w-6 xs:h-6 sm:w-8 sm:h-8 mx-auto mb-1.5 xs:mb-2 sm:mb-3 ${stat.color}`} />
+              <div className={`text-lg xs:text-xl sm:text-3xl md:text-4xl font-bold ${stat.color} mb-0.5 xs:mb-1`}>
+                {isLoading ? (
+                  <span className="inline-block w-10 xs:w-12 h-6 xs:h-8 bg-muted animate-pulse rounded" />
+                ) : (
+                  <>
+                    {stat.value.toLocaleString()}{stat.suffix}
+                  </>
+                )}
+              </div>
+              <p className="text-muted-foreground text-[10px] xs:text-xs sm:text-sm">{stat.label}</p>
+            </motion.div>
+          ))}
+        </motion.div>
 
-                    <div className="relative z-10">
-                      {/* Top Row */}
-                      <div className="flex items-start justify-between mb-6">
-                        <motion.div 
-                          whileHover={{ rotate: [0, -10, 10, 0] }}
-                          transition={{ duration: 0.5 }}
-                          className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${service.color} p-3.5 sm:p-4 shadow-lg`}
-                        >
-                          <Icon className="w-full h-full text-white" />
-                        </motion.div>
-                        
-                        <div className="flex items-center gap-2">
-                          <div className={`px-3 py-1.5 rounded-full bg-${service.lightColor}-500/10 text-${service.lightColor}-600 dark:text-${service.lightColor}-400 text-xs font-bold`}>
-                            {service.stats}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="mb-6">
-                        <span className={`text-xs font-semibold uppercase tracking-wider bg-gradient-to-r ${service.color} bg-clip-text text-transparent`}>
-                          {service.subtitle}
-                        </span>
-                        <h3 className="text-xl sm:text-2xl font-bold text-foreground mt-2 mb-3 group-hover:text-primary transition-colors">
-                          {service.title}
-                        </h3>
-                        <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                          {service.desc}
-                        </p>
-                      </div>
-
-                      {/* Bottom Row */}
-                      <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Users className="w-4 h-4" />
-                          <span>{service.users}</span>
-                        </div>
-                        
-                        <motion.div 
-                          className="flex items-center gap-2 text-primary font-semibold"
-                          whileHover={{ x: -5 }}
-                        >
-                          <span className="text-sm">اكتشف المزيد</span>
-                          <ArrowLeft className="w-4 h-4" />
-                        </motion.div>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            );
-          })}
+        {/* Features Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 xs:gap-3 sm:gap-4 md:gap-6 max-w-6xl mx-auto mb-8 xs:mb-10 sm:mb-16">
+          {features.map((feature, index) => (
+            <motion.div
+              key={feature.title}
+              className="relative p-3 xs:p-4 sm:p-6 rounded-xl xs:rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 group hover:border-primary/30 transition-all duration-300"
+              initial={{ opacity: 0, y: 30 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.4 + index * 0.1 }}
+              whileHover={{ y: -5 }}
+            >
+              <div className={`w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 rounded-lg xs:rounded-xl ${feature.bgColor} flex items-center justify-center mb-2.5 xs:mb-3 sm:mb-4`}>
+                <feature.icon className={`w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 bg-gradient-to-br ${feature.color} bg-clip-text text-transparent`} style={{ color: feature.color.includes('amber') ? '#f59e0b' : feature.color.includes('emerald') ? '#10b981' : feature.color.includes('blue') ? '#3b82f6' : '#8b5cf6' }} />
+              </div>
+              <h3 className="text-sm xs:text-base sm:text-lg font-bold mb-1 xs:mb-2 group-hover:text-primary transition-colors">
+                {feature.title}
+              </h3>
+              <p className="text-muted-foreground text-[10px] xs:text-xs sm:text-sm leading-relaxed line-clamp-3">
+                {feature.description}
+              </p>
+            </motion.div>
+          ))}
         </div>
 
-        {/* Bottom CTA */}
-        <motion.div 
+        {/* Benefits Section */}
+        <motion.div
+          className="max-w-4xl mx-auto"
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="text-center"
+          transition={{ delay: 0.6 }}
         >
-          <div className="inline-flex flex-col sm:flex-row items-center gap-4 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-primary/5 via-violet-500/5 to-pink-500/5 border border-primary/10">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Zap className="w-6 h-6 text-primary" />
+          <div className="relative p-4 xs:p-5 sm:p-8 md:p-10 rounded-2xl xs:rounded-3xl bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20">
+            <div className="absolute top-0 right-0 w-20 xs:w-24 sm:w-32 h-20 xs:h-24 sm:h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full" />
+            
+            <div className="flex flex-col gap-4 xs:gap-5 sm:gap-6 md:flex-row md:items-center md:gap-10">
+              {/* Left Content */}
+              <div className="flex-1">
+                <div className="flex items-center gap-1.5 xs:gap-2 mb-3 xs:mb-4">
+                  <Award className="w-5 h-5 xs:w-6 xs:h-6 text-primary" />
+                  <h3 className="text-lg xs:text-xl sm:text-2xl font-bold">مميزات إضافية</h3>
+                </div>
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 xs:gap-3">
+                  {benefits.map((benefit, index) => (
+                    <motion.div
+                      key={benefit}
+                      className="flex items-center gap-1.5 xs:gap-2"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={isInView ? { opacity: 1, x: 0 } : {}}
+                      transition={{ delay: 0.7 + index * 0.05 }}
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5 xs:w-4 xs:h-4 text-success shrink-0" />
+                      <span className="text-xs xs:text-sm sm:text-base">{benefit}</span>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">هل تحتاج مساعدة؟</p>
-                <p className="font-semibold text-foreground">تواصل معنا الآن</p>
+
+              {/* Right CTA */}
+              <div className="flex flex-row xs:flex-col items-center justify-between xs:justify-center xs:items-center md:items-end gap-3 xs:gap-4 pt-3 xs:pt-0 border-t xs:border-t-0 border-border/30">
+                <div className="text-center xs:text-right md:text-left">
+                  <p className="text-muted-foreground text-xs xs:text-sm mb-0.5 xs:mb-1">ابدأ رحلتك الآن</p>
+                  <p className="text-xl xs:text-2xl sm:text-3xl font-bold text-primary">مجاناً!</p>
+                </div>
+                <Link to="/auth?mode=signup">
+                  <Button 
+                    size="lg"
+                    className="px-4 xs:px-6 sm:px-8 py-4 xs:py-5 sm:py-6 text-xs xs:text-sm sm:text-base font-bold rounded-lg xs:rounded-xl bg-gradient-to-l from-primary to-accent hover:opacity-90 transition-opacity"
+                  >
+                    <span>سجل الآن</span>
+                    <ArrowLeft className="w-4 h-4 xs:w-5 xs:h-5 mr-1.5 xs:mr-2" />
+                  </Button>
+                </Link>
               </div>
             </div>
-            
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
-              <Button 
-                asChild 
-                size="lg" 
-                className="h-12 sm:h-14 px-8 rounded-xl bg-gradient-to-r from-primary to-violet-600 hover:opacity-90 font-semibold shadow-lg shadow-primary/25 group"
-              >
-                <Link to="/our-services" className="flex items-center gap-2">
-                  <span>عرض جميع الخدمات</span>
-                  <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-                </Link>
-              </Button>
-            </motion.div>
           </div>
         </motion.div>
 
-        {/* Trust Badges */}
+        {/* Bottom CTA */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.8, delay: 0.7 }}
-          className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 mt-12 sm:mt-16"
+          className="text-center mt-8 xs:mt-10 sm:mt-16"
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.8 }}
         >
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Star className="w-4 h-4 text-amber-500" />
-            <span>تقييم 4.9/5</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Users className="w-4 h-4 text-primary" />
-            <span>+50,000 عميل</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Zap className="w-4 h-4 text-emerald-500" />
-            <span>تنفيذ سريع</span>
-          </div>
+          <Link to="/our-services">
+            <Button 
+              variant="outline" 
+              size="lg"
+              className="px-5 xs:px-6 sm:px-8 py-4 xs:py-5 sm:py-6 text-xs xs:text-sm sm:text-base font-semibold rounded-xl xs:rounded-2xl border-2 hover:bg-primary/5 hover:border-primary/50"
+            >
+              تصفح خدماتنا
+              <ArrowLeft className="w-4 h-4 xs:w-5 xs:h-5 mr-1.5 xs:mr-2" />
+            </Button>
+          </Link>
         </motion.div>
       </div>
     </section>

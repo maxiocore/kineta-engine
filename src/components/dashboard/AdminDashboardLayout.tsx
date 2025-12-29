@@ -141,8 +141,8 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex w-full max-w-full overflow-x-hidden" dir="rtl">
-      {/* Desktop Sidebar - Fixed Right - Hidden on mobile with display:none */}
+    <div className="min-h-screen bg-background flex w-full" dir="rtl">
+      {/* Desktop Sidebar - Fixed Right */}
       <aside className="hidden lg:flex flex-col fixed top-0 right-0 h-full w-[260px] z-40 bg-card border-l border-border/50">
         {/* Logo Section */}
         <div className="p-4 border-b border-border/40">
@@ -302,12 +302,12 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 250 }}
-              className="absolute top-0 right-0 h-full w-[85vw] max-w-[320px] bg-card border-l border-border/50 flex flex-col overflow-hidden"
+              className="absolute top-0 right-0 h-full w-[85vw] max-w-[320px] bg-card border-l border-border/50 flex flex-col"
               onClick={(e) => e.stopPropagation()}
               dir="rtl"
             >
               {/* Mobile Menu Header */}
-              <div className="shrink-0 p-3 border-b border-border/40 flex items-center justify-between">
+              <div className="p-3 border-b border-border/40 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center">
                     <Shield className="w-5 h-5 text-white" />
@@ -333,7 +333,7 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
               </div>
 
               {/* Mobile Search */}
-              <div className="shrink-0 p-3 border-b border-border/30">
+              <div className="p-3 border-b border-border/30">
                 <div className="relative">
                   <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input 
@@ -343,8 +343,8 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                 </div>
               </div>
 
-              {/* Mobile Navigation - Scrollable */}
-              <nav className="flex-1 min-h-0 overflow-y-auto p-2 space-y-0.5">
+              {/* Mobile Navigation */}
+              <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
                 {adminNavItems.map((item, index) => {
                   const badge = navBadges[item.href];
                   const active = isActive(item.href);
@@ -389,10 +389,10 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                 })}
               </nav>
 
-              {/* Mobile Admin Info - Always visible at bottom */}
-              <div className="shrink-0 p-3 border-t border-border/40 bg-card">
+              {/* Mobile Admin Info */}
+              <div className="p-3 border-t border-border/40 bg-secondary/20">
                 <div className="flex items-center gap-2 mb-3 p-2 rounded-lg bg-secondary/40">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-destructive to-orange-500 flex items-center justify-center">
                     <Shield className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -405,11 +405,11 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                 </div>
                 <Button 
                   variant="outline" 
-                  className="w-full h-10 gap-2 rounded-lg border-destructive/30 text-destructive hover:bg-destructive/10 text-sm font-medium"
+                  className="w-full h-10 gap-2 rounded-lg border-destructive/30 text-destructive hover:bg-destructive/10 text-sm"
                   onClick={handleSignOut}
                 >
                   <LogOut className="w-4 h-4" />
-                  تسجيل الخروج
+                  الخروج
                 </Button>
               </div>
             </motion.div>
@@ -468,8 +468,8 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1 lg:mr-[260px] min-h-screen pt-14 lg:pt-0 pb-16 lg:pb-0 w-full max-w-full min-w-0 overflow-x-hidden">
-        <div className="p-2 sm:p-4 lg:p-6 lg:max-w-7xl lg:mx-auto pb-4 lg:pb-8 w-full max-w-full min-w-0">
+      <main className="flex-1 lg:mr-[260px] min-h-screen pt-14 lg:pt-0 pb-16 lg:pb-0">
+        <div className="p-2.5 sm:p-4 lg:p-6 max-w-7xl mx-auto pb-4 lg:pb-8">
           {children}
         </div>
       </main>
