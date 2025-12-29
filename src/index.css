@@ -4,7 +4,60 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Bidi Isolation Classes - للنصوص المختلطة */
+/* ===== RTL ROOT - سياسة RTL إلزامية للأدمن ===== */
+.rtl-root,
+.rtl-root * {
+  direction: rtl;
+}
+
+.rtl-root {
+  text-align: right;
+}
+
+/* عزل النص المختلط (عربي + أرقام + إنجليزي) لمنع انقلاب الترتيب */
+.rtl-root .bidi-rtl {
+  direction: rtl;
+  unicode-bidi: isolate;
+}
+
+.rtl-root .bidi-ltr,
+.rtl-root .ltr {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline;
+}
+
+.rtl-root .bidi-auto {
+  unicode-bidi: isolate;
+}
+
+/* حل قوي للشرطات والأرقام داخل النص العربي */
+.rtl-root .mixed-line {
+  direction: rtl;
+  unicode-bidi: isolate;
+}
+
+.rtl-root .mixed-line .ltr {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+}
+
+/* قلب الأسهم والـ chevrons في RTL */
+.rtl-root .rtl-flip {
+  transform: scaleX(-1);
+}
+
+/* Progress bars تبدأ من اليمين */
+.rtl-root .rtl-progress {
+  transform: scaleX(-1);
+}
+
+.rtl-root .rtl-progress .rtl-progress-text {
+  transform: scaleX(-1);
+}
+
+/* ===== Bidi Isolation Classes - للنصوص المختلطة ===== */
 .bidi-isolate-ltr {
   direction: ltr;
   unicode-bidi: isolate;
@@ -16,7 +69,6 @@
   unicode-bidi: isolate;
 }
 
-/* Fallback classes */
 .bidi-fix {
   unicode-bidi: isolate;
 }
