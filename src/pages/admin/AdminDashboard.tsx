@@ -438,15 +438,21 @@ const AdminDashboard = () => {
     <div className="space-y-3" dir="rtl">
       <MobileDashboardHeader onRefresh={handleRefresh} isRefreshing={isRefreshing} />
       
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full grid grid-cols-2 h-10 p-0.5 bg-secondary/50 rounded-lg">
-          <TabsTrigger value="overview" className="text-xs gap-1.5 data-[state=active]:bg-background rounded-md">
-            <Sparkles className="w-3.5 h-3.5" />
-            نظرة عامة
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full px-1">
+        <TabsList className="w-full grid grid-cols-2 h-12 p-1 bg-secondary/60 backdrop-blur-sm rounded-xl border border-border/30 shadow-sm">
+          <TabsTrigger 
+            value="overview" 
+            className="flex items-center justify-center gap-2 text-sm font-medium rounded-lg transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground"
+          >
+            <Sparkles className="w-4 h-4 shrink-0" />
+            <span className="truncate">نظرة عامة</span>
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="text-xs gap-1.5 data-[state=active]:bg-background rounded-md">
-            <BarChart3 className="w-3.5 h-3.5" />
-            الإحصائيات
+          <TabsTrigger 
+            value="analytics" 
+            className="flex items-center justify-center gap-2 text-sm font-medium rounded-lg transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent data-[state=active]:to-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-md data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground"
+          >
+            <BarChart3 className="w-4 h-4 shrink-0" />
+            <span className="truncate">الإحصائيات</span>
           </TabsTrigger>
         </TabsList>
 
