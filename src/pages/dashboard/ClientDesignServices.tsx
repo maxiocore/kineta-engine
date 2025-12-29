@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, Link } from "react-router-dom";
 import {
@@ -25,26 +25,55 @@ import {
   Users,
   MessageSquare,
   Target,
-  Filter,
   SlidersHorizontal,
   TrendingUp,
-  Heart,
   Eye,
-  ArrowUpRight,
+  Crown,
+  Share2,
+  Video,
+  BookOpen,
+  Package,
+  Megaphone,
+  Brush,
+  Lightbulb,
+  Heart,
+  CheckCircle2,
+  MousePointer2,
+  Briefcase,
+  Utensils,
+  Dumbbell,
+  GraduationCap,
+  HeartPulse,
+  Car,
+  Home,
+  Plane,
+  Music,
+  Camera,
+  Play,
+  Smartphone,
+  ThumbsUp,
+  Frame,
+  FileImage,
+  Gem,
+  Gift,
+  Coffee,
+  ShoppingBag,
+  Presentation,
+  Wallet,
 } from "lucide-react";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import ServicesPageSkeleton from "@/components/dashboard/ServicesPageSkeleton";
 import PullToRefresh from "@/components/ui/pull-to-refresh";
-import FeaturedOffersSection from "@/components/offers/FeaturedOffersSection";
 import {
   Select,
   SelectContent,
@@ -52,6 +81,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 interface Service {
   id: string;
@@ -66,39 +96,117 @@ interface Service {
   external_service_id: string | null;
 }
 
-const LiveIndicator = () => (
-  <motion.div 
-    className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/15 rounded-full border border-emerald-500/30"
-    initial={{ opacity: 0, scale: 0.9 }}
-    animate={{ opacity: 1, scale: 1 }}
-  >
+// ===== Design Categories Data =====
+const mainCategories = [
+  {
+    id: "identity",
+    name: "الهوية البصرية",
+    icon: Crown,
+    color: "from-amber-500 to-orange-600",
+    description: "بناء هوية تجارية قوية ومميزة",
+    keywords: ["شعار", "logo", "brand", "هوية", "بطاقة", "أوراق رسمية"]
+  },
+  {
+    id: "social",
+    name: "سوشيال ميديا",
+    icon: Share2,
+    color: "from-pink-500 to-rose-600",
+    description: "محتوى بصري جذاب لمنصاتك",
+    keywords: ["انستقرام", "فيسبوك", "تويتر", "تيك توك", "يوتيوب", "ستوري", "سوشيال", "social"]
+  },
+  {
+    id: "marketing",
+    name: "التسويق الإعلاني",
+    icon: Megaphone,
+    color: "from-purple-500 to-violet-600",
+    description: "حملات إعلانية تحقق النتائج",
+    keywords: ["بانر", "فلاير", "بروشور", "إعلان", "بوستر", "رول أب"]
+  },
+  {
+    id: "motion",
+    name: "موشن جرافيك",
+    icon: Video,
+    color: "from-cyan-500 to-blue-600",
+    description: "فيديوهات متحركة احترافية",
+    keywords: ["موشن", "فيديو", "انيميشن", "إنترو", "متحرك", "motion"]
+  },
+  {
+    id: "print",
+    name: "المطبوعات",
+    icon: BookOpen,
+    color: "from-emerald-500 to-teal-600",
+    description: "تصاميم مطبوعة عالية الجودة",
+    keywords: ["كتالوج", "مجلة", "تقرير", "قائمة", "كتيب", "دعوة", "مطبوع"]
+  },
+  {
+    id: "packaging",
+    name: "التغليف والتعبئة",
+    icon: Package,
+    color: "from-orange-500 to-red-600",
+    description: "عبوات جذابة تميز منتجاتك",
+    keywords: ["علبة", "تغليف", "ملصق", "كيس", "عبوة", "زجاجة", "packaging"]
+  }
+];
+
+// ===== Industry Categories =====
+const industries = [
+  { name: "المطاعم والكافيهات", icon: Utensils, color: "bg-orange-500/10 text-orange-500" },
+  { name: "الرياضة واللياقة", icon: Dumbbell, color: "bg-green-500/10 text-green-500" },
+  { name: "التعليم والتدريب", icon: GraduationCap, color: "bg-blue-500/10 text-blue-500" },
+  { name: "الصحة والجمال", icon: HeartPulse, color: "bg-pink-500/10 text-pink-500" },
+  { name: "السيارات", icon: Car, color: "bg-slate-500/10 text-slate-500" },
+  { name: "العقارات", icon: Home, color: "bg-amber-500/10 text-amber-500" },
+  { name: "السفر والسياحة", icon: Plane, color: "bg-cyan-500/10 text-cyan-500" },
+  { name: "الموسيقى والفنون", icon: Music, color: "bg-purple-500/10 text-purple-500" }
+];
+
+// ===== 3D Card Component =====
+const Card3D = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  
+  const rotateX = useTransform(y, [-100, 100], [10, -10]);
+  const rotateY = useTransform(x, [-100, 100], [-10, 10]);
+  
+  return (
     <motion.div
-      className="w-1.5 h-1.5 rounded-full bg-emerald-500"
-      animate={{ scale: [1, 1.3, 1], opacity: [1, 0.6, 1] }}
-      transition={{ duration: 1.5, repeat: Infinity }}
-    />
-    <span className="text-[10px] sm:text-xs font-semibold text-emerald-500">متاح الآن</span>
-  </motion.div>
-);
+      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+      onMouseMove={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        x.set(e.clientX - rect.left - rect.width / 2);
+        y.set(e.clientY - rect.top - rect.height / 2);
+      }}
+      onMouseLeave={() => {
+        x.set(0);
+        y.set(0);
+      }}
+      className={cn("transition-all duration-200", className)}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
-const StatBadge = ({ icon: Icon, value, label, delay = 0 }: { icon: any; value: string; label: string; delay?: number }) => (
+// ===== Floating Elements =====
+const FloatingElement = ({ delay, duration, children, className }: { delay: number; duration: number; children: React.ReactNode; className?: string }) => (
   <motion.div
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay }}
-    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/10"
+    animate={{
+      y: [0, -20, 0],
+      rotate: [0, 5, -5, 0],
+    }}
+    transition={{
+      duration,
+      delay,
+      repeat: Infinity,
+      ease: "easeInOut",
+    }}
+    className={className}
   >
-    <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
-      <Icon className="w-4 h-4 text-white" />
-    </div>
-    <div className="text-right">
-      <p className="text-white font-bold text-sm">{value}</p>
-      <p className="text-white/60 text-[10px]">{label}</p>
-    </div>
+    {children}
   </motion.div>
 );
 
-// Modern Design Service Card
+// ===== Service Card Component =====
 const DesignServiceCard = ({ 
   service, 
   index, 
@@ -112,9 +220,8 @@ const DesignServiceCard = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   
-  const icons = [PenTool, Palette, Image, Layers, Globe, Sparkles];
+  const icons = [PenTool, Palette, Image, Layers, Globe, Sparkles, Crown, Video, Package];
   const IconComponent = icons[index % icons.length];
-
   const features = Array.isArray(service.features) ? service.features.slice(0, 3) : [];
 
   return (
@@ -126,40 +233,35 @@ const DesignServiceCard = ({
       onHoverEnd={() => setIsHovered(false)}
       className="group h-full"
     >
-      <Card className="h-full relative overflow-hidden border border-border/50 bg-card/95 backdrop-blur-sm hover:border-purple-500/30 transition-all duration-500 rounded-2xl hover:shadow-xl hover:shadow-purple-500/5">
-        {/* Gradient Overlay on Hover */}
+      <Card className="h-full relative overflow-hidden border-2 border-border/50 bg-card/95 backdrop-blur-sm hover:border-rose-500/30 transition-all duration-500 rounded-2xl hover:shadow-2xl hover:shadow-rose-500/10">
         <motion.div 
-          className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-fuchsia-500/5 to-pink-500/5"
+          className="absolute inset-0 bg-gradient-to-br from-rose-500/5 via-violet-500/5 to-pink-500/5"
           initial={{ opacity: 0 }}
           animate={{ opacity: isHovered ? 1 : 0 }}
           transition={{ duration: 0.3 }}
         />
 
-        {/* Top Accent Line */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 via-violet-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-        <CardContent className="relative z-10 p-4 sm:p-5 h-full flex flex-col">
-          {/* Header */}
+        <CardContent className="relative z-10 p-5 h-full flex flex-col">
           <div className="flex items-start justify-between gap-3 mb-4">
-            {/* Icon */}
             <motion.div 
               animate={{ rotate: isHovered ? 5 : 0, scale: isHovered ? 1.05 : 1 }}
               transition={{ duration: 0.3 }}
               className="relative shrink-0"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 blur-lg opacity-30 group-hover:opacity-50 transition-opacity" />
-              <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-pink-500 flex items-center justify-center shadow-lg">
-                <IconComponent className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+              <div className="absolute inset-0 bg-gradient-to-br from-rose-500 to-violet-500 blur-lg opacity-30 group-hover:opacity-50 transition-opacity" />
+              <div className="relative w-14 h-14 rounded-xl bg-gradient-to-br from-rose-500 via-violet-500 to-pink-500 flex items-center justify-center shadow-lg">
+                <IconComponent className="w-7 h-7 text-white" />
               </div>
             </motion.div>
 
-            {/* Price & Badges */}
             <div className="text-left flex flex-col items-end gap-2">
               <motion.div 
                 animate={{ scale: isHovered ? 1.05 : 1 }}
                 className="flex items-baseline gap-1"
               >
-                <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+                <span className="text-3xl font-bold bg-gradient-to-r from-rose-500 to-violet-500 bg-clip-text text-transparent">
                   {service.price.toFixed(0)}
                 </span>
                 <span className="text-xs text-muted-foreground font-medium">ر.س</span>
@@ -182,25 +284,22 @@ const DesignServiceCard = ({
             </div>
           </div>
 
-          {/* Service Name */}
-          <h3 className="font-bold text-sm sm:text-base leading-snug mb-2 group-hover:text-primary transition-colors line-clamp-2">
+          <h3 className="font-bold text-base leading-snug mb-2 group-hover:text-rose-500 transition-colors line-clamp-2">
             {service.name}
           </h3>
 
-          {/* Description */}
           {service.description && (
             <p className="text-xs text-muted-foreground/80 line-clamp-2 mb-3 leading-relaxed flex-grow">
               {service.description}
             </p>
           )}
 
-          {/* Features */}
           {features.length > 0 && (
             <div className="space-y-1.5 mb-4">
               {features.map((feature, i) => (
                 <div key={i} className="flex items-center gap-2 text-xs">
-                  <div className="w-4 h-4 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                    <Check className="w-2.5 h-2.5 text-green-500" />
+                  <div className="w-4 h-4 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
+                    <Check className="w-2.5 h-2.5 text-emerald-500" />
                   </div>
                   <span className="text-muted-foreground truncate">{feature}</span>
                 </div>
@@ -208,19 +307,17 @@ const DesignServiceCard = ({
             </div>
           )}
 
-          {/* Delivery Info */}
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70 mb-4 mt-auto">
             <Clock className="w-3.5 h-3.5" />
             <span>التسليم: 24-48 ساعة</span>
           </div>
 
-          {/* Actions */}
           <div className="flex gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => onViewDetails(service)}
-              className="flex-1 rounded-xl h-9 sm:h-10 text-xs border-border/50 hover:border-purple-500/50 hover:bg-purple-500/5"
+              className="flex-1 rounded-xl h-10 text-xs border-border/50 hover:border-rose-500/50 hover:bg-rose-500/5"
             >
               <Eye className="w-3.5 h-3.5 ml-1.5" />
               التفاصيل
@@ -228,7 +325,7 @@ const DesignServiceCard = ({
             <Button
               size="sm"
               onClick={() => onOrder(service)}
-              className="flex-1 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 hover:opacity-90 text-white rounded-xl h-9 sm:h-10 text-xs shadow-md hover:shadow-lg transition-shadow"
+              className="flex-1 bg-gradient-to-r from-rose-500 via-violet-500 to-pink-500 hover:opacity-90 text-white rounded-xl h-10 text-xs shadow-md hover:shadow-lg transition-shadow"
             >
               <ShoppingCart className="w-3.5 h-3.5 ml-1.5" />
               اطلب الآن
@@ -240,7 +337,7 @@ const DesignServiceCard = ({
   );
 };
 
-// List View Card
+// ===== List View Card =====
 const DesignServiceListCard = ({ 
   service, 
   index, 
@@ -262,21 +359,19 @@ const DesignServiceListCard = ({
       transition={{ delay: index * 0.03 }}
       className="group"
     >
-      <Card className="relative overflow-hidden border border-border/50 bg-card/95 backdrop-blur-sm hover:border-purple-500/30 transition-all duration-300 rounded-xl hover:shadow-lg">
-        <CardContent className="p-3 sm:p-4">
-          <div className="flex items-center gap-3 sm:gap-4">
-            {/* Icon */}
-            <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-pink-500 flex items-center justify-center shadow-md shrink-0">
-              <IconComponent className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
+      <Card className="relative overflow-hidden border-2 border-border/50 bg-card/95 backdrop-blur-sm hover:border-rose-500/30 transition-all duration-300 rounded-xl hover:shadow-lg">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-rose-500 via-violet-500 to-pink-500 flex items-center justify-center shadow-md shrink-0">
+              <IconComponent className="w-7 h-7 text-white" />
             </div>
 
-            {/* Content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2 mb-1">
-                <h3 className="font-bold text-sm sm:text-base truncate group-hover:text-primary transition-colors">
+                <h3 className="font-bold text-base truncate group-hover:text-rose-500 transition-colors">
                   {service.name}
                 </h3>
-                <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent shrink-0">
+                <span className="text-xl font-bold bg-gradient-to-r from-rose-500 to-violet-500 bg-clip-text text-transparent shrink-0">
                   {service.price.toFixed(0)} ر.س
                 </span>
               </div>
@@ -306,14 +401,14 @@ const DesignServiceListCard = ({
                     variant="ghost"
                     size="sm"
                     onClick={() => onViewDetails(service)}
-                    className="h-8 px-2 text-xs rounded-lg hover:bg-purple-500/10"
+                    className="h-8 px-2 text-xs rounded-lg hover:bg-rose-500/10"
                   >
                     <Eye className="w-3.5 h-3.5" />
                   </Button>
                   <Button
                     size="sm"
                     onClick={() => onOrder(service)}
-                    className="h-8 px-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white rounded-lg text-xs"
+                    className="h-8 px-3 bg-gradient-to-r from-rose-500 to-violet-500 hover:opacity-90 text-white rounded-lg text-xs"
                   >
                     <ShoppingCart className="w-3.5 h-3.5 ml-1" />
                     اطلب
@@ -338,8 +433,9 @@ const ClientDesignServices = () => {
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [balance, setBalance] = useState(0);
   const [sortBy, setSortBy] = useState<"price-asc" | "price-desc" | "name">("price-asc");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const designKeywords = ["design", "graphic", "logo", "brand", "تصميم", "شعار", "هوية", "جرافيك", "بوستر", "فوتوشوب", "illustrator"];
+  const designKeywords = ["design", "graphic", "logo", "brand", "تصميم", "شعار", "هوية", "جرافيك", "بوستر", "فوتوشوب", "illustrator", "بانر", "فلاير", "موشن", "سوشيال"];
 
   const { data: initialServices, isLoading, refetch } = useQuery({
     queryKey: ["design-services"],
@@ -396,29 +492,8 @@ const ClientDesignServices = () => {
           schema: 'public',
           table: 'services',
         },
-        (payload) => {
-          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-            const service = payload.new as Service;
-            const searchText = `${service.name} ${service.description || ''} ${service.category}`.toLowerCase();
-            const isDesignService = designKeywords.some(keyword => searchText.includes(keyword.toLowerCase()));
-            
-            if (service.status === 'active' && isDesignService) {
-              setServices(prev => {
-                const exists = prev.find(s => s.id === service.id);
-                if (exists) {
-                  return prev.map(s => s.id === service.id ? service : s);
-                }
-                return [...prev, service].sort((a, b) => a.price - b.price);
-              });
-              if (payload.eventType === 'INSERT') {
-                toast.success(`خدمة جديدة: ${service.name}`);
-              }
-            } else {
-              setServices(prev => prev.filter(s => s.id !== service.id));
-            }
-          } else if (payload.eventType === 'DELETE') {
-            setServices(prev => prev.filter(s => s.id !== (payload.old as Service).id));
-          }
+        () => {
+          refetch();
         }
       )
       .subscribe();
@@ -426,19 +501,34 @@ const ClientDesignServices = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [refetch]);
 
-  // Filter and sort services
-  const filteredServices = services
-    .filter(service => {
-      if (!searchQuery) return true;
+  // Filter services by category and search
+  const getFilteredServices = () => {
+    let filtered = services;
+
+    // Filter by selected category
+    if (selectedCategory) {
+      const category = mainCategories.find(c => c.id === selectedCategory);
+      if (category) {
+        filtered = filtered.filter(service => {
+          const searchText = `${service.name} ${service.description || ''}`.toLowerCase();
+          return category.keywords.some(keyword => searchText.includes(keyword.toLowerCase()));
+        });
+      }
+    }
+
+    // Filter by search query
+    if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      return (
+      filtered = filtered.filter(service =>
         service.name.toLowerCase().includes(query) ||
         service.description?.toLowerCase().includes(query)
       );
-    })
-    .sort((a, b) => {
+    }
+
+    // Sort
+    return filtered.sort((a, b) => {
       switch (sortBy) {
         case "price-asc":
           return a.price - b.price;
@@ -450,6 +540,9 @@ const ClientDesignServices = () => {
           return 0;
       }
     });
+  };
+
+  const filteredServices = getFilteredServices();
 
   const getFeatures = (service: Service): string[] => {
     if (Array.isArray(service.features)) return service.features;
@@ -459,6 +552,13 @@ const ClientDesignServices = () => {
   const handleOrderClick = (service: Service) => {
     navigate(`/dashboard/design-services/order?serviceId=${service.id}`);
   };
+
+  const stats = [
+    { value: `${services.length}`, label: "خدمة متاحة", icon: Activity },
+    { value: "24-48", label: "ساعة تسليم", icon: Rocket },
+    { value: "+50", label: "مصمم محترف", icon: Users },
+    { value: "99%", label: "نسبة الرضا", icon: Heart }
+  ];
 
   if (isLoading) {
     return (
@@ -471,126 +571,182 @@ const ClientDesignServices = () => {
   return (
     <ClientDashboardLayout>
       <PullToRefresh onRefresh={handleRefresh} className="h-full">
-        <div className="space-y-4 sm:space-y-6 lg:space-y-8 pb-8" dir="rtl">
-          {/* Hero Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-purple-600 via-fuchsia-600 to-pink-600 p-4 sm:p-6 lg:p-8"
-          >
-            {/* Decorative Elements */}
-            <div className="absolute top-0 left-0 w-40 sm:w-72 h-40 sm:h-72 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-            <div className="absolute bottom-0 right-0 w-60 sm:w-96 h-60 sm:h-96 bg-purple-900/30 rounded-full blur-3xl translate-x-1/4 translate-y-1/3" />
+        <div className="space-y-6 lg:space-y-8 pb-8" dir="rtl">
+          
+          {/* ===== HERO SECTION ===== */}
+          <section className="relative overflow-hidden rounded-3xl">
+            {/* Background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-rose-600 via-violet-600 to-purple-700" />
             
-            {/* Floating Icons */}
-            <motion.div 
-              className="absolute top-4 left-4 opacity-15 hidden md:block"
-              animate={{ y: [0, -8, 0], rotate: [0, 8, 0] }}
-              transition={{ duration: 4, repeat: Infinity }}
-            >
-              <Palette className="w-12 h-12 text-white" />
-            </motion.div>
-            <motion.div 
-              className="absolute bottom-8 left-1/4 opacity-15 hidden md:block"
-              animate={{ y: [0, 8, 0], rotate: [0, -8, 0] }}
-              transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-            >
-              <PenTool className="w-10 h-10 text-white" />
-            </motion.div>
-            
-            <div className="relative z-10">
-              {/* Top Row */}
-              <div className="flex items-start justify-between gap-4 mb-4 sm:mb-6">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 sm:gap-3 flex-wrap mb-2">
-                    <LiveIndicator />
-                    <Badge className="bg-white/15 text-white border-0 text-[10px] sm:text-xs">
-                      <TrendingUp className="w-3 h-3 ml-1" />
-                      الأكثر طلباً
+            {/* Animated Orbs */}
+            <motion.div
+              animate={{ scale: [1, 1.3, 1], x: [0, 50, 0] }}
+              transition={{ duration: 15, repeat: Infinity }}
+              className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"
+            />
+            <motion.div
+              animate={{ scale: [1.2, 1, 1.2], x: [0, -40, 0] }}
+              transition={{ duration: 12, repeat: Infinity }}
+              className="absolute bottom-0 left-0 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl"
+            />
+
+            {/* Floating Elements */}
+            <FloatingElement delay={0} duration={6} className="absolute top-8 left-8 hidden lg:block">
+              <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <Palette className="w-6 h-6 text-white" />
+              </div>
+            </FloatingElement>
+            <FloatingElement delay={1} duration={7} className="absolute bottom-12 right-20 hidden lg:block">
+              <div className="w-10 h-10 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                <Brush className="w-5 h-5 text-white" />
+              </div>
+            </FloatingElement>
+
+            <div className="relative z-10 p-6 lg:p-10">
+              {/* Header Row */}
+              <div className="flex items-start justify-between gap-4 mb-6">
+                <div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-2 flex-wrap mb-3"
+                  >
+                    <Badge className="bg-white/20 text-white border-0 backdrop-blur-sm">
+                      <Sparkles className="w-3 h-3 ml-1 animate-pulse" />
+                      استوديو التصميم الإبداعي
                     </Badge>
-                  </div>
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 sm:mb-2">
-                    خدمات التصميم الإبداعي
+                    <Badge className="bg-emerald-500/20 text-emerald-300 border-0">
+                      <motion.div
+                        animate={{ scale: [1, 1.3, 1] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                        className="w-1.5 h-1.5 rounded-full bg-emerald-400 ml-1"
+                      />
+                      متاح الآن
+                    </Badge>
+                  </motion.div>
+                  
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2">
+                    حوّل أفكارك إلى تصاميم استثنائية
                   </h1>
-                  <p className="text-white/70 text-xs sm:text-sm max-w-lg hidden sm:block">
-                    نحول أفكارك إلى تصاميم مبهرة تعكس هوية علامتك التجارية بأعلى جودة
+                  <p className="text-white/70 text-sm md:text-base max-w-xl hidden md:block">
+                    اكتشف أكثر من {services.length} خدمة تصميم في 6 فئات متنوعة
                   </p>
                 </div>
-                
+
                 <Link to="/dashboard/our-services">
                   <motion.div 
-                    whileHover={{ scale: 1.05, x: 5 }}
+                    whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center cursor-pointer hover:bg-white/25 transition-colors border border-white/10"
+                    className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center cursor-pointer hover:bg-white/25 transition-colors border border-white/10"
                   >
-                    <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                    <ArrowLeft className="w-6 h-6 text-white" />
                   </motion.div>
                 </Link>
               </div>
-              
-              {/* Stats Row */}
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <StatBadge icon={Activity} value={`${services.length}`} label="خدمة متاحة" delay={0.1} />
-                <StatBadge icon={Rocket} value="24-48 ساعة" label="وقت التسليم" delay={0.2} />
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-white/20 to-white/10 backdrop-blur-md border border-white/20"
-                >
-                  <span className="text-white/80 text-xs">رصيدك:</span>
-                  <span className="font-bold text-white text-sm sm:text-base">{balance.toFixed(2)} ر.س</span>
-                </motion.div>
-              </div>
 
-              {/* Quick Features - Desktop Only */}
-              <div className="hidden lg:grid grid-cols-4 gap-3 mt-6">
-                {[
-                  { icon: Rocket, label: "تسليم سريع", value: "24-48 ساعة" },
-                  { icon: Shield, label: "ضمان الجودة", value: "100%" },
-                  { icon: Users, label: "عملاء سعداء", value: "+1000" },
-                  { icon: Award, label: "مصممين محترفين", value: "+50" },
-                ].map((stat, i) => (
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                {stats.map((stat, i) => (
                   <motion.div
                     key={i}
-                    initial={{ opacity: 0, y: 15 }}
+                    initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 + i * 0.1 }}
-                    className="p-3 rounded-xl bg-white/10 backdrop-blur-sm text-center border border-white/10"
+                    transition={{ delay: i * 0.1 }}
+                    className="p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 text-center"
                   >
-                    <stat.icon className="w-5 h-5 text-white/80 mx-auto mb-1" />
-                    <p className="text-white font-bold text-sm">{stat.value}</p>
-                    <p className="text-white/50 text-[10px]">{stat.label}</p>
+                    <stat.icon className="w-5 h-5 mx-auto mb-1 text-white/80" />
+                    <p className="text-white font-bold text-lg">{stat.value}</p>
+                    <p className="text-white/60 text-xs">{stat.label}</p>
                   </motion.div>
                 ))}
               </div>
-            </div>
-          </motion.div>
 
-          {/* Search & Filters Bar */}
+              {/* Balance Card */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-white/20 backdrop-blur-sm border border-white/20"
+              >
+                <Wallet className="w-5 h-5 text-white" />
+                <span className="text-white/80 text-sm">رصيدك:</span>
+                <span className="font-bold text-white text-lg">{balance.toFixed(2)} ر.س</span>
+              </motion.div>
+            </div>
+          </section>
+
+          {/* ===== CATEGORIES SECTION ===== */}
+          <section>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center justify-between mb-4"
+            >
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <Layers className="w-5 h-5 text-rose-500" />
+                الأقسام الرئيسية
+              </h2>
+              {selectedCategory && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedCategory(null)}
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                >
+                  عرض الكل
+                </Button>
+              )}
+            </motion.div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              {mainCategories.map((category, index) => (
+                <motion.div
+                  key={category.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                  whileHover={{ scale: 1.03 }}
+                  onClick={() => setSelectedCategory(selectedCategory === category.id ? null : category.id)}
+                  className={cn(
+                    "cursor-pointer p-4 rounded-2xl border-2 transition-all duration-300 text-center",
+                    selectedCategory === category.id
+                      ? "border-rose-500 bg-rose-500/10 shadow-lg shadow-rose-500/20"
+                      : "border-border/50 bg-card hover:border-rose-500/30 hover:shadow-md"
+                  )}
+                >
+                  <div className={cn(
+                    "w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br flex items-center justify-center",
+                    category.color
+                  )}>
+                    <category.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="font-semibold text-sm mb-1">{category.name}</h3>
+                  <p className="text-[10px] text-muted-foreground line-clamp-1">{category.description}</p>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+
+          {/* ===== SEARCH & FILTERS ===== */}
           <motion.div 
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 p-3 sm:p-4"
+            className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border/50 p-4"
           >
             <div className="flex flex-col sm:flex-row gap-3">
-              {/* Search */}
               <div className="relative flex-1">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
                 <Input
                   placeholder="ابحث عن خدمة تصميم..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pr-10 h-10 sm:h-11 text-sm rounded-xl bg-background/50 border-border/50 focus:border-purple-500/50 placeholder:text-muted-foreground/50"
+                  className="pr-10 h-11 text-sm rounded-xl bg-background/50 border-border/50 focus:border-rose-500/50"
                 />
               </div>
               
-              {/* Sort & View Controls */}
               <div className="flex items-center gap-2">
-                {/* Sort Dropdown */}
                 <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                  <SelectTrigger className="w-[130px] sm:w-[150px] h-10 sm:h-11 rounded-xl text-xs sm:text-sm bg-background/50 border-border/50">
+                  <SelectTrigger className="w-[140px] h-11 rounded-xl text-sm bg-background/50 border-border/50">
                     <SlidersHorizontal className="w-3.5 h-3.5 ml-2" />
                     <SelectValue />
                   </SelectTrigger>
@@ -601,15 +757,14 @@ const ClientDesignServices = () => {
                   </SelectContent>
                 </Select>
 
-                {/* View Toggle */}
                 <div className="flex items-center gap-1 p-1 rounded-xl bg-muted/50">
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setViewMode("grid")}
-                    className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg transition-colors ${
+                    className={`h-9 w-9 rounded-lg transition-colors ${
                       viewMode === "grid" 
-                        ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md" 
+                        ? "bg-gradient-to-r from-rose-500 to-violet-500 text-white shadow-md" 
                         : "hover:bg-muted"
                     }`}
                   >
@@ -619,9 +774,9 @@ const ClientDesignServices = () => {
                     variant="ghost"
                     size="icon"
                     onClick={() => setViewMode("list")}
-                    className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg transition-colors ${
+                    className={`h-9 w-9 rounded-lg transition-colors ${
                       viewMode === "list" 
-                        ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md" 
+                        ? "bg-gradient-to-r from-rose-500 to-violet-500 text-white shadow-md" 
                         : "hover:bg-muted"
                     }`}
                   >
@@ -631,10 +786,10 @@ const ClientDesignServices = () => {
               </div>
             </div>
 
-            {/* Results Count */}
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
               <span className="text-xs text-muted-foreground">
                 عرض {filteredServices.length} من {services.length} خدمة
+                {selectedCategory && ` - ${mainCategories.find(c => c.id === selectedCategory)?.name}`}
               </span>
               {searchQuery && (
                 <Button
@@ -649,32 +804,31 @@ const ClientDesignServices = () => {
             </div>
           </motion.div>
 
-          {/* Featured Offers Section */}
-          <FeaturedOffersSection category="design" />
-
-          {/* Services Grid/List */}
+          {/* ===== SERVICES GRID/LIST ===== */}
           {filteredServices.length === 0 ? (
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-center py-16 sm:py-20"
+              className="text-center py-16"
             >
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center mx-auto mb-4">
-                <Palette className="w-10 h-10 sm:w-12 sm:h-12 text-purple-500" />
+              <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-rose-500/20 to-violet-500/20 flex items-center justify-center mx-auto mb-4">
+                <Palette className="w-12 h-12 text-rose-500" />
               </div>
-              <h3 className="text-lg sm:text-xl font-bold mb-2">لا توجد خدمات تصميم</h3>
-              <p className="text-muted-foreground text-sm max-w-md mx-auto px-4">
-                {searchQuery ? "لم يتم العثور على خدمات تطابق البحث" : "سيتم إضافة خدمات التصميم قريباً"}
+              <h3 className="text-xl font-bold mb-2">لا توجد خدمات تصميم</h3>
+              <p className="text-muted-foreground text-sm max-w-md mx-auto">
+                {searchQuery || selectedCategory 
+                  ? "لم يتم العثور على خدمات تطابق البحث" 
+                  : "سيتم إضافة خدمات التصميم قريباً"}
               </p>
             </motion.div>
           ) : (
             <AnimatePresence mode="wait">
               <motion.div 
-                key={viewMode}
+                key={`${viewMode}-${selectedCategory}`}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -15 }}
-                className={`grid gap-3 sm:gap-4 ${
+                className={`grid gap-4 ${
                   viewMode === "grid" 
                     ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
                     : "grid-cols-1"
@@ -709,17 +863,52 @@ const ClientDesignServices = () => {
             </AnimatePresence>
           )}
 
-          {/* Why Choose Us Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 25 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mt-8"
-          >
-            <h2 className="text-lg sm:text-xl font-bold text-center mb-4 sm:mb-6">
+          {/* ===== INDUSTRIES SECTION ===== */}
+          <section>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-6"
+            >
+              <Badge className="mb-3 px-4 py-1.5 bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
+                <Briefcase className="w-3.5 h-3.5 ml-1" />
+                القطاعات
+              </Badge>
+              <h2 className="text-xl font-bold">
+                نصمم لـ <span className="text-emerald-500">جميع القطاعات</span>
+              </h2>
+            </motion.div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {industries.map((industry, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.05 }}
+                  whileHover={{ scale: 1.03 }}
+                  className="p-4 rounded-xl bg-card border border-border/50 hover:border-emerald-500/30 hover:shadow-md transition-all text-center cursor-pointer group"
+                >
+                  <div className={cn(
+                    "w-12 h-12 mx-auto mb-3 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110",
+                    industry.color
+                  )}>
+                    <industry.icon className="w-6 h-6" />
+                  </div>
+                  <span className="text-sm font-medium">{industry.name}</span>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+
+          {/* ===== WHY CHOOSE US ===== */}
+          <section>
+            <h2 className="text-lg font-bold text-center mb-6">
               لماذا تختار خدمات التصميم لدينا؟
             </h2>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {[
                 { icon: Target, title: "تصميم هادف", desc: "نفهم أهدافك ونصمم لتحقيقها" },
                 { icon: Zap, title: "سرعة التنفيذ", desc: "نلتزم بمواعيد التسليم" },
@@ -729,32 +918,33 @@ const ClientDesignServices = () => {
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 + i * 0.08 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08 }}
                   whileHover={{ y: -3 }}
-                  className="p-3 sm:p-4 rounded-xl bg-card border border-border/50 hover:border-purple-500/30 hover:shadow-md transition-all text-center"
+                  className="p-4 rounded-xl bg-card border border-border/50 hover:border-rose-500/30 hover:shadow-md transition-all text-center"
                 >
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-purple-500/15 to-pink-500/15 flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                    <item.icon className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500" />
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500/15 to-violet-500/15 flex items-center justify-center mx-auto mb-3">
+                    <item.icon className="w-6 h-6 text-rose-500" />
                   </div>
-                  <h3 className="font-bold text-xs sm:text-sm mb-1">{item.title}</h3>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-2">{item.desc}</p>
+                  <h3 className="font-bold text-sm mb-1">{item.title}</h3>
+                  <p className="text-xs text-muted-foreground">{item.desc}</p>
                 </motion.div>
               ))}
             </div>
-          </motion.div>
+          </section>
 
-          {/* Details Dialog */}
+          {/* ===== DETAILS DIALOG ===== */}
           <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
-            <DialogContent className="max-w-md sm:max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl" dir="rtl">
+            <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl" dir="rtl">
               <DialogHeader>
-                <div className="flex items-center gap-3 sm:gap-4 mb-2">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-pink-500 flex items-center justify-center shadow-lg">
-                    <Palette className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-rose-500 via-violet-500 to-pink-500 flex items-center justify-center shadow-lg">
+                    <Palette className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                    <DialogTitle className="text-base sm:text-lg">{selectedService?.name}</DialogTitle>
-                    <p className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+                    <DialogTitle className="text-lg">{selectedService?.name}</DialogTitle>
+                    <p className="text-2xl font-bold bg-gradient-to-r from-rose-500 to-violet-500 bg-clip-text text-transparent">
                       {selectedService?.price.toFixed(0)} ر.س
                     </p>
                   </div>
@@ -763,21 +953,21 @@ const ClientDesignServices = () => {
               
               <div className="space-y-4">
                 {selectedService?.description && (
-                  <div className="p-3 sm:p-4 rounded-xl bg-muted/50">
+                  <div className="p-4 rounded-xl bg-muted/50">
                     <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-amber-500" />
                       وصف الخدمة
                     </h4>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
                       {selectedService.description}
                     </p>
                   </div>
                 )}
 
                 {selectedService && getFeatures(selectedService).length > 0 && (
-                  <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-purple-500/5 to-pink-500/5 border border-purple-500/10">
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-rose-500/5 to-violet-500/5 border border-rose-500/10">
                     <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
-                      <Award className="w-4 h-4 text-purple-500" />
+                      <Award className="w-4 h-4 text-rose-500" />
                       مميزات الخدمة
                     </h4>
                     <div className="grid gap-2">
@@ -789,10 +979,10 @@ const ClientDesignServices = () => {
                           transition={{ delay: idx * 0.05 }}
                           className="flex items-center gap-2 p-2 rounded-lg bg-card/50"
                         >
-                          <div className="w-6 h-6 rounded-full bg-green-500/15 flex items-center justify-center">
-                            <Check className="w-3.5 h-3.5 text-green-500" />
+                          <div className="w-6 h-6 rounded-full bg-emerald-500/15 flex items-center justify-center">
+                            <Check className="w-3.5 h-3.5 text-emerald-500" />
                           </div>
-                          <span className="text-xs sm:text-sm">{feature}</span>
+                          <span className="text-sm">{feature}</span>
                         </motion.div>
                       ))}
                     </div>
@@ -826,7 +1016,7 @@ const ClientDesignServices = () => {
                       handleOrderClick(selectedService);
                     }
                   }}
-                  className="gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 flex-1 sm:flex-none"
+                  className="gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-violet-600 hover:from-rose-600 hover:to-violet-700 flex-1 sm:flex-none"
                 >
                   <ShoppingCart className="w-4 h-4" />
                   اطلب الآن
