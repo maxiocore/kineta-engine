@@ -123,9 +123,9 @@ const App = () => (
               <MaintenanceGuard>
                 <Routes>
                   <Route path="/" element={<Index />} />
-                  <Route path="/our-services" element={<OurServices />} />
+                  <Route path="/our-services" element={<Services />} />
                   <Route path="/category/:slug" element={<CategoryDetails />} />
-                  <Route path="/services" element={<Services />} />
+                  <Route path="/services" element={<OurServices />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/pricing" element={<Pricing />} />
