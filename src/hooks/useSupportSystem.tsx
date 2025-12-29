@@ -266,6 +266,9 @@ export const useSupportSystem = (isAdmin = false) => {
   // تحديث حالة التذكرة
   const updateTicketStatus = async (ticketId: string, status: SupportTicket['status']) => {
     try {
+      const ticket = tickets.find(t => t.id === ticketId);
+      const oldStatus = ticket?.status;
+      
       const { error } = await supabase
         .from('support_tickets')
         .update({ status, updated_at: new Date().toISOString() })
@@ -275,6 +278,24 @@ export const useSupportSystem = (isAdmin = false) => {
       
       if (selectedTicket?.id === ticketId) {
         setSelectedTicket({ ...selectedTicket, status });
+      }
+      
+      // إرسال إيميل للعميل بتحديث حالة التذكرة
+      if (ticket && isAdmin) {
+        try {
+          await supabase.functions.invoke('send-email', {
+            body: {
+              type: 'ticket_status_changed',
+              ticketNumber: ticket.ticket_number,
+              subject: ticket.subject,
+              oldStatus: oldStatus,
+              newStatus: status,
+              recipientEmail: ticket.user_email
+            }
+          });
+        } catch (emailError) {
+          console.error('Error sending status change email:', emailError);
+        }
       }
       
       toast({ title: 'تم', description: 'تم تحديث حالة التذكرة' });
