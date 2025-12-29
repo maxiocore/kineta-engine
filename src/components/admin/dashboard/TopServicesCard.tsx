@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Star, TrendingUp, Eye, Trophy, Medal, Crown, ChevronLeft } from "lucide-react";
+import { Star, TrendingUp, Trophy, Medal, Crown, ChevronLeft, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,55 +34,27 @@ const getRankIcon = (index: number) => {
 const getRankBg = (index: number) => {
   switch (index) {
     case 0:
-      return "bg-gradient-to-r from-yellow-500/20 via-orange-500/10 to-transparent border-yellow-500/30 hover:border-yellow-500/50";
+      return "bg-gradient-to-l from-yellow-500/20 via-orange-500/10 to-transparent border-yellow-500/30 hover:border-yellow-500/50";
     case 1:
-      return "bg-gradient-to-r from-gray-400/20 via-gray-500/10 to-transparent border-gray-400/30 hover:border-gray-400/50";
+      return "bg-gradient-to-l from-gray-400/20 via-gray-500/10 to-transparent border-gray-400/30 hover:border-gray-400/50";
     case 2:
-      return "bg-gradient-to-r from-amber-600/20 via-amber-700/10 to-transparent border-amber-600/30 hover:border-amber-600/50";
+      return "bg-gradient-to-l from-amber-600/20 via-amber-700/10 to-transparent border-amber-600/30 hover:border-amber-600/50";
     default:
-      return "bg-gradient-to-r from-secondary/50 to-transparent border-border/50 hover:border-border";
+      return "bg-gradient-to-l from-secondary/50 to-transparent border-border/50 hover:border-border";
   }
 };
 
-const getRankGlow = (index: number) => {
+const getProgressColor = (index: number) => {
   switch (index) {
     case 0:
-      return "shadow-yellow-500/10";
+      return "bg-gradient-to-l from-yellow-500 to-amber-500";
     case 1:
-      return "shadow-gray-400/10";
+      return "bg-gradient-to-l from-slate-400 to-slate-500";
     case 2:
-      return "shadow-amber-600/10";
+      return "bg-gradient-to-l from-amber-600 to-orange-600";
     default:
-      return "";
+      return "bg-primary";
   }
-};
-
-// Helper function to format mixed text with proper BIDI handling
-const formatServiceName = (name: string) => {
-  // Pattern to match English text, numbers with ranges, or special keywords
-  const mixedPattern = /(NO REFILL|REFILL|[\d,]+[-–][\d,]+|[\d,]+K?[-–][\d,]+K?|\d+K?)/gi;
-  
-  const parts = name.split(mixedPattern);
-  const matches = name.match(mixedPattern) || [];
-  
-  let result: React.ReactNode[] = [];
-  let matchIndex = 0;
-  
-  parts.forEach((part, index) => {
-    if (part) {
-      result.push(<span key={`text-${index}`}>{part}</span>);
-    }
-    if (matchIndex < matches.length && index < parts.length - 1) {
-      result.push(
-        <span key={`match-${matchIndex}`} dir="ltr" className="bidi-plaintext inline-block">
-          {matches[matchIndex]}
-        </span>
-      );
-      matchIndex++;
-    }
-  });
-  
-  return result.length > 0 ? result : name;
 };
 
 const TopServicesCard = ({ services }: TopServicesCardProps) => {
@@ -92,12 +64,12 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
   return (
     <Card className="border-border/50 h-full overflow-hidden bg-gradient-to-br from-card to-card/80 relative" dir="rtl">
       {/* Background decorations */}
-      <div className="absolute top-0 end-0 w-32 h-32 bg-warning/5 rounded-full blur-2xl" />
-      <div className="absolute bottom-0 start-0 w-24 h-24 bg-primary/5 rounded-full blur-xl" />
+      <div className="absolute top-0 left-0 w-32 h-32 bg-warning/5 rounded-full blur-2xl" />
+      <div className="absolute bottom-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-xl" />
 
       <CardHeader className="pb-3 px-4 sm:px-6 pt-4 sm:pt-5">
-        <div className="flex flex-row-reverse items-center justify-between">
-          <CardTitle className="text-sm sm:text-base flex flex-row-reverse items-center gap-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm sm:text-base flex items-center gap-2">
             <motion.div 
               className="p-2 rounded-xl bg-gradient-to-br from-warning/20 to-warning/10 border border-warning/20"
               whileHover={{ rotate: 10, scale: 1.1 }}
@@ -109,11 +81,11 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
           <Button
             variant="ghost"
             size="sm"
-            className="text-xs h-8 gap-1.5 hover:bg-primary/10 flex flex-row-reverse"
+            className="text-xs h-8 gap-1.5 hover:bg-primary/10"
             onClick={() => navigate("/admin/services")}
           >
-            <span>عرض الكل</span>
-            <ChevronLeft className="w-3.5 h-3.5 scale-x-[-1]" />
+            عرض الكل
+            <ChevronLeft className="w-3.5 h-3.5" />
           </Button>
         </div>
       </CardHeader>
@@ -123,18 +95,18 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
           services.map((service, index) => (
             <motion.div
               key={service.id}
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: 15 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.01, x: 4 }}
+              whileHover={{ scale: 1.01, x: -3 }}
               className={cn(
                 "relative p-3 sm:p-4 rounded-xl border transition-all cursor-pointer group",
                 getRankBg(index),
-                getRankGlow(index),
                 "hover:shadow-lg"
               )}
             >
-              <div className="flex flex-row-reverse items-center justify-between gap-3 min-w-0">
+              {/* Service Row */}
+              <div className="flex items-center gap-3">
                 {/* Rank Badge */}
                 <motion.div 
                   className="w-10 h-10 rounded-xl bg-background/60 backdrop-blur-sm flex items-center justify-center border border-border/50 shadow-sm shrink-0"
@@ -144,49 +116,42 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
                 </motion.div>
 
                 {/* Service Info */}
-                <div className="flex-1 min-w-0 text-right" dir="rtl">
-                  <p className="text-sm font-semibold truncate bidi-plaintext">{formatServiceName(service.name)}</p>
-                  <div className="flex flex-row-reverse items-center gap-2 mt-1 flex-wrap">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate">{service.name}</p>
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
-                      <span dir="ltr" className="bidi-plaintext">{service.orders.toLocaleString('ar-SA')}</span> طلب
+                      {service.orders.toLocaleString('ar-SA')} طلب
                     </Badge>
                     {service.trend > 0 && (
-                      <span className="flex flex-row-reverse items-center gap-0.5 text-[10px] text-success">
+                      <span className="flex items-center gap-0.5 text-[10px] text-success">
                         <TrendingUp className="w-2.5 h-2.5" />
-                        <span dir="ltr" className="bidi-plaintext">+{service.trend}٪</span>
+                        +{service.trend}٪
                       </span>
                     )}
                   </div>
                 </div>
 
                 {/* Revenue */}
-                <div className="shrink-0 text-end">
-                  <p className="text-base sm:text-lg font-bold" dir="ltr">{service.revenue.toLocaleString('ar-SA')}</p>
+                <div className="shrink-0 text-left">
+                  <p className="text-base sm:text-lg font-bold">{service.revenue.toLocaleString('ar-SA')}</p>
                   <p className="text-[10px] text-muted-foreground">ر.س</p>
                 </div>
               </div>
 
-              {/* Progress Bar - RTL (starts from right) */}
+              {/* Progress Bar */}
               <div className="mt-3">
-                <div className="h-1.5 rounded-full bg-secondary overflow-hidden" style={{ direction: 'rtl' }}>
+                <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
                   <motion.div
-                    className={cn(
-                      "h-full rounded-full",
-                      index === 0 ? "bg-gradient-to-r from-yellow-500 to-amber-500" :
-                      index === 1 ? "bg-gradient-to-r from-slate-400 to-slate-500" :
-                      index === 2 ? "bg-gradient-to-r from-amber-600 to-orange-600" :
-                      "bg-primary"
-                    )}
+                    className={cn("h-full rounded-full", getProgressColor(index))}
                     initial={{ width: 0 }}
                     animate={{ width: `${(service.revenue / maxRevenue) * 100}%` }}
                     transition={{ delay: index * 0.1 + 0.2, duration: 0.6, ease: "easeOut" }}
-                    style={{ marginRight: 0, marginLeft: 'auto' }}
                   />
                 </div>
               </div>
 
               {/* Hover indicator */}
-              <Eye className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity absolute start-3 top-3" />
+              <Eye className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity absolute left-3 top-3" />
             </motion.div>
           ))
         ) : (
