@@ -476,20 +476,20 @@ const AdminDashboard = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:inline-flex h-11 p-1 bg-secondary/50">
-          <TabsTrigger value="overview" className="text-xs sm:text-sm gap-1.5 data-[state=active]:bg-background">
+        <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:inline-flex h-10 sm:h-11 p-1 bg-secondary/50">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm gap-1.5 h-full data-[state=active]:bg-background">
             <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             نظرة عامة
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="text-xs sm:text-sm gap-1.5 data-[state=active]:bg-background">
+          <TabsTrigger value="analytics" className="text-xs sm:text-sm gap-1.5 h-full data-[state=active]:bg-background">
             <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             الإحصائيات
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 sm:space-y-6 mt-4">
-          {/* Main Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {/* Main Stats Grid - Mobile: 1 col, Tablet: 2 cols, Desktop: 4 cols */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {statsData.map((stat, index) => (
               <EnhancedStatCard
                 key={stat.title}
@@ -517,10 +517,10 @@ const AdminDashboard = () => {
           {/* Live Orders Chart - Full Width */}
           <LiveOrdersChart />
 
-          {/* Three Column Layout */}
-          <div className="grid gap-4 lg:gap-6 lg:grid-cols-3">
+          {/* Cards Layout - Mobile: vertical stack, Desktop: 3 columns */}
+          <div className="grid gap-4 lg:gap-6 grid-cols-1 lg:grid-cols-3">
             {/* Revenue Overview */}
-            <div className="lg:col-span-1">
+            <div className="w-full">
               <RevenueOverviewCard
                 totalRevenue={stats.totalRevenue}
                 monthlyRevenue={stats.monthlyRevenue}
@@ -530,12 +530,12 @@ const AdminDashboard = () => {
             </div>
 
             {/* Top Services */}
-            <div className="lg:col-span-1">
+            <div className="w-full">
               <TopServicesCard services={topServices} />
             </div>
 
             {/* Activity Feed */}
-            <div className="lg:col-span-1">
+            <div className="w-full">
               <ActivityFeedCard activities={activities} />
             </div>
           </div>
