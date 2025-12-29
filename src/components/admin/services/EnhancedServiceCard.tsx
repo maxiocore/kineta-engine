@@ -111,8 +111,8 @@ const EnhancedServiceCard = ({
               <div className="flex items-center gap-1.5 flex-wrap">
                 <p className="text-sm font-semibold truncate">{service.name}</p>
                 {isNew && (
-                  <Badge className="bg-accent/15 text-accent text-[8px] px-1 py-0 h-4 shrink-0 border-0">
-                    <Zap className="w-2 h-2 ml-0.5" />
+                  <Badge className="bg-accent/15 text-accent text-[8px] px-1 py-0 h-4 shrink-0 border-0 flex flex-row-reverse items-center">
+                    <Zap className="w-2 h-2 me-0.5" />
                     جديد
                   </Badge>
                 )}
@@ -133,11 +133,11 @@ const EnhancedServiceCard = ({
           </div>
 
           {/* Price & Status */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-row-reverse items-center gap-2 shrink-0">
             <Badge className={cn("text-[9px] px-1.5 py-0 h-5 border", statusConfig.className)}>
               {statusConfig.label}
             </Badge>
-            <span className="text-sm font-bold text-primary min-w-[70px] text-start">{formatPrice(service.price)}</span>
+            <span className="text-sm font-bold text-primary min-w-[70px] text-end" dir="ltr">{formatPrice(service.price)}</span>
           </div>
           
           {/* Actions */}
@@ -173,7 +173,7 @@ const EnhancedServiceCard = ({
         {/* Selection Checkbox */}
         {isSelectionMode && (
           <div 
-            className="absolute top-2 left-2 z-10" 
+            className="absolute top-2 start-2 z-10" 
             onClick={(e) => e.stopPropagation()}
           >
             <Checkbox
@@ -194,8 +194,8 @@ const EnhancedServiceCard = ({
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="text-[10px] text-muted-foreground">{service.category}</span>
               {isNew && (
-                <Badge className="bg-accent/15 text-accent text-[8px] px-1 py-0 h-4 border-0">
-                  <Zap className="w-2 h-2 ml-0.5" />
+                <Badge className="bg-accent/15 text-accent text-[8px] px-1 py-0 h-4 border-0 flex flex-row-reverse items-center">
+                  <Zap className="w-2 h-2 me-0.5" />
                   جديد
                 </Badge>
               )}

@@ -69,8 +69,8 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
       <div className="absolute bottom-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-xl" />
 
       <CardHeader className="pb-3 px-4 sm:px-6 pt-4 sm:pt-5">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+        <div className="flex flex-row-reverse items-center justify-between">
+          <CardTitle className="text-sm sm:text-base flex flex-row-reverse items-center gap-2">
             <motion.div 
               className="p-2 rounded-xl bg-gradient-to-br from-warning/20 to-warning/10 border border-warning/20"
               whileHover={{ rotate: 10, scale: 1.1 }}
@@ -82,11 +82,11 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
           <Button
             variant="ghost"
             size="sm"
-            className="text-xs h-8 gap-1.5 hover:bg-primary/10"
+            className="text-xs h-8 gap-1.5 hover:bg-primary/10 flex flex-row-reverse"
             onClick={() => navigate("/admin/services")}
           >
             <span>عرض الكل</span>
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-3.5 h-3.5 scale-x-[-1]" />
           </Button>
         </div>
       </CardHeader>
@@ -107,7 +107,7 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
                 "hover:shadow-lg"
               )}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex flex-row-reverse items-center gap-3">
                 {/* Rank Badge */}
                 <motion.div 
                   className="w-10 h-10 rounded-xl bg-background/60 backdrop-blur-sm flex items-center justify-center border border-border/50 shadow-sm"
@@ -119,22 +119,22 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
                 {/* Service Info */}
                 <div className="flex-1 min-w-0 text-right">
                   <p className="text-sm font-semibold truncate">{service.name}</p>
-                  <div className="flex items-center gap-2 mt-1 justify-end flex-wrap">
+                  <div className="flex flex-row-reverse items-center gap-2 mt-1 flex-wrap">
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
-                      {service.orders.toLocaleString('en-US')} طلب
+                      <span dir="ltr" className="bidi-fix">{service.orders.toLocaleString('ar-SA')}</span> طلب
                     </Badge>
                     {service.trend > 0 && (
-                      <span className="flex items-center gap-0.5 text-[10px] text-success">
+                      <span className="flex flex-row-reverse items-center gap-0.5 text-[10px] text-success">
                         <TrendingUp className="w-2.5 h-2.5" />
-                        +{service.trend}%
+                        <span dir="ltr" className="bidi-fix">+{service.trend}٪</span>
                       </span>
                     )}
                   </div>
                 </div>
 
                 {/* Revenue */}
-                <div className="text-left shrink-0">
-                  <p className="text-base sm:text-lg font-bold">{service.revenue.toLocaleString('en-US')}</p>
+                <div className="text-end shrink-0">
+                  <p className="text-base sm:text-lg font-bold" dir="ltr">{service.revenue.toLocaleString('ar-SA')}</p>
                   <p className="text-[10px] text-muted-foreground">ر.س</p>
                 </div>
               </div>
@@ -148,7 +148,7 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
               </div>
 
               {/* Hover indicator */}
-              <Eye className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity absolute left-3 top-3" />
+              <Eye className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity absolute start-3 top-3" />
             </motion.div>
           ))
         ) : (
