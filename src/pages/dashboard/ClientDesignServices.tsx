@@ -206,6 +206,35 @@ const FloatingElement = ({ delay, duration, children, className }: { delay: numb
   </motion.div>
 );
 
+// ===== Helper function to extract delivery time from features =====
+const getDeliveryTime = (features: any): string => {
+  if (!Array.isArray(features)) return "24-48 ساعة";
+  
+  for (const feature of features) {
+    if (typeof feature === 'string') {
+      // Check for patterns like "تسليم خلال 48 ساعة" or "24 ساعة" or "يوم واحد"
+      const hourMatch = feature.match(/(\d+)\s*ساع/);
+      if (hourMatch) {
+        const hours = parseInt(hourMatch[1]);
+        if (hours <= 24) return `${hours} ساعة`;
+        if (hours <= 48) return `${hours} ساعة`;
+        return `${Math.ceil(hours / 24)} أيام`;
+      }
+      
+      const dayMatch = feature.match(/(\d+)\s*(يوم|أيام)/);
+      if (dayMatch) {
+        const days = parseInt(dayMatch[1]);
+        return days === 1 ? "يوم واحد" : `${days} أيام`;
+      }
+      
+      if (feature.includes("تسليم سريع")) return "24 ساعة";
+      if (feature.includes("تسليم فوري")) return "12 ساعة";
+    }
+  }
+  
+  return "24-48 ساعة";
+};
+
 // ===== Service Card Component =====
 const DesignServiceCard = ({ 
   service, 
@@ -223,6 +252,7 @@ const DesignServiceCard = ({
   const icons = [PenTool, Palette, Image, Layers, Globe, Sparkles, Crown, Video, Package];
   const IconComponent = icons[index % icons.length];
   const features = Array.isArray(service.features) ? service.features.slice(0, 3) : [];
+  const deliveryTime = getDeliveryTime(service.features);
 
   return (
     <motion.div
@@ -309,7 +339,7 @@ const DesignServiceCard = ({
 
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70 mb-4 mt-auto">
             <Clock className="w-3.5 h-3.5" />
-            <span>التسليم: 24-48 ساعة</span>
+            <span>التسليم: {deliveryTime}</span>
           </div>
 
           <div className="flex gap-2">
@@ -351,6 +381,7 @@ const DesignServiceListCard = ({
 }) => {
   const icons = [PenTool, Palette, Image, Layers, Globe, Sparkles];
   const IconComponent = icons[index % icons.length];
+  const deliveryTime = getDeliveryTime(service.features);
 
   return (
     <motion.div
@@ -392,7 +423,7 @@ const DesignServiceListCard = ({
                   )}
                   <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                     <Clock className="w-3 h-3" />
-                    24-48 ساعة
+                    {deliveryTime}
                   </div>
                 </div>
 
@@ -994,7 +1025,7 @@ const ClientDesignServices = () => {
                     <div className="text-center">
                       <Clock className="w-5 h-5 mx-auto mb-1 text-blue-500" />
                       <p className="text-[10px] text-muted-foreground">مدة التسليم</p>
-                      <p className="font-bold text-sm">24-48 ساعة</p>
+                      <p className="font-bold text-sm">{selectedService ? getDeliveryTime(selectedService.features) : "24-48 ساعة"}</p>
                     </div>
                     <div className="text-center">
                       <MessageSquare className="w-5 h-5 mx-auto mb-1 text-green-500" />
