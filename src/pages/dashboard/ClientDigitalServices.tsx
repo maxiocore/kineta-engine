@@ -380,7 +380,6 @@ const ClientDigitalServices = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  const [services, setServices] = useState<Service[]>([]);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -388,7 +387,7 @@ const ClientDigitalServices = () => {
   const [sortBy, setSortBy] = useState<"price-asc" | "price-desc" | "name">("price-asc");
   const [activeCategory, setActiveCategory] = useState("all");
 
-  const { data: initialServices, isLoading, refetch } = useQuery({
+  const { data: services = [], isLoading, refetch } = useQuery({
     queryKey: ["digital-services"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -402,18 +401,14 @@ const ClientDigitalServices = () => {
       
       return data as Service[];
     },
+    staleTime: 1000 * 60, // 1 minute
+    refetchOnWindowFocus: true,
   });
 
   const handleRefresh = async () => {
     await refetch();
     toast.success("تم تحديث الخدمات");
   };
-
-  useEffect(() => {
-    if (initialServices) {
-      setServices(initialServices);
-    }
-  }, [initialServices]);
 
   useEffect(() => {
     if (user) {
@@ -431,6 +426,7 @@ const ClientDigitalServices = () => {
     if (data) setBalance(data.balance);
   };
 
+  // Real-time updates - refetch on changes
   useEffect(() => {
     const channel = supabase
       .channel('digital_services_realtime')
@@ -441,28 +437,9 @@ const ClientDigitalServices = () => {
           schema: 'public',
           table: 'services',
         },
-        (payload) => {
-          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-            const service = payload.new as Service;
-            const isDigitalService = service.category?.includes('تسويق رقمي');
-            
-            if (service.status === 'active' && isDigitalService) {
-              setServices(prev => {
-                const exists = prev.find(s => s.id === service.id);
-                if (exists) {
-                  return prev.map(s => s.id === service.id ? service : s);
-                }
-                return [...prev, service].sort((a, b) => a.price - b.price);
-              });
-              if (payload.eventType === 'INSERT') {
-                toast.success(`خدمة جديدة: ${service.name}`);
-              }
-            } else {
-              setServices(prev => prev.filter(s => s.id !== service.id));
-            }
-          } else if (payload.eventType === 'DELETE') {
-            setServices(prev => prev.filter(s => s.id !== (payload.old as Service).id));
-          }
+        () => {
+          // Refetch services on any change
+          refetch();
         }
       )
       .subscribe();
@@ -470,7 +447,7 @@ const ClientDigitalServices = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [refetch]);
 
   // Filter and sort services
   const filteredServices = services
