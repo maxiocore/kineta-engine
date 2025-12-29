@@ -4,13 +4,26 @@
 @tailwind components;
 @tailwind utilities;
 
-/* RTL Bidi Fix */
+/* RTL Bidi Fix Classes */
 .bidi-fix {
   unicode-bidi: plaintext;
 }
 
 .bidi-plaintext {
   unicode-bidi: plaintext;
+}
+
+/* LTR content inside RTL - for English text and numbers */
+.bidi-ltr {
+  unicode-bidi: isolate;
+  direction: ltr;
+  display: inline;
+}
+
+/* RTL container for mixed content */
+.bidi-rtl {
+  unicode-bidi: plaintext;
+  direction: rtl;
 }
 
 /* RTL Progress Bar Fix */

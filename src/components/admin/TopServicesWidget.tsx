@@ -18,6 +18,29 @@ interface TopServicesWidgetProps {
   maxRevenue?: number;
 }
 
+// دالة لمعالجة النص المختلط (عربي + إنجليزي + أرقام)
+const formatMixedText = (text: string) => {
+  // تقسيم النص حسب الأنماط: أرقام مع شرطات، كلمات إنجليزية كاملة
+  const parts = text.split(/(\d+[\d,.-]*\d*|[A-Za-z]+(?:\s+[A-Za-z]+)*)/g);
+  
+  return parts.map((part, index) => {
+    if (!part) return null;
+    
+    // إذا كان الجزء يحتوي على أرقام أو كلمات إنجليزية
+    const isLtr = /^[\d,.\-\s]+$/.test(part) || /^[A-Za-z\s]+$/.test(part);
+    
+    if (isLtr && part.trim()) {
+      return (
+        <span key={index} dir="ltr" className="bidi-ltr">
+          {part}
+        </span>
+      );
+    }
+    
+    return part;
+  });
+};
+
 const TopServicesWidget = ({ services, maxRevenue }: TopServicesWidgetProps) => {
   const max = maxRevenue || Math.max(...services.map(s => s.revenue), 1);
   
@@ -50,15 +73,17 @@ const TopServicesWidget = ({ services, maxRevenue }: TopServicesWidgetProps) => 
   return (
     <Card className="border-border/30 h-full" dir="rtl">
       <CardHeader className="p-2 sm:p-3 pb-1 sm:pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-xs sm:text-sm lg:text-base flex items-center gap-1.5">
+        <div className="flex flex-row-reverse items-center justify-between">
+          {/* العنوان على اليمين */}
+          <CardTitle className="text-xs sm:text-sm lg:text-base flex flex-row-reverse items-center gap-1.5">
+            <span>أفضل الخدمات</span>
             <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-warning" />
-            أفضل الخدمات
           </CardTitle>
+          {/* زر عرض الكل على اليسار */}
           <Link to="/admin/services">
-            <Button variant="ghost" size="sm" className="gap-1 text-[9px] sm:text-[10px] h-6 sm:h-7">
-              عرض الكل
-              <ChevronLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            <Button variant="ghost" size="sm" className="gap-1 text-[9px] sm:text-[10px] h-6 sm:h-7 flex flex-row-reverse items-center">
+              <span>عرض الكل</span>
+              <ChevronLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5 scale-x-[-1]" />
             </Button>
           </Link>
         </div>
@@ -77,14 +102,14 @@ const TopServicesWidget = ({ services, maxRevenue }: TopServicesWidgetProps) => 
             return (
               <motion.div
                 key={service.id}
-                initial={{ opacity: 0, x: 10 }}
+                initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.08 }}
                 className="group"
               >
-                {/* Service Row */}
-                <div className="flex items-center gap-2 sm:gap-3 mb-1">
-                  {/* Rank Badge */}
+                {/* Service Row - RTL Layout */}
+                <div className="flex flex-row-reverse items-center gap-2 sm:gap-3 mb-1">
+                  {/* Rank Badge - على اليمين */}
                   <motion.span 
                     className={cn(
                       "w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 rounded-md flex items-center justify-center text-[9px] sm:text-[10px] font-bold shadow-sm shrink-0",
@@ -97,45 +122,48 @@ const TopServicesWidget = ({ services, maxRevenue }: TopServicesWidgetProps) => 
                     {index + 1}
                   </motion.span>
                   
-                  {/* Service Name & Orders */}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-[9px] sm:text-[10px] lg:text-xs truncate group-hover:text-primary transition-colors">
-                      {service.name}
+                  {/* Service Name & Orders - وسط */}
+                  <div className="flex-1 min-w-0 text-right bidi-rtl">
+                    <p className="font-medium text-[9px] sm:text-[10px] lg:text-xs truncate group-hover:text-primary transition-colors" dir="rtl">
+                      {formatMixedText(service.name)}
                     </p>
                     <p className="text-[8px] sm:text-[9px] text-muted-foreground">
-                      {service.orders.toLocaleString("ar-SA")} طلب
+                      <span dir="ltr" className="bidi-ltr">{service.orders.toLocaleString("en-US")}</span>
+                      <span className="me-1">طلب</span>
                     </p>
                   </div>
                   
                   {/* Trend */}
                   {service.trend && service.trend > 0 && (
-                    <span className="flex items-center text-[8px] sm:text-[9px] text-success shrink-0">
-                      <TrendingUp className="w-2 h-2 sm:w-2.5 sm:h-2.5 ml-0.5" />
-                      {service.trend}٪
+                    <span className="flex flex-row-reverse items-center text-[8px] sm:text-[9px] text-success shrink-0">
+                      <TrendingUp className="w-2 h-2 sm:w-2.5 sm:h-2.5 ms-0.5" />
+                      <span dir="ltr" className="bidi-ltr">{service.trend}٪</span>
                     </span>
                   )}
                   
-                  {/* Revenue */}
-                  <div className="shrink-0 text-left">
-                    <span className="font-bold text-[9px] sm:text-[10px] lg:text-xs text-success">
-                      {service.revenue.toLocaleString("ar-SA")}
+                  {/* Revenue - على اليسار */}
+                  <div className="shrink-0 text-start">
+                    <span className="font-bold text-[9px] sm:text-[10px] lg:text-xs text-success" dir="ltr">
+                      {service.revenue.toLocaleString("en-US")}
                     </span>
-                    <span className="text-[7px] sm:text-[8px] text-muted-foreground mr-0.5"> ر.س</span>
+                    <span className="text-[7px] sm:text-[8px] text-muted-foreground ms-0.5">ر.س</span>
                   </div>
                 </div>
                 
-                {/* Progress Bar */}
-                <div className="mr-6 sm:mr-7 lg:mr-8">
+                {/* Progress Bar - RTL (يبدأ من اليمين) */}
+                <div className="ms-6 sm:ms-7 lg:ms-8">
                   <motion.div
                     className="h-0.5 sm:h-1 rounded-full bg-secondary overflow-hidden"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
+                    style={{ direction: 'rtl' }}
                   >
                     <motion.div
                       className={cn("h-full rounded-full", getProgressColor(index))}
                       initial={{ width: 0 }}
                       animate={{ width: `${percentage}%` }}
                       transition={{ delay: index * 0.08 + 0.2, duration: 0.6, ease: "easeOut" }}
+                      style={{ marginRight: 0, marginLeft: 'auto' }}
                     />
                   </motion.div>
                 </div>
