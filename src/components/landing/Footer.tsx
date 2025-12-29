@@ -23,6 +23,7 @@ const footerLinks = {
     { label: "تتبع الطلب", href: "/track-order" },
     { label: "سياسة الخصوصية", href: "/privacy-policy" },
     { label: "شروط الاستخدام", href: "/terms-of-service" },
+    { label: "دخول الموظفين", href: "/admin" },
   ],
 };
 
