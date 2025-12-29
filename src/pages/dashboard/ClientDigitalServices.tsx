@@ -388,14 +388,6 @@ const ClientDigitalServices = () => {
   const [sortBy, setSortBy] = useState<"price-asc" | "price-desc" | "name">("price-asc");
   const [activeCategory, setActiveCategory] = useState("all");
 
-  const digitalKeywords = [
-    "digital", "marketing", "seo", "ads", "google", "تسويق", "رقمي", "إعلان", "إعلانات", 
-    "قوقل", "تحليل", "analytics", "content", "محتوى", "email", "بريد", "حملة", "حملات",
-    "cpc", "ppc", "sem", "smm", "influencer", "مؤثرين", "تحسين", "محركات", "البحث",
-    "facebook ads", "google ads", "instagram ads", "tiktok ads", "snapchat ads",
-    "تيك توك", "سناب", "انستقرام", "فيسبوك", "تويتر", "لينكدإن", "يوتيوب",
-  ];
-
   const { data: initialServices, isLoading, refetch } = useQuery({
     queryKey: ["digital-services"],
     queryFn: async () => {
@@ -403,14 +395,12 @@ const ClientDigitalServices = () => {
         .from("services")
         .select("*")
         .eq("status", "active")
+        .ilike("category", "%تسويق رقمي%")
         .order("price", { ascending: true });
       
       if (error) throw error;
       
-      return (data as Service[]).filter(service => {
-        const searchText = `${service.name} ${service.description || ''} ${service.category}`.toLowerCase();
-        return digitalKeywords.some(keyword => searchText.includes(keyword.toLowerCase()));
-      });
+      return data as Service[];
     },
   });
 
@@ -454,8 +444,7 @@ const ClientDigitalServices = () => {
         (payload) => {
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
             const service = payload.new as Service;
-            const searchText = `${service.name} ${service.description || ''} ${service.category}`.toLowerCase();
-            const isDigitalService = digitalKeywords.some(keyword => searchText.includes(keyword.toLowerCase()));
+            const isDigitalService = service.category?.includes('تسويق رقمي');
             
             if (service.status === 'active' && isDigitalService) {
               setServices(prev => {
