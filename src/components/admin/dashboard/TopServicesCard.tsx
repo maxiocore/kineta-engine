@@ -18,43 +18,71 @@ interface TopServicesCardProps {
   services: TopService[];
 }
 
-interface ParsedServiceName {
-  parts: Array<{
-    text: string;
-    type: 'arabic' | 'english' | 'range' | 'separator';
-  }>;
-}
-
-// Parser لتفكيك النص إلى أجزاء منفصلة
-const parseServiceName = (name: string): ParsedServiceName => {
-  const parts: ParsedServiceName['parts'] = [];
+// ترجمة الكلمات الإنجليزية الشائعة
+const translateEnglishTokens = (text: string): string => {
+  const translations: Record<string, string> = {
+    'NO REFILL': 'بدون تعويض',
+    'REFILL': 'تعويض',
+    'INSTANT': 'فوري',
+    'FAST': 'سريع',
+    'SLOW': 'بطيء',
+    'HIGH QUALITY': 'جودة عالية',
+    'LOW QUALITY': 'جودة منخفضة',
+    'PREMIUM': 'مميز',
+    'REAL': 'حقيقي',
+    'BOT': 'آلي',
+    'MIXED': 'مختلط',
+    'GUARANTEED': 'مضمون',
+    'LIFETIME': 'مدى الحياة',
+    'DROP': 'انخفاض',
+    'NO DROP': 'بدون انخفاض',
+  };
   
-  // Regex patterns
-  const rangePattern = /(\d+[\d,]*\s*[-–]\s*\d+[\d,]*)/g;
-  const englishPattern = /([A-Z][A-Z\s]+[A-Z])/g; // كلمات إنجليزية كبيرة مثل NO REFILL
-  const singleEnglishPattern = /\b([A-Za-z]{2,})\b/g; // كلمات إنجليزية فردية
-  
-  // استخراج كل الـ matches
-  const ranges = [...name.matchAll(rangePattern)];
-  const englishWords = [...name.matchAll(englishPattern)];
-  const singleWords = [...name.matchAll(singleEnglishPattern)];
-  
-  // إنشاء map للمواقع
-  const markers: Array<{start: number; end: number; text: string; type: 'english' | 'range'}> = [];
-  
-  ranges.forEach(match => {
-    if (match.index !== undefined) {
-      markers.push({
-        start: match.index,
-        end: match.index + match[0].length,
-        text: match[0],
-        type: 'range'
-      });
-    }
+  let result = text;
+  Object.entries(translations).forEach(([en, ar]) => {
+    result = result.replace(new RegExp(en, 'gi'), ar);
   });
   
-  englishWords.forEach(match => {
-    if (match.index !== undefined) {
+  return result;
+};
+
+interface ParsedPart {
+  text: string;
+  type: 'arabic' | 'english' | 'range';
+}
+
+// Parser محسّن لتفكيك النص
+const parseServiceName = (name: string): ParsedPart[] => {
+  // ترجمة الكلمات الإنجليزية أولاً
+  const translatedName = translateEnglishTokens(name);
+  
+  const parts: ParsedPart[] = [];
+  
+  // Regex للأرقام مع شرطات
+  const rangePattern = /(\d+[\d,]*\s*[-–]\s*\d+[\d,]*)/g;
+  // Regex للكلمات الإنجليزية المتبقية (غير مترجمة)
+  const englishPattern = /([A-Za-z][A-Za-z\s]*[A-Za-z])/g;
+  
+  const markers: Array<{start: number; end: number; text: string; type: 'english' | 'range'}> = [];
+  
+  // استخراج الـ ranges
+  let match;
+  while ((match = rangePattern.exec(translatedName)) !== null) {
+    markers.push({
+      start: match.index,
+      end: match.index + match[0].length,
+      text: match[0],
+      type: 'range'
+    });
+  }
+  
+  // استخراج الكلمات الإنجليزية
+  while ((match = englishPattern.exec(translatedName)) !== null) {
+    const overlaps = markers.some(m => 
+      (match!.index >= m.start && match!.index < m.end) ||
+      (match!.index + match![0].length > m.start && match!.index + match![0].length <= m.end)
+    );
+    if (!overlaps) {
       markers.push({
         start: match.index,
         end: match.index + match[0].length,
@@ -62,25 +90,7 @@ const parseServiceName = (name: string): ParsedServiceName => {
         type: 'english'
       });
     }
-  });
-  
-  // إضافة كلمات إنجليزية فردية غير موجودة بالفعل
-  singleWords.forEach(match => {
-    if (match.index !== undefined) {
-      const overlaps = markers.some(m => 
-        (match.index! >= m.start && match.index! < m.end) ||
-        (match.index! + match[0].length > m.start && match.index! + match[0].length <= m.end)
-      );
-      if (!overlaps && /^[A-Z]/.test(match[0])) {
-        markers.push({
-          start: match.index,
-          end: match.index + match[0].length,
-          text: match[0],
-          type: 'english'
-        });
-      }
-    }
-  });
+  }
   
   // ترتيب حسب الموقع
   markers.sort((a, b) => a.start - b.start);
@@ -88,59 +98,49 @@ const parseServiceName = (name: string): ParsedServiceName => {
   // بناء الأجزاء
   let lastEnd = 0;
   markers.forEach(marker => {
-    // إضافة النص العربي قبل هذا الـ marker
     if (marker.start > lastEnd) {
-      const arabicText = name.substring(lastEnd, marker.start).trim();
+      const arabicText = translatedName.substring(lastEnd, marker.start).trim();
       if (arabicText) {
         parts.push({ text: arabicText, type: 'arabic' });
       }
     }
-    
-    // إضافة الـ marker نفسه
     parts.push({ text: marker.text, type: marker.type });
     lastEnd = marker.end;
   });
   
-  // إضافة أي نص متبقي
-  if (lastEnd < name.length) {
-    const remainingText = name.substring(lastEnd).trim();
+  // إضافة النص المتبقي
+  if (lastEnd < translatedName.length) {
+    const remainingText = translatedName.substring(lastEnd).trim();
     if (remainingText) {
       parts.push({ text: remainingText, type: 'arabic' });
     }
   }
   
-  // إذا لم يتم العثور على أي markers، أعد النص كاملاً
+  // إذا لم يتم العثور على أي markers
   if (parts.length === 0) {
-    parts.push({ text: name, type: 'arabic' });
+    parts.push({ text: translatedName, type: 'arabic' });
   }
   
-  return { parts };
+  return parts;
 };
 
 // مكون لعرض اسم الخدمة المفكك
 const ServiceNameDisplay = ({ name }: { name: string }) => {
-  const { parts } = parseServiceName(name);
+  const parts = parseServiceName(name);
   
   return (
-    <div dir="rtl" className="bidi-isolate-rtl text-right min-w-0 truncate">
+    <div className="mixed-line text-right min-w-0 truncate">
       {parts.map((part, index) => {
         if (part.type === 'arabic') {
           return <span key={index}>{part.text}</span>;
         }
         
-        if (part.type === 'range' || part.type === 'english') {
-          return (
-            <span 
-              key={index} 
-              dir="ltr" 
-              className="bidi-isolate-ltr mx-0.5"
-            >
-              {part.text}
-            </span>
-          );
-        }
-        
-        return <span key={index} className="mx-0.5">{part.text}</span>;
+        // LTR للأرقام والإنجليزي
+        return (
+          <span key={index} className="ltr mx-0.5">
+            {part.text}
+          </span>
+        );
       })}
     </div>
   );
@@ -190,7 +190,7 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
   const maxRevenue = Math.max(...services.map((s) => s.revenue), 1);
 
   return (
-    <Card className="border-border/50 h-full overflow-hidden bg-gradient-to-br from-card to-card/80 relative" dir="rtl">
+    <Card className="border-border/50 h-full overflow-hidden bg-gradient-to-br from-card to-card/80 relative">
       {/* Background decorations */}
       <div className="absolute top-0 end-0 w-32 h-32 bg-warning/5 rounded-full blur-2xl" />
       <div className="absolute bottom-0 start-0 w-24 h-24 bg-primary/5 rounded-full blur-xl" />
@@ -207,7 +207,7 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
               <Star className="w-4 h-4 text-warning" />
             </motion.div>
           </CardTitle>
-          {/* زر عرض الكل على اليسار - السهم معكوس */}
+          {/* زر عرض الكل على اليسار */}
           <Button
             variant="ghost"
             size="sm"
@@ -215,7 +215,7 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
             onClick={() => navigate("/admin/services")}
           >
             <span>عرض الكل</span>
-            <ChevronLeft className="w-3.5 h-3.5 scale-x-[-1]" />
+            <ChevronLeft className="w-3.5 h-3.5 rtl-flip" />
           </Button>
         </div>
       </CardHeader>
@@ -253,13 +253,13 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
                   </p>
                   <div className="flex flex-row-reverse items-center gap-2 mt-1 flex-wrap">
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
-                      <span dir="ltr" className="bidi-isolate-ltr">{service.orders.toLocaleString('en-US')}</span>
+                      <span className="ltr">{service.orders.toLocaleString('en-US')}</span>
                       <span className="me-1"> طلب</span>
                     </Badge>
                     {service.trend > 0 && (
                       <span className="flex flex-row-reverse items-center gap-0.5 text-[10px] text-success">
                         <TrendingUp className="w-2.5 h-2.5" />
-                        <span dir="ltr" className="bidi-isolate-ltr">+{service.trend}٪</span>
+                        <span className="ltr">+{service.trend}٪</span>
                       </span>
                     )}
                   </div>
@@ -267,8 +267,8 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
 
                 {/* Revenue - على اليسار */}
                 <div className="shrink-0 text-start">
-                  <p className="text-base sm:text-lg font-bold" dir="ltr">
-                    <span className="bidi-isolate-ltr">{service.revenue.toLocaleString('en-US')}</span>
+                  <p className="text-base sm:text-lg font-bold">
+                    <span className="ltr">{service.revenue.toLocaleString('en-US')}</span>
                   </p>
                   <p className="text-[10px] text-muted-foreground text-start">ر.س</p>
                 </div>
@@ -276,16 +276,12 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
 
               {/* Progress Bar - RTL (يبدأ من اليمين) */}
               <div className="mt-3">
-                <div 
-                  className="h-1.5 rounded-full bg-secondary overflow-hidden"
-                  style={{ direction: 'rtl' }}
-                >
+                <div className="h-1.5 rounded-full bg-secondary overflow-hidden rtl-progress">
                   <motion.div
                     className={cn("h-full rounded-full", getProgressColor(index))}
                     initial={{ width: 0 }}
                     animate={{ width: `${(service.revenue / maxRevenue) * 100}%` }}
                     transition={{ delay: index * 0.1 + 0.2, duration: 0.6, ease: "easeOut" }}
-                    style={{ marginRight: 0, marginLeft: 'auto' }}
                   />
                 </div>
               </div>
