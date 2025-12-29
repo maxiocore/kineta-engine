@@ -356,22 +356,22 @@ const ClientServicesHome = () => {
     },
     {
       id: 'design',
-      title: 'خدمات التصميم',
-      subtitle: 'Design Services',
-      description: 'تصاميم احترافية تعكس هويتك',
+      title: 'خدمات التصميم الإبداعي',
+      subtitle: 'Creative Design',
+      description: 'تصاميم احترافية تعكس هويتك وتميز علامتك التجارية',
       icon: Palette,
       path: '/dashboard/design-services',
-      gradient: 'from-violet-500 via-purple-500 to-fuchsia-500',
-      bgGradient: 'from-violet-500/20 via-purple-500/10 to-transparent',
-      shadowColor: 'shadow-violet-500/25',
+      gradient: 'from-rose-500 via-violet-500 to-pink-500',
+      bgGradient: 'from-rose-500/20 via-violet-500/10 to-transparent',
+      shadowColor: 'shadow-rose-500/25',
       count: servicesCount.design,
       platforms: [
-        { icon: Sparkles, label: 'شعارات', color: 'from-violet-500 to-purple-600' },
-        { icon: Layers, label: 'هوية بصرية', color: 'from-purple-500 to-pink-600' },
-        { icon: Target, label: 'سوشيال ميديا', color: 'from-fuchsia-500 to-pink-600' },
-        { icon: Globe2, label: 'واجهات', color: 'from-indigo-500 to-violet-600' },
+        { icon: Crown, label: 'هوية بصرية', color: 'from-amber-500 to-orange-600' },
+        { icon: Sparkles, label: 'شعارات', color: 'from-rose-500 to-pink-600' },
+        { icon: Layers, label: 'سوشيال ميديا', color: 'from-pink-500 to-rose-600' },
+        { icon: Play, label: 'موشن جرافيك', color: 'from-cyan-500 to-blue-600' },
       ],
-      features: ['تصميم مخصص', 'مراجعات غير محدودة', 'ملفات مصدر']
+      features: ['تصميم مخصص', 'تعديلات غير محدودة', 'تسليم سريع']
     },
     {
       id: 'dev',
