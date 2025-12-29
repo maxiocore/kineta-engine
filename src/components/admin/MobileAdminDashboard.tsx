@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import AnimatedCounter from "./AnimatedCounter";
@@ -120,10 +119,10 @@ const MobileAdminDashboard = ({
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20" dir="rtl">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border/50">
-        <div className="flex items-center justify-between px-4 py-3">
+    <div className="min-h-screen bg-background" dir="rtl">
+      {/* Header with Tabs */}
+      <div className="sticky top-14 z-30 bg-background/95 backdrop-blur-sm border-b border-border/50 px-4 py-3">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-primary-foreground" />
@@ -143,32 +142,38 @@ const MobileAdminDashboard = ({
           </motion.button>
         </div>
 
-        {/* Tabs */}
-        <div className="px-4 pb-3">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="w-full h-11 p-1 bg-secondary/50 rounded-xl grid grid-cols-2">
-              <TabsTrigger 
-                value="overview" 
-                className="rounded-lg text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
-              >
-                <Sparkles className="w-3.5 h-3.5 ml-1.5" />
-                نظرة عامة
-              </TabsTrigger>
-              <TabsTrigger 
-                value="analytics" 
-                className="rounded-lg text-xs font-medium data-[state=active]:bg-accent data-[state=active]:text-accent-foreground transition-all"
-              >
-                <BarChart3 className="w-3.5 h-3.5 ml-1.5" />
-                الإحصائيات
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+        {/* Custom Tabs */}
+        <div className="w-full h-11 p-1 bg-secondary/50 rounded-xl grid grid-cols-2 gap-1">
+          <button 
+            onClick={() => setActiveTab("overview")}
+            className={cn(
+              "rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5",
+              activeTab === "overview" 
+                ? "bg-primary text-primary-foreground shadow-sm" 
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            نظرة عامة
+          </button>
+          <button 
+            onClick={() => setActiveTab("analytics")}
+            className={cn(
+              "rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5",
+              activeTab === "analytics" 
+                ? "bg-accent text-accent-foreground shadow-sm" 
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            الإحصائيات
+          </button>
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="mt-0 px-4 space-y-4 pt-4">
+      {/* Overview Content */}
+      {activeTab === "overview" && (
+        <div className="px-4 space-y-4 pt-4 pb-20">
           {/* Stats Grid - 2x2 */}
           <div className="grid grid-cols-2 gap-3">
             {/* Users */}
@@ -434,17 +439,19 @@ const MobileAdminDashboard = ({
               </div>
             </ScrollArea>
           </motion.div>
-        </TabsContent>
+        </div>
+      )}
 
-        {/* Analytics Tab */}
-        <TabsContent value="analytics" className="mt-0 px-4 pt-4">
+      {/* Analytics Content */}
+      {activeTab === "analytics" && (
+        <div className="px-4 pt-4 pb-20">
           <AdvancedDashboardCharts
             orders={chartData.orders}
             deposits={chartData.deposits}
             users={chartData.users}
           />
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
     </div>
   );
 };
