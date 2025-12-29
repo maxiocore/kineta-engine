@@ -64,7 +64,7 @@ const MobileRevenueCard = ({
               <span className="text-[10px] text-muted-foreground">هذا الشهر</span>
             </div>
             <p className="text-sm font-semibold text-right">
-              {monthlyRevenue.toLocaleString('ar-SA')} 
+              {monthlyRevenue.toLocaleString('en-US')} 
               <span className="text-[10px] font-normal text-muted-foreground mr-1">ر.س</span>
             </p>
           </motion.div>
@@ -77,7 +77,7 @@ const MobileRevenueCard = ({
               <span className="text-[10px] text-muted-foreground">هذا الأسبوع</span>
             </div>
             <p className="text-sm font-semibold text-right">
-              {weeklyRevenue.toLocaleString('ar-SA')} 
+              {weeklyRevenue.toLocaleString('en-US')} 
               <span className="text-[10px] font-normal text-muted-foreground mr-1">ر.س</span>
             </p>
           </motion.div>

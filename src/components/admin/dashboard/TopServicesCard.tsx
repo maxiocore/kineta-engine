@@ -121,7 +121,7 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
                   <p className="text-sm font-semibold truncate">{service.name}</p>
                   <div className="flex items-center gap-2 mt-1 justify-end flex-wrap">
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
-                      {service.orders.toLocaleString('ar-SA')} طلب
+                      {service.orders.toLocaleString('en-US')} طلب
                     </Badge>
                     {service.trend > 0 && (
                       <span className="flex items-center gap-0.5 text-[10px] text-success">
@@ -134,7 +134,7 @@ const TopServicesCard = ({ services }: TopServicesCardProps) => {
 
                 {/* Revenue */}
                 <div className="text-left shrink-0">
-                  <p className="text-base sm:text-lg font-bold">{service.revenue.toLocaleString('ar-SA')}</p>
+                  <p className="text-base sm:text-lg font-bold">{service.revenue.toLocaleString('en-US')}</p>
                   <p className="text-[10px] text-muted-foreground">ر.س</p>
                 </div>
               </div>
