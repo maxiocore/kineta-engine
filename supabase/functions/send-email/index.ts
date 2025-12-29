@@ -1374,7 +1374,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
         'low': 'منخفضة',
         'medium': 'متوسطة',
         'high': 'عالية',
-        'urgent': 'عاجلة 🔴'
+        'urgent': 'عاجلة'
       };
       const priorityColors: Record<string, string> = {
         'low': '#22c55e',
@@ -1382,53 +1382,217 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
         'high': '#ef4444',
         'urgent': '#dc2626'
       };
-      const ticketPriorityText = priorityTexts[data.priority] || data.priority;
+      const priorityBgColors: Record<string, string> = {
+        'low': '#dcfce7',
+        'medium': '#fef3c7',
+        'high': '#fee2e2',
+        'urgent': '#fecaca'
+      };
+      const priorityEmojis: Record<string, string> = {
+        'low': '🟢',
+        'medium': '🟡',
+        'high': '🟠',
+        'urgent': '🔴'
+      };
+      const ticketPriorityText = priorityTexts[data.priority] || data.priority || 'غير محدد';
       const ticketPriorityColor = priorityColors[data.priority] || '#6366f1';
+      const ticketPriorityBg = priorityBgColors[data.priority] || '#f1f5f9';
+      const ticketPriorityEmoji = priorityEmojis[data.priority] || '📋';
       
       return {
-        subject: `🎫 تذكرة دعم جديدة #${data.ticketNumber} - ${data.subject}`,
+        subject: `🎫 تذكرة دعم جديدة #${data.ticketNumber || 'جديدة'} - ${data.subject || 'بدون عنوان'}`,
         content: `
-          ${createIconCircle('🎫', 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)')}
-          ${createGreeting('تذكرة دعم جديدة')}
-          ${createMessage('تم استلام تذكرة دعم جديدة وسيتم الرد عليها في أقرب وقت ممكن.')}
+          <!-- Hero Section -->
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 25px;">
+            <tr>
+              <td align="center">
+                <div style="width: 90px; height: 90px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); border-radius: 50%; display: inline-block; text-align: center; line-height: 90px; box-shadow: 0 12px 35px rgba(99, 102, 241, 0.4);">
+                  <span style="font-size: 45px;">🎫</span>
+                </div>
+              </td>
+            </tr>
+          </table>
           
-          ${createInfoCard([
-            { label: 'رقم التذكرة', value: data.ticketNumber || '-' },
-            { label: 'الموضوع', value: data.subject },
-            { label: 'الأولوية', value: ticketPriorityText, valueColor: ticketPriorityColor },
-            { label: 'العميل', value: data.userName || 'مستخدم' },
-            { label: 'البريد الإلكتروني', value: data.userEmail || '-' }
-          ])}
+          <h2 style="margin: 0 0 10px; font-size: 26px; font-weight: 800; color: #1e293b; text-align: center; direction: rtl;">تذكرة دعم جديدة</h2>
+          <p style="margin: 0 0 30px; font-size: 16px; color: #64748b; text-align: center; direction: rtl;">تم استلام طلب الدعم الخاص بك وسنقوم بالرد عليك في أقرب وقت</p>
           
-          ${createNoticeBox('⏱️ سيتم الرد على تذكرتك خلال 24 ساعة كحد أقصى. للحالات العاجلة يرجى التواصل عبر الواتساب.', '#dbeafe', '#1d4ed8', '#3b82f6')}
+          <!-- Ticket Number Badge -->
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 25px;">
+            <tr>
+              <td align="center">
+                <div style="display: inline-block; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 15px 35px; border-radius: 50px; box-shadow: 0 8px 25px rgba(30, 41, 59, 0.3);">
+                  <span style="color: #94a3b8; font-size: 13px; display: block; margin-bottom: 3px;">رقم التذكرة</span>
+                  <span style="color: #ffffff; font-size: 22px; font-weight: 800; letter-spacing: 2px;">#${data.ticketNumber || '---'}</span>
+                </div>
+              </td>
+            </tr>
+          </table>
           
-          ${createCTAButton('عرض التذكرة')}
+          <!-- Priority Badge -->
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 25px;">
+            <tr>
+              <td align="center">
+                <div style="display: inline-block; background: ${ticketPriorityBg}; padding: 12px 30px; border-radius: 50px; border: 2px solid ${ticketPriorityColor};">
+                  <span style="color: ${ticketPriorityColor}; font-size: 15px; font-weight: 700;">${ticketPriorityEmoji} الأولوية: ${ticketPriorityText}</span>
+                </div>
+              </td>
+            </tr>
+          </table>
+          
+          <!-- Ticket Details Card -->
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); margin-bottom: 25px; overflow: hidden;">
+            <tr>
+              <td style="padding: 0;">
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                  <tr>
+                    <td style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 15px 25px;">
+                      <p style="margin: 0; color: #ffffff; font-size: 16px; font-weight: 700; text-align: right;">📝 تفاصيل التذكرة</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 25px;">
+                      <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                        <tr>
+                          <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                            <span style="color: #64748b; font-size: 14px; display: block; margin-bottom: 5px;">📌 الموضوع</span>
+                            <span style="color: #1e293b; font-size: 16px; font-weight: 700;">${data.subject || 'غير محدد'}</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0;">
+                            <span style="color: #64748b; font-size: 14px; display: block; margin-bottom: 5px;">👤 اسم العميل</span>
+                            <span style="color: #1e293b; font-size: 16px; font-weight: 600;">${data.userName || 'مستخدم'}</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding: 12px 0;">
+                            <span style="color: #64748b; font-size: 14px; display: block; margin-bottom: 5px;">📧 البريد الإلكتروني</span>
+                            <span style="color: #6366f1; font-size: 16px; font-weight: 600;">${data.userEmail || 'غير محدد'}</span>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          
+          <!-- Response Time Notice -->
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%); border-radius: 14px; border-right: 5px solid #3b82f6; margin-bottom: 25px;">
+            <tr>
+              <td style="padding: 20px 25px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                  <tr>
+                    <td style="width: 50px; vertical-align: top;">
+                      <div style="width: 45px; height: 45px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 12px; text-align: center; line-height: 45px;">
+                        <span style="font-size: 22px;">⏱️</span>
+                      </div>
+                    </td>
+                    <td style="padding-right: 15px; vertical-align: middle;">
+                      <p style="margin: 0 0 5px; color: #1e40af; font-size: 15px; font-weight: 700;">وقت الاستجابة المتوقع</p>
+                      <p style="margin: 0; color: #3b82f6; font-size: 14px; line-height: 1.6;">سيتم الرد على تذكرتك خلال <strong>24 ساعة</strong> كحد أقصى. للحالات العاجلة تواصل عبر الواتساب.</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          
+          ${createCTAButton('متابعة التذكرة')}
         `
       };
     }
 
-    case 'ticket_reply':
+    case 'ticket_reply': {
+      const senderType = data.isAdmin ? 'فريق الدعم الفني' : 'العميل';
+      const senderColor = data.isAdmin ? '#22c55e' : '#6366f1';
+      const senderBg = data.isAdmin ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)';
+      const senderIcon = data.isAdmin ? '👨‍💼' : '👤';
+      
       return {
-        subject: `💬 رد جديد على تذكرتك #${data.ticketNumber}`,
+        subject: `💬 رد جديد على تذكرتك #${data.ticketNumber || '---'}`,
         content: `
-          ${createIconCircle('💬', 'linear-gradient(135deg, #10b981 0%, #059669 100%)')}
-          ${createGreeting('رد جديد على تذكرتك')}
-          ${createMessage(`تم إضافة رد جديد على تذكرتك رقم <strong>${data.ticketNumber}</strong>`)}
+          <!-- Hero Section -->
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 25px;">
+            <tr>
+              <td align="center">
+                <div style="width: 90px; height: 90px; background: ${senderBg}; border-radius: 50%; display: inline-block; text-align: center; line-height: 90px; box-shadow: 0 12px 35px rgba(34, 197, 94, 0.35);">
+                  <span style="font-size: 45px;">💬</span>
+                </div>
+              </td>
+            </tr>
+          </table>
           
-          ${createInfoCard([
-            { label: 'رقم التذكرة', value: data.ticketNumber || '-' },
-            { label: 'الموضوع', value: data.subject },
-            { label: 'المرسل', value: data.isAdmin ? 'فريق الدعم الفني' : 'العميل' }
-          ])}
+          <h2 style="margin: 0 0 10px; font-size: 26px; font-weight: 800; color: #1e293b; text-align: center; direction: rtl;">رد جديد على تذكرتك</h2>
+          <p style="margin: 0 0 30px; font-size: 16px; color: #64748b; text-align: center; direction: rtl;">تم إضافة رد جديد على تذكرة الدعم الخاصة بك</p>
           
-          <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 14px; padding: 20px; margin: 20px 0; border-right: 4px solid #6366f1;">
-            <p style="margin: 0 0 10px; color: #64748b; font-size: 12px; font-weight: 600;">الرسالة:</p>
-            <p style="margin: 0; color: #1e293b; font-size: 15px; line-height: 1.8;">${data.message}</p>
-          </div>
+          <!-- Ticket Info -->
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 25px;">
+            <tr>
+              <td align="center">
+                <table role="presentation" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="background: #f1f5f9; padding: 10px 20px; border-radius: 10px 0 0 10px;">
+                      <span style="color: #64748b; font-size: 13px;">رقم التذكرة</span>
+                    </td>
+                    <td style="background: #1e293b; padding: 10px 25px; border-radius: 0 10px 10px 0;">
+                      <span style="color: #ffffff; font-size: 15px; font-weight: 700;">#${data.ticketNumber || '---'}</span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          
+          <!-- Sender Badge -->
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 20px;">
+            <tr>
+              <td align="center">
+                <div style="display: inline-flex; align-items: center; gap: 10px; background: ${data.isAdmin ? '#dcfce7' : '#e0e7ff'}; padding: 10px 25px; border-radius: 50px; border: 2px solid ${senderColor};">
+                  <span style="font-size: 20px;">${senderIcon}</span>
+                  <span style="color: ${senderColor}; font-size: 15px; font-weight: 700;">الرد من: ${senderType}</span>
+                </div>
+              </td>
+            </tr>
+          </table>
+          
+          <!-- Message Content -->
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: #ffffff; border-radius: 16px; border: 2px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); margin-bottom: 25px; overflow: hidden;">
+            <tr>
+              <td style="padding: 0;">
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                  <tr>
+                    <td style="background: ${senderBg}; padding: 15px 25px;">
+                      <p style="margin: 0; color: #ffffff; font-size: 15px; font-weight: 700; text-align: right;">💬 نص الرسالة</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 25px; background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);">
+                      <div style="background: #ffffff; padding: 20px; border-radius: 12px; border-right: 4px solid ${senderColor}; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                        <p style="margin: 0; color: #1e293b; font-size: 16px; line-height: 2; text-align: right; direction: rtl;">${data.message || 'لا توجد رسالة'}</p>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          
+          <!-- Subject Info -->
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: #f8fafc; border-radius: 12px; padding: 15px; margin-bottom: 25px;">
+            <tr>
+              <td style="padding: 15px 20px;">
+                <span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 5px;">📌 موضوع التذكرة</span>
+                <span style="color: #1e293b; font-size: 15px; font-weight: 600;">${data.subject || 'غير محدد'}</span>
+              </td>
+            </tr>
+          </table>
           
           ${createCTAButton('الرد على التذكرة')}
         `
       };
+    }
 
     case 'ticket_status_changed': {
       const ticketStatusLabels: Record<string, string> = {
@@ -1445,63 +1609,196 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
         'closed': '#64748b'
       };
       
-      const ticketStatusLabel = ticketStatusLabels[data.newStatus] || data.newStatus;
+      const ticketStatusBgColors: Record<string, string> = {
+        'open': '#dbeafe',
+        'in_progress': '#fef3c7',
+        'resolved': '#dcfce7',
+        'closed': '#f1f5f9'
+      };
+      
+      const ticketStatusEmojis: Record<string, string> = {
+        'open': '📂',
+        'in_progress': '⚙️',
+        'resolved': '✅',
+        'closed': '🔒'
+      };
+      
+      const ticketStatusLabel = ticketStatusLabels[data.newStatus] || data.newStatus || 'غير محدد';
       const ticketStatusColor = ticketStatusColors[data.newStatus] || '#6366f1';
+      const ticketStatusBg = ticketStatusBgColors[data.newStatus] || '#f1f5f9';
+      const ticketStatusEmoji = ticketStatusEmojis[data.newStatus] || '📋';
+      const oldStatusLabel = ticketStatusLabels[data.oldStatus] || data.oldStatus || 'غير محدد';
       
       return {
-        subject: `📋 تحديث حالة تذكرتك #${data.ticketNumber} - ${ticketStatusLabel}`,
+        subject: `📋 تحديث حالة تذكرتك #${data.ticketNumber || '---'} - ${ticketStatusLabel}`,
         content: `
-          ${createIconCircle(
-            data.newStatus === 'resolved' ? '✅' : 
-            data.newStatus === 'closed' ? '🔒' : 
-            data.newStatus === 'in_progress' ? '⚙️' : '📋',
-            `linear-gradient(135deg, ${ticketStatusColor} 0%, ${ticketStatusColor}dd 100%)`
-          )}
-          ${createGreeting('تحديث حالة التذكرة')}
-          ${createMessage(`تم تحديث حالة تذكرتك رقم <strong>${data.ticketNumber}</strong>`)}
+          <!-- Hero Section -->
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 25px;">
+            <tr>
+              <td align="center">
+                <div style="width: 90px; height: 90px; background: linear-gradient(135deg, ${ticketStatusColor} 0%, ${ticketStatusColor}cc 100%); border-radius: 50%; display: inline-block; text-align: center; line-height: 90px; box-shadow: 0 12px 35px ${ticketStatusColor}50;">
+                  <span style="font-size: 45px;">${ticketStatusEmoji}</span>
+                </div>
+              </td>
+            </tr>
+          </table>
           
-          ${createHighlightBox(ticketStatusLabel, 'الحالة الجديدة', `linear-gradient(135deg, ${ticketStatusColor} 0%, ${ticketStatusColor}dd 100%)`)}
+          <h2 style="margin: 0 0 10px; font-size: 26px; font-weight: 800; color: #1e293b; text-align: center; direction: rtl;">تحديث حالة التذكرة</h2>
+          <p style="margin: 0 0 30px; font-size: 16px; color: #64748b; text-align: center; direction: rtl;">تم تحديث حالة تذكرة الدعم الخاصة بك</p>
           
-          ${createInfoCard([
-            { label: 'رقم التذكرة', value: data.ticketNumber || '-' },
-            { label: 'الموضوع', value: data.subject },
-            { label: 'الحالة السابقة', value: ticketStatusLabels[data.oldStatus] || data.oldStatus },
-            { label: 'الحالة الجديدة', value: ticketStatusLabel, valueColor: ticketStatusColor }
-          ])}
+          <!-- Ticket Number -->
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 25px;">
+            <tr>
+              <td align="center">
+                <div style="display: inline-block; background: #1e293b; padding: 12px 30px; border-radius: 50px;">
+                  <span style="color: #94a3b8; font-size: 12px;">تذكرة رقم </span>
+                  <span style="color: #ffffff; font-size: 18px; font-weight: 800;">#${data.ticketNumber || '---'}</span>
+                </div>
+              </td>
+            </tr>
+          </table>
           
-          ${data.newStatus === 'resolved' ? createNoticeBox('🎉 تهانينا! تم حل مشكلتك. إذا كان لديك أي استفسارات أخرى، لا تتردد في التواصل معنا.', '#dcfce7', '#166534', '#22c55e') : ''}
+          <!-- Status Change Visual -->
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-radius: 16px; border: 2px solid #e2e8f0; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); margin-bottom: 25px; overflow: hidden;">
+            <tr>
+              <td style="padding: 30px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                  <tr>
+                    <td style="width: 45%; text-align: center; vertical-align: middle;">
+                      <div style="background: #f1f5f9; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1;">
+                        <span style="color: #94a3b8; font-size: 12px; display: block; margin-bottom: 8px;">الحالة السابقة</span>
+                        <span style="color: #64748b; font-size: 18px; font-weight: 700;">${oldStatusLabel}</span>
+                      </div>
+                    </td>
+                    <td style="width: 10%; text-align: center; vertical-align: middle;">
+                      <span style="font-size: 28px;">➡️</span>
+                    </td>
+                    <td style="width: 45%; text-align: center; vertical-align: middle;">
+                      <div style="background: ${ticketStatusBg}; padding: 20px; border-radius: 12px; border: 2px solid ${ticketStatusColor};">
+                        <span style="color: ${ticketStatusColor}; font-size: 12px; display: block; margin-bottom: 8px;">الحالة الجديدة</span>
+                        <span style="color: ${ticketStatusColor}; font-size: 20px; font-weight: 800;">${ticketStatusEmoji} ${ticketStatusLabel}</span>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          
+          <!-- Subject -->
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: #f8fafc; border-radius: 12px; margin-bottom: 25px;">
+            <tr>
+              <td style="padding: 15px 20px;">
+                <span style="color: #64748b; font-size: 13px; display: block; margin-bottom: 5px;">📌 موضوع التذكرة</span>
+                <span style="color: #1e293b; font-size: 15px; font-weight: 600;">${data.subject || 'غير محدد'}</span>
+              </td>
+            </tr>
+          </table>
+          
+          ${data.newStatus === 'resolved' ? `
+            <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); border-radius: 14px; border-right: 5px solid #22c55e; margin-bottom: 25px;">
+              <tr>
+                <td style="padding: 20px 25px;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                    <tr>
+                      <td style="width: 50px; vertical-align: top;">
+                        <div style="width: 45px; height: 45px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 12px; text-align: center; line-height: 45px;">
+                          <span style="font-size: 22px;">🎉</span>
+                        </div>
+                      </td>
+                      <td style="padding-right: 15px; vertical-align: middle;">
+                        <p style="margin: 0 0 5px; color: #166534; font-size: 16px; font-weight: 700;">تهانينا! تم حل مشكلتك</p>
+                        <p style="margin: 0; color: #15803d; font-size: 14px; line-height: 1.6;">إذا كان لديك أي استفسارات أخرى، لا تتردد في التواصل معنا.</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          ` : ''}
           
           ${createCTAButton('عرض التذكرة')}
         `
       };
     }
 
-    case 'ticket_rating':
-      const stars = '⭐'.repeat(data.rating || 5);
+    case 'ticket_rating': {
+      const ratingValue = data.rating || 5;
+      const ratingStars = '⭐'.repeat(ratingValue);
+      const ratingEmptyStars = '☆'.repeat(5 - ratingValue);
+      
       return {
-        subject: `⭐ تقييم جديد للتذكرة #${data.ticketNumber}`,
+        subject: `⭐ تقييم جديد للتذكرة #${data.ticketNumber || '---'}`,
         content: `
-          ${createIconCircle('⭐', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
-          ${createGreeting('تقييم جديد')}
-          ${createMessage(`تم تقييم التذكرة رقم <strong>${data.ticketNumber}</strong>`)}
+          <!-- Hero Section -->
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-bottom: 25px;">
+            <tr>
+              <td align="center">
+                <div style="width: 90px; height: 90px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 50%; display: inline-block; text-align: center; line-height: 90px; box-shadow: 0 12px 35px rgba(245, 158, 11, 0.4);">
+                  <span style="font-size: 45px;">⭐</span>
+                </div>
+              </td>
+            </tr>
+          </table>
           
-          ${createHighlightBox(stars, `تقييم ${data.rating}/5`, 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          <h2 style="margin: 0 0 10px; font-size: 26px; font-weight: 800; color: #1e293b; text-align: center; direction: rtl;">تقييم جديد</h2>
+          <p style="margin: 0 0 30px; font-size: 16px; color: #64748b; text-align: center; direction: rtl;">تم استلام تقييم العميل على خدمة الدعم</p>
           
-          ${createInfoCard([
-            { label: 'رقم التذكرة', value: data.ticketNumber || '-' },
-            { label: 'الموضوع', value: data.subject },
-            { label: 'العميل', value: data.userName || 'مستخدم' },
-            { label: 'التقييم', value: `${data.rating}/5 ${stars}` }
-          ])}
+          <!-- Rating Display -->
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-radius: 16px; border: 2px solid #f59e0b; margin-bottom: 25px; overflow: hidden;">
+            <tr>
+              <td style="padding: 30px; text-align: center;">
+                <p style="margin: 0 0 15px; font-size: 40px; letter-spacing: 5px;">${ratingStars}${ratingEmptyStars}</p>
+                <p style="margin: 0; color: #92400e; font-size: 24px; font-weight: 800;">${ratingValue} من 5</p>
+              </td>
+            </tr>
+          </table>
+          
+          <!-- Ticket Info -->
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: #f8fafc; border-radius: 12px; margin-bottom: 25px;">
+            <tr>
+              <td style="padding: 20px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                  <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                      <span style="color: #64748b; font-size: 13px;">رقم التذكرة:</span>
+                      <span style="color: #1e293b; font-size: 15px; font-weight: 600; float: left;">#${data.ticketNumber || '---'}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                      <span style="color: #64748b; font-size: 13px;">الموضوع:</span>
+                      <span style="color: #1e293b; font-size: 15px; font-weight: 600; float: left;">${data.subject || 'غير محدد'}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0;">
+                      <span style="color: #64748b; font-size: 13px;">العميل:</span>
+                      <span style="color: #1e293b; font-size: 15px; font-weight: 600; float: left;">${data.userName || 'مستخدم'}</span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
           
           ${data.feedback ? `
-            <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 14px; padding: 20px; margin: 20px 0; border-right: 4px solid #f59e0b;">
-              <p style="margin: 0 0 10px; color: #64748b; font-size: 12px; font-weight: 600;">ملاحظات العميل:</p>
-              <p style="margin: 0; color: #1e293b; font-size: 15px; line-height: 1.8;">${data.feedback}</p>
-            </div>
+            <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: #ffffff; border-radius: 14px; border: 2px solid #e2e8f0; margin-bottom: 25px; overflow: hidden;">
+              <tr>
+                <td style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 12px 20px;">
+                  <span style="color: #ffffff; font-size: 14px; font-weight: 700;">💭 ملاحظات العميل</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 20px;">
+                  <p style="margin: 0; color: #1e293b; font-size: 15px; line-height: 1.8; text-align: right; direction: rtl;">${data.feedback}</p>
+                </td>
+              </tr>
+            </table>
           ` : ''}
         `
       };
+    }
 
     case 'custom':
       return {
