@@ -1,5 +1,5 @@
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { 
   Zap, 
   Shield, 
@@ -8,7 +8,11 @@ import {
   Sparkles, 
   Target,
   ArrowLeft,
-  CheckCircle2
+  CheckCircle2,
+  Users,
+  Rocket,
+  Star,
+  Globe
 } from "lucide-react";
 
 const features = [
@@ -49,6 +53,28 @@ const features = [
 const WhyUsSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+
+  // Dummy counters state
+  const [bonusUsers, setBonusUsers] = useState(() => Math.floor(Math.random() * (33 - 15 + 1)) + 15);
+  const [bonusOrders, setBonusOrders] = useState(() => Math.floor(Math.random() * (33 - 15 + 1)) + 15);
+  const [bonusServices, setBonusServices] = useState(() => Math.floor(Math.random() * (50 - 20 + 1)) + 20);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBonusUsers(prev => prev + Math.floor(Math.random() * (33 - 15 + 1)) + 15);
+      setBonusOrders(prev => prev + Math.floor(Math.random() * (33 - 15 + 1)) + 15);
+      setBonusServices(prev => prev + Math.floor(Math.random() * (50 - 20 + 1)) + 20);
+    }, 3600000); // كل ساعة
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const stats = [
+    { icon: Users, value: `+${bonusUsers}`, label: "عميل سعيد", color: "text-primary" },
+    { icon: Rocket, value: `+${bonusOrders}`, label: "طلب منفذ", color: "text-emerald-500" },
+    { icon: Star, value: "100%", label: "نسبة الرضا", color: "text-yellow-500" },
+    { icon: Globe, value: `+${bonusServices}`, label: "خدمة متاحة", color: "text-blue-500" },
+  ];
 
   return (
     <section ref={containerRef} className="py-24 md:py-32 relative overflow-hidden">
@@ -116,6 +142,33 @@ const WhyUsSection = () => {
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
             نقدم لك تجربة استثنائية تجمع بين الجودة والسرعة والدعم المتواصل
           </p>
+
+          {/* Stats Grid */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.5 }}
+            className="grid grid-cols-2 gap-4 max-w-xl mx-auto mt-10"
+          >
+            {stats.map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                transition={{ delay: 0.6 + index * 0.1 }}
+                whileHover={{ scale: 1.03 }}
+                className="p-4 md:p-5 rounded-2xl bg-card/60 backdrop-blur-xl border border-border/50 hover:border-primary/30 transition-all duration-300"
+              >
+                <div className="flex flex-col items-center text-center gap-2">
+                  <stat.icon className={`w-6 h-6 ${stat.color} opacity-80`} />
+                  <span className={`text-2xl md:text-3xl font-bold ${stat.color}`}>
+                    {stat.value}
+                  </span>
+                  <span className="text-sm text-muted-foreground">{stat.label}</span>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
         </motion.div>
 
         {/* Features Grid */}
