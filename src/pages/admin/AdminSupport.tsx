@@ -480,13 +480,14 @@ const AdminSupport = () => {
             )}
             
             <div className="flex gap-2">
-              <div className="relative flex-1">
+              <div className="relative flex-1 min-w-0">
                 <Input
                   placeholder="اكتب ردك للعميل..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
-                  className="bg-secondary/50 border-border/50 pr-4 pl-12 h-12 rounded-xl"
+                  className="bg-secondary/50 border-border/50 px-4 h-12 rounded-xl w-full"
+                  dir="rtl"
                 />
               </div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
