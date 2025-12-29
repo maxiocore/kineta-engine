@@ -88,24 +88,24 @@ const TopServicesWidget = ({ services, maxRevenue }: TopServicesWidgetProps) => 
                       </p>
                       {service.trend && service.trend > 0 && (
                         <span className="flex flex-row-reverse items-center text-[8px] sm:text-[9px] text-success shrink-0">
-                          <TrendingUp className="w-2 h-2 sm:w-2.5 sm:h-2.5 ml-0.5" />
-                          {service.trend}%
+                          <TrendingUp className="w-2 h-2 sm:w-2.5 sm:h-2.5 me-0.5" />
+                          <span dir="ltr" className="bidi-fix">{service.trend}٪</span>
                         </span>
                       )}
                     </div>
                     <p className="text-[8px] sm:text-[9px] text-muted-foreground">{service.orders} طلب</p>
                   </div>
                   
-                  <div className="text-left shrink-0">
-                    <span className="font-bold text-[9px] sm:text-[10px] lg:text-xs text-success">
+                  <div className="text-end shrink-0">
+                    <span className="font-bold text-[9px] sm:text-[10px] lg:text-xs text-success" dir="ltr">
                       {service.revenue.toLocaleString("ar-SA")}
                     </span>
-                    <span className="text-[7px] sm:text-[8px] text-muted-foreground mr-0.5">ر.س</span>
+                    <span className="text-[7px] sm:text-[8px] text-muted-foreground me-0.5">ر.س</span>
                   </div>
                 </div>
                 
                 {/* Progress Bar */}
-                <div className="mr-6 sm:mr-7 lg:mr-8">
+                <div className="me-6 sm:me-7 lg:me-8">
                   <motion.div
                     className="h-0.5 sm:h-1 rounded-full bg-secondary overflow-hidden"
                     initial={{ opacity: 0 }}

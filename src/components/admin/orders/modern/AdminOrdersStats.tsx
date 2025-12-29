@@ -124,11 +124,11 @@ export const AdminOrdersStats = ({ stats }: AdminOrdersStatsProps) => {
             )}
           >
             <motion.div 
-              className="absolute -top-8 -left-8 w-16 h-16 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity bg-gradient-to-br from-current"
+              className="absolute -top-8 -end-8 w-16 h-16 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity bg-gradient-to-br from-current"
             />
             
-            <div className="relative flex items-center justify-between gap-2">
-              <div className="flex-1 min-w-0">
+            <div className="relative flex flex-row-reverse items-center justify-between gap-2">
+              <div className="flex-1 min-w-0 text-right">
                 <p className="text-[10px] md:text-xs text-muted-foreground font-medium mb-0.5 leading-tight truncate">{stat.label}</p>
                 <motion.p 
                   className="text-lg md:text-2xl font-bold tracking-tight"
@@ -169,23 +169,23 @@ export const AdminOrdersStats = ({ stats }: AdminOrdersStatsProps) => {
           className="relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-violet-500/10 to-purple-500/5 border border-violet-500/30 p-3 md:p-4 group hover:shadow-md transition-all duration-300"
         >
           <motion.div 
-            className="absolute -top-10 -left-10 w-20 h-20 rounded-full bg-gradient-to-br from-violet-500/15 to-purple-500/15 blur-2xl"
+            className="absolute -top-10 -end-10 w-20 h-20 rounded-full bg-gradient-to-br from-violet-500/15 to-purple-500/15 blur-2xl"
           />
           
-          <div className="relative flex items-center gap-2 md:gap-3">
+          <div className="relative flex flex-row-reverse items-center gap-2 md:gap-3">
             <motion.div 
               className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md"
               whileHover={{ rotate: [0, -5, 5, 0] }}
             >
               <Wallet className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </motion.div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 text-right">
               <p className="text-[10px] md:text-xs text-muted-foreground font-medium">إجمالي الإيرادات</p>
-              <div className="flex items-baseline gap-1">
-                <span className="text-base md:text-xl font-bold text-foreground">
+              <div className="flex flex-row-reverse items-baseline gap-1">
+                <span className="text-base md:text-xl font-bold text-foreground" dir="ltr">
                   <AnimatedNumber value={stats.totalRevenue} delay={300} decimals={2} />
                 </span>
-                <span className="text-[10px] md:text-xs text-muted-foreground">$</span>
+                <span className="text-[10px] md:text-xs text-muted-foreground">ر.س</span>
               </div>
             </div>
           </div>
@@ -200,19 +200,19 @@ export const AdminOrdersStats = ({ stats }: AdminOrdersStatsProps) => {
           className="relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/5 border border-cyan-500/30 p-3 md:p-4 group hover:shadow-md transition-all duration-300"
         >
           <motion.div 
-            className="absolute -top-10 -right-10 w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500/15 to-blue-500/15 blur-2xl"
+            className="absolute -top-10 -end-10 w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500/15 to-blue-500/15 blur-2xl"
           />
           
-          <div className="relative flex items-center gap-2 md:gap-3">
+          <div className="relative flex flex-row-reverse items-center gap-2 md:gap-3">
             <motion.div 
               className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-md"
               whileHover={{ rotate: [0, -5, 5, 0] }}
             >
               <Calendar className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </motion.div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 text-right">
               <p className="text-[10px] md:text-xs text-muted-foreground font-medium">طلبات اليوم</p>
-              <div className="flex items-baseline gap-1">
+              <div className="flex flex-row-reverse items-baseline gap-1">
                 <span className="text-base md:text-xl font-bold text-foreground">
                   <AnimatedNumber value={stats.todayOrders} delay={350} />
                 </span>
@@ -231,23 +231,23 @@ export const AdminOrdersStats = ({ stats }: AdminOrdersStatsProps) => {
           className="relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/5 border border-green-500/30 p-3 md:p-4 group hover:shadow-md transition-all duration-300"
         >
           <motion.div 
-            className="absolute -top-10 -right-10 w-20 h-20 rounded-full bg-gradient-to-br from-green-500/15 to-emerald-500/15 blur-2xl"
+            className="absolute -top-10 -end-10 w-20 h-20 rounded-full bg-gradient-to-br from-green-500/15 to-emerald-500/15 blur-2xl"
           />
           
-          <div className="relative flex items-center gap-2 md:gap-3">
+          <div className="relative flex flex-row-reverse items-center gap-2 md:gap-3">
             <motion.div 
               className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-md"
               whileHover={{ rotate: [0, -5, 5, 0] }}
             >
               <DollarSign className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </motion.div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 text-right">
               <p className="text-[10px] md:text-xs text-muted-foreground font-medium">إيرادات اليوم</p>
-              <div className="flex items-baseline gap-1">
-                <span className="text-base md:text-xl font-bold text-foreground">
+              <div className="flex flex-row-reverse items-baseline gap-1">
+                <span className="text-base md:text-xl font-bold text-foreground" dir="ltr">
                   <AnimatedNumber value={stats.todayRevenue} delay={400} decimals={2} />
                 </span>
-                <span className="text-[10px] md:text-xs text-muted-foreground">$</span>
+                <span className="text-[10px] md:text-xs text-muted-foreground">ر.س</span>
               </div>
             </div>
           </div>
@@ -262,17 +262,17 @@ export const AdminOrdersStats = ({ stats }: AdminOrdersStatsProps) => {
           className="relative overflow-hidden rounded-lg md:rounded-xl bg-gradient-to-br from-emerald-500/10 to-green-500/5 border border-emerald-500/30 p-3 md:p-4 group hover:shadow-md transition-all duration-300"
         >
           <motion.div 
-            className="absolute -top-10 -right-10 w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500/15 to-green-500/15 blur-2xl"
+            className="absolute -top-10 -end-10 w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500/15 to-green-500/15 blur-2xl"
           />
           
-          <div className="relative flex items-center gap-2 md:gap-3">
+          <div className="relative flex flex-row-reverse items-center gap-2 md:gap-3">
             <motion.div 
               className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md"
               whileHover={{ rotate: [0, -5, 5, 0] }}
             >
               <Target className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </motion.div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 text-right">
               <p className="text-[10px] md:text-xs text-muted-foreground font-medium">معدل الإنجاز</p>
               <motion.p 
                 className="text-base md:text-xl font-bold text-emerald-500"
@@ -280,7 +280,7 @@ export const AdminOrdersStats = ({ stats }: AdminOrdersStatsProps) => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.35 }}
               >
-                <AnimatedNumber value={completionRate} delay={450} />%
+                <span dir="ltr" className="bidi-fix"><AnimatedNumber value={completionRate} delay={450} />٪</span>
               </motion.p>
             </div>
             

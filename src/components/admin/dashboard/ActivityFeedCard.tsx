@@ -91,8 +91,8 @@ const ActivityFeedCard = ({ activities }: ActivityFeedCardProps) => {
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent/5 rounded-full blur-xl" />
 
       <CardHeader className="pb-2 px-4 sm:px-6 pt-4 sm:pt-5">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+        <div className="flex flex-row-reverse items-center justify-between">
+          <CardTitle className="text-sm sm:text-base flex flex-row-reverse items-center gap-2">
             <motion.div 
               className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20"
               animate={{ rotate: [0, 5, -5, 0] }}
@@ -102,21 +102,21 @@ const ActivityFeedCard = ({ activities }: ActivityFeedCardProps) => {
             </motion.div>
             <span>النشاط الأخير</span>
           </CardTitle>
-          <Badge variant="secondary" className="text-xs px-2 py-1">
-            <Sparkles className="w-3 h-3 ml-1" />
+          <Badge variant="secondary" className="text-xs px-2 py-1 flex flex-row-reverse items-center">
+            <Sparkles className="w-3 h-3 me-1" />
             {filteredActivities.length} نشاط
           </Badge>
         </div>
 
         {/* Filter Buttons */}
-        <div className="flex gap-1.5 mt-3 overflow-x-auto pb-1 scrollbar-hide">
+        <div className="flex flex-row-reverse gap-1.5 mt-3 overflow-x-auto pb-1 scrollbar-hide">
           {filterOptions.map((option) => (
             <Button
               key={option.id}
               variant={filter === option.id ? "default" : "outline"}
               size="sm"
               className={cn(
-                "h-7 text-[10px] sm:text-xs px-2 sm:px-3 gap-1 shrink-0 transition-all",
+                "h-7 text-[10px] sm:text-xs px-2 sm:px-3 gap-1 shrink-0 transition-all flex flex-row-reverse",
                 filter === option.id && "shadow-md"
               )}
               onClick={() => setFilter(option.id)}
@@ -144,12 +144,12 @@ const ActivityFeedCard = ({ activities }: ActivityFeedCardProps) => {
                       animate={{ opacity: 1, y: 0, x: 0 }}
                       exit={{ opacity: 0, y: -10, x: -20 }}
                       transition={{ delay: index * 0.05 }}
-                      whileHover={{ x: -4, scale: 1.01 }}
+                      whileHover={{ x: 4, scale: 1.01 }}
                       className={cn(
-                        "relative flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer group",
+                        "relative flex flex-row-reverse items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer group",
                         config.border,
                         config.glow,
-                        "bg-gradient-to-l from-transparent to-secondary/10",
+                        "bg-gradient-to-r from-transparent to-secondary/10",
                         "hover:shadow-md hover:bg-secondary/20"
                       )}
                     >
@@ -163,7 +163,7 @@ const ActivityFeedCard = ({ activities }: ActivityFeedCardProps) => {
 
                       {/* Content */}
                       <div className="flex-1 min-w-0 text-right">
-                        <div className="flex items-start justify-between gap-2">
+                        <div className="flex flex-row-reverse items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">{activity.message}</p>
                             {activity.details && (
@@ -181,19 +181,19 @@ const ActivityFeedCard = ({ activities }: ActivityFeedCardProps) => {
                             </Badge>
                           )}
                         </div>
-                        <p className="text-[10px] text-muted-foreground mt-1.5 flex items-center gap-1">
+                        <p className="text-[10px] text-muted-foreground mt-1.5 flex flex-row-reverse items-center gap-1">
                           <Clock className="w-2.5 h-2.5" />
                           {activity.time}
                         </p>
                       </div>
 
                       {/* Hover indicator */}
-                      <ArrowLeft className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 self-center" />
+                      <ArrowLeft className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 self-center scale-x-[-1]" />
 
                       {/* New indicator dot */}
                       {activity.isNew && (
                         <motion.div
-                          className="absolute -top-1 -left-1 w-3 h-3 bg-primary rounded-full"
+                          className="absolute -top-1 -end-1 w-3 h-3 bg-primary rounded-full"
                           animate={{ scale: [1, 1.2, 1] }}
                           transition={{ duration: 1.5, repeat: Infinity }}
                         />
