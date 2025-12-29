@@ -41,6 +41,10 @@ type EmailType =
   | 'financing_payment_reminder'
   | 'financing_payment_overdue'
   | 'financing_clearance'
+  | 'new_ticket'
+  | 'ticket_reply'
+  | 'ticket_status_changed'
+  | 'ticket_rating'
   | 'custom';
 
 interface EmailRequest {
@@ -1362,6 +1366,140 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           ${createCTAButton('تقدم بطلب تمويل جديد')}
           
           ${createMessage('للاستفسارات: info@maxiocore.com | واتساب: +966XXXXXXXXX')}
+        `
+      };
+
+    case 'new_ticket': {
+      const priorityTexts: Record<string, string> = {
+        'low': 'منخفضة',
+        'medium': 'متوسطة',
+        'high': 'عالية',
+        'urgent': 'عاجلة 🔴'
+      };
+      const priorityColors: Record<string, string> = {
+        'low': '#22c55e',
+        'medium': '#f59e0b',
+        'high': '#ef4444',
+        'urgent': '#dc2626'
+      };
+      const ticketPriorityText = priorityTexts[data.priority] || data.priority;
+      const ticketPriorityColor = priorityColors[data.priority] || '#6366f1';
+      
+      return {
+        subject: `🎫 تذكرة دعم جديدة #${data.ticketNumber} - ${data.subject}`,
+        content: `
+          ${createIconCircle('🎫', 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)')}
+          ${createGreeting('تذكرة دعم جديدة')}
+          ${createMessage('تم استلام تذكرة دعم جديدة وسيتم الرد عليها في أقرب وقت ممكن.')}
+          
+          ${createInfoCard([
+            { label: 'رقم التذكرة', value: data.ticketNumber || '-' },
+            { label: 'الموضوع', value: data.subject },
+            { label: 'الأولوية', value: ticketPriorityText, valueColor: ticketPriorityColor },
+            { label: 'العميل', value: data.userName || 'مستخدم' },
+            { label: 'البريد الإلكتروني', value: data.userEmail || '-' }
+          ])}
+          
+          ${createNoticeBox('⏱️ سيتم الرد على تذكرتك خلال 24 ساعة كحد أقصى. للحالات العاجلة يرجى التواصل عبر الواتساب.', '#dbeafe', '#1d4ed8', '#3b82f6')}
+          
+          ${createCTAButton('عرض التذكرة')}
+        `
+      };
+    }
+
+    case 'ticket_reply':
+      return {
+        subject: `💬 رد جديد على تذكرتك #${data.ticketNumber}`,
+        content: `
+          ${createIconCircle('💬', 'linear-gradient(135deg, #10b981 0%, #059669 100%)')}
+          ${createGreeting('رد جديد على تذكرتك')}
+          ${createMessage(`تم إضافة رد جديد على تذكرتك رقم <strong>${data.ticketNumber}</strong>`)}
+          
+          ${createInfoCard([
+            { label: 'رقم التذكرة', value: data.ticketNumber || '-' },
+            { label: 'الموضوع', value: data.subject },
+            { label: 'المرسل', value: data.isAdmin ? 'فريق الدعم الفني' : 'العميل' }
+          ])}
+          
+          <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 14px; padding: 20px; margin: 20px 0; border-right: 4px solid #6366f1;">
+            <p style="margin: 0 0 10px; color: #64748b; font-size: 12px; font-weight: 600;">الرسالة:</p>
+            <p style="margin: 0; color: #1e293b; font-size: 15px; line-height: 1.8;">${data.message}</p>
+          </div>
+          
+          ${createCTAButton('الرد على التذكرة')}
+        `
+      };
+
+    case 'ticket_status_changed': {
+      const ticketStatusLabels: Record<string, string> = {
+        'open': 'مفتوحة',
+        'in_progress': 'قيد المعالجة',
+        'resolved': 'تم الحل',
+        'closed': 'مغلقة'
+      };
+      
+      const ticketStatusColors: Record<string, string> = {
+        'open': '#3b82f6',
+        'in_progress': '#f59e0b',
+        'resolved': '#22c55e',
+        'closed': '#64748b'
+      };
+      
+      const ticketStatusLabel = ticketStatusLabels[data.newStatus] || data.newStatus;
+      const ticketStatusColor = ticketStatusColors[data.newStatus] || '#6366f1';
+      
+      return {
+        subject: `📋 تحديث حالة تذكرتك #${data.ticketNumber} - ${ticketStatusLabel}`,
+        content: `
+          ${createIconCircle(
+            data.newStatus === 'resolved' ? '✅' : 
+            data.newStatus === 'closed' ? '🔒' : 
+            data.newStatus === 'in_progress' ? '⚙️' : '📋',
+            `linear-gradient(135deg, ${ticketStatusColor} 0%, ${ticketStatusColor}dd 100%)`
+          )}
+          ${createGreeting('تحديث حالة التذكرة')}
+          ${createMessage(`تم تحديث حالة تذكرتك رقم <strong>${data.ticketNumber}</strong>`)}
+          
+          ${createHighlightBox(ticketStatusLabel, 'الحالة الجديدة', `linear-gradient(135deg, ${ticketStatusColor} 0%, ${ticketStatusColor}dd 100%)`)}
+          
+          ${createInfoCard([
+            { label: 'رقم التذكرة', value: data.ticketNumber || '-' },
+            { label: 'الموضوع', value: data.subject },
+            { label: 'الحالة السابقة', value: ticketStatusLabels[data.oldStatus] || data.oldStatus },
+            { label: 'الحالة الجديدة', value: ticketStatusLabel, valueColor: ticketStatusColor }
+          ])}
+          
+          ${data.newStatus === 'resolved' ? createNoticeBox('🎉 تهانينا! تم حل مشكلتك. إذا كان لديك أي استفسارات أخرى، لا تتردد في التواصل معنا.', '#dcfce7', '#166534', '#22c55e') : ''}
+          
+          ${createCTAButton('عرض التذكرة')}
+        `
+      };
+    }
+
+    case 'ticket_rating':
+      const stars = '⭐'.repeat(data.rating || 5);
+      return {
+        subject: `⭐ تقييم جديد للتذكرة #${data.ticketNumber}`,
+        content: `
+          ${createIconCircle('⭐', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          ${createGreeting('تقييم جديد')}
+          ${createMessage(`تم تقييم التذكرة رقم <strong>${data.ticketNumber}</strong>`)}
+          
+          ${createHighlightBox(stars, `تقييم ${data.rating}/5`, 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          
+          ${createInfoCard([
+            { label: 'رقم التذكرة', value: data.ticketNumber || '-' },
+            { label: 'الموضوع', value: data.subject },
+            { label: 'العميل', value: data.userName || 'مستخدم' },
+            { label: 'التقييم', value: `${data.rating}/5 ${stars}` }
+          ])}
+          
+          ${data.feedback ? `
+            <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 14px; padding: 20px; margin: 20px 0; border-right: 4px solid #f59e0b;">
+              <p style="margin: 0 0 10px; color: #64748b; font-size: 12px; font-weight: 600;">ملاحظات العميل:</p>
+              <p style="margin: 0; color: #1e293b; font-size: 15px; line-height: 1.8;">${data.feedback}</p>
+            </div>
+          ` : ''}
         `
       };
 
