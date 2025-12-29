@@ -480,6 +480,9 @@ const ClientDesignServices = () => {
       if (error) throw error;
       
       return (data as Service[]).filter(service => {
+        // Include services with category 'design' OR matching design keywords
+        if (service.category === 'design') return true;
+        
         const searchText = `${service.name} ${service.description || ''} ${service.category}`.toLowerCase();
         return designKeywords.some(keyword => searchText.includes(keyword.toLowerCase()));
       });
