@@ -604,16 +604,20 @@ const AdminDigitalMarketing = () => {
 
         {/* Dialogs */}
         <ServiceFormDialog
-          open={isFormDialogOpen}
-          onOpenChange={setIsFormDialogOpen}
+          isOpen={isFormDialogOpen}
+          onClose={() => setIsFormDialogOpen(false)}
           onSubmit={handleSubmit}
           editingService={editingService}
-          defaultCategory="تسويق رقمي"
+          statusOptions={[
+            { value: "active", label: "نشط" },
+            { value: "inactive", label: "غير نشط" },
+            { value: "archived", label: "مؤرشف" }
+          ]}
         />
 
         <ServiceDetailsDialog
-          open={isDetailsDialogOpen}
-          onOpenChange={setIsDetailsDialogOpen}
+          isOpen={isDetailsDialogOpen}
+          onClose={() => setIsDetailsDialogOpen(false)}
           service={viewingService}
         />
 
