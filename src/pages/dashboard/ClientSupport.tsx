@@ -257,14 +257,14 @@ const ClientSupport = () => {
                 <div>
                   <label className="block text-sm font-medium mb-2">ربط بطلب (اختياري)</label>
                   <Select 
-                    value={newTicket.related_order_id} 
-                    onValueChange={(v) => setNewTicket({ ...newTicket, related_order_id: v })}
+                    value={newTicket.related_order_id || "none"} 
+                    onValueChange={(v) => setNewTicket({ ...newTicket, related_order_id: v === "none" ? "" : v })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="اختر طلب لربطه بالتذكرة..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">بدون ربط</SelectItem>
+                      <SelectItem value="none">بدون ربط</SelectItem>
                       {userOrders.map(order => (
                         <SelectItem key={order.id} value={order.id}>
                           {order.order_number}
