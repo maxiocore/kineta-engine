@@ -1,79 +1,18 @@
-import { motion, useScroll, useTransform, useSpring, useInView } from "framer-motion";
-import { ArrowLeft, Sparkles, Code2, Palette, Share2, Rocket, Globe, Zap, Shield, Star, Play, CheckCircle2, TrendingUp, Users, Award } from "lucide-react";
+import { motion, useInView } from "framer-motion";
+import { ArrowLeft, Sparkles, Code2, Palette, Share2, Rocket, Globe, Zap, Shield, Star, Play, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { useRef, useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-
-const useRealStats = () => {
-  return useQuery({
-    queryKey: ["hero-real-stats"],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_public_stats");
-      
-      if (error) throw error;
-      
-      const stats = data as {
-        total_orders: number;
-        completed_orders: number;
-        total_users: number;
-        total_services: number;
-        total_deposits: number;
-      };
-      
-      const satisfactionRate = stats.total_orders > 0 
-        ? Math.min(98, Math.round((stats.completed_orders / stats.total_orders) * 100)) 
-        : 98;
-      
-      return {
-        totalUsers: stats.total_users || 0,
-        completedOrders: stats.completed_orders || 0,
-        satisfactionRate,
-      };
-    },
-    staleTime: 1000 * 60 * 5,
-  });
-};
+import { useRef, useState, useEffect, useMemo } from "react";
 
 const HeroSection = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(heroRef, { once: true });
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [activeFeature, setActiveFeature] = useState(0);
-  const { data: stats, isLoading } = useRealStats();
-
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end start"]
-  });
-
-  const y = useTransform(scrollYProgress, [0, 1], [0, 100]);
-
-  const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 };
-  const mouseX = useSpring(0, springConfig);
-  const mouseY = useSpring(0, springConfig);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = containerRef.current?.getBoundingClientRect();
-      if (rect) {
-        const x = (e.clientX - rect.left - rect.width / 2) / 50;
-        const y = (e.clientY - rect.top - rect.height / 2) / 50;
-        mouseX.set(x);
-        mouseY.set(y);
-        setMousePosition({ x: e.clientX, y: e.clientY });
-      }
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [mouseX, mouseY]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveFeature((prev) => (prev + 1) % 4);
-    }, 3000);
+    }, 4000);
     return () => clearInterval(interval);
   }, []);
 
@@ -115,93 +54,51 @@ const HeroSection = () => {
     { text: "جودة مضمونة", icon: CheckCircle2 },
   ];
 
-  const floatingElements = Array.from({ length: 20 }, (_, i) => ({
+  // Memoize floating elements to prevent re-creation on each render
+  const floatingElements = useMemo(() => Array.from({ length: 6 }, (_, i) => ({
     id: i,
-    size: Math.random() * 8 + 4,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    duration: Math.random() * 15 + 10,
-    delay: Math.random() * 5,
-  }));
+    size: 6 + i * 2,
+    x: 15 + i * 15,
+    y: 10 + i * 12,
+    duration: 15 + i * 3,
+  })), []);
 
   return (
-    <section ref={containerRef} className="relative min-h-[100vh] flex items-center justify-center overflow-hidden">
-      {/* Dynamic Background */}
+    <section className="relative min-h-[100vh] flex items-center justify-center overflow-hidden">
+      {/* Simple Background */}
       <div className="absolute inset-0">
-        {/* Base Gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-secondary/20" />
         
-        {/* Animated Mesh Gradient */}
-        <motion.div
-          className="absolute inset-0 opacity-60 dark:opacity-40"
+        {/* Static Mesh Gradient - no animation */}
+        <div
+          className="absolute inset-0 opacity-40"
           style={{
             backgroundImage: `
-              radial-gradient(ellipse 80% 50% at 20% 40%, hsl(var(--primary) / 0.15) 0%, transparent 50%),
-              radial-gradient(ellipse 60% 60% at 80% 20%, hsl(var(--accent) / 0.12) 0%, transparent 50%),
-              radial-gradient(ellipse 50% 80% at 50% 80%, hsl(var(--primary) / 0.1) 0%, transparent 50%)
+              radial-gradient(ellipse 80% 50% at 20% 40%, hsl(var(--primary) / 0.12) 0%, transparent 50%),
+              radial-gradient(ellipse 60% 60% at 80% 20%, hsl(var(--accent) / 0.1) 0%, transparent 50%)
             `,
           }}
-          animate={{
-            backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
-          }}
-          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
         />
 
-        {/* Floating Particles */}
+        {/* Reduced Floating Particles - CSS animations instead of framer-motion */}
         {floatingElements.map((el) => (
-          <motion.div
+          <div
             key={el.id}
-            className="absolute rounded-full bg-primary/20"
+            className="absolute rounded-full bg-primary/15 animate-pulse"
             style={{
               width: el.size,
               height: el.size,
               left: `${el.x}%`,
               top: `${el.y}%`,
             }}
-            animate={{
-              y: [0, -40, 0],
-              x: [0, 20, 0],
-              opacity: [0.2, 0.6, 0.2],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: el.duration,
-              repeat: Infinity,
-              delay: el.delay,
-              ease: "easeInOut",
-            }}
           />
         ))}
-
-        {/* Interactive Cursor Glow */}
-        <motion.div
-          className="pointer-events-none fixed w-[600px] h-[600px] rounded-full"
-          style={{
-            background: "radial-gradient(circle, hsl(var(--primary) / 0.08) 0%, transparent 50%)",
-            left: mousePosition.x - 300,
-            top: mousePosition.y - 300,
-            filter: "blur(40px)",
-          }}
-        />
-
-        {/* Grid Pattern */}
-        <div 
-          className="absolute inset-0 opacity-[0.02] dark:opacity-[0.03]"
-          style={{
-            backgroundImage: `
-              linear-gradient(hsl(var(--foreground)) 1px, transparent 1px),
-              linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)
-            `,
-            backgroundSize: "60px 60px",
-          }}
-        />
       </div>
 
       {/* Hero Content */}
-      <motion.div 
+      <div 
         ref={heroRef}
         className="container relative z-10 px-4 pt-24 pb-16"
-        style={{ y }}
       >
         <div className="max-w-6xl mx-auto">
           {/* Animated Badge */}
@@ -446,7 +343,7 @@ const HeroSection = () => {
           </motion.div>
 
         </div>
-      </motion.div>
+      </div>
 
 
       {/* CSS for gradient animation */}
