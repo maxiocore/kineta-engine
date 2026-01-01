@@ -33,7 +33,8 @@ import {
   FileQuestion,
   Send,
   Edit,
-  MoreHorizontal
+  MoreHorizontal,
+  Download
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -1048,7 +1049,34 @@ export default function AdminFinancing() {
                   <Card className="bg-blue-500/10 border-blue-500/30">
                     <CardContent className="p-4">
                       <h4 className="font-medium text-blue-400 mb-2">ملاحظات الإدارة</h4>
-                      <p className="text-sm whitespace-pre-wrap">{selectedApplication.admin_notes}</p>
+                      <div className="text-sm whitespace-pre-wrap">
+                        {selectedApplication.admin_notes.split('\n').map((line, idx) => {
+                          // Check if line contains a Supabase storage URL
+                          const urlMatch = line.match(/(https:\/\/[^\s]+supabase[^\s]+storage[^\s]+)/);
+                          if (urlMatch) {
+                            const url = urlMatch[1];
+                            const fileName = decodeURIComponent(url.split('/').pop() || 'ملف');
+                            const textBeforeUrl = line.split(url)[0];
+                            return (
+                              <div key={idx} className="flex flex-wrap items-center gap-2 my-2">
+                                {textBeforeUrl && <span>{textBeforeUrl}</span>}
+                                <a
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  download
+                                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors"
+                                >
+                                  <FileText className="h-4 w-4" />
+                                  <span className="text-xs truncate max-w-[200px]">{fileName}</span>
+                                  <Download className="h-3 w-3" />
+                                </a>
+                              </div>
+                            );
+                          }
+                          return <p key={idx}>{line}</p>;
+                        })}
+                      </div>
                     </CardContent>
                   </Card>
                 )}
