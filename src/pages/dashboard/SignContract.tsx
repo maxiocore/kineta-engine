@@ -66,12 +66,17 @@ export default function SignContract() {
     mutationFn: async (signature: string) => {
       if (!applicationId) throw new Error("No application ID");
       
+      // Update application with signature and beneficiary data from contract
       const { error } = await supabase
         .from("financing_applications")
         .update({
           status: "awaiting_signature", // Update status to awaiting promissory note
           contract_signed_at: new Date().toISOString(),
           contract_document_url: signature,
+          // Save beneficiary data entered in contract
+          full_name: beneficiaryData.fullName,
+          national_id: beneficiaryData.nationalId,
+          phone: beneficiaryData.phone,
         })
         .eq("id", applicationId);
 
