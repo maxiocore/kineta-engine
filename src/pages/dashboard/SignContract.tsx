@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,7 +42,6 @@ export default function SignContract() {
     nationalId: "",
     phone: "",
   });
-  const [isDataInitialized, setIsDataInitialized] = useState(false);
 
   const { data: application, isLoading, error } = useQuery({
     queryKey: ["financing-application", applicationId],
@@ -58,21 +57,21 @@ export default function SignContract() {
         .eq("user_id", user.id)
         .single();
       if (error) throw error;
-      
-      // Pre-fill beneficiary data from application
-      if (data && !isDataInitialized) {
-        setBeneficiaryData({
-          fullName: data.full_name || "",
-          nationalId: data.national_id || "",
-          phone: data.phone || "",
-        });
-        setIsDataInitialized(true);
-      }
-      
       return data;
     },
     enabled: !!applicationId && !!user?.id,
   });
+
+  // Pre-fill beneficiary data from application when data loads
+  useEffect(() => {
+    if (application && !beneficiaryData.fullName && !beneficiaryData.nationalId) {
+      setBeneficiaryData({
+        fullName: application.full_name || "",
+        nationalId: application.national_id || "",
+        phone: application.phone || "",
+      });
+    }
+  }, [application]);
 
   const signContractMutation = useMutation({
     mutationFn: async (signature: string) => {
