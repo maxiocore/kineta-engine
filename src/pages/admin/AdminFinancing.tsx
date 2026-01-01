@@ -391,7 +391,7 @@ export default function AdminFinancing() {
         for (let i = 1; i <= plan.installments_count; i++) {
           const dueDate = new Date();
           dueDate.setMonth(dueDate.getMonth() + i);
-          dueDate.setDate(30);
+          dueDate.setDate(27);
           
           installmentsToCreate.push({
             application_id: id,

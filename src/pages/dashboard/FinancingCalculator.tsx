@@ -71,7 +71,7 @@ export default function FinancingCalculator() {
     };
   }, [amount, selectedPlan]);
 
-  // Generate installments schedule - due on 30th of each month
+  // Generate installments schedule - due on 27th of each month
   const installmentsSchedule = useMemo(() => {
     if (!calculation) return [];
     
@@ -79,8 +79,8 @@ export default function FinancingCalculator() {
     const today = new Date();
     
     for (let i = 1; i <= calculation.installmentsCount; i++) {
-      // Set due date to 30th of month
-      const dueDate = new Date(today.getFullYear(), today.getMonth() + i, 30);
+      // Set due date to 27th of month
+      const dueDate = new Date(today.getFullYear(), today.getMonth() + i, 27);
       
       schedule.push({
         number: i,
