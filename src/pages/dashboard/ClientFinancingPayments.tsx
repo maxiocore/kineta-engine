@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import { 
   Receipt, 
   Search, 
@@ -25,10 +26,13 @@ import {
   Banknote,
   Building2,
   User,
-  Hash
+  Hash,
+  FileDown,
+  Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { generatePaymentSchedulePDF } from "@/lib/pdfTemplates";
 
 interface PaymentReceipt {
   id: string;
@@ -75,6 +79,7 @@ export default function ClientFinancingPayments() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedReceipt, setSelectedReceipt] = useState<PaymentReceipt | null>(null);
   const [showReceiptDialog, setShowReceiptDialog] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   // Fetch user's payment receipts
   const { data: receipts, isLoading } = useQuery({
@@ -121,6 +126,51 @@ export default function ClientFinancingPayments() {
   const handleViewReceipt = (receipt: PaymentReceipt) => {
     setSelectedReceipt(receipt);
     setShowReceiptDialog(true);
+  };
+
+  // Generate Payment Schedule PDF
+  const handleDownloadPaymentSchedule = async () => {
+    if (!receipts || receipts.length === 0) {
+      toast.error("لا توجد سدادات لتحميلها");
+      return;
+    }
+
+    // Get the first application info (assuming all receipts are for same application)
+    const firstReceipt = receipts.find(r => r.financing_applications);
+    if (!firstReceipt?.financing_applications) {
+      toast.error("لا توجد بيانات كافية لإنشاء الملف");
+      return;
+    }
+
+    const app = firstReceipt.financing_applications;
+    const approvedReceipts = receipts.filter(r => r.status === "approved");
+    const approvedAmount = app.approved_amount || 0;
+
+    setIsGeneratingPDF(true);
+    try {
+      await generatePaymentSchedulePDF({
+        customerName: app.full_name,
+        applicationNumber: app.application_number,
+        contractNumber: app.contract_number || app.application_number,
+        approvedAmount: approvedAmount,
+        planName: app.financing_plans?.name_ar || "خطة تمويل",
+        payments: approvedReceipts.map(r => ({
+          date: r.payment_date,
+          amount: r.amount,
+          bankName: r.bank_name,
+          status: r.status,
+          receiptUrl: r.receipt_url,
+        })),
+        totalPaid: totalPaid,
+        remainingAmount: Math.max(0, approvedAmount - totalPaid),
+      });
+      toast.success("تم تحميل جدول السدادات بنجاح");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("حدث خطأ أثناء إنشاء الملف");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
   return (
@@ -201,6 +251,19 @@ export default function ClientFinancingPayments() {
               className="pr-10 bg-card/50 h-10 sm:h-11 text-sm"
             />
           </div>
+          <Button 
+            onClick={handleDownloadPaymentSchedule}
+            disabled={isGeneratingPDF || !receipts?.length}
+            variant="outline"
+            className="h-10 sm:h-11 border-primary/50 hover:bg-primary/10"
+          >
+            {isGeneratingPDF ? (
+              <Loader2 className="h-4 w-4 ml-2 animate-spin" />
+            ) : (
+              <FileDown className="h-4 w-4 ml-2" />
+            )}
+            تحميل جدول السدادات PDF
+          </Button>
           <Button asChild className="bg-gradient-to-r from-emerald-500 to-teal-600 h-10 sm:h-11">
             <Link to="/dashboard/financing/payment">
               <Plus className="h-4 w-4 ml-2" />

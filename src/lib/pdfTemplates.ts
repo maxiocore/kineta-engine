@@ -1354,3 +1354,198 @@ export const generateRewardsStatement = async (data: RewardsStatementData) => {
 
   await createPDFFromHTML(html, `كشف-نقاط-${statementNumber}.pdf`);
 };
+
+// ===== FINANCING PAYMENT SCHEDULE PDF =====
+// جدول سدادات التمويل - إقرار رسمي
+interface PaymentScheduleData {
+  customerName: string;
+  applicationNumber: string;
+  contractNumber: string;
+  approvedAmount: number;
+  planName: string;
+  payments: Array<{
+    date: string;
+    amount: number;
+    bankName: string;
+    status: string;
+    receiptUrl?: string;
+  }>;
+  totalPaid: number;
+  remainingAmount: number;
+}
+
+export const generatePaymentSchedulePDF = async (data: PaymentScheduleData) => {
+  const documentNumber = `PSR-${Date.now().toString(36).toUpperCase()}`;
+  const signatureCode = `SIG-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+  const currentDate = format(new Date(), 'dd/MM/yyyy', { locale: ar });
+  const currentTime = format(new Date(), 'HH:mm:ss');
+
+  // Generate payments table HTML
+  let runningBalance = data.approvedAmount;
+  const paymentsHTML = data.payments.map((payment, index) => {
+    runningBalance = runningBalance - payment.amount;
+    const statusClass = payment.status === 'approved' ? 'approved' : payment.status === 'pending' ? 'pending' : 'rejected';
+    const statusText = payment.status === 'approved' ? 'مسدد' : payment.status === 'pending' ? 'قيد المراجعة' : 'مرفوض';
+    
+    return `
+      <tr>
+        <td style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; text-align: center; font-weight: 600; color: #374151;">${index + 1}</td>
+        <td style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; text-align: center; color: #4b5563;">${format(new Date(payment.date), 'dd/MM/yyyy', { locale: ar })}</td>
+        <td style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; text-align: center; font-weight: 600; color: #059669;">${formatAmountArabic(payment.amount)} ر.س</td>
+        <td style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; text-align: center; color: #4b5563;">${payment.bankName}</td>
+        <td style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; text-align: center;">
+          <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; background: ${statusClass === 'approved' ? '#dcfce7' : statusClass === 'pending' ? '#fef3c7' : '#fee2e2'}; color: ${statusClass === 'approved' ? '#166534' : statusClass === 'pending' ? '#92400e' : '#dc2626'};">${statusText}</span>
+        </td>
+        <td style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; text-align: center; font-weight: 600; color: #dc2626;">${formatAmountArabic(Math.max(0, runningBalance))} ر.س</td>
+      </tr>
+    `;
+  }).join('');
+
+  const html = `
+    <div style="width: 210mm; min-height: 297mm; background: #ffffff; direction: rtl; text-align: right; font-family: 'Segoe UI', 'Arial', 'Tahoma', sans-serif;">
+      
+      <!-- Header Section -->
+      <div style="background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%); padding: 30px 40px; position: relative;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 28px; font-weight: 800; color: #ffffff; margin-bottom: 8px;">شركة علي صالح الشهري القابضة</div>
+            <div style="font-size: 14px; color: rgba(255,255,255,0.8);">Ali Saleh Al-Shehri Holding Company</div>
+          </div>
+          <div style="text-align: left;">
+            <div style="background: rgba(255,255,255,0.2); padding: 15px 25px; border-radius: 12px;">
+              <div style="font-size: 11px; color: rgba(255,255,255,0.7); margin-bottom: 4px;">رقم المستند</div>
+              <div style="font-size: 16px; font-weight: 700; color: #ffffff; font-family: monospace;">${documentNumber}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Document Title -->
+      <div style="text-align: center; padding: 30px 40px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-bottom: 3px solid #1e40af;">
+        <div style="display: inline-block; background: #1e40af; color: white; padding: 12px 40px; border-radius: 30px; font-size: 20px; font-weight: 700;">
+          📋 جدول سدادات التمويل
+        </div>
+        <div style="margin-top: 15px; font-size: 14px; color: #64748b;">
+          تاريخ الإصدار: ${currentDate} | الساعة: ${currentTime}
+        </div>
+      </div>
+      
+      <!-- Declaration Section -->
+      <div style="padding: 25px 40px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+        <div style="background: white; padding: 25px; border-radius: 12px; border: 2px solid #1e40af; border-right-width: 6px;">
+          <div style="font-size: 16px; line-height: 2; color: #1e293b;">
+            <strong style="color: #1e40af;">إقرار رسمي:</strong><br/>
+            تقر شركة علي صالح الشهري القابضة بأن المدعو / المدعوة:<br/>
+            <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 12px 20px; border-radius: 8px; font-size: 18px; font-weight: 700; text-align: center; margin: 15px 0; display: inline-block; min-width: 300px;">
+              ${data.customerName}
+            </div><br/>
+            قد قام/قامت بسداد الأقساط التالية المستحقة بموجب عقد التمويل رقم <strong style="color: #1e40af;">${data.contractNumber}</strong>
+            وفقاً للجدول المبين أدناه.
+          </div>
+        </div>
+      </div>
+      
+      <!-- Contract Info -->
+      <div style="padding: 25px 40px; display: flex; gap: 20px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px; background: #f0f9ff; padding: 15px 20px; border-radius: 10px; border-right: 4px solid #1e40af;">
+          <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">رقم العقد</div>
+          <div style="font-size: 16px; font-weight: 700; color: #1e3a8a;">${data.contractNumber}</div>
+        </div>
+        <div style="flex: 1; min-width: 200px; background: #f0f9ff; padding: 15px 20px; border-radius: 10px; border-right: 4px solid #1e40af;">
+          <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">رقم الطلب</div>
+          <div style="font-size: 16px; font-weight: 700; color: #1e3a8a;">${data.applicationNumber}</div>
+        </div>
+        <div style="flex: 1; min-width: 200px; background: #dcfce7; padding: 15px 20px; border-radius: 10px; border-right: 4px solid #059669;">
+          <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">مبلغ التمويل</div>
+          <div style="font-size: 16px; font-weight: 700; color: #059669;">${formatAmountArabic(data.approvedAmount)} ر.س</div>
+        </div>
+        <div style="flex: 1; min-width: 200px; background: #fef3c7; padding: 15px 20px; border-radius: 10px; border-right: 4px solid #f59e0b;">
+          <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">خطة السداد</div>
+          <div style="font-size: 16px; font-weight: 700; color: #b45309;">${data.planName}</div>
+        </div>
+      </div>
+      
+      <!-- Payments Table -->
+      <div style="padding: 0 40px 25px;">
+        <div style="background: #1e40af; color: white; padding: 12px 20px; border-radius: 10px 10px 0 0; font-size: 16px; font-weight: 700;">
+          📊 جدول السدادات المؤكدة
+        </div>
+        <table style="width: 100%; border-collapse: collapse; background: white; border: 1px solid #e5e7eb; border-top: none;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="padding: 14px 15px; text-align: center; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #1e40af;">#</th>
+              <th style="padding: 14px 15px; text-align: center; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #1e40af;">تاريخ السداد</th>
+              <th style="padding: 14px 15px; text-align: center; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #1e40af;">المبلغ المسدد</th>
+              <th style="padding: 14px 15px; text-align: center; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #1e40af;">طريقة السداد</th>
+              <th style="padding: 14px 15px; text-align: center; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #1e40af;">الحالة</th>
+              <th style="padding: 14px 15px; text-align: center; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #1e40af;">المتبقي</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${paymentsHTML || '<tr><td colspan="6" style="padding: 30px; text-align: center; color: #9ca3af;">لا توجد سدادات مسجلة</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Summary Section -->
+      <div style="padding: 0 40px 25px; display: flex; gap: 20px;">
+        <div style="flex: 1; background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 20px; border-radius: 12px; text-align: center;">
+          <div style="font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 5px;">إجمالي المسدد</div>
+          <div style="font-size: 28px; font-weight: 800; color: white;">${formatAmountArabic(data.totalPaid)} ر.س</div>
+        </div>
+        <div style="flex: 1; background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 20px; border-radius: 12px; text-align: center;">
+          <div style="font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 5px;">المتبقي</div>
+          <div style="font-size: 28px; font-weight: 800; color: white;">${formatAmountArabic(data.remainingAmount)} ر.س</div>
+        </div>
+        <div style="flex: 1; background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%); padding: 20px; border-radius: 12px; text-align: center;">
+          <div style="font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 5px;">نسبة الإنجاز</div>
+          <div style="font-size: 28px; font-weight: 800; color: white;">${Math.round((data.totalPaid / data.approvedAmount) * 100)}%</div>
+        </div>
+      </div>
+      
+      <!-- Digital Signature Section -->
+      <div style="padding: 25px 40px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); margin-top: 20px;">
+        <div style="display: flex; align-items: center; gap: 25px;">
+          <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="3">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div style="flex: 1;">
+            <div style="font-size: 18px; font-weight: 700; color: #22c55e; margin-bottom: 8px;">✅ موثق رقمياً</div>
+            <div style="font-size: 14px; color: #94a3b8;">
+              التوقيع الرقمي: <span style="color: #22c55e; font-weight: 600; font-family: monospace;">شركة علي صالح الشهري القابضة</span>
+            </div>
+            <div style="display: flex; gap: 25px; margin-top: 10px;">
+              <div style="font-size: 12px; color: #64748b;">
+                رقم المستند: <span style="color: #94a3b8; font-family: monospace;">${documentNumber}</span>
+              </div>
+              <div style="font-size: 12px; color: #64748b;">
+                رمز التحقق: <span style="color: #94a3b8; font-family: monospace;">${signatureCode}</span>
+              </div>
+            </div>
+          </div>
+          <div style="text-align: center; background: rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 10px;">
+            <div style="font-size: 10px; color: #64748b; margin-bottom: 4px;">تاريخ الإصدار</div>
+            <div style="font-size: 14px; font-weight: 600; color: #e2e8f0;">${currentDate}</div>
+            <div style="font-size: 12px; color: #94a3b8;">${currentTime}</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div style="padding: 20px 40px; text-align: center; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+        <div style="font-size: 14px; font-weight: 700; color: #1e40af; margin-bottom: 8px;">شركة علي صالح الشهري القابضة</div>
+        <div style="font-size: 11px; color: #64748b;">
+          هذا المستند صادر إلكترونياً ولا يحتاج إلى توقيع أو ختم
+        </div>
+        <div style="font-size: 10px; color: #9ca3af; margin-top: 8px;">
+          المرجع: ${documentNumber} | التاريخ: ${currentDate} ${currentTime}
+        </div>
+        <div style="height: 4px; background: linear-gradient(90deg, #1e40af, #3b82f6, #1e40af); border-radius: 2px; margin-top: 15px;"></div>
+      </div>
+    </div>
+  `;
+
+  await createPDFFromHTML(html, `جدول-سدادات-${data.contractNumber || data.applicationNumber}.pdf`);
+};
