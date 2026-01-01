@@ -47,7 +47,8 @@ const ServiceCard = memo(({
   onToggleFavorite,
 }: ServiceCardProps) => {
   const navigate = useNavigate();
-  const showFinancingButton = service.price > 1000;
+  // Show financing button for services priced above 1000 SAR (approximately 267 USD at 3.75 rate)
+  const showFinancingButton = service.price > 267;
 
   const features = useMemo(() => {
     try {

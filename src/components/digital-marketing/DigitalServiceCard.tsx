@@ -56,7 +56,8 @@ export const DigitalServiceCard = ({
   const [isHovered, setIsHovered] = useState(false);
   const IconComponent = iconList[index % iconList.length];
   const features = Array.isArray(service.features) ? service.features.slice(0, 3) : [];
-  const showFinancingButton = service.price > 1000;
+  // Show financing button for services priced above 1000 SAR (approximately 267 USD at 3.75 rate)
+  const showFinancingButton = service.price > 267;
 
   if (variant === "compact") {
     return (
