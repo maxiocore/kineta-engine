@@ -807,7 +807,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       for (let i = 1; i <= data.installmentsCount; i++) {
         const dueDate = new Date(startDateObj);
         dueDate.setMonth(dueDate.getMonth() + i);
-        dueDate.setDate(30);
+        dueDate.setDate(27);
         installmentDates.push({
           num: i,
           date: dueDate.toLocaleDateString('ar-SA'),
@@ -893,7 +893,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
       for (let i = 1; i <= data.installmentsCount; i++) {
         const dueDate = new Date(contractStartDate);
         dueDate.setMonth(dueDate.getMonth() + i);
-        dueDate.setDate(30);
+        dueDate.setDate(27);
         contractInstallmentDates.push({
           num: i,
           date: dueDate.toLocaleDateString('ar-SA'),
