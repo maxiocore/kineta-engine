@@ -1435,11 +1435,11 @@ export const generatePaymentSchedulePDF = async (data: PaymentScheduleData) => {
         <div style="background: white; padding: 25px; border-radius: 12px; border: 2px solid #1e40af; border-right-width: 6px;">
           <div style="font-size: 16px; line-height: 2; color: #1e293b;">
             <strong style="color: #1e40af;">إقرار رسمي:</strong><br/>
-            تقر شركة علي صالح الشهري القابضة بأن المدعو / المدعوة:<br/>
+            نقر نحن شركة علي صالح الشهري القابضة بموجب عقد التمويل الداخلي بالمنصة بأن المدعو / المدعوة:<br/>
             <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 12px 20px; border-radius: 8px; font-size: 18px; font-weight: 700; text-align: center; margin: 15px 0; display: inline-block; min-width: 300px;">
               ${data.customerName}
             </div><br/>
-            قد قام/قامت بسداد الأقساط التالية المستحقة بموجب عقد التمويل رقم <strong style="color: #1e40af;">${data.contractNumber}</strong>
+            قد قام/قامت بسداد الأقساط التالية المستحقة بموجب عقد التمويل الداخلي رقم <strong style="color: #1e40af;">${data.contractNumber}</strong>
             وفقاً للجدول المبين أدناه.
           </div>
         </div>
