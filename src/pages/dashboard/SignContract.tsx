@@ -8,6 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { 
@@ -33,6 +35,13 @@ export default function SignContract() {
   const [showSignature, setShowSignature] = useState(false);
   const [isSigned, setIsSigned] = useState(false);
   const [signatureData, setSignatureData] = useState<string | null>(null);
+  
+  // Editable beneficiary fields
+  const [beneficiaryData, setBeneficiaryData] = useState({
+    fullName: "",
+    nationalId: "",
+    phone: "",
+  });
 
   const { data: application, isLoading, error } = useQuery({
     queryKey: ["financing-application", applicationId],
@@ -302,20 +311,57 @@ export default function SignContract() {
 
                   <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20">
                     <h4 className="font-bold text-emerald-400 mb-3">الطرف الثاني (المستفيد)</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">الاسم الكامل:</span>
-                        <span className="font-medium">{application.full_name}</span>
+                    {isSigned ? (
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">الاسم الكامل:</span>
+                          <span className="font-medium">{beneficiaryData.fullName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">رقم الهوية:</span>
+                          <span className="font-medium font-mono">{beneficiaryData.nationalId}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">رقم الجوال:</span>
+                          <span className="font-medium font-mono">{beneficiaryData.phone}</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">رقم الهوية:</span>
-                        <span className="font-medium font-mono">{application.national_id}</span>
+                    ) : (
+                      <div className="space-y-3">
+                        <div>
+                          <Label htmlFor="fullName" className="text-xs text-muted-foreground">الاسم الكامل</Label>
+                          <Input
+                            id="fullName"
+                            value={beneficiaryData.fullName}
+                            onChange={(e) => setBeneficiaryData(prev => ({ ...prev, fullName: e.target.value }))}
+                            placeholder="أدخل اسمك الكامل"
+                            className="mt-1 bg-background/50"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="nationalId" className="text-xs text-muted-foreground">رقم الهوية</Label>
+                          <Input
+                            id="nationalId"
+                            value={beneficiaryData.nationalId}
+                            onChange={(e) => setBeneficiaryData(prev => ({ ...prev, nationalId: e.target.value }))}
+                            placeholder="أدخل رقم الهوية"
+                            className="mt-1 bg-background/50 font-mono"
+                            dir="ltr"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="phone" className="text-xs text-muted-foreground">رقم الجوال</Label>
+                          <Input
+                            id="phone"
+                            value={beneficiaryData.phone}
+                            onChange={(e) => setBeneficiaryData(prev => ({ ...prev, phone: e.target.value }))}
+                            placeholder="05xxxxxxxx"
+                            className="mt-1 bg-background/50 font-mono"
+                            dir="ltr"
+                          />
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">رقم الجوال:</span>
-                        <span className="font-medium font-mono">{application.phone}</span>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -353,6 +399,16 @@ export default function SignContract() {
                 
                 {!isSigned ? (
                   <div className="space-y-4">
+                    {/* Validation message */}
+                    {(!beneficiaryData.fullName || !beneficiaryData.nationalId || !beneficiaryData.phone) && (
+                      <Alert className="bg-amber-500/10 border-amber-500/30">
+                        <AlertTriangle className="h-4 w-4 text-amber-400" />
+                        <AlertDescription className="text-amber-400">
+                          يرجى ملء جميع بيانات الطرف الثاني (المستفيد) أعلاه قبل التوقيع
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    
                     {!showSignature ? (
                       <div className="p-6 border-2 border-dashed border-amber-500/50 rounded-xl text-center">
                         <AlertTriangle className="h-12 w-12 text-amber-400 mx-auto mb-3" />
@@ -360,6 +416,7 @@ export default function SignContract() {
                         <Button 
                           onClick={() => setShowSignature(true)}
                           className="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-900"
+                          disabled={!beneficiaryData.fullName || !beneficiaryData.nationalId || !beneficiaryData.phone}
                         >
                           <PenTool className="h-4 w-4 ml-2" />
                           التوقيع الآن
