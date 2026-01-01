@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { CreditCard, Calendar, Wallet, Landmark, Shield, CheckCircle2, Clock } from "lucide-react";
+import { CreditCard, Calendar, Wallet, Landmark, Shield, CheckCircle2, Clock, Coins } from "lucide-react";
 import { format, addMonths, differenceInDays, differenceInHours, differenceInMinutes, differenceInSeconds } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -274,12 +274,12 @@ export default function EnhancedFinancingCard({
               <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-xl p-3 border border-blue-500/20">
                 <div className="flex items-start gap-2">
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-xs font-bold">5%</span>
+                    <Coins className="w-4 h-4 text-white" />
                   </div>
                   <div className="flex-1">
                     <p className="text-blue-300 text-sm font-medium">رسوم إدارية ثابتة</p>
                     <p className="text-slate-400 text-xs mt-0.5">
-                      تُضاف مع آخر قسط • {((totalBalance * 0.05)).toLocaleString("ar-SA")} ر.س
+                      تُضاف مع آخر قسط • ٥٠٠ ر.س
                     </p>
                   </div>
                 </div>
