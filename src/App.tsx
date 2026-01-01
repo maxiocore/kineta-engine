@@ -113,6 +113,7 @@ import FinancingApply from "./pages/dashboard/FinancingApply";
 import FinancingDocuments from "./pages/dashboard/FinancingDocuments";
 import SignContract from "./pages/dashboard/SignContract";
 import SignPromissoryNote from "./pages/dashboard/SignPromissoryNote";
+import FinancingPayment from "./pages/dashboard/FinancingPayment";
 
 const queryClient = new QueryClient();
 
@@ -322,6 +323,11 @@ const App = () => (
                   <Route path="/dashboard/financing/sign-promissory/:applicationId" element={
                     <ProtectedRoute>
                       <SignPromissoryNote />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/financing/payment" element={
+                    <ProtectedRoute>
+                      <FinancingPayment />
                     </ProtectedRoute>
                   } />
                   

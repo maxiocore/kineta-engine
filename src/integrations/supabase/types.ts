@@ -1180,6 +1180,72 @@ export type Database = {
           },
         ]
       }
+      financing_payment_receipts: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          application_id: string
+          bank_name: string
+          created_at: string
+          id: string
+          installment_id: string | null
+          payment_date: string
+          receipt_url: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          application_id: string
+          bank_name?: string
+          created_at?: string
+          id?: string
+          installment_id?: string | null
+          payment_date?: string
+          receipt_url: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          application_id?: string
+          bank_name?: string
+          created_at?: string
+          id?: string
+          installment_id?: string | null
+          payment_date?: string
+          receipt_url?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_payment_receipts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "financing_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financing_payment_receipts_installment_id_fkey"
+            columns: ["installment_id"]
+            isOneToOne: false
+            referencedRelation: "financing_installments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financing_plans: {
         Row: {
           created_at: string
