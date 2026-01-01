@@ -1,4 +1,5 @@
 import React, { memo, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Hash, 
@@ -8,7 +9,8 @@ import {
   Heart, 
   ShoppingCart,
   Zap,
-  Clock
+  Clock,
+  CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +46,9 @@ const ServiceCard = memo(({
   onOrder,
   onToggleFavorite,
 }: ServiceCardProps) => {
+  const navigate = useNavigate();
+  const showFinancingButton = service.price > 1000;
+
   const features = useMemo(() => {
     try {
       if (typeof service.features === 'string') {
@@ -146,53 +151,73 @@ const ServiceCard = memo(({
             </Badge>
           </div>
 
-          <div className="flex items-center gap-2">
-            <motion.div className="flex-1" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onOrder(service);
-                }}
-                className="w-full h-10 sm:h-11 rounded-xl gap-2 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg shadow-primary/20 font-bold text-sm"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                طلب الآن
-              </Button>
-            </motion.div>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <motion.div className="flex-1" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOrder(service);
+                  }}
+                  className="w-full h-10 sm:h-11 rounded-xl gap-2 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg shadow-primary/20 font-bold text-sm"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  طلب الآن
+                </Button>
+              </motion.div>
 
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onViewDetails(service);
-                }}
-                className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl border-border/50 hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all"
-              >
-                <Eye className="w-4 h-4" />
-              </Button>
-            </motion.div>
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewDetails(service);
+                  }}
+                  className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl border-border/50 hover:border-primary/50 hover:bg-primary/10 hover:text-primary transition-all"
+                >
+                  <Eye className="w-4 h-4" />
+                </Button>
+              </motion.div>
 
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleFavorite(service.id);
-                }}
-                className={cn(
-                  "h-10 w-10 sm:h-11 sm:w-11 rounded-xl transition-all",
-                  isFavorite 
-                    ? "bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20" 
-                    : "border-border/50 hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive"
-                )}
-              >
-                <Heart className={cn("w-4 h-4", isFavorite && "fill-current")} />
-              </Button>
-            </motion.div>
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleFavorite(service.id);
+                  }}
+                  className={cn(
+                    "h-10 w-10 sm:h-11 sm:w-11 rounded-xl transition-all",
+                    isFavorite 
+                      ? "bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20" 
+                      : "border-border/50 hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive"
+                  )}
+                >
+                  <Heart className={cn("w-4 h-4", isFavorite && "fill-current")} />
+                </Button>
+              </motion.div>
+            </div>
+
+            {/* Financing Button */}
+            {showFinancingButton && (
+              <motion.div whileTap={{ scale: 0.98 }}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate('/dashboard/financing/apply', { state: { serviceId: service.id, serviceName: service.name, servicePrice: service.price } });
+                  }}
+                  className="w-full h-9 rounded-xl font-bold text-xs gap-2 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 hover:border-emerald-500/50"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  قسّط خدمتك
+                </Button>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
