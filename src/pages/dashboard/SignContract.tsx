@@ -332,7 +332,7 @@ export default function SignContract() {
                         <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
                           <p className="text-xs text-amber-400 flex items-start gap-2">
                             <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-                            <span>تنبيه هام: يجب أن تكون البيانات المدخلة مطابقة تماماً لما سيتم إدراجه في السند التنفيذي (الكمبيالة)، وأي اختلاف قد يؤدي إلى بطلان السند قانونياً.</span>
+                            <span>تنبيه هام: يجب أن تكون البيانات المدخلة مطابقة تماماً لما سيتم إدراجه في السند التنفيذي (الكمبيالة)، وأي اختلاف قد يؤدي إلى رفض طلب التمويل.</span>
                           </p>
                         </div>
                         
