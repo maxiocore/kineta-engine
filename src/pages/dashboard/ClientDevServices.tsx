@@ -49,6 +49,7 @@ import {
   Network,
   Lock,
   RefreshCw,
+  Wrench,
 } from "lucide-react";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,7 @@ import { useAuth } from "@/hooks/useAuth";
 import ServicesPageSkeleton from "@/components/dashboard/ServicesPageSkeleton";
 import PullToRefresh from "@/components/ui/pull-to-refresh";
 import { cn } from "@/lib/utils";
+import CustomServiceOrderForm from "@/components/services/CustomServiceOrderForm";
 
 interface Service {
   id: string;
@@ -446,10 +448,11 @@ const ClientDevServices = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [customOrderDialogOpen, setCustomOrderDialogOpen] = useState(false);
   const [balance, setBalance] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const devKeywords = ["programming", "code", "web", "app", "برمجة", "موقع", "تطبيق", "development", "developer", "website", "application", "api", "backend", "frontend", "متجر", "نظام", "لوحة", "dashboard"];
+  const devKeywords = ["programming", "code", "web", "app", "برمجة", "موقع", "تطبيق", "development", "developer", "website", "application", "api", "backend", "frontend", "متجر", "نظام", "لوحة", "dashboard", "تطوير الويب", "مخصصة"];
 
   const { data: initialServices, isLoading, refetch } = useQuery({
     queryKey: ["dev-services"],
@@ -463,7 +466,7 @@ const ClientDevServices = () => {
       if (error) throw error;
       
       return (data as Service[]).filter(service => {
-        if (service.category === 'development' || service.category === 'dev') return true;
+        if (service.category === 'development' || service.category === 'dev' || service.category === 'تطوير الويب') return true;
         
         const searchText = `${service.name} ${service.description || ''} ${service.category}`.toLowerCase();
         return devKeywords.some(keyword => searchText.includes(keyword.toLowerCase()));
@@ -553,8 +556,18 @@ const ClientDevServices = () => {
     setDetailsDialogOpen(true);
   };
 
+  // Check if service is "خدمات مخصصة" for special handling
+  const isCustomService = (service: Service) => {
+    return service.name.includes('خدمات مخصصة') || service.name.includes('مخصص');
+  };
+
   const handleOrderClick = (service: Service) => {
-    navigate(`/dashboard/dev-services/order?serviceId=${service.id}`);
+    if (isCustomService(service)) {
+      setSelectedService(service);
+      setCustomOrderDialogOpen(true);
+    } else {
+      navigate(`/dashboard/dev-services/order?serviceId=${service.id}`);
+    }
   };
 
   const stats = [
@@ -976,6 +989,23 @@ const ClientDevServices = () => {
                 </Button>
               </DialogFooter>
             </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Custom Service Order Dialog */}
+      <Dialog open={customOrderDialogOpen} onOpenChange={setCustomOrderDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          {selectedService && (
+            <CustomServiceOrderForm
+              serviceId={selectedService.id}
+              serviceName={selectedService.name}
+              onSuccess={() => {
+                setCustomOrderDialogOpen(false);
+                refetch();
+              }}
+              onClose={() => setCustomOrderDialogOpen(false)}
+            />
           )}
         </DialogContent>
       </Dialog>
