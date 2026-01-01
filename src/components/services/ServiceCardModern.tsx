@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { 
@@ -8,7 +9,8 @@ import {
   Eye,
   ShoppingCart,
   Hash,
-  RefreshCw
+  RefreshCw,
+  CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +48,8 @@ const ServiceCardModern = ({
   index,
   categoryNameAr
 }: ServiceCardModernProps) => {
+  const navigate = useNavigate();
+  const showFinancingButton = service.price > 1000;
   const features = useMemo(() => {
     if (!service.features) return {};
     try {
@@ -171,36 +175,56 @@ const ServiceCardModern = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onViewDetails();
-              }}
-              variant="ghost"
-              className="h-11 px-4 rounded-xl text-sm hover:bg-muted font-medium gap-1.5"
-            >
-              <Eye className="w-4 h-4" />
-              التفاصيل
-            </Button>
-
-            <motion.div 
-              className="flex-1" 
-              whileTap={{ scale: 0.98 }}
-            >
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
               <Button
                 size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onOrder();
+                  onViewDetails();
                 }}
-                className="w-full h-11 rounded-xl font-bold text-sm gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-shadow"
+                variant="ghost"
+                className="h-11 px-4 rounded-xl text-sm hover:bg-muted font-medium gap-1.5"
               >
-                <ShoppingCart className="w-4 h-4" />
-                اطلب الآن
+                <Eye className="w-4 h-4" />
+                التفاصيل
               </Button>
-            </motion.div>
+
+              <motion.div 
+                className="flex-1" 
+                whileTap={{ scale: 0.98 }}
+              >
+                <Button
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOrder();
+                  }}
+                  className="w-full h-11 rounded-xl font-bold text-sm gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-shadow"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  اطلب الآن
+                </Button>
+              </motion.div>
+            </div>
+
+            {/* Financing Button */}
+            {showFinancingButton && (
+              <motion.div whileTap={{ scale: 0.98 }}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate('/dashboard/financing/apply', { state: { serviceId: service.id, serviceName: service.name, servicePrice: service.price } });
+                  }}
+                  className="w-full h-10 rounded-xl font-bold text-xs gap-2 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 hover:border-emerald-500/50"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  قسّط خدمتك
+                </Button>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
