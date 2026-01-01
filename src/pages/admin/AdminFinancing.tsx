@@ -168,21 +168,30 @@ export default function AdminFinancing() {
 
   // Approve receipt and mark installment as paid
   const approveReceiptMutation = useMutation({
-    mutationFn: async ({ receiptId, applicationId, amount }: { receiptId: string; applicationId: string; amount: number }) => {
-      // Get pending installments for this application
-      const { data: installments, error: instError } = await supabase
+    mutationFn: async ({ receiptId, applicationId, amount, receipt }: { receiptId: string; applicationId: string; amount: number; receipt?: any }) => {
+      // Get application details for email
+      const { data: application } = await supabase
+        .from("financing_applications")
+        .select("*, financing_plans(name_ar, installments_count)")
+        .eq("id", applicationId)
+        .single();
+
+      // Get all installments for this application
+      const { data: allInstallments, error: allInstError } = await supabase
         .from("financing_installments")
         .select("*")
         .eq("application_id", applicationId)
-        .eq("status", "pending")
         .order("installment_number", { ascending: true });
 
-      if (instError) throw instError;
+      if (allInstError) throw allInstError;
+
+      // Get pending installments
+      const pendingInstallments = allInstallments?.filter(i => i.status === "pending") || [];
 
       // Find installment to mark as paid (first pending or closest amount match)
-      let installmentToMark = installments?.[0];
-      if (installments && installments.length > 0) {
-        const exactMatch = installments.find(i => Math.abs(i.amount - amount) < 1);
+      let installmentToMark = pendingInstallments[0];
+      if (pendingInstallments.length > 0) {
+        const exactMatch = pendingInstallments.find(i => Math.abs(i.amount - amount) < 1);
         if (exactMatch) installmentToMark = exactMatch;
       }
 
@@ -210,15 +219,56 @@ export default function AdminFinancing() {
           .eq("id", installmentToMark.id);
 
         if (updateError) throw updateError;
+      }
 
-        // Check if all installments are now paid
-        const { data: remainingInstallments } = await supabase
-          .from("financing_installments")
-          .select("id")
-          .eq("application_id", applicationId)
-          .neq("status", "paid");
+      // Calculate payment stats for email
+      const paidInstallments = allInstallments?.filter(i => i.status === "paid" || i.id === installmentToMark?.id) || [];
+      const remainingInstallments = allInstallments?.filter(i => i.status !== "paid" && i.id !== installmentToMark?.id) || [];
+      const totalPaid = paidInstallments.reduce((sum, i) => sum + i.amount, 0);
+      const remainingAmount = remainingInstallments.reduce((sum, i) => sum + i.amount, 0);
+      const nextInstallment = remainingInstallments[0];
+      const isLastInstallment = remainingInstallments.length === 0;
 
-        if (remainingInstallments?.length === 0) {
+      // Send email notification to client
+      if (application?.email) {
+        try {
+          await sendFinancingPaymentClientEmail(application.email, {
+            name: application.full_name,
+            applicationNumber: application.application_number,
+            contractNumber: application.contract_number || '',
+            installmentNumber: installmentToMark?.installment_number || 0,
+            totalInstallments: allInstallments?.length || 0,
+            amount: amount,
+            paymentDate: new Date().toLocaleDateString('ar-SA'),
+            paymentMethod: 'تحويل بنكي',
+            totalPaid: totalPaid,
+            remainingAmount: remainingAmount,
+            remainingInstallments: remainingInstallments.length,
+            nextDueDate: nextInstallment ? new Date(nextInstallment.due_date).toLocaleDateString('ar-SA') : undefined,
+          });
+          console.log("Payment confirmation email sent to client");
+        } catch (emailError) {
+          console.error("Failed to send payment confirmation email:", emailError);
+        }
+
+        // Send clearance email if this is the last installment
+        if (isLastInstallment) {
+          try {
+            await sendFinancingClearanceEmail(application.email, {
+              name: application.full_name,
+              nationalId: application.national_id,
+              applicationNumber: application.application_number,
+              contractNumber: application.contract_number || '',
+              totalAmount: application.approved_amount || application.requested_amount,
+              totalInstallments: allInstallments?.length || 0,
+              lastPaymentDate: new Date().toLocaleDateString('ar-SA'),
+            });
+            console.log("Clearance email sent to client");
+          } catch (clearanceError) {
+            console.error("Failed to send clearance email:", clearanceError);
+          }
+
+          // Update application status to completed
           await supabase
             .from("financing_applications")
             .update({ status: "completed" })
@@ -226,7 +276,7 @@ export default function AdminFinancing() {
         }
       }
 
-      return { installmentToMark };
+      return { installmentToMark, isLastInstallment };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["admin-financing-payment-receipts"] });
@@ -234,9 +284,12 @@ export default function AdminFinancing() {
       queryClient.invalidateQueries({ queryKey: ["financing-applications"] });
       queryClient.invalidateQueries({ queryKey: ["financing-stats"] });
       if (data.installmentToMark) {
-        toast.success(`تم تأكيد الحوالة وخصم القسط رقم ${data.installmentToMark.installment_number} تلقائياً`);
+        toast.success(`تم تأكيد الحوالة وخصم القسط رقم ${data.installmentToMark.installment_number} وإرسال إشعار للعميل`);
       } else {
-        toast.success("تم تأكيد الحوالة");
+        toast.success("تم تأكيد الحوالة وإرسال إشعار للعميل");
+      }
+      if (data.isLastInstallment) {
+        toast.success("🎉 تم سداد جميع الأقساط! تم إرسال شهادة المخالصة للعميل");
       }
       setShowReceiptDialog(false);
     },
