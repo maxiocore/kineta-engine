@@ -34,7 +34,9 @@ import {
   Send,
   Edit,
   MoreHorizontal,
-  Download
+  Download,
+  Receipt,
+  Banknote
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -137,6 +139,139 @@ export default function AdminFinancing() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editData, setEditData] = useState({ status: "", admin_notes: "" });
   const [showActivateDialog, setShowActivateDialog] = useState(false);
+  const [showReceiptsSection, setShowReceiptsSection] = useState(false);
+  const [selectedReceipt, setSelectedReceipt] = useState<any>(null);
+  const [showReceiptDialog, setShowReceiptDialog] = useState(false);
+
+  // Fetch payment receipts
+  const { data: paymentReceipts = [], refetch: refetchReceipts } = useQuery({
+    queryKey: ["admin-financing-payment-receipts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("financing_payment_receipts")
+        .select(`
+          *,
+          financing_applications(
+            application_number,
+            full_name,
+            contract_number,
+            approved_amount,
+            user_id,
+            financing_plans(name_ar, installments_count)
+          )
+        `)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Approve receipt and mark installment as paid
+  const approveReceiptMutation = useMutation({
+    mutationFn: async ({ receiptId, applicationId, amount }: { receiptId: string; applicationId: string; amount: number }) => {
+      // Get pending installments for this application
+      const { data: installments, error: instError } = await supabase
+        .from("financing_installments")
+        .select("*")
+        .eq("application_id", applicationId)
+        .eq("status", "pending")
+        .order("installment_number", { ascending: true });
+
+      if (instError) throw instError;
+
+      // Find installment to mark as paid (first pending or closest amount match)
+      let installmentToMark = installments?.[0];
+      if (installments && installments.length > 0) {
+        const exactMatch = installments.find(i => Math.abs(i.amount - amount) < 1);
+        if (exactMatch) installmentToMark = exactMatch;
+      }
+
+      // Update receipt status
+      const { error: receiptError } = await supabase
+        .from("financing_payment_receipts")
+        .update({
+          status: "approved",
+          reviewed_at: new Date().toISOString(),
+          installment_id: installmentToMark?.id || null,
+        })
+        .eq("id", receiptId);
+
+      if (receiptError) throw receiptError;
+
+      // Mark installment as paid if found
+      if (installmentToMark) {
+        const { error: updateError } = await supabase
+          .from("financing_installments")
+          .update({
+            status: "paid",
+            paid_at: new Date().toISOString(),
+            payment_method: "bank_transfer",
+          })
+          .eq("id", installmentToMark.id);
+
+        if (updateError) throw updateError;
+
+        // Check if all installments are now paid
+        const { data: remainingInstallments } = await supabase
+          .from("financing_installments")
+          .select("id")
+          .eq("application_id", applicationId)
+          .neq("status", "paid");
+
+        if (remainingInstallments?.length === 0) {
+          await supabase
+            .from("financing_applications")
+            .update({ status: "completed" })
+            .eq("id", applicationId);
+        }
+      }
+
+      return { installmentToMark };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-financing-payment-receipts"] });
+      queryClient.invalidateQueries({ queryKey: ["financing-installments"] });
+      queryClient.invalidateQueries({ queryKey: ["financing-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["financing-stats"] });
+      if (data.installmentToMark) {
+        toast.success(`تم تأكيد الحوالة وخصم القسط رقم ${data.installmentToMark.installment_number} تلقائياً`);
+      } else {
+        toast.success("تم تأكيد الحوالة");
+      }
+      setShowReceiptDialog(false);
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error("حدث خطأ أثناء تأكيد الحوالة");
+    },
+  });
+
+  // Reject receipt mutation
+  const rejectReceiptMutation = useMutation({
+    mutationFn: async ({ receiptId, adminNotes }: { receiptId: string; adminNotes: string }) => {
+      const { error } = await supabase
+        .from("financing_payment_receipts")
+        .update({
+          status: "rejected",
+          admin_notes: adminNotes,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", receiptId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-financing-payment-receipts"] });
+      toast.success("تم رفض الإيصال");
+      setShowReceiptDialog(false);
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error("حدث خطأ أثناء رفض الإيصال");
+    },
+  });
+
+  const pendingReceiptsCount = paymentReceipts.filter((r: any) => r.status === "pending").length;
 
   // Fetch applications - removed foreign key reference that doesn't exist
   const { data: applications = [], isLoading } = useQuery({
@@ -798,6 +933,127 @@ export default function AdminFinancing() {
           </CardContent>
         </Card>
 
+        {/* Payment Receipts Section */}
+        <Card className="bg-gradient-to-br from-purple-500/5 to-violet-500/5 border-purple-500/20">
+          <CardHeader className="cursor-pointer" onClick={() => setShowReceiptsSection(!showReceiptsSection)}>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Receipt className="h-5 w-5 text-purple-400" />
+                إيصالات السداد
+                {pendingReceiptsCount > 0 && (
+                  <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+                    {pendingReceiptsCount} قيد المراجعة
+                  </Badge>
+                )}
+              </div>
+              <Button variant="ghost" size="sm">
+                {showReceiptsSection ? "إخفاء" : "عرض"}
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          {showReceiptsSection && (
+            <CardContent>
+              {paymentReceipts.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">لا توجد إيصالات سداد</div>
+              ) : (
+                <div className="space-y-3">
+                  {paymentReceipts.map((receipt: any) => (
+                    <motion.div
+                      key={receipt.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-4 rounded-xl bg-background/50 border border-border/50 hover:border-purple-500/30 transition-all"
+                    >
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-start gap-4 flex-1">
+                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-violet-500/20 flex items-center justify-center">
+                            <Receipt className="h-6 w-6 text-purple-400" />
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-bold text-lg">{receipt.amount.toLocaleString("ar-SA")} ر.س</span>
+                              <Badge className={
+                                receipt.status === "pending" ? "bg-yellow-500/20 text-yellow-400" :
+                                receipt.status === "approved" ? "bg-emerald-500/20 text-emerald-400" :
+                                "bg-red-500/20 text-red-400"
+                              }>
+                                {receipt.status === "pending" ? "قيد المراجعة" :
+                                 receipt.status === "approved" ? "مقبول" : "مرفوض"}
+                              </Badge>
+                            </div>
+                            <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Users className="h-3 w-3" />
+                                {receipt.financing_applications?.full_name}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <FileText className="h-3 w-3" />
+                                {receipt.financing_applications?.application_number}
+                              </span>
+                              {receipt.financing_applications?.contract_number && (
+                                <span className="flex items-center gap-1">
+                                  <FileSignature className="h-3 w-3" />
+                                  عقد: {receipt.financing_applications.contract_number}
+                                </span>
+                              )}
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {format(new Date(receipt.created_at), "dd/MM/yyyy", { locale: ar })}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedReceipt(receipt);
+                              setShowReceiptDialog(true);
+                            }}
+                          >
+                            <Eye className="h-4 w-4 ml-1" />
+                            عرض
+                          </Button>
+                          {receipt.status === "pending" && (
+                            <>
+                              <Button
+                                size="sm"
+                                className="bg-emerald-600 hover:bg-emerald-700"
+                                onClick={() => approveReceiptMutation.mutate({
+                                  receiptId: receipt.id,
+                                  applicationId: receipt.application_id,
+                                  amount: receipt.amount,
+                                })}
+                                disabled={approveReceiptMutation.isPending}
+                              >
+                                <Check className="h-4 w-4 ml-1" />
+                                تأكيد وخصم القسط
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => rejectReceiptMutation.mutate({
+                                  receiptId: receipt.id,
+                                  adminNotes: "تم رفض الإيصال",
+                                })}
+                                disabled={rejectReceiptMutation.isPending}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          )}
+        </Card>
+
         {/* Applications Table */}
         <Card>
           <CardHeader>
@@ -1419,6 +1675,112 @@ export default function AdminFinancing() {
                 {activateMutation.isPending ? "جاري التفعيل..." : "تأكيد التفعيل"}
               </Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Receipt Details Dialog */}
+        <Dialog open={showReceiptDialog} onOpenChange={setShowReceiptDialog}>
+          <DialogContent className="max-w-2xl" dir="rtl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Receipt className="h-5 w-5 text-purple-400" />
+                تفاصيل إيصال السداد
+              </DialogTitle>
+            </DialogHeader>
+            {selectedReceipt && (
+              <div className="space-y-4">
+                {/* Receipt Image */}
+                <div className="rounded-xl overflow-hidden border border-border bg-muted/50">
+                  <img
+                    src={selectedReceipt.receipt_url}
+                    alt="إيصال السداد"
+                    className="w-full h-auto max-h-80 object-contain"
+                  />
+                </div>
+
+                {/* Receipt Details Grid */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-lg bg-muted/50">
+                    <p className="text-xs text-muted-foreground">المبلغ</p>
+                    <p className="font-bold text-lg text-emerald-400">
+                      {selectedReceipt.amount.toLocaleString("ar-SA")} ر.س
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted/50">
+                    <p className="text-xs text-muted-foreground">الحالة</p>
+                    <Badge className={
+                      selectedReceipt.status === "pending" ? "bg-yellow-500/20 text-yellow-400 mt-1" :
+                      selectedReceipt.status === "approved" ? "bg-emerald-500/20 text-emerald-400 mt-1" :
+                      "bg-red-500/20 text-red-400 mt-1"
+                    }>
+                      {selectedReceipt.status === "pending" ? "قيد المراجعة" :
+                       selectedReceipt.status === "approved" ? "مقبول" : "مرفوض"}
+                    </Badge>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted/50">
+                    <p className="text-xs text-muted-foreground">اسم العميل</p>
+                    <p className="font-medium">{selectedReceipt.financing_applications?.full_name}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted/50">
+                    <p className="text-xs text-muted-foreground">رقم الطلب</p>
+                    <p className="font-medium">{selectedReceipt.financing_applications?.application_number}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted/50">
+                    <p className="text-xs text-muted-foreground">رقم العقد</p>
+                    <p className="font-medium">{selectedReceipt.financing_applications?.contract_number || "-"}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted/50">
+                    <p className="text-xs text-muted-foreground">البنك</p>
+                    <p className="font-medium">{selectedReceipt.bank_name}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted/50">
+                    <p className="text-xs text-muted-foreground">تاريخ الرفع</p>
+                    <p className="font-medium">{format(new Date(selectedReceipt.created_at), "dd/MM/yyyy HH:mm", { locale: ar })}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted/50">
+                    <p className="text-xs text-muted-foreground">تاريخ التحويل</p>
+                    <p className="font-medium">{format(new Date(selectedReceipt.payment_date), "dd/MM/yyyy", { locale: ar })}</p>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                {selectedReceipt.status === "pending" && (
+                  <div className="flex gap-2 pt-4 border-t">
+                    <Button
+                      className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                      onClick={() => approveReceiptMutation.mutate({
+                        receiptId: selectedReceipt.id,
+                        applicationId: selectedReceipt.application_id,
+                        amount: selectedReceipt.amount,
+                      })}
+                      disabled={approveReceiptMutation.isPending}
+                    >
+                      <Check className="h-4 w-4 ml-2" />
+                      {approveReceiptMutation.isPending ? "جاري التأكيد..." : "تأكيد الحوالة وخصم القسط"}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => rejectReceiptMutation.mutate({
+                        receiptId: selectedReceipt.id,
+                        adminNotes: "تم رفض الإيصال - بيانات غير صحيحة",
+                      })}
+                      disabled={rejectReceiptMutation.isPending}
+                    >
+                      <X className="h-4 w-4 ml-2" />
+                      رفض
+                    </Button>
+                  </div>
+                )}
+
+                {/* Download Button */}
+                <Button variant="outline" className="w-full" asChild>
+                  <a href={selectedReceipt.receipt_url} target="_blank" rel="noopener noreferrer" download>
+                    <Download className="h-4 w-4 ml-2" />
+                    تحميل الإيصال
+                  </a>
+                </Button>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
 
