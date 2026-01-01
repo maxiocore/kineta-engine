@@ -135,7 +135,6 @@ const ClientServicesHome = () => {
   const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   
   const [servicesCount, setServicesCount] = useState({
-    social: 0,
     design: 0,
     dev: 0,
     digital: 0
@@ -173,7 +172,6 @@ const ClientServicesHome = () => {
     try {
       // Run ALL queries in parallel for maximum performance
       const [
-        socialResult,
         designResult,
         devResult,
         digitalResult,
@@ -181,12 +179,6 @@ const ClientServicesHome = () => {
         ordersResult
       ] = await Promise.all([
         // Service counts - parallel
-        supabase
-          .from('services')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'active')
-          .or('category.ilike.%instagram%,category.ilike.%facebook%,category.ilike.%twitter%,category.ilike.%youtube%,category.ilike.%tiktok%,category.ilike.%social%,category.ilike.%telegram%,name.ilike.%متابع%,name.ilike.%لايك%'),
-        
         supabase
           .from('services')
           .select('*', { count: 'exact', head: true })
@@ -225,7 +217,6 @@ const ClientServicesHome = () => {
       const completedOrdersCount = orders.filter(o => o.status === 'completed').length;
 
       setServicesCount({
-        social: socialResult.count || 0,
         design: designResult.count || 0,
         dev: devResult.count || 0,
         digital: digitalResult.count || 0
@@ -334,27 +325,6 @@ const ClientServicesHome = () => {
 
   const sections = [
     {
-      id: 'social',
-      title: 'خدمات التواصل الاجتماعي',
-      subtitle: 'Social Media',
-      description: 'زيادة المتابعين والتفاعل على جميع المنصات',
-      icon: Globe,
-      path: '/dashboard/social-services',
-      gradient: 'from-blue-500 via-cyan-500 to-teal-500',
-      bgGradient: 'from-blue-500/20 via-cyan-500/10 to-transparent',
-      shadowColor: 'shadow-blue-500/25',
-      count: servicesCount.social,
-      platforms: [
-        { icon: Instagram, label: 'انستقرام', color: 'from-pink-500 to-purple-600' },
-        { icon: Facebook, label: 'فيسبوك', color: 'from-blue-500 to-blue-700' },
-        { icon: Youtube, label: 'يوتيوب', color: 'from-red-500 to-red-700' },
-        { icon: Twitter, label: 'تويتر', color: 'from-sky-400 to-sky-600' },
-        { icon: Music2, label: 'تيك توك', color: 'from-zinc-700 to-zinc-900' },
-        { icon: Send, label: 'تيليجرام', color: 'from-sky-500 to-blue-600' },
-      ],
-      features: ['متابعين حقيقيين', 'تسليم فوري', 'ضمان 30 يوم']
-    },
-    {
       id: 'design',
       title: 'خدمات التصميم الإبداعي',
       subtitle: 'Creative Design',
@@ -420,7 +390,7 @@ const ClientServicesHome = () => {
     { icon: Award, title: 'أعلى جودة', desc: 'معايير احترافية', color: 'from-purple-500 to-pink-600' },
   ];
 
-  const totalServices = servicesCount.social + servicesCount.design + servicesCount.dev + servicesCount.digital;
+  const totalServices = servicesCount.design + servicesCount.dev + servicesCount.digital;
 
   if (isLoading) {
     return (
@@ -584,9 +554,9 @@ const ClientServicesHome = () => {
                   className="grid grid-cols-3 gap-2 sm:gap-3"
                 >
                   {[
-                    { value: servicesCount.social, label: 'تواصل اجتماعي', icon: Globe, gradient: 'from-blue-500 to-cyan-500' },
                     { value: servicesCount.design, label: 'خدمات تصميم', icon: Palette, gradient: 'from-violet-500 to-purple-500' },
                     { value: servicesCount.dev, label: 'برمجة وتطوير', icon: Code, gradient: 'from-emerald-500 to-teal-500' },
+                    { value: servicesCount.digital, label: 'تسويق رقمي', icon: BarChart3, gradient: 'from-blue-500 to-indigo-500' },
                   ].map((stat, i) => (
                     <motion.div
                       key={stat.label}
