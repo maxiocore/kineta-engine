@@ -247,12 +247,14 @@ const DesignServiceCard = ({
   onOrder: (service: Service) => void;
   onViewDetails: (service: Service) => void;
 }) => {
+  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   
   const icons = [PenTool, Palette, Image, Layers, Globe, Sparkles, Crown, Video, Package];
   const IconComponent = icons[index % icons.length];
   const features = Array.isArray(service.features) ? service.features.slice(0, 3) : [];
   const deliveryTime = getDeliveryTime(service.features);
+  const showFinancingButton = service.price > 1000;
 
   return (
     <motion.div
@@ -342,24 +344,39 @@ const DesignServiceCard = ({
             <span>التسليم: {deliveryTime}</span>
           </div>
 
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onViewDetails(service)}
-              className="flex-1 rounded-xl h-10 text-xs border-border/50 hover:border-rose-500/50 hover:bg-rose-500/5"
-            >
-              <Eye className="w-3.5 h-3.5 ml-1.5" />
-              التفاصيل
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => onOrder(service)}
-              className="flex-1 bg-gradient-to-r from-rose-500 via-violet-500 to-pink-500 hover:opacity-90 text-white rounded-xl h-10 text-xs shadow-md hover:shadow-lg transition-shadow"
-            >
-              <ShoppingCart className="w-3.5 h-3.5 ml-1.5" />
-              اطلب الآن
-            </Button>
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onViewDetails(service)}
+                className="flex-1 rounded-xl h-10 text-xs border-border/50 hover:border-rose-500/50 hover:bg-rose-500/5"
+              >
+                <Eye className="w-3.5 h-3.5 ml-1.5" />
+                التفاصيل
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => onOrder(service)}
+                className="flex-1 bg-gradient-to-r from-rose-500 via-violet-500 to-pink-500 hover:opacity-90 text-white rounded-xl h-10 text-xs shadow-md hover:shadow-lg transition-shadow"
+              >
+                <ShoppingCart className="w-3.5 h-3.5 ml-1.5" />
+                اطلب الآن
+              </Button>
+            </div>
+
+            {/* Financing Button */}
+            {showFinancingButton && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => navigate('/dashboard/financing/apply', { state: { serviceId: service.id, serviceName: service.name, servicePrice: service.price } })}
+                className="w-full h-9 rounded-xl font-bold text-xs gap-2 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 hover:border-emerald-500/50"
+              >
+                <Wallet className="w-3.5 h-3.5" />
+                قسّط خدمتك
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
