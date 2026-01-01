@@ -449,10 +449,10 @@ export default function ClientFinancing() {
   ];
 
   const quickLinks = [
-    { title: "حاسبة التمويل", description: "احسب أقساطك", icon: Calculator, href: "/dashboard/financing/calculator", gradient: "from-blue-500 to-indigo-600" },
-    { title: "تحقق من الأهلية", description: "تأكد من الشروط", icon: UserCheck, href: "/dashboard/financing/eligibility", gradient: "from-emerald-500 to-teal-600" },
-    { title: "دليل التمويل", description: "اقرأ الشروط", icon: BookOpen, href: "/dashboard/financing/guide", gradient: "from-purple-500 to-violet-600" },
     { title: "تقديم طلب", description: "ابدأ الآن", icon: Plus, href: "/dashboard/financing/apply", gradient: "from-orange-500 to-red-600" },
+    { title: "دليل التمويل", description: "اقرأ الشروط", icon: BookOpen, href: "/dashboard/financing/guide", gradient: "from-purple-500 to-violet-600" },
+    { title: "تحقق من الأهلية", description: "تأكد من الشروط", icon: UserCheck, href: "/dashboard/financing/eligibility", gradient: "from-emerald-500 to-teal-600" },
+    { title: "حاسبة التمويل", description: "احسب أقساطك", icon: Calculator, href: "/dashboard/financing/calculator", gradient: "from-blue-500 to-indigo-600" },
   ];
 
   return (
