@@ -131,7 +131,7 @@ export default function FinancingPayment() {
 
   const bankInfo = {
     bankName: "مصرف الراجحي",
-    accountName: "قابضة",
+    accountName: "شركة علي صالح الشهري القابضة",
     accountNumber: "161000010006086071040",
     iban: "SA1980000161608016071040",
   };
