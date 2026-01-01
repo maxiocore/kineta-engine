@@ -42,7 +42,7 @@ import { notifyNewOrder } from "@/lib/adminNotifyService";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import OrderProgressIndicator from "@/components/orders/OrderProgressIndicator";
-import { SocialLinkPreview } from "@/components/services/SocialLinkPreview";
+
 
 interface Service {
   id: string;
@@ -721,9 +721,6 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
                 )}
               </AnimatePresence>
             </div>
-            
-            {/* Social Link Preview */}
-            <SocialLinkPreview url={link} />
           </motion.div>
 
           {/* Quantity Section - RTL */}
