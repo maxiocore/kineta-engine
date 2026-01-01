@@ -292,12 +292,46 @@ const WhyUsSection = () => {
           </Link>
         </motion.div>
 
+        {/* Stats Row */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.4 }}
+          className="flex justify-center mt-8 md:mt-10"
+        >
+          <div className="flex items-center gap-6 md:gap-10">
+            <div className="text-center">
+              <motion.div 
+                className="text-2xl md:text-3xl font-bold bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent"
+                initial={{ scale: 0 }}
+                animate={isInView ? { scale: 1 } : {}}
+                transition={{ type: "spring", delay: 0.5 }}
+              >
+                2,847
+              </motion.div>
+              <span className="text-xs md:text-sm text-muted-foreground">طلب منفذ</span>
+            </div>
+            <div className="w-px h-10 bg-border" />
+            <div className="text-center">
+              <motion.div 
+                className="text-2xl md:text-3xl font-bold bg-gradient-to-l from-emerald-500 to-teal-500 bg-clip-text text-transparent"
+                initial={{ scale: 0 }}
+                animate={isInView ? { scale: 1 } : {}}
+                transition={{ type: "spring", delay: 0.6 }}
+              >
+                892
+              </motion.div>
+              <span className="text-xs md:text-sm text-muted-foreground">عميل سعيد</span>
+            </div>
+          </div>
+        </motion.div>
+
         {/* Bottom Tagline */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.4 }}
-          className="flex justify-center mt-8 md:mt-10"
+          transition={{ delay: 0.5 }}
+          className="flex justify-center mt-6 md:mt-8"
         >
           <div className="flex items-center gap-3 text-muted-foreground">
             <motion.div 
