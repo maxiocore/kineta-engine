@@ -128,9 +128,9 @@ const App = () => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <NotificationListener />
-            <NotificationPermissionPrompt variant="banner" />
             <BrowserRouter>
+              <NotificationListener />
+              <NotificationPermissionPrompt variant="banner" />
               <ScrollToTop />
               <MaintenanceGuard>
                 <Routes>
