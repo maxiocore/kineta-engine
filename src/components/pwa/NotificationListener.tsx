@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -12,47 +12,82 @@ interface NotificationPayload {
   created_at: string;
 }
 
+interface AppNotification {
+  id: string;
+  title: string;
+  title_ar: string;
+  message: string;
+  message_ar: string;
+  type: string;
+  image_url?: string;
+  action_url?: string;
+}
+
 export const NotificationListener = () => {
   const { user } = useAuth();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const appChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const [permissionGranted, setPermissionGranted] = useState(false);
 
-  const showBrowserNotification = useCallback(async (title: string, body: string, url?: string) => {
+  // Check notification permission on mount
+  useEffect(() => {
+    if ('Notification' in window) {
+      setPermissionGranted(Notification.permission === 'granted');
+    }
+  }, []);
+
+  const showBrowserNotification = useCallback(async (title: string, body: string, url?: string, icon?: string) => {
     // Check if notifications are supported and permitted
     if (!('Notification' in window)) {
       console.log('Browser does not support notifications');
       return;
     }
 
-    if (Notification.permission === 'granted') {
-      try {
-        // Try using service worker notification first
-        if ('serviceWorker' in navigator) {
-          const registration = await navigator.serviceWorker.ready;
-          await registration.showNotification(title, {
-            body,
-            icon: '/pwa-192x192.png',
-            badge: '/pwa-192x192.png',
-            dir: 'rtl',
-            lang: 'ar',
-            tag: url || 'general',
-            data: { url: url || '/dashboard/notifications' },
-            requireInteraction: true,
-          });
-        } else {
-          // Fallback to regular notification
-          new Notification(title, {
-            body,
-            icon: '/pwa-192x192.png',
-            dir: 'rtl',
-            lang: 'ar',
-          });
-        }
-      } catch (error) {
-        console.error('Error showing notification:', error);
+    if (Notification.permission !== 'granted') {
+      console.log('Notification permission not granted');
+      return;
+    }
+
+    try {
+      // Try using service worker notification first (works better on mobile)
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification(title, {
+          body,
+          icon: icon || '/pwa-192x192.png',
+          badge: '/pwa-192x192.png',
+          dir: 'rtl',
+          lang: 'ar',
+          tag: url || `notification-${Date.now()}`,
+          data: { url: url || '/dashboard/notifications' },
+          requireInteraction: true,
+        });
+        console.log('Service worker notification shown');
+      } else {
+        // Fallback to regular notification
+        const notification = new Notification(title, {
+          body,
+          icon: icon || '/pwa-192x192.png',
+          dir: 'rtl',
+          lang: 'ar',
+          tag: url || `notification-${Date.now()}`,
+        });
+        
+        notification.onclick = () => {
+          window.focus();
+          if (url) {
+            window.location.href = url;
+          }
+          notification.close();
+        };
+        console.log('Regular notification shown');
       }
+    } catch (error) {
+      console.error('Error showing notification:', error);
     }
   }, []);
 
+  // Listen to user-specific notifications
   useEffect(() => {
     if (!user) {
       console.log('NotificationListener: No user logged in');
@@ -80,6 +115,12 @@ export const NotificationListener = () => {
           toast(notification.title, {
             description: notification.message,
             duration: 5000,
+            action: notification.related_order_id ? {
+              label: 'عرض',
+              onClick: () => {
+                window.location.href = `/dashboard/orders/${notification.related_order_id}`;
+              },
+            } : undefined,
           });
 
           // Show browser push notification
@@ -91,13 +132,62 @@ export const NotificationListener = () => {
         }
       )
       .subscribe((status) => {
-        console.log('NotificationListener: Subscription status:', status);
+        console.log('NotificationListener: User notifications subscription status:', status);
       });
 
     return () => {
-      console.log('NotificationListener: Cleaning up subscription');
+      console.log('NotificationListener: Cleaning up user subscription');
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
+      }
+    };
+  }, [user, showBrowserNotification]);
+
+  // Listen to app-wide broadcast notifications
+  useEffect(() => {
+    if (!user) return;
+
+    console.log('NotificationListener: Setting up app notifications subscription');
+
+    appChannelRef.current = supabase
+      .channel('app-notifications-broadcast')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'app_notifications',
+        },
+        async (payload) => {
+          console.log('NotificationListener: Received app notification:', payload);
+          const notification = payload.new as AppNotification;
+          
+          // Check if notification is for this user
+          if (notification.type === 'all' || !notification.type) {
+            // Show in-app toast
+            toast(notification.title_ar || notification.title, {
+              description: notification.message_ar || notification.message,
+              duration: 8000,
+            });
+
+            // Show browser notification
+            await showBrowserNotification(
+              notification.title_ar || notification.title,
+              notification.message_ar || notification.message,
+              notification.action_url || '/dashboard/notifications',
+              notification.image_url
+            );
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('NotificationListener: App notifications subscription status:', status);
+      });
+
+    return () => {
+      console.log('NotificationListener: Cleaning up app subscription');
+      if (appChannelRef.current) {
+        supabase.removeChannel(appChannelRef.current);
       }
     };
   }, [user, showBrowserNotification]);

@@ -196,6 +196,78 @@ export type Database = {
           },
         ]
       }
+      app_notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          message: string
+          message_ar: string
+          read_count: number
+          scheduled_at: string | null
+          send_email: boolean
+          send_push: boolean
+          sent_at: string | null
+          sent_count: number
+          target_audience: string
+          target_user_ids: string[] | null
+          title: string
+          title_ar: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          message: string
+          message_ar: string
+          read_count?: number
+          scheduled_at?: string | null
+          send_email?: boolean
+          send_push?: boolean
+          sent_at?: string | null
+          sent_count?: number
+          target_audience?: string
+          target_user_ids?: string[] | null
+          title: string
+          title_ar: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          message?: string
+          message_ar?: string
+          read_count?: number
+          scheduled_at?: string | null
+          send_email?: boolean
+          send_push?: boolean
+          sent_at?: string | null
+          sent_count?: number
+          target_audience?: string
+          target_user_ids?: string[] | null
+          title?: string
+          title_ar?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -2457,6 +2529,35 @@ export type Database = {
             columns: ["service_id"]
             isOneToOne: false
             referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_notification_reads: {
+        Row: {
+          app_notification_id: string
+          id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          app_notification_id: string
+          id?: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          app_notification_id?: string
+          id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notification_reads_app_notification_id_fkey"
+            columns: ["app_notification_id"]
+            isOneToOne: false
+            referencedRelation: "app_notifications"
             referencedColumns: ["id"]
           },
         ]

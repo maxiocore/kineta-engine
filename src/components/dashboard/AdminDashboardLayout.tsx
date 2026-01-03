@@ -70,6 +70,7 @@ const adminNavItems: NavItem[] = [
   { label: "الدعم الفني", href: "/admin/support", icon: HeadphonesIcon },
   { label: "رسائل التواصل", href: "/admin/contact-messages", icon: MessageSquareText },
   { label: "الإشعارات", href: "/admin/notifications", icon: Bell },
+  { label: "إشعارات التطبيق", href: "/admin/app-notifications", icon: Bell },
   { label: "البريد", href: "/admin/emails", icon: Mail },
   { label: "سجل العمليات", href: "/admin/logs", icon: FileText },
   { label: "التقارير", href: "/admin/reports", icon: BarChart3 },
