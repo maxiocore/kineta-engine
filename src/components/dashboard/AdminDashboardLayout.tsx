@@ -54,7 +54,6 @@ const adminNavItems: NavItem[] = [
   { label: "المستخدمين", href: "/admin/users", icon: Users },
   { label: "الأقسام", href: "/admin/categories", icon: Layers },
   { label: "الخدمات", href: "/admin/services", icon: Package },
-  { label: "التسويق الرقمي", href: "/admin/digital-marketing", icon: BarChart3 },
   { label: "المزودين", href: "/admin/providers", icon: Globe },
   { label: "الطلبات", href: "/admin/orders", icon: ShoppingBag },
   { label: "الإحالات", href: "/admin/referrals", icon: Gift },

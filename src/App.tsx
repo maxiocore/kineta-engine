@@ -26,7 +26,6 @@ import CategoryDetails from "./pages/CategoryDetails";
 import DevelopmentServices from "./pages/DevelopmentServices";
 import DesignServices from "./pages/DesignServices";
 
-import DigitalMarketingServices from "./pages/DigitalMarketingServices";
 import Careers from "./pages/Careers";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -58,9 +57,6 @@ import ClientReferrals from "./pages/dashboard/ClientReferrals";
 import ClientBalanceLogs from "./pages/dashboard/ClientBalanceLogs";
 import ClientDesignServices from "./pages/dashboard/ClientDesignServices";
 import ClientDevServices from "./pages/dashboard/ClientDevServices";
-import ClientDigitalServices from "./pages/dashboard/ClientDigitalServices";
-import DigitalServiceOrder from "./pages/dashboard/DigitalServiceOrder";
-import ClientDigitalOrders from "./pages/dashboard/ClientDigitalOrders";
 import ClientServicesHome from "./pages/dashboard/ClientServicesHome";
 import DesignServiceOrder from "./pages/dashboard/DesignServiceOrder";
 import ClientCashback from "./pages/dashboard/ClientCashback";
@@ -107,7 +103,6 @@ import AdminPaymentsHub from "./pages/admin/AdminPaymentsHub";
 import AdminChallenges from "./pages/admin/AdminChallenges";
 import AdminSyncSettings from "./pages/admin/AdminSyncSettings";
 import AdminContactMessages from "./pages/admin/AdminContactMessages";
-import AdminDigitalMarketing from "./pages/admin/AdminDigitalMarketing";
 import AdminCareers from "./pages/admin/AdminCareers";
 import AdminFinancing from "./pages/admin/AdminFinancing";
 import ClientFinancing from "./pages/dashboard/ClientFinancing";
@@ -149,7 +144,6 @@ const App = () => (
                   <Route path="/development-services" element={<DevelopmentServices />} />
                   <Route path="/design-services" element={<DesignServices />} />
                   
-                  <Route path="/digital-marketing-services" element={<DigitalMarketingServices />} />
                   <Route path="/careers" element={<Careers />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                   <Route path="/terms-of-service" element={<TermsOfService />} />
@@ -257,21 +251,6 @@ const App = () => (
                   <Route path="/dashboard/our-services" element={
                     <ProtectedRoute>
                       <ClientServicesHome />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/dashboard/digital-services" element={
-                    <ProtectedRoute>
-                      <ClientDigitalServices />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/dashboard/digital-services/order" element={
-                    <ProtectedRoute>
-                      <DigitalServiceOrder />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/dashboard/digital-orders" element={
-                    <ProtectedRoute>
-                      <ClientDigitalOrders />
                     </ProtectedRoute>
                   } />
                   <Route path="/dashboard/design-services/order" element={
@@ -405,11 +384,6 @@ const App = () => (
                   <Route path="/admin/services" element={
                     <ProtectedRoute requireAdmin>
                       <AdminServices />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin/digital-marketing" element={
-                    <ProtectedRoute requireAdmin>
-                      <AdminDigitalMarketing />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/categories" element={
