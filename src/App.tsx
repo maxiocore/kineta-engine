@@ -11,6 +11,8 @@ import MaintenanceGuard from "@/components/MaintenanceGuard";
 import ScrollToTop from "@/components/ScrollToTop";
 import NotificationListener from "@/components/pwa/NotificationListener";
 import NotificationPermissionPrompt from "@/components/pwa/NotificationPermissionPrompt";
+import { InAppNotificationContainer } from "@/components/pwa/InAppNotification";
+import NotificationOnboarding from "@/pages/dashboard/NotificationOnboarding";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -132,6 +134,7 @@ const App = () => (
             <BrowserRouter>
               <NotificationListener />
               <NotificationPermissionPrompt variant="banner" />
+              <InAppNotificationContainer />
               <ScrollToTop />
               <MaintenanceGuard>
                 <Routes>
@@ -184,6 +187,11 @@ const App = () => (
                   <Route path="/dashboard/notifications" element={
                     <ProtectedRoute>
                       <ClientNotifications />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/notification-setup" element={
+                    <ProtectedRoute>
+                      <NotificationOnboarding />
                     </ProtectedRoute>
                   } />
                   <Route path="/dashboard/support" element={
