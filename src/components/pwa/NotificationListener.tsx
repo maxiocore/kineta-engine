@@ -27,50 +27,54 @@ export const NotificationListener = () => {
   const { user } = useAuth();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const appChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const [permissionGranted, setPermissionGranted] = useState(false);
-
-  // Check notification permission on mount
-  useEffect(() => {
-    if ('Notification' in window) {
-      setPermissionGranted(Notification.permission === 'granted');
-    }
-  }, []);
 
   const showBrowserNotification = useCallback(async (title: string, body: string, url?: string, icon?: string) => {
-    // Check if notifications are supported and permitted
+    // Check if notifications are supported
     if (!('Notification' in window)) {
-      console.log('Browser does not support notifications');
+      console.log('[NotificationListener] Browser does not support notifications');
       return;
     }
 
     if (Notification.permission !== 'granted') {
-      console.log('Notification permission not granted');
+      console.log('[NotificationListener] Notification permission not granted:', Notification.permission);
       return;
     }
 
+    // Check if running as standalone PWA (required for iOS)
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true;
+    
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    console.log('[NotificationListener] Showing notification:', { title, isStandalone, isIOS });
+
     try {
-      // Try using service worker notification first (works better on mobile)
+      // Use service worker notification (works on iOS PWA and other platforms)
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.ready;
+        
         await registration.showNotification(title, {
           body,
           icon: icon || '/pwa-192x192.png',
           badge: '/pwa-192x192.png',
           dir: 'rtl',
           lang: 'ar',
-          tag: url || `notification-${Date.now()}`,
+          tag: `notification-${Date.now()}`,
           data: { url: url || '/dashboard/notifications' },
-          requireInteraction: true,
+          requireInteraction: !isIOS, // iOS doesn't support requireInteraction
+          silent: false,
         });
-        console.log('Service worker notification shown');
+        
+        console.log('[NotificationListener] Service worker notification shown successfully');
       } else {
-        // Fallback to regular notification
+        // Fallback to regular notification (won't work on iOS)
         const notification = new Notification(title, {
           body,
           icon: icon || '/pwa-192x192.png',
           dir: 'rtl',
           lang: 'ar',
-          tag: url || `notification-${Date.now()}`,
+          tag: `notification-${Date.now()}`,
         });
         
         notification.onclick = () => {
@@ -80,10 +84,11 @@ export const NotificationListener = () => {
           }
           notification.close();
         };
-        console.log('Regular notification shown');
+        
+        console.log('[NotificationListener] Regular notification shown');
       }
     } catch (error) {
-      console.error('Error showing notification:', error);
+      console.error('[NotificationListener] Error showing notification:', error);
     }
   }, []);
 
