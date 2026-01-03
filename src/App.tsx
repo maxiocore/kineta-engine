@@ -9,6 +9,8 @@ import { ThemeProvider } from "next-themes";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import MaintenanceGuard from "@/components/MaintenanceGuard";
 import ScrollToTop from "@/components/ScrollToTop";
+import NotificationListener from "@/components/pwa/NotificationListener";
+import NotificationPermissionPrompt from "@/components/pwa/NotificationPermissionPrompt";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -126,6 +128,8 @@ const App = () => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
+            <NotificationListener />
+            <NotificationPermissionPrompt variant="banner" />
             <BrowserRouter>
               <ScrollToTop />
               <MaintenanceGuard>
