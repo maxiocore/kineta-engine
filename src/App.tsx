@@ -74,6 +74,7 @@ import AdminReports from "./pages/admin/AdminReports";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminEmails from "./pages/admin/AdminEmails";
 import AdminNotifications from "./pages/admin/AdminNotifications";
+import AdminAppNotifications from "./pages/admin/AdminAppNotifications";
 import AdminLogs from "./pages/admin/AdminLogs";
 import AdminSupport from "./pages/admin/AdminSupport";
 import AdminAuth from "./pages/admin/AdminAuth";
@@ -481,6 +482,11 @@ const App = () => (
                   <Route path="/admin/notifications" element={
                     <ProtectedRoute requireAdmin>
                       <AdminNotifications />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/app-notifications" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminAppNotifications />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/logs" element={
