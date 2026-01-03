@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Sparkles, ChevronLeft, Home, Briefcase, Share2, Users, CreditCard, MessageCircle, LucideIcon } from "lucide-react";
+import { Menu, X, Sparkles, ChevronLeft, Home, Briefcase, Share2, Users, CreditCard, MessageCircle, LucideIcon, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import ThemeToggle from "@/components/ThemeToggle";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
 
 interface NavItem {
   label: string;
@@ -23,6 +24,8 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { isInstallable, isInstalled, isIOS, installApp } = usePWAInstall();
+  const [showIOSInstructions, setShowIOSInstructions] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -110,6 +113,22 @@ const Header = () => {
             {/* Desktop CTA */}
             <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
               <ThemeToggle />
+              
+              {/* Install Button - Desktop */}
+              {(isInstallable || isIOS) && !isInstalled && (
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={isIOS ? () => setShowIOSInstructions(true) : installApp}
+                    className="gap-1.5 border-primary/30 text-primary hover:bg-primary/5"
+                  >
+                    <Download className="w-4 h-4" />
+                    تثبيت التطبيق
+                  </Button>
+                </motion.div>
+              )}
+              
               <Link to="/auth">
                 <Button 
                   variant="ghost" 
@@ -258,6 +277,25 @@ const Header = () => {
                       ابدأ الآن مجاناً
                     </Button>
                   </Link>
+                  
+                  {/* Mobile Install Button */}
+                  {(isInstallable || isIOS) && !isInstalled && (
+                    <Button 
+                      variant="outline" 
+                      className="w-full py-4 xs:py-5 rounded-lg xs:rounded-xl border-primary/30 text-primary text-sm xs:text-base"
+                      onClick={() => {
+                        if (isIOS) {
+                          setShowIOSInstructions(true);
+                        } else {
+                          installApp();
+                        }
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      <Download className="w-3.5 h-3.5 xs:w-4 xs:h-4 ml-1.5 xs:ml-2" />
+                      تثبيت التطبيق
+                    </Button>
+                  )}
                 </motion.div>
               </div>
             </motion.div>

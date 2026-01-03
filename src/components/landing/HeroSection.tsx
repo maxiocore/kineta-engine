@@ -1,8 +1,10 @@
 import { motion, useInView } from "framer-motion";
-import { ArrowLeft, Sparkles, Code2, Palette, Share2, Rocket, Globe, Zap, Shield, Star, Play, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Sparkles, Code2, Palette, Share2, Rocket, Globe, Zap, Shield, Star, Play, CheckCircle2, Download, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useRef, useState, useEffect, useMemo } from "react";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
+import InstallPrompt from "@/components/pwa/InstallPrompt";
 
 const HeroSection = () => {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -325,6 +327,10 @@ const HeroSection = () => {
                 </Button>
               </motion.div>
             </Link>
+            
+            {/* Install App Button */}
+            <InstallPrompt variant="button" />
+            
             <Link to="/our-services">
               <motion.div
                 whileHover={{ scale: 1.03 }}
