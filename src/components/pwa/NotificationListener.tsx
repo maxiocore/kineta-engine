@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { showInAppNotification } from './InAppNotification';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 interface NotificationPayload {
   id: string;
@@ -25,8 +26,11 @@ interface AppNotification {
 
 export const NotificationListener = () => {
   const { user } = useAuth();
+  const { status, isIOS, isStandalone } = usePushNotifications();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const appChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  const canShowBrowserNotification = status === 'permission_granted';
 
   const showBrowserNotification = useCallback(async (
     title: string, 
@@ -35,28 +39,13 @@ export const NotificationListener = () => {
     icon?: string,
     tag?: string
   ) => {
-    // Check if notifications are supported
-    if (!('Notification' in window)) {
-      console.log('[NotificationListener] Browser does not support notifications');
+    // Only show browser notifications if push is granted
+    if (!canShowBrowserNotification) {
+      console.log('[NotificationListener] Browser notification skipped - using in-app only');
       return;
     }
-
-    if (Notification.permission !== 'granted') {
-      console.log('[NotificationListener] Notification permission not granted:', Notification.permission);
-      return;
-    }
-
-    // Check if running as standalone PWA
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as any).standalone === true;
-    
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-    console.log('[NotificationListener] Showing notification:', { title, isStandalone, isIOS });
 
     try {
-      // Always use service worker for notifications (required for iOS PWA)
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.ready;
         
@@ -72,43 +61,35 @@ export const NotificationListener = () => {
           silent: false,
         };
 
-        // Add vibration for non-iOS
-        if (!isIOS) {
-          (notificationOptions as any).vibrate = [100, 50, 100];
-          notificationOptions.requireInteraction = true;
-        }
-
         await registration.showNotification(title, notificationOptions);
-        console.log('[NotificationListener] Service worker notification shown successfully');
+        console.log('[NotificationListener] Browser notification shown');
       }
     } catch (error) {
-      console.error('[NotificationListener] Error showing notification:', error);
+      console.error('[NotificationListener] Error showing browser notification:', error);
     }
-  }, []);
+  }, [canShowBrowserNotification]);
 
   const handleNewNotification = useCallback(async (notification: NotificationPayload) => {
     console.log('[NotificationListener] Processing notification:', notification);
 
-    // Show in-app notification (iOS-style toast)
+    const actionUrl = notification.related_order_id 
+      ? `/dashboard/orders/${notification.related_order_id}`
+      : '/dashboard/notifications';
+
+    // Always show in-app notification (works everywhere)
     showInAppNotification({
       title: notification.title,
       message: notification.message,
       type: (notification.type as any) || 'general',
-      actionUrl: notification.related_order_id 
-        ? `/dashboard/orders/${notification.related_order_id}`
-        : '/dashboard/notifications',
+      actionUrl,
       duration: 6000,
     });
 
-    // Show browser push notification
-    const url = notification.related_order_id 
-      ? `/dashboard/orders/${notification.related_order_id}`
-      : '/dashboard/notifications';
-    
+    // Also show browser push notification if supported
     await showBrowserNotification(
       notification.title, 
       notification.message, 
-      url,
+      actionUrl,
       undefined,
       `user-notif-${notification.id}`
     );
@@ -117,21 +98,25 @@ export const NotificationListener = () => {
   const handleAppNotification = useCallback(async (notification: AppNotification) => {
     console.log('[NotificationListener] Processing app notification:', notification);
 
-    // Show in-app notification (iOS-style toast)
+    const title = notification.title_ar || notification.title;
+    const message = notification.message_ar || notification.message;
+    const actionUrl = notification.action_url || '/dashboard/notifications';
+
+    // Always show in-app notification
     showInAppNotification({
-      title: notification.title_ar || notification.title,
-      message: notification.message_ar || notification.message,
+      title,
+      message,
       type: (notification.type as any) || 'announcement',
       imageUrl: notification.image_url,
-      actionUrl: notification.action_url || '/dashboard/notifications',
+      actionUrl,
       duration: 8000,
     });
 
-    // Show browser notification
+    // Also show browser notification if supported
     await showBrowserNotification(
-      notification.title_ar || notification.title,
-      notification.message_ar || notification.message,
-      notification.action_url || '/dashboard/notifications',
+      title,
+      message,
+      actionUrl,
       notification.image_url,
       `app-notif-${notification.id}`
     );
@@ -191,11 +176,7 @@ export const NotificationListener = () => {
         (payload) => {
           console.log('[NotificationListener] Received app notification:', payload);
           const notification = payload.new as AppNotification;
-          
-          // Check if notification is for all users
-          if (notification.type === 'all' || !notification.type) {
-            handleAppNotification(notification);
-          }
+          handleAppNotification(notification);
         }
       )
       .subscribe((status) => {
