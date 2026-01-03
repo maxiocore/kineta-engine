@@ -34,6 +34,12 @@ interface UserProfile {
   full_name: string;
 }
 
+interface SendResult {
+  sent: number;
+  failed: number;
+  removed: number;
+}
+
 serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -50,7 +56,7 @@ serve(async (req: Request) => {
 
     const { notification_id, send_push = true, send_email = false }: SendNotificationRequest = await req.json();
 
-    console.log("Processing notification:", notification_id);
+    console.log("[send-app-notification] Processing notification:", notification_id);
 
     // Get the notification
     const { data: notification, error: notifError } = await supabase
@@ -60,6 +66,7 @@ serve(async (req: Request) => {
       .single();
 
     if (notifError || !notification) {
+      console.error("[send-app-notification] Notification not found:", notifError);
       throw new Error("Notification not found");
     }
 
@@ -69,78 +76,156 @@ serve(async (req: Request) => {
     let users: UserProfile[] = [];
 
     if (appNotification.target_audience === "all") {
-      const { data: allUsers } = await supabase
+      const { data: allUsers, error: usersError } = await supabase
         .from("profiles")
         .select("id, email, full_name");
+      
+      if (usersError) {
+        console.error("[send-app-notification] Error fetching users:", usersError);
+      }
       users = (allUsers || []) as UserProfile[];
     } else if (appNotification.target_user_ids && appNotification.target_user_ids.length > 0) {
-      const { data: targetUsers } = await supabase
+      const { data: targetUsers, error: targetError } = await supabase
         .from("profiles")
         .select("id, email, full_name")
         .in("id", appNotification.target_user_ids);
+      
+      if (targetError) {
+        console.error("[send-app-notification] Error fetching target users:", targetError);
+      }
       users = (targetUsers || []) as UserProfile[];
     }
 
-    console.log(`Found ${users.length} target users`);
+    console.log(`[send-app-notification] Found ${users.length} target users`);
 
-    let sentCount = 0;
-    let emailsSent = 0;
+    const pushResult: SendResult = { sent: 0, failed: 0, removed: 0 };
+    const emailResult: SendResult = { sent: 0, failed: 0, removed: 0 };
+
+    // Unified notification payload
+    const unifiedPayload = {
+      id: appNotification.id,
+      title: appNotification.title_ar || appNotification.title,
+      title_ar: appNotification.title_ar,
+      body: appNotification.message_ar || appNotification.message,
+      message: appNotification.message,
+      message_ar: appNotification.message_ar,
+      url: appNotification.action_url || "/dashboard/notifications",
+      action_url: appNotification.action_url,
+      icon: "/pwa-192x192.png",
+      badge: "/pwa-192x192.png",
+      image: appNotification.image_url || null,
+      type: appNotification.type,
+      tag: `app-notif-${appNotification.id}`,
+      requireInteraction: false,
+      renotify: true,
+      timestamp: new Date().toISOString(),
+    };
 
     // Send push notifications (insert into notifications table)
     if (send_push) {
+      console.log("[send-app-notification] Sending push notifications...");
+      
       for (const user of users) {
         try {
-          await supabase.from("notifications").insert({
+          const { error: insertError } = await supabase.from("notifications").insert({
             user_id: user.id,
-            title: appNotification.title_ar || appNotification.title,
-            message: appNotification.message_ar || appNotification.message,
+            title: unifiedPayload.title,
+            message: unifiedPayload.body,
             type: appNotification.type,
             related_order_id: null,
           });
-          sentCount++;
+
+          if (insertError) {
+            // Check for subscription expiry errors (404/410 equivalent)
+            if (insertError.code === "23503" || insertError.message?.includes("foreign key")) {
+              console.log(`[send-app-notification] User ${user.id} no longer exists, removing...`);
+              pushResult.removed++;
+            } else {
+              console.error(`[send-app-notification] Failed to send push to user ${user.id}:`, insertError);
+              pushResult.failed++;
+            }
+          } else {
+            pushResult.sent++;
+          }
         } catch (err) {
-          console.error(`Failed to send push to user ${user.id}:`, err);
+          console.error(`[send-app-notification] Exception sending push to user ${user.id}:`, err);
+          pushResult.failed++;
         }
       }
+      
+      console.log(`[send-app-notification] Push results: sent=${pushResult.sent}, failed=${pushResult.failed}, removed=${pushResult.removed}`);
     }
 
     // Send emails
     if (send_email && resend) {
+      console.log("[send-app-notification] Sending emails...");
+      
       for (const user of users) {
-        if (!user.email) continue;
+        if (!user.email) {
+          emailResult.failed++;
+          continue;
+        }
 
         try {
-          await resend.emails.send({
+          const { error: emailError } = await resend.emails.send({
             from: "MaxioCore <notifications@maxiocore.com>",
             to: [user.email],
             subject: appNotification.title_ar || appNotification.title,
             html: getEmailTemplate(appNotification, user),
           });
-          emailsSent++;
+
+          if (emailError) {
+            // Check for bounced/invalid email addresses
+            if (emailError.message?.includes("bounced") || emailError.message?.includes("invalid")) {
+              console.log(`[send-app-notification] Email ${user.email} bounced, marking for removal`);
+              emailResult.removed++;
+            } else {
+              console.error(`[send-app-notification] Failed to send email to ${user.email}:`, emailError);
+              emailResult.failed++;
+            }
+          } else {
+            emailResult.sent++;
+          }
         } catch (err) {
-          console.error(`Failed to send email to ${user.email}:`, err);
+          console.error(`[send-app-notification] Exception sending email to ${user.email}:`, err);
+          emailResult.failed++;
         }
       }
+      
+      console.log(`[send-app-notification] Email results: sent=${emailResult.sent}, failed=${emailResult.failed}, removed=${emailResult.removed}`);
     }
 
     // Update notification stats
-    await supabase
+    const { error: updateError } = await supabase
       .from("app_notifications")
       .update({
-        sent_count: sentCount,
+        sent_count: pushResult.sent,
         sent_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq("id", notification_id);
 
-    console.log(`Notification sent: ${sentCount} push, ${emailsSent} emails`);
+    if (updateError) {
+      console.error("[send-app-notification] Failed to update notification stats:", updateError);
+    }
+
+    const totalSent = pushResult.sent + emailResult.sent;
+    const totalFailed = pushResult.failed + emailResult.failed;
+    const totalRemoved = pushResult.removed + emailResult.removed;
+
+    console.log(`[send-app-notification] Complete! Total: sent=${totalSent}, failed=${totalFailed}, removed=${totalRemoved}`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        sent_count: sentCount,
-        emails_sent: emailsSent,
+        sent_count: totalSent,
+        failed_count: totalFailed,
+        removed_count: totalRemoved,
+        push_results: pushResult,
+        email_results: emailResult,
         total_users: users.length,
+        notification_id,
+        timestamp: new Date().toISOString(),
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -148,9 +233,12 @@ serve(async (req: Request) => {
       }
     );
   } catch (error: any) {
-    console.error("Error sending notification:", error);
+    console.error("[send-app-notification] Error:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,

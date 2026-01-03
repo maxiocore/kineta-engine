@@ -13,7 +13,7 @@ export const NotificationPermissionPrompt = ({ variant = 'banner' }: Notificatio
   const navigate = useNavigate();
   const { 
     isSupported,
-    isPushSupported,
+    status,
     permission, 
     requestPermission, 
     subscribeToPush,
@@ -22,6 +22,8 @@ export const NotificationPermissionPrompt = ({ variant = 'banner' }: Notificatio
     needsInstall,
     iosVersion 
   } = usePushNotifications();
+  
+  const isVersionUnsupported = status === 'ios_version_unsupported';
   
   const [dismissed, setDismissed] = useState(false);
   const [isRequesting, setIsRequesting] = useState(false);
@@ -134,7 +136,7 @@ export const NotificationPermissionPrompt = ({ variant = 'banner' }: Notificatio
   }
 
   // iOS version too old
-  if (isIOS && !isPushSupported && iosVersion) {
+  if (isIOS && isVersionUnsupported && iosVersion) {
     return (
       <AnimatePresence>
         <motion.div

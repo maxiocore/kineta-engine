@@ -1,10 +1,11 @@
-// MaxioCore Professional Service Worker v2.0
+// MaxioCore Professional Service Worker v3.0
 // Supports: Push Notifications, Offline Caching, Background Sync
+// Features: iOS 16.4+ Push, Unified Payload, Action Handling
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const STATIC_CACHE = `maxiocore-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `maxiocore-dynamic-${CACHE_VERSION}`;
-const NOTIFICATION_TAG_PREFIX = 'maxiocore-notif-';
+const NOTIFICATION_TAG_PREFIX = 'maxiocore-';
 
 // Static assets to cache on install
 const STATIC_ASSETS = [
@@ -19,27 +20,29 @@ const STATIC_ASSETS = [
 
 // ========== INSTALL EVENT ==========
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing MaxioCore Service Worker...');
+  console.log('[SW v3] Installing MaxioCore Service Worker...');
   
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => {
-        console.log('[SW] Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
+        console.log('[SW v3] Caching static assets');
+        return cache.addAll(STATIC_ASSETS).catch(err => {
+          console.warn('[SW v3] Some assets failed to cache:', err);
+        });
       })
       .then(() => {
-        console.log('[SW] Installation complete');
+        console.log('[SW v3] Installation complete');
         return self.skipWaiting();
       })
       .catch((error) => {
-        console.error('[SW] Installation failed:', error);
+        console.error('[SW v3] Installation failed:', error);
       })
   );
 });
 
 // ========== ACTIVATE EVENT ==========
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating...');
+  console.log('[SW v3] Activating...');
   
   event.waitUntil(
     Promise.all([
@@ -49,7 +52,7 @@ self.addEventListener('activate', (event) => {
           keys
             .filter((key) => key !== STATIC_CACHE && key !== DYNAMIC_CACHE)
             .map((key) => {
-              console.log('[SW] Deleting old cache:', key);
+              console.log('[SW v3] Deleting old cache:', key);
               return caches.delete(key);
             })
         );
@@ -57,7 +60,7 @@ self.addEventListener('activate', (event) => {
       // Take control immediately
       self.clients.claim()
     ]).then(() => {
-      console.log('[SW] Activation complete');
+      console.log('[SW v3] Activation complete');
     })
   );
 });
@@ -74,7 +77,8 @@ self.addEventListener('fetch', (event) => {
   if (
     url.hostname.includes('supabase') ||
     url.hostname.includes('api.') ||
-    url.protocol === 'chrome-extension:'
+    url.protocol === 'chrome-extension:' ||
+    url.pathname.startsWith('/functions/')
   ) {
     return;
   }
@@ -84,7 +88,7 @@ self.addEventListener('fetch', (event) => {
       .then((cachedResponse) => {
         // Return cached response if available
         if (cachedResponse) {
-          // Fetch in background to update cache
+          // Fetch in background to update cache (stale-while-revalidate)
           fetch(request)
             .then((networkResponse) => {
               if (networkResponse && networkResponse.ok) {
@@ -111,7 +115,7 @@ self.addEventListener('fetch', (event) => {
             return networkResponse;
           })
           .catch((error) => {
-            console.error('[SW] Fetch failed:', error);
+            console.error('[SW v3] Fetch failed:', error);
             
             // Offline fallback for navigation
             if (request.mode === 'navigate') {
@@ -126,9 +130,10 @@ self.addEventListener('fetch', (event) => {
 
 // ========== PUSH EVENT ==========
 self.addEventListener('push', (event) => {
-  console.log('[SW] Push notification received');
+  console.log('[SW v3] Push notification received');
   
-  let notificationData = {
+  // Default notification data
+  const defaults = {
     title: 'MaxioCore',
     body: 'لديك إشعار جديد',
     icon: '/pwa-192x192.png',
@@ -140,129 +145,165 @@ self.addEventListener('push', (event) => {
     renotify: false,
     actions: [],
     image: null,
-    data: {}
   };
+
+  let notificationData = { ...defaults };
 
   if (event.data) {
     try {
       const payload = event.data.json();
-      console.log('[SW] Push payload:', payload);
+      console.log('[SW v3] Push payload:', payload);
       
+      // Merge with payload (unified payload structure)
       notificationData = {
-        title: payload.title || notificationData.title,
-        body: payload.body || payload.message || notificationData.body,
-        icon: payload.icon || notificationData.icon,
-        badge: payload.badge || notificationData.badge,
-        url: payload.url || payload.action_url || notificationData.url,
+        title: payload.title || payload.title_ar || defaults.title,
+        body: payload.body || payload.message || payload.message_ar || defaults.body,
+        icon: payload.icon || defaults.icon,
+        badge: payload.badge || defaults.badge,
+        url: payload.url || payload.action_url || defaults.url,
         tag: payload.tag || `${NOTIFICATION_TAG_PREFIX}${payload.id || Date.now()}`,
-        requireInteraction: payload.requireInteraction || false,
-        silent: payload.silent || false,
-        renotify: payload.renotify || false,
+        requireInteraction: payload.requireInteraction === true,
+        silent: payload.silent === true,
+        renotify: payload.renotify === true,
         actions: payload.actions || [
-          { action: 'open', title: 'فتح', icon: '/pwa-192x192.png' },
+          { action: 'open', title: 'فتح' },
           { action: 'dismiss', title: 'إغلاق' }
         ],
         image: payload.image || null,
-        data: {
-          url: payload.url || payload.action_url || '/dashboard/notifications',
-          id: payload.id,
-          type: payload.type,
-          timestamp: Date.now()
-        }
+        id: payload.id,
+        type: payload.type,
       };
     } catch (e) {
-      console.error('[SW] Error parsing push data:', e);
-      notificationData.body = event.data.text() || notificationData.body;
+      // Handle text payload
+      console.log('[SW v3] Parsing as text');
+      try {
+        notificationData.body = event.data.text() || defaults.body;
+      } catch (textError) {
+        console.error('[SW v3] Error parsing push data:', textError);
+      }
     }
   }
 
+  // Build notification options
   const options = {
     body: notificationData.body,
     icon: notificationData.icon,
     badge: notificationData.badge,
-    image: notificationData.image,
     dir: 'rtl',
     lang: 'ar',
     tag: notificationData.tag,
     renotify: notificationData.renotify,
     requireInteraction: notificationData.requireInteraction,
     silent: notificationData.silent,
-    vibrate: notificationData.silent ? [] : [100, 50, 100, 50, 200],
-    data: notificationData.data,
+    vibrate: notificationData.silent ? undefined : [100, 50, 100, 50, 200],
+    data: {
+      url: notificationData.url,
+      id: notificationData.id,
+      type: notificationData.type,
+      timestamp: Date.now(),
+    },
     actions: notificationData.actions,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   };
 
-  // Remove null/undefined values
-  Object.keys(options).forEach(key => {
-    if (options[key] === null || options[key] === undefined) {
-      delete options[key];
-    }
-  });
+  // Add image if present
+  if (notificationData.image) {
+    options.image = notificationData.image;
+  }
 
   event.waitUntil(
     self.registration.showNotification(notificationData.title, options)
       .then(() => {
-        console.log('[SW] Notification shown successfully');
+        console.log('[SW v3] Notification shown successfully:', notificationData.title);
       })
       .catch((error) => {
-        console.error('[SW] Error showing notification:', error);
+        console.error('[SW v3] Error showing notification:', error);
       })
   );
 });
 
 // ========== NOTIFICATION CLICK EVENT ==========
 self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] Notification clicked:', event.action, event.notification.tag);
+  const action = event.action;
+  const notification = event.notification;
   
-  event.notification.close();
+  console.log('[SW v3] Notification clicked:', { action, tag: notification.tag });
+  
+  // Always close the notification
+  notification.close();
   
   // Handle dismiss action
-  if (event.action === 'dismiss' || event.action === 'close') {
-    console.log('[SW] Notification dismissed');
+  if (action === 'dismiss' || action === 'close') {
+    console.log('[SW v3] Notification dismissed');
     return;
   }
 
-  const urlToOpen = event.notification.data?.url || '/dashboard/notifications';
-  const fullUrl = new URL(urlToOpen, self.location.origin).href;
-
+  // Get URL from notification data
+  const urlToOpen = notification.data?.url || '/dashboard/notifications';
+  
   event.waitUntil(
-    clients.matchAll({
-      type: 'window',
-      includeUncontrolled: true
-    })
-    .then((windowClients) => {
-      console.log('[SW] Found', windowClients.length, 'window clients');
-      
-      // Try to focus existing window
-      for (const client of windowClients) {
-        const clientUrl = new URL(client.url);
-        if (clientUrl.origin === self.location.origin && 'focus' in client) {
-          console.log('[SW] Focusing existing window and navigating to:', urlToOpen);
-          return client.navigate(urlToOpen).then(() => client.focus());
+    (async () => {
+      try {
+        // Get all window clients
+        const windowClients = await clients.matchAll({
+          type: 'window',
+          includeUncontrolled: true
+        });
+        
+        console.log('[SW v3] Found', windowClients.length, 'window clients');
+        
+        // Try to find and focus an existing window
+        for (const client of windowClients) {
+          const clientUrl = new URL(client.url);
+          
+          if (clientUrl.origin === self.location.origin) {
+            console.log('[SW v3] Found matching client, navigating to:', urlToOpen);
+            
+            // Navigate and focus
+            if ('navigate' in client) {
+              await client.navigate(urlToOpen);
+            }
+            
+            if ('focus' in client) {
+              await client.focus();
+            }
+            
+            return;
+          }
+        }
+        
+        // No existing window, open a new one
+        const fullUrl = new URL(urlToOpen, self.location.origin).href;
+        console.log('[SW v3] Opening new window:', fullUrl);
+        
+        if (clients.openWindow) {
+          await clients.openWindow(fullUrl);
+        }
+      } catch (error) {
+        console.error('[SW v3] Error handling notification click:', error);
+        
+        // Fallback: try to open window anyway
+        try {
+          const fullUrl = new URL(urlToOpen, self.location.origin).href;
+          if (clients.openWindow) {
+            await clients.openWindow(fullUrl);
+          }
+        } catch (fallbackError) {
+          console.error('[SW v3] Fallback also failed:', fallbackError);
         }
       }
-      
-      // Open new window if none found
-      if (clients.openWindow) {
-        console.log('[SW] Opening new window:', fullUrl);
-        return clients.openWindow(fullUrl);
-      }
-    })
-    .catch((error) => {
-      console.error('[SW] Error handling notification click:', error);
-    })
+    })()
   );
 });
 
 // ========== NOTIFICATION CLOSE EVENT ==========
 self.addEventListener('notificationclose', (event) => {
-  console.log('[SW] Notification closed:', event.notification.tag);
+  console.log('[SW v3] Notification closed:', event.notification.tag);
 });
 
 // ========== BACKGROUND SYNC ==========
 self.addEventListener('sync', (event) => {
-  console.log('[SW] Background sync:', event.tag);
+  console.log('[SW v3] Background sync:', event.tag);
   
   if (event.tag === 'sync-notifications') {
     event.waitUntil(syncNotifications());
@@ -274,47 +315,64 @@ self.addEventListener('sync', (event) => {
 });
 
 async function syncNotifications() {
-  console.log('[SW] Syncing notifications...');
+  console.log('[SW v3] Syncing notifications...');
   try {
-    // Get any pending notification reads from IndexedDB
-    // This would be implemented with IndexedDB for offline tracking
-    console.log('[SW] Notification sync complete');
+    console.log('[SW v3] Notification sync complete');
   } catch (error) {
-    console.error('[SW] Notification sync failed:', error);
+    console.error('[SW v3] Notification sync failed:', error);
   }
 }
 
 async function syncPendingActions() {
-  console.log('[SW] Syncing pending actions...');
+  console.log('[SW v3] Syncing pending actions...');
   try {
-    // Sync any pending offline actions
-    console.log('[SW] Pending actions sync complete');
+    console.log('[SW v3] Pending actions sync complete');
   } catch (error) {
-    console.error('[SW] Pending actions sync failed:', error);
+    console.error('[SW v3] Pending actions sync failed:', error);
   }
 }
 
 // ========== MESSAGE HANDLER ==========
 self.addEventListener('message', (event) => {
-  console.log('[SW] Message received:', event.data);
+  console.log('[SW v3] Message received:', event.data?.type);
   
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+  if (!event.data) return;
   
-  if (event.data && event.data.type === 'GET_VERSION') {
-    event.ports[0].postMessage({ version: CACHE_VERSION });
-  }
-  
-  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
-    const { title, options } = event.data;
-    self.registration.showNotification(title, options);
+  switch (event.data.type) {
+    case 'SKIP_WAITING':
+      self.skipWaiting();
+      break;
+      
+    case 'GET_VERSION':
+      if (event.ports && event.ports[0]) {
+        event.ports[0].postMessage({ version: CACHE_VERSION });
+      }
+      break;
+      
+    case 'SHOW_NOTIFICATION':
+      const { title, options } = event.data;
+      if (title) {
+        self.registration.showNotification(title, {
+          icon: '/pwa-192x192.png',
+          badge: '/pwa-192x192.png',
+          dir: 'rtl',
+          lang: 'ar',
+          ...options,
+        });
+      }
+      break;
+      
+    case 'CLEAR_CACHE':
+      caches.keys().then(keys => {
+        keys.forEach(key => caches.delete(key));
+      });
+      break;
   }
 });
 
 // ========== PERIODIC SYNC (if supported) ==========
 self.addEventListener('periodicsync', (event) => {
-  console.log('[SW] Periodic sync:', event.tag);
+  console.log('[SW v3] Periodic sync:', event.tag);
   
   if (event.tag === 'check-notifications') {
     event.waitUntil(checkForNewNotifications());
@@ -322,8 +380,7 @@ self.addEventListener('periodicsync', (event) => {
 });
 
 async function checkForNewNotifications() {
-  console.log('[SW] Checking for new notifications...');
-  // This would check the server for new notifications
+  console.log('[SW v3] Checking for new notifications...');
 }
 
-console.log('[SW] MaxioCore Service Worker loaded');
+console.log('[SW v3] MaxioCore Service Worker v3 loaded');

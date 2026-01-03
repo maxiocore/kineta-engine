@@ -13,57 +13,43 @@ import {
   ArrowRight,
   ExternalLink,
   Vibrate,
-  Download
+  Download,
+  Chrome,
+  RefreshCw,
+  Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { usePushNotifications, type PushSupportStatus } from '@/hooks/usePushNotifications';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
-
-type NotificationStatus = 'not_installed' | 'installed_no_permission' | 'permission_denied' | 'enabled' | 'unsupported';
+import { showInAppNotification } from '@/components/pwa/InAppNotification';
+import { toast } from 'sonner';
 
 const NotificationOnboarding = () => {
   const navigate = useNavigate();
   const { 
-    isSupported, 
+    status,
+    statusMessageAr,
     permission, 
     requestPermission, 
     subscribeToPush,
+    sendTestNotification,
     isIOS,
+    isSafari,
     isStandalone,
     needsInstall,
-    iosVersion 
+    needsSafari,
+    canEnablePush,
+    iosVersion,
+    supportsInAppNotifications,
   } = usePushNotifications();
   
   const { isInstallable, installApp } = usePWAInstall();
   
   const [currentStep, setCurrentStep] = useState(0);
   const [isRequesting, setIsRequesting] = useState(false);
-  const [status, setStatus] = useState<NotificationStatus>('not_installed');
-
-  // Determine notification status
-  useEffect(() => {
-    if (isIOS && iosVersion) {
-      const [major, minor] = iosVersion.split('.').map(Number);
-      if (major < 16 || (major === 16 && minor < 4)) {
-        setStatus('unsupported');
-        return;
-      }
-    }
-    
-    if (!isSupported && !needsInstall) {
-      setStatus('unsupported');
-    } else if (needsInstall && !isStandalone) {
-      setStatus('not_installed');
-    } else if (permission === 'denied') {
-      setStatus('permission_denied');
-    } else if (permission === 'granted') {
-      setStatus('enabled');
-    } else {
-      setStatus('installed_no_permission');
-    }
-  }, [isSupported, permission, needsInstall, isStandalone, isIOS, iosVersion]);
+  const [testingSent, setTestingSent] = useState(false);
 
   const handleEnableNotifications = async () => {
     setIsRequesting(true);
@@ -71,11 +57,11 @@ const NotificationOnboarding = () => {
       const granted = await requestPermission();
       if (granted) {
         await subscribeToPush();
-        setStatus('enabled');
         // Haptic feedback
         if ('vibrate' in navigator) {
           navigator.vibrate([50, 30, 50]);
         }
+        toast.success('تم تفعيل الإشعارات بنجاح!');
       }
     } finally {
       setIsRequesting(false);
@@ -88,38 +74,89 @@ const NotificationOnboarding = () => {
     }
   };
 
+  const handleTestNotification = async () => {
+    setTestingSent(true);
+    
+    // Always show in-app notification
+    showInAppNotification({
+      title: 'اختبار إشعار MaxioCore',
+      message: 'هذا إشعار تجريبي! إذا رأيت هذا، فالإشعارات تعمل بشكل صحيح 🎉',
+      type: 'announcement',
+      actionUrl: '/dashboard',
+      duration: 8000,
+    });
+    
+    // Also try push if supported
+    if (status === 'permission_granted') {
+      await sendTestNotification();
+    }
+    
+    setTimeout(() => setTestingSent(false), 3000);
+  };
+
   // iOS Installation Steps
   const iosSteps = [
     {
       icon: Share2,
       title: 'اضغط على زر المشاركة',
-      description: 'في أسفل متصفح Safari، اضغط على زر المشاركة (السهم للأعلى)',
-      image: '/pwa-192x192.png',
+      description: 'في أسفل متصفح Safari، اضغط على زر المشاركة (المربع مع السهم للأعلى)',
+      visual: (
+        <div className="mt-4 p-4 bg-muted/50 rounded-xl">
+          <div className="flex items-center justify-center gap-2 text-primary">
+            <Share2 className="w-8 h-8" />
+            <span className="text-sm font-medium">زر المشاركة في Safari</span>
+          </div>
+        </div>
+      ),
     },
     {
       icon: Plus,
       title: 'أضف إلى الشاشة الرئيسية',
-      description: 'مرر للأسفل واختر "إضافة إلى الشاشة الرئيسية"',
-      image: '/pwa-192x192.png',
+      description: 'مرر للأسفل واختر "إضافة إلى الشاشة الرئيسية" أو "Add to Home Screen"',
+      visual: (
+        <div className="mt-4 p-4 bg-muted/50 rounded-xl w-full">
+          <div className="flex items-center gap-3 text-foreground">
+            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+              <Plus className="w-5 h-5 text-primary" />
+            </div>
+            <div className="text-right">
+              <span className="text-sm font-medium block">إضافة إلى الشاشة الرئيسية</span>
+              <span className="text-xs text-muted-foreground">Add to Home Screen</span>
+            </div>
+          </div>
+        </div>
+      ),
     },
     {
       icon: Smartphone,
-      title: 'افتح التطبيق',
-      description: 'اضغط على أيقونة MaxioCore من شاشتك الرئيسية',
-      image: '/pwa-192x192.png',
+      title: 'افتح التطبيق من الأيقونة',
+      description: 'بعد الإضافة، اضغط على أيقونة MaxioCore من شاشتك الرئيسية لفتح التطبيق',
+      visual: (
+        <div className="mt-4 flex justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg mx-auto">
+              <span className="text-2xl font-bold text-white">M</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">MaxioCore</p>
+          </div>
+        </div>
+      ),
     },
   ];
 
   const getStatusConfig = () => {
     switch (status) {
-      case 'enabled':
+      case 'permission_granted':
         return {
           icon: CheckCircle2,
           color: 'text-green-500',
           bgColor: 'bg-green-500/10',
           borderColor: 'border-green-500/20',
+          gradientFrom: 'from-green-500/20',
           title: 'الإشعارات مفعّلة',
           subtitle: 'ستصلك تنبيهات فورية لطلباتك وعروضنا',
+          badgeText: 'نشط',
+          badgeVariant: 'default' as const,
         };
       case 'permission_denied':
         return {
@@ -127,37 +164,71 @@ const NotificationOnboarding = () => {
           color: 'text-destructive',
           bgColor: 'bg-destructive/10',
           borderColor: 'border-destructive/20',
+          gradientFrom: 'from-destructive/20',
           title: 'الإشعارات مرفوضة',
           subtitle: 'يرجى تفعيلها من إعدادات المتصفح',
+          badgeText: 'مرفوض',
+          badgeVariant: 'destructive' as const,
         };
-      case 'unsupported':
+      case 'ios_version_unsupported':
         return {
           icon: AlertTriangle,
-          color: 'text-yellow-500',
-          bgColor: 'bg-yellow-500/10',
-          borderColor: 'border-yellow-500/20',
-          title: 'غير مدعوم',
-          subtitle: isIOS && iosVersion 
-            ? `الإشعارات تتطلب iOS 16.4+ (نسختك: ${iosVersion})`
-            : 'متصفحك لا يدعم الإشعارات',
+          color: 'text-amber-500',
+          bgColor: 'bg-amber-500/10',
+          borderColor: 'border-amber-500/20',
+          gradientFrom: 'from-amber-500/20',
+          title: 'نسخة iOS غير مدعومة',
+          subtitle: `الإشعارات تتطلب iOS 16.4+ (نسختك: ${iosVersion})`,
+          badgeText: 'غير مدعوم',
+          badgeVariant: 'secondary' as const,
         };
-      case 'not_installed':
+      case 'needs_safari':
+        return {
+          icon: Chrome,
+          color: 'text-blue-500',
+          bgColor: 'bg-blue-500/10',
+          borderColor: 'border-blue-500/20',
+          gradientFrom: 'from-blue-500/20',
+          title: 'افتح في Safari',
+          subtitle: 'لتفعيل الإشعارات على iPhone، افتح الموقع في Safari ثم أضفه للشاشة الرئيسية',
+          badgeText: 'Safari مطلوب',
+          badgeVariant: 'secondary' as const,
+        };
+      case 'supported_not_installed':
         return {
           icon: Download,
           color: 'text-primary',
           bgColor: 'bg-primary/10',
           borderColor: 'border-primary/20',
+          gradientFrom: 'from-primary/20',
           title: 'أضف التطبيق أولاً',
           subtitle: 'لاستقبال الإشعارات، أضف التطبيق للشاشة الرئيسية',
+          badgeText: 'غير مثبت',
+          badgeVariant: 'outline' as const,
         };
-      default:
+      case 'supported_ready':
         return {
           icon: Bell,
           color: 'text-primary',
           bgColor: 'bg-primary/10',
           borderColor: 'border-primary/20',
-          title: 'تفعيل الإشعارات',
-          subtitle: 'احصل على تنبيهات فورية لطلباتك',
+          gradientFrom: 'from-primary/20',
+          title: 'جاهز للتفعيل',
+          subtitle: 'اضغط الزر أدناه لتفعيل الإشعارات',
+          badgeText: 'جاهز',
+          badgeVariant: 'outline' as const,
+        };
+      default:
+        return {
+          icon: AlertTriangle,
+          color: 'text-muted-foreground',
+          bgColor: 'bg-muted/50',
+          borderColor: 'border-muted',
+          gradientFrom: 'from-muted/50',
+          title: 'غير مدعوم',
+          subtitle: statusMessageAr,
+          badgeText: 'غير متاح',
+          badgeVariant: 'secondary' as const,
         };
     }
   };
@@ -176,7 +247,7 @@ const NotificationOnboarding = () => {
           >
             <ArrowRight className="h-5 w-5" />
           </Button>
-          <h1 className="text-lg font-semibold">الإشعارات</h1>
+          <h1 className="text-lg font-semibold">إعداد الإشعارات</h1>
           <div className="w-10" />
         </div>
       </div>
@@ -189,7 +260,7 @@ const NotificationOnboarding = () => {
           className="relative"
         >
           <Card className={`border-2 ${statusConfig.borderColor} overflow-hidden`}>
-            <div className={`absolute inset-0 ${statusConfig.bgColor} opacity-50`} />
+            <div className={`absolute inset-0 bg-gradient-to-br ${statusConfig.gradientFrom} to-transparent opacity-50`} />
             <CardContent className="relative p-6">
               <div className="flex flex-col items-center text-center gap-4">
                 <div className={`w-20 h-20 rounded-2xl ${statusConfig.bgColor} flex items-center justify-center`}>
@@ -197,27 +268,61 @@ const NotificationOnboarding = () => {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold">{statusConfig.title}</h2>
-                  <p className="text-muted-foreground mt-1">{statusConfig.subtitle}</p>
+                  <p className="text-muted-foreground mt-1 text-sm">{statusConfig.subtitle}</p>
                 </div>
                 
                 {/* Status Badge */}
                 <Badge 
-                  variant="outline" 
-                  className={`${statusConfig.borderColor} ${statusConfig.color} gap-2`}
+                  variant={statusConfig.badgeVariant}
+                  className="gap-2"
                 >
-                  <span className={`w-2 h-2 rounded-full ${status === 'enabled' ? 'bg-green-500 animate-pulse' : statusConfig.color.replace('text-', 'bg-')}`} />
-                  {status === 'enabled' ? 'نشط' : 
-                   status === 'permission_denied' ? 'مرفوض' :
-                   status === 'unsupported' ? 'غير مدعوم' :
-                   status === 'not_installed' ? 'غير مثبت' : 'غير مفعّل'}
+                  <span className={`w-2 h-2 rounded-full ${status === 'permission_granted' ? 'bg-green-500 animate-pulse' : statusConfig.color.replace('text-', 'bg-')}`} />
+                  {statusConfig.badgeText}
                 </Badge>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
+        {/* Safari Required Message */}
+        {needsSafari && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Card className="border-blue-500/20 bg-blue-500/5">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                    <Chrome className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Safari مطلوب</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      إشعارات iPhone تعمل فقط من خلال Safari. انسخ الرابط وافتحه في Safari.
+                    </p>
+                  </div>
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full gap-2"
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.origin);
+                    toast.success('تم نسخ الرابط');
+                  }}
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  نسخ رابط الموقع
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* iOS Installation Steps */}
-        {status === 'not_installed' && isIOS && (
+        {needsInstall && isIOS && !needsSafari && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -232,10 +337,10 @@ const NotificationOnboarding = () => {
                 <button
                   key={index}
                   onClick={() => setCurrentStep(index)}
-                  className={`w-3 h-3 rounded-full transition-all ${
+                  className={`h-2 rounded-full transition-all ${
                     currentStep === index 
                       ? 'bg-primary w-8' 
-                      : 'bg-muted hover:bg-muted-foreground/30'
+                      : 'bg-muted hover:bg-muted-foreground/30 w-2'
                   }`}
                 />
               ))}
@@ -253,55 +358,26 @@ const NotificationOnboarding = () => {
                   <CardContent className="p-6">
                     <div className="flex flex-col items-center text-center gap-4">
                       {/* Step Number */}
-                      <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold">
+                      <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold">
                         {currentStep + 1}
                       </div>
                       
                       {/* Step Icon */}
-                      <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+                      <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
                         {(() => {
                           const StepIcon = iosSteps[currentStep].icon;
-                          return <StepIcon className="w-8 h-8 text-primary" />;
+                          return <StepIcon className="w-7 h-7 text-primary" />;
                         })()}
                       </div>
                       
                       {/* Step Content */}
                       <div>
                         <h4 className="text-lg font-semibold">{iosSteps[currentStep].title}</h4>
-                        <p className="text-muted-foreground mt-2">{iosSteps[currentStep].description}</p>
+                        <p className="text-muted-foreground mt-2 text-sm">{iosSteps[currentStep].description}</p>
                       </div>
 
-                      {/* Share Button Visual (Step 1) */}
-                      {currentStep === 0 && (
-                        <div className="mt-4 p-4 bg-muted/50 rounded-xl">
-                          <div className="flex items-center justify-center gap-2 text-primary">
-                            <Share2 className="w-6 h-6" />
-                            <span className="text-sm font-medium">زر المشاركة في Safari</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Add to Home Visual (Step 2) */}
-                      {currentStep === 1 && (
-                        <div className="mt-4 p-4 bg-muted/50 rounded-xl w-full">
-                          <div className="flex items-center gap-3 text-foreground">
-                            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                              <Plus className="w-5 h-5 text-primary" />
-                            </div>
-                            <span className="text-sm font-medium">إضافة إلى الشاشة الرئيسية</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* App Icon Visual (Step 3) */}
-                      {currentStep === 2 && (
-                        <div className="mt-4">
-                          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-                            <span className="text-2xl font-bold text-white">M</span>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-2">MaxioCore</p>
-                        </div>
-                      )}
+                      {/* Visual */}
+                      {iosSteps[currentStep].visual}
                     </div>
                   </CardContent>
                 </Card>
@@ -336,7 +412,7 @@ const NotificationOnboarding = () => {
         )}
 
         {/* Android/Desktop Install */}
-        {status === 'not_installed' && !isIOS && isInstallable && (
+        {needsInstall && !isIOS && isInstallable && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -354,7 +430,7 @@ const NotificationOnboarding = () => {
         )}
 
         {/* Enable Notifications Button */}
-        {status === 'installed_no_permission' && (
+        {canEnablePush && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -418,7 +494,7 @@ const NotificationOnboarding = () => {
                   className="w-full gap-2"
                   onClick={() => window.location.reload()}
                 >
-                  <ExternalLink className="w-4 h-4" />
+                  <RefreshCw className="w-4 h-4" />
                   إعادة التحقق
                 </Button>
               </CardContent>
@@ -426,8 +502,8 @@ const NotificationOnboarding = () => {
           </motion.div>
         )}
 
-        {/* Success - Back to Dashboard */}
-        {status === 'enabled' && (
+        {/* Success State */}
+        {status === 'permission_granted' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -461,37 +537,81 @@ const NotificationOnboarding = () => {
               onClick={() => navigate('/dashboard')}
             >
               العودة للوحة التحكم
-              <ArrowLeft className="w-4 h-4 mr-2" />
             </Button>
           </motion.div>
         )}
 
-        {/* Info Cards */}
-        <div className="grid gap-3 pt-4">
-          <Card className="bg-muted/30">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <Bell className="w-5 h-5 text-primary mt-0.5" />
-                <div className="text-sm">
-                  <p className="font-medium">إشعارات فورية</p>
-                  <p className="text-muted-foreground">تصلك تنبيهات مباشرة على جهازك</p>
+        {/* In-App Notification Fallback Section */}
+        {supportsInAppNotifications && status !== 'permission_granted' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card className="border-dashed">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Zap className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold">إشعارات داخل التطبيق</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      حتى بدون Push، ستصلك إشعارات جميلة داخل الموقع!
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-muted/30">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <Smartphone className="w-5 h-5 text-primary mt-0.5" />
-                <div className="text-sm">
-                  <p className="font-medium">تجربة تطبيق كاملة</p>
-                  <p className="text-muted-foreground">يعمل بدون اتصال ويحفظ بياناتك</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                
+                <Button 
+                  variant="outline"
+                  className="w-full mt-4 gap-2"
+                  onClick={handleTestNotification}
+                  disabled={testingSent}
+                >
+                  {testingSent ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      تم الإرسال!
+                    </>
+                  ) : (
+                    <>
+                      <Bell className="w-4 h-4" />
+                      اختبر إشعار الآن
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Test Push (when enabled) */}
+        {status === 'permission_granted' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <Button 
+              variant="outline"
+              className="w-full gap-2"
+              onClick={handleTestNotification}
+              disabled={testingSent}
+            >
+              {testingSent ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  تم إرسال الإشعار!
+                </>
+              ) : (
+                <>
+                  <Bell className="w-4 h-4" />
+                  اختبر إشعار الآن
+                </>
+              )}
+            </Button>
+          </motion.div>
+        )}
       </div>
     </div>
   );
