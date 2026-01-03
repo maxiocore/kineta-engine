@@ -1,16 +1,19 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, BellRing, X, Download, Smartphone } from 'lucide-react';
+import { Bell, BellRing, X, Download, Smartphone, AlertCircle, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface NotificationPermissionPromptProps {
-  variant?: 'banner' | 'modal';
+  variant?: 'banner' | 'minimal';
 }
 
 export const NotificationPermissionPrompt = ({ variant = 'banner' }: NotificationPermissionPromptProps) => {
+  const navigate = useNavigate();
   const { 
-    isSupported, 
+    isSupported,
+    isPushSupported,
     permission, 
     requestPermission, 
     subscribeToPush,
@@ -25,78 +28,103 @@ export const NotificationPermissionPrompt = ({ variant = 'banner' }: Notificatio
   const [showDelay, setShowDelay] = useState(true);
 
   useEffect(() => {
-    // Check if user already dismissed this prompt
-    const hasDismissed = localStorage.getItem('notification_prompt_dismissed');
+    // Check if user already dismissed this session
+    const hasDismissed = sessionStorage.getItem('notification_prompt_dismissed');
     if (hasDismissed) setDismissed(true);
     
-    // Show prompt after a short delay
-    const timer = setTimeout(() => setShowDelay(false), 3000);
+    // Show prompt after a delay for better UX
+    const timer = setTimeout(() => setShowDelay(false), 4000);
     return () => clearTimeout(timer);
   }, []);
 
   // Don't show during delay
   if (showDelay) return null;
 
-  // Don't show if already granted, denied, or dismissed
-  if (permission === 'granted' || permission === 'denied' || dismissed) {
+  // Don't show if already granted, denied permanently, or dismissed
+  if (permission === 'granted' || dismissed) {
     return null;
   }
 
   const handleEnable = async () => {
+    // If iOS and needs install, navigate to onboarding
+    if (isIOS && needsInstall) {
+      navigate('/dashboard/notification-setup');
+      return;
+    }
+
     setIsRequesting(true);
     try {
       const granted = await requestPermission();
       if (granted) {
         await subscribeToPush();
+        // Haptic feedback
+        if ('vibrate' in navigator) {
+          navigator.vibrate([50, 30, 50]);
+        }
       }
     } finally {
       setIsRequesting(false);
-      setDismissed(true);
+      handleDismiss();
     }
   };
 
   const handleDismiss = () => {
-    localStorage.setItem('notification_prompt_dismissed', 'true');
+    sessionStorage.setItem('notification_prompt_dismissed', 'true');
     setDismissed(true);
   };
 
-  // iOS needs to install the app first
+  const handleLearnMore = () => {
+    navigate('/dashboard/notification-setup');
+    handleDismiss();
+  };
+
+  // iOS needs to install the app first - show install prompt
   if (isIOS && needsInstall) {
     return (
       <AnimatePresence>
         <motion.div
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -100, opacity: 0 }}
-          className="fixed top-20 left-4 right-4 z-40 max-w-lg mx-auto"
+          initial={{ y: -100, opacity: 0, scale: 0.95 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: -100, opacity: 0, scale: 0.95 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+          className="fixed top-4 left-4 right-4 z-50 max-w-md mx-auto"
         >
-          <div className="bg-card border border-border rounded-2xl p-4 shadow-xl">
+          <div className="bg-card/95 backdrop-blur-xl border border-border/50 rounded-2xl p-4 shadow-2xl">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                <Download className="w-6 h-6 text-blue-500" />
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0 shadow-lg">
+                <Download className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="font-semibold text-foreground">أضف التطبيق للشاشة الرئيسية</h4>
                 <p className="text-sm text-muted-foreground mt-1">
-                  لاستقبال الإشعارات على iPhone، أضف التطبيق للشاشة الرئيسية
+                  لاستقبال الإشعارات على iPhone
                 </p>
-                <div className="mt-3 p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
-                  <p className="flex items-center gap-2 mb-1">
-                    <span className="text-lg">1️⃣</span> اضغط على زر المشاركة
-                    <span className="inline-block w-5 h-5 bg-primary/20 rounded text-center text-xs leading-5">⬆️</span>
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <span className="text-lg">2️⃣</span> اختر "إضافة إلى الشاشة الرئيسية"
-                  </p>
-                </div>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="flex-shrink-0"
+                className="flex-shrink-0 -mt-1 -mr-1"
                 onClick={handleDismiss}
               >
                 <X className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            <div className="flex gap-2 mt-4">
+              <Button
+                onClick={handleLearnMore}
+                className="flex-1 gap-2"
+                size="sm"
+              >
+                اعرف كيف
+                <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={handleDismiss}
+                size="sm"
+              >
+                لاحقاً
               </Button>
             </div>
           </div>
@@ -106,24 +134,27 @@ export const NotificationPermissionPrompt = ({ variant = 'banner' }: Notificatio
   }
 
   // iOS version too old
-  if (isIOS && !isSupported && iosVersion) {
+  if (isIOS && !isPushSupported && iosVersion) {
     return (
       <AnimatePresence>
         <motion.div
           initial={{ y: -100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -100, opacity: 0 }}
-          className="fixed top-20 left-4 right-4 z-40 max-w-lg mx-auto"
+          className="fixed top-4 left-4 right-4 z-50 max-w-md mx-auto"
         >
-          <div className="bg-card border border-border rounded-2xl p-4 shadow-xl">
+          <div className="bg-card/95 backdrop-blur-xl border border-orange-500/30 rounded-2xl p-4 shadow-2xl">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center flex-shrink-0">
-                <Smartphone className="w-6 h-6 text-orange-500" />
+                <AlertCircle className="w-6 h-6 text-orange-500" />
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="font-semibold text-foreground">تحديث مطلوب</h4>
                 <p className="text-sm text-muted-foreground mt-1">
-                  الإشعارات تتطلب iOS 16.4 أو أحدث. نسختك الحالية: iOS {iosVersion}
+                  الإشعارات تتطلب iOS 16.4 أو أحدث
+                </p>
+                <p className="text-xs text-orange-500 mt-1">
+                  نسختك الحالية: iOS {iosVersion}
                 </p>
               </div>
               <Button
@@ -142,29 +173,29 @@ export const NotificationPermissionPrompt = ({ variant = 'banner' }: Notificatio
   }
 
   // Not supported at all
-  if (!isSupported) {
+  if (!isSupported && !needsInstall) {
     return null;
   }
 
-  // Normal notification permission prompt
-  if (variant === 'banner') {
+  // Permission denied
+  if (permission === 'denied') {
     return (
       <AnimatePresence>
         <motion.div
           initial={{ y: -100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -100, opacity: 0 }}
-          className="fixed top-20 left-4 right-4 z-40 max-w-lg mx-auto"
+          className="fixed top-4 left-4 right-4 z-50 max-w-md mx-auto"
         >
-          <div className="bg-card border border-border rounded-2xl p-4 shadow-xl">
+          <div className="bg-card/95 backdrop-blur-xl border border-destructive/30 rounded-2xl p-4 shadow-2xl">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <BellRing className="w-6 h-6 text-primary animate-pulse" />
+              <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                <Bell className="w-6 h-6 text-destructive" />
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-foreground">تفعيل الإشعارات</h4>
+                <h4 className="font-semibold text-foreground">الإشعارات مرفوضة</h4>
                 <p className="text-sm text-muted-foreground mt-1">
-                  احصل على تنبيهات فورية لحالة طلباتك والعروض الجديدة
+                  فعّلها من إعدادات المتصفح
                 </p>
               </div>
               <Button
@@ -176,30 +207,82 @@ export const NotificationPermissionPrompt = ({ variant = 'banner' }: Notificatio
                 <X className="w-4 h-4" />
               </Button>
             </div>
-            <div className="flex gap-2 mt-4">
-              <Button
-                onClick={handleEnable}
-                disabled={isRequesting}
-                className="flex-1 gap-2"
-              >
-                <Bell className="w-4 h-4" />
-                {isRequesting ? 'جاري التفعيل...' : 'تفعيل'}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleDismiss}
-                className="flex-1"
-              >
-                لاحقاً
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full mt-3"
+              onClick={handleLearnMore}
+            >
+              اعرف كيف تفعّلها
+            </Button>
           </div>
         </motion.div>
       </AnimatePresence>
     );
   }
 
-  return null;
+  // Normal notification permission prompt
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ y: -100, opacity: 0, scale: 0.95 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: -100, opacity: 0, scale: 0.95 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+        className="fixed top-4 left-4 right-4 z-50 max-w-md mx-auto"
+      >
+        <div className="bg-card/95 backdrop-blur-xl border border-border/50 rounded-2xl p-4 shadow-2xl">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0 shadow-lg">
+              <BellRing className="w-6 h-6 text-white animate-pulse" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-semibold text-foreground">تفعيل الإشعارات</h4>
+              <p className="text-sm text-muted-foreground mt-1">
+                احصل على تنبيهات فورية لطلباتك والعروض
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="flex-shrink-0 -mt-1 -mr-1"
+              onClick={handleDismiss}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          <div className="flex gap-2 mt-4">
+            <Button
+              onClick={handleEnable}
+              disabled={isRequesting}
+              className="flex-1 gap-2"
+              size="sm"
+            >
+              {isRequesting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  جاري التفعيل...
+                </>
+              ) : (
+                <>
+                  <Bell className="w-4 h-4" />
+                  تفعيل
+                </>
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={handleDismiss}
+              size="sm"
+            >
+              لاحقاً
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
 };
 
 export default NotificationPermissionPrompt;
