@@ -22,7 +22,6 @@ import Contact from "./pages/Contact";
 import Pricing from "./pages/Pricing";
 import TrackOrder from "./pages/TrackOrder";
 import OurServices from "./pages/OurServices";
-import CategoryDetails from "./pages/CategoryDetails";
 import DevelopmentServices from "./pages/DevelopmentServices";
 import DesignServices from "./pages/DesignServices";
 
@@ -53,7 +52,6 @@ import ClientFavorites from "./pages/dashboard/ClientFavorites";
 import ClientServices from "./pages/dashboard/ClientServicesNew";
 
 import ClientReferrals from "./pages/dashboard/ClientReferrals";
-// ClientRewards merged into ClientRewardsHub
 import ClientBalanceLogs from "./pages/dashboard/ClientBalanceLogs";
 import ClientDesignServices from "./pages/dashboard/ClientDesignServices";
 import ClientDevServices from "./pages/dashboard/ClientDevServices";
@@ -76,19 +74,11 @@ import AdminAppNotifications from "./pages/admin/AdminAppNotifications";
 import AdminLogs from "./pages/admin/AdminLogs";
 import AdminSupport from "./pages/admin/AdminSupport";
 import AdminAuth from "./pages/admin/AdminAuth";
-import AdminServiceImport from "./pages/admin/AdminServiceImport";
-import AdminPriceUpdate from "./pages/admin/AdminPriceUpdate";
-import AdminOrdersSync from "./pages/admin/AdminOrdersSync";
 import AdminCoupons from "./pages/admin/AdminCoupons";
 import AdminUserProfile from "./pages/admin/AdminUserProfile";
 import AdminBadges from "./pages/admin/AdminBadges";
 import AdminPaymentMethods from "./pages/admin/AdminPaymentMethods";
-import AdminRefills from "./pages/admin/AdminRefills";
-import AdminCategories from "./pages/admin/AdminCategories";
 
-import AdminApiProviders from "./pages/admin/AdminApiProviders";
-import AdminProviderReports from "./pages/admin/AdminProviderReports";
-import AdminPriceComparison from "./pages/admin/AdminPriceComparison";
 import AdminReferrals from "./pages/admin/AdminReferrals";
 import AdminRewards from "./pages/admin/AdminRewards";
 import AdminRewardsReports from "./pages/admin/AdminRewardsReports";
@@ -101,7 +91,6 @@ import AdminFeaturedOffers from "./pages/admin/AdminFeaturedOffers";
 import AdminTamaraPayments from "./pages/admin/AdminTamaraPayments";
 import AdminPaymentsHub from "./pages/admin/AdminPaymentsHub";
 import AdminChallenges from "./pages/admin/AdminChallenges";
-import AdminSyncSettings from "./pages/admin/AdminSyncSettings";
 import AdminContactMessages from "./pages/admin/AdminContactMessages";
 import AdminCareers from "./pages/admin/AdminCareers";
 import AdminFinancing from "./pages/admin/AdminFinancing";
@@ -135,7 +124,6 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/our-services" element={<Navigate to="/services" replace />} />
-                  <Route path="/category/:slug" element={<CategoryDetails />} />
                   <Route path="/services" element={<OurServices />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/contact" element={<Contact />} />
@@ -361,11 +349,6 @@ const App = () => (
                       <AdminPaymentsHub />
                     </ProtectedRoute>
                   } />
-                  <Route path="/admin/refills" element={
-                    <ProtectedRoute requireAdmin>
-                      <AdminRefills />
-                    </ProtectedRoute>
-                  } />
                   <Route path="/admin" element={
                     <ProtectedRoute requireAdmin>
                       <AdminDashboard />
@@ -386,44 +369,9 @@ const App = () => (
                       <AdminServices />
                     </ProtectedRoute>
                   } />
-                  <Route path="/admin/categories" element={
-                    <ProtectedRoute requireAdmin>
-                      <AdminCategories />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin/providers" element={
-                    <ProtectedRoute requireAdmin>
-                      <AdminApiProviders />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin/providers/reports" element={
-                    <ProtectedRoute requireAdmin>
-                      <AdminProviderReports />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin/providers/compare" element={
-                    <ProtectedRoute requireAdmin>
-                      <AdminPriceComparison />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin/services/import" element={
-                    <ProtectedRoute requireAdmin>
-                      <AdminServiceImport />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin/services/prices" element={
-                    <ProtectedRoute requireAdmin>
-                      <AdminPriceUpdate />
-                    </ProtectedRoute>
-                  } />
                   <Route path="/admin/orders" element={
                     <ProtectedRoute requireAdmin>
                       <AdminOrders />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin/orders/sync" element={
-                    <ProtectedRoute requireAdmin>
-                      <AdminOrdersSync />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/referrals" element={
@@ -514,11 +462,6 @@ const App = () => (
                   <Route path="/admin/tamara-payments" element={
                     <ProtectedRoute requireAdmin>
                       <AdminTamaraPayments />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin/sync-settings" element={
-                    <ProtectedRoute requireAdmin>
-                      <AdminSyncSettings />
                     </ProtectedRoute>
                   } />
                   
