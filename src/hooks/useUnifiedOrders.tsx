@@ -12,6 +12,7 @@ import {
   unifiedStatusConfig,
   devOrderStatusMap,
   smmOrderStatusMap,
+  hostingOrderStatusMap,
 } from '@/types/unified-orders';
 
 interface UseUnifiedOrdersOptions {
@@ -107,6 +108,50 @@ function normalizeOrder(order: any, profile?: any): UnifiedOrder {
   };
 }
 
+// Normalize hosting_orders to UnifiedOrder
+function normalizeHostingOrder(order: any, profile?: any): UnifiedOrder {
+  const originalStatus = order.status || 'pending';
+  const unifiedStatus = hostingOrderStatusMap[originalStatus] || 'submitted';
+  const statusConfig = unifiedStatusConfig[unifiedStatus];
+  
+  const config = order.configuration || {};
+  const productName = config.product_name_ar || config.product_name || order.product?.name_ar || order.product?.name || 'خدمة استضافة';
+  
+  return {
+    id: order.id,
+    order_no: order.order_number,
+    domain: 'hosting' as OrderDomain,
+    domain_label: domainLabels.hosting,
+    service_id: order.product_id,
+    service_title: productName,
+    status: unifiedStatus,
+    status_label: statusConfig.label,
+    status_rank: statusConfig.rank,
+    status_config: statusConfig,
+    created_at: order.created_at,
+    updated_at: order.updated_at,
+    action_required: false,
+    user_id: order.user_id,
+    user_email: profile?.email,
+    user_name: profile?.full_name,
+    total_price: order.our_price,
+    meta: {
+      product_type: order.product_type,
+      do_price: order.do_price,
+      our_price: order.our_price,
+      do_resource_id: order.do_resource_id,
+      do_resource_name: order.do_resource_name,
+      do_region: order.do_region,
+      configuration: order.configuration,
+      provisioned_at: order.provisioned_at,
+      expires_at: order.expires_at,
+      admin_notes: order.admin_notes,
+    },
+    source_table: 'hosting_orders',
+    source_id: order.id,
+  };
+}
+
 export function useUnifiedOrders(options: UseUnifiedOrdersOptions = {}): UseUnifiedOrdersReturn {
   const { filters = {}, sort = { field: 'created_at', direction: 'desc' }, isAdmin = false, realtime = true } = options;
   const { user } = useAuth();
@@ -191,6 +236,30 @@ export function useUnifiedOrders(options: UseUnifiedOrdersOptions = {}): UseUnif
         console.log('useUnifiedOrders: Fetched orders:', regularOrders?.length || 0);
         if (regularOrders) {
           allOrders.push(...regularOrders.map(o => normalizeOrder(o, profilesMap[o.user_id])));
+        }
+      }
+
+      // Fetch hosting orders
+      let hostingQuery = supabase
+        .from('hosting_orders')
+        .select(`
+          *,
+          product:hosting_products(name, name_ar)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (!isAdmin && user) {
+        hostingQuery = hostingQuery.eq('user_id', user.id);
+      }
+
+      const { data: hostingOrders, error: hostingError } = await hostingQuery;
+      
+      if (hostingError) {
+        console.error('Error fetching hosting_orders:', hostingError);
+      } else {
+        console.log('useUnifiedOrders: Fetched hosting_orders:', hostingOrders?.length || 0);
+        if (hostingOrders) {
+          allOrders.push(...hostingOrders.map(o => normalizeHostingOrder(o, profilesMap[o.user_id])));
         }
       }
 
@@ -332,10 +401,33 @@ export function useUnifiedOrders(options: UseUnifiedOrdersOptions = {}): UseUnif
         console.log('useUnifiedOrders: orders channel status:', status);
       });
 
+    const hostingChannel = supabase
+      .channel('unified-hosting-orders-' + (user?.id || 'admin'))
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'hosting_orders',
+        },
+        (payload) => {
+          console.log('useUnifiedOrders: hosting_orders realtime update:', payload);
+          // For client, only refetch if it's their order
+          if (!isAdmin && user && payload.new && (payload.new as any).user_id !== user.id) {
+            return;
+          }
+          fetchOrders();
+        }
+      )
+      .subscribe((status) => {
+        console.log('useUnifiedOrders: hosting_orders channel status:', status);
+      });
+
     return () => {
       console.log('useUnifiedOrders: Cleaning up realtime subscriptions');
       supabase.removeChannel(devChannel);
       supabase.removeChannel(ordersChannel);
+      supabase.removeChannel(hostingChannel);
     };
   }, [user, isAdmin, realtime, fetchOrders]);
 
@@ -393,6 +485,22 @@ export function useUnifiedOrderDetails(orderId: string | undefined) {
 
       if (regularOrder) {
         setOrder(normalizeOrder(regularOrder));
+        setLoading(false);
+        return;
+      }
+
+      // Try hosting orders
+      const { data: hostingOrder, error: hostingError } = await supabase
+        .from('hosting_orders')
+        .select(`
+          *,
+          product:hosting_products(name, name_ar)
+        `)
+        .eq('id', orderId)
+        .maybeSingle();
+
+      if (hostingOrder) {
+        setOrder(normalizeHostingOrder(hostingOrder));
         setLoading(false);
         return;
       }

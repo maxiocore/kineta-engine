@@ -24,6 +24,7 @@ import {
   TrendingUp,
   Calendar,
   ArrowUpDown,
+  Server,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,6 +65,7 @@ const domainIconMap: Record<OrderDomain, any> = {
   design: Palette,
   marketing: Megaphone,
   smm: Share2,
+  hosting: Server,
   other: Package,
 };
 
@@ -406,6 +408,7 @@ export default function UnifiedOrders() {
                 <SelectItem value="smm">سوشيال ميديا</SelectItem>
                 <SelectItem value="design">تصميم</SelectItem>
                 <SelectItem value="marketing">تسويق</SelectItem>
+                <SelectItem value="hosting">استضافة</SelectItem>
               </SelectContent>
             </Select>
 
