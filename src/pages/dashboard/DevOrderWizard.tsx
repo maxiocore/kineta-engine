@@ -368,13 +368,13 @@ export default function DevOrderWizard() {
           payload: { email: user.email },
         });
 
-        navigate(`/dashboard/dev-orders/${orderId}/verify-email`);
+        navigate(`/dashboard/verify-email?orderId=${orderId}`);
       } else {
         toast({
           title: "تم استلام طلبك بنجاح",
           description: "طلبك الآن قيد المراجعة من فريقنا",
         });
-        navigate(`/dashboard/dev-orders/${orderId}`);
+        navigate(`/dashboard/my-dev-orders/${orderId}`);
       }
     } catch (error) {
       console.error("Error submitting order:", error);
