@@ -268,25 +268,10 @@ const AdminServices = () => {
           { icon: BarChart3, color: 'text-amber-400', bg: 'bg-amber-500/10' },
           { icon: Zap, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
         ]
-      },
-      {
-        id: 'smm',
-        name: 'Social Media',
-        nameAr: 'السوشيال ميديا',
-        icon: Activity,
-        gradient: 'from-pink-600/80 to-rose-600/80',
-        iconGradient: 'from-pink-500 to-rose-500',
-        bgGlow: 'bg-pink-500/10',
-        services: [],
-        platforms: [
-          { icon: Smartphone, color: 'text-pink-400', bg: 'bg-pink-500/10' },
-          { icon: Activity, color: 'text-rose-400', bg: 'bg-rose-500/10' },
-          { icon: Star, color: 'text-red-400', bg: 'bg-red-500/10' },
-        ]
       }
     ];
 
-    // Categorize services dynamically
+    // Categorize services - Design, Development, and Marketing only
     enrichedServices.forEach(service => {
       const cat = service.category.toLowerCase();
       const catOriginal = service.category;
@@ -297,12 +282,8 @@ const AdminServices = () => {
         groups[1].services.push(service);
       } else if (catOriginal.includes('تسويق') || cat.includes('marketing') || cat.includes('seo')) {
         groups[2].services.push(service);
-      } else if (catOriginal.includes('تويتر') || catOriginal.includes('تيك توك') || catOriginal.includes('سناب') || catOriginal.includes('يوتيوب') || catOriginal.includes('انستقرام') || catOriginal.includes('فيسبوك') || cat.includes('social') || cat.includes('twitter') || cat.includes('tiktok') || cat.includes('snapchat') || cat.includes('youtube') || cat.includes('instagram') || cat.includes('facebook')) {
-        groups[3].services.push(service);
-      } else {
-        // Default to SMM for unrecognized categories (most likely social media platforms)
-        groups[3].services.push(service);
       }
+      // Ignore social media services (Twitter, TikTok, Snapchat, YouTube, etc.)
     });
 
     // Filter out empty categories
