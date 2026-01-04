@@ -55,6 +55,7 @@ import ClientReferrals from "./pages/dashboard/ClientReferrals";
 import ClientBalanceLogs from "./pages/dashboard/ClientBalanceLogs";
 import ClientDesignServices from "./pages/dashboard/ClientDesignServices";
 import ClientDevServices from "./pages/dashboard/ClientDevServices";
+import ClientMarketingServices from "./pages/dashboard/ClientMarketingServices";
 import ClientServicesHome from "./pages/dashboard/ClientServicesHome";
 import DesignServiceOrder from "./pages/dashboard/DesignServiceOrder";
 import ClientCashback from "./pages/dashboard/ClientCashback";
@@ -234,6 +235,11 @@ const App = () => (
                   <Route path="/dashboard/dev-services" element={
                     <ProtectedRoute>
                       <ClientDevServices />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/marketing-services" element={
+                    <ProtectedRoute>
+                      <ClientMarketingServices />
                     </ProtectedRoute>
                   } />
                   <Route path="/dashboard/our-services" element={
