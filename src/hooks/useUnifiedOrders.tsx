@@ -30,7 +30,7 @@ interface UseUnifiedOrdersReturn {
 }
 
 // Normalize dev_orders to UnifiedOrder
-function normalizeDevOrder(order: any): UnifiedOrder {
+function normalizeDevOrder(order: any, profile?: any): UnifiedOrder {
   const originalStatus = order.status || 'draft';
   const unifiedStatus = devOrderStatusMap[originalStatus] || 'submitted';
   const statusConfig = unifiedStatusConfig[unifiedStatus];
@@ -41,7 +41,7 @@ function normalizeDevOrder(order: any): UnifiedOrder {
     domain: 'dev' as OrderDomain,
     domain_label: domainLabels.dev,
     service_id: order.service_id,
-    service_title: order.service?.title_ar || 'خدمة برمجية',
+    service_title: order.service?.title_ar || order.project_title || 'خدمة برمجية',
     status: unifiedStatus,
     status_label: statusConfig.label,
     status_rank: statusConfig.rank,
@@ -51,7 +51,8 @@ function normalizeDevOrder(order: any): UnifiedOrder {
     action_required: unifiedStatus === 'action_required',
     action_label: unifiedStatus === 'action_required' ? 'يرجى إضافة المعلومات المطلوبة' : undefined,
     user_id: order.user_id,
-    user_email: order.contact_email,
+    user_email: order.contact_email || profile?.email,
+    user_name: profile?.full_name,
     meta: {
       project_title: order.project_title,
       project_goal: order.project_goal,
@@ -68,7 +69,7 @@ function normalizeDevOrder(order: any): UnifiedOrder {
 }
 
 // Normalize orders (SMM/regular) to UnifiedOrder
-function normalizeOrder(order: any): UnifiedOrder {
+function normalizeOrder(order: any, profile?: any): UnifiedOrder {
   const originalStatus = order.status || 'pending';
   const unifiedStatus = smmOrderStatusMap[originalStatus] || 'submitted';
   const statusConfig = unifiedStatusConfig[unifiedStatus];
@@ -88,6 +89,8 @@ function normalizeOrder(order: any): UnifiedOrder {
     updated_at: order.updated_at,
     action_required: false,
     user_id: order.user_id,
+    user_email: profile?.email,
+    user_name: profile?.full_name,
     total_price: order.total_price,
     meta: {
       link: order.link,
@@ -128,6 +131,20 @@ export function useUnifiedOrders(options: UseUnifiedOrdersOptions = {}): UseUnif
 
     try {
       const allOrders: UnifiedOrder[] = [];
+      
+      // Fetch profiles for admin mode (to show user info)
+      let profilesMap: Record<string, any> = {};
+      if (isAdmin) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, email, full_name');
+        
+        if (profiles) {
+          profiles.forEach(p => {
+            profilesMap[p.id] = p;
+          });
+        }
+      }
 
       // Fetch dev_orders
       let devQuery = supabase
@@ -149,7 +166,7 @@ export function useUnifiedOrders(options: UseUnifiedOrdersOptions = {}): UseUnif
       } else {
         console.log('useUnifiedOrders: Fetched dev_orders:', devOrders?.length || 0);
         if (devOrders) {
-          allOrders.push(...devOrders.map(normalizeDevOrder));
+          allOrders.push(...devOrders.map(o => normalizeDevOrder(o, profilesMap[o.user_id])));
         }
       }
 
@@ -173,7 +190,7 @@ export function useUnifiedOrders(options: UseUnifiedOrdersOptions = {}): UseUnif
       } else {
         console.log('useUnifiedOrders: Fetched orders:', regularOrders?.length || 0);
         if (regularOrders) {
-          allOrders.push(...regularOrders.map(normalizeOrder));
+          allOrders.push(...regularOrders.map(o => normalizeOrder(o, profilesMap[o.user_id])));
         }
       }
 
