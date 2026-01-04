@@ -800,6 +800,225 @@ export type Database = {
           },
         ]
       }
+      dev_order_events: {
+        Row: {
+          actor_id: string | null
+          actor_role: string
+          created_at: string
+          event_type: string
+          id: string
+          message_text: string | null
+          order_id: string
+          payload: Json | null
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_role?: string
+          created_at?: string
+          event_type: string
+          id?: string
+          message_text?: string | null
+          order_id: string
+          payload?: Json | null
+        }
+        Update: {
+          actor_id?: string | null
+          actor_role?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          message_text?: string | null
+          order_id?: string
+          payload?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_order_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "dev_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dev_order_files: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          order_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          order_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          order_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_order_files_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "dev_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dev_orders: {
+        Row: {
+          admin_notes: string | null
+          budget_range: string | null
+          client_type: string
+          contact_email: string | null
+          created_at: string
+          id: string
+          order_no: string
+          project_goal: string | null
+          project_summary: string | null
+          project_title: string | null
+          rejection_reason: string | null
+          requirements_json: Json | null
+          service_id: string | null
+          status: string
+          timeline_expectation: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          budget_range?: string | null
+          client_type?: string
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          order_no: string
+          project_goal?: string | null
+          project_summary?: string | null
+          project_title?: string | null
+          rejection_reason?: string | null
+          requirements_json?: Json | null
+          service_id?: string | null
+          status?: string
+          timeline_expectation?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          budget_range?: string | null
+          client_type?: string
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          order_no?: string
+          project_goal?: string | null
+          project_summary?: string | null
+          project_title?: string | null
+          rejection_reason?: string | null
+          requirements_json?: Json | null
+          service_id?: string | null
+          status?: string
+          timeline_expectation?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_orders_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "dev_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dev_services: {
+        Row: {
+          base_price: number
+          category: string
+          created_at: string
+          deliverables: Json | null
+          desc_ar: string | null
+          display_order: number | null
+          eta_days_max: number
+          eta_days_min: number
+          faqs: Json | null
+          features: Json | null
+          has_guarantee: boolean
+          icon: string | null
+          id: string
+          is_active: boolean
+          is_fast: boolean
+          is_featured: boolean
+          requirements: Json | null
+          slug: string
+          title_ar: string
+          updated_at: string
+        }
+        Insert: {
+          base_price?: number
+          category?: string
+          created_at?: string
+          deliverables?: Json | null
+          desc_ar?: string | null
+          display_order?: number | null
+          eta_days_max?: number
+          eta_days_min?: number
+          faqs?: Json | null
+          features?: Json | null
+          has_guarantee?: boolean
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_fast?: boolean
+          is_featured?: boolean
+          requirements?: Json | null
+          slug: string
+          title_ar: string
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          category?: string
+          created_at?: string
+          deliverables?: Json | null
+          desc_ar?: string | null
+          display_order?: number | null
+          eta_days_max?: number
+          eta_days_min?: number
+          faqs?: Json | null
+          features?: Json | null
+          has_guarantee?: boolean
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_fast?: boolean
+          is_featured?: boolean
+          requirements?: Json | null
+          slug?: string
+          title_ar?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_campaigns: {
         Row: {
           completed_at: string | null
