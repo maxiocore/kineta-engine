@@ -63,44 +63,40 @@ function getEmailTemplate(
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>تحديث حالة الطلب</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-    @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
     @keyframes glow { 0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); } 50% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.5); } }
     .animate-fade { animation: fadeIn 0.6s ease-out forwards; }
     .animate-pulse { animation: pulse 2s ease-in-out infinite; }
-    .animate-slide { animation: slideIn 0.5s ease-out forwards; }
     .animate-glow { animation: glow 2s ease-in-out infinite; }
+    * { font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif !important; }
   </style>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif; background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%); direction: rtl; text-align: right; min-height: 100vh;">
+<body style="margin: 0; padding: 0; font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif; background: #f1f5f9; direction: rtl; text-align: right; min-height: 100vh;">
   
-  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+  <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; background-color: #f1f5f9;">
     <tr>
       <td align="center" style="padding: 40px 20px;">
         
         <!-- Main Card Container -->
-        <table role="presentation" cellpadding="0" cellspacing="0" class="animate-fade" style="width: 100%; max-width: 580px; border-collapse: collapse; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 80px rgba(0, 0, 0, 0.12), 0 10px 30px rgba(0, 0, 0, 0.08);">
+        <table role="presentation" cellpadding="0" cellspacing="0" class="animate-fade" style="width: 100%; max-width: 600px; border-collapse: collapse; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);">
           
-          <!-- Animated Header -->
+          <!-- Header -->
           <tr>
-            <td style="background: ${headerGradient}; padding: 45px 35px; text-align: center; position: relative;">
-              <!-- Decorative circles -->
-              <div style="position: absolute; top: -30px; right: -30px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
-              <div style="position: absolute; bottom: -40px; left: -40px; width: 150px; height: 150px; background: rgba(255,255,255,0.08); border-radius: 50%;"></div>
-              
-              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; position: relative; z-index: 1;">
+            <td style="background: ${headerGradient}; padding: 50px 40px; text-align: center;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                 <tr>
                   <td align="center">
-                    <!-- Status Icon with Animation -->
-                    <div class="animate-pulse" style="width: 90px; height: 90px; background: rgba(255,255,255,0.25); border-radius: 50%; margin: 0 auto 20px; line-height: 90px; backdrop-filter: blur(10px); border: 3px solid rgba(255,255,255,0.3);">
-                      <span style="font-size: 48px; display: inline-block;">${statusInfo.emoji}</span>
+                    <!-- Status Icon -->
+                    <div class="animate-pulse" style="width: 100px; height: 100px; background: rgba(255,255,255,0.2); border-radius: 50%; margin: 0 auto 25px; line-height: 100px; border: 4px solid rgba(255,255,255,0.4);">
+                      <span style="font-size: 56px; display: inline-block;">${statusInfo.emoji}</span>
                     </div>
-                    <h1 style="margin: 0 0 8px; color: #ffffff; font-size: 28px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.15);">
+                    <h1 style="margin: 0 0 12px; color: #ffffff; font-size: 32px; font-weight: 700; letter-spacing: -0.5px;">
                       تحديث حالة الطلب
                     </h1>
-                    <p style="margin: 0; color: rgba(255,255,255,0.9); font-size: 15px; font-weight: 500;">
-                      طلب رقم: ${orderNumber}
+                    <p style="margin: 0; color: #ffffff; font-size: 18px; font-weight: 500; opacity: 0.95;">
+                      طلب رقم: <strong>${orderNumber}</strong>
                     </p>
                   </td>
                 </tr>
@@ -110,42 +106,40 @@ function getEmailTemplate(
           
           <!-- Greeting Section -->
           <tr>
-            <td class="animate-slide" style="padding: 35px 35px 25px; text-align: right; direction: rtl;">
-              <h2 style="margin: 0 0 12px; font-size: 22px; color: #0f172a; font-weight: 700;">
+            <td style="padding: 40px 40px 30px; text-align: right; direction: rtl; background: #ffffff;">
+              <h2 style="margin: 0 0 15px; font-size: 26px; color: #1e293b; font-weight: 700;">
                 مرحباً ${customerName || 'عميلنا العزيز'} 👋
               </h2>
-              <p style="margin: 0; font-size: 16px; color: #64748b; line-height: 1.8;">
+              <p style="margin: 0; font-size: 18px; color: #475569; line-height: 1.9;">
                 نود إعلامك بأنه تم تحديث حالة طلبك. يمكنك الاطلاع على التفاصيل أدناه.
               </p>
             </td>
           </tr>
           
-          <!-- Status Change Card with Animation -->
+          <!-- Status Change Card -->
           <tr>
-            <td style="padding: 0 35px 30px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" class="animate-glow" style="width: 100%; background: linear-gradient(145deg, ${statusInfo.bgColor} 0%, ${statusInfo.bgColor}cc 100%); border-radius: 20px; border: 2px solid ${statusInfo.color}20; overflow: hidden;">
+            <td style="padding: 0 40px 35px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" class="animate-glow" style="width: 100%; background: ${statusInfo.bgColor}; border-radius: 20px; border: 3px solid ${statusInfo.color}30;">
                 <tr>
-                  <td style="padding: 30px; text-align: center;">
-                    <p style="margin: 0 0 20px; font-size: 13px; color: #64748b; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">الحالة الحالية</p>
+                  <td style="padding: 35px; text-align: center;">
+                    <p style="margin: 0 0 25px; font-size: 16px; color: #334155; letter-spacing: 1px; font-weight: 600;">الحالة الحالية</p>
                     
                     ${oldStatusInfo ? `
                     <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
                       <tr>
-                        <td style="padding: 10px 20px; background: #f1f5f9; color: #94a3b8; border-radius: 50px; font-size: 14px; text-decoration: line-through; font-weight: 500;">
+                        <td style="padding: 12px 24px; background: #e2e8f0; color: #64748b; border-radius: 50px; font-size: 16px; text-decoration: line-through; font-weight: 600;">
                           ${oldStatusInfo.ar}
                         </td>
-                        <td style="padding: 0 20px;">
-                          <span style="display: inline-block; width: 40px; height: 2px; background: linear-gradient(90deg, #cbd5e1, ${statusInfo.color}); vertical-align: middle;"></span>
-                          <span style="color: ${statusInfo.color}; font-size: 18px; margin: 0 5px;">→</span>
-                          <span style="display: inline-block; width: 40px; height: 2px; background: linear-gradient(90deg, ${statusInfo.color}, ${statusInfo.color}); vertical-align: middle;"></span>
+                        <td style="padding: 0 25px;">
+                          <span style="color: ${statusInfo.color}; font-size: 28px; font-weight: 700;">←</span>
                         </td>
-                        <td class="animate-pulse" style="padding: 14px 32px; background: linear-gradient(135deg, ${statusInfo.color} 0%, ${statusInfo.color}dd 100%); color: #ffffff; border-radius: 50px; font-size: 16px; font-weight: 700; box-shadow: 0 8px 25px ${statusInfo.color}40;">
+                        <td class="animate-pulse" style="padding: 16px 36px; background: ${statusInfo.color}; color: #ffffff; border-radius: 50px; font-size: 20px; font-weight: 700; box-shadow: 0 10px 30px ${statusInfo.color}50;">
                           ${statusInfo.emoji} ${statusInfo.ar}
                         </td>
                       </tr>
                     </table>
                     ` : `
-                    <span class="animate-pulse" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, ${statusInfo.color} 0%, ${statusInfo.color}dd 100%); color: #ffffff; border-radius: 50px; font-size: 18px; font-weight: 700; box-shadow: 0 10px 30px ${statusInfo.color}40;">
+                    <span class="animate-pulse" style="display: inline-block; padding: 18px 45px; background: ${statusInfo.color}; color: #ffffff; border-radius: 50px; font-size: 22px; font-weight: 700; box-shadow: 0 10px 30px ${statusInfo.color}50;">
                       ${statusInfo.emoji} ${statusInfo.ar}
                     </span>
                     `}
@@ -157,50 +151,46 @@ function getEmailTemplate(
           
           <!-- Order Details Card -->
           <tr>
-            <td style="padding: 0 35px 30px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 20px; border: 1px solid #e2e8f0; overflow: hidden;">
+            <td style="padding: 0 40px 35px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: #f8fafc; border-radius: 20px; border: 2px solid #e2e8f0;">
                 <tr>
-                  <td style="padding: 25px 30px; border-bottom: 1px solid #e2e8f0;">
-                    <p style="margin: 0; font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">📋 تفاصيل الطلب</p>
+                  <td style="padding: 25px 30px; border-bottom: 2px solid #e2e8f0; background: #f1f5f9; border-radius: 18px 18px 0 0;">
+                    <p style="margin: 0; font-size: 16px; color: #1e293b; letter-spacing: 1px; font-weight: 700;">📋 تفاصيل الطلب</p>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding: 25px 30px;">
+                  <td style="padding: 30px;">
                     <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                       <!-- Order Number -->
                       <tr>
-                        <td style="padding: 14px 0; border-bottom: 1px dashed #e2e8f0; text-align: right; color: #64748b; font-size: 14px; font-weight: 500;">
-                          <span style="display: inline-block; width: 24px; height: 24px; background: #ede9fe; border-radius: 6px; text-align: center; line-height: 24px; margin-left: 10px; font-size: 12px;">🔢</span>
-                          رقم الطلب
+                        <td style="padding: 18px 0; border-bottom: 2px dashed #e2e8f0; text-align: right; color: #334155; font-size: 17px; font-weight: 600;">
+                          🔢 رقم الطلب
                         </td>
-                        <td style="padding: 14px 0; border-bottom: 1px dashed #e2e8f0; text-align: left; color: #0f172a; font-size: 16px; font-weight: 700; font-family: 'Monaco', 'Consolas', monospace;">${orderNumber}</td>
+                        <td style="padding: 18px 0; border-bottom: 2px dashed #e2e8f0; text-align: left; color: #0f172a; font-size: 18px; font-weight: 700;">${orderNumber}</td>
                       </tr>
                       <!-- Service Name -->
                       <tr>
-                        <td style="padding: 14px 0; border-bottom: 1px dashed #e2e8f0; text-align: right; color: #64748b; font-size: 14px; font-weight: 500;">
-                          <span style="display: inline-block; width: 24px; height: 24px; background: #dbeafe; border-radius: 6px; text-align: center; line-height: 24px; margin-left: 10px; font-size: 12px;">🎯</span>
-                          الخدمة
+                        <td style="padding: 18px 0; border-bottom: 2px dashed #e2e8f0; text-align: right; color: #334155; font-size: 17px; font-weight: 600;">
+                          🎯 الخدمة
                         </td>
-                        <td style="padding: 14px 0; border-bottom: 1px dashed #e2e8f0; text-align: left; color: #0f172a; font-size: 14px; font-weight: 600; max-width: 200px; word-break: break-word;">${serviceName}</td>
+                        <td style="padding: 18px 0; border-bottom: 2px dashed #e2e8f0; text-align: left; color: #0f172a; font-size: 17px; font-weight: 600; max-width: 220px; word-break: break-word;">${serviceName}</td>
                       </tr>
                       ${quantity ? `
                       <!-- Quantity -->
                       <tr>
-                        <td style="padding: 14px 0; border-bottom: 1px dashed #e2e8f0; text-align: right; color: #64748b; font-size: 14px; font-weight: 500;">
-                          <span style="display: inline-block; width: 24px; height: 24px; background: #fef3c7; border-radius: 6px; text-align: center; line-height: 24px; margin-left: 10px; font-size: 12px;">📊</span>
-                          الكمية
+                        <td style="padding: 18px 0; border-bottom: 2px dashed #e2e8f0; text-align: right; color: #334155; font-size: 17px; font-weight: 600;">
+                          📊 الكمية
                         </td>
-                        <td style="padding: 14px 0; border-bottom: 1px dashed #e2e8f0; text-align: left; color: #0f172a; font-size: 14px; font-weight: 600;">${quantity.toLocaleString('ar-SA')}</td>
+                        <td style="padding: 18px 0; border-bottom: 2px dashed #e2e8f0; text-align: left; color: #0f172a; font-size: 18px; font-weight: 700;">${quantity.toLocaleString('ar-SA')}</td>
                       </tr>
                       ` : ''}
                       <!-- Price -->
                       <tr>
-                        <td style="padding: 14px 0; text-align: right; color: #64748b; font-size: 14px; font-weight: 500;">
-                          <span style="display: inline-block; width: 24px; height: 24px; background: #dcfce7; border-radius: 6px; text-align: center; line-height: 24px; margin-left: 10px; font-size: 12px;">💵</span>
-                          المبلغ
+                        <td style="padding: 18px 0; text-align: right; color: #334155; font-size: 17px; font-weight: 600;">
+                          💵 المبلغ
                         </td>
-                        <td style="padding: 14px 0; text-align: left;">
-                          <span style="display: inline-block; padding: 8px 18px; background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); color: #166534; border-radius: 50px; font-size: 18px; font-weight: 800;">$${totalPrice.toFixed(2)}</span>
+                        <td style="padding: 18px 0; text-align: left;">
+                          <span style="display: inline-block; padding: 12px 24px; background: #dcfce7; color: #15803d; border-radius: 50px; font-size: 22px; font-weight: 800;">$${totalPrice.toFixed(2)}</span>
                         </td>
                       </tr>
                     </table>
@@ -212,11 +202,11 @@ function getEmailTemplate(
           
           <!-- Status Message Box -->
           <tr>
-            <td style="padding: 0 35px 30px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: ${newStatus === 'completed' ? 'linear-gradient(145deg, #dcfce7 0%, #bbf7d0 100%)' : newStatus === 'cancelled' ? 'linear-gradient(145deg, #fee2e2 0%, #fecaca 100%)' : 'linear-gradient(145deg, #e0f2fe 0%, #bae6fd 100%)'}; border-radius: 16px; border-right: 5px solid ${newStatus === 'completed' ? '#22c55e' : newStatus === 'cancelled' ? '#ef4444' : '#0ea5e9'};">
+            <td style="padding: 0 40px 35px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: ${newStatus === 'completed' ? '#dcfce7' : newStatus === 'cancelled' ? '#fee2e2' : '#e0f2fe'}; border-radius: 16px; border-right: 6px solid ${newStatus === 'completed' ? '#22c55e' : newStatus === 'cancelled' ? '#ef4444' : '#0ea5e9'};">
                 <tr>
-                  <td style="padding: 22px 28px; text-align: center;">
-                    <p style="margin: 0; font-size: 16px; color: ${newStatus === 'completed' ? '#166534' : newStatus === 'cancelled' ? '#991b1b' : '#0369a1'}; line-height: 1.8; font-weight: 600;">
+                  <td style="padding: 28px 32px; text-align: center;">
+                    <p style="margin: 0; font-size: 20px; color: ${newStatus === 'completed' ? '#15803d' : newStatus === 'cancelled' ? '#b91c1c' : '#0369a1'}; line-height: 1.9; font-weight: 700;">
                       ${statusMessage}
                     </p>
                   </td>
@@ -227,8 +217,8 @@ function getEmailTemplate(
           
           <!-- CTA Button -->
           <tr>
-            <td style="padding: 0 35px 40px; text-align: center;">
-              <a href="https://maxiocore.com/dashboard/orders" class="animate-pulse" style="display: inline-block; padding: 18px 50px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; border-radius: 16px; font-weight: 700; font-size: 16px; box-shadow: 0 15px 40px rgba(99, 102, 241, 0.4), 0 5px 15px rgba(99, 102, 241, 0.2); transition: all 0.3s ease;">
+            <td style="padding: 0 40px 45px; text-align: center;">
+              <a href="https://maxiocore.com/dashboard/orders" class="animate-pulse" style="display: inline-block; padding: 20px 55px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; border-radius: 16px; font-weight: 700; font-size: 20px; box-shadow: 0 15px 40px rgba(99, 102, 241, 0.4);">
                 📋 تتبع طلبك الآن
               </a>
             </td>
@@ -236,18 +226,18 @@ function getEmailTemplate(
           
           <!-- Footer -->
           <tr>
-            <td style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 35px;">
+            <td style="background: #1e293b; padding: 40px;">
               <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                 <tr>
                   <td align="center">
                     <!-- Logo -->
-                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 14px; margin: 0 auto 15px; line-height: 50px; text-align: center;">
-                      <span style="font-size: 24px; font-weight: 800; color: #ffffff;">M</span>
+                    <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 16px; margin: 0 auto 20px; line-height: 60px; text-align: center;">
+                      <span style="font-size: 30px; font-weight: 800; color: #ffffff;">M</span>
                     </div>
-                    <p style="margin: 0 0 15px; font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.8;">
+                    <p style="margin: 0 0 18px; font-size: 17px; color: #cbd5e1; line-height: 1.8;">
                       إذا كانت لديك أي استفسارات، لا تتردد في التواصل معنا.
                     </p>
-                    <p style="margin: 0; font-size: 12px; color: #475569;">
+                    <p style="margin: 0; font-size: 14px; color: #64748b;">
                       © ${new Date().getFullYear()} MaxioCore. جميع الحقوق محفوظة.
                     </p>
                   </td>
