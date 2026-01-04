@@ -1,9 +1,7 @@
-import { useState, useEffect, useMemo, useRef } from "react";
-import { motion, AnimatePresence, useInView, useScroll, useTransform, useMotionValue, animate } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { motion, useInView, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
-  Globe,
   Palette,
   Code,
   Sparkles,
@@ -14,895 +12,461 @@ import {
   Star,
   CheckCircle2,
   Users,
-  Heart,
   Award,
   Rocket,
-  Target,
   Crown,
   TrendingUp,
-  ArrowUpRight,
   Play,
-  ShoppingCart,
-  Wallet,
-  Activity,
-  Layers,
   Eye,
-  MousePointer,
-  Headphones,
+  Layers,
+  Globe,
+  Smartphone,
+  Video,
   BadgeCheck,
-  Timer,
-  BarChart3,
-  PieChart,
-  LineChart,
-  Megaphone,
-  Building2,
-  Briefcase,
-  GraduationCap,
-  Gem,
-  Flame,
-  MessageCircle,
-  Send,
+  Headphones,
   Lock,
+  Target,
+  MessageCircle,
+  ChevronDown,
 } from "lucide-react";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
-// Main service categories with enterprise-level content
-const mainServices = [
-  {
-    id: "social",
-    name: "خدمات التواصل الاجتماعي",
-    nameEn: "Social Media Growth",
-    description: "حلول متكاملة لتنمية حضورك الرقمي على جميع منصات التواصل الاجتماعي مع ضمان الجودة والتوصيل السريع",
-    longDescription: "نقدم خدمات احترافية لزيادة المتابعين والتفاعل على Instagram, TikTok, YouTube, Twitter, Facebook, LinkedIn وجميع المنصات الأخرى. خبراء في التسويق الرقمي مع فريق دعم متواصل.",
-    icon: Globe,
-    gradient: "from-pink-500 via-rose-500 to-red-500",
-    bgGradient: "from-pink-500/20 via-rose-500/10 to-transparent",
-    accentColor: "text-pink-500",
-    features: [
-      { icon: Zap, text: "توصيل فوري خلال دقائق" },
-      { icon: Shield, text: "ضمان التعويض مدى الحياة" },
-      { icon: Users, text: "متابعين حقيقيين ونشطين" },
-      { icon: Headphones, text: "دعم فني على مدار الساعة" },
-    ],
-    stats: { value: "500K+", label: "طلب منفذ" },
-    clients: ["شركات Fortune 500", "مؤثرين عالميين", "علامات تجارية كبرى"],
-    link: "/services",
-    popular: true,
-  },
+// Service categories data
+const services = [
   {
     id: "design",
     name: "خدمات التصميم الإبداعي",
     nameEn: "Creative Design Studio",
-    description: "تصاميم مبتكرة وهوية بصرية متكاملة تعكس رؤية علامتك التجارية بأعلى معايير الجودة العالمية",
-    longDescription: "فريق من المصممين المحترفين يقدمون تصاميم شعارات، هويات بصرية، منشورات سوشيال ميديا، تصاميم UI/UX، وكل ما تحتاجه لإبراز علامتك التجارية بشكل مميز.",
+    description: "تصاميم مبتكرة وهوية بصرية متكاملة تعكس رؤية علامتك التجارية",
+    longDescription: "فريق من المصممين المحترفين يقدمون تصاميم شعارات، هويات بصرية، منشورات سوشيال ميديا، تصاميم UI/UX، وكل ما تحتاجه لإبراز علامتك التجارية.",
     icon: Palette,
-    gradient: "from-orange-500 via-amber-500 to-yellow-500",
-    bgGradient: "from-orange-500/20 via-amber-500/10 to-transparent",
-    accentColor: "text-orange-500",
+    gradient: "from-rose-500 via-pink-500 to-violet-500",
+    bgGradient: "from-rose-500/20 via-pink-500/10 to-transparent",
     features: [
       { icon: Eye, text: "تصاميم فريدة 100%" },
-      { icon: Timer, text: "مراجعات غير محدودة" },
+      { icon: Clock, text: "تسليم سريع" },
       { icon: Layers, text: "ملفات مصدرية كاملة" },
-      { icon: Award, text: "مصممين حائزين على جوائز" },
+      { icon: Award, text: "مصممين محترفين" },
+    ],
+    subServices: [
+      { name: "الهوية البصرية", icon: Crown },
+      { name: "شعارات ولوجو", icon: Sparkles },
+      { name: "سوشيال ميديا", icon: Globe },
+      { name: "موشن جرافيك", icon: Video },
     ],
     stats: { value: "10K+", label: "تصميم مُنجز" },
-    clients: ["وكالات إعلانية", "شركات ناشئة", "علامات فاخرة"],
     link: "/dashboard/design-services",
-    popular: false,
   },
   {
     id: "development",
     name: "خدمات البرمجة والتطوير",
     nameEn: "Development & Tech Solutions",
-    description: "تطوير مواقع وتطبيقات بأحدث التقنيات العالمية مع معايير أمان وأداء استثنائية",
-    longDescription: "متخصصون في تطوير مواقع الويب، تطبيقات الموبايل، أنظمة إدارة المحتوى، متاجر إلكترونية، وحلول برمجية مخصصة. نستخدم أحدث التقنيات مثل React, Next.js, Node.js, Flutter.",
+    description: "تطوير مواقع وتطبيقات بأحدث التقنيات العالمية",
+    longDescription: "متخصصون في تطوير مواقع الويب، تطبيقات الموبايل، متاجر إلكترونية، وحلول برمجية مخصصة باستخدام أحدث التقنيات.",
     icon: Code,
     gradient: "from-emerald-500 via-teal-500 to-cyan-500",
     bgGradient: "from-emerald-500/20 via-teal-500/10 to-transparent",
-    accentColor: "text-emerald-500",
     features: [
-      { icon: Lock, text: "أمان على مستوى البنوك" },
+      { icon: Lock, text: "أمان عالي المستوى" },
       { icon: Rocket, text: "أداء فائق السرعة" },
       { icon: Code, text: "كود نظيف وموثق" },
       { icon: Headphones, text: "دعم فني مستمر" },
     ],
-    stats: { value: "500+", label: "مشروع ناجح" },
-    clients: ["شركات تقنية", "بنوك ومؤسسات مالية", "حكومات ومنظمات"],
-    link: "/dashboard/dev-services",
-    popular: false,
-  },
-  {
-    id: "digital",
-    name: "خدمات التسويق الرقمي",
-    nameEn: "Digital Marketing Agency",
-    description: "استراتيجيات تسويق رقمي متكاملة لزيادة المبيعات وتحقيق أعلى عائد على الاستثمار",
-    longDescription: "خبراء في SEO، إعلانات Google و Meta، التسويق بالمحتوى، إدارة حملات إعلانية، تحليل البيانات، وتحسين معدلات التحويل. نساعدك على الوصول لجمهورك المستهدف بدقة.",
-    icon: Megaphone,
-    gradient: "from-violet-500 via-purple-500 to-indigo-500",
-    bgGradient: "from-violet-500/20 via-purple-500/10 to-transparent",
-    accentColor: "text-violet-500",
-    features: [
-      { icon: BarChart3, text: "تحليلات متقدمة" },
-      { icon: Target, text: "استهداف دقيق" },
-      { icon: TrendingUp, text: "نتائج مضمونة" },
-      { icon: PieChart, text: "تقارير تفصيلية" },
+    subServices: [
+      { name: "مواقع ويب", icon: Globe },
+      { name: "تطبيقات جوال", icon: Smartphone },
+      { name: "متاجر إلكترونية", icon: TrendingUp },
+      { name: "أنظمة متكاملة", icon: Layers },
     ],
-    stats: { value: "200%", label: "متوسط زيادة المبيعات" },
-    clients: ["متاجر إلكترونية", "شركات SaaS", "علامات عالمية"],
-    link: "/dashboard/digital-services",
-    popular: true,
+    stats: { value: "500+", label: "مشروع ناجح" },
+    link: "/dashboard/dev-services",
   },
 ];
 
-// Global companies that trust us - with real logos
-const trustedCompanies = [
-  { 
-    name: "Google", 
-    logo: "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png",
-    url: "https://www.google.com"
-  },
-  { 
-    name: "Meta", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Meta_Platforms_Inc._logo.svg/800px-Meta_Platforms_Inc._logo.svg.png",
-    url: "https://about.meta.com"
-  },
-  { 
-    name: "Amazon", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/1200px-Amazon_logo.svg.png",
-    url: "https://www.amazon.com"
-  },
-  { 
-    name: "Microsoft", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Microsoft_logo_%282012%29.svg/1200px-Microsoft_logo_%282012%29.svg.png",
-    url: "https://www.microsoft.com"
-  },
-  { 
-    name: "Apple", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/800px-Apple_logo_black.svg.png",
-    url: "https://www.apple.com"
-  },
-  { 
-    name: "Netflix", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Netflix_2015_logo.svg/1200px-Netflix_2015_logo.svg.png",
-    url: "https://www.netflix.com"
-  },
-  { 
-    name: "Spotify", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Spotify_logo_without_text.svg/800px-Spotify_logo_without_text.svg.png",
-    url: "https://www.spotify.com"
-  },
-  { 
-    name: "Adobe", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Adobe_Corporate_Logo.svg/1200px-Adobe_Corporate_Logo.svg.png",
-    url: "https://www.adobe.com"
-  },
-  { 
-    name: "Shopify", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Shopify_logo_2018.svg/1200px-Shopify_logo_2018.svg.png",
-    url: "https://www.shopify.com"
-  },
-  { 
-    name: "Slack", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Slack_icon_2019.svg/800px-Slack_icon_2019.svg.png",
-    url: "https://slack.com"
-  },
+// Why choose us data
+const whyChooseUs = [
+  { icon: Zap, title: "تنفيذ سريع", description: "نبدأ العمل فور استلام الطلب", color: "text-amber-500" },
+  { icon: Shield, title: "ضمان الجودة", description: "استرداد كامل مضمون", color: "text-emerald-500" },
+  { icon: Users, title: "فريق محترف", description: "خبراء في مجالاتهم", color: "text-blue-500" },
+  { icon: Headphones, title: "دعم متواصل", description: "متاحين على مدار الساعة", color: "text-violet-500" },
 ];
 
-// Animated Counter Component
-const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: number }) => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
-  const count = useMotionValue(0);
-  const [displayValue, setDisplayValue] = useState("0");
-
-  useEffect(() => {
-    if (isInView) {
-      const controls = animate(count, value, {
-        duration,
-        ease: "easeOut",
-        onUpdate: (latest) => {
-          if (latest >= 1000000) {
-            setDisplayValue(`${(latest / 1000000).toFixed(1)}M`);
-          } else if (latest >= 1000) {
-            setDisplayValue(`${(latest / 1000).toFixed(latest >= 10000 ? 0 : 1)}K`);
-          } else {
-            setDisplayValue(Math.round(latest).toLocaleString('en-US'));
-          }
-        }
-      });
-      return controls.stop;
-    }
-  }, [isInView, value, duration, count]);
-
-  return (
-    <span ref={ref} className="tabular-nums font-mono">
-      {displayValue}
-    </span>
-  );
-};
-
-// Floating Particles Background
+// Floating Particles
 const FloatingParticles = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    {[...Array(20)].map((_, i) => (
+    {[...Array(15)].map((_, i) => (
       <motion.div
         key={i}
         className="absolute w-2 h-2 rounded-full bg-primary/20"
-        initial={{ 
-          x: Math.random() * window.innerWidth, 
-          y: Math.random() * 800,
-          scale: Math.random() * 0.5 + 0.5,
+        style={{
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
         }}
-        animate={{ 
-          y: [null, -100],
-          opacity: [0.2, 0.8, 0.2],
+        animate={{
+          y: [-20, 20, -20],
+          x: [-10, 10, -10],
+          opacity: [0.2, 0.5, 0.2],
         }}
-        transition={{ 
-          duration: Math.random() * 10 + 10,
+        transition={{
+          duration: 5 + Math.random() * 5,
           repeat: Infinity,
-          repeatType: "loop",
+          delay: Math.random() * 2,
         }}
       />
     ))}
   </div>
 );
 
-// Premium Service Card Component
-const ServiceCard = ({ service, index }: { service: typeof mainServices[0]; index: number }) => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+// Service Card Component
+const ServiceCard = ({ 
+  service, 
+  index, 
+  isInView 
+}: { 
+  service: typeof services[0]; 
+  index: number; 
+  isInView: boolean;
+}) => {
   const navigate = useNavigate();
+  const [isExpanded, setIsExpanded] = useState(false);
   const IconComponent = service.icon;
-  const isReversed = index % 2 === 1;
 
   return (
     <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 80 }}
+      initial={{ opacity: 0, y: 60 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.8, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.7, delay: index * 0.2, type: "spring" }}
       className="relative"
     >
-      <div className={`grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center ${isReversed ? 'lg:flex-row-reverse' : ''}`}>
-        {/* Content Side */}
-        <motion.div 
-          className={`relative z-10 ${isReversed ? 'lg:order-2' : ''}`}
-          initial={{ opacity: 0, x: isReversed ? 50 : -50 }}
-          animate={isInView ? { opacity: 1, x: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.2 }}
+      <Card className="relative overflow-hidden border-2 border-border/50 bg-card/90 backdrop-blur-xl hover:border-primary/30 transition-all duration-500 rounded-2xl sm:rounded-3xl hover:shadow-2xl hover:shadow-primary/10 group">
+        {/* Background Glow */}
+        <div className={cn(
+          "absolute -top-32 -right-32 w-64 h-64 rounded-full blur-3xl opacity-0 group-hover:opacity-50 transition-opacity duration-700",
+          service.bgGradient.replace('from-', 'bg-').split(' ')[0]
+        )} />
+        
+        {/* Animated Border */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{ background: `linear-gradient(to right, var(--tw-gradient-stops))` }}
         >
-          {/* Badge */}
-          {service.popular && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={isInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ delay: 0.4 }}
+          <div className={cn("h-full bg-gradient-to-r", service.gradient)} />
+        </div>
+
+        <CardContent className="relative z-10 p-6 sm:p-8 md:p-10">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6 mb-6">
+            <motion.div 
+              className={cn(
+                "w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br flex items-center justify-center shadow-xl shrink-0",
+                service.gradient
+              )}
+              whileHover={{ rotate: [0, -5, 5, 0], scale: 1.1 }}
+              transition={{ duration: 0.5 }}
             >
-              <Badge className={`mb-4 gap-2 px-4 py-2 bg-gradient-to-l ${service.gradient} text-white border-0`}>
-                <Flame className="w-4 h-4" />
-                الأكثر طلباً
-              </Badge>
+              <IconComponent className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
             </motion.div>
-          )}
 
-          {/* Title */}
-          <motion.h2 
-            className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 leading-tight"
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.3 }}
-          >
-            {service.name}
-          </motion.h2>
-          
-          <motion.p 
-            className={`text-lg mb-2 font-medium ${service.accentColor}`}
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ delay: 0.35 }}
-          >
-            {service.nameEn}
-          </motion.p>
+            <div className="flex-1">
+              <motion.span 
+                className={cn(
+                  "text-sm sm:text-base font-medium bg-gradient-to-r bg-clip-text text-transparent",
+                  service.gradient
+                )}
+              >
+                {service.nameEn}
+              </motion.span>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mt-1 group-hover:text-primary transition-colors">
+                {service.name}
+              </h2>
+              <p className="text-muted-foreground text-sm sm:text-base mt-2 leading-relaxed">
+                {service.longDescription}
+              </p>
+            </div>
 
-          {/* Description */}
-          <motion.p 
-            className="text-muted-foreground text-lg mb-6 leading-relaxed"
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ delay: 0.4 }}
-          >
-            {service.longDescription}
-          </motion.p>
+            {/* Stats Badge */}
+            <motion.div 
+              className="hidden md:flex flex-col items-center justify-center p-4 rounded-2xl bg-secondary/50 border border-border/50"
+              whileHover={{ scale: 1.05 }}
+            >
+              <span className={cn(
+                "text-2xl sm:text-3xl font-bold bg-gradient-to-r bg-clip-text text-transparent",
+                service.gradient
+              )}>
+                {service.stats.value}
+              </span>
+              <span className="text-xs text-muted-foreground">{service.stats.label}</span>
+            </motion.div>
+          </div>
 
           {/* Features Grid */}
-          <motion.div 
-            className="grid grid-cols-2 gap-4 mb-8"
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ delay: 0.5 }}
-          >
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
             {service.features.map((feature, i) => (
               <motion.div
                 key={i}
-                className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 backdrop-blur-sm"
                 initial={{ opacity: 0, x: -20 }}
                 animate={isInView ? { opacity: 1, x: 0 } : {}}
-                transition={{ delay: 0.5 + i * 0.1 }}
-                whileHover={{ scale: 1.02, backgroundColor: 'hsl(var(--secondary))' }}
+                transition={{ delay: 0.3 + i * 0.1 }}
+                className="flex items-center gap-3 p-3 sm:p-4 rounded-xl bg-secondary/30 backdrop-blur-sm border border-border/30 hover:border-primary/30 transition-all"
               >
-                <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${service.gradient} flex items-center justify-center shrink-0`}>
+                <div className={cn(
+                  "w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center shrink-0",
+                  service.gradient
+                )}>
                   <feature.icon className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-sm font-medium">{feature.text}</span>
               </motion.div>
             ))}
-          </motion.div>
+          </div>
 
-          {/* Trusted By */}
-          <motion.div 
-            className="mb-8"
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ delay: 0.7 }}
-          >
-            <p className="text-sm text-muted-foreground mb-3">موثوق من قبل:</p>
-            <div className="flex flex-wrap gap-2">
-              {service.clients.map((client, i) => (
-                <Badge key={i} variant="secondary" className="px-3 py-1.5">
-                  <BadgeCheck className="w-3 h-3 ml-1 text-success" />
-                  {client}
-                </Badge>
-              ))}
-            </div>
-          </motion.div>
+          {/* Sub Services */}
+          <AnimatePresence>
+            {isExpanded && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mb-6 overflow-hidden"
+              >
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-border/50">
+                  {service.subServices.map((sub, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="flex flex-col items-center gap-2 p-4 rounded-xl bg-secondary/20 text-center hover:bg-secondary/40 transition-colors cursor-pointer"
+                    >
+                      <sub.icon className={cn("w-6 h-6", service.gradient.includes('rose') ? 'text-rose-500' : 'text-emerald-500')} />
+                      <span className="text-xs sm:text-sm font-medium">{sub.name}</span>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* CTA Buttons */}
-          <motion.div 
-            className="flex flex-wrap gap-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.8 }}
-          >
-            <Button 
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
               size="lg"
-              className={`gap-2 bg-gradient-to-l ${service.gradient} hover:opacity-90 text-white border-0 px-8 py-6 text-lg shadow-xl`}
-              onClick={() => navigate('/auth?mode=signup')}
-            >
-              <Sparkles className="w-5 h-5" />
-              سجل الآن للبدء
-            </Button>
-            <Button 
-              size="lg"
-              variant="outline"
-              className="gap-2 px-8 py-6 text-lg"
+              className={cn(
+                "flex-1 gap-2 text-white border-0 px-6 py-6 text-base shadow-lg hover:shadow-xl transition-shadow bg-gradient-to-r",
+                service.gradient
+              )}
               onClick={() => navigate(service.link)}
             >
+              <Sparkles className="w-5 h-5" />
               استكشف الخدمات
               <ArrowLeft className="w-5 h-5" />
             </Button>
-          </motion.div>
-        </motion.div>
-
-        {/* Visual Side */}
-        <motion.div 
-          className={`relative ${isReversed ? 'lg:order-1' : ''}`}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={isInView ? { opacity: 1, scale: 1 } : {}}
-          transition={{ duration: 0.8, delay: 0.3 }}
-        >
-          {/* Background Glow */}
-          <div className={`absolute inset-0 bg-gradient-to-br ${service.bgGradient} rounded-3xl blur-3xl scale-110`} />
-          
-          {/* Card */}
-          <Card className="relative overflow-hidden border-2 border-border/50 bg-card/80 backdrop-blur-xl shadow-2xl">
-            <CardContent className="p-8 sm:p-12">
-              {/* Icon */}
-              <motion.div 
-                className={`w-24 h-24 sm:w-32 sm:h-32 rounded-3xl bg-gradient-to-br ${service.gradient} flex items-center justify-center mb-8 mx-auto shadow-2xl`}
-                animate={{ 
-                  rotate: [0, 5, -5, 0],
-                  scale: [1, 1.05, 1],
-                }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <IconComponent className="w-12 h-12 sm:w-16 sm:h-16 text-white" />
-              </motion.div>
-
-              {/* Stats */}
-              <div className="text-center mb-8">
-                <motion.div 
-                  className={`text-5xl sm:text-6xl font-bold bg-gradient-to-l ${service.gradient} bg-clip-text text-transparent mb-2`}
-                  initial={{ scale: 0 }}
-                  animate={isInView ? { scale: 1 } : {}}
-                  transition={{ delay: 0.5, type: "spring" }}
-                >
-                  {service.stats.value}
-                </motion.div>
-                <p className="text-muted-foreground text-lg">{service.stats.label}</p>
-              </div>
-
-              {/* Mini Stats Grid */}
-              <div className="grid grid-cols-3 gap-4">
-                {[
-                  { icon: Star, label: "تقييم", value: "4.9" },
-                  { icon: Clock, label: "سرعة", value: "فوري" },
-                  { icon: Shield, label: "ضمان", value: "100%" },
-                ].map((stat, i) => (
-                  <motion.div
-                    key={i}
-                    className="text-center p-3 rounded-xl bg-secondary/50"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={isInView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ delay: 0.6 + i * 0.1 }}
-                  >
-                    <stat.icon className={`w-5 h-5 mx-auto mb-2 ${service.accentColor}`} />
-                    <div className="font-bold text-sm">{stat.value}</div>
-                    <div className="text-xs text-muted-foreground">{stat.label}</div>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Decorative Elements */}
-              <motion.div
-                className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-gradient-to-br from-primary/20 to-transparent blur-2xl"
-                animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-                transition={{ duration: 4, repeat: Infinity }}
-              />
-              <motion.div
-                className="absolute -bottom-20 -left-20 w-40 h-40 rounded-full bg-gradient-to-br from-accent/20 to-transparent blur-2xl"
-                animate={{ scale: [1.2, 1, 1.2], opacity: [0.5, 0.3, 0.5] }}
-                transition={{ duration: 4, repeat: Infinity }}
-              />
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Divider */}
-      {index < mainServices.length - 1 && (
-        <motion.div 
-          className="my-20 lg:my-32 flex items-center justify-center"
-          initial={{ opacity: 0, scaleX: 0 }}
-          animate={isInView ? { opacity: 1, scaleX: 1 } : {}}
-          transition={{ delay: 1, duration: 0.8 }}
-        >
-          <div className="h-px w-full max-w-md bg-gradient-to-l from-transparent via-border to-transparent" />
-          <div className={`mx-4 w-12 h-12 rounded-full bg-gradient-to-br ${service.gradient} flex items-center justify-center shrink-0`}>
-            <Sparkles className="w-5 h-5 text-white" />
+            <Button
+              variant="outline"
+              size="lg"
+              className="gap-2 px-6 py-6"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              <span>{isExpanded ? 'إخفاء التفاصيل' : 'عرض التفاصيل'}</span>
+              <ChevronDown className={cn("w-4 h-4 transition-transform", isExpanded && "rotate-180")} />
+            </Button>
           </div>
-          <div className="h-px w-full max-w-md bg-gradient-to-r from-transparent via-border to-transparent" />
-        </motion.div>
-      )}
+        </CardContent>
+      </Card>
     </motion.div>
   );
 };
 
-// Live Stats Section
-const LiveStatsSection = ({ stats, isLoading }: { stats: any; isLoading: boolean }) => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
-
-  const statsData = [
-    { icon: Users, value: stats?.total_users || 0, label: "عميل نشط", gradient: "from-blue-500 to-cyan-400" },
-    { icon: ShoppingCart, value: stats?.completed_orders || 0, label: "طلب مكتمل", gradient: "from-violet-500 to-purple-400" },
-    { icon: Award, value: stats?.total_services || 0, label: "خدمة متاحة", gradient: "from-amber-500 to-orange-400" },
-    { icon: Wallet, value: stats?.total_deposits || 0, label: "عملية ناجحة", gradient: "from-emerald-500 to-green-400" },
-  ];
-
-  return (
-    <motion.section
-      ref={ref}
-      className="py-20 bg-gradient-to-b from-secondary/50 to-background"
-    >
-      <div className="container px-4">
-        <motion.div 
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-        >
-          <Badge variant="outline" className="gap-2 mb-4 px-4 py-2">
-            <Activity className="w-4 h-4 text-primary animate-pulse" />
-            إحصائيات لحظية
-          </Badge>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-            أرقام <span className="text-primary">تتحدث</span> عن نجاحنا
-          </h2>
-        </motion.div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          {statsData.map((stat, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 40 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: index * 0.1, duration: 0.6 }}
-              whileHover={{ y: -8, scale: 1.02 }}
-              className="group"
-            >
-              <Card className="relative overflow-hidden border-border/50 bg-card/80 backdrop-blur-xl hover:border-primary/50 transition-all duration-500 h-full">
-                <CardContent className="p-6 sm:p-8 text-center">
-                  {/* Background glow */}
-                  <motion.div 
-                    className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`}
-                  />
-                  
-                  <motion.div 
-                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center mx-auto mb-4 shadow-lg`}
-                    whileHover={{ rotate: 10, scale: 1.1 }}
-                  >
-                    <stat.icon className="w-7 h-7 text-white" />
-                  </motion.div>
-
-                  {isLoading ? (
-                    <Skeleton className="h-10 w-20 mx-auto mb-2" />
-                  ) : (
-                    <div className="text-3xl sm:text-4xl font-bold mb-1" dir="ltr">
-                      <AnimatedCounter value={stat.value} />
-                    </div>
-                  )}
-                  <p className="text-muted-foreground font-medium">{stat.label}</p>
-
-                  {/* Live indicator */}
-                  <motion.div
-                    className="absolute top-3 right-3 flex items-center gap-1.5"
-                    animate={{ opacity: [0.5, 1, 0.5] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    <div className="w-2 h-2 rounded-full bg-success" />
-                  </motion.div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </motion.section>
-  );
-};
-
-// Trusted Companies Section
-const TrustedCompaniesSection = () => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
-
-  return (
-    <motion.section
-      ref={ref}
-      className="py-16 border-y border-border/50 bg-secondary/30"
-    >
-      <div className="container px-4">
-        <motion.div 
-          className="text-center mb-10"
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-        >
-          <p className="text-muted-foreground text-lg">
-            موثوق من قبل <span className="text-primary font-semibold">+10,000</span> عميل حول العالم
-          </p>
-        </motion.div>
-
-        <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
-          {trustedCompanies.map((company, index) => (
-            <motion.a
-              key={company.name}
-              href={company.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={isInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.15, y: -5 }}
-              className="flex items-center justify-center w-24 h-16 sm:w-32 sm:h-20 rounded-2xl bg-card border border-border/50 shadow-lg cursor-pointer hover:border-primary/50 hover:shadow-xl transition-all p-3 sm:p-4"
-            >
-              <img 
-                src={company.logo} 
-                alt={company.name}
-                className="max-w-full max-h-full object-contain grayscale hover:grayscale-0 transition-all duration-300"
-                loading="lazy"
-              />
-            </motion.a>
-          ))}
-        </div>
-      </div>
-    </motion.section>
-  );
-};
-
 const OurServices = () => {
-  const navigate = useNavigate();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(containerRef, { once: true, amount: 0.1 });
+  const heroInView = useInView(heroRef, { once: true });
+  
   const { scrollYProgress } = useScroll();
-  const heroRef = useRef(null);
-  const isHeroInView = useInView(heroRef, { once: true });
-
-  // Fetch real stats from database
-  const { data: stats, isLoading: isStatsLoading } = useQuery({
-    queryKey: ["public-stats-services"],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_public_stats');
-      if (error) throw error;
-      return data as {
-        total_orders: number;
-        completed_orders: number;
-        total_users: number;
-        total_services: number;
-        total_deposits: number;
-      };
-    },
-  });
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       <Header />
       
-      <main className="pt-20">
-        {/* Hero Section */}
-        <section ref={heroRef} className="relative min-h-[90vh] flex items-center py-20 overflow-hidden">
-          {/* Animated Background */}
-          <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-background" />
-            <motion.div 
-              className="absolute top-1/4 right-1/4 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[150px]"
-              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-              transition={{ duration: 8, repeat: Infinity }}
-            />
-            <motion.div 
-              className="absolute bottom-1/4 left-1/4 w-[500px] h-[500px] bg-accent/20 rounded-full blur-[120px]"
-              animate={{ scale: [1.2, 1, 1.2], opacity: [0.5, 0.3, 0.5] }}
-              transition={{ duration: 8, repeat: Infinity }}
-            />
-            <FloatingParticles />
-          </div>
-
-          <div className="container px-4 relative z-10">
-            <motion.div
-              className="text-center max-w-5xl mx-auto"
-              initial={{ opacity: 0 }}
-              animate={isHeroInView ? { opacity: 1 } : {}}
-            >
-              {/* Badges */}
-              <motion.div 
-                className="flex flex-wrap items-center justify-center gap-3 mb-8"
-                initial={{ opacity: 0, y: 20 }}
-                animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: 0.1 }}
-              >
-                <Badge className="gap-2 text-sm py-2 px-4 bg-primary/10 text-primary border-primary/30" variant="outline">
-                  <Crown className="w-4 h-4" />
-                  #1 في الشرق الأوسط
-                </Badge>
-                <Badge className="gap-2 text-sm py-2 px-4 bg-success/10 text-success border-success/30" variant="outline">
-                  <motion.div
-                    className="w-2 h-2 rounded-full bg-success"
-                    animate={{ scale: [1, 1.3, 1] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  />
-                  متصل الآن
-                </Badge>
-              </motion.div>
-
-              {/* Main Title */}
-              <motion.h1 
-                className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-tight"
-                initial={{ opacity: 0, y: 30 }}
-                animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: 0.2 }}
-              >
-                <span className="block mb-2">حلول رقمية</span>
-                <span className="bg-gradient-to-l from-primary via-accent to-primary bg-[length:200%_auto] animate-[gradient_3s_linear_infinite] bg-clip-text text-transparent">
-                  بمعايير عالمية
-                </span>
-              </motion.h1>
-
-              {/* Subtitle */}
-              <motion.p 
-                className="text-xl sm:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed"
-                initial={{ opacity: 0, y: 20 }}
-                animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: 0.3 }}
-              >
-                نقدم لك مجموعة شاملة من الخدمات الرقمية المتكاملة 
-                <span className="text-primary"> لتحقيق نجاحك </span>
-                في العالم الرقمي
-              </motion.p>
-
-              {/* CTA Buttons */}
-              <motion.div 
-                className="flex flex-wrap items-center justify-center gap-4 mb-16"
-                initial={{ opacity: 0, y: 20 }}
-                animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: 0.4 }}
-              >
-                <Button 
-                  size="lg" 
-                  className="gap-2 bg-gradient-to-l from-primary to-accent text-primary-foreground px-8 py-6 text-lg shadow-2xl shadow-primary/25 hover:shadow-primary/40 transition-all"
-                  onClick={() => navigate('/auth?mode=signup')}
-                >
-                  <Rocket className="w-5 h-5" />
-                  ابدأ رحلتك الآن
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="gap-2 px-8 py-6 text-lg"
-                  onClick={() => document.getElementById('services-section')?.scrollIntoView({ behavior: 'smooth' })}
-                >
-                  <Play className="w-5 h-5" />
-                  اكتشف خدماتنا
-                </Button>
-              </motion.div>
-
-              {/* Quick Stats */}
-              <motion.div 
-                className="flex flex-wrap items-center justify-center gap-8 sm:gap-12"
-                initial={{ opacity: 0 }}
-                animate={isHeroInView ? { opacity: 1 } : {}}
-                transition={{ delay: 0.5 }}
-              >
-                {[
-                  { icon: Shield, label: "ضمان 100%", color: "text-success" },
-                  { icon: Clock, label: "توصيل فوري", color: "text-primary" },
-                  { icon: Headphones, label: "دعم 24/7", color: "text-accent" },
-                  { icon: Star, label: "تقييم 4.9", color: "text-amber-500" },
-                ].map((item, i) => (
-                  <motion.div 
-                    key={i}
-                    className="flex items-center gap-2"
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <item.icon className={`w-5 h-5 ${item.color}`} />
-                    <span className="text-sm font-medium text-muted-foreground">{item.label}</span>
-                  </motion.div>
-                ))}
-              </motion.div>
-            </motion.div>
-
-            {/* Scroll Indicator */}
-            <motion.div 
-              className="absolute bottom-8 left-1/2 -translate-x-1/2"
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <div className="w-8 h-12 rounded-full border-2 border-muted-foreground/30 flex items-start justify-center p-2">
-                <motion.div 
-                  className="w-1.5 h-3 rounded-full bg-primary"
-                  animate={{ y: [0, 12, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Trusted Companies */}
-        <TrustedCompaniesSection />
-
-        {/* Live Stats */}
-        <LiveStatsSection stats={stats} isLoading={isStatsLoading} />
-
-        {/* Main Services Sections */}
-        <section id="services-section" className="py-20 sm:py-32">
-          <div className="container px-4">
-            {/* Section Header */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-20"
-            >
-              <Badge variant="outline" className="gap-2 mb-6 px-4 py-2 text-sm">
-                <Layers className="w-4 h-4 text-primary" />
-                خدماتنا الرئيسية
-              </Badge>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                كل ما تحتاجه في 
-                <span className="text-primary"> مكان واحد</span>
-              </h2>
-              <p className="text-muted-foreground text-lg sm:text-xl max-w-2xl mx-auto">
-                نوفر لك مجموعة متكاملة من الخدمات الرقمية المصممة لتلبية جميع احتياجاتك
-              </p>
-            </motion.div>
-
-            {/* Service Cards */}
-            <div className="space-y-12">
-              {mainServices.map((service, index) => (
-                <ServiceCard key={service.id} service={service} index={index} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Final CTA Section */}
-        <section className="py-20 sm:py-32 bg-gradient-to-br from-primary/10 via-background to-accent/10 relative overflow-hidden">
-          {/* Background Effects */}
-          <motion.div 
-            className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[200px]"
+      {/* Hero Section */}
+      <motion.section 
+        ref={heroRef}
+        style={{ opacity: heroOpacity, scale: heroScale }}
+        className="relative pt-20 sm:pt-24 pb-16 sm:pb-24 overflow-hidden"
+      >
+        <FloatingParticles />
+        
+        {/* Background Effects */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
+          <motion.div
+            className="absolute top-1/4 right-1/4 w-[500px] h-[500px] rounded-full opacity-30"
+            style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.2) 0%, transparent 70%)" }}
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 10, repeat: Infinity }}
           />
-          <motion.div 
-            className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-accent/20 rounded-full blur-[150px]"
-            animate={{ scale: [1.2, 1, 1.2] }}
-            transition={{ duration: 10, repeat: Infinity }}
-          />
+        </div>
 
-          <div className="container px-4 relative z-10">
+        <div className="container px-4 sm:px-6 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={heroInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8 }}
+            className="text-center max-w-4xl mx-auto"
+          >
             <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="max-w-4xl mx-auto text-center"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={heroInView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ delay: 0.2 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
             >
-              <motion.div
-                initial={{ scale: 0, rotate: -180 }}
-                whileInView={{ scale: 1, rotate: 0 }}
-                viewport={{ once: true }}
-                transition={{ type: "spring", duration: 0.8 }}
-                className="w-24 h-24 sm:w-32 sm:h-32 mx-auto rounded-3xl bg-gradient-to-br from-primary via-accent to-primary flex items-center justify-center mb-8 shadow-2xl"
-              >
-                <Rocket className="w-12 h-12 sm:w-16 sm:h-16 text-white" />
-              </motion.div>
-              
-              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                جاهز للانطلاق؟
-              </h2>
-              <p className="text-lg sm:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-                انضم إلى آلاف العملاء الذين يثقون بنا لتحقيق أهدافهم الرقمية وابدأ رحلة النجاح اليوم
-              </p>
-              
-              <div className="flex flex-wrap items-center justify-center gap-4 mb-12">
-                <Button 
-                  size="lg" 
-                  className="gap-2 bg-gradient-to-l from-primary to-accent text-primary-foreground px-10 py-7 text-xl shadow-2xl hover:shadow-primary/50 transition-all"
-                  onClick={() => navigate('/auth?mode=signup')}
-                >
-                  <Sparkles className="w-6 h-6" />
-                  سجل الآن مجاناً
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline"
-                  className="gap-2 px-10 py-7 text-xl"
-                  onClick={() => navigate('/contact')}
-                >
-                  <MessageCircle className="w-6 h-6" />
-                  تواصل معنا
-                </Button>
-              </div>
-              
-              {/* Trust indicators */}
-              <div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground">
-                {[
-                  { icon: Shield, text: "دفع آمن 100%", color: "text-success" },
-                  { icon: Clock, text: "دعم فني 24/7", color: "text-primary" },
-                  { icon: Award, text: "ضمان الجودة", color: "text-amber-500" },
-                  { icon: Heart, text: "+10K عميل سعيد", color: "text-rose-500" },
-                ].map((item, i) => (
-                  <motion.div 
-                    key={i}
-                    className="flex items-center gap-2"
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.1 }}
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <item.icon className={`w-5 h-5 ${item.color}`} />
-                    <span className="text-sm font-medium">{item.text}</span>
-                  </motion.div>
-                ))}
-              </div>
+              <Star className="w-4 h-4 text-primary fill-primary" />
+              <span className="font-semibold text-primary text-sm">خدماتنا المتميزة</span>
             </motion.div>
+
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+              خدمات احترافية{" "}
+              <span className="bg-gradient-to-l from-primary via-accent to-primary bg-clip-text text-transparent">
+                لنجاح أعمالك
+              </span>
+            </h1>
+
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed">
+              نقدم لك أفضل خدمات التصميم والبرمجة بأيدي فريق من الخبراء المحترفين
+            </p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={heroInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.4 }}
+              className="flex flex-wrap justify-center gap-4"
+            >
+              <Button size="lg" className="px-8 py-6 text-base gap-2 shadow-lg" onClick={() => window.scrollTo({ top: 600, behavior: 'smooth' })}>
+                <Rocket className="w-5 h-5" />
+                استكشف الخدمات
+              </Button>
+              <Button size="lg" variant="outline" className="px-8 py-6 text-base gap-2" asChild>
+                <a href="/auth?mode=signup">
+                  سجل الآن مجاناً
+                  <ArrowLeft className="w-5 h-5" />
+                </a>
+              </Button>
+            </motion.div>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* Why Choose Us */}
+      <section className="py-12 sm:py-16 bg-secondary/30">
+        <div className="container px-4 sm:px-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6"
+          >
+            {whyChooseUs.map((item, index) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="text-center p-4 sm:p-6"
+              >
+                <motion.div 
+                  className={cn("w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-3 rounded-xl bg-secondary flex items-center justify-center", item.color)}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                >
+                  <item.icon className="w-6 h-6 sm:w-7 sm:h-7" />
+                </motion.div>
+                <h3 className="font-bold text-sm sm:text-base mb-1">{item.title}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">{item.description}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Services Section */}
+      <section ref={containerRef} className="py-16 sm:py-24">
+        <div className="container px-4 sm:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            className="text-center mb-12 sm:mb-16"
+          >
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+              اختر الخدمة المناسبة لك
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              نوفر لك مجموعة متكاملة من الخدمات لتلبية جميع احتياجاتك
+            </p>
+          </motion.div>
+
+          <div className="space-y-6 sm:space-y-8 max-w-5xl mx-auto">
+            {services.map((service, index) => (
+              <ServiceCard 
+                key={service.id}
+                service={service}
+                index={index}
+                isInView={isInView}
+              />
+            ))}
           </div>
-        </section>
-      </main>
-      
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 sm:py-24 bg-gradient-to-b from-transparent via-primary/5 to-transparent">
+        <div className="container px-4 sm:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center max-w-3xl mx-auto"
+          >
+            <motion.div
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/20 mb-6"
+              whileHover={{ scale: 1.05 }}
+            >
+              <BadgeCheck className="w-4 h-4 text-success" />
+              <span className="font-semibold text-success text-sm">ابدأ الآن</span>
+            </motion.div>
+
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+              جاهز للبدء في مشروعك؟
+            </h2>
+            <p className="text-muted-foreground mb-8 text-base sm:text-lg">
+              سجل الآن واحصل على أفضل الخدمات بأسعار منافسة
+            </p>
+
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <Button size="lg" className="px-8 py-6 text-base gap-2 shadow-lg" asChild>
+                <a href="/auth?mode=signup">
+                  <Sparkles className="w-5 h-5" />
+                  سجل مجاناً الآن
+                </a>
+              </Button>
+              <Button size="lg" variant="outline" className="px-8 py-6 text-base gap-2" asChild>
+                <a href="/contact">
+                  <MessageCircle className="w-5 h-5" />
+                  تواصل معنا
+                </a>
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       <Footer />
     </div>
   );
