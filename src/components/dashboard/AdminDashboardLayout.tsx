@@ -82,18 +82,29 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
   useEffect(() => {
     const fetchBadgeCounts = async () => {
       try {
-        const { count: pendingOrders } = await supabase
+        // Count pending orders (only from active services)
+        const { data: pendingOrdersData } = await supabase
           .from("orders")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "pending");
+          .select("id, service:services!inner(status)")
+          .not("status", "in", '("completed","cancelled","refunded")')
+          .eq("service.status", "active");
 
+        // Count pending dev orders
+        const { count: pendingDevOrders } = await supabase
+          .from("dev_orders")
+          .select("*", { count: "exact", head: true })
+          .not("status", "in", '("completed","cancelled","rejected")');
+
+        // Count open support tickets
         const { count: openTickets } = await supabase
           .from("support_tickets")
           .select("*", { count: "exact", head: true })
           .in("status", ["open", "in_progress"]);
 
+        const totalPendingOrders = (pendingOrdersData?.length || 0) + (pendingDevOrders || 0);
+
         setNavBadges({
-          "/admin/orders": pendingOrders || 0,
+          "/admin/orders": totalPendingOrders,
           "/admin/support": openTickets || 0,
         });
       } catch (error) {
@@ -103,18 +114,25 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
 
     fetchBadgeCounts();
 
+    // Real-time subscriptions
     const ordersChannel = supabase
-      .channel("nav-badges-orders")
+      .channel("admin-nav-badges-orders")
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, fetchBadgeCounts)
       .subscribe();
 
+    const devOrdersChannel = supabase
+      .channel("admin-nav-badges-dev-orders")
+      .on("postgres_changes", { event: "*", schema: "public", table: "dev_orders" }, fetchBadgeCounts)
+      .subscribe();
+
     const ticketsChannel = supabase
-      .channel("nav-badges-tickets")
+      .channel("admin-nav-badges-tickets")
       .on("postgres_changes", { event: "*", schema: "public", table: "support_tickets" }, fetchBadgeCounts)
       .subscribe();
 
     return () => {
       supabase.removeChannel(ordersChannel);
+      supabase.removeChannel(devOrdersChannel);
       supabase.removeChannel(ticketsChannel);
     };
   }, []);

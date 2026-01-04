@@ -77,6 +77,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const [balance, setBalance] = useState<number>(0);
+  const [navBadges, setNavBadges] = useState<Record<string, number>>({});
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
@@ -111,26 +112,95 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Fetch badge counts with real-time updates
   useEffect(() => {
-    if (user) {
-      fetchBalance();
-      
-      const channel = supabase
-        .channel('user-balance')
-        .on('postgres_changes', {
-          event: '*',
-          schema: 'public',
-          table: 'user_balances',
-          filter: `user_id=eq.${user.id}`
-        }, () => {
-          fetchBalance();
-        })
-        .subscribe();
+    if (!user) return;
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
+    const fetchBadgeCounts = async () => {
+      try {
+        // Count user's pending orders (only from active services)
+        const { data: pendingOrdersData } = await supabase
+          .from("orders")
+          .select("id, service:services!inner(status)")
+          .eq("user_id", user.id)
+          .not("status", "in", '("completed","cancelled","refunded")')
+          .eq("service.status", "active");
+
+        // Count user's pending dev orders
+        const { count: pendingDevOrders } = await supabase
+          .from("dev_orders")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .not("status", "in", '("completed","cancelled","rejected")');
+
+        // Count user's unread notifications
+        const { count: unreadNotifications } = await supabase
+          .from("notifications")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .eq("is_read", false);
+
+        const totalPendingOrders = (pendingOrdersData?.length || 0) + (pendingDevOrders || 0);
+
+        setNavBadges({
+          "/dashboard/orders": totalPendingOrders,
+          "/dashboard/notifications": unreadNotifications || 0,
+        });
+      } catch (error) {
+        console.error("Error fetching badge counts:", error);
+      }
+    };
+
+    fetchBadgeCounts();
+    fetchBalance();
+
+    // Real-time subscriptions
+    const ordersChannel = supabase
+      .channel(`client-nav-badges-orders-${user.id}`)
+      .on("postgres_changes", { 
+        event: "*", 
+        schema: "public", 
+        table: "orders",
+        filter: `user_id=eq.${user.id}`
+      }, fetchBadgeCounts)
+      .subscribe();
+
+    const devOrdersChannel = supabase
+      .channel(`client-nav-badges-dev-orders-${user.id}`)
+      .on("postgres_changes", { 
+        event: "*", 
+        schema: "public", 
+        table: "dev_orders",
+        filter: `user_id=eq.${user.id}`
+      }, fetchBadgeCounts)
+      .subscribe();
+
+    const notificationsChannel = supabase
+      .channel(`client-nav-badges-notifications-${user.id}`)
+      .on("postgres_changes", { 
+        event: "*", 
+        schema: "public", 
+        table: "notifications",
+        filter: `user_id=eq.${user.id}`
+      }, fetchBadgeCounts)
+      .subscribe();
+
+    const balanceChannel = supabase
+      .channel(`client-balance-${user.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'user_balances',
+        filter: `user_id=eq.${user.id}`
+      }, fetchBalance)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ordersChannel);
+      supabase.removeChannel(devOrdersChannel);
+      supabase.removeChannel(notificationsChannel);
+      supabase.removeChannel(balanceChannel);
+    };
   }, [user]);
 
   const fetchBalance = async () => {
@@ -257,7 +327,10 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
 
         {/* Navigation */}
         <nav className="flex-1 p-2 xl:p-4 space-y-1 overflow-y-auto scrollbar-thin">
-          {clientNavItems.map((item, index) => (
+          {clientNavItems.map((item, index) => {
+            const badge = navBadges[item.href];
+            
+            return (
             <motion.div
               key={item.href}
               custom={index}
@@ -373,12 +446,22 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                           initial={{ opacity: 0, width: 0 }}
                           animate={{ opacity: 1, width: "auto" }}
                           exit={{ opacity: 0, width: 0 }}
-                          className="font-medium whitespace-nowrap relative z-10"
+                          className="font-medium whitespace-nowrap relative z-10 flex-1"
                         >
                           {item.label}
                         </motion.span>
                       )}
                     </AnimatePresence>
+                    {/* Badge */}
+                    {badge !== undefined && badge > 0 && isSidebarOpen && (
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="relative z-10 min-w-[20px] h-5 px-1.5 flex items-center justify-center text-xs font-bold rounded-full bg-orange-500 text-white"
+                      >
+                        {badge}
+                      </motion.span>
+                    )}
                     {isActive(item.href) && (
                       <motion.div
                         layoutId="activeIndicator"
@@ -390,7 +473,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                 </motion.div>
               )}
             </motion.div>
-          ))}
+          )})}
         </nav>
 
         {/* Balance Section */}
