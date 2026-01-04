@@ -59,18 +59,14 @@ const statusOptions = [
 ];
 
 // Category mappings
-const socialCategories = ['instagram', 'facebook', 'twitter', 'tiktok', 'youtube', 'snapchat', 'telegram', 'linkedin', 'pinterest', 'social', 'smm', 'followers', 'likes', 'views', 'comments', 'shares', 'subscribers'];
-const marketingCategories = ['marketing', 'digital', 'seo', 'sem', 'ppc', 'ads', 'advertising', 'google ads', 'facebook ads', 'campaign', 'email marketing', 'content', 'analytics', 'conversion', 'lead', 'funnel', 'automation', 'تسويق'];
-const designCategories = ['design', 'graphic', 'logo', 'banner', 'poster', 'branding', 'ui', 'ux', 'illustration', 'motion', 'video', 'animation'];
-const devCategories = ['development', 'programming', 'web', 'app', 'mobile', 'software', 'backend', 'frontend', 'api', 'database', 'code', 'script'];
+const designCategories = ['design', 'graphic', 'logo', 'banner', 'poster', 'branding', 'ui', 'ux', 'illustration', 'motion', 'video', 'animation', 'تصميم'];
+const devCategories = ['development', 'programming', 'web', 'app', 'mobile', 'software', 'backend', 'frontend', 'api', 'database', 'code', 'script', 'برمجة', 'تطوير', 'موقع', 'تطبيق'];
 
 const getOrderType = (category: string): AdminOrderType => {
   const lowerCategory = category?.toLowerCase() || '';
-  if (marketingCategories.some(c => lowerCategory.includes(c))) return 'marketing';
-  if (socialCategories.some(c => lowerCategory.includes(c))) return 'social';
   if (designCategories.some(c => lowerCategory.includes(c))) return 'design';
   if (devCategories.some(c => lowerCategory.includes(c))) return 'dev';
-  return 'social';
+  return 'other';
 };
 
 const AdminOrders = () => {
@@ -279,7 +275,7 @@ const AdminOrders = () => {
 
   // Orders by type
   const ordersByType = useMemo(() => {
-    const result = { all: orders, social: [] as Order[], marketing: [] as Order[], design: [] as Order[], dev: [] as Order[] };
+    const result = { all: orders, design: [] as Order[], dev: [] as Order[], other: [] as Order[] };
     orders.forEach(order => {
       const type = getOrderType(order.service?.category || '');
       result[type].push(order);
@@ -289,10 +285,9 @@ const AdminOrders = () => {
 
   const typeCounts = useMemo(() => ({
     all: orders.length,
-    social: ordersByType.social.length,
-    marketing: ordersByType.marketing.length,
     design: ordersByType.design.length,
     dev: ordersByType.dev.length,
+    other: ordersByType.other.length,
   }), [orders, ordersByType]);
 
   const currentSectionOrders = activeSection ? ordersByType[activeSection] : [];
