@@ -105,6 +105,18 @@ const serviceSections = [
     shadowColor: 'shadow-orange-500/20',
     features: ['إعلانات ممولة', 'تحسين SEO', 'إدارة حسابات', 'تحليلات'],
   },
+  {
+    id: 'hosting',
+    title: 'الدومين والإستضافة',
+    subtitle: 'Hosting & Domains',
+    description: 'حلول استضافة متكاملة بأداء عالي وأمان متقدم',
+    icon: Rocket,
+    path: '/dashboard/hosting-services',
+    gradient: 'from-sky-500 via-blue-500 to-indigo-500',
+    bgGlow: 'from-sky-500/20',
+    shadowColor: 'shadow-sky-500/20',
+    features: ['استضافة ويب', 'سيرفرات VPS', 'دومينات', 'SSL مجاني'],
+  },
 ];
 
 const features = [
@@ -254,7 +266,7 @@ const ClientServicesHome = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, amount: 0.1 });
   
-  const [servicesCount, setServicesCount] = useState({ design: 0, dev: 0, marketing: 0 });
+  const [servicesCount, setServicesCount] = useState({ design: 0, dev: 0, marketing: 0, hosting: 4 });
   const [globalStats, setGlobalStats] = useState({
     totalServices: 0,
     totalOrders: 0,
@@ -299,7 +311,8 @@ const ClientServicesHome = () => {
       setServicesCount({
         design: designResult.count || 0,
         dev: devResult.count || 0,
-        marketing: marketingResult.count || 0
+        marketing: marketingResult.count || 0,
+        hosting: 4 // Static hosting packages count
       });
 
       setGlobalStats({
@@ -456,7 +469,7 @@ const ClientServicesHome = () => {
               <p className="text-muted-foreground text-sm">انقر على أي قسم لاستعراض الخدمات المتاحة</p>
             </motion.div>
 
-            <div className="grid md:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {serviceSections.map((section, index) => (
                 <ServiceCard
                   key={section.id}
@@ -467,7 +480,9 @@ const ClientServicesHome = () => {
                       ? servicesCount.design 
                       : section.id === 'dev' 
                         ? servicesCount.dev 
-                        : servicesCount.marketing
+                        : section.id === 'marketing'
+                          ? servicesCount.marketing
+                          : servicesCount.hosting
                   }
                   isInView={true}
                 />
