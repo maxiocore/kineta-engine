@@ -49,6 +49,7 @@ type EmailType =
   | 'dev_order_created_admin'
   | 'dev_order_status_changed'
   | 'invoice_sent'
+  | 'verification_request'
   | 'custom';
 
 interface EmailRequest {
@@ -2219,6 +2220,43 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           ${createNoticeBox('💡 يمكنك الدفع مباشرة من حسابك في MaxioCore باستخدام رصيدك المتاح', '#f0fdf4', '#166534', '#22c55e')}
           
           ${createCTAButton('ادفع الآن')}
+        `
+      };
+
+    case 'verification_request':
+      return {
+        subject: `🔐 طلب توثيق حسابك في MaxioCore`,
+        content: `
+          ${createIconCircle('✅', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          ${createGreeting(`مرحباً ${data.name || 'العميل الكريم'}! 🎉`)}
+          ${createMessage('تم <strong>توثيق حسابك</strong> بنجاح في منصة MaxioCore. أنت الآن مستخدم موثّق وتتمتع بجميع مميزات الحساب الموثق.')}
+          
+          ${createHighlightBox('✓ موثّق', 'حالة حسابك', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          
+          ${createInfoCard([
+            { label: 'اسم المستخدم', value: data.name || 'غير محدد' },
+            { label: 'البريد الإلكتروني', value: data.email || '-' },
+            { label: 'تاريخ التوثيق', value: new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }) },
+            { label: 'الحالة', value: 'موثّق ✓', isStatus: true, statusColor: '#dcfce7', valueColor: '#22c55e' }
+          ])}
+          
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 14px; margin-bottom: 25px; border-right: 4px solid #22c55e;">
+            <tr>
+              <td style="padding: 25px;">
+                <p style="margin: 0 0 15px; font-size: 16px; font-weight: 700; color: #166534;">🎁 مميزات الحساب الموثّق:</p>
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                  <tr><td style="padding: 8px 0; color: #166534; font-size: 14px;">✓ أولوية في معالجة الطلبات</td></tr>
+                  <tr><td style="padding: 8px 0; color: #166534; font-size: 14px;">✓ دعم فني متميز على مدار الساعة</td></tr>
+                  <tr><td style="padding: 8px 0; color: #166534; font-size: 14px;">✓ عروض وخصومات حصرية</td></tr>
+                  <tr><td style="padding: 8px 0; color: #166534; font-size: 14px;">✓ شارة التوثيق المميزة</td></tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          
+          ${createNoticeBox('🌟 نحن سعداء بانضمامك كمستخدم موثّق! استمتع بتجربة استثنائية مع MaxioCore', '#f0f9ff', '#0369a1', '#0ea5e9')}
+          
+          ${createCTAButton('استكشف خدماتنا الآن')}
         `
       };
 
