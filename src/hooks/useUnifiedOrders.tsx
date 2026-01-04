@@ -113,12 +113,16 @@ export function useUnifiedOrders(options: UseUnifiedOrdersOptions = {}): UseUnif
   const [error, setError] = useState<string | null>(null);
 
   const fetchOrders = useCallback(async () => {
-    if (!user && !isAdmin) {
+    // For admin, we don't need user to be logged in
+    // For client, we need user
+    if (!isAdmin && !user) {
+      console.log('useUnifiedOrders: No user logged in and not admin mode');
       setOrders([]);
       setLoading(false);
       return;
     }
 
+    console.log('useUnifiedOrders: Fetching orders...', { isAdmin, userId: user?.id });
     setLoading(true);
     setError(null);
 
@@ -139,10 +143,14 @@ export function useUnifiedOrders(options: UseUnifiedOrdersOptions = {}): UseUnif
       }
 
       const { data: devOrders, error: devError } = await devQuery;
-      if (devError) throw devError;
-
-      if (devOrders) {
-        allOrders.push(...devOrders.map(normalizeDevOrder));
+      
+      if (devError) {
+        console.error('Error fetching dev_orders:', devError);
+      } else {
+        console.log('useUnifiedOrders: Fetched dev_orders:', devOrders?.length || 0);
+        if (devOrders) {
+          allOrders.push(...devOrders.map(normalizeDevOrder));
+        }
       }
 
       // Fetch regular orders (SMM)
@@ -159,11 +167,17 @@ export function useUnifiedOrders(options: UseUnifiedOrdersOptions = {}): UseUnif
       }
 
       const { data: regularOrders, error: ordersError } = await ordersQuery;
-      if (ordersError) throw ordersError;
-
-      if (regularOrders) {
-        allOrders.push(...regularOrders.map(normalizeOrder));
+      
+      if (ordersError) {
+        console.error('Error fetching orders:', ordersError);
+      } else {
+        console.log('useUnifiedOrders: Fetched orders:', regularOrders?.length || 0);
+        if (regularOrders) {
+          allOrders.push(...regularOrders.map(normalizeOrder));
+        }
       }
+
+      console.log('useUnifiedOrders: Total orders before filters:', allOrders.length);
 
       // Apply filters
       let filteredOrders = allOrders;
@@ -222,6 +236,7 @@ export function useUnifiedOrders(options: UseUnifiedOrdersOptions = {}): UseUnif
         return bValue - aValue;
       });
 
+      console.log('useUnifiedOrders: Final orders count:', filteredOrders.length);
       setOrders(filteredOrders);
     } catch (err: any) {
       console.error('Error fetching unified orders:', err);
@@ -250,37 +265,58 @@ export function useUnifiedOrders(options: UseUnifiedOrdersOptions = {}): UseUnif
 
   // Realtime subscriptions
   useEffect(() => {
-    if (!realtime || !user) return;
+    if (!realtime) return;
+    // For admin mode, don't require user
+    if (!isAdmin && !user) return;
+
+    console.log('useUnifiedOrders: Setting up realtime subscriptions...', { isAdmin, userId: user?.id });
 
     const devChannel = supabase
-      .channel('unified-dev-orders')
+      .channel('unified-dev-orders-' + (user?.id || 'admin'))
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'dev_orders',
-          ...(isAdmin ? {} : { filter: `user_id=eq.${user.id}` }),
         },
-        () => fetchOrders()
+        (payload) => {
+          console.log('useUnifiedOrders: dev_orders realtime update:', payload);
+          // For client, only refetch if it's their order
+          if (!isAdmin && user && payload.new && (payload.new as any).user_id !== user.id) {
+            return;
+          }
+          fetchOrders();
+        }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('useUnifiedOrders: dev_orders channel status:', status);
+      });
 
     const ordersChannel = supabase
-      .channel('unified-orders')
+      .channel('unified-orders-' + (user?.id || 'admin'))
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'orders',
-          ...(isAdmin ? {} : { filter: `user_id=eq.${user.id}` }),
         },
-        () => fetchOrders()
+        (payload) => {
+          console.log('useUnifiedOrders: orders realtime update:', payload);
+          // For client, only refetch if it's their order
+          if (!isAdmin && user && payload.new && (payload.new as any).user_id !== user.id) {
+            return;
+          }
+          fetchOrders();
+        }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('useUnifiedOrders: orders channel status:', status);
+      });
 
     return () => {
+      console.log('useUnifiedOrders: Cleaning up realtime subscriptions');
       supabase.removeChannel(devChannel);
       supabase.removeChannel(ordersChannel);
     };
