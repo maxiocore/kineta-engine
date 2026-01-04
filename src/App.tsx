@@ -95,6 +95,7 @@ import AdminChallenges from "./pages/admin/AdminChallenges";
 import AdminContactMessages from "./pages/admin/AdminContactMessages";
 import AdminCareers from "./pages/admin/AdminCareers";
 import AdminFinancing from "./pages/admin/AdminFinancing";
+import AdminHosting from "./pages/admin/AdminHosting";
 import ClientFinancing from "./pages/dashboard/ClientFinancing";
 import FinancingGuide from "./pages/dashboard/FinancingGuide";
 import FinancingCalculator from "./pages/dashboard/FinancingCalculator";
@@ -431,6 +432,11 @@ const App = () => (
                   <Route path="/admin/services" element={
                     <ProtectedRoute requireAdmin>
                       <AdminServices />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/hosting" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminHosting />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/orders" element={
