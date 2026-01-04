@@ -314,6 +314,18 @@ const ClientServicesHome = () => {
 
   useEffect(() => {
     fetchCounts();
+    
+    // Real-time subscription for services changes
+    const channel = supabase
+      .channel('client-services-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, () => {
+        fetchCounts();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleRefresh = async () => {

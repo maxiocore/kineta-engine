@@ -255,32 +255,58 @@ const AdminServices = () => {
         ]
       },
       {
-        id: 'other',
-        name: 'Other',
-        nameAr: 'خدمات أخرى',
-        icon: Package,
-        gradient: 'from-gray-600/80 to-slate-600/80',
-        iconGradient: 'from-gray-500 to-slate-500',
-        bgGlow: 'bg-gray-500/10',
+        id: 'marketing',
+        name: 'Marketing',
+        nameAr: 'التسويق الرقمي',
+        icon: TrendingUp,
+        gradient: 'from-orange-600/80 to-amber-600/80',
+        iconGradient: 'from-orange-500 to-amber-500',
+        bgGlow: 'bg-orange-500/10',
         services: [],
+        platforms: [
+          { icon: Target, color: 'text-orange-400', bg: 'bg-orange-500/10' },
+          { icon: BarChart3, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+          { icon: Zap, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+        ]
+      },
+      {
+        id: 'smm',
+        name: 'Social Media',
+        nameAr: 'السوشيال ميديا',
+        icon: Activity,
+        gradient: 'from-pink-600/80 to-rose-600/80',
+        iconGradient: 'from-pink-500 to-rose-500',
+        bgGlow: 'bg-pink-500/10',
+        services: [],
+        platforms: [
+          { icon: Smartphone, color: 'text-pink-400', bg: 'bg-pink-500/10' },
+          { icon: Activity, color: 'text-rose-400', bg: 'bg-rose-500/10' },
+          { icon: Star, color: 'text-red-400', bg: 'bg-red-500/10' },
+        ]
       }
     ];
 
-    // Categorize services - Design and Development only
+    // Categorize services dynamically
     enrichedServices.forEach(service => {
       const cat = service.category.toLowerCase();
       const catOriginal = service.category;
       
       if (cat.includes('design') || catOriginal.includes('تصميم')) {
         groups[0].services.push(service);
-      } else if (cat.includes('dev') || catOriginal.includes('برمجة') || catOriginal.includes('تطوير') || catOriginal.includes('موقع') || catOriginal.includes('تطبيق')) {
+      } else if (cat.includes('dev') || catOriginal.includes('برمجة') || catOriginal.includes('تطوير') || cat.includes('الويب') || catOriginal.includes('موقع') || catOriginal.includes('تطبيق')) {
         groups[1].services.push(service);
-      } else {
+      } else if (catOriginal.includes('تسويق') || cat.includes('marketing') || cat.includes('seo')) {
         groups[2].services.push(service);
+      } else if (catOriginal.includes('تويتر') || catOriginal.includes('تيك توك') || catOriginal.includes('سناب') || catOriginal.includes('يوتيوب') || catOriginal.includes('انستقرام') || catOriginal.includes('فيسبوك') || cat.includes('social') || cat.includes('twitter') || cat.includes('tiktok') || cat.includes('snapchat') || cat.includes('youtube') || cat.includes('instagram') || cat.includes('facebook')) {
+        groups[3].services.push(service);
+      } else {
+        // Default to SMM for unrecognized categories (most likely social media platforms)
+        groups[3].services.push(service);
       }
     });
 
-    return groups;
+    // Filter out empty categories
+    return groups.filter(g => g.services.length > 0);
   }, [enrichedServices]);
 
   // Get selected category
