@@ -115,6 +115,11 @@ import VerifyEmailPage from "./pages/dashboard/VerifyEmailPage";
 import AdminDevOrders from "./pages/admin/AdminDevOrders";
 import AdminDevOrderDetails from "./pages/admin/AdminDevOrderDetails";
 
+// Unified Orders System
+import UnifiedOrders from "./pages/dashboard/UnifiedOrders";
+import UnifiedOrderDetails from "./pages/dashboard/UnifiedOrderDetails";
+import AdminUnifiedOrders from "./pages/admin/AdminUnifiedOrders";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -163,10 +168,20 @@ const App = () => (
                   } />
                   <Route path="/dashboard/orders" element={
                     <ProtectedRoute>
-                      <ClientOrders />
+                      <UnifiedOrders />
                     </ProtectedRoute>
                   } />
                   <Route path="/dashboard/orders/:orderId" element={
+                    <ProtectedRoute>
+                      <UnifiedOrderDetails />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/smm-orders" element={
+                    <ProtectedRoute>
+                      <ClientOrders />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/smm-orders/:orderId" element={
                     <ProtectedRoute>
                       <ClientOrderDetails />
                     </ProtectedRoute>
@@ -412,6 +427,16 @@ const App = () => (
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/orders" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminUnifiedOrders />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/orders/:orderId" element={
+                    <ProtectedRoute requireAdmin>
+                      <UnifiedOrderDetails />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/smm-orders" element={
                     <ProtectedRoute requireAdmin>
                       <AdminOrders />
                     </ProtectedRoute>
