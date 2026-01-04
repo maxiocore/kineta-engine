@@ -8,6 +8,7 @@ export type OrderDomain =
   | 'design'     // خدمات التصميم
   | 'marketing'  // خدمات التسويق
   | 'smm'        // خدمات السوشيال ميديا
+  | 'hosting'    // خدمات الاستضافة
   | 'other';     // أخرى
 
 // Domain labels in Arabic
@@ -16,6 +17,7 @@ export const domainLabels: Record<OrderDomain, string> = {
   design: 'تصميم',
   marketing: 'تسويق',
   smm: 'سوشيال ميديا',
+  hosting: 'استضافة',
   other: 'أخرى',
 };
 
@@ -25,6 +27,7 @@ export const domainColors: Record<OrderDomain, string> = {
   design: 'bg-pink-500',
   marketing: 'bg-amber-500',
   smm: 'bg-cyan-500',
+  hosting: 'bg-blue-500',
   other: 'bg-gray-500',
 };
 
@@ -34,6 +37,7 @@ export const domainIcons: Record<OrderDomain, string> = {
   design: 'Palette',
   marketing: 'Megaphone',
   smm: 'Share2',
+  hosting: 'Server',
   other: 'Package',
 };
 
@@ -174,6 +178,16 @@ export const smmOrderStatusMap: Record<string, UnifiedStatus> = {
   'partial': 'completed',
   'cancelled': 'cancelled',
   'refunded': 'cancelled',
+};
+
+// Hosting Orders status mapping
+export const hostingOrderStatusMap: Record<string, UnifiedStatus> = {
+  'pending': 'submitted',
+  'provisioning': 'in_progress',
+  'active': 'completed',
+  'suspended': 'cancelled',
+  'terminated': 'cancelled',
+  'failed': 'rejected',
 };
 
 // =============================================
