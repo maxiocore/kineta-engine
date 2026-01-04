@@ -755,6 +755,7 @@ const AdminUsers = () => {
                                       </DropdownMenuItem>
                                     </>
                                   )}
+                                  <DropdownMenuSeparator />
                                   {user.role === "admin" ? (
                                     <DropdownMenuItem 
                                       onClick={() => setRoleChangeDialog({ open: true, user, newRole: "user" })}
