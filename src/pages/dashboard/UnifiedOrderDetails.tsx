@@ -29,13 +29,16 @@ import {
   Mail,
   Loader2,
   ArrowRight,
+  Paperclip,
+  Receipt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUnifiedOrderDetails } from "@/hooks/useUnifiedOrders";
+import InvoicePaymentCard from "@/components/orders/InvoicePaymentCard";
+import MessageWithAttachment from "@/components/orders/MessageWithAttachment";
 import {
   UnifiedOrder,
   OrderDomain,
@@ -61,9 +64,12 @@ const eventTypeLabels: Record<string, { label: string; icon: any }> = {
   email_verified: { label: "تم تأكيد البريد", icon: CheckCircle },
   status_changed: { label: "تم تغيير الحالة", icon: Settings },
   message: { label: "رسالة جديدة", icon: MessageCircle },
+  message_with_files: { label: "رسالة مع مرفقات", icon: Paperclip },
   file_uploaded: { label: "تم رفع ملف", icon: Upload },
   info_requested: { label: "طلب معلومات إضافية", icon: AlertCircle },
   info_provided: { label: "تم توفير المعلومات", icon: CheckCircle },
+  invoice_sent: { label: "تم إرسال فاتورة", icon: Receipt },
+  payment_received: { label: "تم دفع الفاتورة", icon: DollarSign },
 };
 
 // Timeline Component
@@ -214,8 +220,6 @@ export default function UnifiedOrderDetails() {
   const [events, setEvents] = useState<OrderTimelineEvent[]>([]);
   const [files, setFiles] = useState<any[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
-  const [message, setMessage] = useState("");
-  const [sendingMessage, setSendingMessage] = useState(false);
 
   // Fetch events based on order source
   const fetchEvents = useCallback(async () => {
@@ -284,33 +288,6 @@ export default function UnifiedOrderDetails() {
       fetchEvents();
     }
   }, [order, fetchEvents]);
-
-  const sendMessage = async () => {
-    if (!message.trim() || !order || !user) return;
-    if (order.source_table !== 'dev_orders') {
-      toast({ title: "الرسائل غير متاحة لهذا النوع من الطلبات", variant: "destructive" });
-      return;
-    }
-
-    setSendingMessage(true);
-    try {
-      await supabase.from("dev_order_events").insert([{
-        order_id: order.source_id,
-        actor_role: "user",
-        actor_id: user.id,
-        event_type: "message",
-        message_text: message,
-      }] as any);
-
-      setMessage("");
-      toast({ title: "تم إرسال الرسالة بنجاح" });
-      fetchEvents();
-    } catch (err) {
-      toast({ title: "خطأ في إرسال الرسالة", variant: "destructive" });
-    } finally {
-      setSendingMessage(false);
-    }
-  };
 
   const downloadFile = async (file: any) => {
     try {
@@ -516,42 +493,36 @@ export default function UnifiedOrderDetails() {
               </Card>
             </motion.div>
 
-            {/* Message Form - Only for dev orders */}
+            {/* Invoice Payment - Only for dev orders with pending invoices */}
+            {order.source_table === 'dev_orders' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+              >
+                <InvoicePaymentCard
+                  orderId={order.source_id}
+                  orderNo={order.order_no}
+                  onPaymentComplete={() => {
+                    refetch();
+                    fetchEvents();
+                  }}
+                />
+              </motion.div>
+            )}
+
+            {/* Message Form with Attachments - Only for dev orders */}
             {order.source_table === 'dev_orders' && order.status !== 'completed' && order.status !== 'cancelled' && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MessageCircle className="h-5 w-5 text-primary" />
-                      إرسال رسالة
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea
-                      placeholder="اكتب رسالتك هنا..."
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      className="mb-4"
-                      rows={3}
-                    />
-                    <Button
-                      onClick={sendMessage}
-                      disabled={!message.trim() || sendingMessage}
-                      className="w-full md:w-auto"
-                    >
-                      {sendingMessage ? (
-                        <Loader2 className="h-4 w-4 ml-2 animate-spin" />
-                      ) : (
-                        <Send className="h-4 w-4 ml-2" />
-                      )}
-                      إرسال
-                    </Button>
-                  </CardContent>
-                </Card>
+                <MessageWithAttachment
+                  orderId={order.source_id}
+                  isAdmin={false}
+                  onMessageSent={fetchEvents}
+                />
               </motion.div>
             )}
           </div>

@@ -48,6 +48,7 @@ export type UnifiedStatus =
   | 'under_review'
   | 'action_required'
   | 'in_progress'
+  | 'invoice_sent'
   | 'waiting_payment'
   | 'completed'
   | 'cancelled'
@@ -105,29 +106,36 @@ export const unifiedStatusConfig: Record<UnifiedStatus, StatusConfig> = {
     bgColor: 'bg-purple-100',
     icon: 'Settings',
   },
-  waiting_payment: {
+  invoice_sent: {
     rank: 7,
+    label: 'فاتورة مرسلة',
+    color: 'text-emerald-600',
+    bgColor: 'bg-emerald-100',
+    icon: 'Receipt',
+  },
+  waiting_payment: {
+    rank: 8,
     label: 'بانتظار الدفع',
     color: 'text-amber-600',
     bgColor: 'bg-amber-100',
     icon: 'CreditCard',
   },
   completed: {
-    rank: 8,
+    rank: 9,
     label: 'مكتمل',
     color: 'text-green-600',
     bgColor: 'bg-green-100',
     icon: 'CheckCircle',
   },
   cancelled: {
-    rank: 9,
+    rank: 10,
     label: 'ملغي',
     color: 'text-red-600',
     bgColor: 'bg-red-100',
     icon: 'XCircle',
   },
   rejected: {
-    rank: 10,
+    rank: 11,
     label: 'مرفوض',
     color: 'text-red-700',
     bgColor: 'bg-red-50',
@@ -146,6 +154,7 @@ export const devOrderStatusMap: Record<string, UnifiedStatus> = {
   'under_review': 'under_review',
   'need_info': 'action_required',
   'quoted': 'action_required',
+  'invoice_sent': 'invoice_sent',
   'approved': 'in_progress',
   'accepted': 'in_progress',
   'in_progress': 'in_progress',

@@ -30,6 +30,8 @@ import {
   Loader2,
   ArrowRight,
   Save,
+  Paperclip,
+  Receipt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +47,8 @@ import {
 } from "@/components/ui/select";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { useUnifiedOrderDetails } from "@/hooks/useUnifiedOrders";
+import InvoiceSection from "@/components/admin/orders/InvoiceSection";
+import MessageWithAttachment from "@/components/orders/MessageWithAttachment";
 import {
   UnifiedOrder,
   OrderDomain,
@@ -69,9 +73,12 @@ const eventTypeLabels: Record<string, { label: string; icon: any }> = {
   email_verified: { label: "تم تأكيد البريد", icon: CheckCircle },
   status_changed: { label: "تم تغيير الحالة", icon: Settings },
   message: { label: "رسالة جديدة", icon: MessageCircle },
+  message_with_files: { label: "رسالة مع مرفقات", icon: Paperclip },
   file_uploaded: { label: "تم رفع ملف", icon: Upload },
   info_requested: { label: "طلب معلومات إضافية", icon: AlertCircle },
   info_provided: { label: "تم توفير المعلومات", icon: CheckCircle },
+  invoice_sent: { label: "تم إرسال فاتورة", icon: Receipt },
+  payment_received: { label: "تم استلام الدفع", icon: DollarSign },
 };
 
 // Dev order statuses
@@ -80,6 +87,7 @@ const devOrderStatuses = [
   { value: "pending_email_verification", label: "بانتظار تأكيد البريد" },
   { value: "under_review", label: "قيد المراجعة" },
   { value: "need_info", label: "بحاجة لمعلومات إضافية" },
+  { value: "invoice_sent", label: "فاتورة مرسلة" },
   { value: "accepted", label: "تم القبول" },
   { value: "in_progress", label: "قيد التنفيذ" },
   { value: "testing", label: "قيد الاختبار" },
@@ -587,41 +595,39 @@ export default function AdminOrderDetails() {
               </Card>
             </motion.div>
 
-            {/* Message Form - Only for dev orders */}
+            {/* Invoice Section - Only for dev orders */}
             {order.source_table === 'dev_orders' && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MessageCircle className="h-5 w-5 text-primary" />
-                      إرسال رسالة للعميل
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Textarea
-                      placeholder="اكتب رسالتك للعميل..."
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      className="mb-4"
-                      rows={3}
-                    />
-                    <Button
-                      onClick={sendMessage}
-                      disabled={!message.trim() || sendingMessage}
-                    >
-                      {sendingMessage ? (
-                        <Loader2 className="h-4 w-4 ml-2 animate-spin" />
-                      ) : (
-                        <Send className="h-4 w-4 ml-2" />
-                      )}
-                      إرسال
-                    </Button>
-                  </CardContent>
-                </Card>
+                <InvoiceSection
+                  orderId={order.source_id}
+                  orderNo={order.order_no}
+                  userEmail={order.user_email || ''}
+                  userName={order.user_name}
+                  userId={order.user_id}
+                  onInvoiceSent={() => {
+                    refetch();
+                    fetchEvents();
+                  }}
+                />
+              </motion.div>
+            )}
+
+            {/* Message Form with Attachments - Only for dev orders */}
+            {order.source_table === 'dev_orders' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+              >
+                <MessageWithAttachment
+                  orderId={order.source_id}
+                  isAdmin={true}
+                  onMessageSent={fetchEvents}
+                />
               </motion.div>
             )}
           </div>
