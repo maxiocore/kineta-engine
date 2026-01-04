@@ -466,7 +466,7 @@ export default function AdminOrderDetails() {
             <div className="text-sm text-muted-foreground space-y-1">
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4" />
-                <span>{order.user_name || 'مستخدم'}</span>
+                <span className="font-medium text-foreground">{order.user_name || 'عميل'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
