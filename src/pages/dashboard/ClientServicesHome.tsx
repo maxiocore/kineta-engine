@@ -120,7 +120,7 @@ const ServiceCard = ({
   return (
     <motion.div
       initial={{ opacity: 0, y: 40, scale: 0.95 }}
-      animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ 
         duration: 0.6, 
         delay: 0.2 + index * 0.15,
@@ -389,7 +389,7 @@ const ClientServicesHome = () => {
           {/* Features Strip */}
           <motion.section
             initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="mb-8"
           >
@@ -416,7 +416,7 @@ const ClientServicesHome = () => {
           <section className="mb-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
               className="text-center mb-6"
             >
@@ -431,7 +431,7 @@ const ClientServicesHome = () => {
                   section={section}
                   index={index}
                   count={section.id === 'design' ? servicesCount.design : servicesCount.dev}
-                  isInView={isInView}
+                  isInView={true}
                 />
               ))}
             </div>
@@ -440,7 +440,7 @@ const ClientServicesHome = () => {
           {/* Quick Actions */}
           <motion.section
             initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
             <Card className="bg-gradient-to-br from-primary/5 via-primary/10 to-accent/5 border-primary/20 rounded-2xl overflow-hidden">
