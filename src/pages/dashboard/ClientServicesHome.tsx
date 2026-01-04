@@ -21,6 +21,7 @@ import {
   ShoppingBag,
   Eye,
   ChevronLeft,
+  Megaphone,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -91,6 +92,18 @@ const serviceSections = [
     bgGlow: 'from-emerald-500/20',
     shadowColor: 'shadow-emerald-500/20',
     features: ['مواقع ويب', 'تطبيقات جوال', 'متاجر إلكترونية', 'أنظمة متكاملة'],
+  },
+  {
+    id: 'marketing',
+    title: 'خدمات التسويق الرقمي',
+    subtitle: 'Digital Marketing',
+    description: 'حلول تسويقية متكاملة لتنمية أعمالك وزيادة مبيعاتك',
+    icon: Target,
+    path: '/dashboard/marketing-services',
+    gradient: 'from-orange-500 via-amber-500 to-yellow-500',
+    bgGlow: 'from-orange-500/20',
+    shadowColor: 'shadow-orange-500/20',
+    features: ['إعلانات ممولة', 'تحسين SEO', 'إدارة حسابات', 'تحليلات'],
   },
 ];
 
@@ -241,7 +254,7 @@ const ClientServicesHome = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, amount: 0.1 });
   
-  const [servicesCount, setServicesCount] = useState({ design: 0, dev: 0 });
+  const [servicesCount, setServicesCount] = useState({ design: 0, dev: 0, marketing: 0 });
   const [globalStats, setGlobalStats] = useState({
     totalServices: 0,
     totalOrders: 0,
@@ -251,7 +264,7 @@ const ClientServicesHome = () => {
 
   const fetchCounts = async () => {
     try {
-      const [designResult, devResult, totalServicesResult, ordersResult] = await Promise.all([
+      const [designResult, devResult, marketingResult, totalServicesResult, ordersResult] = await Promise.all([
         supabase
           .from('services')
           .select('*', { count: 'exact', head: true })
@@ -263,6 +276,12 @@ const ClientServicesHome = () => {
           .select('*', { count: 'exact', head: true })
           .eq('status', 'active')
           .or('category.ilike.%dev%,category.ilike.%برمجة%,category.ilike.%تطوير%'),
+        
+        supabase
+          .from('services')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active')
+          .or('category.ilike.%marketing%,category.ilike.%تسويق%,category.ilike.%إعلان%'),
         
         supabase
           .from('services')
@@ -279,7 +298,8 @@ const ClientServicesHome = () => {
 
       setServicesCount({
         design: designResult.count || 0,
-        dev: devResult.count || 0
+        dev: devResult.count || 0,
+        marketing: marketingResult.count || 0
       });
 
       setGlobalStats({
@@ -424,13 +444,19 @@ const ClientServicesHome = () => {
               <p className="text-muted-foreground text-sm">انقر على أي قسم لاستعراض الخدمات المتاحة</p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
+            <div className="grid md:grid-cols-3 gap-4 sm:gap-6">
               {serviceSections.map((section, index) => (
                 <ServiceCard
                   key={section.id}
                   section={section}
                   index={index}
-                  count={section.id === 'design' ? servicesCount.design : servicesCount.dev}
+                  count={
+                    section.id === 'design' 
+                      ? servicesCount.design 
+                      : section.id === 'dev' 
+                        ? servicesCount.dev 
+                        : servicesCount.marketing
+                  }
                   isInView={true}
                 />
               ))}
