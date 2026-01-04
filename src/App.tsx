@@ -54,7 +54,6 @@ import ClientFavorites from "./pages/dashboard/ClientFavorites";
 import ClientReferrals from "./pages/dashboard/ClientReferrals";
 import ClientBalanceLogs from "./pages/dashboard/ClientBalanceLogs";
 import ClientDesignServices from "./pages/dashboard/ClientDesignServices";
-import ClientDevServices from "./pages/dashboard/ClientDevServices";
 import ClientMarketingServices from "./pages/dashboard/ClientMarketingServices";
 import ClientServicesHome from "./pages/dashboard/ClientServicesHome";
 import DesignServiceOrder from "./pages/dashboard/DesignServiceOrder";
@@ -244,7 +243,7 @@ const App = () => (
                   } />
                   <Route path="/dashboard/dev-services" element={
                     <ProtectedRoute>
-                      <ClientDevServices />
+                      <DevServicesPage />
                     </ProtectedRoute>
                   } />
                   <Route path="/dashboard/marketing-services" element={
@@ -329,17 +328,12 @@ const App = () => (
                   } />
                   
                   {/* Dev Services Routes */}
-                  <Route path="/dashboard/dev-services-new" element={
-                    <ProtectedRoute>
-                      <DevServicesPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/dashboard/dev-services-new/:slug" element={
+                  <Route path="/dashboard/dev-services/:slug" element={
                     <ProtectedRoute>
                       <DevServiceDetails />
                     </ProtectedRoute>
                   } />
-                  <Route path="/dashboard/dev-services-new/order/:serviceId" element={
+                  <Route path="/dashboard/dev-services/order/:serviceId" element={
                     <ProtectedRoute>
                       <DevOrderWizard />
                     </ProtectedRoute>
