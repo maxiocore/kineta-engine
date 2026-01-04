@@ -104,7 +104,24 @@ const ClientHostingServices = () => {
       return;
     }
 
-    toast.info(`سيتم إضافة خيارات التكوين قريباً - ${product.name_ar}`);
+    try {
+      await createOrder.mutateAsync({
+        product_id: product.id,
+        product_type: product.product_type,
+        our_price: product.our_price,
+        do_price: product.do_price,
+        configuration: {
+          product_name: product.name,
+          product_name_ar: product.name_ar,
+          specs: product.specs
+        }
+      });
+      
+      toast.success(`تم إنشاء طلب الاستضافة بنجاح - ${product.name_ar}`);
+      navigate('/dashboard/orders');
+    } catch (error: any) {
+      toast.error(error.message || 'حدث خطأ أثناء إنشاء الطلب');
+    }
   };
 
   const renderProductCard = (product: HostingProduct) => {
