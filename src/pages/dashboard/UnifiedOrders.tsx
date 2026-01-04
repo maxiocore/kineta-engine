@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow, format } from "date-fns";
 import { ar } from "date-fns/locale";
+import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import {
   Package,
   Search,
@@ -323,8 +324,9 @@ export default function UnifiedOrders() {
   };
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
-      {/* Header */}
+    <ClientDashboardLayout>
+      <div className="min-h-screen bg-background" dir="rtl">
+        {/* Header */}
       <div className="border-b border-border/50 bg-card/50">
         <div className="container mx-auto max-w-7xl px-4 py-6">
           <motion.div
@@ -521,5 +523,6 @@ export default function UnifiedOrders() {
         </motion.div>
       </div>
     </div>
+    </ClientDashboardLayout>
   );
 }

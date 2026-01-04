@@ -5,6 +5,7 @@ import { formatDistanceToNow, format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { useToast } from "@/hooks/use-toast";
 import {
   ChevronLeft,
@@ -330,6 +331,7 @@ export default function UnifiedOrderDetails() {
   const StatusIcon = CheckCircle;
 
   return (
+    <ClientDashboardLayout>
     <div className="min-h-screen bg-background" dir="rtl">
       {/* Breadcrumb */}
       <div className="border-b border-border/50 bg-card/50">
@@ -616,5 +618,6 @@ export default function UnifiedOrderDetails() {
         </div>
       </div>
     </div>
+    </ClientDashboardLayout>
   );
 }
