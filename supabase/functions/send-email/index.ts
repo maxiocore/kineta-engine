@@ -48,6 +48,7 @@ type EmailType =
   | 'dev_order_created'
   | 'dev_order_created_admin'
   | 'dev_order_status_changed'
+  | 'invoice_sent'
   | 'custom';
 
 interface EmailRequest {
@@ -2197,6 +2198,29 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
         `
       };
     }
+
+    case 'invoice_sent':
+      return {
+        subject: `فاتورة جديدة للطلب ${data.order_number} - MaxioCore`,
+        content: `
+          ${createIconCircle('📄', 'linear-gradient(135deg, #10b981 0%, #059669 100%)')}
+          ${createGreeting(`مرحباً ${data.user_name || 'العميل الكريم'}! 💳`)}
+          ${createMessage(`تم إرسال فاتورة جديدة لطلبك رقم <strong>${data.order_number}</strong>. يرجى مراجعة التفاصيل أدناه وإتمام الدفع.`)}
+          
+          ${createHighlightBox(`${formatAmountArabic(data.amount)} ر.س`, 'المبلغ المطلوب', 'linear-gradient(135deg, #10b981 0%, #059669 100%)')}
+          
+          ${createInfoCard([
+            { label: 'رقم الفاتورة', value: data.invoice_number },
+            { label: 'رقم الطلب', value: data.order_number },
+            { label: 'المبلغ', value: `${formatAmountArabic(data.amount)} ر.س`, valueColor: '#10b981' },
+            ...(data.description ? [{ label: 'الوصف', value: data.description }] : [])
+          ])}
+          
+          ${createNoticeBox('💡 يمكنك الدفع مباشرة من حسابك في MaxioCore باستخدام رصيدك المتاح', '#f0fdf4', '#166534', '#22c55e')}
+          
+          ${createCTAButton('ادفع الآن')}
+        `
+      };
 
     case 'custom':
       return {
