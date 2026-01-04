@@ -119,6 +119,7 @@ import AdminDevOrderDetails from "./pages/admin/AdminDevOrderDetails";
 import UnifiedOrders from "./pages/dashboard/UnifiedOrders";
 import UnifiedOrderDetails from "./pages/dashboard/UnifiedOrderDetails";
 import AdminUnifiedOrders from "./pages/admin/AdminUnifiedOrders";
+import AdminOrderDetails from "./pages/admin/AdminOrderDetails";
 
 const queryClient = new QueryClient();
 
@@ -433,7 +434,7 @@ const App = () => (
                   } />
                   <Route path="/admin/orders/:orderId" element={
                     <ProtectedRoute requireAdmin>
-                      <UnifiedOrderDetails />
+                      <AdminOrderDetails />
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/smm-orders" element={
