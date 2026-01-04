@@ -6,22 +6,17 @@ import { ar } from "date-fns/locale";
 import {
   Package,
   Search,
-  List,
-  LayoutGrid,
   Clock,
   CheckCircle,
   AlertCircle,
   XCircle,
   FileText,
   Settings,
-  ChevronLeft,
   Code,
   Palette,
   Megaphone,
   Share2,
   ArrowUpDown,
-  Users,
-  Mail,
   RefreshCw,
   Eye,
 } from "lucide-react";
@@ -46,13 +41,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { useUnifiedOrders } from "@/hooks/useUnifiedOrders";
 import {
   UnifiedOrder,
   OrderDomain,
   UnifiedStatus,
   OrderFilters,
-  domainLabels,
   domainColors,
   unifiedStatusConfig,
   orderTabs,
@@ -253,33 +248,29 @@ export default function AdminUnifiedOrders() {
   };
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
-      {/* Header */}
-      <div className="border-b border-border/50 bg-card/50">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-1">
-                إدارة الطلبات
-              </h1>
-              <p className="text-muted-foreground">
-                عرض وإدارة جميع طلبات العملاء من مختلف الأقسام
-              </p>
-            </motion.div>
-            <Button onClick={() => refetch()} variant="outline" className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              تحديث
-            </Button>
-          </div>
+    <AdminDashboardLayout>
+      <div className="space-y-4 md:space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">
+              إدارة الطلبات
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              عرض وإدارة جميع طلبات العملاء من مختلف الأقسام
+            </p>
+          </motion.div>
+          <Button onClick={() => refetch()} variant="outline" size="sm" className="gap-2 w-fit">
+            <RefreshCw className="h-4 w-4" />
+            تحديث
+          </Button>
         </div>
-      </div>
 
-      <div className="container mx-auto px-4 py-6 space-y-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
           <AdminStatCard
             label="إجمالي الطلبات"
             value={stats.total}
@@ -461,6 +452,6 @@ export default function AdminUnifiedOrders() {
           </motion.p>
         )}
       </div>
-    </div>
+    </AdminDashboardLayout>
   );
 }
