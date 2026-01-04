@@ -106,6 +106,16 @@ import SignPromissoryNote from "./pages/dashboard/SignPromissoryNote";
 import FinancingPayment from "./pages/dashboard/FinancingPayment";
 import ClientFinancingPayments from "./pages/dashboard/ClientFinancingPayments";
 
+// Dev Services System
+import DevServicesPage from "./pages/dashboard/DevServicesPage";
+import DevServiceDetails from "./pages/dashboard/DevServiceDetails";
+import DevOrderWizard from "./pages/dashboard/DevOrderWizard";
+import MyDevOrders from "./pages/dashboard/MyDevOrders";
+import DevOrderDetails from "./pages/dashboard/DevOrderDetails";
+import VerifyEmailPage from "./pages/dashboard/VerifyEmailPage";
+import AdminDevOrders from "./pages/admin/AdminDevOrders";
+import AdminDevOrderDetails from "./pages/admin/AdminDevOrderDetails";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -318,6 +328,38 @@ const App = () => (
                     </ProtectedRoute>
                   } />
                   
+                  {/* Dev Services Routes */}
+                  <Route path="/dashboard/dev-services-new" element={
+                    <ProtectedRoute>
+                      <DevServicesPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/dev-services-new/:slug" element={
+                    <ProtectedRoute>
+                      <DevServiceDetails />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/dev-services-new/order/:serviceId" element={
+                    <ProtectedRoute>
+                      <DevOrderWizard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/my-dev-orders" element={
+                    <ProtectedRoute>
+                      <MyDevOrders />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/my-dev-orders/:orderId" element={
+                    <ProtectedRoute>
+                      <DevOrderDetails />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/verify-email" element={
+                    <ProtectedRoute>
+                      <VerifyEmailPage />
+                    </ProtectedRoute>
+                  } />
+                  
                   {/* Admin Dashboard Routes */}
                   <Route path="/admin/auth" element={<AdminAuth />} />
                   <Route path="/admin/financial" element={
@@ -468,6 +510,16 @@ const App = () => (
                   <Route path="/admin/tamara-payments" element={
                     <ProtectedRoute requireAdmin>
                       <AdminTamaraPayments />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/dev-orders" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminDevOrders />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/dev-orders/:orderId" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminDevOrderDetails />
                     </ProtectedRoute>
                   } />
                   
