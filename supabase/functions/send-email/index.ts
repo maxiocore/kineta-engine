@@ -50,6 +50,22 @@ type EmailType =
   | 'dev_order_status_changed'
   | 'invoice_sent'
   | 'verification_request'
+  // Hosting & Domain Templates
+  | 'hosting_order_created'
+  | 'hosting_order_created_admin'
+  | 'hosting_order_provisioning'
+  | 'hosting_order_active'
+  | 'hosting_order_suspended'
+  | 'hosting_order_terminated'
+  | 'hosting_order_renewed'
+  | 'hosting_order_renewal_reminder'
+  | 'hosting_order_expiring_soon'
+  | 'domain_order_created'
+  | 'domain_registered'
+  | 'domain_transfer_started'
+  | 'domain_transfer_completed'
+  | 'domain_expiring_soon'
+  | 'domain_renewed'
   | 'custom';
 
 interface EmailRequest {
@@ -63,6 +79,34 @@ interface EmailRequest {
 // Format amount in Arabic style
 function formatAmountArabic(amount: number): string {
   return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+// Format date in Arabic style
+function formatDateArabic(dateString: string): string {
+  try {
+    const date = new Date(dateString);
+    const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day} ${month} ${year}`;
+  } catch {
+    return dateString || '-';
+  }
+}
+
+// Get hosting product type label in Arabic
+function getHostingProductTypeLabel(productType: string): string {
+  const labels: Record<string, string> = {
+    'droplet': 'سيرفر VPS',
+    'database': 'قاعدة بيانات',
+    'spaces': 'تخزين سحابي',
+    'app_platform': 'استضافة تطبيقات',
+    'load_balancer': 'موازنة أحمال',
+    'kubernetes': 'Kubernetes',
+    'firewall': 'جدار حماية'
+  };
+  return labels[productType] || 'استضافة سحابية';
 }
 
 // Enhanced RTL Email wrapper with IBM Plex Sans Arabic font
@@ -2269,6 +2313,373 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           ${createNoticeBox('⚡ وثّق حسابك الآن واستمتع بتجربة استثنائية مع MaxioCore!', '#f0f9ff', '#0369a1', '#0ea5e9')}
           
           ${createCTAButton('توثيق حسابي الآن')}
+        `
+      };
+
+    // =============================================
+    // قوالب خدمات الاستضافة السحابية
+    // =============================================
+    
+    case 'hosting_order_created':
+      return {
+        subject: `تم استلام طلب الاستضافة #${data.order_number} - MaxioCore`,
+        content: `
+          ${createIconCircle('☁️', 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)')}
+          ${createGreeting(`مرحباً ${data.user_name || 'العميل الكريم'}! 🎉`)}
+          ${createMessage('تم استلام طلب الاستضافة السحابية الخاص بك بنجاح! سيتم مراجعة طلبك وتفعيل الخدمة في أقرب وقت ممكن.')}
+          
+          ${createHighlightBox(data.product_name || 'خدمة استضافة', 'نوع الخدمة', 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)')}
+          
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.order_number },
+            { label: 'الخدمة', value: data.product_name || 'استضافة سحابية' },
+            { label: 'نوع المنتج', value: getHostingProductTypeLabel(data.product_type) },
+            { label: 'السعر الشهري', value: formatAmountArabic(data.price || 0) + ' ر.س', valueColor: '#0ea5e9' },
+            { label: 'الحالة', value: 'قيد المعالجة', isStatus: true, statusColor: '#fef3c7', valueColor: '#92400e' }
+          ])}
+          
+          ${createNoticeBox('⏱️ سيتم تفعيل خدمتك خلال دقائق معدودة وستصلك رسالة عند اكتمال التفعيل.', '#f0fdf4', '#166534', '#22c55e')}
+          
+          ${createCTAButton('متابعة طلبك')}
+        `
+      };
+
+    case 'hosting_order_created_admin':
+      return {
+        subject: `🆕 طلب استضافة جديد #${data.order_number} - يحتاج مراجعة`,
+        content: `
+          ${createIconCircle('☁️', 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)')}
+          ${createGreeting('طلب استضافة جديد! 🎉')}
+          ${createMessage('تم استلام طلب استضافة سحابية جديد يحتاج إلى مراجعة وتفعيل.')}
+          
+          ${createHighlightBox(data.order_number, 'رقم الطلب', 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)')}
+          
+          ${createInfoCard([
+            { label: 'العميل', value: data.user_name || 'غير محدد' },
+            { label: 'البريد الإلكتروني', value: data.user_email || '-' },
+            { label: 'الخدمة', value: data.product_name || 'استضافة سحابية' },
+            { label: 'نوع المنتج', value: getHostingProductTypeLabel(data.product_type) },
+            { label: 'السعر', value: formatAmountArabic(data.price || 0) + ' ر.س', valueColor: '#22c55e' }
+          ])}
+          
+          ${createCTAButton('مراجعة الطلب')}
+        `
+      };
+
+    case 'hosting_order_provisioning':
+      return {
+        subject: `جاري تجهيز خدمتك #${data.order_number} - MaxioCore`,
+        content: `
+          ${createIconCircle('⚙️', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          ${createGreeting(`مرحباً ${data.user_name || 'العميل الكريم'}! 🚀`)}
+          ${createMessage('جاري الآن تجهيز وإعداد خدمة الاستضافة السحابية الخاصة بك. ستصلك رسالة فور اكتمال التفعيل.')}
+          
+          ${createHighlightBox('جاري التجهيز...', 'حالة الخدمة', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.order_number },
+            { label: 'الخدمة', value: data.product_name || 'استضافة سحابية' },
+            { label: 'الحالة', value: 'جاري التجهيز', isStatus: true, statusColor: '#fef3c7', valueColor: '#92400e' }
+          ])}
+          
+          ${createNoticeBox('⏱️ عادةً ما يستغرق التجهيز من 2-5 دقائق فقط!', '#f0f9ff', '#0369a1', '#0ea5e9')}
+        `
+      };
+
+    case 'hosting_order_active':
+      return {
+        subject: `🎉 تم تفعيل خدمتك #${data.order_number} - MaxioCore`,
+        content: `
+          ${createIconCircle('✅', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          ${createGreeting(`تهانينا ${data.user_name || 'العميل الكريم'}! 🎊`)}
+          ${createMessage('تم تفعيل خدمة الاستضافة السحابية الخاصة بك بنجاح وهي جاهزة للاستخدام الآن!')}
+          
+          ${createHighlightBox('✓ نشطة', 'حالة الخدمة', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.order_number },
+            { label: 'الخدمة', value: data.product_name || 'استضافة سحابية' },
+            { label: 'نوع المنتج', value: getHostingProductTypeLabel(data.product_type) },
+            { label: 'الحالة', value: 'نشطة', isStatus: true, statusColor: '#dcfce7', valueColor: '#166534' }
+          ])}
+          
+          ${data.resource_name ? createNoticeBox('🖥️ اسم المورد: ' + data.resource_name, '#f0f9ff', '#0369a1', '#0ea5e9') : ''}
+          
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 14px; margin-bottom: 25px; border-right: 4px solid #22c55e;">
+            <tr>
+              <td style="padding: 25px;">
+                <p style="margin: 0 0 15px; font-size: 16px; font-weight: 700; color: #166534;">📋 الخطوات التالية:</p>
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                  <tr><td style="padding: 8px 0; color: #166534; font-size: 14px;">1️⃣ ادخل إلى لوحة التحكم من حسابك</td></tr>
+                  <tr><td style="padding: 8px 0; color: #166534; font-size: 14px;">2️⃣ ابدأ بإعداد وتكوين خدمتك</td></tr>
+                  <tr><td style="padding: 8px 0; color: #166534; font-size: 14px;">3️⃣ تواصل معنا إذا احتجت أي مساعدة</td></tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          
+          ${createCTAButton('إدارة خدمتي')}
+        `
+      };
+
+    case 'hosting_order_suspended':
+      return {
+        subject: `⚠️ تم إيقاف خدمتك مؤقتاً #${data.order_number} - MaxioCore`,
+        content: `
+          ${createIconCircle('⚠️', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          ${createGreeting('تنبيه هام ' + (data.user_name || 'العميل الكريم'))}
+          ${createMessage('تم إيقاف خدمة الاستضافة السحابية الخاصة بك مؤقتاً. يرجى مراجعة التفاصيل والتواصل معنا لإعادة التفعيل.')}
+          
+          ${createHighlightBox('موقوفة مؤقتاً', 'حالة الخدمة', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.order_number },
+            { label: 'الخدمة', value: data.product_name || 'استضافة سحابية' },
+            { label: 'الحالة', value: 'موقوفة', isStatus: true, statusColor: '#fef3c7', valueColor: '#92400e' }
+          ])}
+          
+          ${createNoticeBox('📞 تواصل مع الدعم الفني فوراً لإعادة تفعيل خدمتك!', '#fef2f2', '#991b1b', '#ef4444')}
+          
+          ${createCTAButton('تواصل مع الدعم')}
+        `
+      };
+
+    case 'hosting_order_terminated':
+      return {
+        subject: `إلغاء خدمة الاستضافة #${data.order_number} - MaxioCore`,
+        content: `
+          ${createIconCircle('❌', 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)')}
+          ${createGreeting(data.user_name || 'العميل الكريم')}
+          ${createMessage('نأسف لإبلاغك أنه تم إلغاء خدمة الاستضافة السحابية الخاصة بك.')}
+          
+          ${createHighlightBox('ملغاة', 'حالة الخدمة', 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)')}
+          
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.order_number },
+            { label: 'الخدمة', value: data.product_name || 'استضافة سحابية' },
+            { label: 'الحالة', value: 'ملغاة', isStatus: true, statusColor: '#fee2e2', valueColor: '#991b1b' }
+          ])}
+          
+          ${createNoticeBox('💡 يمكنك دائماً طلب خدمة جديدة من خلال حسابك في المنصة.', '#f0f9ff', '#0369a1', '#0ea5e9')}
+          
+          ${createCTAButton('استعراض الخدمات')}
+        `
+      };
+
+    case 'hosting_order_renewed':
+      return {
+        subject: `✅ تم تجديد خدمتك #${data.order_number} - MaxioCore`,
+        content: `
+          ${createIconCircle('🔄', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          ${createGreeting('شكراً ' + (data.user_name || 'العميل الكريم') + '! 🎉')}
+          ${createMessage('تم تجديد خدمة الاستضافة السحابية الخاصة بك بنجاح!')}
+          
+          ${createHighlightBox('تم التجديد ✓', 'حالة الخدمة', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.order_number },
+            { label: 'الخدمة', value: data.product_name || 'استضافة سحابية' },
+            { label: 'مبلغ التجديد', value: formatAmountArabic(data.amount || 0) + ' ر.س', valueColor: '#22c55e' },
+            { label: 'تاريخ الانتهاء الجديد', value: formatDateArabic(data.new_expires_at) }
+          ])}
+          
+          ${createNoticeBox('🙏 نشكرك على ثقتك المستمرة بخدماتنا!', '#f0fdf4', '#166534', '#22c55e')}
+          
+          ${createCTAButton('إدارة خدمتي')}
+        `
+      };
+
+    case 'hosting_order_renewal_reminder':
+      return {
+        subject: '⏰ تذكير: خدمتك تحتاج للتجديد #' + data.order_number + ' - MaxioCore',
+        content: `
+          ${createIconCircle('⏰', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          ${createGreeting('مرحباً ' + (data.user_name || 'العميل الكريم'))}
+          ${createMessage('نود تذكيرك بأن خدمة الاستضافة السحابية الخاصة بك ستنتهي قريباً. يرجى التجديد للحفاظ على استمرارية خدمتك.')}
+          
+          ${createHighlightBox((data.days_remaining || 7) + ' أيام متبقية', 'الوقت المتبقي', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.order_number },
+            { label: 'الخدمة', value: data.product_name || 'استضافة سحابية' },
+            { label: 'تاريخ الانتهاء', value: formatDateArabic(data.expires_at), valueColor: '#dc2626' },
+            { label: 'مبلغ التجديد', value: formatAmountArabic(data.renewal_amount || 0) + ' ر.س' }
+          ])}
+          
+          ${createNoticeBox('⚠️ عدم التجديد في الوقت المحدد قد يؤدي إلى إيقاف الخدمة!', '#fef2f2', '#991b1b', '#ef4444')}
+          
+          ${createCTAButton('جدد الآن')}
+        `
+      };
+
+    case 'hosting_order_expiring_soon':
+      return {
+        subject: '🔴 تنبيه عاجل: خدمتك تنتهي خلال ' + (data.days_remaining || 3) + ' أيام - MaxioCore',
+        content: `
+          ${createIconCircle('🔴', 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)')}
+          ${createGreeting('تنبيه عاجل ' + (data.user_name || 'العميل الكريم') + '!')}
+          ${createMessage('خدمة الاستضافة السحابية الخاصة بك ستنتهي خلال ' + (data.days_remaining || 3) + ' أيام فقط! يرجى التجديد فوراً لتجنب انقطاع الخدمة.')}
+          
+          ${createHighlightBox((data.days_remaining || 3) + ' أيام فقط!', 'الوقت المتبقي', 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)')}
+          
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.order_number },
+            { label: 'الخدمة', value: data.product_name || 'استضافة سحابية' },
+            { label: 'تاريخ الانتهاء', value: formatDateArabic(data.expires_at), valueColor: '#dc2626' }
+          ])}
+          
+          ${createNoticeBox('⛔ سيتم إيقاف الخدمة تلقائياً عند انتهاء المدة!', '#fef2f2', '#991b1b', '#ef4444')}
+          
+          ${createCTAButton('جدد الآن فوراً')}
+        `
+      };
+
+    // =============================================
+    // قوالب خدمات الدومينات والنطاقات
+    // =============================================
+    
+    case 'domain_order_created':
+      return {
+        subject: 'تم استلام طلب تسجيل الدومين ' + data.domain_name + ' - MaxioCore',
+        content: `
+          ${createIconCircle('🌐', 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)')}
+          ${createGreeting('مرحباً ' + (data.user_name || 'العميل الكريم') + '! 🎉')}
+          ${createMessage('تم استلام طلب تسجيل النطاق الخاص بك بنجاح! سنقوم بمعالجة طلبك في أقرب وقت.')}
+          
+          ${createHighlightBox(data.domain_name || 'نطاق جديد', 'اسم النطاق', 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)')}
+          
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.order_number },
+            { label: 'اسم النطاق', value: data.domain_name },
+            { label: 'مدة التسجيل', value: (data.years || 1) + ' سنة' },
+            { label: 'السعر', value: formatAmountArabic(data.price || 0) + ' ر.س', valueColor: '#6366f1' },
+            { label: 'الحالة', value: 'قيد المعالجة', isStatus: true, statusColor: '#fef3c7', valueColor: '#92400e' }
+          ])}
+          
+          ${createNoticeBox('📝 سيتم إرسال رسالة تأكيد فور اكتمال تسجيل النطاق.', '#f0f9ff', '#0369a1', '#0ea5e9')}
+          
+          ${createCTAButton('متابعة الطلب')}
+        `
+      };
+
+    case 'domain_registered':
+      return {
+        subject: '✅ تم تسجيل النطاق ' + data.domain_name + ' بنجاح - MaxioCore',
+        content: `
+          ${createIconCircle('✅', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          ${createGreeting('تهانينا ' + (data.user_name || 'العميل الكريم') + '! 🎊')}
+          ${createMessage('تم تسجيل النطاق الخاص بك بنجاح وهو جاهز للاستخدام الآن!')}
+          
+          ${createHighlightBox(data.domain_name, 'تم التسجيل ✓', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          
+          ${createInfoCard([
+            { label: 'اسم النطاق', value: data.domain_name },
+            { label: 'تاريخ التسجيل', value: formatDateArabic(data.registered_at || new Date().toISOString()) },
+            { label: 'تاريخ الانتهاء', value: formatDateArabic(data.expires_at) },
+            { label: 'الحالة', value: 'نشط', isStatus: true, statusColor: '#dcfce7', valueColor: '#166534' }
+          ])}
+          
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 14px; margin-bottom: 25px; border-right: 4px solid #22c55e;">
+            <tr>
+              <td style="padding: 25px;">
+                <p style="margin: 0 0 15px; font-size: 16px; font-weight: 700; color: #166534;">🎯 الخطوات التالية:</p>
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                  <tr><td style="padding: 8px 0; color: #166534; font-size: 14px;">1️⃣ قم بتوجيه النطاق إلى خادمك</td></tr>
+                  <tr><td style="padding: 8px 0; color: #166534; font-size: 14px;">2️⃣ أضف سجلات DNS المطلوبة</td></tr>
+                  <tr><td style="padding: 8px 0; color: #166534; font-size: 14px;">3️⃣ فعّل شهادة SSL للأمان</td></tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          
+          ${createCTAButton('إدارة النطاق')}
+        `
+      };
+
+    case 'domain_transfer_started':
+      return {
+        subject: '🔄 بدء نقل النطاق ' + data.domain_name + ' - MaxioCore',
+        content: `
+          ${createIconCircle('🔄', 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)')}
+          ${createGreeting('مرحباً ' + (data.user_name || 'العميل الكريم'))}
+          ${createMessage('تم بدء عملية نقل النطاق الخاص بك إلى منصتنا. قد تستغرق العملية من 5-7 أيام.')}
+          
+          ${createHighlightBox(data.domain_name, 'جاري النقل...', 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)')}
+          
+          ${createInfoCard([
+            { label: 'اسم النطاق', value: data.domain_name },
+            { label: 'الحالة', value: 'جاري النقل', isStatus: true, statusColor: '#dbeafe', valueColor: '#1d4ed8' }
+          ])}
+          
+          ${createNoticeBox('📧 ستصلك رسالة تأكيد على البريد المسجل في النطاق. يرجى الموافقة على طلب النقل.', '#fef3c7', '#92400e', '#f59e0b')}
+          
+          ${createCTAButton('متابعة حالة النقل')}
+        `
+      };
+
+    case 'domain_transfer_completed':
+      return {
+        subject: '✅ اكتمل نقل النطاق ' + data.domain_name + ' - MaxioCore',
+        content: `
+          ${createIconCircle('✅', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          ${createGreeting('تهانينا ' + (data.user_name || 'العميل الكريم') + '! 🎉')}
+          ${createMessage('تم نقل النطاق الخاص بك بنجاح إلى منصتنا وهو جاهز للإدارة!')}
+          
+          ${createHighlightBox(data.domain_name, 'تم النقل ✓', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          
+          ${createInfoCard([
+            { label: 'اسم النطاق', value: data.domain_name },
+            { label: 'تاريخ الانتهاء', value: formatDateArabic(data.expires_at) },
+            { label: 'الحالة', value: 'نشط', isStatus: true, statusColor: '#dcfce7', valueColor: '#166534' }
+          ])}
+          
+          ${createNoticeBox('🎉 يمكنك الآن إدارة نطاقك بالكامل من لوحة التحكم!', '#f0fdf4', '#166534', '#22c55e')}
+          
+          ${createCTAButton('إدارة النطاق')}
+        `
+      };
+
+    case 'domain_expiring_soon':
+      return {
+        subject: '⚠️ تنبيه: النطاق ' + data.domain_name + ' ينتهي قريباً - MaxioCore',
+        content: `
+          ${createIconCircle('⚠️', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          ${createGreeting('تنبيه هام ' + (data.user_name || 'العميل الكريم'))}
+          ${createMessage('النطاق الخاص بك ينتهي خلال ' + (data.days_remaining || 30) + ' يوماً. يرجى التجديد لتجنب فقدان النطاق.')}
+          
+          ${createHighlightBox((data.days_remaining || 30) + ' يوم متبقي', 'تاريخ الانتهاء', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          
+          ${createInfoCard([
+            { label: 'اسم النطاق', value: data.domain_name },
+            { label: 'تاريخ الانتهاء', value: formatDateArabic(data.expires_at), valueColor: '#dc2626' },
+            { label: 'مبلغ التجديد', value: formatAmountArabic(data.renewal_price || 0) + ' ر.س' }
+          ])}
+          
+          ${createNoticeBox('⛔ عدم التجديد قد يؤدي إلى فقدان النطاق نهائياً!', '#fef2f2', '#991b1b', '#ef4444')}
+          
+          ${createCTAButton('جدد النطاق الآن')}
+        `
+      };
+
+    case 'domain_renewed':
+      return {
+        subject: '✅ تم تجديد النطاق ' + data.domain_name + ' - MaxioCore',
+        content: `
+          ${createIconCircle('🔄', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          ${createGreeting('شكراً ' + (data.user_name || 'العميل الكريم') + '! 🎉')}
+          ${createMessage('تم تجديد النطاق الخاص بك بنجاح!')}
+          
+          ${createHighlightBox(data.domain_name, 'تم التجديد ✓', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          
+          ${createInfoCard([
+            { label: 'اسم النطاق', value: data.domain_name },
+            { label: 'مبلغ التجديد', value: formatAmountArabic(data.amount || 0) + ' ر.س', valueColor: '#22c55e' },
+            { label: 'تاريخ الانتهاء الجديد', value: formatDateArabic(data.new_expires_at) }
+          ])}
+          
+          ${createNoticeBox('🙏 نشكرك على ثقتك المستمرة بخدماتنا!', '#f0fdf4', '#166534', '#22c55e')}
+          
+          ${createCTAButton('إدارة النطاقات')}
         `
       };
 
