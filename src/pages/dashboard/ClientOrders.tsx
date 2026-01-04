@@ -2,33 +2,49 @@ import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { 
-  ShoppingBag, Plus, ArrowRight
+  ShoppingBag, 
+  Plus, 
+  ArrowRight, 
+  Search,
+  Filter,
+  Download,
+  RefreshCw,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  Eye,
+  Calendar,
+  ChevronLeft,
+  Palette,
+  Code,
+  TrendingUp,
+  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { isWithinInterval, startOfDay, endOfDay } from "date-fns";
-
-import { 
-  OrderType, 
-  ModernOrdersStats, 
-  ModernOrdersSearch,
-  ModernOrdersTable,
-  DesignOrdersList,
-  DevOrdersList,
-  OrdersSectionCards,
-  SectionHeader
-} from "@/components/orders/modern";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 
 interface Service {
   id: string;
   name: string;
   price: number;
   category: string;
-  description: string | null;
-  features: any;
 }
 
 interface Order {
@@ -36,52 +52,116 @@ interface Order {
   order_number: string;
   status: string;
   total_price: number;
-  notes: string | null;
-  admin_notes: string | null;
   created_at: string;
-  updated_at: string;
-  link: string | null;
   quantity: number | null;
-  external_order_id: string | null;
-  external_status: string | null;
-  discount_amount: number | null;
-  start_count: number | null;
-  remains: number | null;
   service: Service;
 }
 
-// Define category mappings for order types
-const socialCategories = [
-  'instagram', 'facebook', 'twitter', 'tiktok', 'youtube', 'snapchat', 
-  'telegram', 'linkedin', 'pinterest', 'social', 'smm', 'followers',
-  'likes', 'views', 'comments', 'shares', 'subscribers'
-];
+const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType; bg: string }> = {
+  pending: { label: 'قيد الانتظار', color: 'text-amber-500', icon: Clock, bg: 'bg-amber-500/10' },
+  in_progress: { label: 'قيد التنفيذ', color: 'text-blue-500', icon: Loader2, bg: 'bg-blue-500/10' },
+  processing: { label: 'قيد المعالجة', color: 'text-blue-500', icon: Loader2, bg: 'bg-blue-500/10' },
+  completed: { label: 'مكتمل', color: 'text-emerald-500', icon: CheckCircle2, bg: 'bg-emerald-500/10' },
+  cancelled: { label: 'ملغي', color: 'text-red-500', icon: XCircle, bg: 'bg-red-500/10' },
+  refunded: { label: 'مسترد', color: 'text-orange-500', icon: XCircle, bg: 'bg-orange-500/10' },
+};
 
-const marketingCategories = [
-  'marketing', 'digital', 'seo', 'sem', 'ppc', 'ads', 'advertising',
-  'google ads', 'facebook ads', 'campaign', 'email marketing', 'content',
-  'analytics', 'conversion', 'lead', 'funnel', 'automation', 'تسويق'
-];
-
-const designCategories = [
-  'design', 'graphic', 'logo', 'banner', 'poster', 'branding',
-  'ui', 'ux', 'illustration', 'motion', 'video', 'animation'
-];
-
-const devCategories = [
-  'development', 'programming', 'web', 'app', 'mobile', 'software',
-  'backend', 'frontend', 'api', 'database', 'code', 'script'
-];
-
-const getOrderType = (category: string): OrderType => {
-  const lowerCategory = category?.toLowerCase() || '';
+// Order Card Component
+const OrderCard = ({ 
+  order, 
+  onView 
+}: { 
+  order: Order; 
+  onView: (order: Order) => void;
+}) => {
+  const status = statusConfig[order.status] || statusConfig.pending;
+  const StatusIcon = status.icon;
   
-  if (marketingCategories.some(c => lowerCategory.includes(c))) return 'marketing';
-  if (socialCategories.some(c => lowerCategory.includes(c))) return 'social';
-  if (designCategories.some(c => lowerCategory.includes(c))) return 'design';
-  if (devCategories.some(c => lowerCategory.includes(c))) return 'dev';
+  // Determine order type by category
+  const getOrderType = (category: string) => {
+    const lower = category?.toLowerCase() || '';
+    if (lower.includes('design') || lower.includes('تصميم')) return { icon: Palette, gradient: 'from-rose-500 to-violet-500' };
+    if (lower.includes('dev') || lower.includes('برمجة')) return { icon: Code, gradient: 'from-emerald-500 to-cyan-500' };
+    return { icon: Package, gradient: 'from-primary to-accent' };
+  };
   
-  return 'social'; // Default to social for SMM services
+  const orderType = getOrderType(order.service?.category);
+  const TypeIcon = orderType.icon;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      whileHover={{ scale: 1.01 }}
+      className="group"
+    >
+      <Card className="overflow-hidden border-2 border-border/50 bg-card/90 backdrop-blur-sm hover:border-primary/30 transition-all duration-300 rounded-xl">
+        <CardContent className="p-4 sm:p-5">
+          <div className="flex items-start gap-4">
+            {/* Icon */}
+            <div className={cn(
+              "w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-lg shrink-0",
+              orderType.gradient
+            )}>
+              <TypeIcon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="min-w-0">
+                  <h3 className="font-bold text-sm sm:text-base truncate group-hover:text-primary transition-colors">
+                    {order.service?.name || 'خدمة غير محددة'}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    #{order.order_number}
+                  </p>
+                </div>
+                
+                {/* Status Badge */}
+                <Badge className={cn("shrink-0 gap-1 text-xs", status.bg, status.color)}>
+                  <StatusIcon className={cn("w-3 h-3", order.status === 'in_progress' && "animate-spin")} />
+                  {status.label}
+                </Badge>
+              </div>
+
+              {/* Info Row */}
+              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mb-3">
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  {format(new Date(order.created_at), 'dd MMM yyyy', { locale: ar })}
+                </span>
+                {order.quantity && (
+                  <span className="flex items-center gap-1">
+                    <Package className="w-3 h-3" />
+                    {order.quantity} وحدة
+                  </span>
+                )}
+              </div>
+
+              {/* Bottom Row */}
+              <div className="flex items-center justify-between">
+                <span className="text-lg font-bold text-primary">
+                  {order.total_price.toFixed(2)} ر.س
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1.5 text-xs h-8 rounded-lg hover:bg-primary/10"
+                  onClick={() => onView(order)}
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  التفاصيل
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
 };
 
 const ClientOrders = () => {
@@ -91,13 +171,12 @@ const ClientOrders = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [activeSection, setActiveSection] = useState<OrderType | null>(null);
 
   useEffect(() => {
     if (user) {
       fetchOrders();
+      
       const channel = supabase
         .channel('client-orders-realtime')
         .on('postgres_changes', { 
@@ -105,19 +184,18 @@ const ClientOrders = () => {
           schema: 'public', 
           table: 'orders', 
           filter: `user_id=eq.${user.id}` 
-        },
-          (payload) => {
-            if (payload.eventType === 'UPDATE') {
-              setOrders(prev => prev.map(order => 
-                order.id === payload.new.id ? { ...order, ...payload.new } : order
-              ));
-              toast.info("تم تحديث حالة طلبك");
-            } else if (payload.eventType === 'INSERT') {
-              fetchOrders();
-            }
+        }, (payload) => {
+          if (payload.eventType === 'UPDATE') {
+            setOrders(prev => prev.map(order => 
+              order.id === payload.new.id ? { ...order, ...payload.new } : order
+            ));
+            toast.info("تم تحديث حالة طلبك");
+          } else if (payload.eventType === 'INSERT') {
+            fetchOrders();
           }
-        )
+        })
         .subscribe();
+        
       return () => { supabase.removeChannel(channel); };
     }
   }, [user]);
@@ -126,10 +204,8 @@ const ClientOrders = () => {
     const { data, error } = await supabase
       .from("orders")
       .select(`
-        id, order_number, status, total_price, notes, admin_notes, 
-        created_at, updated_at, link, quantity, external_order_id, 
-        external_status, discount_amount, start_count, remains,
-        service:services(id, name, price, category, description, features)
+        id, order_number, status, total_price, created_at, quantity,
+        service:services(id, name, price, category)
       `)
       .eq("user_id", user?.id)
       .order("created_at", { ascending: false });
@@ -139,7 +215,7 @@ const ClientOrders = () => {
     setLoading(false);
   };
 
-  const handleViewOrder = async (order: Order) => {
+  const handleViewOrder = (order: Order) => {
     navigate(`/dashboard/orders/${order.id}`);
   };
 
@@ -165,123 +241,26 @@ const ClientOrders = () => {
     toast.success("تم تصدير الطلبات");
   };
 
-  // Filter orders by type
-  const ordersByType = useMemo(() => {
-    const result = { 
-      all: orders, 
-      social: [] as Order[], 
-      marketing: [] as Order[],
-      design: [] as Order[], 
-      dev: [] as Order[] 
-    };
-    
-    orders.forEach(order => {
-      const type = getOrderType(order.service?.category);
-      result[type].push(order);
-    });
-    
-    return result;
-  }, [orders]);
-
-  // Get current section orders
-  const currentSectionOrders = activeSection ? ordersByType[activeSection] : [];
-
-  // Apply filters
+  // Filter orders
   const filteredOrders = useMemo(() => {
-    return currentSectionOrders.filter(order => {
+    return orders.filter(order => {
       const matchesSearch = 
         order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        order.service?.name.toLowerCase().includes(searchQuery.toLowerCase());
+        order.service?.name?.toLowerCase().includes(searchQuery.toLowerCase());
       
       const matchesStatus = statusFilter === "all" || order.status === statusFilter;
       
-      const orderDate = new Date(order.created_at);
-      const matchesDate = 
-        (!dateRange.from && !dateRange.to) || 
-        (dateRange.from && dateRange.to && isWithinInterval(orderDate, { 
-          start: startOfDay(dateRange.from), 
-          end: endOfDay(dateRange.to) 
-        })) || 
-        (dateRange.from && !dateRange.to && orderDate >= startOfDay(dateRange.from));
-      
-      return matchesSearch && matchesStatus && matchesDate;
+      return matchesSearch && matchesStatus;
     });
-  }, [currentSectionOrders, searchQuery, statusFilter, dateRange]);
+  }, [orders, searchQuery, statusFilter]);
 
   // Stats
   const stats = useMemo(() => ({
-    total: filteredOrders.length,
-    pending: filteredOrders.filter(o => o.status === "pending").length,
-    in_progress: filteredOrders.filter(o => 
-      o.status === "in_progress" || o.status === "processing"
-    ).length,
-    completed: filteredOrders.filter(o => o.status === "completed").length,
-    cancelled: filteredOrders.filter(o => 
-      o.status === "cancelled" || o.status === "refunded"
-    ).length,
-  }), [filteredOrders]);
-
-  // Calculate spending
-  const totalSpent = useMemo(() => 
-    filteredOrders
-      .filter(o => o.status === 'completed' || o.status === 'in_progress' || o.status === 'processing')
-      .reduce((sum, o) => sum + o.total_price, 0), 
-    [filteredOrders]
-  );
-
-  const todaySpent = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return filteredOrders
-      .filter(o => {
-        const orderDate = new Date(o.created_at);
-        return orderDate >= today && 
-          (o.status === 'completed' || o.status === 'in_progress' || o.status === 'processing');
-      })
-      .reduce((sum, o) => sum + o.total_price, 0);
-  }, [filteredOrders]);
-
-  // Counts for section cards
-  const typeCounts = useMemo(() => ({
-    all: orders.length,
-    social: ordersByType.social.length,
-    marketing: ordersByType.marketing.length,
-    design: ordersByType.design.length,
-    dev: ordersByType.dev.length,
-  }), [orders, ordersByType]);
-
-  // Get empty state based on section
-  const getEmptyState = () => {
-    switch (activeSection) {
-      case 'social':
-        return { 
-          title: "لا توجد طلبات مواقع تواصل", 
-          description: "ابدأ بطلب خدمات التواصل الاجتماعي" 
-        };
-      case 'marketing':
-        return { 
-          title: "لا توجد طلبات تسويق رقمي", 
-          description: "ابدأ حملتك التسويقية الآن" 
-        };
-      case 'design':
-        return { 
-          title: "لا توجد طلبات تصميم", 
-          description: "اطلب خدمات التصميم الآن" 
-        };
-      case 'dev':
-        return { 
-          title: "لا توجد طلبات برمجة", 
-          description: "ابدأ مشروعك البرمجي معنا" 
-        };
-      default:
-        return { 
-          title: "لا توجد طلبات", 
-          description: "ابدأ بإنشاء طلبك الأول" 
-        };
-    }
-  };
-
-  const emptyState = getEmptyState();
+    total: orders.length,
+    pending: orders.filter(o => o.status === "pending").length,
+    in_progress: orders.filter(o => o.status === "in_progress" || o.status === "processing").length,
+    completed: orders.filter(o => o.status === "completed").length,
+  }), [orders]);
 
   return (
     <ClientDashboardLayout>
@@ -291,184 +270,172 @@ const ClientOrders = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        {/* Main Header */}
+        {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-primary/15 via-primary/5 to-transparent p-6 border border-primary/20"
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-primary/15 via-primary/5 to-transparent p-5 sm:p-6 border border-primary/20"
         >
           <div className="absolute top-0 left-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 right-1/2 w-40 h-40 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <motion.div 
-                className="relative"
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 400 }}
+                className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg"
+                whileHover={{ scale: 1.05, rotate: 5 }}
               >
-                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/25">
-                  <ShoppingBag className="w-7 h-7 md:w-8 md:h-8 text-white" />
-                </div>
+                <ShoppingBag className="w-7 h-7 text-white" />
               </motion.div>
               
-              <div className="flex flex-col">
-                <h1 className="text-2xl md:text-3xl font-bold text-foreground">سجل طلباتي</h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                  اختر القسم لعرض سجل الطلبات الخاص به
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold">سجل طلباتي</h1>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {orders.length} طلب إجمالي
                 </p>
               </div>
             </div>
 
-            <motion.div 
-              whileHover={{ scale: 1.02 }} 
-              whileTap={{ scale: 0.98 }}
+            <Button 
+              onClick={() => navigate('/dashboard/our-services')} 
+              className="gap-2 rounded-xl shadow-lg"
             >
-              <Button 
-                onClick={() => navigate('/dashboard/our-services')} 
-                className="gap-2 rounded-xl text-base px-5 py-2.5 h-auto shadow-lg shadow-primary/20"
-              >
-                <Plus className="w-5 h-5" />
-                <span>طلب جديد</span>
-              </Button>
-            </motion.div>
+              <Plus className="w-4 h-4" />
+              طلب جديد
+            </Button>
           </div>
-
-          {/* Total Orders Summary */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="relative mt-6 flex items-center gap-3 text-sm text-muted-foreground"
-          >
-            <span className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary font-bold">
-              {orders.length} طلب إجمالي
-            </span>
-            <span>•</span>
-            <span>تصفح الأقسام أدناه لعرض تفاصيل الطلبات</span>
-          </motion.div>
         </motion.div>
 
-        {/* Animated Content Area */}
-        <AnimatePresence mode="wait">
-          {!activeSection ? (
-            /* Section Cards View */
+        {/* Stats Cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-3"
+        >
+          {[
+            { label: 'إجمالي', value: stats.total, color: 'text-foreground', bg: 'bg-secondary' },
+            { label: 'قيد الانتظار', value: stats.pending, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+            { label: 'قيد التنفيذ', value: stats.in_progress, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+            { label: 'مكتمل', value: stats.completed, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+          ].map((stat, index) => (
             <motion.div
-              key="section-cards"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
+              key={stat.label}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 + index * 0.05 }}
+              className={cn("p-4 rounded-xl text-center", stat.bg)}
             >
-              {/* Instructions */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="mb-6 p-4 rounded-xl bg-muted/50 border border-border/50"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <ArrowRight className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">اختر قسم لعرض سجل الطلبات</h3>
-                    <p className="text-sm text-muted-foreground">
-                      انقر على أي قسم لعرض جميع الطلبات المتعلقة به وتتبع حالتها
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
+              <div className={cn("text-2xl font-bold", stat.color)}>{stat.value}</div>
+              <div className="text-xs text-muted-foreground">{stat.label}</div>
+            </motion.div>
+          ))}
+        </motion.div>
 
-              {/* Section Cards */}
-              <OrdersSectionCards
-                activeSection={null}
-                onSectionClick={(section) => setActiveSection(section)}
-                counts={typeCounts}
-              />
+        {/* Search & Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="flex flex-col sm:flex-row gap-3"
+        >
+          <div className="relative flex-1">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="ابحث برقم الطلب أو اسم الخدمة..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pr-10 rounded-xl"
+            />
+          </div>
+          
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[180px] rounded-xl">
+              <Filter className="w-4 h-4 ml-2" />
+              <SelectValue placeholder="حالة الطلب" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">جميع الحالات</SelectItem>
+              <SelectItem value="pending">قيد الانتظار</SelectItem>
+              <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
+              <SelectItem value="completed">مكتمل</SelectItem>
+              <SelectItem value="cancelled">ملغي</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-xl shrink-0"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-xl shrink-0"
+              onClick={handleExport}
+            >
+              <Download className="w-4 h-4" />
+            </Button>
+          </div>
+        </motion.div>
+
+        {/* Results Count */}
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>عرض {filteredOrders.length} من {orders.length} طلب</span>
+        </div>
+
+        {/* Orders List */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="space-y-3"
+        >
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-16"
+            >
+              <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-muted/50 flex items-center justify-center">
+                <ShoppingBag className="w-10 h-10 text-muted-foreground/50" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">
+                {searchQuery || statusFilter !== 'all' ? 'لا توجد نتائج' : 'لا توجد طلبات بعد'}
+              </h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                {searchQuery || statusFilter !== 'all' 
+                  ? 'جرب تغيير معايير البحث' 
+                  : 'ابدأ بإنشاء طلبك الأول الآن'
+                }
+              </p>
+              {!searchQuery && statusFilter === 'all' && (
+                <Button onClick={() => navigate('/dashboard/our-services')} className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  طلب جديد
+                </Button>
+              )}
             </motion.div>
           ) : (
-            /* Section Orders View */
-            <motion.div
-              key={`section-${activeSection}`}
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-6"
-            >
-              {/* Section Header */}
-              <SectionHeader
-                section={activeSection}
-                count={typeCounts[activeSection]}
-                onBack={() => setActiveSection(null)}
-              />
-
-              {/* Stats */}
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-              >
-                <ModernOrdersStats stats={stats} totalSpent={totalSpent} todaySpent={todaySpent} />
-              </motion.div>
-
-              {/* Search & Filters */}
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-              >
-                <ModernOrdersSearch
-                  searchQuery={searchQuery}
-                  setSearchQuery={setSearchQuery}
-                  statusFilter={statusFilter}
-                  setStatusFilter={setStatusFilter}
-                  dateRange={dateRange}
-                  setDateRange={setDateRange}
-                  onRefresh={handleRefresh}
-                  onExport={handleExport}
-                  isRefreshing={isRefreshing}
-                  filteredCount={filteredOrders.length}
-                  totalCount={currentSectionOrders.length}
+            <AnimatePresence mode="popLayout">
+              {filteredOrders.map((order) => (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  onView={handleViewOrder}
                 />
-              </motion.div>
-
-              {/* Orders Display */}
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                {activeSection === 'design' ? (
-                  <DesignOrdersList
-                    orders={filteredOrders}
-                    loading={loading}
-                    onViewOrder={handleViewOrder}
-                    emptyTitle={emptyState.title}
-                    emptyDescription={emptyState.description}
-                  />
-                ) : activeSection === 'dev' ? (
-                  <DevOrdersList
-                    orders={filteredOrders}
-                    loading={loading}
-                    onViewOrder={handleViewOrder}
-                    emptyTitle={emptyState.title}
-                    emptyDescription={emptyState.description}
-                  />
-                ) : (
-                  <ModernOrdersTable
-                    orders={filteredOrders}
-                    loading={loading}
-                    onViewOrder={handleViewOrder}
-                    emptyTitle={emptyState.title}
-                    emptyDescription={emptyState.description}
-                  />
-                )}
-              </motion.div>
-            </motion.div>
+              ))}
+            </AnimatePresence>
           )}
-        </AnimatePresence>
+        </motion.div>
       </motion.div>
     </ClientDashboardLayout>
   );
