@@ -1659,6 +1659,172 @@ export type Database = {
         }
         Relationships: []
       }
+      hosting_operations_log: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          operation_type: string
+          order_id: string | null
+          request_payload: Json | null
+          response_payload: Json | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          operation_type: string
+          order_id?: string | null
+          request_payload?: Json | null
+          response_payload?: Json | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          operation_type?: string
+          order_id?: string | null
+          request_payload?: Json | null
+          response_payload?: Json | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hosting_operations_log_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "hosting_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hosting_orders: {
+        Row: {
+          admin_notes: string | null
+          configuration: Json | null
+          created_at: string
+          do_image: string | null
+          do_price: number
+          do_region: string | null
+          do_resource_id: string | null
+          do_resource_name: string | null
+          do_size: string | null
+          expires_at: string | null
+          id: string
+          order_number: string
+          our_price: number
+          product_id: string | null
+          product_type: string
+          provisioned_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          configuration?: Json | null
+          created_at?: string
+          do_image?: string | null
+          do_price?: number
+          do_region?: string | null
+          do_resource_id?: string | null
+          do_resource_name?: string | null
+          do_size?: string | null
+          expires_at?: string | null
+          id?: string
+          order_number: string
+          our_price?: number
+          product_id?: string | null
+          product_type: string
+          provisioned_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          configuration?: Json | null
+          created_at?: string
+          do_image?: string | null
+          do_price?: number
+          do_region?: string | null
+          do_resource_id?: string | null
+          do_resource_name?: string | null
+          do_size?: string | null
+          expires_at?: string | null
+          id?: string
+          order_number?: string
+          our_price?: number
+          product_id?: string | null
+          product_type?: string
+          provisioned_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hosting_orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "hosting_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hosting_products: {
+        Row: {
+          billing_period: string
+          created_at: string
+          description: string | null
+          description_ar: string | null
+          display_order: number | null
+          do_price: number
+          id: string
+          is_active: boolean
+          name: string
+          name_ar: string
+          our_price: number
+          product_type: string
+          specs: Json | null
+          updated_at: string
+        }
+        Insert: {
+          billing_period?: string
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          display_order?: number | null
+          do_price?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          name_ar: string
+          our_price?: number
+          product_type: string
+          specs?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          billing_period?: string
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          display_order?: number | null
+          do_price?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_ar?: string
+          our_price?: number
+          product_type?: string
+          specs?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       job_applications: {
         Row: {
           admin_notes: string | null
