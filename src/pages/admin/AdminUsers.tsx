@@ -218,15 +218,7 @@ const AdminUsers = () => {
 
     setUpdating(true);
     try {
-      // First verify the user
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ is_verified: true })
-        .eq("id", user.id);
-
-      if (updateError) throw updateError;
-
-      // Send verification email
+      // Send verification request email (without verifying the account)
       const { error: emailError } = await supabase.functions.invoke("send-email", {
         body: {
           to: user.email,
@@ -240,11 +232,10 @@ const AdminUsers = () => {
 
       if (emailError) throw emailError;
 
-      toast.success("تم توثيق الحساب وإرسال إيميل التوثيق بنجاح");
-      fetchUsers();
+      toast.success("تم إرسال طلب التوثيق بنجاح");
     } catch (error) {
       console.error("Error sending verification email:", error);
-      toast.error("حدث خطأ أثناء إرسال إيميل التوثيق");
+      toast.error("حدث خطأ أثناء إرسال طلب التوثيق");
     } finally {
       setUpdating(false);
     }
@@ -760,11 +751,10 @@ const AdminUsers = () => {
                                         disabled={updating}
                                       >
                                         <Send className="w-4 h-4 ml-2" />
-                                        توثيق وإرسال إيميل
+                                        إرسال طلب توثيق
                                       </DropdownMenuItem>
                                     </>
                                   )}
-                                  <DropdownMenuSeparator />
                                   {user.role === "admin" ? (
                                     <DropdownMenuItem 
                                       onClick={() => setRoleChangeDialog({ open: true, user, newRole: "user" })}

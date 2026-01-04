@@ -2225,20 +2225,32 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'verification_request':
       return {
-        subject: `🔐 طلب توثيق حسابك في MaxioCore`,
+        subject: `🔐 مطلوب توثيق حسابك في MaxioCore`,
         content: `
-          ${createIconCircle('✅', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
-          ${createGreeting(`مرحباً ${data.name || 'العميل الكريم'}! 🎉`)}
-          ${createMessage('تم <strong>توثيق حسابك</strong> بنجاح في منصة MaxioCore. أنت الآن مستخدم موثّق وتتمتع بجميع مميزات الحساب الموثق.')}
+          ${createIconCircle('🔒', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          ${createGreeting(`مرحباً ${data.name || 'العميل الكريم'}! 👋`)}
+          ${createMessage('نحتاج منك <strong>توثيق حسابك</strong> في منصة MaxioCore للاستمتاع بجميع المميزات والخدمات الحصرية.')}
           
-          ${createHighlightBox('✓ موثّق', 'حالة حسابك', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
+          ${createHighlightBox('⏳ في انتظار التوثيق', 'حالة حسابك', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
           
           ${createInfoCard([
             { label: 'اسم المستخدم', value: data.name || 'غير محدد' },
-            { label: 'البريد الإلكتروني', value: data.email || '-' },
-            { label: 'تاريخ التوثيق', value: new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }) },
-            { label: 'الحالة', value: 'موثّق ✓', isStatus: true, statusColor: '#dcfce7', valueColor: '#22c55e' }
+            { label: 'البريد الإلكتروني', value: data.email || '-' }
           ])}
+          
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 14px; margin-bottom: 25px; border-right: 4px solid #f59e0b;">
+            <tr>
+              <td style="padding: 25px;">
+                <p style="margin: 0 0 15px; font-size: 16px; font-weight: 700; color: #92400e;">📋 خطوات التوثيق:</p>
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
+                  <tr><td style="padding: 8px 0; color: #92400e; font-size: 14px;">1️⃣ سجل دخولك إلى حسابك في المنصة</td></tr>
+                  <tr><td style="padding: 8px 0; color: #92400e; font-size: 14px;">2️⃣ أكمل بياناتك الشخصية بشكل صحيح</td></tr>
+                  <tr><td style="padding: 8px 0; color: #92400e; font-size: 14px;">3️⃣ تأكد من صحة رقم الهاتف والبريد الإلكتروني</td></tr>
+                  <tr><td style="padding: 8px 0; color: #92400e; font-size: 14px;">4️⃣ انتظر مراجعة وموافقة فريق الدعم</td></tr>
+                </table>
+              </td>
+            </tr>
+          </table>
           
           <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 14px; margin-bottom: 25px; border-right: 4px solid #22c55e;">
             <tr>
@@ -2254,9 +2266,9 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
             </tr>
           </table>
           
-          ${createNoticeBox('🌟 نحن سعداء بانضمامك كمستخدم موثّق! استمتع بتجربة استثنائية مع MaxioCore', '#f0f9ff', '#0369a1', '#0ea5e9')}
+          ${createNoticeBox('⚡ وثّق حسابك الآن واستمتع بتجربة استثنائية مع MaxioCore!', '#f0f9ff', '#0369a1', '#0ea5e9')}
           
-          ${createCTAButton('استكشف خدماتنا الآن')}
+          ${createCTAButton('توثيق حسابي الآن')}
         `
       };
 
