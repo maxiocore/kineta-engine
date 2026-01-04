@@ -139,6 +139,73 @@ export const useCreateHostingOrder = () => {
         .single();
 
       if (error) throw error;
+
+      // Get user profile for email
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('email, full_name')
+        .eq('id', user.id)
+        .single();
+
+      // Send confirmation email to client
+      if (profile?.email) {
+        try {
+          await supabase.functions.invoke('send-email', {
+            body: {
+              to: profile.email,
+              type: 'hosting_order_created',
+              data: {
+                order_number: data.order_number,
+                user_name: profile.full_name || 'العميل الكريم',
+                product_name: orderData.configuration?.product_name_ar || orderData.configuration?.product_name,
+                product_type: orderData.product_type,
+                price: orderData.our_price,
+                specs: orderData.configuration?.specs
+              }
+            }
+          });
+        } catch (emailError) {
+          console.error('Error sending hosting order email:', emailError);
+        }
+      }
+
+      // Send notification to admins
+      try {
+        const { data: admins } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('role', 'admin');
+
+        if (admins && admins.length > 0) {
+          for (const admin of admins) {
+            const { data: adminProfile } = await supabase
+              .from('profiles')
+              .select('email')
+              .eq('id', admin.user_id)
+              .single();
+
+            if (adminProfile?.email) {
+              await supabase.functions.invoke('send-email', {
+                body: {
+                  to: adminProfile.email,
+                  type: 'hosting_order_created_admin',
+                  data: {
+                    order_number: data.order_number,
+                    user_name: profile?.full_name,
+                    user_email: profile?.email,
+                    product_name: orderData.configuration?.product_name_ar || orderData.configuration?.product_name,
+                    product_type: orderData.product_type,
+                    price: orderData.our_price
+                  }
+                }
+              });
+            }
+          }
+        }
+      } catch (adminEmailError) {
+        console.error('Error sending admin notification:', adminEmailError);
+      }
+
       return data;
     },
     onSuccess: () => {
