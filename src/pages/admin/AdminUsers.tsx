@@ -29,7 +29,8 @@ import {
   UserPlus,
   Activity,
   Ban,
-  Star
+  Star,
+  Send
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -207,6 +208,46 @@ const AdminUsers = () => {
     }
     setUpdating(false);
     setSelectedUser(null);
+  };
+
+  const handleSendVerificationEmail = async (user: User) => {
+    if (!user.email) {
+      toast.error("لا يوجد بريد إلكتروني لهذا المستخدم");
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      // First verify the user
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ is_verified: true })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      // Send verification email
+      const { error: emailError } = await supabase.functions.invoke("send-email", {
+        body: {
+          to: user.email,
+          type: "verification_request",
+          data: {
+            name: user.full_name || "العميل الكريم",
+            email: user.email
+          }
+        }
+      });
+
+      if (emailError) throw emailError;
+
+      toast.success("تم توثيق الحساب وإرسال إيميل التوثيق بنجاح");
+      fetchUsers();
+    } catch (error) {
+      console.error("Error sending verification email:", error);
+      toast.error("حدث خطأ أثناء إرسال إيميل التوثيق");
+    } finally {
+      setUpdating(false);
+    }
   };
 
   const handleRoleChange = async () => {
@@ -704,14 +745,24 @@ const AdminUsers = () => {
                                       <XCircle className="w-4 h-4 ml-2" />
                                       إلغاء التوثيق
                                     </DropdownMenuItem>
-                                  ) : (
-                                    <DropdownMenuItem 
-                                      onClick={() => handleVerifyUser(user.id, true)}
-                                      className="text-success focus:text-success"
-                                    >
-                                      <CheckCircle className="w-4 h-4 ml-2" />
-                                      توثيق الحساب
-                                    </DropdownMenuItem>
+                                    ) : (
+                                    <>
+                                      <DropdownMenuItem 
+                                        onClick={() => handleVerifyUser(user.id, true)}
+                                        className="text-success focus:text-success"
+                                      >
+                                        <CheckCircle className="w-4 h-4 ml-2" />
+                                        توثيق الحساب
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        onClick={() => handleSendVerificationEmail(user)}
+                                        className="text-primary focus:text-primary"
+                                        disabled={updating}
+                                      >
+                                        <Send className="w-4 h-4 ml-2" />
+                                        توثيق وإرسال إيميل
+                                      </DropdownMenuItem>
+                                    </>
                                   )}
                                   <DropdownMenuSeparator />
                                   {user.role === "admin" ? (
