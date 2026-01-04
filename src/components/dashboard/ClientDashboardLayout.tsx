@@ -32,6 +32,7 @@ import {
   Megaphone,
   MonitorSmartphone,
   Banknote,
+  Server,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -50,6 +51,7 @@ interface NavItem {
 const clientNavItems: NavItem[] = [
   { label: "نظرة عامة", href: "/dashboard", icon: LayoutDashboard },
   { label: "خدماتنا", href: "/dashboard/our-services", icon: Layers },
+  { label: "الدومين والإستضافة", href: "/dashboard/hosting-services", icon: Server },
   { 
     label: "الطلبات", 
     href: "/dashboard/orders", 
