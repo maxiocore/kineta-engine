@@ -283,9 +283,10 @@ export default function DevOrderWizard() {
 
       const requirementsJson = JSON.stringify(formData.requirements);
       let orderId = draftOrderId;
+      let orderNo = "";
 
       if (draftOrderId) {
-        const { error } = await supabase
+        const { data: updatedOrder, error } = await supabase
           .from("dev_orders")
           .update({
             client_type: formData.clientType,
@@ -298,8 +299,11 @@ export default function DevOrderWizard() {
             requirements_json: requirementsJson,
             contact_email: user.email,
           } as any)
-          .eq("id", draftOrderId);
+          .eq("id", draftOrderId)
+          .select("order_no")
+          .single();
         if (error) throw error;
+        orderNo = updatedOrder?.order_no || "";
       } else {
         const { data, error } = await supabase
           .from("dev_orders")
@@ -316,10 +320,11 @@ export default function DevOrderWizard() {
             requirements_json: requirementsJson,
             contact_email: user.email,
           }] as any)
-          .select("id")
+          .select("id, order_no")
           .single();
         if (error) throw error;
         orderId = data.id;
+        orderNo = data.order_no;
       }
 
       // Create initial event
@@ -357,6 +362,59 @@ export default function DevOrderWizard() {
             });
           }
         }
+      }
+
+      // Get user profile for name
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .single();
+
+      // Send email to client
+      try {
+        await supabase.functions.invoke("send-email", {
+          body: {
+            to: user.email,
+            type: "dev_order_created",
+            data: {
+              name: profileData?.full_name || user.email,
+              orderNumber: orderNo,
+              projectTitle: formData.projectTitle,
+              serviceName: service?.title_ar || "خدمة برمجية",
+              clientType: formData.clientType,
+              budgetRange: formData.budgetRange,
+              timelineExpectation: formData.timelineExpectation,
+              projectGoal: formData.projectGoal,
+            },
+          },
+        });
+      } catch (emailError) {
+        console.error("Failed to send client email:", emailError);
+      }
+
+      // Send email to admin
+      try {
+        await supabase.functions.invoke("send-email", {
+          body: {
+            to: "info@maxiocore.com",
+            type: "dev_order_created_admin",
+            data: {
+              orderNumber: orderNo,
+              clientName: profileData?.full_name || "غير محدد",
+              clientEmail: user.email,
+              clientType: formData.clientType,
+              projectTitle: formData.projectTitle,
+              serviceName: service?.title_ar || "خدمة برمجية",
+              budgetRange: formData.budgetRange,
+              timelineExpectation: formData.timelineExpectation,
+              projectGoal: formData.projectGoal,
+              projectSummary: formData.projectSummary,
+            },
+          },
+        });
+      } catch (emailError) {
+        console.error("Failed to send admin email:", emailError);
       }
 
       if (!emailVerified) {

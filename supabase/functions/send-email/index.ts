@@ -45,6 +45,9 @@ type EmailType =
   | 'ticket_reply'
   | 'ticket_status_changed'
   | 'ticket_rating'
+  | 'dev_order_created'
+  | 'dev_order_created_admin'
+  | 'dev_order_status_changed'
   | 'custom';
 
 interface EmailRequest {
@@ -2049,6 +2052,148 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
               </tr>
             </table>
           ` : ''}
+        `
+      };
+    }
+
+    case 'dev_order_created':
+      return {
+        subject: `تم استلام طلب خدمة برمجية #${data.orderNumber} - MaxioCore`,
+        content: `
+          ${createIconCircle('💻', 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)')}
+          ${createGreeting(`مرحباً ${data.name || 'عزيزي العميل'}! 🎉`)}
+          ${createMessage('شكراً لتواصلك معنا! تم استلام طلبك لخدمة برمجية وسيقوم فريقنا بمراجعته والتواصل معك قريباً.')}
+          
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.orderNumber || '-' },
+            { label: 'اسم المشروع', value: data.projectTitle || 'غير محدد' },
+            { label: 'الخدمة المطلوبة', value: data.serviceName || 'خدمة برمجية' },
+            { label: 'نوع العميل', value: data.clientType === 'individual' ? 'فرد' : data.clientType === 'company' ? 'شركة' : 'مؤسسة' },
+            { label: 'الميزانية المتوقعة', value: data.budgetRange || 'غير محدد' },
+            { label: 'المدة المتوقعة', value: data.timelineExpectation || 'غير محدد' },
+            { label: 'الحالة', value: 'قيد المراجعة', isStatus: true, statusColor: '#dbeafe', valueColor: '#1d4ed8' }
+          ])}
+          
+          ${data.projectGoal ? createNoticeBox(`🎯 هدف المشروع: ${data.projectGoal}`, '#f0f9ff', '#0369a1', '#0ea5e9') : ''}
+          
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 14px; border-right: 4px solid #22c55e; margin: 20px 0;">
+            <tr>
+              <td style="padding: 20px;">
+                <p style="margin: 0 0 10px; font-size: 16px; font-weight: 700; color: #166534;">📋 الخطوات القادمة:</p>
+                <p style="margin: 0; font-size: 14px; color: #15803d; line-height: 1.8;">
+                  1. سيقوم فريقنا بمراجعة طلبك خلال 24-48 ساعة<br/>
+                  2. سنتواصل معك لتوضيح أي تفاصيل إضافية<br/>
+                  3. ستحصل على عرض سعر مفصل<br/>
+                  4. بعد الموافقة، سنبدأ العمل على مشروعك
+                </p>
+              </td>
+            </tr>
+          </table>
+          
+          ${createCTAButton('متابعة طلبك')}
+        `
+      };
+
+    case 'dev_order_created_admin':
+      return {
+        subject: `🔔 طلب برمجي جديد #${data.orderNumber} - يتطلب مراجعة`,
+        content: `
+          ${createIconCircle('🚀', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
+          ${createGreeting('طلب برمجي جديد! 📬')}
+          ${createMessage('تم استلام طلب خدمة برمجية جديد يتطلب مراجعتك.')}
+          
+          ${createHighlightBox(data.orderNumber || '-', 'رقم الطلب', 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)')}
+          
+          ${createInfoCard([
+            { label: 'اسم العميل', value: data.clientName || 'غير محدد' },
+            { label: 'البريد الإلكتروني', value: data.clientEmail || '-' },
+            { label: 'نوع العميل', value: data.clientType === 'individual' ? 'فرد' : data.clientType === 'company' ? 'شركة' : 'مؤسسة' },
+            { label: 'اسم المشروع', value: data.projectTitle || 'غير محدد' },
+            { label: 'الخدمة', value: data.serviceName || 'خدمة برمجية' },
+            { label: 'الميزانية', value: data.budgetRange || 'غير محدد' },
+            { label: 'المدة المتوقعة', value: data.timelineExpectation || 'غير محدد' }
+          ])}
+          
+          ${data.projectGoal ? `
+            <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: #f8fafc; border-radius: 12px; margin-bottom: 20px;">
+              <tr>
+                <td style="padding: 20px;">
+                  <p style="margin: 0 0 8px; font-size: 13px; color: #64748b;">🎯 هدف المشروع:</p>
+                  <p style="margin: 0; font-size: 15px; color: #1e293b; line-height: 1.7;">${data.projectGoal}</p>
+                </td>
+              </tr>
+            </table>
+          ` : ''}
+          
+          ${data.projectSummary ? `
+            <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: #f8fafc; border-radius: 12px; margin-bottom: 20px;">
+              <tr>
+                <td style="padding: 20px;">
+                  <p style="margin: 0 0 8px; font-size: 13px; color: #64748b;">📝 ملخص المشروع:</p>
+                  <p style="margin: 0; font-size: 15px; color: #1e293b; line-height: 1.7;">${data.projectSummary}</p>
+                </td>
+              </tr>
+            </table>
+          ` : ''}
+          
+          ${createNoticeBox('⚡ يرجى مراجعة الطلب والتواصل مع العميل في أقرب وقت', '#fef3c7', '#92400e', '#f59e0b')}
+          
+          ${createCTAButton('عرض تفاصيل الطلب')}
+        `
+      };
+
+    case 'dev_order_status_changed': {
+      const statusMap: Record<string, string> = {
+        'draft': 'مسودة',
+        'pending_email_verification': 'بانتظار تأكيد البريد',
+        'under_review': 'قيد المراجعة',
+        'need_info': 'يحتاج معلومات إضافية',
+        'quoted': 'تم تقديم عرض السعر',
+        'approved': 'معتمد',
+        'in_progress': 'قيد التنفيذ',
+        'testing': 'قيد الاختبار',
+        'completed': 'مكتمل',
+        'rejected': 'مرفوض',
+        'cancelled': 'ملغي'
+      };
+      const devStatusText = statusMap[data.newStatus] || data.newStatus;
+      
+      const devStatusColor = ['completed'].includes(data.newStatus) ? '#22c55e' : 
+                              ['cancelled', 'rejected'].includes(data.newStatus) ? '#ef4444' :
+                              ['in_progress', 'testing', 'approved'].includes(data.newStatus) ? '#3b82f6' : '#f59e0b';
+      
+      return {
+        subject: `تحديث حالة طلبك البرمجي #${data.orderNumber} - ${devStatusText}`,
+        content: `
+          ${createIconCircle(
+            data.newStatus === 'completed' ? '✅' : 
+            data.newStatus === 'rejected' || data.newStatus === 'cancelled' ? '❌' : 
+            data.newStatus === 'in_progress' ? '⚙️' : '🔄',
+            data.newStatus === 'completed' ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' :
+            data.newStatus === 'rejected' || data.newStatus === 'cancelled' ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' :
+            'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'
+          )}
+          ${createGreeting('تحديث حالة طلبك البرمجي')}
+          ${createMessage(`تم تحديث حالة طلبك رقم <strong>${data.orderNumber}</strong>`)}
+          
+          ${createHighlightBox(devStatusText, 'الحالة الجديدة', 
+            data.newStatus === 'completed' ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' :
+            data.newStatus === 'rejected' || data.newStatus === 'cancelled' ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' :
+            'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
+          )}
+          
+          ${createInfoCard([
+            { label: 'رقم الطلب', value: data.orderNumber || '-' },
+            { label: 'اسم المشروع', value: data.projectTitle || 'غير محدد' },
+            { label: 'الخدمة', value: data.serviceName || 'خدمة برمجية' }
+          ])}
+          
+          ${data.adminNotes ? createNoticeBox(`💬 ملاحظات الفريق: ${data.adminNotes}`, '#f0f9ff', '#0369a1', '#0ea5e9') : ''}
+          
+          ${data.newStatus === 'completed' ? createNoticeBox('🎉 تهانينا! تم إكمال مشروعك بنجاح. نتمنى أن تكون راضياً عن العمل!', '#dcfce7', '#166534', '#22c55e') : ''}
+          ${data.newStatus === 'need_info' ? createNoticeBox('📝 يرجى الدخول لحسابك وإضافة المعلومات المطلوبة لاستكمال طلبك', '#fef3c7', '#92400e', '#f59e0b') : ''}
+          
+          ${createCTAButton('عرض تفاصيل الطلب')}
         `
       };
     }
