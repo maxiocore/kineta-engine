@@ -213,6 +213,26 @@ export default function AdminDevOrderDetails() {
         payload: { old_status: order.status, new_status: newStatus },
       }] as any);
 
+      // Send email notification to client about status change
+      try {
+        await supabase.functions.invoke("send-email", {
+          body: {
+            to: order.contact_email,
+            type: "dev_order_status_changed",
+            data: {
+              orderNumber: order.order_no,
+              projectTitle: order.project_title,
+              serviceName: order.service?.title_ar || "خدمة برمجية",
+              newStatus: newStatus,
+              oldStatus: order.status,
+              adminNotes: adminNotes,
+            },
+          },
+        });
+      } catch (emailError) {
+        console.error("Failed to send status change email:", emailError);
+      }
+
       toast({
         title: "تم تحديث الحالة بنجاح",
         description: `تم تغيير الحالة إلى: ${statusConfig[newStatus]?.label}`,
