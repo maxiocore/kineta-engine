@@ -8,20 +8,30 @@ import {
   HardDrive,
   Cloud,
   Zap,
-  Settings,
   Plus,
   Edit,
   Trash2,
-  Eye,
   Search,
-  Filter,
-  Package
+  Package,
+  Database,
+  Container,
+  Network,
+  Box,
+  RefreshCw,
+  DollarSign,
+  Activity,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Eye
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -30,113 +40,128 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { 
+  useAllHostingProducts, 
+  useHostingOrders, 
+  useUpdateHostingProduct,
+  useDigitalOceanAPI,
+  HostingProduct,
+  HostingProductType
+} from "@/hooks/useHostingProducts";
 
-// Static hosting packages data
-const hostingPackages = [
-  {
-    id: "1",
-    name: "استضافة أساسية",
-    name_en: "Basic Hosting",
-    type: "shared",
-    price: 99,
-    features: ["10GB SSD", "1 موقع", "SSL مجاني", "نسخ احتياطي أسبوعي"],
-    is_active: true,
-    orders_count: 45,
-  },
-  {
-    id: "2",
-    name: "استضافة متقدمة",
-    name_en: "Pro Hosting",
-    type: "shared",
-    price: 199,
-    features: ["50GB SSD", "5 مواقع", "SSL مجاني", "نسخ احتياطي يومي", "CDN"],
-    is_active: true,
-    orders_count: 32,
-  },
-  {
-    id: "3",
-    name: "استضافة احترافية",
-    name_en: "Business Hosting",
-    type: "shared",
-    price: 399,
-    features: ["100GB SSD", "مواقع غير محدودة", "SSL مجاني", "نسخ احتياطي فوري", "CDN", "دعم أولوية"],
-    is_active: true,
-    orders_count: 18,
-  },
-];
+const productTypeConfig: Record<HostingProductType, { icon: any; label: string; color: string }> = {
+  droplet: { icon: Server, label: 'VPS', color: 'from-blue-500 to-cyan-500' },
+  database: { icon: Database, label: 'قواعد البيانات', color: 'from-emerald-500 to-green-500' },
+  spaces: { icon: Cloud, label: 'التخزين', color: 'from-violet-500 to-purple-500' },
+  app_platform: { icon: Box, label: 'التطبيقات', color: 'from-pink-500 to-rose-500' },
+  load_balancer: { icon: Network, label: 'موازن الأحمال', color: 'from-amber-500 to-orange-500' },
+  kubernetes: { icon: Container, label: 'K8s', color: 'from-indigo-500 to-blue-500' },
+  firewall: { icon: Shield, label: 'الحماية', color: 'from-red-500 to-rose-500' },
+};
 
-const vpsPackages = [
-  {
-    id: "v1",
-    name: "VPS Start",
-    type: "vps",
-    specs: { cpu: "2 vCPU", ram: "4GB", storage: "80GB SSD" },
-    price: 299,
-    is_active: true,
-    orders_count: 12,
-  },
-  {
-    id: "v2",
-    name: "VPS Pro",
-    type: "vps",
-    specs: { cpu: "4 vCPU", ram: "8GB", storage: "160GB SSD" },
-    price: 599,
-    is_active: true,
-    orders_count: 8,
-  },
-  {
-    id: "v3",
-    name: "VPS Business",
-    type: "vps",
-    specs: { cpu: "8 vCPU", ram: "16GB", storage: "320GB SSD" },
-    price: 999,
-    is_active: true,
-    orders_count: 5,
-  },
-];
-
-const recentDomainSearches = [
-  { domain: "example.sa", user: "أحمد محمد", date: "2024-01-15", available: true },
-  { domain: "mystore.com", user: "سارة علي", date: "2024-01-14", available: false },
-  { domain: "tech-solutions.net", user: "خالد عمر", date: "2024-01-14", available: true },
-];
-
-const stats = [
-  { 
-    title: "باقات الإستضافة", 
-    value: hostingPackages.length + vpsPackages.length, 
-    icon: Server, 
-    color: "from-blue-500 to-cyan-500",
-    bgColor: "bg-blue-500/10"
-  },
-  { 
-    title: "طلبات الإستضافة", 
-    value: hostingPackages.reduce((sum, p) => sum + p.orders_count, 0) + vpsPackages.reduce((sum, p) => sum + p.orders_count, 0), 
-    icon: Package, 
-    color: "from-emerald-500 to-green-500",
-    bgColor: "bg-emerald-500/10"
-  },
-  { 
-    title: "عمليات البحث", 
-    value: recentDomainSearches.length, 
-    icon: Globe, 
-    color: "from-violet-500 to-purple-500",
-    bgColor: "bg-violet-500/10"
-  },
-  { 
-    title: "سيرفرات VPS", 
-    value: vpsPackages.reduce((sum, p) => sum + p.orders_count, 0), 
-    icon: Cpu, 
-    color: "from-orange-500 to-amber-500",
-    bgColor: "bg-orange-500/10"
-  },
-];
+const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
+  pending: { label: 'قيد الانتظار', color: 'bg-yellow-500/10 text-yellow-500', icon: Clock },
+  provisioning: { label: 'قيد التجهيز', color: 'bg-blue-500/10 text-blue-500', icon: RefreshCw },
+  active: { label: 'نشط', color: 'bg-success/10 text-success', icon: CheckCircle2 },
+  suspended: { label: 'معلق', color: 'bg-orange-500/10 text-orange-500', icon: XCircle },
+  terminated: { label: 'منتهي', color: 'bg-destructive/10 text-destructive', icon: XCircle },
+  failed: { label: 'فشل', color: 'bg-destructive/10 text-destructive', icon: XCircle },
+};
 
 const AdminHosting = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("packages");
+  const [activeTab, setActiveTab] = useState("products");
+  const [editingProduct, setEditingProduct] = useState<HostingProduct | null>(null);
+  const [editPrice, setEditPrice] = useState("");
+
+  const { data: products, isLoading: productsLoading, refetch: refetchProducts } = useAllHostingProducts();
+  const { data: orders, isLoading: ordersLoading } = useHostingOrders();
+  const updateProduct = useUpdateHostingProduct();
+  const doAPI = useDigitalOceanAPI();
+
+  const stats = [
+    { 
+      title: "إجمالي المنتجات", 
+      value: products?.length || 0, 
+      icon: Package, 
+      color: "from-blue-500 to-cyan-500",
+      bgColor: "bg-blue-500/10"
+    },
+    { 
+      title: "الطلبات النشطة", 
+      value: orders?.filter(o => o.status === 'active').length || 0, 
+      icon: Activity, 
+      color: "from-emerald-500 to-green-500",
+      bgColor: "bg-emerald-500/10"
+    },
+    { 
+      title: "إجمالي الطلبات", 
+      value: orders?.length || 0, 
+      icon: Server, 
+      color: "from-violet-500 to-purple-500",
+      bgColor: "bg-violet-500/10"
+    },
+    { 
+      title: "الإيرادات الشهرية", 
+      value: `$${orders?.filter(o => o.status === 'active').reduce((sum, o) => sum + o.our_price, 0) || 0}`, 
+      icon: DollarSign, 
+      color: "from-orange-500 to-amber-500",
+      bgColor: "bg-orange-500/10"
+    },
+  ];
+
+  const handleToggleActive = async (product: HostingProduct) => {
+    await updateProduct.mutateAsync({
+      id: product.id,
+      is_active: !product.is_active
+    });
+  };
+
+  const handleSavePrice = async () => {
+    if (!editingProduct) return;
+    
+    await updateProduct.mutateAsync({
+      id: editingProduct.id,
+      our_price: parseFloat(editPrice)
+    });
+    
+    setEditingProduct(null);
+    setEditPrice("");
+  };
+
+  const handleSyncWithDO = async () => {
+    toast.loading('جاري المزامنة مع DigitalOcean...', { id: 'sync' });
+    try {
+      const account = await doAPI.mutateAsync({ action: 'get_account' });
+      toast.success(`تم الاتصال بنجاح! البريد: ${account.account?.email}`, { id: 'sync' });
+    } catch (error: any) {
+      toast.error(`فشل الاتصال: ${error.message}`, { id: 'sync' });
+    }
+  };
+
+  const filteredProducts = products?.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.name_ar.includes(searchQuery)
+  );
+
+  const groupedProducts = filteredProducts?.reduce((acc, product) => {
+    if (!acc[product.product_type]) {
+      acc[product.product_type] = [];
+    }
+    acc[product.product_type].push(product);
+    return acc;
+  }, {} as Record<string, HostingProduct[]>);
 
   return (
     <AdminDashboardLayout>
@@ -152,15 +177,26 @@ const AdminHosting = () => {
               <Server className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold">الدومين والإستضافة</h1>
-              <p className="text-muted-foreground">إدارة باقات الإستضافة والدومينات</p>
+              <h1 className="text-2xl md:text-3xl font-bold">إدارة الاستضافة السحابية</h1>
+              <p className="text-muted-foreground">إدارة منتجات وطلبات DigitalOcean</p>
             </div>
           </div>
 
-          <Button className="gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
-            <Plus className="w-4 h-4" />
-            إضافة باقة جديدة
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              className="gap-2"
+              onClick={handleSyncWithDO}
+              disabled={doAPI.isPending}
+            >
+              <RefreshCw className={cn("w-4 h-4", doAPI.isPending && "animate-spin")} />
+              مزامنة
+            </Button>
+            <Button className="gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
+              <Plus className="w-4 h-4" />
+              إضافة منتج
+            </Button>
+          </div>
         </motion.div>
 
         {/* Stats Grid */}
@@ -191,214 +227,231 @@ const AdminHosting = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="packages" className="gap-2">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="products" className="gap-2">
+              <Package className="w-4 h-4" />
+              المنتجات ({products?.length || 0})
+            </TabsTrigger>
+            <TabsTrigger value="orders" className="gap-2">
               <Server className="w-4 h-4" />
-              باقات الإستضافة
-            </TabsTrigger>
-            <TabsTrigger value="vps" className="gap-2">
-              <Cpu className="w-4 h-4" />
-              سيرفرات VPS
-            </TabsTrigger>
-            <TabsTrigger value="domains" className="gap-2">
-              <Globe className="w-4 h-4" />
-              عمليات البحث
+              الطلبات ({orders?.length || 0})
             </TabsTrigger>
           </TabsList>
 
-          {/* Hosting Packages */}
-          <TabsContent value="packages">
+          {/* Products Tab */}
+          <TabsContent value="products">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg">باقات الإستضافة المشتركة</CardTitle>
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      placeholder="بحث..."
-                      className="pr-9 w-48"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
+                <CardTitle className="text-lg">منتجات الاستضافة</CardTitle>
+                <div className="relative">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="بحث..."
+                    className="pr-9 w-48"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
                 </div>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>الباقة</TableHead>
-                      <TableHead>السعر</TableHead>
-                      <TableHead>المميزات</TableHead>
-                      <TableHead>الطلبات</TableHead>
-                      <TableHead>الحالة</TableHead>
-                      <TableHead>الإجراءات</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {hostingPackages.map((pkg) => (
-                      <TableRow key={pkg.id}>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{pkg.name}</p>
-                            <p className="text-xs text-muted-foreground">{pkg.name_en}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-bold text-primary">{pkg.price} ر.س</span>
-                          <span className="text-xs text-muted-foreground">/شهرياً</span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {pkg.features.slice(0, 3).map((feature, i) => (
-                              <Badge key={i} variant="secondary" className="text-xs">
-                                {feature}
-                              </Badge>
-                            ))}
-                            {pkg.features.length > 3 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{pkg.features.length - 3}
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{pkg.orders_count} طلب</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={pkg.is_active ? "bg-success" : "bg-destructive"}>
-                            {pkg.is_active ? "نشط" : "معطل"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button size="icon" variant="ghost">
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button size="icon" variant="ghost" className="text-destructive">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                {productsLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => (
+                      <Skeleton key={i} className="h-16 w-full" />
                     ))}
-                  </TableBody>
-                </Table>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {Object.entries(groupedProducts || {}).map(([type, typeProducts]) => {
+                      const config = productTypeConfig[type as HostingProductType];
+                      return (
+                        <div key={type}>
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className={cn("w-8 h-8 rounded-lg bg-gradient-to-br flex items-center justify-center", config.color)}>
+                              <config.icon className="w-4 h-4 text-white" />
+                            </div>
+                            <h3 className="font-semibold">{config.label}</h3>
+                            <Badge variant="outline">{typeProducts.length}</Badge>
+                          </div>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>المنتج</TableHead>
+                                <TableHead>سعر DO</TableHead>
+                                <TableHead>سعرنا</TableHead>
+                                <TableHead>الربح</TableHead>
+                                <TableHead>الحالة</TableHead>
+                                <TableHead>الإجراءات</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {typeProducts.map((product) => (
+                                <TableRow key={product.id}>
+                                  <TableCell>
+                                    <div>
+                                      <p className="font-medium">{product.name_ar}</p>
+                                      <p className="text-xs text-muted-foreground font-mono">{product.name}</p>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <span className="text-muted-foreground">${product.do_price}</span>
+                                  </TableCell>
+                                  <TableCell>
+                                    <span className="font-bold text-primary">${product.our_price}</span>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge className="bg-success/10 text-success">
+                                      +${(product.our_price - product.do_price).toFixed(2)}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Switch
+                                      checked={product.is_active}
+                                      onCheckedChange={() => handleToggleActive(product)}
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center gap-2">
+                                      <Button 
+                                        size="icon" 
+                                        variant="ghost"
+                                        onClick={() => {
+                                          setEditingProduct(product);
+                                          setEditPrice(product.our_price.toString());
+                                        }}
+                                      >
+                                        <Edit className="w-4 h-4" />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* VPS Packages */}
-          <TabsContent value="vps">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg">سيرفرات VPS</CardTitle>
-                <Button size="sm" className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  إضافة سيرفر
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-3 gap-4">
-                  {vpsPackages.map((vps) => (
-                    <motion.div
-                      key={vps.id}
-                      whileHover={{ scale: 1.02 }}
-                      className="p-4 rounded-xl border border-border bg-card/50"
-                    >
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
-                            <Cpu className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="font-bold">{vps.name}</h3>
-                            <Badge variant={vps.is_active ? "default" : "secondary"}>
-                              {vps.is_active ? "متاح" : "غير متاح"}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Cpu className="w-4 h-4 text-muted-foreground" />
-                          <span>{vps.specs.cpu}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <HardDrive className="w-4 h-4 text-muted-foreground" />
-                          <span>{vps.specs.ram} RAM</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Cloud className="w-4 h-4 text-muted-foreground" />
-                          <span>{vps.specs.storage}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="text-2xl font-bold text-primary">{vps.price}</span>
-                          <span className="text-sm text-muted-foreground"> ر.س/شهرياً</span>
-                        </div>
-                        <Badge variant="outline">{vps.orders_count} طلب</Badge>
-                      </div>
-
-                      <div className="flex gap-2 mt-4">
-                        <Button size="sm" variant="outline" className="flex-1 gap-2">
-                          <Edit className="w-4 h-4" />
-                          تعديل
-                        </Button>
-                        <Button size="sm" variant="ghost" className="text-destructive">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Domain Searches */}
-          <TabsContent value="domains">
+          {/* Orders Tab */}
+          <TabsContent value="orders">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">آخر عمليات البحث عن الدومينات</CardTitle>
+                <CardTitle className="text-lg">طلبات الاستضافة</CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>الدومين</TableHead>
-                      <TableHead>المستخدم</TableHead>
-                      <TableHead>التاريخ</TableHead>
-                      <TableHead>الحالة</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentDomainSearches.map((search, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Globe className="w-4 h-4 text-muted-foreground" />
-                            <span className="font-mono">{search.domain}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{search.user}</TableCell>
-                        <TableCell>{search.date}</TableCell>
-                        <TableCell>
-                          <Badge className={search.available ? "bg-success" : "bg-destructive"}>
-                            {search.available ? "متاح" : "غير متاح"}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
+                {ordersLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => (
+                      <Skeleton key={i} className="h-16 w-full" />
                     ))}
-                  </TableBody>
-                </Table>
+                  </div>
+                ) : orders && orders.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>رقم الطلب</TableHead>
+                        <TableHead>نوع المنتج</TableHead>
+                        <TableHead>المنتج</TableHead>
+                        <TableHead>السعر</TableHead>
+                        <TableHead>الحالة</TableHead>
+                        <TableHead>التاريخ</TableHead>
+                        <TableHead>الإجراءات</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {orders.map((order) => {
+                        const typeConfig = productTypeConfig[order.product_type as HostingProductType];
+                        const status = statusConfig[order.status];
+                        return (
+                          <TableRow key={order.id}>
+                            <TableCell>
+                              <span className="font-mono text-sm">{order.order_number}</span>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {typeConfig && (
+                                  <div className={cn("w-6 h-6 rounded bg-gradient-to-br flex items-center justify-center", typeConfig.color)}>
+                                    <typeConfig.icon className="w-3 h-3 text-white" />
+                                  </div>
+                                )}
+                                <span className="text-sm">{typeConfig?.label || order.product_type}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {order.product?.name_ar || order.do_resource_name || '-'}
+                            </TableCell>
+                            <TableCell>
+                              <span className="font-bold text-primary">${order.our_price}</span>
+                              <span className="text-xs text-muted-foreground">/شهرياً</span>
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={status.color}>
+                                <status.icon className="w-3 h-3 mr-1" />
+                                {status.label}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-sm text-muted-foreground">
+                                {new Date(order.created_at).toLocaleDateString('ar-SA')}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <Button size="icon" variant="ghost">
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="text-center py-12">
+                    <Server className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">لا توجد طلبات حتى الآن</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Edit Price Dialog */}
+        <Dialog open={!!editingProduct} onOpenChange={() => setEditingProduct(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>تعديل سعر المنتج</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <p className="font-medium">{editingProduct?.name_ar}</p>
+                <p className="text-sm text-muted-foreground">سعر DigitalOcean: ${editingProduct?.do_price}</p>
+              </div>
+              <div className="space-y-2">
+                <Label>السعر الجديد ($)</Label>
+                <Input
+                  type="number"
+                  value={editPrice}
+                  onChange={(e) => setEditPrice(e.target.value)}
+                  placeholder="أدخل السعر"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditingProduct(null)}>
+                إلغاء
+              </Button>
+              <Button onClick={handleSavePrice} disabled={updateProduct.isPending}>
+                {updateProduct.isPending ? 'جاري الحفظ...' : 'حفظ'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminDashboardLayout>
   );
