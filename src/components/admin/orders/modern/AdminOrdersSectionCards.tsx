@@ -1,23 +1,22 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Share2, Megaphone, Palette, Code, ChevronLeft, 
+  Palette, Code, ChevronLeft, 
   TrendingUp, Clock, CheckCircle, Sparkles, ArrowUpRight,
   Package
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type AdminOrderType = "all" | "social" | "marketing" | "design" | "dev";
+export type AdminOrderType = "all" | "design" | "dev" | "other";
 
 interface AdminOrdersSectionCardsProps {
   activeSection: AdminOrderType | null;
   onSectionClick: (section: AdminOrderType) => void;
   counts: {
     all: number;
-    social: number;
-    marketing: number;
     design: number;
     dev: number;
+    other: number;
   };
 }
 
@@ -32,28 +31,6 @@ const sections = [
     borderColor: "border-slate-500/30",
     description: "عرض جميع الطلبات من كل الأقسام",
     features: ["إدارة شاملة", "فلترة متقدمة", "تتبع كامل"]
-  },
-  {
-    id: "social" as AdminOrderType,
-    label: "مواقع التواصل",
-    labelEn: "Social Media",
-    icon: Share2,
-    gradient: "from-pink-500 via-rose-500 to-red-500",
-    bgGlow: "bg-pink-500/20",
-    borderColor: "border-pink-500/30",
-    description: "إنستجرام، تويتر، تيك توك، يوتيوب",
-    features: ["زيادة المتابعين", "تفاعل حقيقي", "نتائج سريعة"]
-  },
-  {
-    id: "marketing" as AdminOrderType,
-    label: "التسويق الرقمي",
-    labelEn: "Digital Marketing",
-    icon: Megaphone,
-    gradient: "from-orange-500 via-amber-500 to-yellow-500",
-    bgGlow: "bg-orange-500/20",
-    borderColor: "border-orange-500/30",
-    description: "حملات إعلانية، SEO، تحليلات",
-    features: ["حملات مستهدفة", "تحسين الظهور", "تحليل الأداء"]
   },
   {
     id: "design" as AdminOrderType,
@@ -76,6 +53,17 @@ const sections = [
     borderColor: "border-emerald-500/30",
     description: "مواقع، تطبيقات، أنظمة",
     features: ["كود نظيف", "دعم فني", "أداء عالي"]
+  },
+  {
+    id: "other" as AdminOrderType,
+    label: "خدمات أخرى",
+    labelEn: "Other Services",
+    icon: Package,
+    gradient: "from-gray-500 via-gray-600 to-gray-700",
+    bgGlow: "bg-gray-500/20",
+    borderColor: "border-gray-500/30",
+    description: "خدمات متنوعة أخرى",
+    features: ["خدمات متنوعة", "دعم فني", "جودة عالية"]
   }
 ];
 
@@ -85,7 +73,7 @@ export const AdminOrdersSectionCards = ({
   counts 
 }: AdminOrdersSectionCardsProps) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {sections.map((section, index) => {
         const Icon = section.icon;
         const isActive = activeSection === section.id;

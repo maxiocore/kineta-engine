@@ -49,7 +49,7 @@ import ClientAPI from "./pages/dashboard/ClientAPI";
 import ClientDeposit from "./pages/dashboard/ClientDeposit";
 import ClientDeposits from "./pages/dashboard/ClientDeposits";
 import ClientFavorites from "./pages/dashboard/ClientFavorites";
-import ClientServices from "./pages/dashboard/ClientServicesNew";
+
 
 import ClientReferrals from "./pages/dashboard/ClientReferrals";
 import ClientBalanceLogs from "./pages/dashboard/ClientBalanceLogs";
@@ -208,7 +208,7 @@ const App = () => (
                   } />
                   <Route path="/dashboard/services" element={
                     <ProtectedRoute>
-                      <ClientServices />
+                      <ClientServicesHome />
                     </ProtectedRoute>
                   } />
                   <Route path="/dashboard/referrals" element={

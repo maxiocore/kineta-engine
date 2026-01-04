@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Loader2, AlertTriangle, Trash2, Package, Plus, RefreshCw, 
   ArrowUpRight, Globe, Palette, Code, Layers,
-  Instagram, Facebook, Youtube, Twitter, Send, MessageCircle,
   Sparkles, Star, Smartphone, TrendingUp, ChevronLeft, ChevronDown,
   Grid3X3, LayoutList, Search, DollarSign, ShoppingCart, BarChart3,
   Activity, Zap, Target
@@ -226,24 +225,6 @@ const AdminServices = () => {
   const categoryGroups: CategoryGroup[] = useMemo(() => {
     const groups: CategoryGroup[] = [
       {
-        id: 'social',
-        name: 'Social Media',
-        nameAr: 'خدمات التواصل الاجتماعي',
-        icon: Globe,
-        gradient: 'from-blue-600/80 to-cyan-600/80',
-        iconGradient: 'from-blue-500 to-cyan-500',
-        bgGlow: 'bg-blue-500/10',
-        services: [],
-        platforms: [
-          { icon: Instagram, color: 'text-pink-400', bg: 'bg-pink-500/10' },
-          { icon: Facebook, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-          { icon: Youtube, color: 'text-red-400', bg: 'bg-red-500/10' },
-          { icon: Twitter, color: 'text-sky-400', bg: 'bg-sky-500/10' },
-          { icon: MessageCircle, color: 'text-purple-400', bg: 'bg-purple-500/10' },
-          { icon: Send, color: 'text-blue-400', bg: 'bg-blue-400/10' },
-        ]
-      },
-      {
         id: 'design',
         name: 'Design',
         nameAr: 'خدمات التصميم',
@@ -285,30 +266,17 @@ const AdminServices = () => {
       }
     ];
 
-    // Categorize services - include Arabic keywords
+    // Categorize services - Design and Development only
     enrichedServices.forEach(service => {
       const cat = service.category.toLowerCase();
       const catOriginal = service.category;
       
-      // Social Media - English and Arabic keywords
-      if (cat.includes('instagram') || cat.includes('facebook') || cat.includes('twitter') || 
-          cat.includes('youtube') || cat.includes('tiktok') || cat.includes('telegram') || 
-          cat.includes('linkedin') || cat.includes('spotify') || cat.includes('social') ||
-          catOriginal.includes('انستقرام') || catOriginal.includes('انستا') || 
-          catOriginal.includes('فيسبوك') || catOriginal.includes('تويتر') || 
-          catOriginal.includes('يوتيوب') || catOriginal.includes('تيك توك') || 
-          catOriginal.includes('تيليجرام') || catOriginal.includes('سناب') ||
-          catOriginal.includes('واتساب') || catOriginal.includes('لايكات') ||
-          catOriginal.includes('متابعين') || catOriginal.includes('مشاهدات') ||
-          catOriginal.includes('اشتراكات') || catOriginal.includes('ريتويت') ||
-          catOriginal.includes('تغريد') || catOriginal.includes('سبوتيفاي')) {
+      if (cat.includes('design') || catOriginal.includes('تصميم')) {
         groups[0].services.push(service);
-      } else if (cat.includes('design') || catOriginal.includes('تصميم')) {
-        groups[1].services.push(service);
       } else if (cat.includes('dev') || catOriginal.includes('برمجة') || catOriginal.includes('تطوير') || catOriginal.includes('موقع') || catOriginal.includes('تطبيق')) {
-        groups[2].services.push(service);
+        groups[1].services.push(service);
       } else {
-        groups[3].services.push(service);
+        groups[2].services.push(service);
       }
     });
 
