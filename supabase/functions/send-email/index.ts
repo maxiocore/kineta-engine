@@ -3,11 +3,84 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const AUTHENTICA_API_KEY = Deno.env.get("AUTHENTICA_API_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Format phone number to international format for Saudi Arabia
+function formatPhoneNumber(phone: string): string {
+  if (!phone) return '';
+  let cleaned = phone.replace(/\D/g, '');
+  if (cleaned.startsWith('0')) {
+    cleaned = '966' + cleaned.substring(1);
+  }
+  if (!cleaned.startsWith('966')) {
+    cleaned = '966' + cleaned;
+  }
+  return cleaned;
+}
+
+// Send SMS via Authentica API
+async function sendSMS(phone: string, message: string): Promise<{ success: boolean; error?: string }> {
+  if (!AUTHENTICA_API_KEY || !phone) {
+    console.log('SMS skipped: API key or phone not configured');
+    return { success: false, error: 'SMS not configured' };
+  }
+
+  const formattedPhone = formatPhoneNumber(phone);
+  
+  try {
+    console.log(`Sending SMS to ${formattedPhone}`);
+    
+    const response = await fetch('https://connect.authentica-sa.com/api/v1/send-otp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${AUTHENTICA_API_KEY}`,
+      },
+      body: JSON.stringify({
+        phone: formattedPhone,
+        message: message,
+      }),
+    });
+
+    const data = await response.json();
+    console.log('Authentica API response:', data);
+
+    if (response.ok && data.success) {
+      return { success: true };
+    } else {
+      return { success: false, error: data.message || 'Failed to send SMS' };
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error sending SMS:', error);
+    return { success: false, error: errorMessage };
+  }
+}
+
+// Get SMS message for financing types
+function getFinancingSMSMessage(type: string, data: Record<string, any>): string | null {
+  switch (type) {
+    case 'financing_payment_client':
+      return `ماكسيو كور: تم تأكيد سداد القسط رقم ${data.installmentNumber} بمبلغ ${data.amount} ر.س. المتبقي: ${data.remainingAmount} ر.س`;
+    case 'financing_payment_reminder':
+      return `ماكسيو كور: تذكير - القسط رقم ${data.installmentNumber} بمبلغ ${data.amount} ر.س مستحق في ${data.dueDate}. لتجنب الغرامات، يرجى السداد قبل الموعد.`;
+    case 'financing_payment_overdue':
+      return `ماكسيو كور: القسط رقم ${data.installmentNumber} متأخر! يرجى السداد فوراً لتجنب الغرامات الإضافية.`;
+    case 'financing_clearance':
+      return `ماكسيو كور: 🎉 تهانينا! تم إخلاء ذمتك من طلب التمويل #${data.applicationNumber}. شكراً لالتزامك!`;
+    case 'financing_approved':
+      return `ماكسيو كور: تمت الموافقة على تمويلك #${data.applicationNumber} بمبلغ ${data.amount} ر.س!`;
+    case 'financing_rejected':
+      return `ماكسيو كور: نأسف، لم تتم الموافقة على طلب التمويل #${data.applicationNumber}.`;
+    default:
+      return null;
+  }
+}
 
 // Email template types
 type EmailType = 
@@ -2848,6 +2921,26 @@ const handler = async (req: Request): Promise<Response> => {
         status: 'delivered',
         sent_at: new Date().toISOString(),
       });
+
+      // Send SMS for financing-related emails if phone is available
+      if (data.phone && type.startsWith('financing_')) {
+        const smsMessage = getFinancingSMSMessage(type, data);
+        if (smsMessage) {
+          const smsResult = await sendSMS(data.phone, smsMessage);
+          console.log("SMS result:", smsResult);
+          
+          // Log SMS
+          await supabase.from("sms_logs").insert({
+            phone: data.phone,
+            message: smsMessage,
+            type: 'notification',
+            status: smsResult.success ? 'sent' : 'failed',
+            user_id: data.userId || null,
+            reference_id: data.applicationNumber || null,
+            error_message: smsResult.error || null,
+          });
+        }
+      }
 
       return new Response(
         JSON.stringify({ success: true, data: emailResponse }),
