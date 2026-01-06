@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Lock, Bell, Shield, Palette, Globe, Loader2, RefreshCw, Save, Eye, EyeOff } from "lucide-react";
+import { User, Lock, Bell, Shield, Palette, Globe, Loader2, RefreshCw, Save, Eye, EyeOff, Phone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,15 @@ const ClientSettings = () => {
   
   // Profile form state
   const [fullName, setFullName] = useState(profile?.full_name || "");
+  const [phone, setPhone] = useState(profile?.phone || "");
   const [savingProfile, setSavingProfile] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setFullName(profile.full_name || "");
+      setPhone(profile.phone || "");
+    }
+  }, [profile]);
   
   // Password form state
   const [currentPassword, setCurrentPassword] = useState("");
@@ -38,6 +46,7 @@ const ClientSettings = () => {
         .from('profiles')
         .update({ 
           full_name: fullName,
+          phone: phone,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -209,6 +218,20 @@ const ClientSettings = () => {
                     dir="ltr" 
                   />
                   <p className="text-xs text-muted-foreground mt-1">لا يمكن تغيير البريد الإلكتروني</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    رقم الهاتف
+                  </label>
+                  <Input 
+                    value={phone} 
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="bg-secondary/50" 
+                    placeholder="05xxxxxxxx"
+                    dir="ltr"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">سيتم استخدامه لإرسال رسائل SMS</p>
                 </div>
                 <Button 
                   onClick={handleSaveProfile}
