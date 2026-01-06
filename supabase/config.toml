@@ -68,3 +68,6 @@ verify_jwt = false
 
 [functions.notify-balance-change]
 verify_jwt = false
+
+[functions.sms-notify]
+verify_jwt = false
