@@ -568,3 +568,49 @@ export async function sendFinancingClearanceEmail(
     data,
   });
 }
+
+// SMS Functions
+export async function sendSMS(
+  phone: string,
+  message: string,
+  type: string = 'notification',
+  userId?: string,
+  referenceId?: string
+): Promise<EmailResult> {
+  try {
+    console.log(`Sending SMS to ${phone}`);
+    
+    const { data, error } = await supabase.functions.invoke('sms-notify', {
+      body: {
+        phone,
+        message,
+        type,
+        userId,
+        referenceId,
+      },
+    });
+
+    if (error) {
+      console.error('Error sending SMS:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('SMS sent successfully:', data);
+    return { success: true, data };
+  } catch (err: any) {
+    console.error('Exception sending SMS:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+export async function sendFinancingApplicationReceivedSMS(
+  phone: string,
+  data: {
+    name: string;
+    applicationNumber: string;
+    userId?: string;
+  }
+): Promise<EmailResult> {
+  const message = `ماكسيو كور: مرحباً ${data.name}، تم استلام طلب التمويل #${data.applicationNumber} بنجاح. سيتم مراجعته وإبلاغك بالنتيجة قريباً.`;
+  return sendSMS(phone, message, 'financing_received', data.userId, data.applicationNumber);
+}

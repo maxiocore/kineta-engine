@@ -30,7 +30,7 @@ import {
   Wallet,
   Ban,
 } from "lucide-react";
-import { sendFinancingNewApplicationEmail, sendFinancingApplicationReceivedEmail } from "@/lib/emailService";
+import { sendFinancingNewApplicationEmail, sendFinancingApplicationReceivedEmail, sendFinancingApplicationReceivedSMS } from "@/lib/emailService";
 
 interface FinancingPlan {
   id: string;
@@ -135,6 +135,20 @@ export default function FinancingApply() {
         console.log("Customer confirmation email sent successfully");
       } catch (emailError) {
         console.error("Failed to send customer confirmation:", emailError);
+      }
+
+      // Send SMS notification to customer
+      if (formData.phone) {
+        try {
+          await sendFinancingApplicationReceivedSMS(formData.phone, {
+            name: formData.full_name,
+            applicationNumber,
+            userId: user.id,
+          });
+          console.log("Customer SMS sent successfully");
+        } catch (smsError) {
+          console.error("Failed to send customer SMS:", smsError);
+        }
       }
     },
     onSuccess: () => {
