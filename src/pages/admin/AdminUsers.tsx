@@ -30,7 +30,9 @@ import {
   Activity,
   Ban,
   Star,
-  Send
+  Send,
+  Phone,
+  Edit
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -70,6 +72,7 @@ interface User {
   id: string;
   full_name: string | null;
   email: string | null;
+  phone: string | null;
   is_verified: boolean | null;
   created_at: string | null;
   updated_at: string | null;
@@ -117,6 +120,12 @@ const AdminUsers = () => {
     user: null,
     newRole: ""
   });
+  const [phoneEditDialog, setPhoneEditDialog] = useState<{ open: boolean; user: User | null; phone: string }>({
+    open: false,
+    user: null,
+    phone: ""
+  });
+  const [savingPhone, setSavingPhone] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -269,6 +278,29 @@ const AdminUsers = () => {
     } finally {
       setUpdating(false);
       setRoleChangeDialog({ open: false, user: null, newRole: "" });
+    }
+  };
+
+  const handleSavePhone = async () => {
+    if (!phoneEditDialog.user) return;
+    
+    setSavingPhone(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ phone: phoneEditDialog.phone || null })
+        .eq("id", phoneEditDialog.user.id);
+
+      if (error) throw error;
+
+      toast.success("تم حفظ رقم الهاتف بنجاح");
+      fetchUsers();
+    } catch (error) {
+      console.error("Error saving phone:", error);
+      toast.error("خطأ في حفظ رقم الهاتف");
+    } finally {
+      setSavingPhone(false);
+      setPhoneEditDialog({ open: false, user: null, phone: "" });
     }
   };
 
@@ -665,14 +697,39 @@ const AdminUsers = () => {
                                     {getInitials(user.full_name, user.email)}
                                   </AvatarFallback>
                                 </Avatar>
-                                <div>
+                                <div className="min-w-0">
                                   <p className="font-medium flex items-center gap-1.5">
                                     {user.full_name || "بدون اسم"}
                                     {user.role === "admin" && (
                                       <Shield className="w-3.5 h-3.5 text-primary" />
                                     )}
                                   </p>
-                                  <p className="text-sm text-muted-foreground" dir="ltr">{user.email}</p>
+                                  <p className="text-sm text-muted-foreground truncate" dir="ltr">{user.email}</p>
+                                  <div className="flex items-center gap-1 mt-0.5">
+                                    <Phone className="w-3 h-3 text-muted-foreground" />
+                                    {user.phone ? (
+                                      <span className="text-xs text-muted-foreground" dir="ltr">{user.phone}</span>
+                                    ) : (
+                                      <Button 
+                                        variant="link" 
+                                        size="sm" 
+                                        className="h-auto p-0 text-xs text-primary"
+                                        onClick={() => setPhoneEditDialog({ open: true, user, phone: "" })}
+                                      >
+                                        إضافة رقم
+                                      </Button>
+                                    )}
+                                    {user.phone && (
+                                      <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-4 w-4 p-0"
+                                        onClick={() => setPhoneEditDialog({ open: true, user, phone: user.phone || "" })}
+                                      >
+                                        <Edit className="w-2.5 h-2.5 text-muted-foreground" />
+                                      </Button>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </TableCell>
@@ -1008,6 +1065,61 @@ const AdminUsers = () => {
           loading={deleting}
           progress={deleteType === "bulk" && deleting ? deleteProgress : undefined}
         />
+
+        {/* Phone Edit Dialog */}
+        <Dialog open={phoneEditDialog.open} onOpenChange={(open) => setPhoneEditDialog({ ...phoneEditDialog, open })}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Phone className="w-5 h-5 text-primary" />
+                {phoneEditDialog.user?.phone ? "تعديل رقم الهاتف" : "إضافة رقم الهاتف"}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Avatar className="w-12 h-12 border-2 border-border">
+                  <AvatarImage src={phoneEditDialog.user?.avatar_url || ""} />
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold">
+                    {getInitials(phoneEditDialog.user?.full_name || null, phoneEditDialog.user?.email || null)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{phoneEditDialog.user?.full_name || "بدون اسم"}</p>
+                  <p className="text-sm text-muted-foreground" dir="ltr">{phoneEditDialog.user?.email}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">رقم الهاتف</label>
+                <Input
+                  type="tel"
+                  placeholder="05xxxxxxxx"
+                  value={phoneEditDialog.phone}
+                  onChange={(e) => setPhoneEditDialog({ ...phoneEditDialog, phone: e.target.value })}
+                  dir="ltr"
+                  className="text-left"
+                />
+                <p className="text-xs text-muted-foreground">أدخل رقم الجوال السعودي (يبدأ بـ 05)</p>
+              </div>
+
+              <div className="flex gap-2 justify-end">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setPhoneEditDialog({ open: false, user: null, phone: "" })}
+                >
+                  إلغاء
+                </Button>
+                <Button 
+                  onClick={handleSavePhone}
+                  disabled={savingPhone}
+                >
+                  {savingPhone ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : null}
+                  حفظ
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminDashboardLayout>
   );
