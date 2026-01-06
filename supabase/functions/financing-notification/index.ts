@@ -58,7 +58,6 @@ async function sendSMS(phone: string, message: string): Promise<{ success: boole
       body: JSON.stringify({
         phone: `+${formattedPhone}`,
         message: message,
-        sender_name: 'Maxiocore',
       }),
     });
 
