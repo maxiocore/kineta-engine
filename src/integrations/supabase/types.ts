@@ -2685,6 +2685,42 @@ export type Database = {
           },
         ]
       }
+      sms_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          message: string
+          phone: string
+          reference_id: string | null
+          status: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message: string
+          phone: string
+          reference_id?: string | null
+          status?: string
+          type?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message?: string
+          phone?: string
+          reference_id?: string | null
+          status?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       support_tickets: {
         Row: {
           category: string

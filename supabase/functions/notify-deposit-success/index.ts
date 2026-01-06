@@ -2,11 +2,64 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const AUTHENTICA_API_KEY = Deno.env.get("AUTHENTICA_API_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Format phone number to international format for Saudi Arabia
+function formatPhoneNumber(phone: string): string {
+  if (!phone) return '';
+  let cleaned = phone.replace(/\D/g, '');
+  if (cleaned.startsWith('0')) {
+    cleaned = '966' + cleaned.substring(1);
+  }
+  if (!cleaned.startsWith('966')) {
+    cleaned = '966' + cleaned;
+  }
+  return cleaned;
+}
+
+// Send SMS via Authentica API
+async function sendSMS(phone: string, message: string): Promise<{ success: boolean; error?: string }> {
+  if (!AUTHENTICA_API_KEY || !phone) {
+    console.log('SMS skipped: API key or phone not configured');
+    return { success: false, error: 'SMS not configured' };
+  }
+
+  const formattedPhone = formatPhoneNumber(phone);
+  
+  try {
+    console.log(`Sending SMS to ${formattedPhone}`);
+    
+    const response = await fetch('https://connect.authentica-sa.com/api/v1/send-otp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${AUTHENTICA_API_KEY}`,
+      },
+      body: JSON.stringify({
+        phone: formattedPhone,
+        message: message,
+      }),
+    });
+
+    const data = await response.json();
+    console.log('Authentica API response:', data);
+
+    if (response.ok && data.success) {
+      return { success: true };
+    } else {
+      return { success: false, error: data.message || 'Failed to send SMS' };
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error sending SMS:', error);
+    return { success: false, error: errorMessage };
+  }
+}
 
 interface NotifyDepositRequest {
   depositId: string;
@@ -325,10 +378,10 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
     
-    // Fetch user profile
+    // Fetch user profile with phone
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("full_name, email")
+      .select("full_name, email, phone")
       .eq("id", deposit.user_id)
       .single();
     
@@ -399,6 +452,24 @@ serve(async (req: Request): Promise<Response> => {
       status: "sent",
       sent_at: new Date().toISOString(),
     });
+    
+    // Send SMS notification if phone is available
+    if (profile.phone) {
+      const smsMessage = `ماكسيو كور: تم إيداع ${formatAmountArabic(deposit.total_credited)} ر.س في حسابك. رصيدك الجديد: ${formatAmountArabic(balance?.balance || 0)} ر.س`;
+      const smsResult = await sendSMS(profile.phone, smsMessage);
+      console.log("SMS result:", smsResult);
+      
+      // Log SMS
+      await supabase.from("sms_logs").insert({
+        phone: profile.phone,
+        message: smsMessage,
+        type: 'deposit',
+        status: smsResult.success ? 'sent' : 'failed',
+        user_id: deposit.user_id,
+        reference_id: depositId,
+        error_message: smsResult.error || null,
+      });
+    }
     
     return new Response(
       JSON.stringify({ success: true, message: "Deposit notification sent successfully" }),
