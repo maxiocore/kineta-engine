@@ -15,6 +15,7 @@ import MaintenanceSettings from "@/components/admin/settings/MaintenanceSettings
 import AppearanceSettings from "@/components/admin/settings/AppearanceSettings";
 import AuditLogsSettings from "@/components/admin/settings/AuditLogsSettings";
 import { WhatsAppSettings } from "@/components/admin/settings/WhatsAppSettings";
+import { SMSSettings } from "@/components/admin/settings/SMSSettings";
 
 const AdminSettings = () => {
   const { settings, loading, saving, updateSetting, updateMultipleSettings, refetch } = useSystemSettings();
@@ -106,6 +107,9 @@ const AdminSettings = () => {
           />
           
           <AppearanceSettings />
+          
+          {/* SMS Settings */}
+          <SMSSettings />
           
           {/* WhatsApp Settings */}
           <WhatsAppSettings />
