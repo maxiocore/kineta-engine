@@ -34,25 +34,27 @@ async function sendSMS(phone: string, message: string): Promise<{ success: boole
   try {
     console.log(`Sending SMS to ${formattedPhone}`);
     
-    const response = await fetch('https://connect.authentica-sa.com/api/v1/send-otp', {
+    const response = await fetch('https://api.authentica.sa/api/v2/send-sms', {
       method: 'POST',
       headers: {
+        'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${AUTHENTICA_API_KEY}`,
+        'X-Authorization': AUTHENTICA_API_KEY,
       },
       body: JSON.stringify({
-        phone: formattedPhone,
+        phone: `+${formattedPhone}`,
         message: message,
+        sender_name: 'Maxiocore',
       }),
     });
 
     const data = await response.json();
     console.log('Authentica API response:', data);
 
-    if (response.ok && data.success) {
+    if (response.ok) {
       return { success: true };
     } else {
-      return { success: false, error: data.message || 'Failed to send SMS' };
+      return { success: false, error: data.message || data.error || 'Failed to send SMS' };
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
