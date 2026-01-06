@@ -3,6 +3,7 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const AUTHENTICA_API_KEY = Deno.env.get("AUTHENTICA_API_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,6 +14,59 @@ interface WelcomeEmailRequest {
   userId: string;
   email: string;
   name: string;
+  phone?: string;
+}
+
+// Format phone number to international format for Saudi Arabia
+function formatPhoneNumber(phone: string): string {
+  if (!phone) return '';
+  let cleaned = phone.replace(/\D/g, '');
+  if (cleaned.startsWith('0')) {
+    cleaned = '966' + cleaned.substring(1);
+  }
+  if (!cleaned.startsWith('966')) {
+    cleaned = '966' + cleaned;
+  }
+  return cleaned;
+}
+
+// Send SMS via Authentica API
+async function sendSMS(phone: string, message: string): Promise<{ success: boolean; error?: string }> {
+  if (!AUTHENTICA_API_KEY || !phone) {
+    console.log('SMS skipped: API key or phone not configured');
+    return { success: false, error: 'SMS not configured' };
+  }
+
+  const formattedPhone = formatPhoneNumber(phone);
+  
+  try {
+    console.log(`Sending SMS to ${formattedPhone}`);
+    
+    const response = await fetch('https://connect.authentica-sa.com/api/v1/send-otp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${AUTHENTICA_API_KEY}`,
+      },
+      body: JSON.stringify({
+        phone: formattedPhone,
+        message: message,
+      }),
+    });
+
+    const data = await response.json();
+    console.log('Authentica API response:', data);
+
+    if (response.ok && data.success) {
+      return { success: true };
+    } else {
+      return { success: false, error: data.message || 'Failed to send SMS' };
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error sending SMS:', error);
+    return { success: false, error: errorMessage };
+  }
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -21,7 +75,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { userId, email, name }: WelcomeEmailRequest = await req.json();
+    const { userId, email, name, phone }: WelcomeEmailRequest = await req.json();
 
     console.log("Sending welcome email to:", email);
 
@@ -266,7 +320,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: "MaxioCore <onboarding@resend.dev>",
+      from: "MaxioCore <noreply@maxiocore.com>",
       to: [email],
       subject: "🎉 مرحباً بك في MaxioCore - رحلة نجاحك تبدأ الآن!",
       html: emailHtml,
@@ -284,6 +338,24 @@ const handler = async (req: Request): Promise<Response> => {
       sent_at: new Date().toISOString(),
       sent_by: userId
     });
+
+    // Send welcome SMS if phone is provided
+    if (phone) {
+      const smsMessage = `مرحباً بك ${name} في ماكسيو كور! 🎉 حسابك جاهز الآن. ابدأ رحلتك: maxiocore.com/dashboard`;
+      const smsResult = await sendSMS(phone, smsMessage);
+      console.log("Welcome SMS result:", smsResult);
+      
+      // Log SMS
+      await supabase.from("sms_logs").insert({
+        phone: phone,
+        message: smsMessage,
+        type: 'notification',
+        status: smsResult.success ? 'sent' : 'failed',
+        user_id: userId,
+        reference_id: 'welcome',
+        error_message: smsResult.error || null,
+      });
+    }
 
     return new Response(JSON.stringify({ success: true, data: emailResponse }), {
       status: 200,
