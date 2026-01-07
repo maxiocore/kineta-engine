@@ -9,6 +9,7 @@ const corsHeaders = {
 const AUTHENTICA_API_KEY = Deno.env.get('AUTHENTICA_API_KEY');
 const INFOBIP_API_KEY = Deno.env.get('INFOBIP_API_KEY');
 const INFOBIP_BASE_URL = Deno.env.get('INFOBIP_BASE_URL');
+const MESSAGEBIRD_API_KEY = Deno.env.get('MESSAGEBIRD_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -21,7 +22,7 @@ interface SMSRequest {
 }
 
 interface SMSConfig {
-  provider: 'authentica' | 'infobip';
+  provider: 'authentica' | 'infobip' | 'messagebird';
   sender_name: string;
 }
 
@@ -151,12 +152,66 @@ async function sendSMSInfobip(phone: string, message: string, senderName: string
   }
 }
 
+// Send SMS via MessageBird API
+async function sendSMSMessageBird(phone: string, message: string, senderName: string): Promise<{ success: boolean; error?: string; provider: string }> {
+  if (!MESSAGEBIRD_API_KEY) {
+    console.error('MESSAGEBIRD_API_KEY is not configured');
+    return { success: false, error: 'MessageBird API key not configured', provider: 'messagebird' };
+  }
+
+  const formattedPhone = formatPhoneNumber(phone);
+  
+  try {
+    console.log(`[MessageBird] Sending SMS to ${formattedPhone}`);
+    
+    // MessageBird REST API
+    const response = await fetch('https://rest.messagebird.com/messages', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `AccessKey ${MESSAGEBIRD_API_KEY}`,
+      },
+      body: JSON.stringify({
+        originator: senderName || 'MaxioCore',
+        recipients: [formattedPhone],
+        body: message,
+      }),
+    });
+
+    const data = await response.json();
+    console.log('[MessageBird] API response:', JSON.stringify(data));
+
+    if (response.ok) {
+      // Check if message was accepted
+      if (data.recipients?.totalSentCount > 0 || data.id) {
+        return { success: true, provider: 'messagebird' };
+      }
+      // Check for errors in recipients
+      const recipientError = data.recipients?.items?.[0]?.status;
+      if (recipientError && recipientError !== 'sent' && recipientError !== 'delivered' && recipientError !== 'scheduled') {
+        return { success: false, error: `Message status: ${recipientError}`, provider: 'messagebird' };
+      }
+      return { success: true, provider: 'messagebird' };
+    } else {
+      const errorMsg = data.errors?.[0]?.description || data.message || 'Failed to send SMS via MessageBird';
+      return { success: false, error: errorMsg, provider: 'messagebird' };
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[MessageBird] Error sending SMS:', error);
+    return { success: false, error: errorMessage, provider: 'messagebird' };
+  }
+}
+
 // Main send SMS function that routes to the appropriate provider
 async function sendSMS(phone: string, message: string, config: SMSConfig): Promise<{ success: boolean; error?: string; provider: string }> {
   console.log(`Sending SMS via ${config.provider} to ${phone}`);
   
   if (config.provider === 'infobip') {
     return sendSMSInfobip(phone, message, config.sender_name);
+  } else if (config.provider === 'messagebird') {
+    return sendSMSMessageBird(phone, message, config.sender_name);
   } else {
     // Default to Authentica
     return sendSMSAuthentica(phone, message, config.sender_name);
