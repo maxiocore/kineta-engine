@@ -1,67 +1,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendSMS, formatPhoneNumber } from "../_shared/sms-helper.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const AUTHENTICA_API_KEY = Deno.env.get("AUTHENTICA_API_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-// Format phone number to international format for Saudi Arabia
-function formatPhoneNumber(phone: string): string {
-  if (!phone) return '';
-  let cleaned = phone.replace(/\D/g, '');
-  if (cleaned.startsWith('0')) {
-    cleaned = '966' + cleaned.substring(1);
-  }
-  if (!cleaned.startsWith('966')) {
-    cleaned = '966' + cleaned;
-  }
-  return cleaned;
-}
-
-// Send SMS via Authentica API
-async function sendSMS(phone: string, message: string): Promise<{ success: boolean; error?: string }> {
-  if (!AUTHENTICA_API_KEY || !phone) {
-    console.log('SMS skipped: API key or phone not configured');
-    return { success: false, error: 'SMS not configured' };
-  }
-
-  const formattedPhone = formatPhoneNumber(phone);
-  
-  try {
-    console.log(`Sending SMS to ${formattedPhone}`);
-    
-    const response = await fetch('https://api.authentica.sa/api/v2/send-sms', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-Authorization': AUTHENTICA_API_KEY,
-      },
-      body: JSON.stringify({
-        phone: `+${formattedPhone}`,
-        message: message,
-        sender_name: 'Authentica',
-      }),
-    });
-
-    const data = await response.json();
-    console.log('Authentica API response:', data);
-
-    if (response.ok) {
-      return { success: true };
-    } else {
-      return { success: false, error: data.message || data.error || 'Failed to send SMS' };
-    }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error sending SMS:', error);
-    return { success: false, error: errorMessage };
-  }
-}
 
 interface BalanceChangeRequest {
   userId: string;
@@ -541,19 +487,8 @@ serve(async (req: Request): Promise<Response> => {
         ? `ماكسيو كور: تم إضافة ${amount.toLocaleString('ar-SA')} ر.س لحسابك. رصيدك الجديد: ${newBalance.toLocaleString('ar-SA')} ر.س`
         : `ماكسيو كور: تم خصم ${amount.toLocaleString('ar-SA')} ر.س من حسابك. رصيدك الجديد: ${newBalance.toLocaleString('ar-SA')} ر.س`;
       
-      const smsResult = await sendSMS(profile.phone, smsMessage);
+      const smsResult = await sendSMS(profile.phone, smsMessage, 'balance', userId, transactionRef);
       console.log("SMS result:", smsResult);
-      
-      // Log SMS
-      await supabase.from("sms_logs").insert({
-        phone: profile.phone,
-        message: smsMessage,
-        type: 'balance',
-        status: smsResult.success ? 'sent' : 'failed',
-        user_id: userId,
-        reference_id: transactionRef,
-        error_message: smsResult.error || null,
-      });
     }
 
     return new Response(
