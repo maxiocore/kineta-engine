@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Lock, Bell, Shield, Palette, Globe, Loader2, RefreshCw, Save, Eye, EyeOff, Phone } from "lucide-react";
+import { User, Lock, Bell, Shield, Palette, Globe, Loader2, RefreshCw, Save, Eye, EyeOff, Phone, CheckCircle2, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,12 +16,17 @@ import { toast } from "sonner";
 
 const ClientSettings = () => {
   const { settings, loading, saving, updateSetting, refetch } = useUserSettings();
-  const { user, profile } = useAuth();
+  const { user, profile, refetchProfile } = useAuth();
   
   // Profile form state
   const [fullName, setFullName] = useState(profile?.full_name || "");
   const [phone, setPhone] = useState(profile?.phone || "");
   const [savingProfile, setSavingProfile] = useState(false);
+
+  // Phone verification state
+  const [verificationStep, setVerificationStep] = useState<'idle' | 'sending' | 'verify' | 'verifying'>('idle');
+  const [verificationCode, setVerificationCode] = useState("");
+  const [phoneToVerify, setPhoneToVerify] = useState("");
 
   useEffect(() => {
     if (profile) {
@@ -36,6 +41,74 @@ const ClientSettings = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPasswords, setShowPasswords] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+
+  const handleSendVerificationCode = async () => {
+    if (!phone || phone.length < 9) {
+      toast.error('يرجى إدخال رقم هاتف صحيح');
+      return;
+    }
+
+    setVerificationStep('sending');
+    setPhoneToVerify(phone);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-phone', {
+        body: { phone, action: 'send' }
+      });
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error);
+
+      setVerificationStep('verify');
+      toast.success('تم إرسال رمز التحقق إلى رقمك');
+    } catch (error: any) {
+      console.error('Error sending verification code:', error);
+      toast.error(error.message || 'فشل في إرسال رمز التحقق');
+      setVerificationStep('idle');
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (!verificationCode || verificationCode.length < 4) {
+      toast.error('يرجى إدخال رمز التحقق');
+      return;
+    }
+
+    setVerificationStep('verifying');
+
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-phone', {
+        body: { 
+          phone: phoneToVerify, 
+          action: 'verify', 
+          code: verificationCode,
+          userId: user?.id 
+        }
+      });
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error);
+
+      if (data.valid) {
+        toast.success('تم التحقق من رقم الهاتف بنجاح! ✅');
+        setVerificationStep('idle');
+        setVerificationCode("");
+        refetchProfile?.();
+      } else {
+        toast.error('رمز التحقق غير صحيح');
+        setVerificationStep('verify');
+      }
+    } catch (error: any) {
+      console.error('Error verifying code:', error);
+      toast.error(error.message || 'فشل في التحقق من الرمز');
+      setVerificationStep('verify');
+    }
+  };
+
+  const handleCancelVerification = () => {
+    setVerificationStep('idle');
+    setVerificationCode("");
+  };
 
   const handleSaveProfile = async () => {
     if (!user) return;
@@ -223,15 +296,91 @@ const ClientSettings = () => {
                   <label className="text-sm font-medium mb-2 block flex items-center gap-2">
                     <Phone className="w-4 h-4" />
                     رقم الهاتف
+                    {profile?.phone_verified && (
+                      <Badge className="bg-green-500/20 text-green-500 border-green-500/30 gap-1">
+                        <CheckCircle2 className="w-3 h-3" />
+                        موثق
+                      </Badge>
+                    )}
                   </label>
-                  <Input 
-                    value={phone} 
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="bg-secondary/50" 
-                    placeholder="05xxxxxxxx"
-                    dir="ltr"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">سيتم استخدامه لإرسال رسائل SMS</p>
+                  
+                  {verificationStep === 'idle' && (
+                    <div className="space-y-3">
+                      <Input 
+                        value={phone} 
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="bg-secondary/50" 
+                        placeholder="05xxxxxxxx"
+                        dir="ltr"
+                      />
+                      {phone && !profile?.phone_verified && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={handleSendVerificationCode}
+                          className="gap-2"
+                        >
+                          <Phone className="w-4 h-4" />
+                          التحقق من الرقم
+                        </Button>
+                      )}
+                      <p className="text-xs text-muted-foreground">سيتم استخدامه لإرسال رسائل SMS</p>
+                    </div>
+                  )}
+
+                  {verificationStep === 'sending' && (
+                    <div className="flex items-center gap-2 py-3">
+                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                      <span className="text-sm">جاري إرسال رمز التحقق...</span>
+                    </div>
+                  )}
+
+                  {verificationStep === 'verify' && (
+                    <div className="space-y-3 p-4 rounded-lg bg-primary/5 border border-primary/20">
+                      <p className="text-sm font-medium">أدخل رمز التحقق المرسل إلى {phoneToVerify}</p>
+                      <Input 
+                        value={verificationCode} 
+                        onChange={(e) => setVerificationCode(e.target.value)}
+                        className="bg-background text-center text-lg tracking-widest"
+                        placeholder="• • • • • •"
+                        maxLength={6}
+                        dir="ltr"
+                      />
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={handleVerifyCode}
+                          size="sm"
+                          className="bg-gradient-primary flex-1"
+                        >
+                          <CheckCircle2 className="w-4 h-4 ml-2" />
+                          تأكيد
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={handleCancelVerification}
+                        >
+                          <XCircle className="w-4 h-4 ml-2" />
+                          إلغاء
+                        </Button>
+                      </div>
+                      <Button 
+                        variant="link" 
+                        size="sm"
+                        onClick={handleSendVerificationCode}
+                        className="text-xs p-0 h-auto"
+                      >
+                        إعادة إرسال الرمز
+                      </Button>
+                    </div>
+                  )}
+
+                  {verificationStep === 'verifying' && (
+                    <div className="flex items-center gap-2 py-3">
+                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                      <span className="text-sm">جاري التحقق...</span>
+                    </div>
+                  )}
                 </div>
                 <Button 
                   onClick={handleSaveProfile}
