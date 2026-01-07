@@ -10,6 +10,7 @@ interface Profile {
   avatar_url: string | null;
   is_verified: boolean;
   phone: string | null;
+  phone_verified?: boolean;
 }
 
 interface AuthContextType {
@@ -19,6 +20,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isLoading: boolean;
   isRoleChecked: boolean;
+  refetchProfile: () => Promise<void>;
   signUp: (email: string, password: string, fullName: string, phone?: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -43,6 +45,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     if (!error && data) {
       setProfile(data);
+    }
+  };
+
+  const refetchProfile = async () => {
+    if (user?.id) {
+      await fetchProfile(user.id);
     }
   };
 
@@ -154,6 +162,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       isAdmin,
       isLoading,
       isRoleChecked,
+      refetchProfile,
       signUp,
       signIn,
       signOut,
