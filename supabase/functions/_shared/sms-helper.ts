@@ -1,17 +1,13 @@
 // Shared SMS helper for all edge functions
-// This helper reads the SMS configuration and sends via the configured provider
+// This helper reads the SMS configuration and sends via MessageBird
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const AUTHENTICA_API_KEY = Deno.env.get('AUTHENTICA_API_KEY');
-const INFOBIP_API_KEY = Deno.env.get('INFOBIP_API_KEY');
-const INFOBIP_BASE_URL = Deno.env.get('INFOBIP_BASE_URL');
 const MESSAGEBIRD_API_KEY = Deno.env.get('MESSAGEBIRD_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 interface SMSConfig {
-  provider: 'authentica' | 'infobip' | 'messagebird';
   sender_name: string;
 }
 
@@ -35,100 +31,6 @@ export function formatPhoneNumber(phone: string): string {
   }
   
   return cleaned;
-}
-
-// Send SMS via Authentica API
-async function sendSMSAuthentica(phone: string, message: string, senderName: string): Promise<SMSResult> {
-  if (!AUTHENTICA_API_KEY) {
-    console.error('AUTHENTICA_API_KEY is not configured');
-    return { success: false, error: 'Authentica API key not configured', provider: 'authentica' };
-  }
-
-  const formattedPhone = formatPhoneNumber(phone);
-  
-  try {
-    console.log(`[Authentica] Sending SMS to ${formattedPhone}`);
-    
-    const response = await fetch('https://api.authentica.sa/api/v2/send-sms', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-Authorization': AUTHENTICA_API_KEY,
-      },
-      body: JSON.stringify({
-        phone: `+${formattedPhone}`,
-        message: message,
-        sender_name: senderName || 'Authentica',
-      }),
-    });
-
-    const data = await response.json();
-    console.log('[Authentica] API response:', data);
-
-    if (response.ok) {
-      return { success: true, provider: 'authentica' };
-    } else {
-      return { success: false, error: data.message || data.error || 'Failed to send SMS via Authentica', provider: 'authentica' };
-    }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[Authentica] Error sending SMS:', error);
-    return { success: false, error: errorMessage, provider: 'authentica' };
-  }
-}
-
-// Send SMS via Infobip API
-async function sendSMSInfobip(phone: string, message: string, senderName: string): Promise<SMSResult> {
-  if (!INFOBIP_API_KEY || !INFOBIP_BASE_URL) {
-    console.error('INFOBIP_API_KEY or INFOBIP_BASE_URL is not configured');
-    return { success: false, error: 'Infobip API credentials not configured', provider: 'infobip' };
-  }
-
-  const formattedPhone = formatPhoneNumber(phone);
-  
-  try {
-    console.log(`[Infobip] Sending SMS to ${formattedPhone}`);
-    
-    const response = await fetch(`${INFOBIP_BASE_URL}/sms/3/messages`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `App ${INFOBIP_API_KEY}`,
-      },
-      body: JSON.stringify({
-        messages: [
-          {
-            sender: senderName || 'ServiceSMS',
-            destinations: [{ to: formattedPhone }],
-            content: { text: message }
-          }
-        ]
-      }),
-    });
-
-    const data = await response.json();
-    console.log('[Infobip] API response:', JSON.stringify(data));
-
-    if (response.ok) {
-      const messageStatus = data?.messages?.[0]?.status;
-      if (messageStatus?.groupId === 1 || messageStatus?.groupName === 'PENDING' ||
-          messageStatus?.groupId === 3 || messageStatus?.groupName === 'DELIVERED') {
-        return { success: true, provider: 'infobip' };
-      } else if (messageStatus?.groupId === 4 || messageStatus?.groupId === 5) {
-        return { success: false, error: `Message ${messageStatus?.groupName}: ${messageStatus?.description}`, provider: 'infobip' };
-      }
-      return { success: true, provider: 'infobip' };
-    } else {
-      const errorMsg = data?.requestError?.serviceException?.text || data?.message || 'Failed to send SMS via Infobip';
-      return { success: false, error: errorMsg, provider: 'infobip' };
-    }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[Infobip] Error sending SMS:', error);
-    return { success: false, error: errorMessage, provider: 'infobip' };
-  }
 }
 
 // Send SMS via MessageBird API
@@ -193,7 +95,6 @@ async function getSMSConfig(): Promise<SMSConfig> {
 
     if (smsConfig?.value) {
       return {
-        provider: smsConfig.value.provider || 'messagebird',
         sender_name: smsConfig.value.sender_name || 'MaxioCore',
       };
     }
@@ -202,7 +103,6 @@ async function getSMSConfig(): Promise<SMSConfig> {
   }
 
   return {
-    provider: 'messagebird',
     sender_name: 'MaxioCore',
   };
 }
@@ -225,7 +125,7 @@ async function isSMSEnabled(): Promise<boolean> {
   }
 }
 
-// Main function to send SMS using configured provider
+// Main function to send SMS using MessageBird
 export async function sendSMS(
   phone: string, 
   message: string,
@@ -246,17 +146,10 @@ export async function sendSMS(
 
   // Get configuration
   const config = await getSMSConfig();
-  console.log(`Sending SMS via ${config.provider} to ${phone}`);
+  console.log(`Sending SMS via MessageBird to ${phone}`);
 
-  // Send via configured provider
-  let result: SMSResult;
-  if (config.provider === 'infobip') {
-    result = await sendSMSInfobip(phone, message, config.sender_name);
-  } else if (config.provider === 'messagebird') {
-    result = await sendSMSMessageBird(phone, message, config.sender_name);
-  } else {
-    result = await sendSMSAuthentica(phone, message, config.sender_name);
-  }
+  // Send via MessageBird
+  const result = await sendSMSMessageBird(phone, message, config.sender_name);
 
   // Log to database
   try {
@@ -269,7 +162,6 @@ export async function sendSMS(
       user_id: userId || null,
       reference_id: referenceId || null,
       error_message: result.error || null,
-      provider: result.provider,
     });
   } catch (err) {
     console.error('Error logging SMS:', err);
