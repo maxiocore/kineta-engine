@@ -1,23 +1,22 @@
 // Shared SMS helper for all edge functions
-// This helper reads the SMS configuration and sends via MessageBird
+// This helper sends SMS via Twilio
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const MESSAGEBIRD_API_KEY = Deno.env.get('MESSAGEBIRD_API_KEY');
+const TWILIO_ACCOUNT_SID = Deno.env.get('TWILIO_ACCOUNT_SID');
+const TWILIO_AUTH_TOKEN = Deno.env.get('TWILIO_AUTH_TOKEN');
+const TWILIO_PHONE_NUMBER = Deno.env.get('TWILIO_PHONE_NUMBER');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-
-interface SMSConfig {
-  sender_name: string;
-}
 
 interface SMSResult {
   success: boolean;
   error?: string;
   provider: string;
+  messageId?: string;
 }
 
-// Format phone number to international format
+// Format phone number to international format (E.164)
 export function formatPhoneNumber(phone: string): string {
   if (!phone) return '';
   let cleaned = phone.replace(/\D/g, '');
@@ -30,81 +29,53 @@ export function formatPhoneNumber(phone: string): string {
     cleaned = '966' + cleaned;
   }
   
-  return cleaned;
+  return '+' + cleaned;
 }
 
-// Send SMS via MessageBird API
-async function sendSMSMessageBird(phone: string, message: string, senderName: string): Promise<SMSResult> {
-  if (!MESSAGEBIRD_API_KEY) {
-    console.error('MESSAGEBIRD_API_KEY is not configured');
-    return { success: false, error: 'MessageBird API key not configured', provider: 'messagebird' };
+// Send SMS via Twilio API
+async function sendSMSTwilio(phone: string, message: string): Promise<SMSResult> {
+  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
+    console.error('Twilio credentials are not configured');
+    return { success: false, error: 'Twilio credentials not configured', provider: 'twilio' };
   }
 
   const formattedPhone = formatPhoneNumber(phone);
   
   try {
-    console.log(`[MessageBird] Sending SMS to ${formattedPhone}`);
+    console.log(`[Twilio] Sending SMS to ${formattedPhone}`);
     
-    const response = await fetch('https://rest.messagebird.com/messages', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `AccessKey ${MESSAGEBIRD_API_KEY}`,
-      },
-      body: JSON.stringify({
-        originator: senderName || 'MaxioCore',
-        recipients: [formattedPhone],
-        body: message,
-      }),
-    });
+    const authString = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
+    
+    const response = await fetch(
+      `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Basic ${authString}`,
+        },
+        body: new URLSearchParams({
+          To: formattedPhone,
+          From: TWILIO_PHONE_NUMBER,
+          Body: message,
+        }),
+      }
+    );
 
     const data = await response.json();
-    console.log('[MessageBird] API response:', JSON.stringify(data));
+    console.log('[Twilio] API response:', JSON.stringify(data));
 
-    if (response.ok) {
-      if (data.recipients?.totalSentCount > 0 || data.id) {
-        return { success: true, provider: 'messagebird' };
-      }
-      const recipientError = data.recipients?.items?.[0]?.status;
-      if (recipientError && recipientError !== 'sent' && recipientError !== 'delivered' && recipientError !== 'scheduled') {
-        return { success: false, error: `Message status: ${recipientError}`, provider: 'messagebird' };
-      }
-      return { success: true, provider: 'messagebird' };
+    if (response.ok && data.sid) {
+      return { success: true, provider: 'twilio', messageId: data.sid };
     } else {
-      const errorMsg = data.errors?.[0]?.description || data.message || 'Failed to send SMS via MessageBird';
-      return { success: false, error: errorMsg, provider: 'messagebird' };
+      const errorMsg = data.message || data.error_message || 'Failed to send SMS via Twilio';
+      return { success: false, error: errorMsg, provider: 'twilio' };
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[MessageBird] Error sending SMS:', error);
-    return { success: false, error: errorMessage, provider: 'messagebird' };
+    console.error('[Twilio] Error sending SMS:', error);
+    return { success: false, error: errorMessage, provider: 'twilio' };
   }
-}
-
-// Get SMS configuration from database
-async function getSMSConfig(): Promise<SMSConfig> {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-  
-  try {
-    const { data: smsConfig } = await supabase
-      .from('system_settings')
-      .select('value')
-      .eq('key', 'sms_config')
-      .single();
-
-    if (smsConfig?.value) {
-      return {
-        sender_name: smsConfig.value.sender_name || 'MaxioCore',
-      };
-    }
-  } catch (error) {
-    console.error('Error fetching SMS config:', error);
-  }
-
-  return {
-    sender_name: 'MaxioCore',
-  };
 }
 
 // Check if SMS is enabled
@@ -125,7 +96,7 @@ async function isSMSEnabled(): Promise<boolean> {
   }
 }
 
-// Main function to send SMS using MessageBird
+// Main function to send SMS using Twilio
 export async function sendSMS(
   phone: string, 
   message: string,
@@ -144,12 +115,10 @@ export async function sendSMS(
     return { success: false, error: 'SMS notifications are disabled', provider: 'none' };
   }
 
-  // Get configuration
-  const config = await getSMSConfig();
-  console.log(`Sending SMS via MessageBird to ${phone}`);
+  console.log(`Sending SMS via Twilio to ${phone}`);
 
-  // Send via MessageBird
-  const result = await sendSMSMessageBird(phone, message, config.sender_name);
+  // Send via Twilio
+  const result = await sendSMSTwilio(phone, message);
 
   // Log to database
   try {
@@ -162,6 +131,8 @@ export async function sendSMS(
       user_id: userId || null,
       reference_id: referenceId || null,
       error_message: result.error || null,
+      provider: 'twilio',
+      external_id: result.messageId || null,
     });
   } catch (err) {
     console.error('Error logging SMS:', err);

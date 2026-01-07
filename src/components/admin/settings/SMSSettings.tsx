@@ -7,16 +7,14 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { MessageSquare, Save, TestTube, Loader2, CheckCircle, XCircle, Info } from "lucide-react";
+import { MessageSquare, Save, TestTube, Loader2, CheckCircle, XCircle, Info, ExternalLink } from "lucide-react";
 
 interface SMSConfig {
   enabled: boolean;
-  sender_name: string;
 }
 
 const defaultConfig: SMSConfig = {
   enabled: true,
-  sender_name: 'MaxioCore',
 };
 
 export const SMSSettings = () => {
@@ -32,17 +30,6 @@ export const SMSSettings = () => {
 
   const fetchSettings = async () => {
     try {
-      // Fetch SMS config
-      const { data: smsConfig, error: configError } = await supabase
-        .from('system_settings')
-        .select('value')
-        .eq('key', 'sms_config')
-        .single();
-
-      if (configError && configError.code !== 'PGRST116') {
-        throw configError;
-      }
-
       // Fetch SMS enabled status
       const { data: smsEnabled, error: enabledError } = await supabase
         .from('system_settings')
@@ -54,12 +41,9 @@ export const SMSSettings = () => {
         throw enabledError;
       }
 
-      const savedConfig = smsConfig?.value as unknown as Partial<SMSConfig> || {};
       const isEnabled = smsEnabled?.value !== 'false';
 
       setConfig({
-        ...defaultConfig,
-        ...savedConfig,
         enabled: isEnabled,
       });
     } catch (error) {
@@ -79,8 +63,7 @@ export const SMSSettings = () => {
           key: 'sms_config',
           category: 'notifications',
           value: {
-            provider: 'messagebird',
-            sender_name: config.sender_name,
+            provider: 'twilio',
           } as any,
           updated_at: new Date().toISOString()
         }, { onConflict: 'key' });
@@ -119,7 +102,7 @@ export const SMSSettings = () => {
       const { data, error } = await supabase.functions.invoke('sms-notify', {
         body: {
           phone: testPhone,
-          message: 'هذه رسالة اختبار من MaxioCore - تم إرسالها بنجاح!',
+          message: 'هذه رسالة اختبار من MaxioCore - تم إرسالها بنجاح عبر Twilio!',
           type: 'general'
         }
       });
@@ -127,7 +110,7 @@ export const SMSSettings = () => {
       if (error) throw error;
       
       if (data?.success) {
-        toast.success('تم إرسال رسالة الاختبار بنجاح عبر MessageBird!');
+        toast.success('تم إرسال رسالة الاختبار بنجاح عبر Twilio!');
       } else {
         toast.error(data?.error || 'فشل إرسال الرسالة');
       }
@@ -155,12 +138,12 @@ export const SMSSettings = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30">
+                <MessageSquare className="w-5 h-5 text-red-600 dark:text-red-400" />
               </div>
               <div>
                 <CardTitle className="text-lg">إعدادات الرسائل النصية SMS</CardTitle>
-                <CardDescription>إدارة إرسال الرسائل النصية عبر MessageBird</CardDescription>
+                <CardDescription>إدارة إرسال الرسائل النصية عبر Twilio</CardDescription>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -175,56 +158,71 @@ export const SMSSettings = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Provider Info */}
-          <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-              <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+            <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30">
+              <MessageSquare className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
-            <div>
-              <p className="font-medium text-blue-800 dark:text-blue-200">MessageBird (Bird)</p>
-              <p className="text-sm text-blue-600 dark:text-blue-400">بوابة رسائل عالمية متقدمة - موصى بها</p>
+            <div className="flex-1">
+              <p className="font-medium text-red-800 dark:text-red-200">Twilio</p>
+              <p className="text-sm text-red-600 dark:text-red-400">منصة اتصالات سحابية عالمية - الأكثر استخداماً</p>
             </div>
-          </div>
-
-          <Separator />
-
-          {/* Sender Name */}
-          <div className="space-y-4">
-            <h3 className="font-medium">اسم المرسل</h3>
-            <div className="space-y-2">
-              <Label htmlFor="sender-name">Sender Name / ID</Label>
-              <Input
-                id="sender-name"
-                placeholder="MaxioCore"
-                value={config.sender_name}
-                onChange={(e) => setConfig({ ...config, sender_name: e.target.value })}
-                dir="ltr"
-                className="max-w-sm"
-              />
-              <p className="text-xs text-muted-foreground">
-                يمكنك استخدام اسم علامتك التجارية أو رقم هاتف مسجل. الحد الأقصى 11 حرف.
-              </p>
-            </div>
+            <a 
+              href="https://www.twilio.com/console" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-sm text-red-600 hover:text-red-700 dark:text-red-400"
+            >
+              <ExternalLink className="w-4 h-4" />
+              لوحة التحكم
+            </a>
           </div>
 
           <Separator />
 
           {/* API Configuration Info */}
-          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-4">
             <div className="flex gap-2">
-              <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
-                <p className="font-medium">إعداد MessageBird (Bird):</p>
-                <ol className="list-decimal list-inside space-y-1 text-blue-700 dark:text-blue-400">
-                  <li>انتقل إلى <a href="https://dashboard.messagebird.com" target="_blank" rel="noopener noreferrer" className="underline">MessageBird Dashboard</a></li>
-                  <li>أنشئ حساب أو سجل الدخول</li>
-                  <li>انتقل إلى Developers → API Access → Create new access key</li>
-                  <li>اختر صلاحية "Channels Sending and Receiving"</li>
-                  <li>انسخ الـ Access Key وأضفه في Secrets</li>
+              <Info className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-red-800 dark:text-red-300 space-y-2">
+                <p className="font-medium">إعداد Twilio:</p>
+                <ol className="list-decimal list-inside space-y-1 text-red-700 dark:text-red-400">
+                  <li>انتقل إلى <a href="https://www.twilio.com/console" target="_blank" rel="noopener noreferrer" className="underline">Twilio Console</a></li>
+                  <li>أنشئ حساب جديد أو سجل الدخول</li>
+                  <li>احصل على <strong>Account SID</strong> و <strong>Auth Token</strong> من الصفحة الرئيسية</li>
+                  <li>اشترِ رقم هاتف من Phone Numbers → Manage → Buy a number</li>
+                  <li>أضف المتغيرات في Secrets</li>
                 </ol>
-                <p className="text-xs mt-2">
-                  المتغير المطلوب: <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">MESSAGEBIRD_API_KEY</code>
-                </p>
+                <div className="mt-3 p-3 bg-red-100 dark:bg-red-900/50 rounded-lg">
+                  <p className="font-medium mb-2">المتغيرات المطلوبة:</p>
+                  <ul className="space-y-1 font-mono text-xs">
+                    <li><code className="bg-red-200 dark:bg-red-800 px-1 rounded">TWILIO_ACCOUNT_SID</code> - معرف الحساب</li>
+                    <li><code className="bg-red-200 dark:bg-red-800 px-1 rounded">TWILIO_AUTH_TOKEN</code> - رمز المصادقة</li>
+                    <li><code className="bg-red-200 dark:bg-red-800 px-1 rounded">TWILIO_PHONE_NUMBER</code> - رقم الإرسال (بصيغة +1234567890)</li>
+                  </ul>
+                </div>
               </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Features */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-3 bg-muted/50 rounded-lg text-center">
+              <p className="text-2xl font-bold text-primary">99.9%</p>
+              <p className="text-xs text-muted-foreground">نسبة التسليم</p>
+            </div>
+            <div className="p-3 bg-muted/50 rounded-lg text-center">
+              <p className="text-2xl font-bold text-primary">180+</p>
+              <p className="text-xs text-muted-foreground">دولة مدعومة</p>
+            </div>
+            <div className="p-3 bg-muted/50 rounded-lg text-center">
+              <p className="text-2xl font-bold text-primary">API</p>
+              <p className="text-xs text-muted-foreground">موثوق وسريع</p>
+            </div>
+            <div className="p-3 bg-muted/50 rounded-lg text-center">
+              <p className="text-2xl font-bold text-primary">24/7</p>
+              <p className="text-xs text-muted-foreground">دعم فني</p>
             </div>
           </div>
 
@@ -235,7 +233,7 @@ export const SMSSettings = () => {
             <h3 className="font-medium">اختبار الإرسال</h3>
             <div className="flex gap-3">
               <Input
-                placeholder="رقم الهاتف للاختبار (مثال: 0555123456)"
+                placeholder="رقم الهاتف للاختبار (مثال: +966555123456)"
                 value={testPhone}
                 onChange={(e) => setTestPhone(e.target.value)}
                 dir="ltr"
@@ -254,6 +252,9 @@ export const SMSSettings = () => {
                 اختبار
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground">
+              أدخل رقم الهاتف بالصيغة الدولية (مثال: +966555123456 أو 0555123456)
+            </p>
           </div>
 
           <Separator />
@@ -265,7 +266,7 @@ export const SMSSettings = () => {
                 <>
                   <CheckCircle className="w-5 h-5 text-green-500" />
                   <span className="text-sm text-green-600 dark:text-green-400">
-                    مفعل - MessageBird
+                    مفعل - Twilio
                   </span>
                 </>
               ) : (

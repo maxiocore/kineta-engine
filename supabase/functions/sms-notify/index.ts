@@ -6,7 +6,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const MESSAGEBIRD_API_KEY = Deno.env.get('MESSAGEBIRD_API_KEY');
+const TWILIO_ACCOUNT_SID = Deno.env.get('TWILIO_ACCOUNT_SID');
+const TWILIO_AUTH_TOKEN = Deno.env.get('TWILIO_AUTH_TOKEN');
+const TWILIO_PHONE_NUMBER = Deno.env.get('TWILIO_PHONE_NUMBER');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -16,10 +18,6 @@ interface SMSRequest {
   type?: 'order_status' | 'deposit' | 'balance' | 'notification' | 'otp' | 'general';
   userId?: string;
   referenceId?: string;
-}
-
-interface SMSConfig {
-  sender_name: string;
 }
 
 // Format phone number to international format
@@ -37,58 +35,54 @@ function formatPhoneNumber(phone: string): string {
     cleaned = '966' + cleaned;
   }
   
-  return cleaned;
+  // Add + prefix for E.164 format
+  return '+' + cleaned;
 }
 
-// Send SMS via MessageBird API
-async function sendSMSMessageBird(phone: string, message: string, senderName: string): Promise<{ success: boolean; error?: string; provider: string }> {
-  if (!MESSAGEBIRD_API_KEY) {
-    console.error('MESSAGEBIRD_API_KEY is not configured');
-    return { success: false, error: 'MessageBird API key not configured', provider: 'messagebird' };
+// Send SMS via Twilio API
+async function sendSMSTwilio(phone: string, message: string): Promise<{ success: boolean; error?: string; provider: string; messageId?: string }> {
+  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
+    console.error('Twilio credentials are not configured');
+    return { success: false, error: 'Twilio credentials not configured', provider: 'twilio' };
   }
 
   const formattedPhone = formatPhoneNumber(phone);
   
   try {
-    console.log(`[MessageBird] Sending SMS to ${formattedPhone}`);
+    console.log(`[Twilio] Sending SMS to ${formattedPhone}`);
     
-    // MessageBird REST API
-    const response = await fetch('https://rest.messagebird.com/messages', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `AccessKey ${MESSAGEBIRD_API_KEY}`,
-      },
-      body: JSON.stringify({
-        originator: senderName || 'MaxioCore',
-        recipients: [formattedPhone],
-        body: message,
-      }),
-    });
+    // Twilio REST API - using Basic Auth
+    const authString = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
+    
+    const response = await fetch(
+      `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Basic ${authString}`,
+        },
+        body: new URLSearchParams({
+          To: formattedPhone,
+          From: TWILIO_PHONE_NUMBER,
+          Body: message,
+        }),
+      }
+    );
 
     const data = await response.json();
-    console.log('[MessageBird] API response:', JSON.stringify(data));
+    console.log('[Twilio] API response:', JSON.stringify(data));
 
-    if (response.ok) {
-      // Check if message was accepted
-      if (data.recipients?.totalSentCount > 0 || data.id) {
-        return { success: true, provider: 'messagebird' };
-      }
-      // Check for errors in recipients
-      const recipientError = data.recipients?.items?.[0]?.status;
-      if (recipientError && recipientError !== 'sent' && recipientError !== 'delivered' && recipientError !== 'scheduled') {
-        return { success: false, error: `Message status: ${recipientError}`, provider: 'messagebird' };
-      }
-      return { success: true, provider: 'messagebird' };
+    if (response.ok && data.sid) {
+      return { success: true, provider: 'twilio', messageId: data.sid };
     } else {
-      const errorMsg = data.errors?.[0]?.description || data.message || 'Failed to send SMS via MessageBird';
-      return { success: false, error: errorMsg, provider: 'messagebird' };
+      const errorMsg = data.message || data.error_message || 'Failed to send SMS via Twilio';
+      return { success: false, error: errorMsg, provider: 'twilio' };
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[MessageBird] Error sending SMS:', error);
-    return { success: false, error: errorMessage, provider: 'messagebird' };
+    console.error('[Twilio] Error sending SMS:', error);
+    return { success: false, error: errorMessage, provider: 'twilio' };
   }
 }
 
@@ -101,7 +95,8 @@ async function logSMS(
   success: boolean,
   userId?: string,
   referenceId?: string,
-  error?: string
+  error?: string,
+  messageId?: string
 ) {
   try {
     await supabase.from('sms_logs').insert({
@@ -112,6 +107,8 @@ async function logSMS(
       user_id: userId || null,
       reference_id: referenceId || null,
       error_message: error || null,
+      provider: 'twilio',
+      external_id: messageId || null,
     });
   } catch (err) {
     console.error('Error logging SMS:', err);
@@ -150,24 +147,11 @@ serve(async (req) => {
       );
     }
 
-    // Get SMS configuration for sender name
-    const { data: smsConfig } = await supabase
-      .from('system_settings')
-      .select('value')
-      .eq('key', 'sms_config')
-      .single();
-
-    const config: SMSConfig = {
-      sender_name: smsConfig?.value?.sender_name || 'MaxioCore',
-    };
-
-    console.log('Using SMS config:', config);
-
-    // Send SMS via MessageBird
-    const result = await sendSMSMessageBird(phone, message, config.sender_name);
+    // Send SMS via Twilio
+    const result = await sendSMSTwilio(phone, message);
 
     // Log the SMS
-    await logSMS(supabase, phone, message, type, result.success, userId, referenceId, result.error);
+    await logSMS(supabase, phone, message, type, result.success, userId, referenceId, result.error, result.messageId);
 
     return new Response(
       JSON.stringify(result),
