@@ -3,6 +3,7 @@
 // Wrapper for backward compatibility
 // ============================================
 
+import * as React from 'react';
 import { useEligibilityMachine } from "./useEligibilityMachine";
 
 export interface EligibilityResult {
