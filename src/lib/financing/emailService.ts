@@ -10,12 +10,22 @@ interface SendStatusEmailParams {
   recipientName: string;
   applicationNumber: string;
   approvedAmount?: number;
+  forceResend?: boolean;
+}
+
+interface EmailQueueResult {
+  success: boolean;
+  action: 'sent' | 'queued' | 'skipped' | 'rate_limited' | 'failed';
+  message: string;
+  queueId?: string;
+  resendId?: string;
 }
 
 /**
  * إرسال بريد إلكتروني بحالة طلب التمويل
+ * يدعم: Idempotency + Rate Limiting + Queue + Logging
  */
-export async function sendFinancingStatusEmail(params: SendStatusEmailParams): Promise<boolean> {
+export async function sendFinancingStatusEmail(params: SendStatusEmailParams): Promise<EmailQueueResult> {
   try {
     const { data, error } = await supabase.functions.invoke('financing-status-email', {
       body: {
@@ -26,14 +36,22 @@ export async function sendFinancingStatusEmail(params: SendStatusEmailParams): P
 
     if (error) {
       console.error('Error sending financing status email:', error);
-      return false;
+      return {
+        success: false,
+        action: 'failed',
+        message: error.message || 'Unknown error'
+      };
     }
 
-    console.log('Financing status email sent:', data);
-    return true;
+    console.log('Financing status email result:', data);
+    return data as EmailQueueResult;
   } catch (error) {
     console.error('Failed to send financing status email:', error);
-    return false;
+    return {
+      success: false,
+      action: 'failed',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
   }
 }
 

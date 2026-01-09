@@ -1319,6 +1319,30 @@ export type Database = {
           },
         ]
       }
+      email_rate_limits: {
+        Row: {
+          email_address: string
+          email_count: number
+          id: string
+          last_email_at: string
+          window_start: string
+        }
+        Insert: {
+          email_address: string
+          email_count?: number
+          id?: string
+          last_email_at?: string
+          window_start?: string
+        }
+        Update: {
+          email_address?: string
+          email_count?: number
+          id?: string
+          last_email_at?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       email_templates: {
         Row: {
           content: string
@@ -1890,6 +1914,140 @@ export type Database = {
             columns: ["parent_contract_id"]
             isOneToOne: false
             referencedRelation: "financing_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financing_email_logs: {
+        Row: {
+          application_id: string
+          created_at: string
+          error_code: string | null
+          error_message: string | null
+          id: string
+          queue_id: string | null
+          recipient_email: string
+          resend_id: string | null
+          response_time_ms: number | null
+          result: string
+          status: string
+          subject: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          queue_id?: string | null
+          recipient_email: string
+          resend_id?: string | null
+          response_time_ms?: number | null
+          result: string
+          status: string
+          subject: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          queue_id?: string | null
+          recipient_email?: string
+          resend_id?: string | null
+          response_time_ms?: number | null
+          result?: string
+          status?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_email_logs_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "financing_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financing_email_logs_queue_id_fkey"
+            columns: ["queue_id"]
+            isOneToOne: false
+            referencedRelation: "financing_email_queue"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financing_email_queue: {
+        Row: {
+          application_id: string
+          application_number: string
+          approved_amount: number | null
+          attempts: number
+          created_at: string
+          id: string
+          idempotency_key: string
+          last_error: string | null
+          max_attempts: number
+          next_retry_at: string | null
+          priority: number
+          processed_at: string | null
+          queue_status: string
+          recipient_email: string
+          recipient_name: string
+          resend_id: string | null
+          response_data: Json | null
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          application_id: string
+          application_number: string
+          approved_amount?: number | null
+          attempts?: number
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          last_error?: string | null
+          max_attempts?: number
+          next_retry_at?: string | null
+          priority?: number
+          processed_at?: string | null
+          queue_status?: string
+          recipient_email: string
+          recipient_name: string
+          resend_id?: string | null
+          response_data?: Json | null
+          sent_at?: string | null
+          status: string
+        }
+        Update: {
+          application_id?: string
+          application_number?: string
+          approved_amount?: number | null
+          attempts?: number
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          last_error?: string | null
+          max_attempts?: number
+          next_retry_at?: string | null
+          priority?: number
+          processed_at?: string | null
+          queue_status?: string
+          recipient_email?: string
+          recipient_name?: string
+          resend_id?: string | null
+          response_data?: Json | null
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_email_queue_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "financing_applications"
             referencedColumns: ["id"]
           },
         ]
@@ -4164,6 +4322,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_email_rate_limit: {
+        Args: {
+          p_email: string
+          p_max_per_day?: number
+          p_max_per_hour?: number
+        }
+        Returns: boolean
+      }
+      cleanup_email_rate_limits: { Args: never; Returns: undefined }
       create_contract_new_version: {
         Args: {
           p_new_contract_data?: Json
@@ -4195,6 +4362,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_email_rate_limit: {
+        Args: { p_email: string }
+        Returns: undefined
       }
       update_overdue_installments: { Args: never; Returns: undefined }
       withdraw_cashback: {
