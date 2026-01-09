@@ -44,7 +44,7 @@ export interface GuarantorInfo {
 
 export interface EmploymentVerificationState {
   employmentStatus: EmploymentStatus | null;
-  verificationStatus: VerificationStatus;
+  verificationStatus: EmpVerificationStatus;
   uploadedDocuments: UploadedDocument[];
   incomeVerification: IncomeVerificationResult | null;
   guarantor: GuarantorInfo | null;
