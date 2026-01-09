@@ -5,11 +5,11 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +37,7 @@ import {
   Clock,
   XCircle
 } from "lucide-react";
+import { AnimatedButton } from "../animations";
 import type { LoanApplicationData } from "../LoanApplicationWizard";
 
 interface ReviewConfirmStepProps {
@@ -463,18 +464,19 @@ export function ReviewConfirmStep({
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}
       >
-        <Button
+        <AnimatedButton
           variant="outline"
           onClick={goBack}
           className="flex-1 h-12 gap-2"
         >
           <ArrowRight className="w-4 h-4" />
           <span>رجوع</span>
-        </Button>
+        </AnimatedButton>
         
-        <Button
+        <AnimatedButton
           onClick={handleSubmitClick}
           disabled={!canSubmit || isLoading}
+          pulseOnHover={canSubmit}
           className={`flex-1 h-12 gap-2 transition-all ${
             canSubmit 
               ? "bg-gradient-to-l from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700" 
@@ -489,7 +491,7 @@ export function ReviewConfirmStep({
               <ArrowLeft className="w-4 h-4" />
             </>
           )}
-        </Button>
+        </AnimatedButton>
       </motion.div>
 
       {/* Confirmation Modal */}

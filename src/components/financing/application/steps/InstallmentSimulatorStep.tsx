@@ -5,7 +5,6 @@
 
 import { useEffect, useMemo, useState, useRef } from "react";
 import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,6 +31,7 @@ import {
   PiggyBank,
   FileText
 } from "lucide-react";
+import { AnimatedButton } from "../animations";
 import type { LoanApplicationData } from "../LoanApplicationWizard";
 
 interface InstallmentSimulatorStepProps {
@@ -541,22 +541,23 @@ export function InstallmentSimulatorStep({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
       >
-        <Button
+        <AnimatedButton
           variant="outline"
           onClick={goBack}
           className="flex-1 h-12 gap-2"
         >
           <ArrowRight className="w-4 h-4" />
           <span>تعديل المبلغ</span>
-        </Button>
+        </AnimatedButton>
         
-        <Button
+        <AnimatedButton
           onClick={goNext}
+          pulseOnHover
           className="flex-1 h-12 gap-2 bg-gradient-to-l from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
         >
           <span>موافق، التالي</span>
           <ArrowLeft className="w-4 h-4" />
-        </Button>
+        </AnimatedButton>
       </motion.div>
     </div>
   );
