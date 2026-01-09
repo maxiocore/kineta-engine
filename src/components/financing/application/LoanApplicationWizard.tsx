@@ -2,10 +2,11 @@
  * =====================================================
  * MaxioCore - Loan Application Wizard
  * Complete Financing Application Flow
+ * With Professional Animation System
  * =====================================================
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,6 +23,13 @@ import { ReviewConfirmStep } from "./steps/ReviewConfirmStep";
 import { SubmitTrackingStep } from "./steps/SubmitTrackingStep";
 import { ResultStep } from "./steps/ResultStep";
 import { ApplicationProgress } from "./ApplicationProgress";
+
+// Animation System
+import { 
+  WizardSkeleton, 
+  ProcessingOverlay,
+  useStepTransition,
+} from "./animations";
 
 // Types
 export interface LoanApplicationData {
@@ -94,6 +102,15 @@ export function LoanApplicationWizard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [transitionDirection, setTransitionDirection] = useState<"forward" | "backward">("forward");
+  
+  const prevStepRef = useRef(data.currentStep);
+
+  // Get animation variants based on direction
+  const { stepVariants } = useStepTransition({ 
+    direction: transitionDirection,
+    enableBlur: true,
+  });
 
   // Load saved progress on mount
   useEffect(() => {
@@ -135,7 +152,8 @@ export function LoanApplicationWizard() {
       } catch (error) {
         console.error("Error loading saved progress:", error);
       } finally {
-        setIsLoading(false);
+        // Simulate minimum loading for smooth UX
+        setTimeout(() => setIsLoading(false), 500);
       }
     };
     
@@ -149,6 +167,16 @@ export function LoanApplicationWizard() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
     }
   }, [data, isLoading]);
+
+  // Track step direction for animations
+  useEffect(() => {
+    if (data.currentStep > prevStepRef.current) {
+      setTransitionDirection("forward");
+    } else if (data.currentStep < prevStepRef.current) {
+      setTransitionDirection("backward");
+    }
+    prevStepRef.current = data.currentStep;
+  }, [data.currentStep]);
 
   // Validate current step before proceeding
   const validateStep = useCallback((step: number): string[] => {
@@ -192,12 +220,14 @@ export function LoanApplicationWizard() {
     }
     
     setValidationErrors([]);
+    setTransitionDirection("forward");
     setData(prev => ({ ...prev, currentStep: Math.min(prev.currentStep + 1, STEPS.length - 1) }));
   }, [data.currentStep, validateStep]);
 
   // Navigate to previous step (always allowed)
   const goBack = useCallback(() => {
     setValidationErrors([]);
+    setTransitionDirection("backward");
     setData(prev => ({ ...prev, currentStep: Math.max(prev.currentStep - 1, 0) }));
   }, []);
 
@@ -296,14 +326,20 @@ export function LoanApplicationWizard() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen pb-20" dir="rtl">
+        <WizardSkeleton />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen pb-20" dir="rtl">
+      {/* Processing Overlay */}
+      <ProcessingOverlay 
+        isVisible={isSaving} 
+        message="جاري إرسال طلبك..." 
+      />
+
       {/* Progress Bar */}
       {data.currentStep < 7 && (
         <ApplicationProgress 
@@ -315,13 +351,14 @@ export function LoanApplicationWizard() {
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 py-6">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={data.currentStep}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
+            variants={stepVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="will-change-transform"
           >
             {renderStep()}
           </motion.div>
