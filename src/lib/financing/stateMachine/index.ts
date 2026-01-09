@@ -59,6 +59,17 @@ export {
 
 export type { StateContent } from './stateContent';
 
+// Email Content
+export {
+  EMAIL_CONTENT,
+  FINANCING_DISCLAIMER,
+  getEmailContent,
+  shouldSendEmail,
+  getEmailTriggerStatuses
+} from './emailContent';
+
+export type { EmailContent } from './emailContent';
+
 // Re-export a convenience function to get status info
 export function getStatusInfo(status: string) {
   const { STATE_DEFINITIONS } = require('./states');
