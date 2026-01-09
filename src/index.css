@@ -69,6 +69,168 @@
   transform: scaleX(-1);
 }
 
+/* ===== Enhanced RTL Support ===== */
+
+/* Flex Direction RTL - Automatic Reversal */
+[dir="rtl"] .flex-row {
+  flex-direction: row;
+}
+
+/* RTL Margin/Padding using logical properties */
+.ms-auto {
+  margin-inline-start: auto;
+}
+
+.me-auto {
+  margin-inline-end: auto;
+}
+
+.ps-4 {
+  padding-inline-start: 1rem;
+}
+
+.pe-4 {
+  padding-inline-end: 1rem;
+}
+
+/* RTL Text Alignment */
+.text-start {
+  text-align: start;
+}
+
+.text-end {
+  text-align: end;
+}
+
+/* RTL Border Radius */
+.rounded-s-lg {
+  border-start-start-radius: 0.5rem;
+  border-end-start-radius: 0.5rem;
+}
+
+.rounded-e-lg {
+  border-start-end-radius: 0.5rem;
+  border-end-end-radius: 0.5rem;
+}
+
+/* RTL Animation Directions */
+[dir="rtl"] .animate-slide-in {
+  animation: slide-in-rtl 0.3s ease-out forwards;
+}
+
+@keyframes slide-in-rtl {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-out-rtl {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+/* RTL Chevron/Arrow Icons */
+[dir="rtl"] .chevron-next {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .chevron-prev {
+  transform: scaleX(-1);
+}
+
+/* RTL Stepper - Progress from right to left */
+[dir="rtl"] .stepper-progress {
+  transform-origin: right;
+}
+
+/* RTL Table Headers */
+[dir="rtl"] th {
+  text-align: right;
+}
+
+[dir="rtl"] td {
+  text-align: right;
+}
+
+/* Numbers in RTL - Prevent reversal */
+.bidi-number {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+}
+
+/* Currency in RTL */
+.rtl-currency {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.rtl-currency .amount {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* RTL Form Controls */
+[dir="rtl"] input[type="text"],
+[dir="rtl"] input[type="email"],
+[dir="rtl"] input[type="tel"],
+[dir="rtl"] input[type="password"],
+[dir="rtl"] textarea {
+  text-align: right;
+}
+
+[dir="rtl"] input[type="number"] {
+  text-align: left;
+  direction: ltr;
+}
+
+/* RTL Checkbox/Radio with Label */
+.rtl-checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+[dir="rtl"] .rtl-checkbox-label {
+  flex-direction: row;
+}
+
+.rtl-checkbox-label > input {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+/* RTL Dropdown/Select */
+[dir="rtl"] select {
+  text-align: right;
+  padding-right: 0.75rem;
+  padding-left: 2rem;
+  background-position: left 0.5rem center;
+}
+
+/* RTL Badge with Icon */
+.rtl-badge-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+[dir="rtl"] .rtl-badge-icon svg {
+  order: 1;
+}
+
 @layer base {
   :root {
     --background: 210 20% 98%;

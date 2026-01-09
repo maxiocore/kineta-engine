@@ -277,12 +277,13 @@ export default function FinancingStatusCard({ application, installments = [], sh
                   <span className="text-muted-foreground">نسبة السداد</span>
                   <span className="font-bold">{progressPercent.toFixed(0)}%</span>
                 </div>
-                <div className="h-3 bg-muted rounded-full overflow-hidden">
+                <div className="h-3 bg-muted rounded-full overflow-hidden" dir="ltr">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${progressPercent}%` }}
                     transition={{ duration: 1, ease: "easeOut" }}
-                    className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"
+                    className="h-full bg-gradient-to-l from-teal-500 to-emerald-500 rounded-full"
+                    style={{ marginInlineStart: "auto" }}
                   />
                 </div>
               </div>

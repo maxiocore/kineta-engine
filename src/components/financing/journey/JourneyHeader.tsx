@@ -1,9 +1,10 @@
 /**
  * Journey Header Component
+ * RTL-optimized header for Arabic banking interface
  */
 
 import { Button } from "@/components/ui/button";
-import { ArrowRight, X } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { type JourneyScreen, JOURNEY_SCREENS } from "@/lib/financing/journeyConfig";
 
@@ -15,18 +16,18 @@ interface JourneyHeaderProps {
 
 export function JourneyHeader({ currentScreen, onBack, canGoBack }: JourneyHeaderProps) {
   return (
-    <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50">
+    <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50" dir="rtl">
       <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Back Button */}
+        {/* Back Button - RTL: يظهر في اليمين */}
         <div className="w-24">
           {canGoBack ? (
             <Button
               variant="ghost"
               size="sm"
               onClick={onBack}
-              className="gap-1"
+              className="gap-2"
             >
-              <ArrowRight className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4 rtl-flip" />
               رجوع
             </Button>
           ) : (
@@ -34,15 +35,15 @@ export function JourneyHeader({ currentScreen, onBack, canGoBack }: JourneyHeade
           )}
         </div>
 
-        {/* Logo/Title */}
+        {/* Logo/Title - Center */}
         <div className="text-center">
           <h1 className="font-bold text-lg bg-gradient-to-l from-emerald-400 to-teal-500 bg-clip-text text-transparent">
             تمويل MaxioCore
           </h1>
         </div>
 
-        {/* Close/Exit */}
-        <div className="w-24 flex justify-end">
+        {/* Close/Exit - RTL: يظهر في اليسار */}
+        <div className="w-24 flex justify-start">
           <Button
             variant="ghost"
             size="icon"
