@@ -655,14 +655,11 @@ export function ServiceFinancingContractViewer({
                 id="accept_contract"
                 checked={acceptContract}
                 onCheckedChange={(checked) => setAcceptContract(checked === true)}
-                disabled={!hasReadContract}
                 className="mt-1"
               />
               <Label 
                 htmlFor="accept_contract" 
-                className={`text-sm leading-relaxed cursor-pointer ${
-                  !hasReadContract ? "text-muted-foreground" : ""
-                }`}
+                className="text-sm leading-relaxed cursor-pointer"
               >
                 <span className="font-bold text-base">✓ أوافق على العقد والشروط</span>
                 <br />
