@@ -1069,6 +1069,24 @@ export type Database = {
         }
         Relationships: []
       }
+      disposable_email_domains: {
+        Row: {
+          created_at: string
+          domain: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          id?: string
+        }
+        Relationships: []
+      }
       email_campaigns: {
         Row: {
           completed_at: string | null
@@ -1173,6 +1191,104 @@ export type Database = {
           type?: string
           updated_at?: string
           usage_count?: number
+        }
+        Relationships: []
+      }
+      email_verification_attempts: {
+        Row: {
+          attempt_number: number
+          created_at: string
+          failure_reason: string | null
+          id: string
+          input_otp_hash: string
+          ip_address: string | null
+          is_success: boolean
+          user_agent: string | null
+          verification_id: string
+        }
+        Insert: {
+          attempt_number: number
+          created_at?: string
+          failure_reason?: string | null
+          id?: string
+          input_otp_hash: string
+          ip_address?: string | null
+          is_success?: boolean
+          user_agent?: string | null
+          verification_id: string
+        }
+        Update: {
+          attempt_number?: number
+          created_at?: string
+          failure_reason?: string | null
+          id?: string
+          input_otp_hash?: string
+          ip_address?: string | null
+          is_success?: boolean
+          user_agent?: string | null
+          verification_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_verification_attempts_verification_id_fkey"
+            columns: ["verification_id"]
+            isOneToOne: false
+            referencedRelation: "email_verifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_verifications: {
+        Row: {
+          attempts_count: number
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          ip_address: string | null
+          locked_until: string | null
+          max_attempts: number
+          otp_hash: string
+          purpose: string
+          status: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          attempts_count?: number
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          ip_address?: string | null
+          locked_until?: string | null
+          max_attempts?: number
+          otp_hash: string
+          purpose?: string
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          attempts_count?: number
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          ip_address?: string | null
+          locked_until?: string | null
+          max_attempts?: number
+          otp_hash?: string
+          purpose?: string
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+          verified_at?: string | null
         }
         Relationships: []
       }
