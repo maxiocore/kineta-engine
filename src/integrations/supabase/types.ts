@@ -1658,6 +1658,56 @@ export type Database = {
           },
         ]
       }
+      financing_activity_log: {
+        Row: {
+          actor_id: string | null
+          application_id: string
+          created_at: string
+          event_type: string
+          from_status: string | null
+          id: string
+          is_visible_to_customer: boolean | null
+          metadata: Json | null
+          reason: string | null
+          to_status: string
+          triggered_by: string
+        }
+        Insert: {
+          actor_id?: string | null
+          application_id: string
+          created_at?: string
+          event_type: string
+          from_status?: string | null
+          id?: string
+          is_visible_to_customer?: boolean | null
+          metadata?: Json | null
+          reason?: string | null
+          to_status: string
+          triggered_by: string
+        }
+        Update: {
+          actor_id?: string | null
+          application_id?: string
+          created_at?: string
+          event_type?: string
+          from_status?: string | null
+          id?: string
+          is_visible_to_customer?: boolean | null
+          metadata?: Json | null
+          reason?: string | null
+          to_status?: string
+          triggered_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_activity_log_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "financing_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financing_applications: {
         Row: {
           address: string | null
@@ -1985,6 +2035,8 @@ export type Database = {
           approved_amount: number | null
           attempts: number
           created_at: string
+          email_template_id: string | null
+          event_id: string | null
           id: string
           idempotency_key: string
           last_error: string | null
@@ -2006,6 +2058,8 @@ export type Database = {
           approved_amount?: number | null
           attempts?: number
           created_at?: string
+          email_template_id?: string | null
+          event_id?: string | null
           id?: string
           idempotency_key: string
           last_error?: string | null
@@ -2027,6 +2081,8 @@ export type Database = {
           approved_amount?: number | null
           attempts?: number
           created_at?: string
+          email_template_id?: string | null
+          event_id?: string | null
           id?: string
           idempotency_key?: string
           last_error?: string | null
@@ -2048,6 +2104,13 @@ export type Database = {
             columns: ["application_id"]
             isOneToOne: false
             referencedRelation: "financing_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financing_email_queue_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "financing_activity_log"
             referencedColumns: ["id"]
           },
         ]
@@ -3077,6 +3140,9 @@ export type Database = {
           avatar_url: string | null
           created_at: string | null
           email: string | null
+          email_bounce_reason: string | null
+          email_bounced: boolean | null
+          email_bounced_at: string | null
           full_name: string | null
           id: string
           is_verified: boolean | null
@@ -3088,6 +3154,9 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           email?: string | null
+          email_bounce_reason?: string | null
+          email_bounced?: boolean | null
+          email_bounced_at?: string | null
           full_name?: string | null
           id: string
           is_verified?: boolean | null
@@ -3099,6 +3168,9 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           email?: string | null
+          email_bounce_reason?: string | null
+          email_bounced?: boolean | null
+          email_bounced_at?: string | null
           full_name?: string | null
           id?: string
           is_verified?: boolean | null

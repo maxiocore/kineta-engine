@@ -101,3 +101,6 @@ verify_jwt = false
 
 [functions.financing-status-email]
 verify_jwt = false
+
+[functions.financing-activity-log]
+verify_jwt = false

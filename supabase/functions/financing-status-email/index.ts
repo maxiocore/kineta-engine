@@ -177,6 +177,8 @@ interface EmailRequest {
   approvedAmount?: number;
   baseUrl: string;
   forceResend?: boolean;
+  eventId?: string;
+  emailTemplateId?: string;
 }
 
 interface QueueResult {
@@ -221,6 +223,30 @@ async function checkIdempotency(
   }
   
   return { isDuplicate: false };
+}
+
+// ============= Email Bounce Check =============
+async function checkEmailBounced(
+  supabase: SupabaseClientType,
+  email: string
+): Promise<{ bounced: boolean; reason?: string }> {
+  // Check if email is bounced in profiles table
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('email_bounced, email_bounce_reason')
+    .eq('email', email)
+    .single();
+  
+  if (error && error.code !== 'PGRST116') {
+    console.error('Email bounce check error:', error);
+    return { bounced: false };
+  }
+  
+  if (data?.email_bounced) {
+    return { bounced: true, reason: data.email_bounce_reason };
+  }
+  
+  return { bounced: false };
 }
 
 // ============= Rate Limiting =============
@@ -275,7 +301,9 @@ async function addToQueue(
       approved_amount: request.approvedAmount,
       priority: priority,
       queue_status: 'pending',
-      next_retry_at: new Date().toISOString()
+      next_retry_at: new Date().toISOString(),
+      event_id: request.eventId || null,
+      email_template_id: request.emailTemplateId || `financing_status_${request.status.toLowerCase()}`
     })
     .select('id')
     .single();
@@ -731,7 +759,30 @@ async function processEmailRequest(request: EmailRequest): Promise<QueueResult> 
     };
   }
   
-  // 1. Idempotency Check
+  // 1. Email Bounce Check
+  const bounceCheck = await checkEmailBounced(supabase, request.recipientEmail);
+  if (bounceCheck.bounced) {
+    console.log(`Email bounced - skipping: ${request.recipientEmail}`);
+    
+    await logEmailResult(
+      supabase,
+      null,
+      request.applicationId,
+      request.recipientEmail,
+      content.subject,
+      request.status,
+      'skipped',
+      { errorMessage: `Email bounced: ${bounceCheck.reason || 'Unknown reason'}` }
+    );
+    
+    return {
+      success: false,
+      action: 'skipped' as 'skipped',
+      message: `Email bounced - ${bounceCheck.reason || 'delivery failed previously'}`
+    };
+  }
+  
+  // 2. Idempotency Check
   if (!request.forceResend) {
     const { isDuplicate, existingId } = await checkIdempotency(
       supabase,
