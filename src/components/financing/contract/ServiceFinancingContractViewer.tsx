@@ -3,6 +3,7 @@
  * Service Financing Contract Viewer
  * 
  * يعرض العقد الكامل ويتطلب موافقة صريحة قبل الإرسال
+ * RTL كامل مع جداول احترافية
  */
 
 import { useState, useEffect, useRef } from "react";
@@ -15,14 +16,20 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   FileText,
   CheckCircle2,
   AlertTriangle,
   Download,
-  Eye,
   Shield,
   Lock,
-  Clock,
   Building2,
   FileSignature,
   Loader2,
@@ -30,15 +37,19 @@ import {
   Info,
   ChevronDown,
   ChevronUp,
+  Calendar,
+  Receipt,
+  Package,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   CONTRACT_CLAUSES,
   CLIENT_ACKNOWLEDGMENTS,
   CONTRACT_INFO,
-  generateOrderSummarySection,
   type ContractPlaceholders,
   type ContractApprovalRecord,
+  type ServiceItem,
+  type InstallmentItem,
   validateContractApproval,
 } from "@/lib/financing/serviceFinancingContract";
 import { COMPANY_INFO } from "@/lib/financing/serviceFinancingPolicy";
@@ -125,10 +136,27 @@ export function ServiceFinancingContractViewer({
     }).format(amount);
   };
 
+  // حساب الضريبة لكل خدمة (15% من سعر الخدمة)
+  const calculateServiceVAT = (price: number) => {
+    return price * 0.15;
+  };
+
+  // حالة القسط
+  const getInstallmentStatusBadge = (status: InstallmentItem["status"]) => {
+    switch (status) {
+      case "paid":
+        return <Badge className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30">مدفوع</Badge>;
+      case "overdue":
+        return <Badge className="bg-red-500/20 text-red-600 border-red-500/30">متأخر</Badge>;
+      default:
+        return <Badge variant="outline" className="text-muted-foreground">متوقع</Badge>;
+    }
+  };
+
   const articles = Object.entries(CONTRACT_CLAUSES);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" dir="rtl">
       {/* Contract Header */}
       <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
         <CardHeader className="pb-3">
@@ -138,7 +166,7 @@ export function ServiceFinancingContractViewer({
                 <ScrollText className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-lg">عقد تمويل خدمات</CardTitle>
+                <CardTitle className="text-lg font-bold">عقد تمويل خدمات</CardTitle>
                 <p className="text-sm text-muted-foreground">
                   إصدار {CONTRACT_INFO.version} • {CONTRACT_INFO.lastUpdated}
                 </p>
@@ -168,15 +196,17 @@ export function ServiceFinancingContractViewer({
           </div>
 
           {/* Parties Info */}
-          <div className="grid grid-cols-2 gap-4 p-3 bg-muted/50 rounded-lg text-sm">
-            <div>
-              <p className="text-muted-foreground text-xs mb-1">الطرف الأول (الممول)</p>
-              <p className="font-medium">{COMPANY_INFO.name}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg text-sm">
+            <div className="space-y-1">
+              <p className="text-muted-foreground text-xs font-medium">الطرف الأول (الممول / مزود الخدمة)</p>
+              <p className="font-bold text-base">{COMPANY_INFO.name}</p>
+              <p className="text-xs text-muted-foreground">المملكة العربية السعودية</p>
             </div>
-            <div>
-              <p className="text-muted-foreground text-xs mb-1">الطرف الثاني (العميل)</p>
-              <p className="font-medium">{contractData.customer_name}</p>
-              <p className="text-xs text-muted-foreground">هوية: {contractData.customer_national_id}</p>
+            <div className="space-y-1">
+              <p className="text-muted-foreground text-xs font-medium">الطرف الثاني (العميل / المستفيد)</p>
+              <p className="font-bold text-base">{contractData.customer_name}</p>
+              <p className="text-xs text-muted-foreground">رقم الهوية: {contractData.customer_national_id}</p>
+              <p className="text-xs text-muted-foreground">الجوال: {contractData.customer_phone}</p>
             </div>
           </div>
         </CardContent>
@@ -190,12 +220,13 @@ export function ServiceFinancingContractViewer({
               <AlertTriangle className="w-5 h-5 text-amber-500" />
             </div>
             <div>
-              <h4 className="font-semibold text-amber-600 dark:text-amber-400">
-                تنبيه مهم: تمويل خدمات فقط
+              <h4 className="font-bold text-amber-600 dark:text-amber-400">
+                ⚠️ تنبيه مهم: تمويل خدمات فقط
               </h4>
-              <p className="text-sm text-muted-foreground mt-1">
-                هذا العقد لتمويل شراء خدمات وليس تمويلاً نقدياً. لن يتم صرف أي مبلغ للعميل.
-                يُدفع المبلغ مباشرة لمزود الخدمة ({COMPANY_INFO.shortName}).
+              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                هذا العقد لتمويل شراء خدمات وليس تمويلاً نقدياً. 
+                <strong className="text-foreground"> لن يتم صرف أي مبلغ للعميل.</strong>
+                {" "}يُدفع المبلغ مباشرة لمزود الخدمة ({COMPANY_INFO.shortName}).
               </p>
             </div>
           </div>
@@ -207,29 +238,43 @@ export function ServiceFinancingContractViewer({
         <CardContent className="p-0">
           <ScrollArea 
             ref={scrollRef as any}
-            className="h-[400px] p-4"
+            className="h-[450px] p-4"
           >
-            {/* Preamble */}
-            <div className="mb-6">
-              <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-primary" />
-                {CONTRACT_CLAUSES.preamble.title}
-              </h3>
-              <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
-                {CONTRACT_CLAUSES.preamble.content}
+            {/* ═══════════ بسم الله الرحمن الرحيم ═══════════ */}
+            <div className="text-center mb-6 py-4 border-b-2 border-primary/20">
+              <p className="text-lg font-bold text-primary mb-2">بسم الله الرحمن الرحيم</p>
+              <h2 className="text-xl font-bold">عقد تمويل خدمات</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                رقم العقد: <span className="font-mono font-bold">{contractData.application_number}</span>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                تاريخ التحرير: {contractData.application_date}
               </p>
             </div>
 
-            <Separator className="my-4" />
+            {/* Preamble */}
+            <div className="mb-6">
+              <h3 className="font-bold text-lg mb-3 flex items-center gap-2 text-primary">
+                <FileText className="w-5 h-5" />
+                {CONTRACT_CLAUSES.preamble.title}
+              </h3>
+              <div className="p-4 bg-muted/30 rounded-lg border-r-4 border-primary/50">
+                <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+                  {CONTRACT_CLAUSES.preamble.content}
+                </p>
+              </div>
+            </div>
+
+            <Separator className="my-6" />
 
             {/* Contract Articles */}
             {articles.slice(1).map(([key, article]) => (
               <div key={key} className="mb-4">
                 <button
                   onClick={() => toggleArticle(key)}
-                  className="w-full flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
+                  className="w-full flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors border border-transparent hover:border-primary/20"
                 >
-                  <span className="font-semibold text-sm">{article.title}</span>
+                  <span className="font-bold text-sm">{article.title}</span>
                   {expandedArticles.includes(key) ? (
                     <ChevronUp className="w-4 h-4 text-muted-foreground" />
                   ) : (
@@ -246,9 +291,9 @@ export function ServiceFinancingContractViewer({
                       transition={{ duration: 0.2 }}
                       className="overflow-hidden"
                     >
-                      <div className="p-3 space-y-2">
+                      <div className="p-4 space-y-3 bg-background border border-muted rounded-b-lg">
                         {article.clauses.map((clause, i) => (
-                          <p key={i} className="text-sm text-muted-foreground leading-relaxed">
+                          <p key={i} className="text-sm text-muted-foreground leading-relaxed pr-4 border-r-2 border-muted">
                             {clause}
                           </p>
                         ))}
@@ -259,108 +304,258 @@ export function ServiceFinancingContractViewer({
               </div>
             ))}
 
-            <Separator className="my-4" />
+            <Separator className="my-6" />
 
-            {/* Order Summary Section */}
+            {/* ═══════════ ملخص الطلب ═══════════ */}
             <div className="mb-6">
-              <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-primary" />
+              <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-primary">
+                <Receipt className="w-5 h-5" />
                 ملخص الطلب
               </h3>
 
-              <div className="space-y-4 p-4 bg-muted/30 rounded-xl">
-                {/* Services */}
+              <div className="space-y-6 p-4 bg-gradient-to-br from-muted/50 to-muted/20 rounded-xl border border-muted">
+                
+                {/* ═══════════ جدول الخدمات ═══════════ */}
                 <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-2">الخدمات المختارة:</h4>
-                  <div className="space-y-2">
-                    {contractData.services_table.map((service, i) => (
-                      <div key={i} className="flex justify-between items-center p-2 bg-background rounded-lg">
-                        <span className="text-sm">{service.name}</span>
-                        <span className="font-medium">{formatCurrency(service.total)} ر.س</span>
-                      </div>
-                    ))}
+                  <h4 className="text-sm font-bold mb-3 flex items-center gap-2">
+                    <Package className="w-4 h-4 text-primary" />
+                    جدول الخدمات الممولة
+                  </h4>
+                  
+                  <div className="rounded-lg border overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/80">
+                          <TableHead className="text-right font-bold w-8">#</TableHead>
+                          <TableHead className="text-right font-bold">اسم الخدمة</TableHead>
+                          <TableHead className="text-center font-bold">الكمية</TableHead>
+                          <TableHead className="text-left font-bold">السعر</TableHead>
+                          <TableHead className="text-left font-bold">الضريبة (15%)</TableHead>
+                          <TableHead className="text-left font-bold">الإجمالي</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {contractData.services_table.map((service, i) => {
+                          const vat = calculateServiceVAT(service.total);
+                          const totalWithVat = service.total + vat;
+                          return (
+                            <TableRow key={i} className="hover:bg-muted/30">
+                              <TableCell className="font-medium text-muted-foreground">{i + 1}</TableCell>
+                              <TableCell className="font-medium">{service.name}</TableCell>
+                              <TableCell className="text-center">{service.quantity}</TableCell>
+                              <TableCell className="text-left font-mono">{formatCurrency(service.price)} ر.س</TableCell>
+                              <TableCell className="text-left font-mono text-muted-foreground">{formatCurrency(vat)} ر.س</TableCell>
+                              <TableCell className="text-left font-mono font-bold">{formatCurrency(totalWithVat)} ر.س</TableCell>
+                            </TableRow>
+                          );
+                        })}
+                        {/* Totals Row */}
+                        <TableRow className="bg-primary/5 border-t-2 border-primary/20">
+                          <TableCell colSpan={3} className="text-left font-bold">الإجمالي</TableCell>
+                          <TableCell className="text-left font-mono font-bold">
+                            {formatCurrency(contractData.total_services_value)} ر.س
+                          </TableCell>
+                          <TableCell className="text-left font-mono font-bold text-muted-foreground">
+                            {formatCurrency(contractData.vat_amount)} ر.س
+                          </TableCell>
+                          <TableCell className="text-left font-mono font-bold text-primary">
+                            {formatCurrency(contractData.total_services_value + contractData.vat_amount)} ر.س
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
                   </div>
                 </div>
 
                 <Separator />
 
-                {/* Financial Details */}
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">قيمة الخدمات:</span>
-                    <span className="font-medium">{formatCurrency(contractData.total_services_value)} ر.س</span>
+                {/* ═══════════ التفاصيل المالية ═══════════ */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="p-3 bg-background rounded-lg border text-center">
+                    <p className="text-xs text-muted-foreground mb-1">قيمة الخدمات</p>
+                    <p className="font-bold text-lg">{formatCurrency(contractData.total_services_value)}</p>
+                    <p className="text-xs text-muted-foreground">ر.س</p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">الرسوم الإدارية:</span>
-                    <span className="font-medium">{formatCurrency(contractData.admin_fees)} ر.س</span>
+                  <div className="p-3 bg-background rounded-lg border text-center">
+                    <p className="text-xs text-muted-foreground mb-1">الرسوم الإدارية</p>
+                    <p className="font-bold text-lg">{formatCurrency(contractData.admin_fees)}</p>
+                    <p className="text-xs text-muted-foreground">ر.س</p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">ضريبة القيمة المضافة:</span>
-                    <span className="font-medium">{formatCurrency(contractData.vat_amount)} ر.س</span>
+                  <div className="p-3 bg-background rounded-lg border text-center">
+                    <p className="text-xs text-muted-foreground mb-1">ضريبة القيمة المضافة</p>
+                    <p className="font-bold text-lg">{formatCurrency(contractData.vat_amount)}</p>
+                    <p className="text-xs text-muted-foreground">ر.س</p>
                   </div>
                   {contractData.down_payment && contractData.down_payment > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">الدفعة المقدمة:</span>
-                      <span className="font-medium">{formatCurrency(contractData.down_payment)} ر.س</span>
+                    <div className="p-3 bg-background rounded-lg border text-center">
+                      <p className="text-xs text-muted-foreground mb-1">الدفعة المقدمة</p>
+                      <p className="font-bold text-lg">{formatCurrency(contractData.down_payment)}</p>
+                      <p className="text-xs text-muted-foreground">ر.س</p>
                     </div>
                   )}
                 </div>
 
+                {/* Total Amount Box */}
+                <div className="p-4 bg-primary/10 rounded-lg border-2 border-primary/30 text-center">
+                  <p className="text-sm text-muted-foreground mb-1">إجمالي المبلغ المستحق</p>
+                  <p className="text-3xl font-bold text-primary">{formatCurrency(contractData.total_amount)} ر.س</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    (المبلغ الممول: {formatCurrency(contractData.financed_amount)} ر.س)
+                  </p>
+                </div>
+
                 <Separator />
 
-                {/* Installments */}
-                <div className="p-3 bg-primary/10 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium">تفاصيل الأقساط:</span>
-                    <Badge variant="secondary">{contractData.installments_count} قسط</Badge>
+                {/* ═══════════ جدول الأقساط ═══════════ */}
+                <div>
+                  <h4 className="text-sm font-bold mb-3 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-primary" />
+                    جدول السداد (الأقساط)
+                  </h4>
+                  
+                  <div className="rounded-lg border overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/80">
+                          <TableHead className="text-right font-bold w-20">رقم القسط</TableHead>
+                          <TableHead className="text-right font-bold">تاريخ الاستحقاق</TableHead>
+                          <TableHead className="text-left font-bold">قيمة القسط</TableHead>
+                          <TableHead className="text-center font-bold">الحالة</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {contractData.installments_schedule.length > 0 ? (
+                          contractData.installments_schedule.map((installment) => (
+                            <TableRow key={installment.number} className="hover:bg-muted/30">
+                              <TableCell className="font-bold text-primary">
+                                القسط {installment.number}
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                <span className="inline-flex items-center gap-1">
+                                  <Calendar className="w-3 h-3 text-muted-foreground" />
+                                  {installment.dueDate}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-left font-mono font-bold">
+                                {formatCurrency(installment.amount)} ر.س
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {getInstallmentStatusBadge(installment.status)}
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          // Generate schedule from data if not provided
+                          Array.from({ length: Math.min(contractData.installments_count, 12) }, (_, i) => {
+                            const dueDate = new Date();
+                            dueDate.setMonth(dueDate.getMonth() + i + 1);
+                            return (
+                              <TableRow key={i} className="hover:bg-muted/30">
+                                <TableCell className="font-bold text-primary">
+                                  القسط {i + 1}
+                                </TableCell>
+                                <TableCell className="font-medium">
+                                  <span className="inline-flex items-center gap-1">
+                                    <Calendar className="w-3 h-3 text-muted-foreground" />
+                                    {dueDate.toLocaleDateString("ar-SA")}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-left font-mono font-bold">
+                                  {formatCurrency(contractData.installment_amount)} ر.س
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <Badge variant="outline" className="text-muted-foreground">متوقع</Badge>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })
+                        )}
+                        {/* Summary Row */}
+                        <TableRow className="bg-emerald-500/10 border-t-2 border-emerald-500/30">
+                          <TableCell colSpan={2} className="text-left font-bold text-emerald-600">
+                            إجمالي الأقساط: {contractData.installments_count} قسط
+                          </TableCell>
+                          <TableCell className="text-left font-mono font-bold text-emerald-600">
+                            {formatCurrency(contractData.installment_amount * contractData.installments_count)} ر.س
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30">
+                              جدول السداد
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
+                  
+                  {/* Schedule Summary */}
+                  <div className="mt-3 p-3 bg-muted/30 rounded-lg text-sm flex flex-wrap gap-4 justify-between">
                     <div>
-                      <span className="text-muted-foreground">قيمة القسط:</span>
-                      <p className="font-bold text-lg text-primary">{formatCurrency(contractData.installment_amount)} ر.س</p>
+                      <span className="text-muted-foreground">تاريخ أول قسط: </span>
+                      <span className="font-medium">{contractData.first_due_date}</span>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">تاريخ الاستحقاق:</span>
-                      <p className="font-medium">{contractData.first_due_date}</p>
+                      <span className="text-muted-foreground">تاريخ آخر قسط: </span>
+                      <span className="font-medium">{contractData.last_due_date}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">القسط الشهري: </span>
+                      <span className="font-bold text-primary">{formatCurrency(contractData.installment_amount)} ر.س</span>
                     </div>
                   </div>
                 </div>
 
+                <Separator />
+
                 {/* Service Provider */}
-                <div className="flex items-center gap-2 p-3 bg-emerald-500/10 rounded-lg text-sm">
-                  <Shield className="w-4 h-4 text-emerald-500" />
-                  <span>جهة تقديم الخدمة: <strong>{contractData.service_provider}</strong></span>
+                <div className="p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-emerald-500/20 rounded-lg">
+                      <Building2 className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">جهة تقديم الخدمة (المستفيد من التحويل)</p>
+                      <p className="font-bold text-lg">{contractData.service_provider}</p>
+                      <p className="text-xs text-emerald-600 mt-1">
+                        سيتم تحويل قيمة الخدمات مباشرة إلى مزود الخدمة
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <Separator className="my-4" />
+            <Separator className="my-6" />
 
             {/* Client Acknowledgments */}
             <div className="mb-6">
-              <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-primary" />
+              <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-primary">
+                <CheckCircle2 className="w-5 h-5" />
                 إقرارات العميل
               </h3>
               <div className="space-y-2">
                 {CLIENT_ACKNOWLEDGMENTS.map((ack, i) => (
-                  <div key={i} className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
-                    <div className="w-5 h-5 rounded-full border-2 border-primary/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div key={i} className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg border border-muted">
+                    <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <span className="text-xs font-bold text-primary">{i + 1}</span>
                     </div>
-                    <p className="text-sm text-muted-foreground">{ack}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{ack}</p>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* End of Contract Notice */}
-            <div className="text-center p-4 bg-muted/50 rounded-lg">
+            <div className="text-center p-6 bg-gradient-to-b from-muted/50 to-muted/20 rounded-xl border-2 border-dashed border-muted">
+              <div className="mb-2">
+                <span className="text-2xl">📄</span>
+              </div>
+              <p className="font-bold text-lg mb-1">— نهاية بنود العقد —</p>
               <p className="text-sm text-muted-foreground">
-                — نهاية بنود العقد —
+                يصبح هذا العقد نافذاً ومُلزماً بعد الموافقة الإلكترونية أدناه
               </p>
               <p className="text-xs text-muted-foreground mt-2">
-                يصبح هذا العقد نافذاً بعد الموافقة الإلكترونية أدناه
+                الموافقة الإلكترونية لها نفس الحجية القانونية للتوقيع الخطي
               </p>
             </div>
           </ScrollArea>
@@ -382,18 +577,18 @@ export function ServiceFinancingContractViewer({
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="flex items-center gap-2 p-3 bg-amber-500/10 rounded-lg text-sm"
+                  className="flex items-center gap-2 p-3 bg-amber-500/10 rounded-lg text-sm border border-amber-500/20"
                 >
-                  <Info className="w-4 h-4 text-amber-500" />
+                  <Info className="w-4 h-4 text-amber-500 flex-shrink-0" />
                   <span className="text-amber-600 dark:text-amber-400">
-                    يرجى قراءة العقد بالكامل قبل الموافقة (مرر للأسفل)
+                    يرجى قراءة العقد بالكامل قبل الموافقة (مرر للأسفل لإكمال القراءة)
                   </span>
                 </motion.div>
               )}
             </AnimatePresence>
 
             {/* Agreement Checkbox */}
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg border border-muted">
               <Checkbox
                 id="accept_contract"
                 checked={acceptContract}
@@ -407,7 +602,7 @@ export function ServiceFinancingContractViewer({
                   !hasReadContract ? "text-muted-foreground" : ""
                 }`}
               >
-                <span className="font-semibold">أوافق على العقد والشروط</span>
+                <span className="font-bold text-base">✓ أوافق على العقد والشروط</span>
                 <br />
                 <span className="text-muted-foreground">
                   أقر بأنني قرأت جميع بنود عقد تمويل الخدمات وفهمتها بالكامل، 
@@ -424,7 +619,7 @@ export function ServiceFinancingContractViewer({
                   variant="outline"
                   onClick={onCancel}
                   disabled={isSubmitting}
-                  className="flex-1"
+                  className="flex-1 h-12"
                 >
                   إلغاء
                 </Button>
@@ -433,16 +628,16 @@ export function ServiceFinancingContractViewer({
               <Button
                 onClick={handleApproveContract}
                 disabled={!acceptContract || isSubmitting}
-                className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
+                className="flex-1 h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-base font-bold"
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                    <Loader2 className="w-5 h-5 ml-2 animate-spin" />
                     جارٍ الاعتماد...
                   </>
                 ) : (
                   <>
-                    <FileSignature className="w-4 h-4 ml-2" />
+                    <FileSignature className="w-5 h-5 ml-2" />
                     اعتماد العقد
                   </>
                 )}
@@ -450,16 +645,21 @@ export function ServiceFinancingContractViewer({
             </div>
 
             {/* Legal Notice */}
-            <p className="text-xs text-center text-muted-foreground">
-              بالضغط على "اعتماد العقد"، سيتم تسجيل موافقتك مع التاريخ والوقت ورقم الطلب
-            </p>
+            <div className="text-center p-3 bg-muted/30 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                🔒 بالضغط على "اعتماد العقد"، سيتم تسجيل موافقتك الإلكترونية مع:
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                التاريخ والوقت • رقم الطلب: {contractData.application_number} • معرف المستخدم
+              </p>
+            </div>
           </CardContent>
         </Card>
       )}
 
       {/* Preview Only Mode - Download Button */}
       {showPreviewOnly && (
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-3">
           <Button variant="outline" className="gap-2">
             <Download className="w-4 h-4" />
             تحميل العقد PDF
