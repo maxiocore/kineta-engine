@@ -1,10 +1,10 @@
 // ============================================
-// Financing Journey Page - MaxioCore
-// Complete Bank-Grade Financing Application
+// Financing Application Page - MaxioCore
+// Complete Loan Application Flow
 // ============================================
 
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
-import { FinancingJourneyWizard } from "@/components/financing/journey/FinancingJourneyWizard";
+import { LoanApplicationWizard } from "@/components/financing/application/LoanApplicationWizard";
 import { motion } from "framer-motion";
 
 // Floating Background Orbs
@@ -56,7 +56,7 @@ export default function FinancingEligibility() {
         </div>
         
         <div className="relative z-10">
-          <FinancingJourneyWizard />
+          <LoanApplicationWizard />
         </div>
       </motion.div>
     </ClientDashboardLayout>
