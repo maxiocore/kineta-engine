@@ -3263,6 +3263,231 @@ export type Database = {
         }
         Relationships: []
       }
+      service_credit_reviews: {
+        Row: {
+          admin_notes: string | null
+          attempted_action: string | null
+          attempted_amount: number | null
+          created_at: string
+          credit_id: string
+          description: string
+          id: string
+          metadata: Json | null
+          resolution: string | null
+          review_type: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          attempted_action?: string | null
+          attempted_amount?: number | null
+          created_at?: string
+          credit_id: string
+          description: string
+          id?: string
+          metadata?: Json | null
+          resolution?: string | null
+          review_type: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          attempted_action?: string | null
+          attempted_amount?: number | null
+          created_at?: string
+          credit_id?: string
+          description?: string
+          id?: string
+          metadata?: Json | null
+          resolution?: string | null
+          review_type?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_credit_reviews_credit_id_fkey"
+            columns: ["credit_id"]
+            isOneToOne: false
+            referencedRelation: "service_credits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_credit_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at: string
+          created_by: string | null
+          credit_id: string
+          description: string | null
+          description_ar: string | null
+          device_info: Json | null
+          failure_reason: string | null
+          id: string
+          ip_address: unknown
+          order_id: string | null
+          reference_id: string | null
+          reference_type: string | null
+          service_id: string | null
+          service_name: string | null
+          status: string
+          transaction_type: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at?: string
+          created_by?: string | null
+          credit_id: string
+          description?: string | null
+          description_ar?: string | null
+          device_info?: Json | null
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown
+          order_id?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          service_id?: string | null
+          service_name?: string | null
+          status?: string
+          transaction_type: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          balance_before?: number
+          created_at?: string
+          created_by?: string | null
+          credit_id?: string
+          description?: string | null
+          description_ar?: string | null
+          device_info?: Json | null
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown
+          order_id?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          service_id?: string | null
+          service_name?: string | null
+          status?: string
+          transaction_type?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_credit_transactions_credit_id_fkey"
+            columns: ["credit_id"]
+            isOneToOne: false
+            referencedRelation: "service_credits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_credit_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_credit_transactions_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_credits: {
+        Row: {
+          application_id: string | null
+          available_balance: number | null
+          contract_id: string | null
+          created_at: string
+          expires_at: string | null
+          freeze_reason: string | null
+          id: string
+          is_active: boolean
+          is_frozen: boolean
+          source_reference_id: string | null
+          source_type: string
+          total_credited: number
+          total_used: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          application_id?: string | null
+          available_balance?: number | null
+          contract_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          freeze_reason?: string | null
+          id?: string
+          is_active?: boolean
+          is_frozen?: boolean
+          source_reference_id?: string | null
+          source_type?: string
+          total_credited?: number
+          total_used?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          application_id?: string | null
+          available_balance?: number | null
+          contract_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          freeze_reason?: string | null
+          id?: string
+          is_active?: boolean
+          is_frozen?: boolean
+          source_reference_id?: string | null
+          source_type?: string
+          total_credited?: number
+          total_used?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_credits_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "financing_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_credits_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "financing_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       services: {
         Row: {
           auto_refill_enabled: boolean | null
@@ -3946,6 +4171,22 @@ export type Database = {
           p_reason?: string
         }
         Returns: string
+      }
+      deduct_service_credit: {
+        Args: {
+          p_amount: number
+          p_ip_address?: unknown
+          p_order_id: string
+          p_service_id: string
+          p_service_name: string
+          p_user_agent?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      freeze_service_credit: {
+        Args: { p_admin_id: string; p_credit_id: string; p_reason: string }
+        Returns: boolean
       }
       get_public_stats: { Args: never; Returns: Json }
       has_role: {
