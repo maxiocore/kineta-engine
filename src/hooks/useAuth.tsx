@@ -172,10 +172,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    // Return a safe fallback during HMR or initial mount issues
+    console.warn('useAuth called outside AuthProvider - returning fallback');
+    return {
+      user: null,
+      session: null,
+      profile: null,
+      isAdmin: false,
+      isLoading: true,
+      isRoleChecked: false,
+      refetchProfile: async () => {},
+      signUp: async () => ({ error: new Error('Auth not ready') }),
+      signIn: async () => ({ error: new Error('Auth not ready') }),
+      signOut: async () => {},
+    };
   }
   return context;
 };
