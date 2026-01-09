@@ -9,6 +9,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// ============= Configuration =============
+const CONFIG = {
+  MAX_EMAILS_PER_HOUR: 5,
+  MAX_EMAILS_PER_DAY: 20,
+  MAX_RETRY_ATTEMPTS: 3,
+  RETRY_DELAYS: [60, 300, 900], // seconds: 1min, 5min, 15min
+  FROM_EMAIL: "MaxioCore <notifications@maxiocore.com>",
+};
+
 // ملاحظة التمويل غير النقدي
 const FINANCING_DISCLAIMER = `تنويه مهم: التمويل غير نقدي ويتم إضافة القيمة كرصيد خدمات داخل المنصة ولا يمكن سحبها أو تحويلها. رصيد الخدمات مخصص حصريًا لشراء خدمات شركة علي صالح الشهري القابضة والجهات التابعة لها.`;
 
@@ -22,6 +31,7 @@ const EMAIL_CONTENT: Record<string, {
   additionalNote?: string;
   type: 'info' | 'success' | 'warning' | 'error';
   showDisclaimer: boolean;
+  priority: number;
 }> = {
   SUBMITTED: {
     subject: 'تم استلام طلب تمويل الخدمات | MaxioCore',
@@ -30,7 +40,8 @@ const EMAIL_CONTENT: Record<string, {
     ctaText: 'عرض حالة الطلب',
     ctaPath: '/dashboard/financing/status',
     type: 'info',
-    showDisclaimer: true
+    showDisclaimer: true,
+    priority: 3
   },
   UNDER_REVIEW: {
     subject: 'طلبكم قيد المراجعة | MaxioCore',
@@ -39,7 +50,8 @@ const EMAIL_CONTENT: Record<string, {
     ctaText: 'متابعة حالة الطلب',
     ctaPath: '/dashboard/financing/status',
     type: 'info',
-    showDisclaimer: true
+    showDisclaimer: true,
+    priority: 5
   },
   ADDITIONAL_INFO_REQUIRED: {
     subject: '⚠️ مطلوب معلومات إضافية لطلب التمويل | MaxioCore',
@@ -49,7 +61,8 @@ const EMAIL_CONTENT: Record<string, {
     ctaPath: '/dashboard/financing/documents',
     additionalNote: 'المهلة المتاحة: 14 يومًا. عدم الاستجابة قد يؤدي لانتهاء صلاحية الطلب.',
     type: 'warning',
-    showDisclaimer: true
+    showDisclaimer: true,
+    priority: 1
   },
   APPROVED: {
     subject: '✅ تهانينا! تمت الموافقة على طلب التمويل | MaxioCore',
@@ -58,7 +71,8 @@ const EMAIL_CONTENT: Record<string, {
     ctaText: 'مراجعة العقد والتوقيع',
     ctaPath: '/dashboard/financing/contract',
     type: 'success',
-    showDisclaimer: true
+    showDisclaimer: true,
+    priority: 1
   },
   APPROVED_WITH_LIMITS: {
     subject: '✅ تمت الموافقة على طلب التمويل بقيمة معدّلة | MaxioCore',
@@ -68,7 +82,8 @@ const EMAIL_CONTENT: Record<string, {
     ctaPath: '/dashboard/financing/contract',
     additionalNote: 'في حال عدم الموافقة على القيمة المعدّلة، يمكنكم رفض العقد وتقديم طلب جديد لاحقًا.',
     type: 'success',
-    showDisclaimer: true
+    showDisclaimer: true,
+    priority: 1
   },
   CONTRACT_PRESENTED: {
     subject: '📄 العقد جاهز للتوقيع | MaxioCore',
@@ -78,7 +93,8 @@ const EMAIL_CONTENT: Record<string, {
     ctaPath: '/dashboard/financing/contract',
     additionalNote: 'المهلة المتاحة للتوقيع: 7 أيام.',
     type: 'info',
-    showDisclaimer: true
+    showDisclaimer: true,
+    priority: 2
   },
   CONTRACT_ACCEPTED: {
     subject: '✅ تم قبول العقد بنجاح | MaxioCore',
@@ -87,7 +103,8 @@ const EMAIL_CONTENT: Record<string, {
     ctaText: 'متابعة حالة الطلب',
     ctaPath: '/dashboard/financing/status',
     type: 'success',
-    showDisclaimer: true
+    showDisclaimer: true,
+    priority: 3
   },
   CONTRACT_FINALIZED: {
     subject: '🎉 تم اعتماد العقد رسميًا | MaxioCore',
@@ -96,7 +113,8 @@ const EMAIL_CONTENT: Record<string, {
     ctaText: 'عرض حالة الطلب',
     ctaPath: '/dashboard/financing/status',
     type: 'success',
-    showDisclaimer: true
+    showDisclaimer: true,
+    priority: 2
   },
   CREDIT_DEPOSITED: {
     subject: '🎉 رصيد الخدمات جاهز للاستخدام! | MaxioCore',
@@ -106,7 +124,8 @@ const EMAIL_CONTENT: Record<string, {
     ctaPath: '/dashboard/services',
     additionalNote: 'استكشفوا مجموعة الخدمات المتاحة واستفيدوا من رصيدكم الآن.',
     type: 'success',
-    showDisclaimer: true
+    showDisclaimer: true,
+    priority: 1
   },
   DECLINED: {
     subject: 'نتيجة طلب تمويل الخدمات | MaxioCore',
@@ -116,7 +135,8 @@ const EMAIL_CONTENT: Record<string, {
     ctaPath: '/dashboard/financing/apply',
     additionalNote: 'قرار الرفض لا يعكس تقييمًا شخصيًا ويمكنكم المحاولة مجددًا.',
     type: 'error',
-    showDisclaimer: false
+    showDisclaimer: false,
+    priority: 2
   },
   EXPIRED: {
     subject: 'انتهت صلاحية طلب التمويل | MaxioCore',
@@ -125,7 +145,8 @@ const EMAIL_CONTENT: Record<string, {
     ctaText: 'تقديم طلب جديد',
     ctaPath: '/dashboard/financing/apply',
     type: 'warning',
-    showDisclaimer: false
+    showDisclaimer: false,
+    priority: 4
   },
   CANCELLED: {
     subject: 'تم إلغاء طلب التمويل | MaxioCore',
@@ -134,7 +155,8 @@ const EMAIL_CONTENT: Record<string, {
     ctaText: 'تقديم طلب جديد',
     ctaPath: '/dashboard/financing/apply',
     type: 'info',
-    showDisclaimer: false
+    showDisclaimer: false,
+    priority: 5
   }
 };
 
@@ -154,8 +176,222 @@ interface EmailRequest {
   applicationNumber: string;
   approvedAmount?: number;
   baseUrl: string;
+  forceResend?: boolean;
 }
 
+interface QueueResult {
+  success: boolean;
+  action: 'sent' | 'queued' | 'skipped' | 'rate_limited' | 'failed';
+  message: string;
+  queueId?: string;
+  resendId?: string;
+}
+
+// deno-lint-ignore no-explicit-any
+type SupabaseClientType = any;
+
+// ============= Supabase Client =============
+function getSupabaseClient(): SupabaseClientType {
+  return createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  );
+}
+
+// ============= Idempotency Check =============
+async function checkIdempotency(
+  supabase: SupabaseClientType,
+  applicationId: string,
+  status: string
+): Promise<{ isDuplicate: boolean; existingId?: string }> {
+  const idempotencyKey = `${applicationId}:${status}`;
+  
+  const { data, error } = await supabase
+    .from('financing_email_queue')
+    .select('id, queue_status')
+    .eq('idempotency_key', idempotencyKey)
+    .single();
+  
+  if (error && error.code !== 'PGRST116') {
+    console.error('Idempotency check error:', error);
+  }
+  
+  if (data) {
+    return { isDuplicate: true, existingId: data.id };
+  }
+  
+  return { isDuplicate: false };
+}
+
+// ============= Rate Limiting =============
+async function checkRateLimit(
+  supabase: SupabaseClientType,
+  email: string
+): Promise<boolean> {
+  const { data, error } = await supabase.rpc('check_email_rate_limit', {
+    p_email: email,
+    p_max_per_hour: CONFIG.MAX_EMAILS_PER_HOUR,
+    p_max_per_day: CONFIG.MAX_EMAILS_PER_DAY
+  });
+  
+  if (error) {
+    console.error('Rate limit check error:', error);
+    return true; // Allow if check fails (fail open)
+  }
+  
+  return data === true;
+}
+
+async function incrementRateLimit(
+  supabase: SupabaseClientType,
+  email: string
+): Promise<void> {
+  const { error } = await supabase.rpc('increment_email_rate_limit', {
+    p_email: email
+  });
+  
+  if (error) {
+    console.error('Rate limit increment error:', error);
+  }
+}
+
+// ============= Queue Operations =============
+async function addToQueue(
+  supabase: SupabaseClientType,
+  request: EmailRequest,
+  priority: number
+): Promise<string> {
+  const idempotencyKey = `${request.applicationId}:${request.status}`;
+  
+  const { data, error } = await supabase
+    .from('financing_email_queue')
+    .insert({
+      idempotency_key: idempotencyKey,
+      application_id: request.applicationId,
+      recipient_email: request.recipientEmail,
+      recipient_name: request.recipientName,
+      application_number: request.applicationNumber,
+      status: request.status,
+      approved_amount: request.approvedAmount,
+      priority: priority,
+      queue_status: 'pending',
+      next_retry_at: new Date().toISOString()
+    })
+    .select('id')
+    .single();
+  
+  if (error) {
+    throw new Error(`Failed to add to queue: ${error.message}`);
+  }
+  
+  return data.id;
+}
+
+async function updateQueueStatus(
+  supabase: SupabaseClientType,
+  queueId: string,
+  status: 'processing' | 'sent' | 'failed' | 'skipped',
+  additionalData?: {
+    resend_id?: string;
+    last_error?: string;
+    response_data?: Record<string, unknown>;
+  }
+): Promise<void> {
+  // deno-lint-ignore no-explicit-any
+  const updateData: Record<string, any> = {
+    queue_status: status,
+    processed_at: new Date().toISOString(),
+    ...(additionalData || {})
+  };
+  
+  if (status === 'sent') {
+    updateData.sent_at = new Date().toISOString();
+  }
+  
+  const { error } = await supabase
+    .from('financing_email_queue')
+    .update(updateData)
+    .eq('id', queueId);
+  
+  if (error) {
+    console.error('Failed to update queue status:', error);
+  }
+}
+
+async function incrementRetry(
+  supabase: SupabaseClientType,
+  queueId: string,
+  errorMessage: string
+): Promise<void> {
+  // Get current attempts
+  const { data: current } = await supabase
+    .from('financing_email_queue')
+    .select('attempts, max_attempts')
+    .eq('id', queueId)
+    .single();
+  
+  if (!current) return;
+  
+  const newAttempts = current.attempts + 1;
+  const nextRetryDelay = CONFIG.RETRY_DELAYS[Math.min(newAttempts - 1, CONFIG.RETRY_DELAYS.length - 1)];
+  const nextRetryAt = new Date(Date.now() + nextRetryDelay * 1000).toISOString();
+  
+  // deno-lint-ignore no-explicit-any
+  const updateData: Record<string, any> = {
+    attempts: newAttempts,
+    last_error: errorMessage,
+    next_retry_at: nextRetryAt
+  };
+  
+  // Mark as failed if max attempts reached
+  if (newAttempts >= current.max_attempts) {
+    updateData.queue_status = 'failed';
+    updateData.processed_at = new Date().toISOString();
+  }
+  
+  await supabase
+    .from('financing_email_queue')
+    .update(updateData)
+    .eq('id', queueId);
+}
+
+// ============= Logging =============
+async function logEmailResult(
+  supabase: SupabaseClientType,
+  queueId: string | null,
+  applicationId: string,
+  recipientEmail: string,
+  subject: string,
+  status: string,
+  result: 'success' | 'failure' | 'skipped' | 'rate_limited',
+  options?: {
+    errorMessage?: string;
+    errorCode?: string;
+    resendId?: string;
+    responseTimeMs?: number;
+  }
+): Promise<void> {
+  const { error } = await supabase
+    .from('financing_email_logs')
+    .insert({
+      queue_id: queueId,
+      application_id: applicationId,
+      recipient_email: recipientEmail,
+      subject: subject,
+      status: status,
+      result: result,
+      error_message: options?.errorMessage,
+      error_code: options?.errorCode,
+      resend_id: options?.resendId,
+      response_time_ms: options?.responseTimeMs
+    });
+  
+  if (error) {
+    console.error('Failed to log email result:', error);
+  }
+}
+
+// ============= HTML Email Generator =============
 function generateEmailHtml(
   content: typeof EMAIL_CONTENT[string],
   data: {
@@ -438,6 +674,7 @@ function generateEmailHtml(
   `;
 }
 
+// ============= Plain Text Generator =============
 function generatePlainText(
   content: typeof EMAIL_CONTENT[string],
   data: {
@@ -479,36 +716,84 @@ ${content.ctaText}: ${data.baseUrl}${content.ctaPath}
   return text;
 }
 
-const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+// ============= Main Email Sending Logic =============
+async function processEmailRequest(request: EmailRequest): Promise<QueueResult> {
+  const supabase = getSupabaseClient();
+  const startTime = Date.now();
+  
+  const content = EMAIL_CONTENT[request.status.toUpperCase()];
+  if (!content) {
+    console.log(`No email content defined for status: ${request.status}`);
+    return {
+      success: true,
+      action: 'skipped',
+      message: 'No email required for this status'
+    };
   }
-
-  try {
-    const {
-      applicationId,
-      status,
-      recipientEmail,
-      recipientName,
-      applicationNumber,
-      approvedAmount,
-      baseUrl
-    }: EmailRequest = await req.json();
-
-    console.log(`Sending financing status email: ${status} to ${recipientEmail}`);
-
-    // التحقق من وجود محتوى للحالة
-    const content = EMAIL_CONTENT[status.toUpperCase()];
-    if (!content) {
-      console.log(`No email content defined for status: ${status}`);
-      return new Response(
-        JSON.stringify({ success: true, message: "No email required for this status" }),
-        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+  
+  // 1. Idempotency Check
+  if (!request.forceResend) {
+    const { isDuplicate, existingId } = await checkIdempotency(
+      supabase,
+      request.applicationId,
+      request.status
+    );
+    
+    if (isDuplicate) {
+      console.log(`Duplicate email skipped: ${request.applicationId}:${request.status}`);
+      
+      await logEmailResult(
+        supabase,
+        existingId || null,
+        request.applicationId,
+        request.recipientEmail,
+        content.subject,
+        request.status,
+        'skipped',
+        { errorMessage: 'Duplicate email - idempotency check failed' }
       );
+      
+      return {
+        success: true,
+        action: 'skipped',
+        message: 'Email already sent for this status',
+        queueId: existingId
+      };
     }
-
-    // تنسيق التاريخ
+  }
+  
+  // 2. Rate Limit Check
+  const withinRateLimit = await checkRateLimit(supabase, request.recipientEmail);
+  if (!withinRateLimit) {
+    console.log(`Rate limit exceeded for: ${request.recipientEmail}`);
+    
+    // Add to queue for later processing
+    const queueId = await addToQueue(supabase, request, content.priority);
+    
+    await logEmailResult(
+      supabase,
+      queueId,
+      request.applicationId,
+      request.recipientEmail,
+      content.subject,
+      request.status,
+      'rate_limited'
+    );
+    
+    return {
+      success: true,
+      action: 'rate_limited',
+      message: 'Rate limit exceeded - email queued for later',
+      queueId
+    };
+  }
+  
+  // 3. Add to Queue
+  const queueId = await addToQueue(supabase, request, content.priority);
+  await updateQueueStatus(supabase, queueId, 'processing');
+  
+  try {
+    // 4. Generate Email Content
     const now = new Date();
     const updatedAt = now.toLocaleDateString('ar-SA', {
       year: 'numeric',
@@ -517,60 +802,144 @@ const handler = async (req: Request): Promise<Response> => {
       hour: '2-digit',
       minute: '2-digit'
     });
-
+    
     const emailData = {
-      recipientName,
-      applicationNumber,
-      approvedAmount,
-      baseUrl,
+      recipientName: request.recipientName,
+      applicationNumber: request.applicationNumber,
+      approvedAmount: request.approvedAmount,
+      baseUrl: request.baseUrl,
       updatedAt
     };
-
-    // إنشاء البريد
+    
     const htmlContent = generateEmailHtml(content, emailData);
     const textContent = generatePlainText(content, emailData);
-
-    // إرسال البريد
+    
+    // 5. Send Email via Resend
     const emailResponse = await resend.emails.send({
-      from: "MaxioCore <notifications@maxiocore.com>",
-      to: [recipientEmail],
+      from: CONFIG.FROM_EMAIL,
+      to: [request.recipientEmail],
       subject: content.subject,
       html: htmlContent,
       text: textContent,
       headers: {
-        "X-Application-Id": applicationId,
-        "X-Status": status
+        "X-Application-Id": request.applicationId,
+        "X-Status": request.status,
+        "X-Queue-Id": queueId
       }
     });
-
-    console.log("Email sent successfully:", emailResponse);
-
-    // تسجيل الإرسال في قاعدة البيانات
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    
+    const responseTime = Date.now() - startTime;
+    // deno-lint-ignore no-explicit-any
+    const resendId = (emailResponse as any)?.id || 'unknown';
+    console.log(`Email sent successfully in ${responseTime}ms:`, emailResponse);
+    
+    // 6. Update Queue Status
+    await updateQueueStatus(supabase, queueId, 'sent', {
+      resend_id: resendId,
+      response_data: JSON.parse(JSON.stringify(emailResponse))
+    });
+    
+    // 7. Increment Rate Limit Counter
+    await incrementRateLimit(supabase, request.recipientEmail);
+    
+    // 8. Log Success
+    await logEmailResult(
+      supabase,
+      queueId,
+      request.applicationId,
+      request.recipientEmail,
+      content.subject,
+      request.status,
+      'success',
+      {
+        resendId: resendId,
+        responseTimeMs: responseTime
+      }
     );
-
-    await supabaseClient.from("emails").insert({
-      recipient_email: recipientEmail,
-      recipient_name: recipientName,
+    
+    // 9. Also log to general emails table for compatibility
+    await supabase.from("emails").insert({
+      recipient_email: request.recipientEmail,
+      recipient_name: request.recipientName,
       subject: content.subject,
       content: htmlContent,
       status: "sent",
       sent_at: now.toISOString()
     });
+    
+    return {
+      success: true,
+      action: 'sent',
+      message: 'Email sent successfully',
+      queueId,
+      resendId: resendId
+    };
+    
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const responseTime = Date.now() - startTime;
+    
+    console.error(`Email sending failed in ${responseTime}ms:`, errorMessage);
+    
+    // Update retry info
+    await incrementRetry(supabase, queueId, errorMessage);
+    
+    // Log Failure
+    await logEmailResult(
+      supabase,
+      queueId,
+      request.applicationId,
+      request.recipientEmail,
+      content.subject,
+      request.status,
+      'failure',
+      {
+        errorMessage,
+        responseTimeMs: responseTime
+      }
+    );
+    
+    return {
+      success: false,
+      action: 'failed',
+      message: errorMessage,
+      queueId
+    };
+  }
+}
 
+// ============= HTTP Handler =============
+const handler = async (req: Request): Promise<Response> => {
+  // Handle CORS
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const request: EmailRequest = await req.json();
+    
+    console.log(`Processing financing email: ${request.status} for ${request.recipientEmail}`);
+    
+    const result = await processEmailRequest(request);
+    
     return new Response(
-      JSON.stringify({ success: true, data: emailResponse }),
-      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      JSON.stringify(result),
+      { 
+        status: result.success ? 200 : 500, 
+        headers: { "Content-Type": "application/json", ...corsHeaders } 
+      }
     );
 
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error sending financing status email:", errorMessage);
+    console.error("Error in financing-status-email:", errorMessage);
     
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ 
+        success: false,
+        action: 'failed',
+        message: errorMessage 
+      }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
