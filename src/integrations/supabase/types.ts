@@ -272,41 +272,68 @@ export type Database = {
         Row: {
           action: string
           created_at: string
+          device_fingerprint: string | null
+          geo_city: string | null
+          geo_country: string | null
           id: string
           ip_address: string | null
+          is_suspicious: boolean | null
           metadata: Json | null
           new_value: Json | null
           old_value: Json | null
+          processing_time_ms: number | null
           record_id: string | null
+          risk_level: string | null
+          session_id: string | null
           table_name: string
+          user_agent: string | null
           user_email: string | null
           user_id: string | null
+          verification_step: string | null
         }
         Insert: {
           action: string
           created_at?: string
+          device_fingerprint?: string | null
+          geo_city?: string | null
+          geo_country?: string | null
           id?: string
           ip_address?: string | null
+          is_suspicious?: boolean | null
           metadata?: Json | null
           new_value?: Json | null
           old_value?: Json | null
+          processing_time_ms?: number | null
           record_id?: string | null
+          risk_level?: string | null
+          session_id?: string | null
           table_name: string
+          user_agent?: string | null
           user_email?: string | null
           user_id?: string | null
+          verification_step?: string | null
         }
         Update: {
           action?: string
           created_at?: string
+          device_fingerprint?: string | null
+          geo_city?: string | null
+          geo_country?: string | null
           id?: string
           ip_address?: string | null
+          is_suspicious?: boolean | null
           metadata?: Json | null
           new_value?: Json | null
           old_value?: Json | null
+          processing_time_ms?: number | null
           record_id?: string | null
+          risk_level?: string | null
+          session_id?: string | null
           table_name?: string
+          user_agent?: string | null
           user_email?: string | null
           user_id?: string | null
+          verification_step?: string | null
         }
         Relationships: []
       }
@@ -1146,6 +1173,83 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      eligibility_audit_logs: {
+        Row: {
+          application_id: string | null
+          completed_at: string | null
+          created_at: string
+          device_fingerprint: string | null
+          duration_ms: number | null
+          error_message: string | null
+          geo_city: string | null
+          geo_country: string | null
+          id: string
+          input_data: Json | null
+          ip_address: string | null
+          output_data: Json | null
+          risk_signals: Json | null
+          session_id: string
+          started_at: string
+          status: string
+          step_name: string
+          step_order: number
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          device_fingerprint?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          geo_city?: string | null
+          geo_country?: string | null
+          id?: string
+          input_data?: Json | null
+          ip_address?: string | null
+          output_data?: Json | null
+          risk_signals?: Json | null
+          session_id: string
+          started_at?: string
+          status?: string
+          step_name: string
+          step_order: number
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          device_fingerprint?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          geo_city?: string | null
+          geo_country?: string | null
+          id?: string
+          input_data?: Json | null
+          ip_address?: string | null
+          output_data?: Json | null
+          risk_signals?: Json | null
+          session_id?: string
+          started_at?: string
+          status?: string
+          step_name?: string
+          step_order?: number
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eligibility_audit_logs_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "financing_applications"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       email_campaigns: {
         Row: {
@@ -3558,6 +3662,81 @@ export type Database = {
           two_factor_enabled?: boolean
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      verification_audit_logs: {
+        Row: {
+          attempt_number: number
+          completed_at: string | null
+          created_at: string
+          device_fingerprint: string | null
+          duration_ms: number | null
+          fraud_signals: Json | null
+          geo_city: string | null
+          geo_country: string | null
+          id: string
+          input_hash: string | null
+          ip_address: string | null
+          is_suspicious: boolean | null
+          metadata: Json | null
+          result_code: string | null
+          result_message: string | null
+          session_id: string
+          started_at: string
+          status: string
+          user_agent: string | null
+          user_id: string | null
+          verification_target: string | null
+          verification_type: string
+        }
+        Insert: {
+          attempt_number?: number
+          completed_at?: string | null
+          created_at?: string
+          device_fingerprint?: string | null
+          duration_ms?: number | null
+          fraud_signals?: Json | null
+          geo_city?: string | null
+          geo_country?: string | null
+          id?: string
+          input_hash?: string | null
+          ip_address?: string | null
+          is_suspicious?: boolean | null
+          metadata?: Json | null
+          result_code?: string | null
+          result_message?: string | null
+          session_id: string
+          started_at?: string
+          status?: string
+          user_agent?: string | null
+          user_id?: string | null
+          verification_target?: string | null
+          verification_type: string
+        }
+        Update: {
+          attempt_number?: number
+          completed_at?: string | null
+          created_at?: string
+          device_fingerprint?: string | null
+          duration_ms?: number | null
+          fraud_signals?: Json | null
+          geo_city?: string | null
+          geo_country?: string | null
+          id?: string
+          input_hash?: string | null
+          ip_address?: string | null
+          is_suspicious?: boolean | null
+          metadata?: Json | null
+          result_code?: string | null
+          result_message?: string | null
+          session_id?: string
+          started_at?: string
+          status?: string
+          user_agent?: string | null
+          user_id?: string | null
+          verification_target?: string | null
+          verification_type?: string
         }
         Relationships: []
       }
