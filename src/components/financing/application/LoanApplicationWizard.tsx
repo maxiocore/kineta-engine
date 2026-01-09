@@ -2,7 +2,7 @@
  * =====================================================
  * MaxioCore - Loan Application Wizard
  * Complete Financing Application Flow
- * With Professional Animation System
+ * With Eligibility Integration & Professional Animation
  * =====================================================
  */
 
@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useEligibilityGate } from "@/hooks/useEligibilityGate";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -24,6 +25,9 @@ import { SubmitTrackingStep } from "./steps/SubmitTrackingStep";
 import { ResultStep } from "./steps/ResultStep";
 import { ApplicationProgress } from "./ApplicationProgress";
 
+// Eligibility Gate
+import { EligibilityGateScreen } from "../eligibility/EligibilityGateScreen";
+
 // Animation System
 import { 
   WizardSkeleton, 
@@ -33,6 +37,10 @@ import {
 
 // Types
 export interface LoanApplicationData {
+  // Step 0 - Eligibility Gate (new)
+  eligibilityChecked: boolean;
+  eligibilityStatus: string;
+  
   // Step 1 - Intro
   acceptedTerms: boolean;
   acceptedConditions: boolean;
@@ -60,9 +68,15 @@ export interface LoanApplicationData {
   applicationId: string | null;
   status: "draft" | "submitted" | "approved" | "rejected" | "under_review";
   lastSavedAt: string | null;
+  
+  // Eligibility limits
+  maxAllowedAmount: number;
+  maxAllowedTenor: number;
 }
 
 const initialData: LoanApplicationData = {
+  eligibilityChecked: false,
+  eligibilityStatus: "",
   acceptedTerms: false,
   acceptedConditions: false,
   productType: "",
@@ -79,17 +93,21 @@ const initialData: LoanApplicationData = {
   applicationId: null,
   status: "draft",
   lastSavedAt: null,
+  maxAllowedAmount: 100000,
+  maxAllowedTenor: 24,
 };
 
+// Updated steps to include eligibility gate
 const STEPS = [
-  { id: 0, title: "البداية", icon: "🚀" },
-  { id: 1, title: "نوع التمويل", icon: "📦" },
-  { id: 2, title: "المبلغ والمدة", icon: "💰" },
-  { id: 3, title: "محاكاة الأقساط", icon: "📊" },
-  { id: 4, title: "معلومات إضافية", icon: "📝" },
-  { id: 5, title: "المراجعة", icon: "✅" },
-  { id: 6, title: "الإرسال", icon: "📤" },
-  { id: 7, title: "النتيجة", icon: "🎯" },
+  { id: 0, title: "فحص الأهلية", icon: "🛡️" },
+  { id: 1, title: "البداية", icon: "🚀" },
+  { id: 2, title: "نوع التمويل", icon: "📦" },
+  { id: 3, title: "المبلغ والمدة", icon: "💰" },
+  { id: 4, title: "محاكاة الأقساط", icon: "📊" },
+  { id: 5, title: "معلومات إضافية", icon: "📝" },
+  { id: 6, title: "المراجعة", icon: "✅" },
+  { id: 7, title: "الإرسال", icon: "📤" },
+  { id: 8, title: "النتيجة", icon: "🎯" },
 ];
 
 const STORAGE_KEY = "maxiocore_loan_application";
@@ -97,6 +115,7 @@ const STORAGE_KEY = "maxiocore_loan_application";
 export function LoanApplicationWizard() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const eligibilityGate = useEligibilityGate();
   
   const [data, setData] = useState<LoanApplicationData>(initialData);
   const [isLoading, setIsLoading] = useState(true);
