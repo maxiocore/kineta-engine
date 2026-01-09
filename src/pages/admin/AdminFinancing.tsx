@@ -40,17 +40,15 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+// نظام الإيميل الموحد الجديد - المصدر الوحيد لإشعارات التمويل
 import { 
-  sendFinancingApprovedEmail, 
-  sendFinancingRejectedEmail,
-  sendFinancingDocumentsRequiredEmail,
-  sendFinancingUnderReviewEmail,
-  sendFinancingPromissoryNoteEmail,
-  sendFinancingContractEmail,
-  sendFinancingPaymentClientEmail,
-  sendFinancingPaymentAdminEmail,
-  sendFinancingClearanceEmail
-} from "@/lib/emailService";
+  notifyUnderReview,
+  notifyDocumentsRequired,
+  notifyApproved,
+  notifyContractPresented,
+  notifyDeclined,
+  notifyCreditDeposited
+} from "@/lib/financing/notifications";
 import FinancingStatusCard from "@/components/financing/FinancingStatusCard";
 import {
   DropdownMenu,
@@ -229,51 +227,16 @@ export default function AdminFinancing() {
       const nextInstallment = remainingInstallments[0];
       const isLastInstallment = remainingInstallments.length === 0;
 
-      // Send email notification to client
-      if (application?.email) {
-        try {
-          await sendFinancingPaymentClientEmail(application.email, {
-            name: application.full_name,
-            applicationNumber: application.application_number,
-            contractNumber: application.contract_number || '',
-            installmentNumber: installmentToMark?.installment_number || 0,
-            totalInstallments: allInstallments?.length || 0,
-            amount: amount,
-            paymentDate: new Date().toLocaleDateString('ar-SA'),
-            paymentMethod: 'تحويل بنكي',
-            totalPaid: totalPaid,
-            remainingAmount: remainingAmount,
-            remainingInstallments: remainingInstallments.length,
-            nextDueDate: nextInstallment ? new Date(nextInstallment.due_date).toLocaleDateString('ar-SA') : undefined,
-          });
-          console.log("Payment confirmation email sent to client");
-        } catch (emailError) {
-          console.error("Failed to send payment confirmation email:", emailError);
-        }
-
-        // Send clearance email if this is the last installment
-        if (isLastInstallment) {
-          try {
-            await sendFinancingClearanceEmail(application.email, {
-              name: application.full_name,
-              nationalId: application.national_id,
-              applicationNumber: application.application_number,
-              contractNumber: application.contract_number || '',
-              totalAmount: application.approved_amount || application.requested_amount,
-              totalInstallments: allInstallments?.length || 0,
-              lastPaymentDate: new Date().toLocaleDateString('ar-SA'),
-            });
-            console.log("Clearance email sent to client");
-          } catch (clearanceError) {
-            console.error("Failed to send clearance email:", clearanceError);
-          }
-
-          // Update application status to completed
-          await supabase
-            .from("financing_applications")
-            .update({ status: "completed" })
-            .eq("id", applicationId);
-        }
+      // Payment emails handled via admin-notify system
+      // Note: Payment notifications are separate from status change notifications
+      console.log(`Payment processed for application ${application?.application_number}`);
+      
+      // Update application status to completed if last installment
+      if (isLastInstallment && application) {
+        await supabase
+          .from("financing_applications")
+          .update({ status: "completed" })
+          .eq("id", application.id);
       }
 
       return { installmentToMark, isLastInstallment };
@@ -399,12 +362,14 @@ export default function AdminFinancing() {
 
       if (error) throw error;
 
-      // Send email notification
+      // Send email notification via unified system
       try {
-        await sendFinancingUnderReviewEmail(application.email, {
-          name: application.full_name,
-          applicationNumber: application.application_number,
-        });
+        await notifyUnderReview(
+          id,
+          application.application_number,
+          application.email,
+          application.full_name
+        );
       } catch (emailError) {
         console.error("Failed to send under review email:", emailError);
       }
@@ -437,14 +402,15 @@ export default function AdminFinancing() {
 
       if (error) throw error;
 
-      // Send email notification
+      // Send email notification via unified system
       try {
-        await sendFinancingDocumentsRequiredEmail(application.email, {
-          name: application.full_name,
-          applicationNumber: application.application_number,
-          requiredDocuments: required_documents,
-          adminNotes: admin_notes,
-        });
+        await notifyDocumentsRequired(
+          id,
+          application.application_number,
+          application.email,
+          application.full_name,
+          `${required_documents}\n${admin_notes}`
+        );
       } catch (emailError) {
         console.error("Failed to send documents required email:", emailError);
       }
@@ -487,17 +453,15 @@ export default function AdminFinancing() {
 
       if (updateError) throw updateError;
 
-      // Send financing contract email to customer
+      // Send contract notification via unified system
       try {
-        await sendFinancingContractEmail(application.email, {
-          name: application.full_name,
-          applicationNumber: application.application_number,
-          contractNumber: contractNumber,
-          amount: approved_amount,
-          installmentsCount: plan?.installments_count || 1,
-          monthlyInstallment: installmentAmount,
-          durationMonths: plan?.duration_months || 1,
-        });
+        await notifyContractPresented(
+          id,
+          application.application_number,
+          application.email,
+          application.full_name,
+          approved_amount
+        );
       } catch (emailError) {
         console.error("Failed to send contract email:", emailError);
       }
@@ -535,21 +499,8 @@ export default function AdminFinancing() {
 
       if (updateError) throw updateError;
 
-      // Send promissory note email to customer
-      try {
-        await sendFinancingPromissoryNoteEmail(application.email, {
-          name: application.full_name,
-          nationalId: application.national_id,
-          applicationNumber: application.application_number,
-          contractNumber: application.contract_number || `CNT-${Date.now()}`,
-          amount: application.approved_amount || application.requested_amount,
-          installmentsCount: plan?.installments_count || 1,
-          monthlyInstallment: installmentAmount,
-          startDate: new Date().toISOString(),
-        });
-      } catch (emailError) {
-        console.error("Failed to send promissory note email:", emailError);
-      }
+      // Promissory note handled separately - no email needed at this stage
+      console.log("Contract signed, awaiting promissory note");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["financing-applications"] });
@@ -625,17 +576,17 @@ export default function AdminFinancing() {
             notes: `رصيد تمويل - طلب رقم ${application.application_number}`
           });
 
-        // Send approved email notification
+        // Send credit deposited notification via unified system
         try {
-          await sendFinancingApprovedEmail(application.email, {
-            name: application.full_name,
-            applicationNumber: application.application_number,
-            amount: approved_amount,
-            installmentsCount: plan.installments_count,
-            monthlyInstallment: installmentAmount,
-          });
+          await notifyCreditDeposited(
+            id,
+            application.application_number,
+            application.email,
+            application.full_name,
+            approved_amount
+          );
         } catch (emailError) {
-          console.error("Failed to send approval email:", emailError);
+          console.error("Failed to send credit deposited email:", emailError);
         }
       }
 
@@ -678,14 +629,16 @@ export default function AdminFinancing() {
 
       if (error) throw error;
 
-      // Send rejection email
+      // Send rejection notification via unified system
       if (application) {
         try {
-          await sendFinancingRejectedEmail(application.email, {
-            name: application.full_name,
-            applicationNumber: application.application_number,
-            rejectionReason: rejection_reason,
-          });
+          await notifyDeclined(
+            id,
+            application.application_number,
+            application.email,
+            application.full_name,
+            rejection_reason
+          );
         } catch (emailError) {
           console.error("Failed to send rejection email:", emailError);
         }
@@ -767,83 +720,9 @@ export default function AdminFinancing() {
       const nextInstallment = remainingInstallments[0];
       const isLastInstallment = remainingInstallments.length === 0;
 
-      // Send email to client
-      if (selectedApplication?.email) {
-        try {
-          await sendFinancingPaymentClientEmail(selectedApplication.email, {
-            name: selectedApplication.full_name,
-            applicationNumber: selectedApplication.application_number,
-            contractNumber: selectedApplication.contract_number || '',
-            installmentNumber: installmentData.installment_number,
-            totalInstallments: allInstallments?.length || 0,
-            amount: installmentData.amount,
-            paymentDate: new Date().toLocaleDateString('ar-SA'),
-            paymentMethod: 'الرصيد',
-            totalPaid: totalPaid,
-            remainingAmount: remainingAmount,
-            remainingInstallments: remainingInstallments.length,
-            nextDueDate: nextInstallment ? new Date(nextInstallment.due_date).toLocaleDateString('ar-SA') : undefined,
-          });
-        } catch (e) {
-          console.error("Error sending client payment email:", e);
-        }
-
-        // Send clearance email if this is the last installment
-        if (isLastInstallment) {
-          try {
-            await sendFinancingClearanceEmail(selectedApplication.email, {
-              name: selectedApplication.full_name,
-              nationalId: selectedApplication.national_id,
-              applicationNumber: selectedApplication.application_number,
-              contractNumber: selectedApplication.contract_number || '',
-              totalAmount: selectedApplication.approved_amount || selectedApplication.requested_amount,
-              totalInstallments: allInstallments?.length || 0,
-              lastPaymentDate: new Date().toLocaleDateString('ar-SA'),
-            });
-          } catch (e) {
-            console.error("Error sending clearance email:", e);
-          }
-        }
-      }
-
-      // Send email to admin
-      try {
-        // Get admin email from settings or use default
-        const { data: adminProfile } = await supabase
-          .from("user_roles")
-          .select("user_id")
-          .eq("role", "admin")
-          .limit(1)
-          .single();
-
-        if (adminProfile) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("email")
-            .eq("id", adminProfile.user_id)
-            .single();
-
-          if (profile?.email) {
-            await sendFinancingPaymentAdminEmail(profile.email, {
-              clientName: selectedApplication?.full_name || '',
-              clientEmail: selectedApplication?.email || '',
-              clientPhone: selectedApplication?.phone,
-              applicationNumber: selectedApplication?.application_number || '',
-              contractNumber: selectedApplication?.contract_number || '',
-              installmentNumber: installmentData.installment_number,
-              totalInstallments: allInstallments?.length || 0,
-              amount: installmentData.amount,
-              paymentDate: new Date().toLocaleDateString('ar-SA'),
-              paymentMethod: 'الرصيد',
-              originalAmount: selectedApplication?.approved_amount || selectedApplication?.requested_amount || 0,
-              totalPaid: totalPaid,
-              remainingAmount: remainingAmount,
-            });
-          }
-        }
-      } catch (e) {
-        console.error("Error sending admin payment email:", e);
-      }
+      // Payment notifications handled via admin-notify system
+      // Status change notifications are managed by unified email service
+      console.log(`Payment processed: installment ${installmentData.installment_number}`);
 
       // Check if all installments are paid and update application status
       if (isLastInstallment) {
@@ -1268,29 +1147,25 @@ export default function AdminFinancing() {
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     onClick={() => {
-                                      // Resend promissory note
-                                      if (app.financing_plans) {
-                                        const installmentAmount = (app.approved_amount || app.requested_amount) / app.financing_plans.installments_count;
-                                        sendFinancingPromissoryNoteEmail(app.email, {
-                                          name: app.full_name,
-                                          nationalId: app.national_id,
-                                          applicationNumber: app.application_number,
-                                          contractNumber: app.contract_number || `CNT-${Date.now()}`,
-                                          amount: app.approved_amount || app.requested_amount,
-                                          installmentsCount: app.financing_plans.installments_count,
-                                          monthlyInstallment: installmentAmount,
-                                          startDate: new Date().toISOString(),
-                                        }).then(() => {
-                                          toast.success("تم إعادة إرسال الكمبيالة");
+                                      // Resend contract notification
+                                      if (app.approved_amount) {
+                                        notifyContractPresented(
+                                          app.id,
+                                          app.application_number,
+                                          app.email,
+                                          app.full_name,
+                                          app.approved_amount
+                                        ).then(() => {
+                                          toast.success("تم إعادة إرسال العقد");
                                         }).catch(() => {
-                                          toast.error("فشل إرسال الكمبيالة");
+                                          toast.error("فشل إرسال العقد");
                                         });
                                       }
                                     }}
                                     className="text-orange-400"
                                   >
                                     <Send className="h-4 w-4 ml-2" />
-                                    إعادة إرسال الكمبيالة
+                                    إعادة إرسال العقد
                                   </DropdownMenuItem>
                                 </>
                               )}
