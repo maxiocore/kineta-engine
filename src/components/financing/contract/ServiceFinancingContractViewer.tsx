@@ -4,6 +4,7 @@
  * 
  * يعرض العقد الكامل ويتطلب موافقة صريحة قبل الإرسال
  * RTL كامل مع جداول احترافية
+ * مع دعم توليد PDF بخط عربي مضمن
  */
 
 import { useState, useEffect, useRef } from "react";
@@ -40,6 +41,8 @@ import {
   Calendar,
   Receipt,
   Package,
+  Eye,
+  Fingerprint,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -53,6 +56,10 @@ import {
   validateContractApproval,
 } from "@/lib/financing/serviceFinancingContract";
 import { COMPANY_INFO } from "@/lib/financing/serviceFinancingPolicy";
+import { 
+  downloadContractPdf, 
+  previewContractPdf 
+} from "@/lib/financing/contractPdfGenerator";
 
 interface ServiceFinancingContractViewerProps {
   contractData: ContractPlaceholders;
@@ -77,6 +84,8 @@ export function ServiceFinancingContractViewer({
   const [acceptContract, setAcceptContract] = useState(false);
   const [expandedArticles, setExpandedArticles] = useState<string[]>(["preamble"]);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [pdfHash, setPdfHash] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Track scroll progress
@@ -105,20 +114,22 @@ export function ServiceFinancingContractViewer({
     );
   };
 
-  const handleApproveContract = () => {
+  const handleApproveContract = async () => {
     if (!acceptContract) {
       toast.error("يجب الموافقة على العقد والشروط أولاً");
       return;
     }
 
+    const now = new Date();
     const approvalRecord: ContractApprovalRecord = {
       contract_id: `CNT-${applicationId}`,
       application_id: applicationId,
       user_id: userId,
-      approved_at: new Date().toISOString(),
+      approved_at: now.toISOString(),
       checkbox_accepted: true,
       button_clicked: true,
       contract_version: CONTRACT_INFO.version,
+      contract_hash: pdfHash || undefined,
     };
 
     const validation = validateContractApproval(approvalRecord);
@@ -128,6 +139,57 @@ export function ServiceFinancingContractViewer({
     }
 
     onApprove(approvalRecord);
+  };
+
+  /**
+   * تحميل العقد كـ PDF
+   */
+  const handleDownloadPdf = async () => {
+    setIsGeneratingPdf(true);
+    try {
+      const result = await downloadContractPdf(contractData, undefined, {
+        includeHash: true,
+        approvalRecord: pdfHash ? { approved_at: new Date().toISOString(), user_id: userId } : undefined,
+      });
+      
+      if (result.success) {
+        setPdfHash(result.hash);
+        toast.success("تم تحميل العقد بنجاح", {
+          description: `بصمة العقد: ${result.hash.substring(0, 16)}...`,
+        });
+      } else {
+        toast.error(result.error || "فشل تحميل الملف");
+      }
+    } catch (error) {
+      console.error("PDF download error:", error);
+      toast.error("حدث خطأ أثناء توليد ملف PDF");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  /**
+   * معاينة العقد كـ PDF
+   */
+  const handlePreviewPdf = async () => {
+    setIsGeneratingPdf(true);
+    try {
+      const result = await previewContractPdf(contractData, {
+        includeHash: true,
+      });
+      
+      if (result.success) {
+        setPdfHash(result.hash);
+        toast.success("تم فتح العقد في نافذة جديدة");
+      } else {
+        toast.error(result.error || "فشل عرض الملف");
+      }
+    } catch (error) {
+      console.error("PDF preview error:", error);
+      toast.error("حدث خطأ أثناء عرض ملف PDF");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -657,11 +719,87 @@ export function ServiceFinancingContractViewer({
         </Card>
       )}
 
-      {/* Preview Only Mode - Download Button */}
+      {/* PDF Download Section - Always visible */}
+      <Card className="border-dashed">
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <FileText className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-bold text-sm">تحميل نسخة PDF من العقد</p>
+                <p className="text-xs text-muted-foreground">
+                  ملف PDF بخط عربي مضمن يعمل على جميع الأجهزة
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handlePreviewPdf}
+                disabled={isGeneratingPdf}
+                className="gap-2"
+              >
+                {isGeneratingPdf ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+                معاينة
+              </Button>
+              <Button 
+                variant="default" 
+                size="sm"
+                onClick={handleDownloadPdf}
+                disabled={isGeneratingPdf}
+                className="gap-2"
+              >
+                {isGeneratingPdf ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4" />
+                )}
+                تحميل PDF
+              </Button>
+            </div>
+          </div>
+          
+          {/* Hash Display */}
+          {pdfHash && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              className="mt-3 p-2 bg-muted/50 rounded-lg border"
+            >
+              <div className="flex items-center gap-2 text-xs">
+                <Fingerprint className="w-4 h-4 text-primary" />
+                <span className="text-muted-foreground">بصمة العقد (SHA-256):</span>
+                <code className="font-mono text-primary bg-primary/10 px-2 py-0.5 rounded">
+                  {pdfHash.substring(0, 32)}...
+                </code>
+              </div>
+            </motion.div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Preview Only Mode - Extra Download Button */}
       {showPreviewOnly && (
         <div className="flex justify-center gap-3">
-          <Button variant="outline" className="gap-2">
-            <Download className="w-4 h-4" />
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={handleDownloadPdf}
+            disabled={isGeneratingPdf}
+          >
+            {isGeneratingPdf ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
             تحميل العقد PDF
           </Button>
         </div>
