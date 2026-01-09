@@ -6,6 +6,23 @@
 import { supabase } from '@/integrations/supabase/client';
 import { DuplicateCheckResult } from '../types';
 
+// Type for KYC verification record (until types are regenerated)
+interface KYCVerificationRecord {
+  id: string;
+  user_id: string;
+  session_id: string;
+  national_id: string;
+  status: string;
+  verified_at: string | null;
+  verified_data: Record<string, unknown> | null;
+  failure_reasons: string[] | null;
+  ocr_confidence: number | null;
+  liveness_score: number | null;
+  face_match_score: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
 /**
  * Check if national ID has already been used in the system
  * Prevents same document from being registered multiple times
@@ -17,12 +34,12 @@ export async function checkForDuplicates(
   try {
     // Check kyc_verifications table for existing ID
     const { data: existingKyc, error: kycError } = await supabase
-      .from('kyc_verifications')
+      .from('kyc_verifications' as any)
       .select('user_id, verified_at, status')
       .eq('national_id', nationalId)
       .eq('status', 'PASSED')
       .neq('user_id', currentUserId)
-      .limit(1);
+      .limit(1) as { data: KYCVerificationRecord[] | null; error: any };
     
     if (kycError) {
       console.error('Error checking KYC duplicates:', kycError);
@@ -33,7 +50,7 @@ export async function checkForDuplicates(
       return {
         isDuplicate: true,
         existingUserId: existingKyc[0].user_id,
-        existingApplicationDate: existingKyc[0].verified_at,
+        existingApplicationDate: existingKyc[0].verified_at || undefined,
         reason: 'رقم الهوية مسجل مسبقاً في النظام',
       };
     }
@@ -58,12 +75,12 @@ export async function checkForDuplicates(
     
     // Check if same user has recent rejected verification (fraud prevention)
     const { data: recentRejections } = await supabase
-      .from('kyc_verifications')
+      .from('kyc_verifications' as any)
       .select('created_at, failure_reasons')
       .eq('user_id', currentUserId)
       .eq('status', 'FAILED')
       .gte('created_at', getDateDaysAgo(7).toISOString())
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }) as { data: KYCVerificationRecord[] | null; error: any };
     
     if (recentRejections && recentRejections.length >= 3) {
       return {
@@ -96,12 +113,12 @@ export async function hasPendingVerification(userId: string): Promise<{
 }> {
   try {
     const { data, error } = await supabase
-      .from('kyc_verifications')
+      .from('kyc_verifications' as any)
       .select('session_id, created_at, status')
       .eq('user_id', userId)
       .eq('status', 'PENDING')
       .order('created_at', { ascending: false })
-      .limit(1);
+      .limit(1) as { data: KYCVerificationRecord[] | null; error: any };
     
     if (error || !data || data.length === 0) {
       return { hasPending: false };
@@ -115,7 +132,7 @@ export async function hasPendingVerification(userId: string): Promise<{
     if (minutesElapsed > 30) {
       // Session expired, mark as failed
       await supabase
-        .from('kyc_verifications')
+        .from('kyc_verifications' as any)
         .update({ status: 'EXPIRED' })
         .eq('session_id', data[0].session_id);
       
@@ -146,10 +163,10 @@ export async function getVerificationHistory(userId: string): Promise<{
 }> {
   try {
     const { data } = await supabase
-      .from('kyc_verifications')
+      .from('kyc_verifications' as any)
       .select('status, created_at, failure_reasons')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }) as { data: KYCVerificationRecord[] | null; error: any };
     
     if (!data || data.length === 0) {
       return {
@@ -188,7 +205,7 @@ export async function recordVerificationAttempt(
 ): Promise<string | null> {
   try {
     const { data, error } = await supabase
-      .from('kyc_verifications')
+      .from('kyc_verifications' as any)
       .insert({
         user_id: userId,
         national_id: nationalId,
@@ -197,14 +214,14 @@ export async function recordVerificationAttempt(
         created_at: new Date().toISOString(),
       })
       .select('id')
-      .single();
+      .single() as { data: { id: string } | null; error: any };
     
     if (error) {
       console.error('Error recording verification attempt:', error);
       return null;
     }
     
-    return data.id;
+    return data?.id || null;
   } catch {
     return null;
   }
@@ -226,7 +243,7 @@ export async function updateVerificationResult(
 ): Promise<boolean> {
   try {
     const { error } = await supabase
-      .from('kyc_verifications')
+      .from('kyc_verifications' as any)
       .update({
         status: result.status,
         verified_at: result.status === 'PASSED' ? new Date().toISOString() : null,

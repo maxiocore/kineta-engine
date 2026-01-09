@@ -439,7 +439,7 @@ export function useKYCVerification(): UseKYCVerificationReturn {
       // Update verification record
       await updateVerificationResult(session.sessionId, {
         status: 'PASSED',
-        verifiedData: data,
+        verifiedData: data as unknown as Record<string, unknown>,
         ocrConfidence: ocrResult.confidence,
         livenessScore: livenessResult?.confidence,
         faceMatchScore: faceMatchResult?.similarity,
