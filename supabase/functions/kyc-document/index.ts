@@ -204,7 +204,7 @@ async function extractDocumentData(
 
 // Rate limiting check
 async function checkRateLimit(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   userId: string,
   ipAddress: string
 ): Promise<boolean> {
@@ -397,15 +397,16 @@ Deno.serve(async (req) => {
       }
     );
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[KYC-DOCUMENT] Error:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     
     return new Response(
       JSON.stringify({ 
         success: false, 
         error: { 
           ...ERRORS.INTERNAL_ERROR, 
-          details: { message: error.message } 
+          details: { message: errorMessage } 
         } 
       } as ErrorResponse),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

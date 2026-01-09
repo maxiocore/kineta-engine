@@ -171,7 +171,7 @@ async function hashString(str: string): Promise<string> {
 }
 
 // Check if disposable email
-async function isDisposableEmail(supabase: ReturnType<typeof createClient>, email: string): Promise<boolean> {
+async function isDisposableEmail(supabase: any, email: string): Promise<boolean> {
   const domain = email.split('@')[1].toLowerCase();
   
   const { count } = await supabase
@@ -492,10 +492,17 @@ Deno.serve(async (req) => {
       );
     }
 
-  } catch (error) {
-    console.error('[VERIFY-EMAIL] Error:', error);
+    // Fallback response
     return new Response(
-      JSON.stringify({ success: false, error: { ...ERRORS.INTERNAL_ERROR, details: { message: error.message } } }),
+      JSON.stringify({ success: false, error: ERRORS.INVALID_ACTION }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error: unknown) {
+    console.error('[VERIFY-EMAIL] Error:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return new Response(
+      JSON.stringify({ success: false, error: { ...ERRORS.INTERNAL_ERROR, details: { message: errorMessage } } }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

@@ -286,10 +286,11 @@ Deno.serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[KYC-LIVENESS] Error:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(
-      JSON.stringify({ success: false, error: { ...ERRORS.INTERNAL_ERROR, details: { message: error.message } } }),
+      JSON.stringify({ success: false, error: { ...ERRORS.INTERNAL_ERROR, details: { message: errorMessage } } }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
