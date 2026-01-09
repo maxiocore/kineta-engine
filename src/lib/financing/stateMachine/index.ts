@@ -3,6 +3,8 @@
  * Service Financing Application State Machine
  * 
  * MaxioCore - Ali Saleh Al-Shehri Holding Company
+ * 
+ * ⚠️ تنبيه: التمويل غير نقدي - رصيد خدمات داخل المنصة فقط
  */
 
 // Types
@@ -44,6 +46,18 @@ export {
   getCustomerActions,
   validateTransitionData
 } from './validator';
+
+// State Content (Arabic UX Copy)
+export {
+  STATE_CONTENT,
+  getStateContent,
+  getNotificationMessage,
+  getSmsMessage,
+  hasFinancingNote,
+  getStatesWithFinancingNote
+} from './stateContent';
+
+export type { StateContent } from './stateContent';
 
 // Re-export a convenience function to get status info
 export function getStatusInfo(status: string) {
