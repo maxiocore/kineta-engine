@@ -98,3 +98,6 @@ verify_jwt = false
 
 [functions.eligibility-evaluate]
 verify_jwt = false
+
+[functions.financing-status-email]
+verify_jwt = false
