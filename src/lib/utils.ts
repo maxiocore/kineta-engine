@@ -39,3 +39,12 @@ export function formatNumber(price: number | string, decimals: number = 2): stri
   if (isNaN(numPrice)) return '0.00';
   return numPrice.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
+
+/**
+ * تنسيق العملة بالريال السعودي (alias)
+ * @param amount - المبلغ
+ * @returns المبلغ منسق بالريال السعودي
+ */
+export function formatCurrency(amount: number | string): string {
+  return formatPrice(amount, 2);
+}
