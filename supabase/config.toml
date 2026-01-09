@@ -71,3 +71,30 @@ verify_jwt = false
 
 [functions.sms-notify]
 verify_jwt = false
+
+[functions.email-otp]
+verify_jwt = false
+
+[functions.notify-ticket-update]
+verify_jwt = false
+
+[functions.verify-phone]
+verify_jwt = false
+
+[functions.digitalocean-api]
+verify_jwt = true
+
+[functions.kyc-document]
+verify_jwt = false
+
+[functions.kyc-liveness]
+verify_jwt = false
+
+[functions.kyc-facematch]
+verify_jwt = false
+
+[functions.verify-email]
+verify_jwt = false
+
+[functions.eligibility-evaluate]
+verify_jwt = false
