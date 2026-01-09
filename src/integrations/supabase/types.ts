@@ -1971,6 +1971,54 @@ export type Database = {
         }
         Relationships: []
       }
+      kyc_verifications: {
+        Row: {
+          created_at: string
+          face_match_score: number | null
+          failure_reasons: string[] | null
+          id: string
+          liveness_score: number | null
+          national_id: string
+          ocr_confidence: number | null
+          session_id: string
+          status: string
+          updated_at: string
+          user_id: string
+          verified_at: string | null
+          verified_data: Json | null
+        }
+        Insert: {
+          created_at?: string
+          face_match_score?: number | null
+          failure_reasons?: string[] | null
+          id?: string
+          liveness_score?: number | null
+          national_id: string
+          ocr_confidence?: number | null
+          session_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          verified_at?: string | null
+          verified_data?: Json | null
+        }
+        Update: {
+          created_at?: string
+          face_match_score?: number | null
+          failure_reasons?: string[] | null
+          id?: string
+          liveness_score?: number | null
+          national_id?: string
+          ocr_confidence?: number | null
+          session_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          verified_at?: string | null
+          verified_data?: Json | null
+        }
+        Relationships: []
+      }
       monthly_achievements: {
         Row: {
           achieved_at: string | null
