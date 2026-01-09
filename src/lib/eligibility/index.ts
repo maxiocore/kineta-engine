@@ -34,6 +34,20 @@ export {
   getTierInfo 
 } from './decisionEngine';
 
+// Advanced Decision Engine
+export {
+  type DecisionOutcome,
+  type FinancingLimit,
+  type DecisionGate,
+  type GateResult,
+  type FullVerificationContext,
+  type DecisionOutput,
+  type DecisionReason,
+  type GateResultSummary,
+  AdvancedDecisionEngine,
+  decisionEngine,
+} from './advancedDecisionEngine';
+
 // Employment Types (with renamed VerificationStatus to avoid conflict)
 export { 
   type EmploymentStatus,
