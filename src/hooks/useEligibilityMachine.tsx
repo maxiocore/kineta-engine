@@ -3,8 +3,7 @@
 // React hook for managing eligibility state
 // ============================================
 
-import * as React from 'react';
-const { useState, useCallback, useEffect } = React;
+import React, { useState, useCallback, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import {
   EligibilityContext,
