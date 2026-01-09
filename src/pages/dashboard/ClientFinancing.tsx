@@ -54,8 +54,10 @@ import {
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import EnhancedFinancingCard from "@/components/financing/EnhancedFinancingCard";
-import FinancingContract from "@/components/financing/FinancingContract";
+import { ServiceFinancingContractViewer } from "@/components/financing/contract/ServiceFinancingContractViewer";
 import InstallmentsTable from "@/components/financing/InstallmentsTable";
+import { type ContractPlaceholders, type ContractApprovalRecord } from "@/lib/financing/serviceFinancingContract";
+import { COMPANY_INFO } from "@/lib/financing/serviceFinancingPolicy";
 import FinancingStatusCard from "@/components/financing/FinancingStatusCard";
 
 interface FinancingPlan {
@@ -1128,19 +1130,57 @@ export default function ClientFinancing() {
           {/* Contract Tab */}
           {activeApplications.length > 0 && currentApplication && (
             <TabsContent value="contract" className="space-y-4 mt-6">
-              <FinancingContract
-                application={{
-                  ...currentApplication,
-                  financing_plans: currentApplication.financing_plans ? {
-                    ...currentApplication.financing_plans,
-                    duration_months: currentApplication.financing_plans.installments_count
-                  } : undefined
-                }}
-                installments={installments}
-                onContractSigned={(signature) => {
-                  console.log("Contract signed:", signature);
-                }}
-              />
+              {(() => {
+                const app = currentApplication;
+                const installmentsCount = app.financing_plans?.installments_count || 6;
+                const today = new Date();
+                const contractData: ContractPlaceholders = {
+                  customer_name: app.full_name,
+                  customer_national_id: app.national_id,
+                  customer_phone: app.phone,
+                  customer_email: app.email,
+                  customer_address: app.address || undefined,
+                  order_id: app.id,
+                  application_number: app.application_number,
+                  application_date: format(new Date(app.submitted_at), "dd/MM/yyyy", { locale: ar }),
+                  services_table: [{
+                    name: "تمويل خدمات رقمية",
+                    description: "خدمات رقمية متنوعة",
+                    price: app.approved_amount || app.requested_amount,
+                    quantity: 1,
+                    total: app.approved_amount || app.requested_amount,
+                  }],
+                  total_services_value: app.approved_amount || app.requested_amount,
+                  admin_fees: 0,
+                  vat_amount: (app.approved_amount || app.requested_amount) * 0.15,
+                  total_amount: (app.approved_amount || app.requested_amount) * 1.15,
+                  down_payment: 0,
+                  financed_amount: (app.approved_amount || app.requested_amount) * 1.15,
+                  installments_count: installmentsCount,
+                  installment_amount: ((app.approved_amount || app.requested_amount) * 1.15) / installmentsCount,
+                  first_due_date: format(new Date(today.setMonth(today.getMonth() + 1)), "dd/MM/yyyy", { locale: ar }),
+                  last_due_date: format(new Date(new Date().setMonth(new Date().getMonth() + installmentsCount)), "dd/MM/yyyy", { locale: ar }),
+                  installments_schedule: installments.map((inst, i) => ({
+                    number: inst.installment_number,
+                    amount: inst.amount,
+                    dueDate: format(new Date(inst.due_date), "dd/MM/yyyy", { locale: ar }),
+                    status: inst.status === "paid" ? "paid" as const : inst.status === "overdue" ? "overdue" as const : "pending" as const,
+                  })),
+                  service_provider: COMPANY_INFO.name,
+                };
+                
+                return (
+                  <ServiceFinancingContractViewer
+                    contractData={contractData}
+                    applicationId={app.id}
+                    userId={app.national_id}
+                    onApprove={(record: ContractApprovalRecord) => {
+                      console.log("Contract approved:", record);
+                    }}
+                    showPreviewOnly={true}
+                  />
+                );
+              })()}
             </TabsContent>
           )}
 
