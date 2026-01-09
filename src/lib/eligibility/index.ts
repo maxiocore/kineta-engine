@@ -33,3 +33,37 @@ export {
   makeDecision, 
   getTierInfo 
 } from './decisionEngine';
+
+// Employment Types (with renamed VerificationStatus to avoid conflict)
+export { 
+  type EmploymentStatus,
+  type DocumentType,
+  type RequiredDocument,
+  type IncomeRequirement,
+  type EmploymentRestriction,
+  type EmploymentTypeConfig,
+  EMPLOYMENT_CONFIGS,
+  getEmploymentConfig,
+  getAllEmploymentTypes,
+  getRequiredDocuments,
+  getOptionalDocuments,
+  getMinIncome,
+  requiresGuarantor,
+  getMaxFinancingAmount,
+} from './employmentTypes';
+
+// Employment Verification
+export { 
+  createInitialState,
+  validateEmploymentSelection,
+  checkDocumentCompleteness,
+  verifyDocumentValidity,
+  verifyIncome,
+  verifyGuarantor,
+  calculateEligibility,
+  runFullVerification,
+  type UploadedDocument,
+  type IncomeVerificationResult,
+  type GuarantorInfo,
+  type EmploymentVerificationState,
+} from './employmentVerification';
