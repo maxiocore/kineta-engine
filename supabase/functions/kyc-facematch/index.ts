@@ -156,7 +156,7 @@ async function compareFaces(
 
 // Check for duplicate faces in database
 async function checkFaceDuplication(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   faceHash: string,
   userId?: string
 ): Promise<boolean> {
@@ -331,10 +331,11 @@ Deno.serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[KYC-FACEMATCH] Error:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(
-      JSON.stringify({ success: false, error: { ...ERRORS.INTERNAL_ERROR, details: { message: error.message } } }),
+      JSON.stringify({ success: false, error: { ...ERRORS.INTERNAL_ERROR, details: { message: errorMessage } } }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
