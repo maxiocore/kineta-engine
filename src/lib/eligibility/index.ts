@@ -48,6 +48,31 @@ export {
   decisionEngine,
 } from './advancedDecisionEngine';
 
+// Fraud Prevention
+export {
+  type FraudSignalSeverity,
+  type FraudSignalCategory,
+  type DeviceFingerprint,
+  type GeoInfo,
+  type FraudSignal,
+  type RateLimitConfig,
+  type FraudCheckContext,
+  type FraudCheckResult,
+  FRAUD_CONFIG,
+  generateDeviceFingerprint,
+  checkDeviceFraud,
+  checkGeoFraud,
+  checkIdentityDuplication,
+  checkFaceDuplication,
+  checkRateLimits,
+  checkBlacklists,
+  calculateRiskScore,
+  determineAction,
+  runFraudChecks,
+  hashString,
+  generateSessionId,
+} from './fraudPrevention';
+
 // Employment Types (with renamed VerificationStatus to avoid conflict)
 export { 
   type EmploymentStatus,

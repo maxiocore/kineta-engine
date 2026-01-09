@@ -1069,6 +1069,66 @@ export type Database = {
         }
         Relationships: []
       }
+      device_fingerprints: {
+        Row: {
+          applications_count: number | null
+          blocked_reason: string | null
+          created_at: string
+          device_info: Json
+          fingerprint_hash: string
+          first_seen_at: string
+          geo_city: string | null
+          geo_country: string | null
+          id: string
+          ip_address: string | null
+          is_blocked: boolean | null
+          is_proxy: boolean | null
+          is_tor: boolean | null
+          is_vpn: boolean | null
+          last_seen_at: string
+          risk_score: number | null
+          user_id: string | null
+        }
+        Insert: {
+          applications_count?: number | null
+          blocked_reason?: string | null
+          created_at?: string
+          device_info?: Json
+          fingerprint_hash: string
+          first_seen_at?: string
+          geo_city?: string | null
+          geo_country?: string | null
+          id?: string
+          ip_address?: string | null
+          is_blocked?: boolean | null
+          is_proxy?: boolean | null
+          is_tor?: boolean | null
+          is_vpn?: boolean | null
+          last_seen_at?: string
+          risk_score?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          applications_count?: number | null
+          blocked_reason?: string | null
+          created_at?: string
+          device_info?: Json
+          fingerprint_hash?: string
+          first_seen_at?: string
+          geo_city?: string | null
+          geo_country?: string | null
+          id?: string
+          ip_address?: string | null
+          is_blocked?: boolean | null
+          is_proxy?: boolean | null
+          is_tor?: boolean | null
+          is_vpn?: boolean | null
+          last_seen_at?: string
+          risk_score?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       disposable_email_domains: {
         Row: {
           created_at: string
@@ -1775,6 +1835,93 @@ export type Database = {
         }
         Relationships: []
       }
+      fraud_blacklists: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          list_type: string
+          reason: string | null
+          reason_ar: string | null
+          value_hash: string
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          list_type: string
+          reason?: string | null
+          reason_ar?: string | null
+          value_hash: string
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          list_type?: string
+          reason?: string | null
+          reason_ar?: string | null
+          value_hash?: string
+        }
+        Relationships: []
+      }
+      fraud_signals: {
+        Row: {
+          action_taken: string | null
+          created_at: string
+          description: string | null
+          description_ar: string | null
+          id: string
+          is_confirmed: boolean | null
+          metadata: Json | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          session_id: string | null
+          severity: string
+          signal_category: string
+          signal_type: string
+          user_id: string | null
+        }
+        Insert: {
+          action_taken?: string | null
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          is_confirmed?: boolean | null
+          metadata?: Json | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          session_id?: string | null
+          severity?: string
+          signal_category: string
+          signal_type: string
+          user_id?: string | null
+        }
+        Update: {
+          action_taken?: string | null
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          is_confirmed?: boolean | null
+          metadata?: Json | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          session_id?: string | null
+          severity?: string
+          signal_category?: string
+          signal_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       hosting_operations_log: {
         Row: {
           created_at: string
@@ -1940,6 +2087,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      identity_verification_records: {
+        Row: {
+          created_at: string
+          device_fingerprint_id: string | null
+          face_embedding_hash: string | null
+          id: string
+          id_document_hash: string | null
+          match_results: Json | null
+          national_id_hash: string
+          user_id: string
+          verification_status: string
+        }
+        Insert: {
+          created_at?: string
+          device_fingerprint_id?: string | null
+          face_embedding_hash?: string | null
+          id?: string
+          id_document_hash?: string | null
+          match_results?: Json | null
+          national_id_hash: string
+          user_id: string
+          verification_status?: string
+        }
+        Update: {
+          created_at?: string
+          device_fingerprint_id?: string | null
+          face_embedding_hash?: string | null
+          id?: string
+          id_document_hash?: string | null
+          match_results?: Json | null
+          national_id_hash?: string
+          user_id?: string
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "identity_verification_records_device_fingerprint_id_fkey"
+            columns: ["device_fingerprint_id"]
+            isOneToOne: false
+            referencedRelation: "device_fingerprints"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       job_applications: {
         Row: {
@@ -2556,6 +2747,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      rate_limit_records: {
+        Row: {
+          action_type: string
+          blocked_until: string | null
+          created_at: string
+          id: string
+          identifier: string
+          identifier_type: string
+          is_blocked: boolean | null
+          request_count: number | null
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          action_type: string
+          blocked_until?: string | null
+          created_at?: string
+          id?: string
+          identifier: string
+          identifier_type: string
+          is_blocked?: boolean | null
+          request_count?: number | null
+          updated_at?: string
+          window_start?: string
+        }
+        Update: {
+          action_type?: string
+          blocked_until?: string | null
+          created_at?: string
+          id?: string
+          identifier?: string
+          identifier_type?: string
+          is_blocked?: boolean | null
+          request_count?: number | null
+          updated_at?: string
+          window_start?: string
+        }
+        Relationships: []
       }
       referral_codes: {
         Row: {
