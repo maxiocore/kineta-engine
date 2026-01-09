@@ -1,6 +1,7 @@
 /**
  * Step 1: Introduction & Terms
  * With Professional Micro-interactions
+ * Updated: Service Financing Policy (Non-Cash)
  */
 
 import { motion } from "framer-motion";
@@ -13,9 +14,12 @@ import {
   FileText,
   AlertTriangle,
   ArrowLeft,
-  Sparkles
+  Building2,
+  Wrench
 } from "lucide-react";
 import { AnimatedButton, AnimatedCard } from "../animations";
+import { ServiceFinancingNotice } from "../../common/ServiceFinancingNotice";
+import { INTRO_MICROCOPY, COMPANY_INFO } from "@/lib/financing/serviceFinancingPolicy";
 import type { LoanApplicationData } from "../LoanApplicationWizard";
 
 interface IntroStepProps {
@@ -28,33 +32,28 @@ interface IntroStepProps {
 const FEATURES = [
   {
     icon: Clock,
-    title: "موافقة سريعة",
-    description: "نتيجة فورية أو خلال 24 ساعة",
+    title: INTRO_MICROCOPY.features[0].title,
+    description: INTRO_MICROCOPY.features[0].description,
     color: "text-blue-500",
     bgColor: "bg-blue-500/10",
   },
   {
     icon: Shield,
-    title: "آمن ومحمي",
-    description: "بياناتك مشفرة ومحمية بالكامل",
+    title: INTRO_MICROCOPY.features[1].title,
+    description: INTRO_MICROCOPY.features[1].description,
     color: "text-emerald-500",
     bgColor: "bg-emerald-500/10",
   },
   {
-    icon: FileText,
-    title: "بدون ضامن",
-    description: "لا نطلب ضامن أو كفيل",
+    icon: Wrench,
+    title: INTRO_MICROCOPY.features[2].title,
+    description: INTRO_MICROCOPY.features[2].description,
     color: "text-purple-500",
     bgColor: "bg-purple-500/10",
   },
 ];
 
-const CONDITIONS = [
-  "أن يكون عمرك 21 سنة فأكثر",
-  "أن تكون سعودي الجنسية أو مقيم",
-  "أن يكون لديك دخل شهري ثابت",
-  "عدم وجود تعثرات مالية سابقة",
-];
+const CONDITIONS = INTRO_MICROCOPY.conditions;
 
 // Stagger animation for children
 const containerVariants = {
@@ -87,6 +86,11 @@ export function IntroStep({ data, updateData, goNext, validationErrors }: IntroS
       initial="initial"
       animate="animate"
     >
+      {/* Service Financing Notice - تنويه ثابت */}
+      <motion.div variants={itemVariants}>
+        <ServiceFinancingNotice variant="full" />
+      </motion.div>
+
       {/* Hero Section */}
       <motion.div variants={itemVariants} className="text-center space-y-4">
         <motion.div 
@@ -94,15 +98,15 @@ export function IntroStep({ data, updateData, goNext, validationErrors }: IntroS
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Sparkles className="w-4 h-4" />
-          <span>تمويل سريع وميسر</span>
+          <Building2 className="w-4 h-4" />
+          <span>{INTRO_MICROCOPY.badge}</span>
         </motion.div>
         
         <h1 className="text-3xl font-bold">
-          تقديم طلب تمويل جديد
+          {INTRO_MICROCOPY.title}
         </h1>
         <p className="text-muted-foreground max-w-md mx-auto">
-          احصل على تمويل فوري بخطوات بسيطة وسريعة. املأ النموذج واحصل على النتيجة خلال دقائق.
+          {INTRO_MICROCOPY.subtitle}
         </p>
       </motion.div>
 
@@ -185,15 +189,11 @@ export function IntroStep({ data, updateData, goNext, validationErrors }: IntroS
                 htmlFor="terms" 
                 className="text-sm cursor-pointer leading-relaxed select-none"
               >
-                أقر بأنني قرأت وفهمت{" "}
+                {INTRO_MICROCOPY.termsLabel.split("الشروط والأحكام")[0]}
                 <a href="/terms-of-service" target="_blank" className="text-primary underline hover:no-underline">
                   الشروط والأحكام
-                </a>{" "}
-                و{" "}
-                <a href="/privacy-policy" target="_blank" className="text-primary underline hover:no-underline">
-                  سياسة الخصوصية
-                </a>{" "}
-                وأوافق عليها.
+                </a>
+                {" "}وسياسة الخصوصية{INTRO_MICROCOPY.termsLabel.split("سياسة الخصوصية")[1] || "."}
               </label>
             </motion.div>
 
@@ -213,7 +213,7 @@ export function IntroStep({ data, updateData, goNext, validationErrors }: IntroS
                 htmlFor="conditions" 
                 className="text-sm cursor-pointer leading-relaxed select-none"
               >
-                أقر بأنني أستوفي جميع شروط التقديم المذكورة أعلاه، وأن جميع المعلومات التي سأقدمها صحيحة ودقيقة.
+                {INTRO_MICROCOPY.conditionsLabel}
               </label>
             </motion.div>
           </CardContent>
@@ -240,12 +240,12 @@ export function IntroStep({ data, updateData, goNext, validationErrors }: IntroS
           pulseOnHover
           className="w-full h-14 text-lg font-semibold gap-2 bg-gradient-to-l from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
         >
-          <span>بدء التقديم</span>
+          <span>{INTRO_MICROCOPY.ctaButton}</span>
           <ArrowLeft className="w-5 h-5" />
         </AnimatedButton>
         
         <p className="text-center text-xs text-muted-foreground mt-3">
-          يمكنك حفظ طلبك والعودة لإكماله لاحقاً
+          {INTRO_MICROCOPY.footerNote}
         </p>
       </motion.div>
     </motion.div>

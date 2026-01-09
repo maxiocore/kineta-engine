@@ -1,15 +1,15 @@
 /**
- * Step 2: Product/Financing Type Selection
- * With Animation System & Mobile Bottom Sheet
+ * Step 2: Service Category Selection
+ * Updated: Service Financing (Non-Cash)
  */
 
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
-  User, 
-  Building2, 
-  Wrench,
+  Wrench, 
+  TrendingUp, 
+  Server,
   ArrowLeft,
   ArrowRight,
   Check,
@@ -21,6 +21,8 @@ import {
   BottomSheet, 
   BottomSheetOption 
 } from "../animations";
+import { ServiceFinancingNotice } from "../../common/ServiceFinancingNotice";
+import { PRODUCT_SELECTION_MICROCOPY } from "@/lib/financing/serviceFinancingPolicy";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { LoanApplicationData } from "../LoanApplicationWizard";
 
@@ -32,30 +34,31 @@ interface ProductSelectionStepProps {
   validationErrors: string[];
 }
 
-const PRODUCT_TYPES = [
+// Updated to service categories instead of loan types
+const SERVICE_CATEGORIES = [
   {
-    id: "personal" as const,
-    title: "تمويل شخصي",
-    description: "تمويل لاحتياجاتك الشخصية والعائلية",
-    icon: User,
-    color: "from-blue-500 to-indigo-500",
-    features: ["بدون ضامن", "موافقة سريعة", "أقساط مرنة"],
-  },
-  {
-    id: "business" as const,
-    title: "تمويل تجاري",
-    description: "تمويل لتطوير أعمالك ومشاريعك",
-    icon: Building2,
-    color: "from-purple-500 to-pink-500",
-    features: ["للشركات الصغيرة", "رأس مال عامل", "توسع الأعمال"],
-  },
-  {
-    id: "service" as const,
-    title: "تمويل الخدمات",
-    description: "تمويل لشراء خدمات من MaxioCore",
+    id: "development" as const,
+    title: "خدمات التطوير",
+    description: "تصميم وتطوير المواقع والتطبيقات",
     icon: Wrench,
+    color: "from-blue-500 to-indigo-500",
+    features: ["مواقع إلكترونية", "تطبيقات جوال", "أنظمة متكاملة"],
+  },
+  {
+    id: "marketing" as const,
+    title: "خدمات التسويق",
+    description: "حملات تسويقية وإدارة منصات",
+    icon: TrendingUp,
+    color: "from-purple-500 to-pink-500",
+    features: ["إعلانات مدفوعة", "إدارة حسابات", "SEO"],
+  },
+  {
+    id: "hosting" as const,
+    title: "خدمات الاستضافة",
+    description: "استضافة وسيرفرات وخدمات سحابية",
+    icon: Server,
     color: "from-emerald-500 to-teal-500",
-    features: ["تصميم وتطوير", "تسويق رقمي", "استضافة"],
+    features: ["استضافة مواقع", "سيرفرات VPS", "خدمات سحابية"],
   },
 ];
 
@@ -84,10 +87,10 @@ export function ProductSelectionStep({
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const isMobile = useIsMobile();
 
-  const selectedProduct = PRODUCT_TYPES.find(p => p.id === data.productType);
+  const selectedCategory = SERVICE_CATEGORIES.find(p => p.id === data.serviceCategory);
 
-  const handleProductSelect = (productId: typeof data.productType) => {
-    updateData({ productType: productId });
+  const handleCategorySelect = (categoryId: string) => {
+    updateData({ serviceCategory: categoryId, productType: "service" });
     if (isMobile) {
       setIsBottomSheetOpen(false);
     }
@@ -100,11 +103,16 @@ export function ProductSelectionStep({
       initial="initial"
       animate="animate"
     >
+      {/* Service Financing Notice */}
+      <motion.div variants={itemVariants}>
+        <ServiceFinancingNotice variant="compact" />
+      </motion.div>
+
       {/* Header */}
       <motion.div variants={itemVariants} className="text-center space-y-2">
-        <h2 className="text-2xl font-bold">اختر نوع التمويل</h2>
+        <h2 className="text-2xl font-bold">{PRODUCT_SELECTION_MICROCOPY.title}</h2>
         <p className="text-muted-foreground">
-          حدد نوع التمويل المناسب لاحتياجاتك
+          {PRODUCT_SELECTION_MICROCOPY.subtitle}
         </p>
       </motion.div>
 
@@ -116,20 +124,20 @@ export function ProductSelectionStep({
             onClick={() => setIsBottomSheetOpen(true)}
           >
             <CardContent className="p-4">
-              {selectedProduct ? (
+              {selectedCategory ? (
                 <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${selectedProduct.color}`}>
-                    <selectedProduct.icon className="w-6 h-6 text-white" />
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${selectedCategory.color}`}>
+                    <selectedCategory.icon className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold">{selectedProduct.title}</div>
-                    <div className="text-sm text-muted-foreground">{selectedProduct.description}</div>
+                    <div className="font-semibold">{selectedCategory.title}</div>
+                    <div className="text-sm text-muted-foreground">{selectedCategory.description}</div>
                   </div>
                   <ChevronDown className="w-5 h-5 text-muted-foreground" />
                 </div>
               ) : (
                 <div className="flex items-center justify-between py-2">
-                  <span className="text-muted-foreground">اختر نوع التمويل</span>
+                  <span className="text-muted-foreground">{PRODUCT_SELECTION_MICROCOPY.selectPrompt}</span>
                   <ChevronDown className="w-5 h-5 text-muted-foreground" />
                 </div>
               )}
@@ -141,34 +149,34 @@ export function ProductSelectionStep({
       {/* Desktop: Full Cards */}
       {!isMobile && (
         <div className="space-y-4">
-          {PRODUCT_TYPES.map((product, index) => {
-            const isSelected = data.productType === product.id;
+          {SERVICE_CATEGORIES.map((category, index) => {
+            const isSelected = data.serviceCategory === category.id;
             
             return (
               <AnimatedCard
-                key={product.id}
+                key={category.id}
                 index={index}
                 isSelected={isSelected}
-                onClick={() => handleProductSelect(product.id)}
+                onClick={() => handleCategorySelect(category.id)}
                 hoverEffect="lift"
                 showCheckmark={false}
               >
                 <div className="flex items-stretch">
                   {/* Icon Section */}
                   <motion.div 
-                    className={`w-20 flex items-center justify-center bg-gradient-to-br ${product.color}`}
+                    className={`w-20 flex items-center justify-center bg-gradient-to-br ${category.color}`}
                     whileHover={{ scale: 1.05 }}
                   >
-                    <product.icon className="w-8 h-8 text-white" />
+                    <category.icon className="w-8 h-8 text-white" />
                   </motion.div>
                   
                   {/* Content Section */}
                   <div className="flex-1 p-4">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="font-semibold text-lg">{product.title}</h3>
+                        <h3 className="font-semibold text-lg">{category.title}</h3>
                         <p className="text-sm text-muted-foreground mt-1">
-                          {product.description}
+                          {category.description}
                         </p>
                       </div>
                       
@@ -185,7 +193,7 @@ export function ProductSelectionStep({
                     
                     {/* Features */}
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {product.features.map((feature) => (
+                      {category.features.map((feature) => (
                         <motion.span
                           key={feature}
                           className="text-xs px-2.5 py-1 bg-muted rounded-full text-muted-foreground"
@@ -207,17 +215,17 @@ export function ProductSelectionStep({
       <BottomSheet
         isOpen={isBottomSheetOpen}
         onClose={() => setIsBottomSheetOpen(false)}
-        title="اختر نوع التمويل"
+        title={PRODUCT_SELECTION_MICROCOPY.selectPrompt}
       >
         <div className="space-y-3">
-          {PRODUCT_TYPES.map((product) => (
+          {SERVICE_CATEGORIES.map((category) => (
             <BottomSheetOption
-              key={product.id}
-              icon={<product.icon className="w-6 h-6" />}
-              label={product.title}
-              description={product.description}
-              isSelected={data.productType === product.id}
-              onClick={() => handleProductSelect(product.id)}
+              key={category.id}
+              icon={<category.icon className="w-6 h-6" />}
+              label={category.title}
+              description={category.description}
+              isSelected={data.serviceCategory === category.id}
+              onClick={() => handleCategorySelect(category.id)}
             />
           ))}
         </div>
@@ -249,7 +257,7 @@ export function ProductSelectionStep({
         
         <AnimatedButton
           onClick={goNext}
-          disabled={!data.productType}
+          disabled={!data.serviceCategory}
           pulseOnHover
           className="flex-1 h-12 gap-2 bg-gradient-to-l from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
         >
