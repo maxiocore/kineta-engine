@@ -5,7 +5,6 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
@@ -22,6 +21,8 @@ import {
   Sparkles,
   Check
 } from "lucide-react";
+import { AnimatedButton, AnimatedCard } from "../animations";
+import { Button } from "@/components/ui/button";
 import type { LoanApplicationData } from "../LoanApplicationWizard";
 
 interface AmountTenorStepProps {
@@ -483,23 +484,24 @@ export function AmountTenorStep({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        <Button
+        <AnimatedButton
           variant="outline"
           onClick={goBack}
           className="flex-1 h-12 gap-2"
         >
           <ArrowRight className="w-4 h-4" />
           <span>رجوع</span>
-        </Button>
+        </AnimatedButton>
         
-        <Button
+        <AnimatedButton
           onClick={goNext}
           disabled={isHardBlocked || localAmount < limits.minAmount || !data.tenorMonths}
+          pulseOnHover
           className="flex-1 h-12 gap-2 bg-gradient-to-l from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 disabled:opacity-50"
         >
           <span>التالي</span>
           <ArrowLeft className="w-4 h-4" />
-        </Button>
+        </AnimatedButton>
       </motion.div>
     </div>
   );
