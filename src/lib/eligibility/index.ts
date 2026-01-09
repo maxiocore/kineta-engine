@@ -73,6 +73,25 @@ export {
   generateSessionId,
 } from './fraudPrevention';
 
+// Audit Service
+export {
+  type AuditAction,
+  type VerificationType,
+  type RiskLevel,
+  type EligibilityAuditEntry,
+  type VerificationAuditEntry,
+  type GeneralAuditEntry,
+  auditLogger,
+  getSessionId,
+  getDeviceInfo,
+  getGeoInfo,
+  logEligibilityStep,
+  logVerificationAttempt,
+  logAudit,
+  logFraudEvent,
+  logDecision,
+} from './auditService';
+
 // Employment Types (with renamed VerificationStatus to avoid conflict)
 export { 
   type EmploymentStatus,
