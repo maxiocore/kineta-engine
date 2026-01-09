@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
+import { useFinancingEligibility } from "@/hooks/useFinancingEligibility";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -566,6 +567,7 @@ const AIAnalysisAnimation = ({ onComplete }: { onComplete: () => void }) => {
 };
 
 export default function FinancingEligibility() {
+  const { saveEligibility } = useFinancingEligibility();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [showResult, setShowResult] = useState(false);
@@ -576,6 +578,7 @@ export default function FinancingEligibility() {
     reasons: string[];
     recommendations: string[];
   } | null>(null);
+
 
   const totalSteps = 3;
   const progress = (step / totalSteps) * 100;
@@ -651,9 +654,13 @@ export default function FinancingEligibility() {
       recommendations.push("أنت مؤهل للتقديم! يمكنك البدء الآن.");
     }
 
-    setEligibilityResult({ eligible, score, reasons, recommendations });
+    const result = { eligible, score, reasons, recommendations };
+    setEligibilityResult(result);
     setShowResult(true);
-  }, [formData]);
+    
+    // حفظ النتيجة للتحقق لاحقاً
+    saveEligibility(result);
+  }, [formData, saveEligibility]);
 
   const handleAnalysisComplete = useCallback(() => {
     setShowAnalysis(false);

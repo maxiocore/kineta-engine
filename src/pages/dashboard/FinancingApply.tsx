@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useFinancingEligibility } from "@/hooks/useFinancingEligibility";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
@@ -29,6 +30,8 @@ import {
   Sparkles,
   Wallet,
   Ban,
+  UserCheck,
+  Clock,
 } from "lucide-react";
 import { sendFinancingNewApplicationEmail, sendFinancingApplicationReceivedEmail, sendFinancingApplicationReceivedSMS } from "@/lib/emailService";
 
@@ -43,6 +46,7 @@ interface FinancingPlan {
 
 export default function FinancingApply() {
   const { user, profile } = useAuth();
+  const { isEligible, hasChecked, eligibilityResult, timeRemaining } = useFinancingEligibility();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
@@ -65,6 +69,14 @@ export default function FinancingApply() {
 
   const totalSteps = 4;
   const progress = (step / totalSteps) * 100;
+
+  // حساب الوقت المتبقي للعرض
+  const formatTimeRemaining = () => {
+    if (!timeRemaining) return "";
+    const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hours} ساعة و ${minutes} دقيقة`;
+  };
 
   const { data: plans = [] } = useQuery({
     queryKey: ["financing-plans"],
@@ -174,6 +186,74 @@ export default function FinancingApply() {
     return false;
   };
 
+  // إذا لم يتم التحقق من الأهلية أو لم يكن مؤهلاً، أظهر رسالة
+  if (!hasChecked || !isEligible) {
+    return (
+      <ClientDashboardLayout>
+        <motion.div 
+          className="max-w-2xl mx-auto py-12 text-center space-y-6" 
+          dir="rtl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <motion.div
+            className="w-24 h-24 mx-auto rounded-full bg-yellow-500/20 flex items-center justify-center"
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <UserCheck className="h-12 w-12 text-yellow-400" />
+          </motion.div>
+
+          <h1 className="text-2xl font-bold">يجب التحقق من الأهلية أولاً</h1>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            للتقديم على التمويل، يجب عليك اجتياز فحص الأهلية أولاً. 
+            هذا يساعدنا على التأكد من استيفائك لشروط التمويل.
+          </p>
+
+          {hasChecked && !isEligible && eligibilityResult && (
+            <Card className="bg-red-500/10 border-red-500/30 text-right">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <AlertTriangle className="h-6 w-6 text-red-400 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-red-400 mb-2">لم تستوفِ شروط الأهلية</h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      بناءً على فحص الأهلية الأخير، نقاطك: {eligibilityResult.score}/100
+                    </p>
+                    {eligibilityResult.reasons.length > 0 && (
+                      <ul className="space-y-1 text-sm text-muted-foreground">
+                        {eligibilityResult.reasons.slice(0, 3).map((reason, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-red-400">•</span> {reason}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="flex flex-wrap justify-center gap-4">
+            <Button asChild size="lg" className="bg-gradient-to-r from-emerald-500 to-teal-600">
+              <Link to="/dashboard/financing/eligibility">
+                <UserCheck className="h-5 w-5 ml-2" />
+                {hasChecked ? "إعادة فحص الأهلية" : "فحص الأهلية"}
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <Link to="/dashboard/financing">
+                <ArrowLeft className="h-4 w-4 ml-2" />
+                العودة للتمويل
+              </Link>
+            </Button>
+          </div>
+        </motion.div>
+      </ClientDashboardLayout>
+    );
+  }
+
   return (
     <ClientDashboardLayout>
       <motion.div className="space-y-6 max-w-3xl mx-auto" dir="rtl" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -191,6 +271,26 @@ export default function FinancingApply() {
             <Link to="/dashboard/financing"><ArrowLeft className="h-4 w-4 ml-2" />العودة</Link>
           </Button>
         </div>
+
+        {/* شريط التحقق من الأهلية */}
+        <Card className="bg-emerald-500/10 border-emerald-500/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-emerald-500/20">
+                <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-emerald-400">تم التحقق من الأهلية ✓</p>
+                <p className="text-sm text-muted-foreground">
+                  نقاطك: {eligibilityResult?.score}/100 • صالح لمدة {formatTimeRemaining()}
+                </p>
+              </div>
+              <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                مؤهل للتمويل
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card className="mb-6">
           <CardContent className="p-4">
