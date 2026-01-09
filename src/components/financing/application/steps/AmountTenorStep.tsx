@@ -162,6 +162,18 @@ export function AmountTenorStep({
 
   return (
     <div className="space-y-6">
+      {/* Service Financing Notice */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-lg text-sm"
+      >
+        <Info className="w-4 h-4 text-blue-500 flex-shrink-0" />
+        <span className="text-blue-600 dark:text-blue-400">
+          قيمة التمويل = قيمة الخدمات المختارة • الدفع مباشرة لمزود الخدمة
+        </span>
+      </motion.div>
+
       {/* Header */}
       <motion.div 
         className="text-center space-y-2"
@@ -172,9 +184,9 @@ export function AmountTenorStep({
           <TrendingUp className="w-4 h-4" />
           <span>الحد المتاح: {formatAmount(limits.approvedLimit)} ر.س</span>
         </div>
-        <h2 className="text-2xl font-bold">حدد مبلغ ومدة التمويل</h2>
+        <h2 className="text-2xl font-bold">حدد قيمة الخدمات ومدة السداد</h2>
         <p className="text-muted-foreground text-sm">
-          اختر المبلغ المناسب وستظهر لك تفاصيل القسط مباشرة
+          اختر قيمة الخدمات وستظهر لك تفاصيل القسط مباشرة
         </p>
       </motion.div>
 
@@ -199,7 +211,7 @@ export function AmountTenorStep({
                   }`} />
                 </div>
                 <div>
-                  <Label className="text-base font-semibold">مبلغ التمويل</Label>
+                  <Label className="text-base font-semibold">قيمة الخدمات</Label>
                   <p className="text-xs text-muted-foreground">
                     الحد: {formatAmount(limits.minAmount)} - {formatAmount(limits.maxAmount)} ر.س
                   </p>
