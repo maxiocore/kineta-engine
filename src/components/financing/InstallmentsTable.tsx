@@ -65,14 +65,15 @@ export default function InstallmentsTable({ installments, totalAmount }: Install
           </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="mt-4">
+        {/* Progress Bar - RTL: يبدأ من اليمين */}
+        <div className="mt-4" dir="ltr">
           <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 1, ease: "easeOut" }}
-              className="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full"
+              className="h-full bg-gradient-to-l from-teal-500 to-emerald-400 rounded-full"
+              style={{ marginInlineStart: "auto", marginInlineEnd: 0 }}
             />
           </div>
         </div>
@@ -105,7 +106,7 @@ export default function InstallmentsTable({ installments, totalAmount }: Install
             return (
               <motion.div
                 key={installment.id}
-                initial={{ opacity: 0, x: 20 }}
+                initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
                 className={`p-4 flex items-center justify-between hover:bg-muted/30 transition-colors ${
@@ -121,16 +122,16 @@ export default function InstallmentsTable({ installments, totalAmount }: Install
                         ? "bg-gradient-to-br from-amber-400 to-yellow-500 text-slate-900 animate-pulse"
                         : "bg-slate-800 text-slate-400 border border-slate-700"
                   }`}>
-                    {installment.installment_number}
+                    <bdi dir="ltr">{installment.installment_number}</bdi>
                   </div>
 
                   {/* Info */}
-                  <div>
+                  <div className="text-right">
                     <div className="flex items-center gap-2">
-                      <p className="font-bold">القسط {installment.installment_number}</p>
+                      <p className="font-bold">القسط <bdi dir="ltr">{installment.installment_number}</bdi></p>
                       {isNext && (
                         <Badge className="bg-amber-500/20 text-amber-400 text-xs">
-                          <TrendingUp className="h-3 w-3 ml-1" />
+                          <TrendingUp className="h-3 w-3 ms-1" />
                           القادم
                         </Badge>
                       )}
@@ -143,8 +144,8 @@ export default function InstallmentsTable({ installments, totalAmount }: Install
 
                 <div className="flex items-center gap-4">
                   {/* Amount */}
-                  <div className="text-left">
-                    <p className="font-bold text-lg">{installment.amount.toFixed(2)}</p>
+                  <div className="text-start">
+                    <p className="font-bold text-lg"><bdi dir="ltr">{installment.amount.toFixed(2)}</bdi></p>
                     <p className="text-xs text-muted-foreground">ر.س</p>
                   </div>
 

@@ -104,12 +104,20 @@ export default {
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         "slide-in-left": {
-          "0%": { opacity: "0", transform: "translateX(-30px)" },
+          "0%": { opacity: "0", transform: "translateX(30px)" },
           "100%": { opacity: "1", transform: "translateX(0)" },
         },
         "slide-in-right": {
-          "0%": { opacity: "0", transform: "translateX(30px)" },
+          "0%": { opacity: "0", transform: "translateX(-30px)" },
           "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        "slide-in-rtl": {
+          "0%": { opacity: "0", transform: "translateX(-30px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        "slide-out-rtl": {
+          "0%": { opacity: "1", transform: "translateX(0)" },
+          "100%": { opacity: "0", transform: "translateX(30px)" },
         },
         "scale-in": {
           "0%": { opacity: "0", transform: "scale(0.95)" },
@@ -161,6 +169,8 @@ export default {
         "fade-in-down": "fade-in-down 0.4s ease-out forwards",
         "slide-in-left": "slide-in-left 0.5s ease-out forwards",
         "slide-in-right": "slide-in-right 0.5s ease-out forwards",
+        "slide-in-rtl": "slide-in-rtl 0.5s ease-out forwards",
+        "slide-out-rtl": "slide-out-rtl 0.5s ease-out forwards",
         "scale-in": "scale-in 0.4s ease-out forwards",
         "scale-up": "scale-up 0.3s ease-out",
         "counter": "counter 0.3s ease-out forwards",

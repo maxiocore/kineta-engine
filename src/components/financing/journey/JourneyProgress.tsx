@@ -49,13 +49,14 @@ export function JourneyProgress({ currentStep, totalSteps, currentScreen }: Jour
           </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="relative h-1.5 bg-muted rounded-full overflow-hidden">
+        {/* Progress Bar - RTL: يبدأ من اليمين */}
+        <div className="relative h-1.5 bg-muted rounded-full overflow-hidden" dir="ltr">
           <motion.div
-            className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"
+            className="absolute inset-y-0 right-0 bg-gradient-to-l from-emerald-500 to-teal-500 rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
+            style={{ transformOrigin: "right" }}
           />
         </div>
       </div>
