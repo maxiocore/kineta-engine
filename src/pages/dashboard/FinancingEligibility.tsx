@@ -1,10 +1,10 @@
 // ============================================
-// Financing Eligibility Page - MaxioCore
-// New architecture with State Machine
+// Financing Journey Page - MaxioCore
+// Complete Bank-Grade Financing Application
 // ============================================
 
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
-import { EligibilityWizard } from "@/components/eligibility/EligibilityWizard";
+import { FinancingJourneyWizard } from "@/components/financing/journey/FinancingJourneyWizard";
 import { motion } from "framer-motion";
 
 // Floating Background Orbs
@@ -43,7 +43,7 @@ export default function FinancingEligibility() {
   return (
     <ClientDashboardLayout>
       <motion.div
-        className="relative min-h-screen py-4"
+        className="relative min-h-screen"
         dir="rtl"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -55,8 +55,8 @@ export default function FinancingEligibility() {
           <FloatingOrb delay={4} size={250} color="bg-cyan-500" x="80%" y="10%" />
         </div>
         
-        <div className="relative z-10 max-w-2xl mx-auto">
-          <EligibilityWizard />
+        <div className="relative z-10">
+          <FinancingJourneyWizard />
         </div>
       </motion.div>
     </ClientDashboardLayout>
