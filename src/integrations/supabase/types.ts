@@ -1745,6 +1745,155 @@ export type Database = {
           },
         ]
       }
+      financing_contract_events: {
+        Row: {
+          contract_id: string
+          created_at: string
+          device_info: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown
+          metadata: Json | null
+          new_status: Database["public"]["Enums"]["contract_status"] | null
+          old_status: Database["public"]["Enums"]["contract_status"] | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          device_info?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          new_status?: Database["public"]["Enums"]["contract_status"] | null
+          old_status?: Database["public"]["Enums"]["contract_status"] | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          device_info?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          new_status?: Database["public"]["Enums"]["contract_status"] | null
+          old_status?: Database["public"]["Enums"]["contract_status"] | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_contract_events_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "financing_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financing_contracts: {
+        Row: {
+          acceptance_button_clicked: boolean
+          acceptance_checkbox: boolean
+          acceptance_device_info: Json | null
+          acceptance_ip_address: unknown
+          acceptance_user_agent: string | null
+          accepted_at: string | null
+          application_id: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          contract_data: Json
+          contract_number: string
+          created_at: string
+          finalized_at: string | null
+          finalized_by: string | null
+          id: string
+          parent_contract_id: string | null
+          pdf_generated_at: string | null
+          pdf_hash: string | null
+          pdf_url: string | null
+          status: Database["public"]["Enums"]["contract_status"]
+          updated_at: string
+          user_id: string
+          version: number
+          viewed_at: string | null
+          viewed_count: number
+        }
+        Insert: {
+          acceptance_button_clicked?: boolean
+          acceptance_checkbox?: boolean
+          acceptance_device_info?: Json | null
+          acceptance_ip_address?: unknown
+          acceptance_user_agent?: string | null
+          accepted_at?: string | null
+          application_id: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          contract_data?: Json
+          contract_number: string
+          created_at?: string
+          finalized_at?: string | null
+          finalized_by?: string | null
+          id?: string
+          parent_contract_id?: string | null
+          pdf_generated_at?: string | null
+          pdf_hash?: string | null
+          pdf_url?: string | null
+          status?: Database["public"]["Enums"]["contract_status"]
+          updated_at?: string
+          user_id: string
+          version?: number
+          viewed_at?: string | null
+          viewed_count?: number
+        }
+        Update: {
+          acceptance_button_clicked?: boolean
+          acceptance_checkbox?: boolean
+          acceptance_device_info?: Json | null
+          acceptance_ip_address?: unknown
+          acceptance_user_agent?: string | null
+          accepted_at?: string | null
+          application_id?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          contract_data?: Json
+          contract_number?: string
+          created_at?: string
+          finalized_at?: string | null
+          finalized_by?: string | null
+          id?: string
+          parent_contract_id?: string | null
+          pdf_generated_at?: string | null
+          pdf_hash?: string | null
+          pdf_url?: string | null
+          status?: Database["public"]["Enums"]["contract_status"]
+          updated_at?: string
+          user_id?: string
+          version?: number
+          viewed_at?: string | null
+          viewed_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_contracts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "financing_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financing_contracts_parent_contract_id_fkey"
+            columns: ["parent_contract_id"]
+            isOneToOne: false
+            referencedRelation: "financing_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financing_installments: {
         Row: {
           amount: number
@@ -3790,6 +3939,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_contract_new_version: {
+        Args: {
+          p_new_contract_data?: Json
+          p_original_contract_id: string
+          p_reason?: string
+        }
+        Returns: string
+      }
       get_public_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
@@ -3806,6 +3963,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      contract_status: "draft" | "presented" | "accepted" | "finalized"
       order_status:
         | "pending"
         | "confirmed"
@@ -3946,6 +4104,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      contract_status: ["draft", "presented", "accepted", "finalized"],
       order_status: [
         "pending",
         "confirmed",
