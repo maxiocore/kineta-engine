@@ -220,8 +220,8 @@ const generateTimelineSteps = (activeStep: string): TimelineStep[] => {
     },
     {
       id: "disbursed",
-      title: "صرف التمويل",
-      description: "إيداع المبلغ في الحساب البنكي",
+      title: "إضافة رصيد الخدمات",
+      description: "إضافة الرصيد المعتمد لحسابك في المنصة",
       icon: Wallet,
       status: "pending",
       estimatedTime: "1-3 أيام عمل",
