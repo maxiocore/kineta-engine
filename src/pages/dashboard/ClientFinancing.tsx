@@ -59,6 +59,13 @@ import InstallmentsTable from "@/components/financing/InstallmentsTable";
 import { type ContractPlaceholders, type ContractApprovalRecord } from "@/lib/financing/serviceFinancingContract";
 import { COMPANY_INFO } from "@/lib/financing/serviceFinancingPolicy";
 import FinancingStatusCard from "@/components/financing/FinancingStatusCard";
+import { 
+  FinancingHeroCard, 
+  FinancingQuickStats, 
+  FinancingInstallmentsList,
+  FinancingEmptyState,
+  FinancingActionButtons
+} from "@/components/financing/dashboard";
 
 interface FinancingPlan {
   id: string;
@@ -437,7 +444,10 @@ export default function ClientFinancing() {
   
   const totalPaid = installments.filter(i => i.status === "paid").reduce((sum, i) => sum + i.amount, 0);
   const totalRemaining = installments.filter(i => i.status !== "paid").reduce((sum, i) => sum + i.amount, 0);
+  const overdueInstallments = installments.filter(i => i.status === "overdue");
+  const overdueAmount = overdueInstallments.reduce((sum, i) => sum + i.amount, 0);
   const nextInstallment = installments.find(i => i.status === "pending");
+  const remainingInstallmentsCount = installments.filter(i => i.status !== "paid").length;
 
   const paidInstallmentsCount = installments.filter(i => i.status === "paid").length;
   const hasActiveApplication = activeApplications.length > 0;
@@ -605,73 +615,49 @@ export default function ClientFinancing() {
           ))}
         </div>
 
-        {/* Active Financing Display */}
+        {/* Active Financing Display - New Banking Design */}
         {activeApplications.length > 0 && currentApplication && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
           >
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-emerald-500/20">
-                <TrendingUp className="h-6 w-6 text-emerald-500" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold">التمويل النشط</h2>
-                <p className="text-sm text-muted-foreground">متابعة تمويلك الحالي</p>
-              </div>
-            </div>
+            {/* Hero Card - Most Important Info Always Visible */}
+            <FinancingHeroCard
+              status={currentApplication.status as "active" | "completed" | "overdue" | "pending"}
+              contractNumber={currentApplication.contract_number || ""}
+              applicationNumber={currentApplication.application_number}
+              serviceBalance={totalRemaining}
+              totalAmount={currentApplication.approved_amount || currentApplication.requested_amount}
+              paidAmount={totalPaid}
+              remainingAmount={totalRemaining}
+              installmentsCount={currentApplication.financing_plans?.installments_count || 6}
+              paidInstallments={paidInstallmentsCount}
+              userName={currentApplication.full_name}
+              planName={currentApplication.financing_plans?.name_ar}
+            />
 
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-              {/* Bank Card */}
-              <div className="lg:col-span-3">
-                <EnhancedFinancingCard
-                  userName={currentApplication.full_name}
-                  totalBalance={currentApplication.approved_amount || currentApplication.requested_amount}
-                  paidAmount={totalPaid}
-                  remainingAmount={totalRemaining}
-                  nextInstallmentAmount={nextInstallment?.amount}
-                  nextInstallmentDate={nextInstallment ? new Date(nextInstallment.due_date) : undefined}
-                  planName={currentApplication.financing_plans?.name_ar}
-                  contractNumber={currentApplication.contract_number || undefined}
-                  installmentsCount={currentApplication.financing_plans?.installments_count || 6}
-                  paidInstallments={installments.filter(i => i.status === "paid").length}
-                />
-              </div>
+            {/* Quick Stats - Always Above Fold */}
+            <FinancingQuickStats
+              paidAmount={totalPaid}
+              remainingAmount={totalRemaining}
+              nextInstallmentAmount={nextInstallment?.amount}
+              nextInstallmentDate={nextInstallment?.due_date}
+              remainingInstallments={remainingInstallmentsCount}
+              overdueAmount={overdueAmount}
+              overdueCount={overdueInstallments.length}
+            />
 
-              {/* Stats Cards */}
-              <div className="lg:col-span-2 grid grid-cols-1 gap-4">
-                <StatCard
-                  icon={CheckCircle2}
-                  label="المبلغ المدفوع"
-                  value={totalPaid}
-                  gradient="bg-gradient-to-br from-emerald-500 to-teal-600"
-                  delay={0.1}
-                />
-                <StatCard
-                  icon={Wallet}
-                  label="المبلغ المتبقي"
-                  value={totalRemaining}
-                  gradient="bg-gradient-to-br from-amber-500 to-orange-600"
-                  delay={0.2}
-                />
-                {nextInstallment && (
-                  <StatCard
-                    icon={Calendar}
-                    label={`القسط القادم - ${format(new Date(nextInstallment.due_date), "dd/MM")}`}
-                    value={nextInstallment.amount}
-                    gradient="bg-gradient-to-br from-blue-500 to-indigo-600"
-                    delay={0.3}
-                  />
-                )}
-              </div>
-            </div>
+            {/* Action Buttons */}
+            <FinancingActionButtons applicationId={currentApplication.id} />
 
-            {/* Status Card with Payment Methods */}
-            <FinancingStatusCard 
-              application={currentApplication}
-              installments={installments}
-              showClientInfo={false}
+            {/* Installments List */}
+            <FinancingInstallmentsList
+              installments={installments.map(i => ({
+                ...i,
+                status: i.status as "pending" | "paid" | "overdue"
+              }))}
+              totalAmount={currentApplication.approved_amount || currentApplication.requested_amount}
             />
           </motion.div>
         )}
