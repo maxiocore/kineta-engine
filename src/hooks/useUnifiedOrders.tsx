@@ -220,7 +220,7 @@ export function useUnifiedOrders(options: UseUnifiedOrdersOptions = {}): UseUnif
         .from('orders')
         .select(`
           *,
-          service:services(name, name_ar)
+          service:services(name, category)
         `)
         .order('created_at', { ascending: false });
 
