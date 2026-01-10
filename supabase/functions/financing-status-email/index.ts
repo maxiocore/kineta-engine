@@ -433,270 +433,231 @@ function generateEmailHtml(
   const colors = TYPE_COLORS[content.type];
   const ctaUrl = `${data.baseUrl}${content.ctaPath}`;
   
+  // Icon mapping based on type
+  const typeIcons = {
+    info: '📋',
+    success: '✅',
+    warning: '⚠️',
+    error: '❌'
+  };
+  
   return `
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="Content-Language" content="ar">
+  <meta name="x-apple-disable-message-reformatting">
   <title>${content.subject}</title>
   <!--[if mso]>
   <noscript>
     <xml>
       <o:OfficeDocumentSettings>
+        <o:AllowPNG/>
         <o:PixelsPerInch>96</o:PixelsPerInch>
       </o:OfficeDocumentSettings>
     </xml>
   </noscript>
-  <![endif]-->
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f5;
-      font-family: Tahoma, Arial, "Noto Naskh Arabic", "Cairo", sans-serif;
-      -webkit-font-smoothing: antialiased;
-      direction: rtl;
-    }
-    .email-wrapper {
-      width: 100%;
-      background-color: #f4f4f5;
-      padding: 40px 0;
-    }
-    .email-container {
-      max-width: 600px;
-      margin: 0 auto;
-      background-color: #ffffff;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    .email-header {
-      background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
-      padding: 32px 40px;
-      text-align: center;
-    }
-    .logo-text {
-      color: #ffffff;
-      font-size: 24px;
-      font-weight: bold;
-      margin: 0;
-    }
-    .company-name {
-      color: #94a3b8;
-      font-size: 14px;
-      margin-top: 8px;
-    }
-    .email-body {
-      padding: 40px;
-    }
-    .greeting {
-      font-size: 18px;
-      color: #334155;
-      margin-bottom: 24px;
-    }
-    .status-card {
-      background-color: ${colors.bg};
-      border-right: 4px solid ${colors.border};
-      border-radius: 8px;
-      padding: 24px;
-      margin-bottom: 24px;
-    }
-    .headline {
-      font-size: 22px;
-      font-weight: bold;
-      color: ${colors.text};
-      margin: 0 0 12px 0;
-    }
-    .description {
-      font-size: 16px;
-      color: #475569;
-      line-height: 1.7;
-      margin: 0;
-    }
-    .info-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 24px 0;
-      background-color: #f8fafc;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .info-table td {
-      padding: 12px 16px;
-      border-bottom: 1px solid #e2e8f0;
-      font-size: 14px;
-    }
-    .info-table tr:last-child td {
-      border-bottom: none;
-    }
-    .info-label {
-      color: #64748b;
-      width: 40%;
-    }
-    .info-value {
-      color: #1e293b;
-      font-weight: 600;
-    }
-    .amount-highlight {
-      background-color: #ecfdf5;
-      color: #059669;
-      padding: 4px 12px;
-      border-radius: 6px;
-      font-size: 18px;
-    }
-    .additional-note {
-      background-color: #fffbeb;
-      border-right: 3px solid #f59e0b;
-      padding: 16px;
-      border-radius: 8px;
-      margin: 24px 0;
-      font-size: 14px;
-      color: #92400e;
-    }
-    .cta-button {
-      display: inline-block;
-      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-      color: #ffffff !important;
-      text-decoration: none;
-      padding: 16px 32px;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: bold;
-      margin: 24px 0;
-    }
-    .cta-button:hover {
-      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-    }
-    .disclaimer {
-      background-color: #fef3c7;
-      border: 1px solid #fcd34d;
-      border-radius: 8px;
-      padding: 16px;
-      margin-top: 24px;
-      font-size: 13px;
-      color: #92400e;
-      line-height: 1.6;
-    }
-    .disclaimer-icon {
-      display: inline-block;
-      margin-left: 8px;
-    }
-    .email-footer {
-      background-color: #f8fafc;
-      padding: 32px 40px;
-      text-align: center;
-      border-top: 1px solid #e2e8f0;
-    }
-    .footer-text {
-      font-size: 12px;
-      color: #64748b;
-      margin: 0;
-      line-height: 1.8;
-    }
-    .footer-links {
-      margin-top: 16px;
-    }
-    .footer-links a {
-      color: #3b82f6;
-      text-decoration: none;
-      margin: 0 12px;
-      font-size: 12px;
-    }
-    @media only screen and (max-width: 600px) {
-      .email-body {
-        padding: 24px;
-      }
-      .email-header {
-        padding: 24px;
-      }
-      .headline {
-        font-size: 18px;
-      }
-      .cta-button {
-        display: block;
-        text-align: center;
-      }
-    }
+    table { border-collapse: collapse; }
+    td { font-family: Tahoma, Arial, sans-serif; }
   </style>
+  <![endif]-->
 </head>
-<body>
-  <div class="email-wrapper">
-    <div class="email-container">
-      <!-- Header -->
-      <div class="email-header">
-        <h1 class="logo-text">MaxioCore</h1>
-        <p class="company-name">شركة علي صالح الشهري القابضة</p>
-      </div>
-
-      <!-- Body -->
-      <div class="email-body">
-        <p class="greeting">مرحباً ${data.recipientName}،</p>
-
-        <!-- Status Card -->
-        <div class="status-card">
-          <h2 class="headline">${content.headline}</h2>
-          <p class="description">${content.description}</p>
-        </div>
-
-        <!-- Info Table -->
-        <table class="info-table" role="presentation">
+<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: Tahoma, Arial, 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased; direction: rtl; text-align: right;">
+  
+  <!-- Main Wrapper Table -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f1f5f9;">
+    <tr>
+      <td align="center" style="padding: 40px 16px;">
+        
+        <!-- Email Container -->
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);">
+          
+          <!-- Header -->
           <tr>
-            <td class="info-label">رقم الطلب</td>
-            <td class="info-value">${data.applicationNumber}</td>
-          </tr>
-          ${data.approvedAmount ? `
-          <tr>
-            <td class="info-label">رصيد الخدمات المعتمد</td>
-            <td class="info-value">
-              <span class="amount-highlight">${data.approvedAmount.toLocaleString('ar-SA')} ر.س</span>
+            <td style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0ea5e9 100%); padding: 36px 32px; text-align: center;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center">
+                    <!-- Logo -->
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                      <tr>
+                        <td style="background-color: rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 24px;">
+                          <span style="color: #ffffff; font-size: 28px; font-weight: bold; letter-spacing: 1px;">MaxioCore</span>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="color: #94a3b8; font-size: 13px; margin: 12px 0 0 0; font-weight: 500;">شركة علي صالح الشهري القابضة</p>
+                    <p style="color: #64748b; font-size: 11px; margin: 4px 0 0 0;">منصة الخدمات الرقمية المتكاملة</p>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
-          ` : ''}
+          
+          <!-- Body -->
           <tr>
-            <td class="info-label">تاريخ التحديث</td>
-            <td class="info-value">${data.updatedAt}</td>
+            <td style="padding: 40px 32px; direction: rtl; text-align: right;">
+              
+              <!-- Greeting -->
+              <p style="font-size: 18px; color: #1e293b; margin: 0 0 24px 0; font-weight: 600; text-align: right;">
+                السلام عليكم ${data.recipientName}،
+              </p>
+              
+              <!-- Status Card -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: ${colors.bg}; border-radius: 12px; margin-bottom: 24px; border-right: 5px solid ${colors.border};">
+                <tr>
+                  <td style="padding: 24px; text-align: right;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="text-align: right;">
+                          <span style="font-size: 32px; display: inline-block; margin-bottom: 8px;">${typeIcons[content.type]}</span>
+                          <h2 style="font-size: 22px; font-weight: bold; color: ${colors.text}; margin: 8px 0 16px 0; text-align: right;">${content.headline}</h2>
+                          <p style="font-size: 15px; color: #475569; line-height: 1.8; margin: 0; text-align: right;">${content.description}</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Info Card -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8fafc; border-radius: 12px; margin-bottom: 24px; border: 1px solid #e2e8f0;">
+                <tr>
+                  <td style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0; text-align: right;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="color: #64748b; font-size: 13px; text-align: right; width: 40%;">رقم الطلب</td>
+                        <td style="color: #0f172a; font-size: 15px; font-weight: 700; text-align: left; font-family: 'Courier New', monospace; letter-spacing: 1px;">${data.applicationNumber}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                ${data.approvedAmount ? `
+                <tr>
+                  <td style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0; text-align: right;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="color: #64748b; font-size: 13px; text-align: right; width: 40%;">رصيد الخدمات المعتمد</td>
+                        <td style="text-align: left;">
+                          <span style="background: linear-gradient(135deg, #059669, #10b981); color: #ffffff; padding: 8px 16px; border-radius: 8px; font-size: 18px; font-weight: bold; display: inline-block;">${data.approvedAmount.toLocaleString('ar-SA')} ر.س</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                ` : ''}
+                <tr>
+                  <td style="padding: 20px 24px; text-align: right;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="color: #64748b; font-size: 13px; text-align: right; width: 40%;">تاريخ التحديث</td>
+                        <td style="color: #475569; font-size: 14px; text-align: left;">${data.updatedAt}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              
+              ${content.additionalNote ? `
+              <!-- Additional Note -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #fffbeb; border-radius: 12px; margin-bottom: 24px; border-right: 4px solid #f59e0b;">
+                <tr>
+                  <td style="padding: 20px 24px; text-align: right;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="font-size: 14px; color: #92400e; line-height: 1.7; text-align: right;">
+                          <span style="font-size: 18px; margin-left: 8px;">⚠️</span>
+                          <strong>تنبيه هام:</strong> ${content.additionalNote}
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              ` : ''}
+              
+              <!-- CTA Button -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 32px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="${ctaUrl}" target="_blank" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #ffffff; text-decoration: none; padding: 18px 48px; border-radius: 12px; font-size: 16px; font-weight: bold; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);">
+                      ${content.ctaText} ←
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              
+              ${content.showDisclaimer ? `
+              <!-- Disclaimer -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #fef3c7; border-radius: 12px; margin-top: 24px; border: 1px solid #fcd34d;">
+                <tr>
+                  <td style="padding: 20px 24px; text-align: right;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="font-size: 13px; color: #92400e; line-height: 1.8; text-align: right;">
+                          <span style="font-size: 16px; margin-left: 8px;">ℹ️</span>
+                          <strong>تنويه مهم:</strong><br>
+                          ${FINANCING_DISCLAIMER}
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              ` : ''}
+              
+            </td>
           </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #0f172a; padding: 32px; text-align: center;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center">
+                    <p style="color: #94a3b8; font-size: 13px; margin: 0 0 8px 0;">
+                      هذا البريد مُرسل تلقائيًا من منصة MaxioCore
+                    </p>
+                    <p style="color: #64748b; font-size: 12px; margin: 0 0 16px 0;">
+                      شركة علي صالح الشهري القابضة - المملكة العربية السعودية
+                    </p>
+                    
+                    <!-- Footer Links -->
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 16px auto;">
+                      <tr>
+                        <td style="padding: 0 12px;">
+                          <a href="${data.baseUrl}/help" style="color: #3b82f6; text-decoration: none; font-size: 12px;">مركز المساعدة</a>
+                        </td>
+                        <td style="color: #475569;">|</td>
+                        <td style="padding: 0 12px;">
+                          <a href="${data.baseUrl}/contact" style="color: #3b82f6; text-decoration: none; font-size: 12px;">تواصل معنا</a>
+                        </td>
+                        <td style="color: #475569;">|</td>
+                        <td style="padding: 0 12px;">
+                          <a href="${data.baseUrl}/privacy" style="color: #3b82f6; text-decoration: none; font-size: 12px;">سياسة الخصوصية</a>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <p style="color: #475569; font-size: 11px; margin: 16px 0 0 0;">
+                      © ${new Date().getFullYear()} MaxioCore. جميع الحقوق محفوظة.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
         </table>
-
-        ${content.additionalNote ? `
-        <div class="additional-note">
-          ⚠️ ${content.additionalNote}
-        </div>
-        ` : ''}
-
-        <!-- CTA Button -->
-        <div style="text-align: center;">
-          <a href="${ctaUrl}" class="cta-button">${content.ctaText}</a>
-        </div>
-
-        ${content.showDisclaimer ? `
-        <!-- Disclaimer -->
-        <div class="disclaimer">
-          <span class="disclaimer-icon">ℹ️</span>
-          ${FINANCING_DISCLAIMER}
-        </div>
-        ` : ''}
-      </div>
-
-      <!-- Footer -->
-      <div class="email-footer">
-        <p class="footer-text">
-          هذا البريد مُرسل تلقائيًا من منصة MaxioCore<br>
-          شركة علي صالح الشهري القابضة - المملكة العربية السعودية
-        </p>
-        <div class="footer-links">
-          <a href="${data.baseUrl}/help">مركز المساعدة</a>
-          <a href="${data.baseUrl}/contact">تواصل معنا</a>
-          <a href="${data.baseUrl}/privacy">سياسة الخصوصية</a>
-        </div>
-        <p class="footer-text" style="margin-top: 16px;">
-          © ${new Date().getFullYear()} MaxioCore. جميع الحقوق محفوظة.
-        </p>
-      </div>
-    </div>
-  </div>
+        
+      </td>
+    </tr>
+  </table>
+  
 </body>
 </html>
   `;
