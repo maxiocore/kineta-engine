@@ -66,6 +66,7 @@ export interface LoanApplicationData {
   // Metadata
   currentStep: number;
   applicationId: string | null;
+  applicationNumber: string | null;
   status: "draft" | "submitted" | "approved" | "rejected" | "under_review";
   lastSavedAt: string | null;
   
@@ -91,6 +92,7 @@ const initialData: LoanApplicationData = {
   employmentType: "",
   currentStep: 0,
   applicationId: null,
+  applicationNumber: null,
   status: "draft",
   lastSavedAt: null,
   maxAllowedAmount: 100000,
@@ -131,11 +133,49 @@ export function LoanApplicationWizard() {
     enableBlur: true,
   });
 
-  // Load saved progress on mount
+  // Load saved progress on mount AND check for existing active applications
   useEffect(() => {
     const loadSavedProgress = async () => {
       try {
-        // First check localStorage
+        // First check if user has an ACTIVE application (pending, active, under_review, approved)
+        if (user?.id) {
+          const { data: activeApp } = await supabase
+            .from("financing_applications")
+            .select("*")
+            .eq("user_id", user.id)
+            .in("status", ["pending", "active", "under_review", "approved", "completed"])
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          
+          if (activeApp) {
+            // User has an active application - show result step
+            let appStatus: LoanApplicationData["status"] = "submitted";
+            
+            if (activeApp.status === "approved" || activeApp.status === "completed") {
+              appStatus = "approved";
+            } else if (activeApp.status === "under_review") {
+              appStatus = "under_review";
+            } else if (activeApp.status === "active" || activeApp.status === "pending") {
+              appStatus = "submitted";
+            }
+            
+            setData({
+              ...initialData,
+              applicationId: activeApp.id,
+              applicationNumber: activeApp.application_number || null,
+              amount: activeApp.requested_amount || 0,
+              tenorMonths: 12, // Default value
+              monthlyInstallment: (activeApp.requested_amount || 0) / 12,
+              status: appStatus,
+              currentStep: 7, // Go directly to result step
+            });
+            setIsLoading(false);
+            return;
+          }
+        }
+        
+        // No active application - check localStorage for drafts
         const savedLocal = localStorage.getItem(STORAGE_KEY);
         if (savedLocal) {
           const parsed = JSON.parse(savedLocal);
@@ -291,6 +331,7 @@ export function LoanApplicationWizard() {
       setData(prev => ({
         ...prev,
         applicationId: newApp.id,
+        applicationNumber: newApp.application_number,
         status: "submitted",
         currentStep: 7, // Go to result step
       }));
