@@ -439,7 +439,7 @@ function DeclinedScreen({
             <CardContent className="p-4 text-center">
               <span className="text-xs text-muted-foreground">رقم الطلب للمراجع</span>
               <p className="font-mono text-lg font-bold mt-1">
-                {data.applicationId.slice(0, 8).toUpperCase()}
+                {data.applicationNumber || data.applicationId?.slice(0, 8).toUpperCase()}
               </p>
             </CardContent>
           </Card>
@@ -688,7 +688,7 @@ function ManualReviewScreen({
               </div>
               <div className="bg-background/60 rounded-lg p-3 text-center">
                 <p className="font-mono text-xl font-bold">
-                  {data.applicationId.slice(0, 8).toUpperCase()}
+                  {data.applicationNumber || data.applicationId?.slice(0, 8).toUpperCase()}
                 </p>
               </div>
             </CardContent>
@@ -1073,7 +1073,7 @@ export function ResultStep({ data, onReset }: ResultStepProps) {
               </div>
               <div className="bg-background/60 rounded-lg p-3 text-center">
                 <p className="font-mono text-xl font-bold tracking-wider">
-                  {data.applicationId.slice(0, 8).toUpperCase()}
+                  {data.applicationNumber || data.applicationId?.slice(0, 8).toUpperCase()}
                 </p>
               </div>
               <p className="text-xs text-muted-foreground text-center mt-2">
