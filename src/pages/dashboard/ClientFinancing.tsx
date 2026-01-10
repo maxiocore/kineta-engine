@@ -66,6 +66,7 @@ import {
   FinancingEmptyState,
   FinancingActionButtons
 } from "@/components/financing/dashboard";
+import { useServiceCredit } from "@/hooks/useServiceCredit";
 
 interface FinancingPlan {
   id: string;
@@ -384,6 +385,9 @@ export default function ClientFinancing() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedApplication, setSelectedApplication] = useState<FinancingApplication | null>(null);
+  
+  // جلب رصيد الخدمات الفعلي
+  const { availableBalance: serviceBalance, isLoading: isServiceCreditLoading } = useServiceCredit();
 
   // Fetch plans
   const { data: plans = [] } = useQuery({
@@ -627,7 +631,7 @@ export default function ClientFinancing() {
               status={currentApplication.status as "active" | "completed" | "overdue" | "pending"}
               contractNumber={currentApplication.contract_number || ""}
               applicationNumber={currentApplication.application_number}
-              serviceBalance={totalRemaining}
+              serviceBalance={serviceBalance}
               totalAmount={currentApplication.approved_amount || currentApplication.requested_amount}
               paidAmount={totalPaid}
               remainingAmount={totalRemaining}
