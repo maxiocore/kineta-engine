@@ -545,36 +545,92 @@ export default function AdminFinancing() {
           .from("financing_installments")
           .insert(installmentsToCreate);
 
-        // Add financing amount to user balance
-        const { data: currentBalance } = await supabase
-          .from("user_balances")
-          .select("balance")
-          .eq("user_id", application.user_id)
+        // Add financing amount to service_credits (non-cash credit)
+        // Get the financing contract
+        const { data: contract } = await supabase
+          .from("financing_contracts")
+          .select("id")
+          .eq("application_id", id)
+          .order("created_at", { ascending: false })
+          .limit(1)
           .single();
 
-        const newBalance = (currentBalance?.balance || 0) + approved_amount;
-        
-        await supabase
-          .from("user_balances")
-          .upsert({ 
-            user_id: application.user_id,
-            balance: newBalance,
-            updated_at: new Date().toISOString()
-          }, { onConflict: "user_id" });
+        // Create or update service credit record
+        const { data: existingCredit } = await supabase
+          .from("service_credits")
+          .select("*")
+          .eq("user_id", application.user_id)
+          .eq("is_active", true)
+          .single();
 
-        // Log balance change
-        await supabase
-          .from("balance_logs")
-          .insert({
-            user_id: application.user_id,
-            action_type: "financing",
-            amount: approved_amount,
-            balance_before: currentBalance?.balance || 0,
-            balance_after: newBalance,
-            reference_type: "financing",
-            reference_id: id,
-            notes: `رصيد تمويل - طلب رقم ${application.application_number}`
-          });
+        if (existingCredit) {
+          // Update existing credit
+          const newTotal = Number(existingCredit.total_credited) + approved_amount;
+          const newAvailable = Number(existingCredit.available_balance) + approved_amount;
+          
+          await supabase
+            .from("service_credits")
+            .update({
+              total_credited: newTotal,
+              available_balance: newAvailable,
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", existingCredit.id);
+
+          // Log the transaction
+          await supabase
+            .from("service_credit_transactions")
+            .insert({
+              credit_id: existingCredit.id,
+              user_id: application.user_id,
+              transaction_type: "credit",
+              amount: approved_amount,
+              balance_before: Number(existingCredit.available_balance),
+              balance_after: newAvailable,
+              reference_type: "financing",
+              reference_id: id,
+              description: `Service financing credit - Application #${application.application_number}`,
+              description_ar: `رصيد تمويل خدمات - طلب رقم ${application.application_number}`,
+              status: "completed"
+            });
+        } else {
+          // Create new service credit
+          const { data: newCredit } = await supabase
+            .from("service_credits")
+            .insert({
+              user_id: application.user_id,
+              total_credited: approved_amount,
+              total_used: 0,
+              available_balance: approved_amount,
+              source_type: "financing",
+              source_reference_id: id,
+              contract_id: contract?.id || null,
+              application_id: id,
+              is_active: true,
+              is_frozen: false
+            })
+            .select()
+            .single();
+
+          if (newCredit) {
+            // Log the initial credit transaction
+            await supabase
+              .from("service_credit_transactions")
+              .insert({
+                credit_id: newCredit.id,
+                user_id: application.user_id,
+                transaction_type: "credit",
+                amount: approved_amount,
+                balance_before: 0,
+                balance_after: approved_amount,
+                reference_type: "financing",
+                reference_id: id,
+                description: `Initial service financing credit - Application #${application.application_number}`,
+                description_ar: `رصيد تمويل خدمات أولي - طلب رقم ${application.application_number}`,
+                status: "completed"
+              });
+          }
+        }
 
         // Send credit deposited notification via unified system
         try {

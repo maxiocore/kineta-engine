@@ -106,6 +106,7 @@ import SignContract from "./pages/dashboard/SignContract";
 import SignPromissoryNote from "./pages/dashboard/SignPromissoryNote";
 import FinancingPayment from "./pages/dashboard/FinancingPayment";
 import ClientFinancingPayments from "./pages/dashboard/ClientFinancingPayments";
+import FinancingStatus from "./pages/dashboard/FinancingStatus";
 
 // Dev Services System
 import DevServicesPage from "./pages/dashboard/DevServicesPage";
@@ -347,6 +348,11 @@ const App = () => (
                   <Route path="/dashboard/financing/payments" element={
                     <ProtectedRoute>
                       <ClientFinancingPayments />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/financing/status/:applicationId" element={
+                    <ProtectedRoute>
+                      <FinancingStatus />
                     </ProtectedRoute>
                   } />
                   
