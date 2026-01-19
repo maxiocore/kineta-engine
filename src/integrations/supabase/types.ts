@@ -4389,6 +4389,45 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_verifications: {
+        Row: {
+          attempts_count: number
+          created_at: string
+          expires_at: string
+          id: string
+          otp_hash: string
+          phone: string
+          status: string
+          updated_at: string
+          user_id: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          attempts_count?: number
+          created_at?: string
+          expires_at: string
+          id?: string
+          otp_hash: string
+          phone: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          attempts_count?: number
+          created_at?: string
+          expires_at?: string
+          id?: string
+          otp_hash?: string
+          phone?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
