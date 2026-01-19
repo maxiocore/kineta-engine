@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, User, ArrowRight, ArrowLeft, Eye, EyeOff, Sparkles, Phone, Shield, Zap, CheckCircle2, Star } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, ArrowLeft, Eye, EyeOff, Sparkles, Phone, Shield, Zap, CheckCircle2, Star, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ import { z } from "zod";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
+import { WhatsAppAuth } from "@/components/auth/WhatsAppAuth";
 
 const emailSchema = z.string().email("البريد الإلكتروني غير صالح");
 const passwordSchema = z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل");
@@ -50,6 +51,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ email?: string; password?: string; name?: string; phone?: string }>({});
+  const [authMethod, setAuthMethod] = useState<'email' | 'whatsapp'>('email');
   const { toast } = useToast();
   const { user, signUp, signIn } = useAuth();
 
@@ -348,8 +350,68 @@ const Auth = () => {
                 </motion.p>
               </div>
 
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+              {/* Auth Method Selector */}
+              <div className="flex gap-2 p-1 bg-secondary/50 rounded-xl mb-6">
+                <motion.button
+                  type="button"
+                  onClick={() => setAuthMethod('email')}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    authMethod === 'email'
+                      ? 'bg-background shadow-sm text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Mail className="w-4 h-4" />
+                  البريد الإلكتروني
+                </motion.button>
+                <motion.button
+                  type="button"
+                  onClick={() => setAuthMethod('whatsapp')}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    authMethod === 'whatsapp'
+                      ? 'bg-green-500 text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  واتساب
+                </motion.button>
+              </div>
+
+              {/* WhatsApp Auth */}
+              <AnimatePresence mode="wait">
+                {authMethod === 'whatsapp' ? (
+                  <motion.div
+                    key="whatsapp-auth"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                  >
+                    <WhatsAppAuth
+                      isSignUp={isSignUp}
+                      onBack={() => setAuthMethod('email')}
+                      onSuccess={(phone) => {
+                        toast({
+                          title: "تم التحقق بنجاح",
+                          description: "سيتم توجيهك للوحة التحكم",
+                        });
+                        // For now, redirect to dashboard after verification
+                        // In a full implementation, this would create/login the user
+                        navigate("/dashboard");
+                      }}
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="email-auth"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                  >
+                    {/* Form */}
+                    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
                 <AnimatePresence mode="wait">
                   {isSignUp && (
                     <motion.div
@@ -573,6 +635,9 @@ const Auth = () => {
                   </Button>
                 </motion.div>
               </form>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Toggle with Animation */}
               <motion.p 

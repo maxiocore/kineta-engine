@@ -104,3 +104,6 @@ verify_jwt = false
 
 [functions.financing-activity-log]
 verify_jwt = false
+
+[functions.whatsapp-otp]
+verify_jwt = false
