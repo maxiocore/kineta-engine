@@ -776,9 +776,24 @@ export default function AdminFinancing() {
       const nextInstallment = remainingInstallments[0];
       const isLastInstallment = remainingInstallments.length === 0;
 
-      // Payment notifications handled via admin-notify system
-      // Status change notifications are managed by unified email service
-      console.log(`Payment processed: installment ${installmentData.installment_number}`);
+      // Send WhatsApp notification for payment
+      try {
+        console.log(`📧 Sending payment notification for installment ${installmentData.installment_number}`);
+        const { data: notifyResult, error: notifyError } = await supabase.functions.invoke('financing-installment-paid', {
+          body: {
+            installmentId: installmentId,
+            applicationId: selectedApplication?.id
+          }
+        });
+        
+        if (notifyError) {
+          console.error("Failed to send payment notification:", notifyError);
+        } else {
+          console.log("Payment notification result:", notifyResult);
+        }
+      } catch (notifyErr) {
+        console.error("Error sending payment notification:", notifyErr);
+      }
 
       // Check if all installments are paid and update application status
       if (isLastInstallment) {
@@ -794,7 +809,7 @@ export default function AdminFinancing() {
       queryClient.invalidateQueries({ queryKey: ["financing-installments"] });
       queryClient.invalidateQueries({ queryKey: ["financing-applications"] });
       queryClient.invalidateQueries({ queryKey: ["financing-stats"] });
-      toast.success("تم تسجيل الدفعة بنجاح");
+      toast.success("تم تسجيل الدفعة بنجاح وإرسال إشعار للعميل");
       if (data?.isLastInstallment) {
         toast.success("🎉 تم سداد جميع الأقساط! تم إرسال شهادة المخالصة للعميل");
       }
