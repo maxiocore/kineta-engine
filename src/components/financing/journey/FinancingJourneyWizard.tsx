@@ -19,6 +19,7 @@ import {
   type JourneyScreen,
   type DecisionState 
 } from "@/lib/financing/journeyConfig";
+import { notifySubmitted } from "@/lib/financing/notifications/unifiedEmailService";
 
 // Screen Components
 import { WelcomeScreen } from "./screens/WelcomeScreen";
@@ -187,6 +188,19 @@ export function FinancingJourneyWizard() {
       if (error) throw error;
 
       setApplicationId(data.id);
+      
+      // Send instant WhatsApp + Email notification
+      try {
+        await notifySubmitted(
+          data.id,
+          applicationNumber,
+          formData.email,
+          formData.full_name
+        );
+        console.log("Financing submission notification sent (WhatsApp + Email)");
+      } catch (notifyError) {
+        console.error("Failed to send submission notification:", notifyError);
+      }
       
       // Simulate decision based on eligibility
       const eligibilityScore = eligibilityMachine.decision?.score || 0;

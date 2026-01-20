@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEligibilityGate } from "@/hooks/useEligibilityGate";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { notifySubmitted } from "@/lib/financing/notifications/unifiedEmailService";
 
 // Step Components
 import { IntroStep } from "./steps/IntroStep";
@@ -323,6 +324,19 @@ export function LoanApplicationWizard() {
         .single();
 
       if (error) throw error;
+
+      // Send instant WhatsApp + Email notification
+      try {
+        await notifySubmitted(
+          newApp.id,
+          newApp.application_number,
+          profile?.email || "",
+          profile?.full_name || ""
+        );
+        console.log("Loan application notification sent (WhatsApp + Email)");
+      } catch (notifyError) {
+        console.error("Failed to send submission notification:", notifyError);
+      }
 
       // Clear local storage
       localStorage.removeItem(STORAGE_KEY);
