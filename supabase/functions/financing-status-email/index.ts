@@ -806,10 +806,48 @@ async function processEmailRequest(request: EmailRequest): Promise<QueueResult> 
       'rate_limited'
     );
     
+    // ⚡ Still send WhatsApp even if email is rate-limited
+    try {
+      const { data: application } = await supabase
+        .from('financing_applications')
+        .select('user_id, phone')
+        .eq('id', request.applicationId)
+        .single();
+      
+      if (application?.phone) {
+        const whatsappMessage = getFinancingStatusMessage(
+          request.applicationNumber,
+          request.status,
+          request.approvedAmount,
+          request.recipientName
+        );
+        
+        const whatsappResult = await sendWhatsAppMessage({
+          phone: application.phone,
+          message: whatsappMessage,
+          type: 'financing'
+        });
+        
+        console.log("WhatsApp (rate-limited) notification result:", whatsappResult);
+        
+        await supabase.from("sms_logs").insert({
+          phone: application.phone,
+          message: whatsappMessage,
+          type: 'whatsapp_financing',
+          status: whatsappResult.success ? 'sent' : 'failed',
+          user_id: application.user_id,
+          reference_id: request.applicationId,
+          error_message: whatsappResult.error || null,
+        });
+      }
+    } catch (waError) {
+      console.error("WhatsApp (rate-limited) notification error:", waError);
+    }
+    
     return {
       success: true,
       action: 'rate_limited',
-      message: 'Rate limit exceeded - email queued for later',
+      message: 'Rate limit exceeded - email queued, WhatsApp sent',
       queueId
     };
   }
