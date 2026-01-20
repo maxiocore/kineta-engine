@@ -90,6 +90,36 @@ serve(async (req) => {
 
     console.log(`WhatsApp OTP action: ${action}, phone: ${phone}`);
 
+    // Check if phone exists in database
+    if (action === 'check_phone') {
+      if (!phone) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'رقم الهاتف مطلوب' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const formattedPhone = formatPhoneNumber(phone);
+
+      // Check if phone exists and is verified
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, full_name, phone, phone_verified')
+        .eq('phone', formattedPhone)
+        .maybeSingle();
+
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          exists: !!profile,
+          verified: profile?.phone_verified || false,
+          user_id: profile?.id || null,
+          name: profile?.full_name || null
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     if (action === 'send') {
       if (!phone) {
         return new Response(
@@ -128,20 +158,12 @@ serve(async (req) => {
         }
       }
 
-      // Check if phone is already verified by another user
+      // Check if phone exists in profiles (for login vs signup flow)
       const { data: existingProfile } = await supabase
         .from('profiles')
-        .select('id, phone_verified')
+        .select('id, full_name, phone_verified')
         .eq('phone', formattedPhone)
-        .eq('phone_verified', true)
         .maybeSingle();
-
-      if (existingProfile && user_id && existingProfile.id !== user_id) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'رقم الهاتف مسجل بحساب آخر' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
 
       // Generate OTP
       const generatedOTP = generateOTP();
@@ -155,14 +177,14 @@ serve(async (req) => {
         .eq('phone', formattedPhone)
         .eq('status', 'pending');
 
-      // Store OTP
+      // Store OTP with existing user_id if found
       const { error: insertError } = await supabase
         .from('whatsapp_verifications')
         .insert({
           phone: formattedPhone,
           otp_hash: otpHash,
           expires_at: expiresAt.toISOString(),
-          user_id: user_id || null,
+          user_id: existingProfile?.id || user_id || null,
           status: 'pending',
           attempts_count: 0,
         });
@@ -189,7 +211,9 @@ serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           message: 'تم إرسال رمز التحقق عبر واتساب',
-          expires_in: OTP_EXPIRY_MINUTES * 60
+          expires_in: OTP_EXPIRY_MINUTES * 60,
+          is_existing_user: !!existingProfile,
+          user_name: existingProfile?.full_name || null
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -277,22 +301,45 @@ serve(async (req) => {
         })
         .eq('id', verification.id);
 
-      // Update user profile if user_id provided
-      if (user_id) {
+      // Check if user exists with this phone
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, phone_verified')
+        .eq('phone', formattedPhone)
+        .maybeSingle();
+
+      if (existingProfile) {
+        // Existing user - update phone_verified and return user info for login
         await supabase
           .from('profiles')
-          .update({ 
+          .update({ phone_verified: true })
+          .eq('id', existingProfile.id);
+
+        // Get the auth user email to sign them in
+        const { data: authUser } = await supabase.auth.admin.getUserById(existingProfile.id);
+
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            message: 'تم التحقق بنجاح',
             phone: formattedPhone,
-            phone_verified: true 
-          })
-          .eq('id', user_id);
+            is_existing_user: true,
+            user_id: existingProfile.id,
+            user_email: authUser?.user?.email || existingProfile.email,
+            user_name: existingProfile.full_name
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
+      // New user - needs to complete registration
       return new Response(
         JSON.stringify({ 
           success: true, 
           message: 'تم التحقق بنجاح',
-          phone: formattedPhone
+          phone: formattedPhone,
+          is_existing_user: false,
+          needs_registration: true
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
