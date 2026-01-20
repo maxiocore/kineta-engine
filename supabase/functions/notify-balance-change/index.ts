@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendSMS, formatPhoneNumber } from "../_shared/sms-helper.ts";
+import { sendWhatsAppMessage, getBalanceChangeMessage } from "../_shared/whatsapp-helper.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -489,6 +490,35 @@ serve(async (req: Request): Promise<Response> => {
       
       const smsResult = await sendSMS(profile.phone, smsMessage, 'balance', userId, transactionRef);
       console.log("SMS result:", smsResult);
+
+      // Send WhatsApp notification
+      const whatsappMessage = getBalanceChangeMessage(
+        amount,
+        isAdd ? 'credit' : 'debit',
+        reason,
+        newBalance
+      );
+      const whatsappResult = await sendWhatsAppMessage({
+        phone: profile.phone,
+        message: whatsappMessage,
+        type: 'balance'
+      });
+      console.log("WhatsApp balance result:", whatsappResult);
+      
+      // Log WhatsApp
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      
+      await supabase.from("sms_logs").insert({
+        phone: profile.phone,
+        message: whatsappMessage,
+        type: 'whatsapp_balance',
+        status: whatsappResult.success ? 'sent' : 'failed',
+        user_id: userId,
+        reference_id: transactionRef,
+        error_message: whatsappResult.error || null,
+      });
     }
 
     return new Response(

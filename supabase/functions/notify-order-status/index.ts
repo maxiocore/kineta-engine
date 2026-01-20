@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendSMS as sendSMSHelper, formatPhoneNumber } from "../_shared/sms-helper.ts";
+import { sendWhatsAppMessage, getOrderStatusMessage } from "../_shared/whatsapp-helper.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -397,6 +398,26 @@ serve(async (req: Request): Promise<Response> => {
         user_id: order.user_id,
         reference_id: orderId,
         error_message: smsResult.error || null,
+      });
+
+      // Send WhatsApp notification
+      const whatsappMessage = getOrderStatusMessage(order.order_number, newStatus, serviceName);
+      const whatsappResult = await sendWhatsAppMessage({
+        phone: profile.phone,
+        message: whatsappMessage,
+        type: 'order'
+      });
+      console.log("WhatsApp result:", whatsappResult);
+      
+      // Log WhatsApp
+      await supabase.from("sms_logs").insert({
+        phone: profile.phone,
+        message: whatsappMessage,
+        type: 'whatsapp_order_status',
+        status: whatsappResult.success ? 'sent' : 'failed',
+        user_id: order.user_id,
+        reference_id: orderId,
+        error_message: whatsappResult.error || null,
       });
     }
     

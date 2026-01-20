@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendWhatsAppMessage, getFinancingStatusMessage } from "../_shared/whatsapp-helper.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -878,6 +879,46 @@ async function processEmailRequest(request: EmailRequest): Promise<QueueResult> 
       status: "sent",
       sent_at: now.toISOString()
     });
+
+    // 10. Send WhatsApp notification
+    try {
+      // Get user phone from profile
+      const { data: application } = await supabase
+        .from('financing_applications')
+        .select('user_id, phone')
+        .eq('id', request.applicationId)
+        .single();
+      
+      if (application?.phone) {
+        const whatsappMessage = getFinancingStatusMessage(
+          request.applicationNumber,
+          request.status,
+          request.approvedAmount,
+          request.recipientName
+        );
+        
+        const whatsappResult = await sendWhatsAppMessage({
+          phone: application.phone,
+          message: whatsappMessage,
+          type: 'financing'
+        });
+        
+        console.log("WhatsApp financing notification result:", whatsappResult);
+        
+        // Log WhatsApp
+        await supabase.from("sms_logs").insert({
+          phone: application.phone,
+          message: whatsappMessage,
+          type: 'whatsapp_financing',
+          status: whatsappResult.success ? 'sent' : 'failed',
+          user_id: application.user_id,
+          reference_id: request.applicationId,
+          error_message: whatsappResult.error || null,
+        });
+      }
+    } catch (waError) {
+      console.error("WhatsApp notification error:", waError);
+    }
     
     return {
       success: true,
