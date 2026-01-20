@@ -259,6 +259,90 @@ export function getFinancingStatusMessage(
   return message;
 }
 
+// Installment payment message templates - Professional & Official Messages
+export interface InstallmentPaymentDetails {
+  applicationNumber: string;
+  customerName: string;
+  installmentNumber: number;
+  totalInstallments: number;
+  paidAmount: number;
+  remainingAmount: number;
+  remainingInstallments: number;
+  nextDueDate?: string;
+  isLastInstallment: boolean;
+}
+
+export function getInstallmentPaymentMessage(details: InstallmentPaymentDetails): string {
+  const {
+    applicationNumber,
+    customerName,
+    installmentNumber,
+    totalInstallments,
+    paidAmount,
+    remainingAmount,
+    remainingInstallments,
+    nextDueDate,
+    isLastInstallment
+  } = details;
+
+  if (isLastInstallment) {
+    // Final installment - Full settlement message
+    return `🏆 *إشعار سداد التمويل*
+━━━━━━━━━━━━━━━━━━━━━
+
+👤 العميل الكريم: *${customerName}*
+
+🎊🎉 *تهانينا! تم سداد جميع الأقساط بنجاح*
+
+📋 *رقم الطلب:* ${applicationNumber}
+💰 *القسط الأخير:* ${paidAmount.toLocaleString('ar-SA')} ريال
+📊 *الحالة:* سداد كامل ✅
+
+📝 يسرنا إبلاغكم بأنه تم سداد جميع أقساط التمويل بالكامل. شكرًا لالتزامكم!
+
+🏅 *شهادة المخالصة:*
+ستصلكم شهادة المخالصة خلال 24 ساعة
+
+✨ *يمكنكم الآن:*
+• التقدم بطلب تمويل جديد
+• الاستمتاع بعروضنا الحصرية
+
+━━━━━━━━━━━━━━━━━━━━━
+🔗 *متابعة حسابكم:*
+maxiocore.com/dashboard/financing
+
+📞 للاستفسار: الدعم الفني متاح على مدار الساعة
+
+_شركة علي صالح الشهري القابضة - MaxioCore_`;
+  }
+
+  // Regular installment payment
+  return `✅ *إشعار سداد قسط*
+━━━━━━━━━━━━━━━━━━━━━
+
+👤 العميل الكريم: *${customerName}*
+
+📋 *رقم الطلب:* ${applicationNumber}
+🔢 *القسط:* ${installmentNumber} من ${totalInstallments}
+💰 *المبلغ المدفوع:* ${paidAmount.toLocaleString('ar-SA')} ريال
+
+📊 *ملخص السداد:*
+├ ✅ الأقساط المسددة: ${installmentNumber}
+├ ⏳ الأقساط المتبقية: ${remainingInstallments}
+└ 💵 المبلغ المتبقي: ${remainingAmount.toLocaleString('ar-SA')} ريال
+
+${nextDueDate ? `📅 *موعد القسط القادم:* ${nextDueDate}\n` : ''}
+✨ شكرًا لالتزامكم بالسداد في الموعد!
+
+━━━━━━━━━━━━━━━━━━━━━
+🔗 *متابعة الأقساط:*
+maxiocore.com/dashboard/financing
+
+📞 للاستفسار: الدعم الفني متاح على مدار الساعة
+
+_شركة علي صالح الشهري القابضة - MaxioCore_`;
+}
+
 // Deposit status message templates
 export function getDepositStatusMessage(
   amount: number,
