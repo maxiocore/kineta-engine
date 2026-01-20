@@ -34,6 +34,7 @@ import {
   Clock,
 } from "lucide-react";
 import { sendFinancingNewApplicationEmail, sendFinancingApplicationReceivedEmail, sendFinancingApplicationReceivedSMS } from "@/lib/emailService";
+import { notifySubmitted } from "@/lib/financing/notifications/unifiedEmailService";
 
 interface FinancingPlan {
   id: string;
@@ -97,7 +98,7 @@ export default function FinancingApply() {
 
       const applicationNumber = `FIN-${Date.now()}`;
       
-      const { error } = await supabase.from("financing_applications").insert([{
+      const { data: newApp, error } = await supabase.from("financing_applications").insert([{
         user_id: user.id,
         plan_id: selectedPlanId,
         full_name: formData.full_name,
@@ -111,9 +112,22 @@ export default function FinancingApply() {
         requested_amount: parseFloat(formData.requested_amount),
         service_description: `${formData.project_type}: ${formData.service_description}`,
         application_number: applicationNumber,
-      }]);
+      }]).select().single();
 
       if (error) throw error;
+
+      // Send instant WhatsApp + Email notification via unified service
+      try {
+        await notifySubmitted(
+          newApp.id,
+          applicationNumber,
+          formData.email,
+          formData.full_name
+        );
+        console.log("Financing submission notification sent (WhatsApp + Email)");
+      } catch (notifyError) {
+        console.error("Failed to send unified notification:", notifyError);
+      }
 
       const selectedPlanData = plans.find(p => p.id === selectedPlanId);
       const monthlyInstallmentCalc = selectedPlanData 
