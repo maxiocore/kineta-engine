@@ -100,30 +100,43 @@ const EMAIL_CONTENT: Record<string, {
   CONTRACT_ACCEPTED: {
     subject: '✅ تم قبول العقد بنجاح | MaxioCore',
     headline: 'تم قبول العقد بنجاح',
-    description: 'شكرًا لتوقيعكم على عقد تمويل الخدمات. العقد بانتظار الاعتماد النهائي من الإدارة المختصة.',
-    ctaText: 'متابعة حالة الطلب',
-    ctaPath: '/dashboard/financing/status',
+    description: 'شكرًا لتوقيعكم على عقد تمويل الخدمات. الخطوة التالية هي توقيع السند لأمر (الكمبيالة) لإتمام الإجراءات.',
+    ctaText: 'توقيع السند لأمر',
+    ctaPath: '/dashboard/financing/promissory',
+    additionalNote: 'يُرجى توقيع السند لأمر خلال 7 أيام لاستكمال الإجراءات.',
     type: 'success',
     showDisclaimer: true,
-    priority: 3
+    priority: 1
   },
-  CONTRACT_FINALIZED: {
-    subject: '🎉 تم اعتماد العقد رسميًا | MaxioCore',
-    headline: 'تم اعتماد العقد رسميًا',
-    description: 'تم اعتماد عقد تمويل الخدمات بشكل نهائي. جارٍ إضافة رصيد الخدمات إلى حسابكم.',
-    ctaText: 'عرض حالة الطلب',
+  PROMISSORY_SIGNED: {
+    subject: '📝 تم توقيع السند لأمر بنجاح | MaxioCore',
+    headline: 'تم توقيع السند لأمر (الكمبيالة) بنجاح',
+    description: 'شكرًا لإتمامكم جميع الإجراءات المطلوبة. تم توقيع السند لأمر بنجاح وجميع المستندات مكتملة الآن. جارٍ اعتماد العقد من الإدارة المختصة.',
+    ctaText: 'متابعة حالة الطلب',
     ctaPath: '/dashboard/financing/status',
+    additionalNote: 'سيتم اعتماد العقد وإضافة رصيد الخدمات إلى حسابكم قريبًا.',
     type: 'success',
     showDisclaimer: true,
     priority: 2
   },
+  CONTRACT_FINALIZED: {
+    subject: '🏛️ تم اعتماد العقد رسميًا | MaxioCore',
+    headline: 'تم اعتماد العقد رسميًا من الإدارة',
+    description: 'يسرنا إبلاغكم بأنه تم اعتماد عقد تمويل الخدمات بشكل رسمي ونهائي. جارٍ الآن إضافة رصيد الخدمات إلى حسابكم.',
+    ctaText: 'عرض تفاصيل التمويل',
+    ctaPath: '/dashboard/financing/status',
+    additionalNote: 'سيتم إضافة رصيد الخدمات خلال ساعات قليلة.',
+    type: 'success',
+    showDisclaimer: true,
+    priority: 1
+  },
   CREDIT_DEPOSITED: {
-    subject: '🎉 رصيد الخدمات جاهز للاستخدام! | MaxioCore',
-    headline: 'رصيد الخدمات جاهز للاستخدام!',
-    description: 'تم بنجاح إضافة رصيد الخدمات إلى حسابكم. يمكنكم الآن استخدامه لشراء الخدمات المتاحة. صلاحية الرصيد: 12 شهرًا.',
-    ctaText: 'تصفّح الخدمات واستخدم الرصيد',
+    subject: '🎉💎 تم إيداع رصيد الخدمات بنجاح! | MaxioCore',
+    headline: 'تهانينا! رصيد الخدمات جاهز للاستخدام!',
+    description: 'تم بنجاح إضافة رصيد خدمات التمويل إلى حسابكم. يمكنكم الآن استخدامه لشراء جميع الخدمات المتاحة على المنصة. صلاحية الرصيد: 12 شهرًا.',
+    ctaText: 'استكشف الخدمات وابدأ الآن',
     ctaPath: '/dashboard/services',
-    additionalNote: 'استكشفوا مجموعة الخدمات المتاحة واستفيدوا من رصيدكم الآن.',
+    additionalNote: 'استفيدوا من رصيدكم واستكشفوا خدماتنا المتميزة. تذكّروا مواعيد الأقساط الشهرية.',
     type: 'success',
     showDisclaimer: true,
     priority: 1
