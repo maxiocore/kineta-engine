@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendSMS as sendSMSHelper, formatPhoneNumber } from "../_shared/sms-helper.ts";
+import { sendWhatsAppMessage, getDepositStatusMessage } from "../_shared/whatsapp-helper.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -422,6 +423,30 @@ serve(async (req: Request): Promise<Response> => {
         user_id: deposit.user_id,
         reference_id: depositId,
         error_message: smsResult.error || null,
+      });
+
+      // Send WhatsApp notification
+      const whatsappMessage = getDepositStatusMessage(
+        deposit.total_credited,
+        'completed',
+        deposit.transaction_id
+      );
+      const whatsappResult = await sendWhatsAppMessage({
+        phone: profile.phone,
+        message: whatsappMessage,
+        type: 'deposit'
+      });
+      console.log("WhatsApp result:", whatsappResult);
+      
+      // Log WhatsApp
+      await supabase.from("sms_logs").insert({
+        phone: profile.phone,
+        message: whatsappMessage,
+        type: 'whatsapp_deposit',
+        status: whatsappResult.success ? 'sent' : 'failed',
+        user_id: deposit.user_id,
+        reference_id: depositId,
+        error_message: whatsappResult.error || null,
       });
     }
     
