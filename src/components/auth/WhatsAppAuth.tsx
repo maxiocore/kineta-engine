@@ -151,18 +151,58 @@ export const WhatsAppAuth = ({ onSuccess, onBack, isSignUp = false }: WhatsAppAu
 
       if (data.success) {
         if (data.is_existing_user && data.user_email) {
-          // Existing user - sign them in directly using a magic link approach
-          // For security, we'll use a special password-less sign in
-          toast({
-            title: "مرحباً بعودتك!",
-            description: `${data.user_name || 'تم التحقق بنجاح'}`,
-          });
-          
-          setVerifiedPhone(data.phone);
-          
-          // Navigate to dashboard - the user session will be handled
-          onSuccess(data.phone);
-          navigate("/dashboard");
+          // Existing user - sign them in using their email with a temporary password approach
+          try {
+            // Try to sign in with magic link verification
+            if (data.token_hash) {
+              const { error: verifyError } = await supabase.auth.verifyOtp({
+                token_hash: data.token_hash,
+                type: 'magiclink'
+              });
+              
+              if (!verifyError) {
+                toast({
+                  title: "مرحباً بعودتك!",
+                  description: `${data.user_name || 'تم تسجيل الدخول بنجاح'}`,
+                });
+                onSuccess(data.phone);
+                navigate("/dashboard");
+                return;
+              }
+            }
+            
+            // Fallback: Sign in using signInWithPassword if we have stored credentials
+            // Since we verified via WhatsApp, we'll create a session directly
+            const { data: sessionData, error: signInError } = await supabase.auth.signInWithPassword({
+              email: data.user_email,
+              password: data.phone // Use phone as temporary password for WhatsApp verified users
+            });
+
+            if (!signInError && sessionData.session) {
+              toast({
+                title: "مرحباً بعودتك!",
+                description: `${data.user_name || 'تم تسجيل الدخول بنجاح'}`,
+              });
+              onSuccess(data.phone);
+              navigate("/dashboard");
+              return;
+            }
+
+            // If password login fails, show a message to use email login
+            toast({
+              title: "تم التحقق من الرقم",
+              description: "يرجى تسجيل الدخول باستخدام البريد الإلكتروني وكلمة المرور",
+              variant: "default",
+            });
+            onBack();
+          } catch (signInErr) {
+            console.error('Auto sign-in error:', signInErr);
+            toast({
+              title: "تم التحقق من الرقم", 
+              description: "يرجى تسجيل الدخول باستخدام البريد الإلكتروني",
+            });
+            onBack();
+          }
         } else if (data.needs_registration) {
           // New user - show registration form
           setVerifiedPhone(data.phone);
