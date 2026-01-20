@@ -309,14 +309,42 @@ serve(async (req) => {
         .maybeSingle();
 
       if (existingProfile) {
-        // Existing user - update phone_verified and return user info for login
+        // Existing user - update phone_verified
         await supabase
           .from('profiles')
           .update({ phone_verified: true })
           .eq('id', existingProfile.id);
 
-        // Get the auth user email to sign them in
+        // Get the auth user to generate a magic link token
         const { data: authUser } = await supabase.auth.admin.getUserById(existingProfile.id);
+        
+        if (authUser?.user?.email) {
+          // Generate a one-time login link for the user
+          const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+            type: 'magiclink',
+            email: authUser.user.email,
+          });
+
+          if (linkError) {
+            console.error('Error generating magic link:', linkError);
+          }
+
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              message: 'تم التحقق بنجاح',
+              phone: formattedPhone,
+              is_existing_user: true,
+              user_id: existingProfile.id,
+              user_email: authUser.user.email,
+              user_name: existingProfile.full_name,
+              // Include the token for auto-login
+              access_token: linkData?.properties?.hashed_token || null,
+              token_hash: linkData?.properties?.hashed_token || null
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
 
         return new Response(
           JSON.stringify({ 
@@ -325,7 +353,7 @@ serve(async (req) => {
             phone: formattedPhone,
             is_existing_user: true,
             user_id: existingProfile.id,
-            user_email: authUser?.user?.email || existingProfile.email,
+            user_email: existingProfile.email,
             user_name: existingProfile.full_name
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
