@@ -97,41 +97,166 @@ ${statusInfo.extra ? `\n💡 ${statusInfo.extra}` : ''}
 _MaxioCore_`;
 }
 
-// Financing status message templates
+// Financing status message templates - Professional & Official Messages
 export function getFinancingStatusMessage(
   applicationNumber: string,
   status: string,
   amount?: number,
   customerName?: string
 ): string {
-  const statusMessages: Record<string, { emoji: string; ar: string; extra?: string }> = {
-    SUBMITTED: { emoji: '📋', ar: 'تم الاستلام', extra: 'تم استلام طلبك وسيتم مراجعته' },
-    UNDER_REVIEW: { emoji: '🔍', ar: 'قيد المراجعة', extra: 'فريقنا يراجع طلبك الآن' },
-    ADDITIONAL_INFO_REQUIRED: { emoji: '⚠️', ar: 'مطلوب معلومات إضافية', extra: 'يرجى تقديم المستندات المطلوبة' },
-    APPROVED: { emoji: '✅', ar: 'تمت الموافقة', extra: 'تهانينا! تمت الموافقة على طلبك' },
-    APPROVED_WITH_LIMITS: { emoji: '✅', ar: 'موافقة بقيمة معدلة', extra: 'تمت الموافقة بقيمة معدلة' },
-    CONTRACT_PRESENTED: { emoji: '📄', ar: 'العقد جاهز', extra: 'العقد جاهز للمراجعة والتوقيع' },
-    CONTRACT_ACCEPTED: { emoji: '🎉', ar: 'تم قبول العقد', extra: 'تم توقيع العقد بنجاح' },
-    ACTIVE: { emoji: '🟢', ar: 'نشط', extra: 'تمويلك نشط الآن' },
-    COMPLETED: { emoji: '🏆', ar: 'مكتمل', extra: 'تم سداد التمويل بالكامل' },
-    REJECTED: { emoji: '❌', ar: 'مرفوض', extra: 'نعتذر، لم تتم الموافقة على طلبك' },
-    CANCELLED: { emoji: '🚫', ar: 'ملغي', extra: 'تم إلغاء طلب التمويل' },
-    EXPIRED: { emoji: '⏰', ar: 'منتهي الصلاحية', extra: 'انتهت صلاحية الطلب' },
+  // Professional messages for each financing status
+  const statusMessages: Record<string, { 
+    emoji: string; 
+    ar: string; 
+    greeting?: string;
+    mainMessage: string;
+    nextStep?: string;
+    urgency?: string;
+  }> = {
+    SUBMITTED: { 
+      emoji: '📋', 
+      ar: 'تم استلام الطلب',
+      greeting: 'شكرًا لثقتكم بـ MaxioCore',
+      mainMessage: 'تم استلام طلب تمويل الخدمات الخاص بكم بنجاح. سيقوم فريقنا المختص بمراجعة الطلب والتواصل معكم خلال 1-3 أيام عمل.',
+      nextStep: 'يرجى انتظار إشعار تحديث حالة الطلب'
+    },
+    UNDER_REVIEW: { 
+      emoji: '🔍', 
+      ar: 'قيد المراجعة',
+      mainMessage: 'فريقنا المختص يقوم حاليًا بدراسة طلبكم والتحقق من البيانات المقدمة.',
+      nextStep: 'سنوافيكم بنتيجة المراجعة في أقرب وقت'
+    },
+    ADDITIONAL_INFO_REQUIRED: { 
+      emoji: '⚠️', 
+      ar: 'مطلوب مستندات إضافية',
+      mainMessage: 'لاستكمال دراسة طلبكم، نحتاج إلى بعض المستندات أو المعلومات الإضافية.',
+      nextStep: 'يرجى رفع المستندات المطلوبة عبر المنصة',
+      urgency: '⏰ المهلة: 14 يومًا'
+    },
+    APPROVED: { 
+      emoji: '✅', 
+      ar: 'تمت الموافقة',
+      greeting: '🎉 تهانينا!',
+      mainMessage: 'يسرنا إبلاغكم بالموافقة على طلب تمويل الخدمات الخاص بكم.',
+      nextStep: 'الخطوة التالية: مراجعة العقد والتوقيع عليه إلكترونيًا'
+    },
+    APPROVED_WITH_LIMITS: { 
+      emoji: '✅', 
+      ar: 'موافقة بقيمة معدّلة',
+      greeting: 'تهانينا!',
+      mainMessage: 'تمت الموافقة على طلبكم بقيمة تمويل معدّلة بناءً على التقييم الائتماني.',
+      nextStep: 'يمكنكم مراجعة التفاصيل والتوقيع على العقد'
+    },
+    CONTRACT_PRESENTED: { 
+      emoji: '📄', 
+      ar: 'العقد جاهز للتوقيع',
+      mainMessage: 'تم إعداد عقد تمويل الخدمات الخاص بكم. يُرجى مراجعة بنود العقد بعناية.',
+      nextStep: 'قم بالتوقيع الإلكتروني لإتمام العملية',
+      urgency: '⏰ المهلة: 7 أيام'
+    },
+    CONTRACT_ACCEPTED: { 
+      emoji: '✍️', 
+      ar: 'تم توقيع العقد',
+      greeting: '✨ ممتاز!',
+      mainMessage: 'تم توقيعكم على عقد التمويل بنجاح. العقد الآن بانتظار الاعتماد النهائي.',
+      nextStep: 'الخطوة التالية: توقيع السند لأمر'
+    },
+    PROMISSORY_SIGNED: { 
+      emoji: '📝', 
+      ar: 'تم توقيع السند لأمر',
+      greeting: '🎊 ممتاز!',
+      mainMessage: 'تم توقيعكم على السند لأمر (الكمبيالة) بنجاح. جميع المستندات مكتملة الآن.',
+      nextStep: 'جارٍ اعتماد العقد وإضافة رصيد الخدمات'
+    },
+    CONTRACT_FINALIZED: { 
+      emoji: '🏛️', 
+      ar: 'تم اعتماد العقد رسميًا',
+      greeting: '🎉 مبارك!',
+      mainMessage: 'تم اعتماد عقد تمويل الخدمات بشكل رسمي ونهائي من الإدارة المختصة.',
+      nextStep: 'جارٍ إضافة رصيد الخدمات إلى حسابكم'
+    },
+    CREDIT_DEPOSITED: { 
+      emoji: '💎', 
+      ar: 'تم إيداع رصيد الخدمات',
+      greeting: '🎊🎉 تهانينا الحارة!',
+      mainMessage: 'تم إضافة رصيد خدمات التمويل إلى حسابكم بنجاح. يمكنكم الآن الاستفادة من الخدمات المتاحة.',
+      nextStep: 'استكشفوا خدماتنا وابدأوا الاستخدام الآن!'
+    },
+    ACTIVE: { 
+      emoji: '🟢', 
+      ar: 'التمويل نشط',
+      mainMessage: 'تمويلكم نشط الآن ويمكنكم استخدام رصيد الخدمات.',
+      nextStep: 'تذكّروا مواعيد الأقساط الشهرية'
+    },
+    COMPLETED: { 
+      emoji: '🏆', 
+      ar: 'تم السداد الكامل',
+      greeting: '🎊 تهانينا!',
+      mainMessage: 'تم سداد جميع أقساط التمويل بنجاح. شكرًا لالتزامكم!',
+      nextStep: 'يمكنكم التقدم بطلب تمويل جديد'
+    },
+    DECLINED: { 
+      emoji: '❌', 
+      ar: 'لم تتم الموافقة',
+      mainMessage: 'نأسف لإبلاغكم بأنه لم يتم الموافقة على الطلب في الوقت الحالي لعدم استيفاء بعض المتطلبات.',
+      nextStep: 'يمكنكم المحاولة مجددًا بعد معالجة الملاحظات'
+    },
+    CANCELLED: { 
+      emoji: '🚫', 
+      ar: 'تم إلغاء الطلب',
+      mainMessage: 'تم إلغاء طلب التمويل بناءً على طلبكم.',
+      nextStep: 'يمكنكم التقدم بطلب جديد في أي وقت'
+    },
+    EXPIRED: { 
+      emoji: '⏰', 
+      ar: 'انتهت صلاحية الطلب',
+      mainMessage: 'انتهت صلاحية الطلب لعدم استكمال الإجراءات خلال المهلة المحددة.',
+      nextStep: 'يمكنكم تقديم طلب جديد'
+    },
   };
 
-  const statusInfo = statusMessages[status] || { emoji: '📋', ar: status, extra: '' };
+  const statusInfo = statusMessages[status] || { 
+    emoji: '📋', 
+    ar: status, 
+    mainMessage: 'تم تحديث حالة طلبكم.',
+    nextStep: 'يرجى مراجعة التفاصيل عبر المنصة'
+  };
 
-  return `${statusInfo.emoji} *تحديث طلب التمويل*
-
-${customerName ? `مرحباً ${customerName}\n` : ''}
-📋 رقم الطلب: ${applicationNumber}
-📊 الحالة: *${statusInfo.ar}*
-${amount ? `💰 المبلغ: ${amount.toLocaleString('ar-SA')} ر.س\n` : ''}
-${statusInfo.extra ? `\n💡 ${statusInfo.extra}` : ''}
-
-🔗 متابعة الطلب: maxiocore.com/dashboard/financing
-
-_MaxioCore_`;
+  // Build professional message
+  let message = `${statusInfo.emoji} *إشعار تمويل الخدمات*\n`;
+  message += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+  
+  if (customerName) {
+    message += `👤 العميل الكريم: *${customerName}*\n\n`;
+  }
+  
+  if (statusInfo.greeting) {
+    message += `${statusInfo.greeting}\n\n`;
+  }
+  
+  message += `📋 *رقم الطلب:* ${applicationNumber}\n`;
+  message += `📊 *الحالة:* ${statusInfo.ar}\n`;
+  
+  if (amount) {
+    message += `💰 *المبلغ:* ${amount.toLocaleString('ar-SA')} ريال سعودي\n`;
+  }
+  
+  message += `\n📝 ${statusInfo.mainMessage}\n`;
+  
+  if (statusInfo.nextStep) {
+    message += `\n✨ *الخطوة التالية:*\n${statusInfo.nextStep}\n`;
+  }
+  
+  if (statusInfo.urgency) {
+    message += `\n${statusInfo.urgency}\n`;
+  }
+  
+  message += `\n━━━━━━━━━━━━━━━━━━━━━\n`;
+  message += `🔗 *متابعة الطلب:*\nmaxiocore.com/dashboard/financing\n\n`;
+  message += `📞 للاستفسار: الدعم الفني متاح على مدار الساعة\n\n`;
+  message += `_شركة علي صالح الشهري القابضة - MaxioCore_`;
+  
+  return message;
 }
 
 // Deposit status message templates
