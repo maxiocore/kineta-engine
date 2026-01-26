@@ -50,7 +50,6 @@ const serviceTypes = [
   { value: "development", label: "برمجة وتطوير", icon: Code },
   { value: "design", label: "تصميم جرافيك", icon: Palette },
   { value: "social", label: "إدارة سوشيال ميديا", icon: Share2 },
-  { value: "hosting", label: "استضافة ودومينات", icon: Globe },
 ];
 
 export function FinancingDetailsScreen({ 

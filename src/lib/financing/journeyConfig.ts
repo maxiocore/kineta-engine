@@ -526,7 +526,6 @@ export const MICROCOPY = {
       development: 'برمجة وتطوير',
       design: 'تصميم جرافيك',
       marketing: 'تسويق رقمي',
-      hosting: 'استضافة وخوادم',
       other: 'خدمات أخرى'
     },
     cta: 'متابعة للشروط',

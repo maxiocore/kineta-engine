@@ -50,7 +50,6 @@ const adminNavItems: NavItem[] = [
   { label: "نظرة عامة", href: "/admin", icon: LayoutDashboard },
   { label: "المستخدمين", href: "/admin/users", icon: Users },
   { label: "الخدمات", href: "/admin/services", icon: Package },
-  { label: "الدومين والإستضافة", href: "/admin/hosting", icon: Server },
   { label: "الطلبات", href: "/admin/orders", icon: ShoppingBag },
   { label: "الإحالات", href: "/admin/referrals", icon: Gift },
   { label: "مركز المدفوعات", href: "/admin/payments-hub", icon: CreditCard },

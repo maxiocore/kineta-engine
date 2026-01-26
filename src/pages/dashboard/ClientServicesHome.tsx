@@ -105,18 +105,6 @@ const serviceSections = [
     shadowColor: 'shadow-orange-500/20',
     features: ['إعلانات ممولة', 'تحسين SEO', 'إدارة حسابات', 'تحليلات'],
   },
-  {
-    id: 'hosting',
-    title: 'الدومين والإستضافة',
-    subtitle: 'Hosting & Domains',
-    description: 'حلول استضافة متكاملة بأداء عالي وأمان متقدم',
-    icon: Rocket,
-    path: '/dashboard/hosting-services',
-    gradient: 'from-sky-500 via-blue-500 to-indigo-500',
-    bgGlow: 'from-sky-500/20',
-    shadowColor: 'shadow-sky-500/20',
-    features: ['استضافة ويب', 'سيرفرات VPS', 'دومينات', 'SSL مجاني'],
-  },
 ];
 
 const features = [

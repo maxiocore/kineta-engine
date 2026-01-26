@@ -60,7 +60,6 @@ const domainIconMap: Record<OrderDomain, any> = {
   design: Palette,
   marketing: Megaphone,
   smm: Share2,
-  hosting: Server,
   other: Package,
 };
 

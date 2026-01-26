@@ -59,7 +59,6 @@ const ClientBalanceLogs = lazy(() => import("./pages/dashboard/ClientBalanceLogs
 const ClientDesignServices = lazy(() => import("./pages/dashboard/ClientDesignServices"));
 const ClientMarketingServices = lazy(() => import("./pages/dashboard/ClientMarketingServices"));
 const ClientServicesHome = lazy(() => import("./pages/dashboard/ClientServicesHome"));
-const ClientHostingServices = lazy(() => import("./pages/dashboard/ClientHostingServices"));
 const DesignServiceOrder = lazy(() => import("./pages/dashboard/DesignServiceOrder"));
 const ClientCashback = lazy(() => import("./pages/dashboard/ClientCashback"));
 const ClientChallenges = lazy(() => import("./pages/dashboard/ClientChallenges"));
@@ -123,7 +122,6 @@ const AdminChallenges = lazy(() => import("./pages/admin/AdminChallenges"));
 const AdminContactMessages = lazy(() => import("./pages/admin/AdminContactMessages"));
 const AdminCareers = lazy(() => import("./pages/admin/AdminCareers"));
 const AdminFinancing = lazy(() => import("./pages/admin/AdminFinancing"));
-const AdminHosting = lazy(() => import("./pages/admin/AdminHosting"));
 const AdminDevOrders = lazy(() => import("./pages/admin/AdminDevOrders"));
 const AdminDevOrderDetails = lazy(() => import("./pages/admin/AdminDevOrderDetails"));
 const AdminUnifiedOrders = lazy(() => import("./pages/admin/AdminUnifiedOrders"));
@@ -284,11 +282,6 @@ const App = () => (
                     <Route path="/dashboard/marketing-services" element={
                       <ProtectedRoute>
                         <ClientMarketingServices />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/dashboard/hosting-services" element={
-                      <ProtectedRoute>
-                        <ClientHostingServices />
                       </ProtectedRoute>
                     } />
                     <Route path="/dashboard/our-services" element={
@@ -565,11 +558,6 @@ const App = () => (
                     <Route path="/admin/financing" element={
                       <ProtectedRoute requireAdmin>
                         <AdminFinancing />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/admin/hosting" element={
-                      <ProtectedRoute requireAdmin>
-                        <AdminHosting />
                       </ProtectedRoute>
                     } />
                     <Route path="/admin/dev-orders" element={
