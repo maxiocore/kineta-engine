@@ -31,13 +31,17 @@ import {
   Copy,
   Check,
   Loader2,
-  Send
+  Send,
+  Calendar,
+  Sparkles,
+  ScrollText
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -870,93 +874,187 @@ export function UnifiedStatusPage() {
       {/* Header - Always Visible */}
       <StatusInfoHeader application={application} />
 
-      {/* Banking Timeline */}
-      <Card>
-        <CardContent className="p-4 sm:p-6">
-          <BankingTimeline currentStatus={application.status} />
-        </CardContent>
-      </Card>
+      {/* Tabs Navigation */}
+      <Tabs defaultValue="overview" dir="rtl" className="w-full">
+        <TabsList className="bg-card/80 backdrop-blur-sm border border-border/50 inline-flex w-full sm:w-auto gap-0.5 p-0.5 h-10 rounded-lg shadow-sm">
+          <TabsTrigger 
+            value="overview" 
+            className="flex-1 sm:flex-none text-xs sm:text-sm px-3 sm:px-4 py-2 whitespace-nowrap rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all duration-200 font-medium gap-1.5"
+          >
+            <Sparkles className="h-4 w-4" />
+            <span>نظرة عامة</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="installments" 
+            className="flex-1 sm:flex-none text-xs sm:text-sm px-3 sm:px-4 py-2 whitespace-nowrap rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all duration-200 font-medium gap-1.5"
+          >
+            <Calendar className="h-4 w-4" />
+            <span>الأقساط</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="contract" 
+            className="flex-1 sm:flex-none text-xs sm:text-sm px-3 sm:px-4 py-2 whitespace-nowrap rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all duration-200 font-medium gap-1.5"
+          >
+            <ScrollText className="h-4 w-4" />
+            <span>العقد</span>
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Action Buttons */}
-      <ActionButtons
-        status={application.status}
-        applicationId={application.id}
-        onAction={handleAction}
-      />
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="mt-6 space-y-6">
+          {/* Banking Timeline */}
+          <Card>
+            <CardContent className="p-4 sm:p-6">
+              <BankingTimeline currentStatus={application.status} />
+            </CardContent>
+          </Card>
 
-      {/* Executive Bond Status Card - عرض حالة السند التنفيذي */}
-      {application.executive_bond_state && application.executive_bond_state !== 'NOT_ISSUED' && (
-        <ExecutiveBondCard
-          bondState={application.executive_bond_state}
-          bondSentAt={application.executive_bond_sent_at}
-          bondSignedAt={application.executive_bond_signed_at}
-          applicationId={application.id}
-          onConfirmSigned={() => {
-            handleConfirmBondSigned();
-          }}
-        />
-      )}
+          {/* Action Buttons */}
+          <ActionButtons
+            status={application.status}
+            applicationId={application.id}
+            onAction={handleAction}
+          />
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Status Details */}
-        <div className="lg:col-span-2">
+          {/* Executive Bond Status Card - عرض حالة السند التنفيذي */}
+          {application.executive_bond_state && application.executive_bond_state !== 'NOT_ISSUED' && (
+            <ExecutiveBondCard
+              bondState={application.executive_bond_state}
+              bondSentAt={application.executive_bond_sent_at}
+              bondSignedAt={application.executive_bond_signed_at}
+              applicationId={application.id}
+              onConfirmSigned={() => {
+                handleConfirmBondSigned();
+              }}
+            />
+          )}
+
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Status Details */}
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="w-5 h-5" />
+                    تفاصيل الحالة
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* الرسالة الحالية */}
+                  <div className="p-4 rounded-lg bg-muted/50">
+                    <p className="text-sm leading-relaxed">
+                      {getStateContent(application.status.replace('FIN_', '') as FinancingApplicationStatus)?.description || 
+                       'جاري معالجة طلبك. سيتم إخطارك بأي تحديثات.'}
+                    </p>
+                  </div>
+
+                  {/* معلومات إضافية */}
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="p-3 rounded-lg bg-muted/30">
+                      <span className="text-muted-foreground block mb-1">المبلغ المطلوب</span>
+                      <span className="font-bold">{application.requested_amount.toLocaleString('ar-SA')} ر.س</span>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/30">
+                      <span className="text-muted-foreground block mb-1">تاريخ التقديم</span>
+                      <span className="font-bold">{format(new Date(application.created_at), 'dd MMM yyyy', { locale: ar })}</span>
+                    </div>
+                  </div>
+
+                  {/* ملاحظة التمويل */}
+                  <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <p className="text-xs text-amber-700 dark:text-amber-400">
+                      ⚠️ التمويل غير نقدي - رصيد خدمات يُستخدم داخل المنصة فقط ولا يمكن سحبه أو تحويله
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Activity Log */}
+            <div>
+              <Card className="h-full">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="w-5 h-5" />
+                    سجل التحديثات
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ActivityLog 
+                    entries={activityLog} 
+                    isLoading={isLogLoading}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Installments Tab */}
+        <TabsContent value="installments" className="mt-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                تفاصيل الحالة
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* الرسالة الحالية */}
-              <div className="p-4 rounded-lg bg-muted/50">
-                <p className="text-sm leading-relaxed">
-                  {getStateContent(application.status.replace('FIN_', '') as FinancingApplicationStatus)?.description || 
-                   'جاري معالجة طلبك. سيتم إخطارك بأي تحديثات.'}
-                </p>
-              </div>
-
-              {/* معلومات إضافية */}
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="p-3 rounded-lg bg-muted/30">
-                  <span className="text-muted-foreground block mb-1">المبلغ المطلوب</span>
-                  <span className="font-bold">{application.requested_amount.toLocaleString('ar-SA')} ر.س</span>
-                </div>
-                <div className="p-3 rounded-lg bg-muted/30">
-                  <span className="text-muted-foreground block mb-1">تاريخ التقديم</span>
-                  <span className="font-bold">{format(new Date(application.created_at), 'dd MMM yyyy', { locale: ar })}</span>
-                </div>
-              </div>
-
-              {/* ملاحظة التمويل */}
-              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                <p className="text-xs text-amber-700 dark:text-amber-400">
-                  ⚠️ التمويل غير نقدي - رصيد خدمات يُستخدم داخل المنصة فقط ولا يمكن سحبه أو تحويله
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Activity Log */}
-        <div>
-          <Card className="h-full">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="w-5 h-5" />
-                سجل التحديثات
+                <Calendar className="w-5 h-5" />
+                جدول الأقساط
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ActivityLog 
-                entries={activityLog} 
-                isLoading={isLogLoading}
-              />
+              <div className="text-center py-12 text-muted-foreground">
+                <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium mb-2">جدول الأقساط</p>
+                <p className="text-sm">سيتم عرض جدول الأقساط بعد تفعيل التمويل</p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4"
+                  onClick={() => navigate(`/dashboard/financing/status/${applicationId}#installments`)}
+                >
+                  عرض الأقساط من لوحة التمويل
+                </Button>
+              </div>
             </CardContent>
           </Card>
-        </div>
-      </div>
+        </TabsContent>
+
+        {/* Contract Tab */}
+        <TabsContent value="contract" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ScrollText className="w-5 h-5" />
+                العقد والمستندات
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {application.contract_number ? (
+                <div className="space-y-4">
+                  <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                      <span className="font-bold text-emerald-600">تم توقيع العقد</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">رقم العقد: {application.contract_number}</p>
+                  </div>
+                  <Button 
+                    onClick={() => navigate(`/dashboard/financing/contract/${applicationId}`)}
+                    className="w-full bg-gradient-to-r from-purple-500 to-violet-600"
+                  >
+                    <Eye className="w-4 h-4 ml-2" />
+                    عرض العقد
+                  </Button>
+                </div>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  <ScrollText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium mb-2">العقد غير متاح</p>
+                  <p className="text-sm">سيتم إتاحة العقد بعد الموافقة على طلب التمويل</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
