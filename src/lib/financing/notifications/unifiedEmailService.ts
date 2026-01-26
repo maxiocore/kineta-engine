@@ -363,3 +363,59 @@ export async function notifySubmitted(
     triggeredBy: 'customer'
   });
 }
+
+/**
+ * Helper: إرسال إشعار عند إرسال السند التنفيذي
+ */
+export async function notifyBondIssued(
+  applicationId: string,
+  applicationNumber: string,
+  email: string,
+  name: string,
+  approvedAmount?: number,
+  actorId?: string
+): Promise<EmailSendResult> {
+  // Note: We use a custom approach for bond notifications
+  // The status remains the same but we send a specific notification
+  console.log(`📧 Sending bond issued notification for ${applicationNumber}`);
+  
+  try {
+    const { data, error } = await supabase.functions.invoke('financing-bond-notification', {
+      body: {
+        applicationId,
+        applicationNumber,
+        recipientEmail: email,
+        recipientName: name,
+        approvedAmount,
+        notificationType: 'BOND_ISSUED',
+        baseUrl: window.location.origin,
+        actorId
+      }
+    });
+
+    if (error) {
+      console.error('❌ Bond notification failed:', error);
+      return {
+        success: false,
+        action: 'failed',
+        message: error.message,
+        error: error.message
+      };
+    }
+
+    return {
+      success: data?.success ?? true,
+      action: 'sent',
+      message: data?.message ?? 'تم إرسال إشعار السند التنفيذي'
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ Bond notification exception:', error);
+    return {
+      success: false,
+      action: 'failed',
+      message,
+      error: message
+    };
+  }
+}

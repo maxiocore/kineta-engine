@@ -48,7 +48,8 @@ import {
   notifyApproved,
   notifyContractPresented,
   notifyDeclined,
-  notifyCreditDeposited
+  notifyCreditDeposited,
+  notifyBondIssued
 } from "@/lib/financing/notifications";
 import FinancingStatusCard from "@/components/financing/FinancingStatusCard";
 import {
@@ -84,6 +85,10 @@ interface FinancingApplication {
   rejection_reason: string | null;
   contract_number: string | null;
   promissory_note_url: string | null;
+  // Executive Bond fields
+  executive_bond_state: string | null;
+  executive_bond_sent_at: string | null;
+  executive_bond_signed_at: string | null;
   financing_plans?: {
     name_ar: string;
     installments_count: number;
@@ -755,7 +760,48 @@ export default function AdminFinancing() {
     },
   });
 
-  const filteredApplications = applications.filter(app => 
+  // Send Executive Bond mutation - إرسال إشعار السند التنفيذي للعميل
+  const sendBondMutation = useMutation({
+    mutationFn: async (applicationId: string) => {
+      const application = applications.find(a => a.id === applicationId);
+      if (!application) throw new Error("Application not found");
+
+      // Update bond state to ISSUED
+      const { error } = await supabase
+        .from("financing_applications")
+        .update({
+          executive_bond_state: "ISSUED",
+          executive_bond_sent_at: new Date().toISOString(),
+        })
+        .eq("id", applicationId);
+
+      if (error) throw error;
+
+      // Send notification to customer
+      try {
+        await notifyBondIssued(
+          applicationId,
+          application.application_number,
+          application.email,
+          application.full_name,
+          application.approved_amount || 0,
+          user?.id
+        );
+      } catch (emailError) {
+        console.error("Failed to send bond notification:", emailError);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["financing-applications"] });
+      toast.success("تم إرسال إشعار السند التنفيذي للعميل");
+    },
+    onError: (error) => {
+      toast.error("حدث خطأ أثناء إرسال الإشعار");
+      console.error(error);
+    },
+  });
+
+  const filteredApplications = applications.filter(app =>
     app.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     app.application_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
     app.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -1147,16 +1193,45 @@ export default function AdminFinancing() {
                               {(app.status === "contract_signed" || app.status === "awaiting_bond") && (
                                 <>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem
-                                    onClick={() => {
-                                      setSelectedApplication(app);
-                                      setShowActivateDialog(true);
-                                    }}
-                                    className="text-emerald-400"
-                                  >
-                                    <CheckCircle2 className="h-4 w-4 ml-2" />
-                                    تفعيل التمويل (تم توقيع السند التنفيذي)
-                                  </DropdownMenuItem>
+                                  {/* زر إرسال السند التنفيذي */}
+                                  {(!app.executive_bond_state || app.executive_bond_state === "NOT_ISSUED" || app.executive_bond_state === "ISSUING") && (
+                                    <DropdownMenuItem
+                                      onClick={() => {
+                                        sendBondMutation.mutate(app.id);
+                                      }}
+                                      className="text-orange-400"
+                                      disabled={sendBondMutation.isPending}
+                                    >
+                                      <FileSignature className="h-4 w-4 ml-2" />
+                                      إرسال السند التنفيذي للعميل
+                                    </DropdownMenuItem>
+                                  )}
+                                  {/* زر التفعيل - يظهر فقط إذا تم توقيع السند */}
+                                  {(app.executive_bond_state === "SIGNED_BY_CLIENT") && (
+                                    <DropdownMenuItem
+                                      onClick={() => {
+                                        setSelectedApplication(app);
+                                        setShowActivateDialog(true);
+                                      }}
+                                      className="text-emerald-400"
+                                    >
+                                      <CheckCircle2 className="h-4 w-4 ml-2" />
+                                      تفعيل التمويل (تم توقيع السند التنفيذي)
+                                    </DropdownMenuItem>
+                                  )}
+                                  {/* زر التفعيل القديم - يظهر إذا تم إرسال السند */}
+                                  {(app.executive_bond_state === "ISSUED") && (
+                                    <DropdownMenuItem
+                                      onClick={() => {
+                                        setSelectedApplication(app);
+                                        setShowActivateDialog(true);
+                                      }}
+                                      className="text-emerald-400/60"
+                                    >
+                                      <CheckCircle2 className="h-4 w-4 ml-2" />
+                                      تفعيل التمويل (بانتظار توقيع العميل)
+                                    </DropdownMenuItem>
+                                  )}
                                   <DropdownMenuItem
                                     onClick={() => {
                                       // Resend contract notification

@@ -1722,6 +1722,9 @@ export type Database = {
           contract_signed_at: string | null
           created_at: string
           email: string
+          executive_bond_sent_at: string | null
+          executive_bond_signed_at: string | null
+          executive_bond_state: string | null
           full_name: string
           id: string
           national_id: string
@@ -1753,6 +1756,9 @@ export type Database = {
           contract_signed_at?: string | null
           created_at?: string
           email: string
+          executive_bond_sent_at?: string | null
+          executive_bond_signed_at?: string | null
+          executive_bond_state?: string | null
           full_name: string
           id?: string
           national_id: string
@@ -1784,6 +1790,9 @@ export type Database = {
           contract_signed_at?: string | null
           created_at?: string
           email?: string
+          executive_bond_sent_at?: string | null
+          executive_bond_signed_at?: string | null
+          executive_bond_state?: string | null
           full_name?: string
           id?: string
           national_id?: string
