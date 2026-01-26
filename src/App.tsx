@@ -76,6 +76,7 @@ const SignPromissoryNote = lazy(() => import("./pages/dashboard/SignPromissoryNo
 const FinancingPayment = lazy(() => import("./pages/dashboard/FinancingPayment"));
 const ClientFinancingPayments = lazy(() => import("./pages/dashboard/ClientFinancingPayments"));
 const FinancingStatus = lazy(() => import("./pages/dashboard/FinancingStatus"));
+const UnifiedFinancingStatus = lazy(() => import("./pages/dashboard/UnifiedFinancingStatus"));
 
 // Lazy load pages - Dev Services
 const DevServicesPage = lazy(() => import("./pages/dashboard/DevServicesPage"));
@@ -366,6 +367,12 @@ const App = () => (
                     <Route path="/dashboard/financing/status/:applicationId" element={
                       <ProtectedRoute>
                         <FinancingStatus />
+                      </ProtectedRoute>
+                    } />
+                    {/* Unified Status Page with Deep Link Support */}
+                    <Route path="/financing/status/:applicationId" element={
+                      <ProtectedRoute>
+                        <UnifiedFinancingStatus />
                       </ProtectedRoute>
                     } />
                     
