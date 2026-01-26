@@ -39,10 +39,12 @@ export default defineConfig(({ mode }) => ({
       'react-router-dom',
       'input-otp',
       '@tanstack/react-query',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-direction',
     ],
     force: true,
+    exclude: [],
     esbuildOptions: {
-      // Ensure consistent React resolution
       define: {
         global: 'globalThis',
       },
