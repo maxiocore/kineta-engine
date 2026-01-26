@@ -1719,6 +1719,8 @@ export type Database = {
           company_name: string | null
           contract_document_url: string | null
           contract_number: string | null
+          contract_override_installments: number | null
+          contract_override_name: string | null
           contract_signed_at: string | null
           created_at: string
           email: string
@@ -1753,6 +1755,8 @@ export type Database = {
           company_name?: string | null
           contract_document_url?: string | null
           contract_number?: string | null
+          contract_override_installments?: number | null
+          contract_override_name?: string | null
           contract_signed_at?: string | null
           created_at?: string
           email: string
@@ -1787,6 +1791,8 @@ export type Database = {
           company_name?: string | null
           contract_document_url?: string | null
           contract_number?: string | null
+          contract_override_installments?: number | null
+          contract_override_name?: string | null
           contract_signed_at?: string | null
           created_at?: string
           email?: string

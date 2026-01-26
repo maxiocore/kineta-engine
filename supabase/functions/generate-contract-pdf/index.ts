@@ -1116,12 +1116,17 @@ serve(async (req) => {
     const approvedAmount = application.approved_amount || application.requested_amount;
     const grandTotal = approvedAmount; // بدون ضريبة
     
-    // استخدام عدد الأقساط المعدل أو الأصلي
-    const finalInstallmentsCount = override_installments || application.plan?.installments_count || 3;
+    // استخدام عدد الأقساط: المرسل من الواجهة > المحفوظ في قاعدة البيانات > الخطة الأصلية
+    const finalInstallmentsCount = override_installments 
+      || application.contract_override_installments 
+      || application.plan?.installments_count 
+      || 3;
     const installmentAmount = grandTotal / finalInstallmentsCount;
     
-    // استخدام الاسم المعدل أو الأصلي
-    const finalCustomerName = override_name || application.full_name;
+    // استخدام الاسم: المرسل من الواجهة > المحفوظ في قاعدة البيانات > الاسم الأصلي
+    const finalCustomerName = override_name 
+      || application.contract_override_name 
+      || application.full_name;
 
     // إنشاء جدول أقساط جديد إذا تم تعديل عدد الأقساط
     let installmentsSchedule = (installments || []).map((inst: any) => ({
