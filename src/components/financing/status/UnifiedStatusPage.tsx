@@ -29,7 +29,9 @@ import {
   CheckCircle2,
   ExternalLink,
   Copy,
-  Check
+  Check,
+  Loader2,
+  Send
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -71,6 +73,11 @@ interface FinancingApplication {
   full_name: string;
   updated_at: string;
   created_at: string;
+  // Executive Bond fields
+  executive_bond_state: string | null;
+  executive_bond_sent_at: string | null;
+  executive_bond_signed_at: string | null;
+  contract_number: string | null;
 }
 
 interface StatusAction {
@@ -536,6 +543,132 @@ function ActionButtons({
   );
 }
 
+/**
+ * Executive Bond Status Card - كارت حالة السند التنفيذي للعميل
+ */
+function ExecutiveBondCard({
+  bondState,
+  bondSentAt,
+  bondSignedAt,
+  applicationId,
+  onConfirmSigned
+}: {
+  bondState: string;
+  bondSentAt: string | null;
+  bondSignedAt: string | null;
+  applicationId: string;
+  onConfirmSigned: () => void;
+}) {
+  const [isConfirming, setIsConfirming] = useState(false);
+  
+  const getBondStateInfo = () => {
+    switch (bondState) {
+      case 'ISSUED':
+        return {
+          title: 'السند التنفيذي جاهز للتوقيع',
+          description: 'تم إرسال السند التنفيذي إليك عبر منصة نافذ. يرجى توقيعه لإتمام عملية التمويل.',
+          color: 'border-orange-500 bg-orange-500/5',
+          badgeColor: 'bg-orange-500',
+          icon: FileSignature,
+          showConfirmButton: true
+        };
+      case 'SIGNED_BY_CLIENT':
+        return {
+          title: 'تم توقيع السند التنفيذي',
+          description: 'شكراً لك! تم تأكيد توقيعك على السند التنفيذي. سيتم تفعيل التمويل قريباً.',
+          color: 'border-green-500 bg-green-500/5',
+          badgeColor: 'bg-green-500',
+          icon: CheckCircle2,
+          showConfirmButton: false
+        };
+      default:
+        return {
+          title: 'جاري معالجة السند',
+          description: 'جاري إعداد السند التنفيذي. سيتم إعلامك عند جاهزيته.',
+          color: 'border-blue-500 bg-blue-500/5',
+          badgeColor: 'bg-blue-500',
+          icon: Loader2,
+          showConfirmButton: false
+        };
+    }
+  };
+
+  const info = getBondStateInfo();
+  const IconComponent = info.icon;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 }}
+    >
+      <Card className={cn('border-2', info.color)} dir="rtl">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            {/* Icon */}
+            <div className={cn('p-3 rounded-xl text-white', info.badgeColor)}>
+              <IconComponent className={cn('w-6 h-6', bondState === 'ISSUING' && 'animate-spin')} />
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-bold text-lg">{info.title}</h3>
+                <Badge className={cn('text-white', info.badgeColor)}>
+                  {bondState === 'ISSUED' ? 'بانتظار التوقيع' : bondState === 'SIGNED_BY_CLIENT' ? 'تم التوقيع' : 'جاري الإعداد'}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">{info.description}</p>
+              
+              {bondSentAt && (
+                <p className="text-xs text-muted-foreground">
+                  تاريخ الإرسال: {format(new Date(bondSentAt), 'dd MMM yyyy - HH:mm', { locale: ar })}
+                </p>
+              )}
+              {bondSignedAt && (
+                <p className="text-xs text-green-600">
+                  تاريخ التوقيع: {format(new Date(bondSignedAt), 'dd MMM yyyy - HH:mm', { locale: ar })}
+                </p>
+              )}
+            </div>
+
+            {/* Actions */}
+            {info.showConfirmButton && (
+              <div className="flex flex-col gap-2 w-full sm:w-auto">
+                <Button
+                  onClick={() => window.open('https://nafath.sa', '_blank')}
+                  variant="outline"
+                  className="border-orange-500 text-orange-600 hover:bg-orange-500/10"
+                >
+                  <ExternalLink className="w-4 h-4 ml-2" />
+                  فتح منصة نافذ
+                </Button>
+                <Button
+                  onClick={onConfirmSigned}
+                  className="bg-green-500 hover:bg-green-600"
+                  disabled={isConfirming}
+                >
+                  {isConfirming ? (
+                    <>
+                      <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                      جاري التأكيد...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 ml-2" />
+                      تأكيد توقيع السند
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
 // =============================================
 // Main Component
 // =============================================
@@ -561,13 +694,13 @@ export function UnifiedStatusPage() {
       setIsLoading(true);
       const { data, error } = await supabase
         .from('financing_applications')
-        .select('id, application_number, status, approved_amount, requested_amount, full_name, updated_at, created_at')
+        .select('id, application_number, status, approved_amount, requested_amount, full_name, updated_at, created_at, executive_bond_state, executive_bond_sent_at, executive_bond_signed_at, contract_number')
         .eq('id', applicationId)
         .eq('user_id', user.id)
         .single();
 
       if (error) throw error;
-      setApplication(data);
+      setApplication(data as FinancingApplication);
     } catch (error) {
       console.error('Error fetching application:', error);
       toast.error('حدث خطأ في تحميل بيانات الطلب');
@@ -599,6 +732,29 @@ export function UnifiedStatusPage() {
       setIsLogLoading(false);
     }
   }, [applicationId]);
+
+  // Handle confirm bond signed - تأكيد توقيع السند التنفيذي
+  const handleConfirmBondSigned = async () => {
+    if (!applicationId) return;
+    
+    try {
+      const { error } = await supabase
+        .from('financing_applications')
+        .update({
+          executive_bond_state: 'SIGNED_BY_CLIENT',
+          executive_bond_signed_at: new Date().toISOString(),
+        })
+        .eq('id', applicationId);
+
+      if (error) throw error;
+      
+      toast.success('تم تأكيد توقيع السند التنفيذي بنجاح');
+      fetchApplication();
+    } catch (error) {
+      console.error('Error confirming bond signed:', error);
+      toast.error('حدث خطأ أثناء تأكيد التوقيع');
+    }
+  };
 
   useEffect(() => {
     fetchApplication();
@@ -727,6 +883,19 @@ export function UnifiedStatusPage() {
         applicationId={application.id}
         onAction={handleAction}
       />
+
+      {/* Executive Bond Status Card - عرض حالة السند التنفيذي */}
+      {application.executive_bond_state && application.executive_bond_state !== 'NOT_ISSUED' && (
+        <ExecutiveBondCard
+          bondState={application.executive_bond_state}
+          bondSentAt={application.executive_bond_sent_at}
+          bondSignedAt={application.executive_bond_signed_at}
+          applicationId={application.id}
+          onConfirmSigned={() => {
+            handleConfirmBondSigned();
+          }}
+        />
+      )}
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
