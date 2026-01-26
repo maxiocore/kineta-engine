@@ -235,6 +235,64 @@ export const APPLICATION_STATES: Record<ApplicationStatus, StateDefinition<Appli
     color: 'yellow',
     icon: 'Clock',
     customerVisible: true
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // حالات الإيداع الجديدة (Deposit States)
+  // ═══════════════════════════════════════════════════════════════
+  
+  CREDIT_DEPOSIT_PENDING: {
+    status: 'CREDIT_DEPOSIT_PENDING',
+    nameAr: 'قيد معالجة الإيداع',
+    nameEn: 'Credit Deposit Pending',
+    description: 'جاري معالجة إيداع رصيد الخدمات',
+    customerMessage: 'جاري إضافة رصيد الخدمات إلى حسابك...',
+    phase: 'activation',
+    isTerminal: false,
+    color: 'blue',
+    icon: 'Loader',
+    customerVisible: false
+  },
+
+  CREDIT_DEPOSITED: {
+    status: 'CREDIT_DEPOSITED',
+    nameAr: 'تم الإيداع',
+    nameEn: 'Credit Deposited',
+    description: 'تم إيداع رصيد الخدمات بنجاح',
+    customerMessage: 'تم إيداع رصيد الخدمات بنجاح! يمكنك استخدامه الآن',
+    phase: 'activation',
+    isTerminal: false,
+    color: 'green',
+    icon: 'CheckCircle',
+    customerVisible: true
+  },
+
+  CREDIT_DEPOSIT_FAILED: {
+    status: 'CREDIT_DEPOSIT_FAILED',
+    nameAr: 'فشل الإيداع',
+    nameEn: 'Credit Deposit Failed',
+    description: 'فشلت عملية إيداع رصيد الخدمات',
+    customerMessage: 'حدث خطأ أثناء إضافة الرصيد. فريقنا يعمل على حل المشكلة',
+    phase: 'activation',
+    isTerminal: false,
+    requiredAction: 'إعادة محاولة الإيداع',
+    requiredActionActor: 'admin',
+    color: 'red',
+    icon: 'AlertCircle',
+    customerVisible: false
+  },
+
+  RETRY_SCHEDULED: {
+    status: 'RETRY_SCHEDULED',
+    nameAr: 'مجدول لإعادة المحاولة',
+    nameEn: 'Retry Scheduled',
+    description: 'تم جدولة إعادة محاولة الإيداع تلقائياً',
+    customerMessage: 'جاري إعادة محاولة إضافة الرصيد...',
+    phase: 'activation',
+    isTerminal: false,
+    color: 'orange',
+    icon: 'RefreshCw',
+    customerVisible: false
   }
 };
 
