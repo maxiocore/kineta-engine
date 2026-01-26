@@ -1,8 +1,22 @@
-// WhatsApp notification helper using SmartWats API
+/**
+ * WhatsApp Notification Helper using SmartWats API v1.3
+ * 
+ * This module provides backward-compatible functions while using
+ * the new WhatsApp Provider with retry and error handling.
+ */
 
-const SMARTWATS_INSTANCE_ID = Deno.env.get('SMARTWATS_INSTANCE_ID');
-const SMARTWATS_ACCESS_TOKEN = Deno.env.get('SMARTWATS_ACCESS_TOKEN');
+import { 
+  WhatsAppProvider, 
+  formatPhoneNumber, 
+  isValidSaudiNumber,
+  WhatsAppSendResult,
+  WhatsAppErrorType 
+} from './whatsapp-provider.ts';
 
+// Re-export for backward compatibility
+export { formatPhoneNumber, isValidSaudiNumber };
+
+// Legacy interface for backward compatibility
 export interface WhatsAppNotification {
   phone: string;
   message: string;
@@ -15,55 +29,68 @@ export interface WhatsAppResult {
   error?: string;
 }
 
-export function formatPhoneNumber(phone: string): string {
-  // Remove all non-digits
-  let cleaned = phone.replace(/\D/g, '');
-  
-  // Handle Saudi numbers
-  if (cleaned.startsWith('0')) {
-    cleaned = '966' + cleaned.substring(1);
-  } else if (!cleaned.startsWith('966') && cleaned.length === 9) {
-    cleaned = '966' + cleaned;
-  }
-  
-  return cleaned;
+/**
+ * Send WhatsApp message - backward compatible wrapper
+ * Now uses WhatsAppProvider with retry and error classification
+ */
+export async function sendWhatsAppMessage(notification: WhatsAppNotification): Promise<WhatsAppResult> {
+  const result: WhatsAppSendResult = await WhatsAppProvider.sendText(
+    notification.phone,
+    notification.message,
+    { type: notification.type || 'general' }
+  );
+
+  // Convert to legacy format
+  return {
+    success: result.success,
+    messageId: result.messageId,
+    error: result.error?.message
+  };
 }
 
-export async function sendWhatsAppMessage(notification: WhatsAppNotification): Promise<WhatsAppResult> {
-  if (!SMARTWATS_INSTANCE_ID || !SMARTWATS_ACCESS_TOKEN) {
-    console.error('SmartWats credentials not configured');
-    return { success: false, error: 'WhatsApp not configured' };
+/**
+ * Send WhatsApp message with full result (new API)
+ */
+export async function sendWhatsAppMessageV2(notification: WhatsAppNotification): Promise<WhatsAppSendResult> {
+  return WhatsAppProvider.sendText(
+    notification.phone,
+    notification.message,
+    { type: notification.type || 'general' }
+  );
+}
+
+/**
+ * Send template-based status message with deep link
+ */
+export async function sendStatusNotification(
+  phone: string,
+  status: string,
+  params: {
+    applicationNumber?: string;
+    orderNumber?: string;
+    amount?: number;
+    customerName?: string;
+    deepLinkPath?: string;
   }
+): Promise<WhatsAppSendResult> {
+  return WhatsAppProvider.sendTemplateStatus(
+    phone,
+    {
+      status,
+      applicationNumber: params.applicationNumber,
+      orderNumber: params.orderNumber,
+      amount: params.amount,
+      customerName: params.customerName
+    },
+    params.deepLinkPath
+  );
+}
 
-  const formattedPhone = formatPhoneNumber(notification.phone);
-
-  try {
-    const response = await fetch('https://app.smartwats.com/api/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        number: formattedPhone,
-        type: 'text',
-        message: notification.message,
-        instance_id: SMARTWATS_INSTANCE_ID,
-        access_token: SMARTWATS_ACCESS_TOKEN,
-      }),
-    });
-
-    const result = await response.json();
-    console.log('WhatsApp SmartWats response:', result);
-    
-    if (result.status === 'success' || result.status === true) {
-      return { success: true, messageId: result.id || result.message_id };
-    }
-    
-    return { success: false, error: result.message || 'Failed to send' };
-  } catch (error: any) {
-    console.error('Error sending WhatsApp message:', error);
-    return { success: false, error: error?.message || 'Unknown error' };
-  }
+/**
+ * Check if WhatsApp is configured
+ */
+export function isWhatsAppConfigured(): boolean {
+  return WhatsAppProvider.isConfigured();
 }
 
 // Order status message templates
