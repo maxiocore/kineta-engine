@@ -1658,6 +1658,77 @@ export type Database = {
           },
         ]
       }
+      financing_acknowledgments: {
+        Row: {
+          acknowledgment_number: string
+          acknowledgment_type: string | null
+          application_id: string
+          created_at: string | null
+          id: string
+          pdf_hash: string | null
+          pdf_url: string | null
+          reading_time_seconds: number | null
+          sent_at: string | null
+          sent_by: string | null
+          signature_device_info: Json | null
+          signature_ip: unknown
+          signature_user_agent: string | null
+          signed_at: string | null
+          status: Database["public"]["Enums"]["acknowledgment_status"] | null
+          updated_at: string | null
+          viewed_at: string | null
+          viewed_count: number | null
+        }
+        Insert: {
+          acknowledgment_number: string
+          acknowledgment_type?: string | null
+          application_id: string
+          created_at?: string | null
+          id?: string
+          pdf_hash?: string | null
+          pdf_url?: string | null
+          reading_time_seconds?: number | null
+          sent_at?: string | null
+          sent_by?: string | null
+          signature_device_info?: Json | null
+          signature_ip?: unknown
+          signature_user_agent?: string | null
+          signed_at?: string | null
+          status?: Database["public"]["Enums"]["acknowledgment_status"] | null
+          updated_at?: string | null
+          viewed_at?: string | null
+          viewed_count?: number | null
+        }
+        Update: {
+          acknowledgment_number?: string
+          acknowledgment_type?: string | null
+          application_id?: string
+          created_at?: string | null
+          id?: string
+          pdf_hash?: string | null
+          pdf_url?: string | null
+          reading_time_seconds?: number | null
+          sent_at?: string | null
+          sent_by?: string | null
+          signature_device_info?: Json | null
+          signature_ip?: unknown
+          signature_user_agent?: string | null
+          signed_at?: string | null
+          status?: Database["public"]["Enums"]["acknowledgment_status"] | null
+          updated_at?: string | null
+          viewed_at?: string | null
+          viewed_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_acknowledgments_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "financing_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financing_activity_log: {
         Row: {
           actor_id: string | null
@@ -1723,6 +1794,7 @@ export type Database = {
           contract_override_name: string | null
           contract_signed_at: string | null
           created_at: string
+          current_phase: string | null
           email: string
           executive_bond_sent_at: string | null
           executive_bond_signed_at: string | null
@@ -1730,6 +1802,7 @@ export type Database = {
           full_name: string
           id: string
           national_id: string
+          phase_updated_at: string | null
           phone: string
           plan_id: string | null
           promissory_note_url: string | null
@@ -1744,6 +1817,7 @@ export type Database = {
           tax_number: string | null
           updated_at: string
           user_id: string
+          workflow_status: string | null
         }
         Insert: {
           address?: string | null
@@ -1759,6 +1833,7 @@ export type Database = {
           contract_override_name?: string | null
           contract_signed_at?: string | null
           created_at?: string
+          current_phase?: string | null
           email: string
           executive_bond_sent_at?: string | null
           executive_bond_signed_at?: string | null
@@ -1766,6 +1841,7 @@ export type Database = {
           full_name: string
           id?: string
           national_id: string
+          phase_updated_at?: string | null
           phone: string
           plan_id?: string | null
           promissory_note_url?: string | null
@@ -1780,6 +1856,7 @@ export type Database = {
           tax_number?: string | null
           updated_at?: string
           user_id: string
+          workflow_status?: string | null
         }
         Update: {
           address?: string | null
@@ -1795,6 +1872,7 @@ export type Database = {
           contract_override_name?: string | null
           contract_signed_at?: string | null
           created_at?: string
+          current_phase?: string | null
           email?: string
           executive_bond_sent_at?: string | null
           executive_bond_signed_at?: string | null
@@ -1802,6 +1880,7 @@ export type Database = {
           full_name?: string
           id?: string
           national_id?: string
+          phase_updated_at?: string | null
           phone?: string
           plan_id?: string | null
           promissory_note_url?: string | null
@@ -1816,6 +1895,7 @@ export type Database = {
           tax_number?: string | null
           updated_at?: string
           user_id?: string
+          workflow_status?: string | null
         }
         Relationships: [
           {
@@ -1830,6 +1910,99 @@ export type Database = {
             columns: ["service_id"]
             isOneToOne: false
             referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financing_contract_documents: {
+        Row: {
+          acceptance_checkbox: boolean | null
+          application_id: string
+          contract_number: string
+          created_at: string | null
+          expired_at: string | null
+          finalized_at: string | null
+          finalized_by: string | null
+          id: string
+          pdf_hash: string | null
+          pdf_url: string | null
+          reading_time_seconds: number | null
+          rejected_at: string | null
+          rejection_reason: string | null
+          scroll_percentage: number | null
+          sent_at: string | null
+          sent_by: string | null
+          signature_device_info: Json | null
+          signature_ip: unknown
+          signature_user_agent: string | null
+          signed_at: string | null
+          status: Database["public"]["Enums"]["contract_document_status"] | null
+          updated_at: string | null
+          viewed_at: string | null
+          viewed_count: number | null
+        }
+        Insert: {
+          acceptance_checkbox?: boolean | null
+          application_id: string
+          contract_number: string
+          created_at?: string | null
+          expired_at?: string | null
+          finalized_at?: string | null
+          finalized_by?: string | null
+          id?: string
+          pdf_hash?: string | null
+          pdf_url?: string | null
+          reading_time_seconds?: number | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          scroll_percentage?: number | null
+          sent_at?: string | null
+          sent_by?: string | null
+          signature_device_info?: Json | null
+          signature_ip?: unknown
+          signature_user_agent?: string | null
+          signed_at?: string | null
+          status?:
+            | Database["public"]["Enums"]["contract_document_status"]
+            | null
+          updated_at?: string | null
+          viewed_at?: string | null
+          viewed_count?: number | null
+        }
+        Update: {
+          acceptance_checkbox?: boolean | null
+          application_id?: string
+          contract_number?: string
+          created_at?: string | null
+          expired_at?: string | null
+          finalized_at?: string | null
+          finalized_by?: string | null
+          id?: string
+          pdf_hash?: string | null
+          pdf_url?: string | null
+          reading_time_seconds?: number | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          scroll_percentage?: number | null
+          sent_at?: string | null
+          sent_by?: string | null
+          signature_device_info?: Json | null
+          signature_ip?: unknown
+          signature_user_agent?: string | null
+          signed_at?: string | null
+          status?:
+            | Database["public"]["Enums"]["contract_document_status"]
+            | null
+          updated_at?: string | null
+          viewed_at?: string | null
+          viewed_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_contract_documents_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: true
+            referencedRelation: "financing_applications"
             referencedColumns: ["id"]
           },
         ]
@@ -2130,6 +2303,71 @@ export type Database = {
           },
         ]
       }
+      financing_executive_bonds: {
+        Row: {
+          application_id: string
+          bond_amount: number | null
+          bond_number: string | null
+          created_at: string | null
+          customer_confirmation_at: string | null
+          customer_confirmation_ip: unknown
+          id: string
+          issued_at: string | null
+          issued_by: string | null
+          nafith_reference: string | null
+          sent_by: string | null
+          sent_notification_at: string | null
+          signed_at: string | null
+          signed_confirmed_by_customer: boolean | null
+          status: Database["public"]["Enums"]["executive_bond_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          application_id: string
+          bond_amount?: number | null
+          bond_number?: string | null
+          created_at?: string | null
+          customer_confirmation_at?: string | null
+          customer_confirmation_ip?: unknown
+          id?: string
+          issued_at?: string | null
+          issued_by?: string | null
+          nafith_reference?: string | null
+          sent_by?: string | null
+          sent_notification_at?: string | null
+          signed_at?: string | null
+          signed_confirmed_by_customer?: boolean | null
+          status?: Database["public"]["Enums"]["executive_bond_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          application_id?: string
+          bond_amount?: number | null
+          bond_number?: string | null
+          created_at?: string | null
+          customer_confirmation_at?: string | null
+          customer_confirmation_ip?: unknown
+          id?: string
+          issued_at?: string | null
+          issued_by?: string | null
+          nafith_reference?: string | null
+          sent_by?: string | null
+          sent_notification_at?: string | null
+          signed_at?: string | null
+          signed_confirmed_by_customer?: boolean | null
+          status?: Database["public"]["Enums"]["executive_bond_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_executive_bonds_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: true
+            referencedRelation: "financing_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financing_installments: {
         Row: {
           amount: number
@@ -2181,6 +2419,62 @@ export type Database = {
             foreignKeyName: "financing_installments_application_id_fkey"
             columns: ["application_id"]
             isOneToOne: false
+            referencedRelation: "financing_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financing_offer_setup: {
+        Row: {
+          admin_notes: string | null
+          application_id: string
+          approved_amount: number
+          first_installment_date: string | null
+          full_name_from_id: string
+          id: string
+          installment_amount: number | null
+          installments_count: number
+          national_id_verified: boolean | null
+          setup_at: string | null
+          setup_by: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          application_id: string
+          approved_amount: number
+          first_installment_date?: string | null
+          full_name_from_id: string
+          id?: string
+          installment_amount?: number | null
+          installments_count?: number
+          national_id_verified?: boolean | null
+          setup_at?: string | null
+          setup_by?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          application_id?: string
+          approved_amount?: number
+          first_installment_date?: string | null
+          full_name_from_id?: string
+          id?: string
+          installment_amount?: number | null
+          installments_count?: number
+          national_id_verified?: boolean | null
+          setup_at?: string | null
+          setup_by?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_offer_setup_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: true
             referencedRelation: "financing_applications"
             referencedColumns: ["id"]
           },
@@ -2323,6 +2617,77 @@ export type Database = {
           value?: Json
         }
         Relationships: []
+      }
+      financing_workflow_audit: {
+        Row: {
+          actor_email: string | null
+          actor_id: string | null
+          actor_role: string
+          application_id: string
+          created_at: string | null
+          device_info: Json | null
+          entity_id: string | null
+          entity_type: string
+          event_type: string
+          from_status: string | null
+          id: string
+          ip_address: unknown
+          is_customer_visible: boolean | null
+          new_data: Json | null
+          old_data: Json | null
+          reason: string | null
+          to_status: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          actor_email?: string | null
+          actor_id?: string | null
+          actor_role: string
+          application_id: string
+          created_at?: string | null
+          device_info?: Json | null
+          entity_id?: string | null
+          entity_type: string
+          event_type: string
+          from_status?: string | null
+          id?: string
+          ip_address?: unknown
+          is_customer_visible?: boolean | null
+          new_data?: Json | null
+          old_data?: Json | null
+          reason?: string | null
+          to_status?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          actor_email?: string | null
+          actor_id?: string | null
+          actor_role?: string
+          application_id?: string
+          created_at?: string | null
+          device_info?: Json | null
+          entity_id?: string | null
+          entity_type?: string
+          event_type?: string
+          from_status?: string | null
+          id?: string
+          ip_address?: unknown
+          is_customer_visible?: boolean | null
+          new_data?: Json | null
+          old_data?: Json | null
+          reason?: string | null
+          to_status?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_workflow_audit_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "financing_applications"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       fraud_blacklists: {
         Row: {
@@ -4337,8 +4702,40 @@ export type Database = {
       }
     }
     Enums: {
+      acknowledgment_status: "NOT_SENT" | "SENT" | "VIEWED" | "SIGNED"
       app_role: "admin" | "user"
+      contract_document_status:
+        | "NOT_SENT"
+        | "SENT"
+        | "VIEWED"
+        | "SIGNED"
+        | "FINALIZED"
+        | "EXPIRED"
+        | "REJECTED"
       contract_status: "draft" | "presented" | "accepted" | "finalized"
+      executive_bond_status:
+        | "NOT_ISSUED"
+        | "ISSUING"
+        | "ISSUED"
+        | "SENT"
+        | "SIGNED"
+      financing_application_status:
+        | "DRAFT"
+        | "REQUEST_SUBMITTED"
+        | "UNDER_REVIEW"
+        | "INFO_REQUIRED"
+        | "ADMIN_SETUP"
+        | "OFFER_READY"
+        | "CONTRACT_PHASE"
+        | "ACK_PHASE"
+        | "BOND_PHASE"
+        | "CREDIT_PENDING"
+        | "CREDIT_ACTIVE"
+        | "IN_USE"
+        | "COMPLETED"
+        | "DECLINED"
+        | "CANCELLED"
+        | "EXPIRED"
       order_status:
         | "pending"
         | "confirmed"
@@ -4478,8 +4875,43 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      acknowledgment_status: ["NOT_SENT", "SENT", "VIEWED", "SIGNED"],
       app_role: ["admin", "user"],
+      contract_document_status: [
+        "NOT_SENT",
+        "SENT",
+        "VIEWED",
+        "SIGNED",
+        "FINALIZED",
+        "EXPIRED",
+        "REJECTED",
+      ],
       contract_status: ["draft", "presented", "accepted", "finalized"],
+      executive_bond_status: [
+        "NOT_ISSUED",
+        "ISSUING",
+        "ISSUED",
+        "SENT",
+        "SIGNED",
+      ],
+      financing_application_status: [
+        "DRAFT",
+        "REQUEST_SUBMITTED",
+        "UNDER_REVIEW",
+        "INFO_REQUIRED",
+        "ADMIN_SETUP",
+        "OFFER_READY",
+        "CONTRACT_PHASE",
+        "ACK_PHASE",
+        "BOND_PHASE",
+        "CREDIT_PENDING",
+        "CREDIT_ACTIVE",
+        "IN_USE",
+        "COMPLETED",
+        "DECLINED",
+        "CANCELLED",
+        "EXPIRED",
+      ],
       order_status: [
         "pending",
         "confirmed",
