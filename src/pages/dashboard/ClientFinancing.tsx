@@ -810,32 +810,14 @@ export default function ClientFinancing() {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
           <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-            <TabsList className="bg-card/80 backdrop-blur-sm border border-border/50 inline-flex w-max sm:w-auto gap-0.5 p-0.5 h-9 rounded-lg flex-row-reverse shadow-sm" dir="rtl">
+            <TabsList className="bg-card/80 backdrop-blur-sm border border-border/50 inline-flex w-max sm:w-auto gap-0.5 p-0.5 h-9 rounded-lg shadow-sm" dir="rtl">
               <TabsTrigger 
-                value="plans" 
+                value="overview" 
                 className="text-[10px] sm:text-xs px-2 sm:px-3 py-1.5 whitespace-nowrap rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all duration-200 font-medium gap-1"
               >
-                <CreditCard className="h-3 w-3" />
-                <span>الخطط</span>
+                <Sparkles className="h-3 w-3" />
+                <span>نظرة عامة</span>
               </TabsTrigger>
-              {activeApplications.length > 0 && (
-                <>
-                  <TabsTrigger 
-                    value="contract" 
-                    className="text-[10px] sm:text-xs px-2 sm:px-3 py-1.5 whitespace-nowrap rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all duration-200 font-medium gap-1"
-                  >
-                    <FileText className="h-3 w-3" />
-                    <span>العقد</span>
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="installments" 
-                    className="text-[10px] sm:text-xs px-2 sm:px-3 py-1.5 whitespace-nowrap rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all duration-200 font-medium gap-1"
-                  >
-                    <Calendar className="h-3 w-3" />
-                    <span>الأقساط</span>
-                  </TabsTrigger>
-                </>
-              )}
               <TabsTrigger 
                 value="applications" 
                 className="text-[10px] sm:text-xs px-2 sm:px-3 py-1.5 whitespace-nowrap rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all duration-200 font-medium gap-1"
@@ -844,12 +826,30 @@ export default function ClientFinancing() {
                 <span>طلباتي</span>
                 <Badge variant="secondary" className="h-4 text-[8px] px-1 mr-0.5">{applications.length}</Badge>
               </TabsTrigger>
+              {activeApplications.length > 0 && (
+                <>
+                  <TabsTrigger 
+                    value="installments" 
+                    className="text-[10px] sm:text-xs px-2 sm:px-3 py-1.5 whitespace-nowrap rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all duration-200 font-medium gap-1"
+                  >
+                    <Calendar className="h-3 w-3" />
+                    <span>الأقساط</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="contract" 
+                    className="text-[10px] sm:text-xs px-2 sm:px-3 py-1.5 whitespace-nowrap rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all duration-200 font-medium gap-1"
+                  >
+                    <FileText className="h-3 w-3" />
+                    <span>العقد</span>
+                  </TabsTrigger>
+                </>
+              )}
               <TabsTrigger 
-                value="overview" 
+                value="plans" 
                 className="text-[10px] sm:text-xs px-2 sm:px-3 py-1.5 whitespace-nowrap rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm transition-all duration-200 font-medium gap-1"
               >
-                <Sparkles className="h-3 w-3" />
-                <span>نظرة عامة</span>
+                <CreditCard className="h-3 w-3" />
+                <span>الخطط</span>
               </TabsTrigger>
             </TabsList>
           </div>
