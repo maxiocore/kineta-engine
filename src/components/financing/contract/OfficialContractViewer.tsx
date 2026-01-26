@@ -488,32 +488,32 @@ export function OfficialContractViewer({
                   </h4>
                 </div>
                 
-                {/* Desktop Table */}
-                <div className="hidden sm:block">
+                {/* Desktop Table - RTL Optimized */}
+                <div className="hidden sm:block" dir="rtl">
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/50 hover:bg-muted/50">
                         <TableHead className="text-right font-bold w-12 text-foreground">#</TableHead>
                         <TableHead className="text-right font-bold text-foreground">وصف الخدمة</TableHead>
                         <TableHead className="text-center font-bold text-foreground w-20">الكمية</TableHead>
-                        <TableHead className="text-left font-bold text-foreground w-32">سعر الوحدة</TableHead>
-                        <TableHead className="text-left font-bold text-foreground w-36">الإجمالي</TableHead>
+                        <TableHead className="text-right font-bold text-foreground w-32">سعر الوحدة</TableHead>
+                        <TableHead className="text-right font-bold text-foreground w-36">الإجمالي</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {contractData.services_list.map((service, i) => (
                         <TableRow key={i} className="hover:bg-muted/30">
-                          <TableCell className="font-bold text-primary">{i + 1}</TableCell>
-                          <TableCell className="font-medium">{service.name}</TableCell>
+                          <TableCell className="text-right font-bold text-primary">{i + 1}</TableCell>
+                          <TableCell className="text-right font-medium">{service.name}</TableCell>
                           <TableCell className="text-center">
                             <Badge variant="secondary" className="font-mono">
                               {service.quantity}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-left font-mono text-muted-foreground">
+                          <TableCell className="text-right font-mono text-muted-foreground">
                             {formatCurrency(service.unit_price)} ر.س
                           </TableCell>
-                          <TableCell className="text-left font-mono font-bold text-primary">
+                          <TableCell className="text-right font-mono font-bold text-primary">
                             {formatCurrency(service.total_price)} ر.س
                           </TableCell>
                         </TableRow>
@@ -522,27 +522,27 @@ export function OfficialContractViewer({
                   </Table>
                 </div>
 
-                {/* Mobile Cards */}
-                <div className="sm:hidden divide-y">
+                {/* Mobile Cards - RTL Optimized */}
+                <div className="sm:hidden divide-y" dir="rtl">
                   {contractData.services_list.map((service, i) => (
                     <div key={i} className="p-4 space-y-3 hover:bg-muted/30">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-sm font-bold flex items-center justify-center">
-                            {i + 1}
-                          </span>
-                          <span className="font-bold">{service.name}</span>
-                        </div>
+                      <div className="flex items-center justify-between flex-row-reverse">
                         <Badge variant="secondary" className="font-mono">
                           الكمية: {service.quantity}
                         </Badge>
+                        <div className="flex items-center gap-2 flex-row-reverse">
+                          <span className="font-bold text-right">{service.name}</span>
+                          <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-sm font-bold flex items-center justify-center">
+                            {i + 1}
+                          </span>
+                        </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div className="flex flex-col">
+                        <div className="flex flex-col text-right">
                           <span className="text-muted-foreground text-xs">سعر الوحدة</span>
                           <span className="font-mono">{formatCurrency(service.unit_price)} ر.س</span>
                         </div>
-                        <div className="flex flex-col">
+                        <div className="flex flex-col text-right">
                           <span className="text-muted-foreground text-xs">الإجمالي</span>
                           <span className="font-mono font-bold text-primary">{formatCurrency(service.total_price)} ر.س</span>
                         </div>
