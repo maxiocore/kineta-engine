@@ -1,56 +1,67 @@
 /**
- * مولد PDF لعقد تمويل الخدمات
- * Service Financing Contract PDF Generator
+ * ═══════════════════════════════════════════════════════════════════════════════
+ *                    مولد PDF لعقد تمويل الخدمات - Contract PDF Generator
+ * ═══════════════════════════════════════════════════════════════════════════════
  * 
- * يولد ملف PDF بدعم كامل للغة العربية RTL
- * مع تضمين خط عربي (Amiri) داخل الملف
+ * ✅ دعم كامل للغة العربية:
+ *    - Arabic Shaping: الحروف متصلة بشكل صحيح
+ *    - RTL Direction: اتجاه النص من اليمين لليسار
+ *    - Embedded Fonts: خط Amiri مضمن داخل PDF
+ * 
+ * ✅ تصميم رسمي بنكي:
+ *    - ترويسة ثابتة في كل صفحة
+ *    - تذييل مع ترقيم الصفحات
+ *    - جداول منسقة RTL
+ *    - بنود مرقمة بصياغة قانونية
  */
 
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { COMPANY_INFO } from "./serviceFinancingPolicy";
 import { 
-  CONTRACT_CLAUSES, 
-  CLIENT_ACKNOWLEDGMENTS,
   CONTRACT_INFO,
   type ContractPlaceholders,
-  type ServiceItem,
-  type InstallmentItem,
 } from "./serviceFinancingContract";
+import {
+  LEGAL_CONTRACT_ARTICLES,
+  CLIENT_LEGAL_ACKNOWLEDGMENTS,
+  LEGAL_COMPANY_INFO,
+  CONTRACT_VERSION_INFO,
+} from "./legalContractContent";
+import {
+  processArabicText,
+  formatCurrencyForPdf,
+  PDF_COLORS,
+} from "./arabicPdfUtils";
 
-// Font loading status
+// ============================================
+// Font Loading
+// ============================================
+
 let fontsLoaded = false;
 let amiriRegularBase64: string | null = null;
 let amiriBoldBase64: string | null = null;
 
-/**
- * تحميل الخطوط العربية
- */
 async function loadArabicFonts(): Promise<void> {
   if (fontsLoaded) return;
 
   try {
-    // Load Amiri Regular
     const regularResponse = await fetch("/fonts/Amiri-Regular.ttf");
     const regularBuffer = await regularResponse.arrayBuffer();
     amiriRegularBase64 = arrayBufferToBase64(regularBuffer);
 
-    // Load Amiri Bold
     const boldResponse = await fetch("/fonts/Amiri-Bold.ttf");
     const boldBuffer = await boldResponse.arrayBuffer();
     amiriBoldBase64 = arrayBufferToBase64(boldBuffer);
 
     fontsLoaded = true;
-    console.log("✅ Arabic fonts loaded successfully");
+    console.log("✅ Arabic fonts loaded successfully for PDF");
   } catch (error) {
     console.error("❌ Error loading Arabic fonts:", error);
     throw new Error("فشل تحميل الخطوط العربية");
   }
 }
 
-/**
- * تحويل ArrayBuffer إلى Base64
- */
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   let binary = "";
@@ -60,9 +71,10 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(binary);
 }
 
-/**
- * تنسيق المبالغ بالريال السعودي
- */
+// ============================================
+// Utilities
+// ============================================
+
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("ar-SA", {
     minimumFractionDigits: 2,
@@ -70,9 +82,6 @@ function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-/**
- * حساب hash للعقد
- */
 async function calculateContractHash(content: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(content);
@@ -81,9 +90,10 @@ async function calculateContractHash(content: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
-/**
- * معلومات الصفحة
- */
+// ============================================
+// Types
+// ============================================
+
 interface PageInfo {
   pageWidth: number;
   pageHeight: number;
@@ -92,129 +102,62 @@ interface PageInfo {
   currentY: number;
 }
 
+// ============================================
+// Helper Functions
+// ============================================
+
 /**
- * مولد PDF العقد
+ * كتابة نص عربي في PDF
+ * يطبق Arabic Shaping تلقائياً
  */
-export async function generateContractPdf(
-  contractData: ContractPlaceholders,
-  options?: {
-    includeHash?: boolean;
-    approvalRecord?: {
-      approved_at: string;
-      user_id: string;
-    };
+function writeArabicText(
+  doc: jsPDF, 
+  text: string, 
+  x: number, 
+  y: number, 
+  options?: { align?: "left" | "center" | "right"; maxWidth?: number }
+): void {
+  const processedText = processArabicText(text);
+  const align = options?.align || "right";
+  
+  if (options?.maxWidth) {
+    const lines = doc.splitTextToSize(processedText, options.maxWidth);
+    lines.forEach((line: string, index: number) => {
+      doc.text(line, x, y + (index * 5), { align });
+    });
+  } else {
+    doc.text(processedText, x, y, { align });
   }
-): Promise<{ pdf: jsPDF; hash: string; blob: Blob }> {
-  // تحميل الخطوط أولاً
-  await loadArabicFonts();
+}
 
-  if (!amiriRegularBase64 || !amiriBoldBase64) {
-    throw new Error("الخطوط العربية غير متوفرة");
-  }
-
-  // إنشاء مستند PDF جديد
-  const doc = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "a4",
-    putOnlyUsedFonts: true,
+/**
+ * كتابة فقرة عربية متعددة الأسطر
+ */
+function writeArabicParagraph(
+  doc: jsPDF,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number = 5
+): number {
+  const processedText = processArabicText(text);
+  const lines = doc.splitTextToSize(processedText, maxWidth);
+  let currentY = y;
+  
+  lines.forEach((line: string) => {
+    if (line.trim()) {
+      doc.text(line, x, currentY, { align: "right" });
+      currentY += lineHeight;
+    }
   });
-
-  // تسجيل الخط العربي
-  doc.addFileToVFS("Amiri-Regular.ttf", amiriRegularBase64);
-  doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
   
-  doc.addFileToVFS("Amiri-Bold.ttf", amiriBoldBase64);
-  doc.addFont("Amiri-Bold.ttf", "Amiri", "bold");
-  
-  doc.setFont("Amiri", "normal");
-
-  const pageInfo: PageInfo = {
-    pageWidth: doc.internal.pageSize.getWidth(),
-    pageHeight: doc.internal.pageSize.getHeight(),
-    margin: 15,
-    contentWidth: doc.internal.pageSize.getWidth() - 30,
-    currentY: 20,
-  };
-
-  // حساب عدد الصفحات المتوقع
-  let totalPages = 1;
-  
-  // إضافة الترويسة
-  addHeader(doc, pageInfo, contractData);
-  pageInfo.currentY = 50;
-
-  // إضافة البسملة والعنوان
-  addTitleSection(doc, pageInfo, contractData);
-  pageInfo.currentY += 5;
-
-  // إضافة معلومات الأطراف
-  addPartiesSection(doc, pageInfo, contractData);
-  pageInfo.currentY += 5;
-
-  // إضافة تنبيه التمويل غير النقدي
-  addNonCashNotice(doc, pageInfo);
-  pageInfo.currentY += 5;
-
-  // إضافة بنود العقد
-  addContractClauses(doc, pageInfo);
-
-  // إضافة جدول الخدمات
-  pageInfo.currentY = checkNewPage(doc, pageInfo, 80);
-  addServicesTable(doc, pageInfo, contractData);
-
-  // إضافة التفاصيل المالية
-  pageInfo.currentY = checkNewPage(doc, pageInfo, 40);
-  addFinancialSummary(doc, pageInfo, contractData);
-
-  // إضافة جدول الأقساط
-  pageInfo.currentY = checkNewPage(doc, pageInfo, 80);
-  addInstallmentsTable(doc, pageInfo, contractData);
-
-  // إضافة إقرارات العميل
-  pageInfo.currentY = checkNewPage(doc, pageInfo, 60);
-  addClientAcknowledgments(doc, pageInfo);
-
-  // إضافة قسم التوقيع
-  pageInfo.currentY = checkNewPage(doc, pageInfo, 50);
-  addSignatureSection(doc, pageInfo, contractData, options?.approvalRecord);
-
-  // تحديث عدد الصفحات وإضافة التذييل
-  totalPages = doc.internal.pages.length - 1;
-  addFooterToAllPages(doc, pageInfo, totalPages);
-
-  // حساب hash العقد
-  const contractContent = JSON.stringify(contractData) + new Date().toISOString();
-  const hash = await calculateContractHash(contractContent);
-
-  // إضافة hash في آخر صفحة إذا مطلوب
-  if (options?.includeHash) {
-    const lastPage = doc.internal.pages.length - 1;
-    doc.setPage(lastPage);
-    doc.setFontSize(8);
-    doc.setFont("Amiri", "normal");
-    doc.setTextColor(128, 128, 128);
-    doc.text(`بصمة العقد: ${hash.substring(0, 32)}...`, pageInfo.pageWidth / 2, pageInfo.pageHeight - 8, { align: "center" });
-    doc.setTextColor(0, 0, 0);
-  }
-
-  // إنشاء Blob
-  const blob = doc.output("blob");
-
-  return { pdf: doc, hash, blob };
+  return currentY;
 }
 
-/**
- * التحقق من الحاجة لصفحة جديدة
- */
-function checkNewPage(doc: jsPDF, pageInfo: PageInfo, requiredSpace: number): number {
-  if (pageInfo.currentY + requiredSpace > pageInfo.pageHeight - 25) {
-    doc.addPage();
-    addHeader(doc, pageInfo, null);
-    return 50;
-  }
-  return pageInfo.currentY;
-}
+// ============================================
+// PDF Sections
+// ============================================
 
 /**
  * إضافة الترويسة
@@ -224,37 +167,84 @@ function addHeader(doc: jsPDF, pageInfo: PageInfo, contractData: ContractPlaceho
 
   // خلفية الترويسة
   doc.setFillColor(245, 247, 250);
-  doc.rect(0, 0, pageInfo.pageWidth, 40, "F");
+  doc.rect(0, 0, pageInfo.pageWidth, 42, "F");
   
-  // خط تحت الترويسة
-  doc.setDrawColor(59, 130, 246);
-  doc.setLineWidth(0.5);
-  doc.line(pageInfo.margin, 40, pageInfo.pageWidth - pageInfo.margin, 40);
+  // خط ملون تحت الترويسة
+  doc.setFillColor(...PDF_COLORS.primary);
+  doc.rect(0, 42, pageInfo.pageWidth, 1.5, "F");
 
   // اسم الشركة
   doc.setFont("Amiri", "bold");
   doc.setFontSize(14);
-  doc.setTextColor(31, 41, 55);
-  doc.text(COMPANY_INFO.name, rightX, 15, { align: "right" });
+  doc.setTextColor(...PDF_COLORS.dark);
+  writeArabicText(doc, LEGAL_COMPANY_INFO.name, rightX, 15);
 
-  // معلومات إضافية
+  // معلومات الشركة
   doc.setFont("Amiri", "normal");
   doc.setFontSize(9);
-  doc.setTextColor(107, 114, 128);
-  doc.text("المملكة العربية السعودية", rightX, 22, { align: "right" });
+  doc.setTextColor(...PDF_COLORS.secondary);
+  writeArabicText(doc, `سجل تجاري: ${LEGAL_COMPANY_INFO.commercialRegister}`, rightX, 22);
+  writeArabicText(doc, LEGAL_COMPANY_INFO.address, rightX, 28);
   
   if (contractData) {
-    doc.text(`رقم العقد: ${contractData.application_number}`, pageInfo.margin, 15, { align: "left" });
-    doc.text(`التاريخ: ${contractData.application_date}`, pageInfo.margin, 22, { align: "left" });
+    // رقم العقد والتاريخ على اليسار
+    doc.setTextColor(...PDF_COLORS.primary);
+    doc.setFont("Amiri", "bold");
+    writeArabicText(doc, `رقم العقد: ${contractData.application_number}`, pageInfo.margin, 15, { align: "left" });
+    doc.setFont("Amiri", "normal");
+    doc.setTextColor(...PDF_COLORS.secondary);
+    writeArabicText(doc, `تاريخ الإصدار: ${contractData.application_date}`, pageInfo.margin, 22, { align: "left" });
+    writeArabicText(doc, `إصدار: ${CONTRACT_VERSION_INFO.version}`, pageInfo.margin, 28, { align: "left" });
   }
 
   // شعار "عقد تمويل خدمات"
   doc.setFont("Amiri", "bold");
   doc.setFontSize(10);
-  doc.setTextColor(59, 130, 246);
-  doc.text("عقد تمويل خدمات", rightX, 32, { align: "right" });
+  doc.setTextColor(...PDF_COLORS.primary);
+  writeArabicText(doc, "عقد تمويل خدمات رسمي", rightX, 36);
 
   doc.setTextColor(0, 0, 0);
+}
+
+/**
+ * إضافة التذييل لجميع الصفحات
+ */
+function addFooterToAllPages(doc: jsPDF, pageInfo: PageInfo, totalPages: number): void {
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    
+    const footerY = pageInfo.pageHeight - 12;
+    
+    // خط فوق التذييل
+    doc.setDrawColor(229, 231, 235);
+    doc.setLineWidth(0.3);
+    doc.line(pageInfo.margin, footerY - 3, pageInfo.pageWidth - pageInfo.margin, footerY - 3);
+    
+    // رقم الصفحة في المنتصف
+    doc.setFont("Amiri", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(...PDF_COLORS.secondary);
+    writeArabicText(doc, `صفحة ${i} من ${totalPages}`, pageInfo.pageWidth / 2, footerY, { align: "center" });
+    
+    // اسم الشركة على اليمين
+    doc.setFontSize(7);
+    writeArabicText(doc, LEGAL_COMPANY_INFO.name, pageInfo.pageWidth - pageInfo.margin, footerY);
+    
+    // نوع المستند على اليسار  
+    writeArabicText(doc, "عقد تمويل خدمات", pageInfo.margin, footerY, { align: "left" });
+  }
+}
+
+/**
+ * التحقق من الحاجة لصفحة جديدة
+ */
+function checkNewPage(doc: jsPDF, pageInfo: PageInfo, requiredSpace: number): number {
+  if (pageInfo.currentY + requiredSpace > pageInfo.pageHeight - 25) {
+    doc.addPage();
+    addHeader(doc, pageInfo, null);
+    return 52;
+  }
+  return pageInfo.currentY;
 }
 
 /**
@@ -262,33 +252,38 @@ function addHeader(doc: jsPDF, pageInfo: PageInfo, contractData: ContractPlaceho
  */
 function addTitleSection(doc: jsPDF, pageInfo: PageInfo, contractData: ContractPlaceholders): void {
   const centerX = pageInfo.pageWidth / 2;
-  const rightX = pageInfo.pageWidth - pageInfo.margin;
   let y = pageInfo.currentY;
 
   // البسملة
   doc.setFont("Amiri", "bold");
-  doc.setFontSize(14);
-  doc.setTextColor(107, 114, 128);
-  doc.text("بسم الله الرحمن الرحيم", centerX, y, { align: "center" });
-  y += 10;
+  doc.setFontSize(16);
+  doc.setTextColor(...PDF_COLORS.secondary);
+  writeArabicText(doc, "بسم الله الرحمن الرحيم", centerX, y, { align: "center" });
+  y += 12;
 
   // العنوان الرئيسي
   doc.setFont("Amiri", "bold");
-  doc.setFontSize(18);
-  doc.setTextColor(31, 41, 55);
-  doc.text("عقد تمويل خدمات", centerX, y, { align: "center" });
+  doc.setFontSize(20);
+  doc.setTextColor(...PDF_COLORS.dark);
+  writeArabicText(doc, "عقد تمويل خدمات", centerX, y, { align: "center" });
   y += 8;
+
+  // خط تحت العنوان
+  doc.setDrawColor(...PDF_COLORS.primary);
+  doc.setLineWidth(1);
+  doc.line(centerX - 40, y, centerX + 40, y);
+  y += 6;
 
   // معلومات العقد
   doc.setFont("Amiri", "normal");
   doc.setFontSize(10);
-  doc.setTextColor(107, 114, 128);
-  doc.text(`رقم العقد: ${contractData.application_number}  •  تاريخ التحرير: ${contractData.application_date}`, centerX, y, { align: "center" });
+  doc.setTextColor(...PDF_COLORS.secondary);
+  writeArabicText(doc, `رقم العقد: ${contractData.application_number}`, centerX, y, { align: "center" });
   y += 5;
-  doc.text(`إصدار العقد: ${CONTRACT_INFO.version}`, centerX, y, { align: "center" });
+  writeArabicText(doc, `تاريخ التحرير: ${contractData.application_date}`, centerX, y, { align: "center" });
   
   doc.setTextColor(0, 0, 0);
-  pageInfo.currentY = y + 8;
+  pageInfo.currentY = y + 10;
 }
 
 /**
@@ -296,50 +291,61 @@ function addTitleSection(doc: jsPDF, pageInfo: PageInfo, contractData: ContractP
  */
 function addPartiesSection(doc: jsPDF, pageInfo: PageInfo, contractData: ContractPlaceholders): void {
   const rightX = pageInfo.pageWidth - pageInfo.margin;
+  const leftX = pageInfo.margin;
   let y = pageInfo.currentY;
 
-  // خلفية
+  // خلفية رمادية
   doc.setFillColor(249, 250, 251);
-  doc.roundedRect(pageInfo.margin, y, pageInfo.contentWidth, 35, 2, 2, "F");
+  doc.roundedRect(pageInfo.margin, y, pageInfo.contentWidth, 42, 3, 3, "F");
+  
+  // حدود
+  doc.setDrawColor(...PDF_COLORS.primary);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(pageInfo.margin, y, pageInfo.contentWidth, 42, 3, 3, "S");
+  
+  y += 8;
+
+  // ═══ الطرف الأول (يمين) ═══
+  doc.setFont("Amiri", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(...PDF_COLORS.primary);
+  writeArabicText(doc, "الطرف الأول (الممول / مزود الخدمة)", rightX - 5, y);
   y += 6;
-
-  // الطرف الأول
-  doc.setFont("Amiri", "bold");
-  doc.setFontSize(10);
-  doc.setTextColor(59, 130, 246);
-  doc.text("الطرف الأول (الممول / مزود الخدمة)", rightX - 5, y, { align: "right" });
-  y += 5;
   
   doc.setFont("Amiri", "normal");
-  doc.setFontSize(11);
-  doc.setTextColor(31, 41, 55);
-  doc.text(COMPANY_INFO.name, rightX - 5, y, { align: "right" });
+  doc.setFontSize(10);
+  doc.setTextColor(...PDF_COLORS.dark);
+  writeArabicText(doc, LEGAL_COMPANY_INFO.name, rightX - 5, y);
   y += 5;
   
   doc.setFontSize(9);
-  doc.setTextColor(107, 114, 128);
-  doc.text("المملكة العربية السعودية", rightX - 5, y, { align: "right" });
-
-  // الطرف الثاني (على اليسار)
-  y = pageInfo.currentY + 6;
-  doc.setFont("Amiri", "bold");
-  doc.setFontSize(10);
-  doc.setTextColor(59, 130, 246);
-  doc.text("الطرف الثاني (العميل / المستفيد)", pageInfo.margin + 5, y, { align: "left" });
+  doc.setTextColor(...PDF_COLORS.secondary);
+  writeArabicText(doc, `سجل تجاري: ${LEGAL_COMPANY_INFO.commercialRegister}`, rightX - 5, y);
   y += 5;
+  writeArabicText(doc, LEGAL_COMPANY_INFO.address, rightX - 5, y);
+
+  // ═══ الطرف الثاني (يسار) ═══
+  y = pageInfo.currentY + 8;
+  doc.setFont("Amiri", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(...PDF_COLORS.primary);
+  writeArabicText(doc, "الطرف الثاني (العميل / المستفيد)", leftX + 5, y, { align: "left" });
+  y += 6;
   
   doc.setFont("Amiri", "normal");
-  doc.setFontSize(11);
-  doc.setTextColor(31, 41, 55);
-  doc.text(contractData.customer_name, pageInfo.margin + 5, y, { align: "left" });
+  doc.setFontSize(10);
+  doc.setTextColor(...PDF_COLORS.dark);
+  writeArabicText(doc, contractData.customer_name, leftX + 5, y, { align: "left" });
   y += 5;
   
   doc.setFontSize(9);
-  doc.setTextColor(107, 114, 128);
-  doc.text(`الهوية: ${contractData.customer_national_id}  •  الجوال: ${contractData.customer_phone}`, pageInfo.margin + 5, y, { align: "left" });
+  doc.setTextColor(...PDF_COLORS.secondary);
+  writeArabicText(doc, `رقم الهوية: ${contractData.customer_national_id}`, leftX + 5, y, { align: "left" });
+  y += 5;
+  writeArabicText(doc, `الجوال: ${contractData.customer_phone} | البريد: ${contractData.customer_email}`, leftX + 5, y, { align: "left" });
 
   doc.setTextColor(0, 0, 0);
-  pageInfo.currentY += 40;
+  pageInfo.currentY += 50;
 }
 
 /**
@@ -351,106 +357,81 @@ function addNonCashNotice(doc: jsPDF, pageInfo: PageInfo): void {
 
   // خلفية صفراء
   doc.setFillColor(254, 243, 199);
-  doc.roundedRect(pageInfo.margin, y, pageInfo.contentWidth, 18, 2, 2, "F");
+  doc.roundedRect(pageInfo.margin, y, pageInfo.contentWidth, 22, 3, 3, "F");
   
-  // حدود
+  // حدود برتقالية
   doc.setDrawColor(251, 191, 36);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(pageInfo.margin, y, pageInfo.contentWidth, 18, 2, 2, "S");
+  doc.setLineWidth(0.5);
+  doc.roundedRect(pageInfo.margin, y, pageInfo.contentWidth, 22, 3, 3, "S");
   
-  y += 7;
+  y += 8;
   doc.setFont("Amiri", "bold");
-  doc.setFontSize(10);
+  doc.setFontSize(11);
   doc.setTextColor(180, 83, 9);
-  doc.text("⚠️ تنبيه مهم: تمويل خدمات فقط - غير نقدي", rightX - 5, y, { align: "right" });
-  y += 5;
+  writeArabicText(doc, "⚠️ تنبيه مهم: هذا عقد تمويل خدمات فقط - غير نقدي", rightX - 5, y);
+  y += 6;
   
   doc.setFont("Amiri", "normal");
   doc.setFontSize(9);
-  doc.text("لن يتم صرف أي مبلغ للعميل. الدفع مباشرة لمزود الخدمة.", rightX - 5, y, { align: "right" });
+  writeArabicText(doc, "لن يتم صرف أي مبلغ نقدي للعميل. قيمة التمويل تُضاف كرصيد خدمات داخل المنصة فقط.", rightX - 5, y);
 
   doc.setTextColor(0, 0, 0);
-  pageInfo.currentY += 23;
+  pageInfo.currentY += 28;
 }
 
 /**
- * إضافة بنود العقد
+ * إضافة بنود العقد الرسمية
  */
-function addContractClauses(doc: jsPDF, pageInfo: PageInfo): void {
+function addContractArticles(doc: jsPDF, pageInfo: PageInfo): void {
   const rightX = pageInfo.pageWidth - pageInfo.margin;
   let y = pageInfo.currentY;
 
   // عنوان البنود
   doc.setFont("Amiri", "bold");
-  doc.setFontSize(12);
-  doc.setTextColor(31, 41, 55);
-  doc.text("بنود العقد", rightX, y, { align: "right" });
-  y += 2;
-  
-  // خط فاصل
-  doc.setDrawColor(59, 130, 246);
-  doc.setLineWidth(0.3);
-  doc.line(rightX - 30, y, rightX, y);
-  y += 6;
-
-  // التمهيد
-  doc.setFont("Amiri", "bold");
-  doc.setFontSize(10);
-  doc.setTextColor(59, 130, 246);
-  doc.text(CONTRACT_CLAUSES.preamble.title, rightX, y, { align: "right" });
-  y += 5;
-  
-  doc.setFont("Amiri", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(55, 65, 81);
-  
-  const preambleLines = doc.splitTextToSize(CONTRACT_CLAUSES.preamble.content, pageInfo.contentWidth - 10);
-  preambleLines.forEach((line: string) => {
-    if (line.trim()) {
-      doc.text(line.trim(), rightX, y, { align: "right" });
-      y += 4;
-    }
-  });
+  doc.setFontSize(14);
+  doc.setTextColor(...PDF_COLORS.dark);
+  writeArabicText(doc, "بنود العقد", rightX, y);
   y += 3;
+  
+  // خط تحت العنوان
+  doc.setDrawColor(...PDF_COLORS.primary);
+  doc.setLineWidth(0.5);
+  doc.line(rightX - 30, y, rightX, y);
+  y += 8;
 
-  // باقي المواد
-  Object.entries(CONTRACT_CLAUSES).slice(1).forEach(([key, article]) => {
+  // المواد القانونية
+  LEGAL_CONTRACT_ARTICLES.forEach((article) => {
     // التحقق من الصفحة
-    if (y > pageInfo.pageHeight - 40) {
+    if (y > pageInfo.pageHeight - 50) {
       doc.addPage();
       addHeader(doc, pageInfo, null);
-      y = 50;
+      y = 52;
     }
 
     // عنوان المادة
     doc.setFont("Amiri", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(31, 41, 55);
-    doc.text(article.title, rightX, y, { align: "right" });
-    y += 5;
+    doc.setFontSize(11);
+    doc.setTextColor(...PDF_COLORS.primary);
+    writeArabicText(doc, article.title, rightX, y);
+    y += 6;
 
     // البنود
-    if ("clauses" in article) {
-      doc.setFont("Amiri", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(75, 85, 99);
+    doc.setFont("Amiri", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(...PDF_COLORS.dark);
+    
+    article.clauses.forEach((clause) => {
+      if (y > pageInfo.pageHeight - 25) {
+        doc.addPage();
+        addHeader(doc, pageInfo, null);
+        y = 52;
+      }
       
-      article.clauses.forEach((clause) => {
-        if (y > pageInfo.pageHeight - 25) {
-          doc.addPage();
-          addHeader(doc, pageInfo, null);
-          y = 50;
-        }
-        
-        const clauseLines = doc.splitTextToSize(clause, pageInfo.contentWidth - 15);
-        clauseLines.forEach((line: string) => {
-          doc.text(line, rightX - 5, y, { align: "right" });
-          y += 4;
-        });
-        y += 1;
-      });
-    }
-    y += 4;
+      y = writeArabicParagraph(doc, clause, rightX - 5, y, pageInfo.contentWidth - 10, 4);
+      y += 2;
+    });
+    
+    y += 5;
   });
 
   doc.setTextColor(0, 0, 0);
@@ -467,38 +448,45 @@ function addServicesTable(doc: jsPDF, pageInfo: PageInfo, contractData: Contract
   // عنوان القسم
   doc.setFont("Amiri", "bold");
   doc.setFontSize(12);
-  doc.setTextColor(31, 41, 55);
-  doc.text("📦 جدول الخدمات الممولة", rightX, y, { align: "right" });
+  doc.setTextColor(...PDF_COLORS.dark);
+  writeArabicText(doc, "جدول الخدمات الممولة", rightX, y);
   y += 8;
 
-  // بيانات الجدول
+  // بيانات الجدول (معكوسة للعرض RTL)
   const tableData = contractData.services_table.map((service, index) => {
     const vat = service.total * 0.15;
     const totalWithVat = service.total + vat;
     return [
-      `${formatCurrency(totalWithVat)} ر.س`,
-      `${formatCurrency(vat)} ر.س`,
-      `${formatCurrency(service.price)} ر.س`,
-      service.quantity.toString(),
-      service.name,
-      (index + 1).toString(),
+      processArabicText(`${formatCurrency(totalWithVat)} ر.س`),
+      processArabicText(`${formatCurrency(vat)} ر.س`),
+      processArabicText(`${formatCurrency(service.price)} ر.س`),
+      processArabicText(service.quantity.toString()),
+      processArabicText(service.name),
+      processArabicText((index + 1).toString()),
     ];
   });
 
-  // إضافة صف الإجمالي
+  // صف الإجمالي
   const totalVat = contractData.vat_amount;
   const grandTotal = contractData.total_services_value + totalVat;
   tableData.push([
-    `${formatCurrency(grandTotal)} ر.س`,
-    `${formatCurrency(totalVat)} ر.س`,
-    `${formatCurrency(contractData.total_services_value)} ر.س`,
+    processArabicText(`${formatCurrency(grandTotal)} ر.س`),
+    processArabicText(`${formatCurrency(totalVat)} ر.س`),
+    processArabicText(`${formatCurrency(contractData.total_services_value)} ر.س`),
     "",
-    "الإجمالي",
+    processArabicText("الإجمالي"),
     "",
   ]);
 
   autoTable(doc, {
-    head: [["الإجمالي شامل الضريبة", "الضريبة (15%)", "السعر", "الكمية", "اسم الخدمة", "#"]],
+    head: [[
+      processArabicText("الإجمالي شامل الضريبة"),
+      processArabicText("الضريبة (15%)"),
+      processArabicText("السعر"),
+      processArabicText("الكمية"),
+      processArabicText("اسم الخدمة"),
+      "#",
+    ]],
     body: tableData,
     startY: y,
     theme: "grid",
@@ -510,13 +498,12 @@ function addServicesTable(doc: jsPDF, pageInfo: PageInfo, contractData: Contract
       cellPadding: 3,
     },
     headStyles: {
-      fillColor: [59, 130, 246],
-      textColor: [255, 255, 255],
+      fillColor: PDF_COLORS.primary,
+      textColor: PDF_COLORS.white,
       fontStyle: "bold",
-      halign: "center",
     },
     bodyStyles: {
-      textColor: [31, 41, 55],
+      textColor: PDF_COLORS.dark,
     },
     alternateRowStyles: {
       fillColor: [249, 250, 251],
@@ -527,12 +514,11 @@ function addServicesTable(doc: jsPDF, pageInfo: PageInfo, contractData: Contract
       2: { halign: "left" },
       3: { halign: "center" },
       4: { halign: "right" },
-      5: { halign: "center", cellWidth: 10 },
+      5: { halign: "center", cellWidth: 12 },
     },
     margin: { left: pageInfo.margin, right: pageInfo.margin },
     tableWidth: pageInfo.contentWidth,
     didParseCell: (data) => {
-      // تنسيق صف الإجمالي
       if (data.row.index === tableData.length - 1) {
         data.cell.styles.fillColor = [219, 234, 254];
         data.cell.styles.fontStyle = "bold";
@@ -540,7 +526,7 @@ function addServicesTable(doc: jsPDF, pageInfo: PageInfo, contractData: Contract
     },
   });
 
-  pageInfo.currentY = (doc as any).lastAutoTable.finalY + 8;
+  pageInfo.currentY = (doc as any).lastAutoTable.finalY + 10;
 }
 
 /**
@@ -552,46 +538,48 @@ function addFinancialSummary(doc: jsPDF, pageInfo: PageInfo, contractData: Contr
 
   // عنوان
   doc.setFont("Amiri", "bold");
-  doc.setFontSize(11);
-  doc.setTextColor(31, 41, 55);
-  doc.text("💰 الملخص المالي", rightX, y, { align: "right" });
-  y += 6;
+  doc.setFontSize(12);
+  doc.setTextColor(...PDF_COLORS.dark);
+  writeArabicText(doc, "الملخص المالي", rightX, y);
+  y += 8;
 
   // خلفية
   doc.setFillColor(239, 246, 255);
-  doc.roundedRect(pageInfo.margin, y, pageInfo.contentWidth, 30, 2, 2, "F");
-  doc.setDrawColor(59, 130, 246);
+  doc.roundedRect(pageInfo.margin, y, pageInfo.contentWidth, 35, 3, 3, "F");
+  doc.setDrawColor(...PDF_COLORS.primary);
   doc.setLineWidth(0.3);
-  doc.roundedRect(pageInfo.margin, y, pageInfo.contentWidth, 30, 2, 2, "S");
+  doc.roundedRect(pageInfo.margin, y, pageInfo.contentWidth, 35, 3, 3, "S");
 
-  y += 8;
+  y += 10;
   doc.setFont("Amiri", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(55, 65, 81);
+  doc.setFontSize(10);
+  doc.setTextColor(...PDF_COLORS.dark);
 
-  // الأعمدة
-  const col1X = rightX - 5;
-  const col2X = rightX - 60;
-  const col3X = rightX - 120;
-
-  doc.text(`قيمة الخدمات: ${formatCurrency(contractData.total_services_value)} ر.س`, col1X, y, { align: "right" });
-  doc.text(`الرسوم الإدارية: ${formatCurrency(contractData.admin_fees)} ر.س`, col2X, y, { align: "right" });
-  doc.text(`ضريبة القيمة المضافة: ${formatCurrency(contractData.vat_amount)} ر.س`, col3X, y, { align: "right" });
+  const colWidth = pageInfo.contentWidth / 3;
   
-  y += 7;
+  // الصف الأول
+  writeArabicText(doc, `قيمة الخدمات: ${formatCurrency(contractData.total_services_value)} ر.س`, rightX - 5, y);
+  writeArabicText(doc, `الرسوم الإدارية: ${formatCurrency(contractData.admin_fees)} ر.س`, rightX - colWidth - 5, y);
+  writeArabicText(doc, `ضريبة القيمة المضافة: ${formatCurrency(contractData.vat_amount)} ر.س`, rightX - (colWidth * 2) - 5, y);
+  
+  y += 8;
+  
+  // الصف الثاني
   if (contractData.down_payment && contractData.down_payment > 0) {
-    doc.text(`الدفعة المقدمة: ${formatCurrency(contractData.down_payment)} ر.س`, col1X, y, { align: "right" });
+    writeArabicText(doc, `الدفعة المقدمة: ${formatCurrency(contractData.down_payment)} ر.س`, rightX - 5, y);
   }
-  doc.text(`المبلغ الممول: ${formatCurrency(contractData.financed_amount)} ر.س`, col2X, y, { align: "right" });
+  writeArabicText(doc, `المبلغ الممول: ${formatCurrency(contractData.financed_amount)} ر.س`, rightX - colWidth - 5, y);
 
-  y += 7;
+  y += 10;
+  
+  // الإجمالي
   doc.setFont("Amiri", "bold");
-  doc.setFontSize(11);
-  doc.setTextColor(59, 130, 246);
-  doc.text(`إجمالي المبلغ المستحق: ${formatCurrency(contractData.total_amount)} ر.س`, pageInfo.pageWidth / 2, y, { align: "center" });
+  doc.setFontSize(12);
+  doc.setTextColor(...PDF_COLORS.primary);
+  writeArabicText(doc, `إجمالي المبلغ المستحق: ${formatCurrency(contractData.total_amount)} ر.س`, pageInfo.pageWidth / 2, y, { align: "center" });
 
   doc.setTextColor(0, 0, 0);
-  pageInfo.currentY = y + 12;
+  pageInfo.currentY = y + 15;
 }
 
 /**
@@ -604,29 +592,34 @@ function addInstallmentsTable(doc: jsPDF, pageInfo: PageInfo, contractData: Cont
   // عنوان
   doc.setFont("Amiri", "bold");
   doc.setFontSize(12);
-  doc.setTextColor(31, 41, 55);
-  doc.text("📅 جدول الأقساط", rightX, y, { align: "right" });
-  y += 3;
+  doc.setTextColor(...PDF_COLORS.dark);
+  writeArabicText(doc, "جدول الأقساط", rightX, y);
+  y += 4;
 
   doc.setFont("Amiri", "normal");
   doc.setFontSize(9);
-  doc.setTextColor(107, 114, 128);
-  doc.text(`عدد الأقساط: ${contractData.installments_count}  •  قيمة القسط: ${formatCurrency(contractData.installment_amount)} ر.س`, rightX, y, { align: "right" });
-  y += 5;
+  doc.setTextColor(...PDF_COLORS.secondary);
+  writeArabicText(doc, `عدد الأقساط: ${contractData.installments_count} قسط | قيمة القسط: ${formatCurrency(contractData.installment_amount)} ر.س`, rightX, y);
+  y += 6;
 
   // بيانات الجدول
   const installmentData = contractData.installments_schedule.map((inst) => {
-    const statusText = inst.status === "paid" ? "✅ مدفوع" : inst.status === "overdue" ? "❌ متأخر" : "⏳ متوقع";
+    const statusText = inst.status === "paid" ? "✅ مدفوع" : inst.status === "overdue" ? "❌ متأخر" : "⏳ مستحق";
     return [
-      statusText,
-      `${formatCurrency(inst.amount)} ر.س`,
-      inst.dueDate,
-      inst.number.toString(),
+      processArabicText(statusText),
+      processArabicText(`${formatCurrency(inst.amount)} ر.س`),
+      processArabicText(inst.dueDate),
+      processArabicText(inst.number.toString()),
     ];
   });
 
   autoTable(doc, {
-    head: [["الحالة", "قيمة القسط", "تاريخ الاستحقاق", "رقم القسط"]],
+    head: [[
+      processArabicText("الحالة"),
+      processArabicText("قيمة القسط"),
+      processArabicText("تاريخ الاستحقاق"),
+      processArabicText("رقم القسط"),
+    ]],
     body: installmentData,
     startY: y,
     theme: "striped",
@@ -635,27 +628,27 @@ function addInstallmentsTable(doc: jsPDF, pageInfo: PageInfo, contractData: Cont
       fontSize: 9,
       halign: "center",
       valign: "middle",
-      cellPadding: 2.5,
+      cellPadding: 3,
     },
     headStyles: {
-      fillColor: [16, 185, 129],
-      textColor: [255, 255, 255],
+      fillColor: PDF_COLORS.success,
+      textColor: PDF_COLORS.white,
       fontStyle: "bold",
     },
     bodyStyles: {
-      textColor: [31, 41, 55],
+      textColor: PDF_COLORS.dark,
     },
     columnStyles: {
       0: { halign: "center" },
       1: { halign: "left", fontStyle: "bold" },
       2: { halign: "center" },
-      3: { halign: "center", cellWidth: 20 },
+      3: { halign: "center", cellWidth: 25 },
     },
     margin: { left: pageInfo.margin, right: pageInfo.margin },
     tableWidth: pageInfo.contentWidth,
   });
 
-  pageInfo.currentY = (doc as any).lastAutoTable.finalY + 8;
+  pageInfo.currentY = (doc as any).lastAutoTable.finalY + 10;
 }
 
 /**
@@ -668,26 +661,31 @@ function addClientAcknowledgments(doc: jsPDF, pageInfo: PageInfo): void {
   // عنوان
   doc.setFont("Amiri", "bold");
   doc.setFontSize(12);
-  doc.setTextColor(31, 41, 55);
-  doc.text("✅ إقرارات العميل", rightX, y, { align: "right" });
-  y += 6;
+  doc.setTextColor(...PDF_COLORS.dark);
+  writeArabicText(doc, "إقرارات العميل", rightX, y);
+  y += 8;
 
-  // خلفية
+  // خلفية خضراء فاتحة
+  const boxHeight = CLIENT_LEGAL_ACKNOWLEDGMENTS.length * 7 + 8;
   doc.setFillColor(240, 253, 244);
-  doc.roundedRect(pageInfo.margin, y, pageInfo.contentWidth, CLIENT_ACKNOWLEDGMENTS.length * 6 + 4, 2, 2, "F");
-  y += 5;
+  doc.roundedRect(pageInfo.margin, y, pageInfo.contentWidth, boxHeight, 3, 3, "F");
+  doc.setDrawColor(...PDF_COLORS.success);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(pageInfo.margin, y, pageInfo.contentWidth, boxHeight, 3, 3, "S");
+  
+  y += 6;
 
   doc.setFont("Amiri", "normal");
   doc.setFontSize(9);
   doc.setTextColor(22, 101, 52);
 
-  CLIENT_ACKNOWLEDGMENTS.forEach((ack, index) => {
-    doc.text(`☑ ${index + 1}. ${ack}`, rightX - 5, y, { align: "right" });
-    y += 5;
+  CLIENT_LEGAL_ACKNOWLEDGMENTS.forEach((ack, index) => {
+    writeArabicText(doc, `☑ ${index + 1}. ${ack}`, rightX - 5, y);
+    y += 6;
   });
 
   doc.setTextColor(0, 0, 0);
-  pageInfo.currentY = y + 5;
+  pageInfo.currentY = y + 8;
 }
 
 /**
@@ -707,88 +705,185 @@ function addSignatureSection(
   doc.setDrawColor(209, 213, 219);
   doc.setLineWidth(0.5);
   doc.line(pageInfo.margin, y, pageInfo.pageWidth - pageInfo.margin, y);
-  y += 8;
+  y += 10;
 
   // عنوان
   doc.setFont("Amiri", "bold");
-  doc.setFontSize(12);
-  doc.setTextColor(31, 41, 55);
-  doc.text("التوقيع والاعتماد", centerX, y, { align: "center" });
-  y += 10;
+  doc.setFontSize(14);
+  doc.setTextColor(...PDF_COLORS.dark);
+  writeArabicText(doc, "التوقيع والاعتماد", centerX, y, { align: "center" });
+  y += 12;
 
-  // صندوق الطرف الأول
+  const boxWidth = (pageInfo.contentWidth / 2) - 8;
+  const boxHeight = 30;
+
+  // ═══ صندوق الطرف الأول (يمين) ═══
   doc.setFillColor(249, 250, 251);
-  doc.roundedRect(centerX + 5, y, (pageInfo.contentWidth / 2) - 10, 25, 2, 2, "F");
+  doc.roundedRect(centerX + 4, y, boxWidth, boxHeight, 3, 3, "F");
   
   doc.setFont("Amiri", "bold");
-  doc.setFontSize(9);
-  doc.text("الطرف الأول", rightX - 10, y + 6, { align: "right" });
-  doc.setFont("Amiri", "normal");
-  doc.setFontSize(8);
-  doc.text(COMPANY_INFO.name, rightX - 10, y + 12, { align: "right" });
-  doc.setTextColor(16, 185, 129);
-  doc.text("✓ توقيع إلكتروني معتمد", rightX - 10, y + 18, { align: "right" });
-
-  // صندوق الطرف الثاني
-  doc.setFillColor(249, 250, 251);
-  doc.roundedRect(pageInfo.margin, y, (pageInfo.contentWidth / 2) - 10, 25, 2, 2, "F");
+  doc.setFontSize(10);
+  doc.setTextColor(...PDF_COLORS.dark);
+  writeArabicText(doc, "الطرف الأول", rightX - 8, y + 8);
   
-  doc.setTextColor(31, 41, 55);
-  doc.setFont("Amiri", "bold");
-  doc.setFontSize(9);
-  doc.text("الطرف الثاني", pageInfo.margin + 5, y + 6, { align: "left" });
   doc.setFont("Amiri", "normal");
-  doc.setFontSize(8);
-  doc.text(contractData.customer_name, pageInfo.margin + 5, y + 12, { align: "left" });
+  doc.setFontSize(9);
+  writeArabicText(doc, LEGAL_COMPANY_INFO.name, rightX - 8, y + 15);
+  
+  doc.setTextColor(...PDF_COLORS.success);
+  writeArabicText(doc, "✓ توقيع إلكتروني معتمد", rightX - 8, y + 22);
+
+  // ═══ صندوق الطرف الثاني (يسار) ═══
+  doc.setFillColor(249, 250, 251);
+  doc.roundedRect(pageInfo.margin, y, boxWidth, boxHeight, 3, 3, "F");
+  
+  doc.setTextColor(...PDF_COLORS.dark);
+  doc.setFont("Amiri", "bold");
+  doc.setFontSize(10);
+  writeArabicText(doc, "الطرف الثاني", pageInfo.margin + 8, y + 8, { align: "left" });
+  
+  doc.setFont("Amiri", "normal");
+  doc.setFontSize(9);
+  writeArabicText(doc, contractData.customer_name, pageInfo.margin + 8, y + 15, { align: "left" });
   
   if (approvalRecord) {
-    doc.setTextColor(16, 185, 129);
-    doc.text(`✓ تمت الموافقة: ${new Date(approvalRecord.approved_at).toLocaleString("ar-SA")}`, pageInfo.margin + 5, y + 18, { align: "left" });
+    doc.setTextColor(...PDF_COLORS.success);
+    const approvalDate = new Date(approvalRecord.approved_at).toLocaleString("ar-SA");
+    writeArabicText(doc, `✓ تمت الموافقة: ${approvalDate}`, pageInfo.margin + 8, y + 22, { align: "left" });
   } else {
-    doc.setTextColor(234, 179, 8);
-    doc.text("⏳ بانتظار الموافقة الإلكترونية", pageInfo.margin + 5, y + 18, { align: "left" });
+    doc.setTextColor(...PDF_COLORS.warning);
+    writeArabicText(doc, "⏳ بانتظار الموافقة الإلكترونية", pageInfo.margin + 8, y + 22, { align: "left" });
   }
 
-  y += 30;
+  y += boxHeight + 10;
 
   // ملاحظة قانونية
-  doc.setTextColor(107, 114, 128);
+  doc.setTextColor(...PDF_COLORS.secondary);
   doc.setFont("Amiri", "normal");
   doc.setFontSize(8);
-  doc.text("الموافقة الإلكترونية لها نفس الحجية القانونية للتوقيع الخطي وفقاً لنظام التعاملات الإلكترونية السعودي", centerX, y, { align: "center" });
+  writeArabicText(doc, "الموافقة الإلكترونية لها نفس الحجية القانونية للتوقيع الخطي وفقاً لنظام التعاملات الإلكترونية السعودي", centerX, y, { align: "center" });
 
   doc.setTextColor(0, 0, 0);
   pageInfo.currentY = y + 10;
 }
 
-/**
- * إضافة التذييل لجميع الصفحات
- */
-function addFooterToAllPages(doc: jsPDF, pageInfo: PageInfo, totalPages: number): void {
-  for (let i = 1; i <= totalPages; i++) {
-    doc.setPage(i);
-    
-    // خط فوق التذييل
-    doc.setDrawColor(229, 231, 235);
-    doc.setLineWidth(0.3);
-    doc.line(pageInfo.margin, pageInfo.pageHeight - 15, pageInfo.pageWidth - pageInfo.margin, pageInfo.pageHeight - 15);
-    
-    // رقم الصفحة
-    doc.setFont("Amiri", "normal");
-    doc.setFontSize(9);
-    doc.setTextColor(107, 114, 128);
-    doc.text(`صفحة ${i} من ${totalPages}`, pageInfo.pageWidth / 2, pageInfo.pageHeight - 10, { align: "center" });
-    
-    // اسم الشركة
-    doc.setFontSize(7);
-    doc.text(COMPANY_INFO.name, pageInfo.pageWidth - pageInfo.margin, pageInfo.pageHeight - 10, { align: "right" });
-    doc.text("عقد تمويل خدمات", pageInfo.margin, pageInfo.pageHeight - 10, { align: "left" });
+// ============================================
+// Main Generator Function
+// ============================================
+
+export async function generateContractPdf(
+  contractData: ContractPlaceholders,
+  options?: {
+    includeHash?: boolean;
+    approvalRecord?: {
+      approved_at: string;
+      user_id: string;
+    };
   }
+): Promise<{ pdf: jsPDF; hash: string; blob: Blob }> {
+  // تحميل الخطوط
+  await loadArabicFonts();
+
+  if (!amiriRegularBase64 || !amiriBoldBase64) {
+    throw new Error("الخطوط العربية غير متوفرة");
+  }
+
+  // إنشاء مستند PDF
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+    putOnlyUsedFonts: true,
+  });
+
+  // تسجيل الخطوط
+  doc.addFileToVFS("Amiri-Regular.ttf", amiriRegularBase64);
+  doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
+  
+  doc.addFileToVFS("Amiri-Bold.ttf", amiriBoldBase64);
+  doc.addFont("Amiri-Bold.ttf", "Amiri", "bold");
+  
+  doc.setFont("Amiri", "normal");
+
+  const pageInfo: PageInfo = {
+    pageWidth: doc.internal.pageSize.getWidth(),
+    pageHeight: doc.internal.pageSize.getHeight(),
+    margin: 15,
+    contentWidth: doc.internal.pageSize.getWidth() - 30,
+    currentY: 20,
+  };
+
+  // ═══════════════════════════════════════
+  // بناء محتوى العقد
+  // ═══════════════════════════════════════
+
+  // 1. الترويسة
+  addHeader(doc, pageInfo, contractData);
+  pageInfo.currentY = 52;
+
+  // 2. العنوان والبسملة
+  addTitleSection(doc, pageInfo, contractData);
+
+  // 3. معلومات الأطراف
+  addPartiesSection(doc, pageInfo, contractData);
+
+  // 4. تنبيه التمويل غير النقدي
+  addNonCashNotice(doc, pageInfo);
+
+  // 5. بنود العقد القانونية
+  addContractArticles(doc, pageInfo);
+
+  // 6. جدول الخدمات
+  pageInfo.currentY = checkNewPage(doc, pageInfo, 80);
+  addServicesTable(doc, pageInfo, contractData);
+
+  // 7. الملخص المالي
+  pageInfo.currentY = checkNewPage(doc, pageInfo, 50);
+  addFinancialSummary(doc, pageInfo, contractData);
+
+  // 8. جدول الأقساط
+  pageInfo.currentY = checkNewPage(doc, pageInfo, 80);
+  addInstallmentsTable(doc, pageInfo, contractData);
+
+  // 9. إقرارات العميل
+  pageInfo.currentY = checkNewPage(doc, pageInfo, 70);
+  addClientAcknowledgments(doc, pageInfo);
+
+  // 10. قسم التوقيع
+  pageInfo.currentY = checkNewPage(doc, pageInfo, 60);
+  addSignatureSection(doc, pageInfo, contractData, options?.approvalRecord);
+
+  // ═══════════════════════════════════════
+  // إضافة التذييل لجميع الصفحات
+  // ═══════════════════════════════════════
+  const totalPages = doc.internal.pages.length - 1;
+  addFooterToAllPages(doc, pageInfo, totalPages);
+
+  // ═══════════════════════════════════════
+  // حساب hash العقد
+  // ═══════════════════════════════════════
+  const contractContent = JSON.stringify(contractData) + new Date().toISOString();
+  const hash = await calculateContractHash(contractContent);
+
+  if (options?.includeHash) {
+    const lastPage = doc.internal.pages.length - 1;
+    doc.setPage(lastPage);
+    doc.setFontSize(7);
+    doc.setFont("Amiri", "normal");
+    doc.setTextColor(128, 128, 128);
+    writeArabicText(doc, `بصمة العقد: ${hash.substring(0, 40)}...`, pageInfo.pageWidth / 2, pageInfo.pageHeight - 5, { align: "center" });
+    doc.setTextColor(0, 0, 0);
+  }
+
+  const blob = doc.output("blob");
+
+  return { pdf: doc, hash, blob };
 }
 
-/**
- * تحميل ملف PDF
- */
+// ============================================
+// Export Functions
+// ============================================
+
 export async function downloadContractPdf(
   contractData: ContractPlaceholders,
   filename?: string,
@@ -812,9 +907,6 @@ export async function downloadContractPdf(
   }
 }
 
-/**
- * عرض PDF في نافذة جديدة
- */
 export async function previewContractPdf(
   contractData: ContractPlaceholders,
   options?: {
@@ -836,4 +928,15 @@ export async function previewContractPdf(
       error: error instanceof Error ? error.message : "حدث خطأ أثناء عرض الملف" 
     };
   }
+}
+
+export async function getContractPdfBlob(
+  contractData: ContractPlaceholders,
+  options?: {
+    includeHash?: boolean;
+    approvalRecord?: { approved_at: string; user_id: string };
+  }
+): Promise<{ blob: Blob; hash: string }> {
+  const { blob, hash } = await generateContractPdf(contractData, options);
+  return { blob, hash };
 }
