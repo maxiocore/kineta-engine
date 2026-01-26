@@ -139,14 +139,14 @@ const queryClient = new QueryClient({
 });
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-      <AuthProvider>
-        <MaintenanceProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+  <BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+        <AuthProvider>
+          <MaintenanceProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
               <NotificationListener />
               <NotificationPermissionPrompt variant="banner" />
               <InAppNotificationContainer />
@@ -578,12 +578,12 @@ const App = () => (
                   </Routes>
                 </Suspense>
               </MaintenanceGuard>
-            </BrowserRouter>
-          </TooltipProvider>
-        </MaintenanceProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+            </TooltipProvider>
+          </MaintenanceProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </BrowserRouter>
 );
 
 export default App;
