@@ -252,5 +252,3 @@ export const useUserBadges = (userId?: string) => {
     refetch: fetchUserBadges
   };
 };
-
-export default useUserBadges;
