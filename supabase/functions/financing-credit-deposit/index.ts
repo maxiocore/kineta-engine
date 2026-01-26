@@ -431,6 +431,30 @@ serve(async (req) => {
         action_url: '/dashboard/services'
       });
 
+    // ═══════════════════════════════════════════════════════════════
+    // STEP 10: Send Completion Notification with Document Links
+    // ═══════════════════════════════════════════════════════════════
+    try {
+      console.log('[Credit-Deposit] Triggering completion notification...');
+      
+      const { error: completionError } = await supabase.functions.invoke('financing-completion-notify', {
+        body: {
+          applicationId: applicationId,
+          eventType: 'FINANCING_FULLY_COMPLETED',
+          actorId: actorId
+        }
+      });
+
+      if (completionError) {
+        console.error('[Credit-Deposit] Completion notification failed:', completionError);
+      } else {
+        console.log('[Credit-Deposit] Completion notification sent successfully');
+      }
+    } catch (completionErr) {
+      console.error('[Credit-Deposit] Completion notification error:', completionErr);
+      // Don't throw - main operation is complete
+    }
+
     console.log(`[Credit-Deposit] Complete. Time: ${processingTime}ms`);
 
     const result: DepositResult = {
