@@ -687,6 +687,77 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_signing_otps: {
+        Row: {
+          application_id: string
+          attempts_count: number
+          contract_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          idempotency_key: string | null
+          locked_until: string | null
+          otp_hash: string
+          phone: string
+          reading_time_seconds: number | null
+          scroll_percentage: number | null
+          signature_ip: unknown
+          signature_user_agent: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          application_id: string
+          attempts_count?: number
+          contract_id: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          idempotency_key?: string | null
+          locked_until?: string | null
+          otp_hash: string
+          phone: string
+          reading_time_seconds?: number | null
+          scroll_percentage?: number | null
+          signature_ip?: unknown
+          signature_user_agent?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          application_id?: string
+          attempts_count?: number
+          contract_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          idempotency_key?: string | null
+          locked_until?: string | null
+          otp_hash?: string
+          phone?: string
+          reading_time_seconds?: number | null
+          scroll_percentage?: number | null
+          signature_ip?: unknown
+          signature_user_agent?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_signing_otps_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "financing_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupon_usages: {
         Row: {
           coupon_id: string
@@ -4708,6 +4779,7 @@ export type Database = {
         | "NOT_SENT"
         | "SENT"
         | "VIEWED"
+        | "SIGNING_OTP_SENT"
         | "SIGNED"
         | "FINALIZED"
         | "EXPIRED"
@@ -4881,6 +4953,7 @@ export const Constants = {
         "NOT_SENT",
         "SENT",
         "VIEWED",
+        "SIGNING_OTP_SENT",
         "SIGNED",
         "FINALIZED",
         "EXPIRED",
