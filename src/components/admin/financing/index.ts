@@ -1,6 +1,8 @@
 /**
  * مكونات إدارة التمويل
  * Financing Admin Components
+ * 
+ * v2 - Updated for new financing workflow
  */
 
 export { OfferSetupForm } from './OfferSetupForm';

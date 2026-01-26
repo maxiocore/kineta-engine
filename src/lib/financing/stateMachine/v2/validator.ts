@@ -5,7 +5,6 @@
 
 import { 
   ApplicationStatus, 
-  ContractStatus,
   TransitionActor, 
   TransitionValidationResult,
   OfferSetup
