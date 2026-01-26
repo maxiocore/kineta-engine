@@ -47,6 +47,44 @@ export function IdentityScreen({
     return /^[12]\d{9}$/.test(id);
   };
 
+  // التحقق من الاسم الكامل (يجب أن يكون 3 كلمات على الأقل)
+  const validateFullName = (name: string): { valid: boolean; message: string } => {
+    const trimmedName = name.trim();
+    
+    if (!trimmedName) {
+      return { valid: false, message: "الاسم الكامل مطلوب" };
+    }
+    
+    // تقسيم الاسم إلى كلمات (مع إزالة المسافات الزائدة)
+    const nameParts = trimmedName.split(/\s+/).filter(part => part.length >= 2);
+    
+    if (nameParts.length < 3) {
+      return { 
+        valid: false, 
+        message: "يرجى إدخال الاسم الثلاثي على الأقل (مثال: محمد عبدالله الأحمد)" 
+      };
+    }
+    
+    // التحقق من أن كل جزء يحتوي على حروف عربية أو إنجليزية فقط
+    const validNamePattern = /^[\u0600-\u06FFa-zA-Z\s]+$/;
+    if (!validNamePattern.test(trimmedName)) {
+      return { 
+        valid: false, 
+        message: "الاسم يجب أن يحتوي على حروف فقط بدون أرقام أو رموز" 
+      };
+    }
+    
+    // التحقق من الحد الأدنى للطول (10 أحرف على الأقل للاسم الكامل)
+    if (trimmedName.length < 10) {
+      return { 
+        valid: false, 
+        message: "الاسم الكامل قصير جداً" 
+      };
+    }
+    
+    return { valid: true, message: "" };
+  };
+
   const validateAndProceed = async () => {
     const newErrors: Record<string, string> = {};
 
@@ -56,8 +94,10 @@ export function IdentityScreen({
       newErrors.national_id = "رقم الهوية يجب أن يكون 10 أرقام ويبدأ بـ 1 أو 2";
     }
 
-    if (!formData.full_name || formData.full_name.trim().length < 4) {
-      newErrors.full_name = "الاسم الكامل مطلوب (4 أحرف على الأقل)";
+    // التحقق من الاسم الكامل
+    const nameValidation = validateFullName(formData.full_name);
+    if (!nameValidation.valid) {
+      newErrors.full_name = nameValidation.message;
     }
 
     if (!formData.date_of_birth) {
@@ -172,10 +212,12 @@ export function IdentityScreen({
             type="text"
             value={formData.full_name}
             onChange={(e) => updateFormData({ full_name: e.target.value })}
-            placeholder="محمد عبدالله الأحمد"
+            placeholder="محمد عبدالله أحمد الشهري"
             className={errors.full_name ? "border-red-500" : ""}
           />
-          <p className="text-xs text-muted-foreground">{identity.full_name_hint}</p>
+          <p className="text-xs text-muted-foreground">
+            أدخل اسمك الثلاثي أو الرباعي كما هو مدون في بطاقة الهوية
+          </p>
           {errors.full_name && (
             <p className="text-sm text-red-400 flex items-center gap-1">
               <AlertTriangle className="h-3 w-3" />
