@@ -439,6 +439,7 @@ export function OfficialContractViewer({
           <ScrollArea
             ref={scrollRef as any}
             className="h-[500px] p-6"
+            dir="rtl"
           >
             {/* Bismillah */}
             <div className="text-center mb-8 py-4 border-b-2 border-primary/20">
@@ -450,17 +451,17 @@ export function OfficialContractViewer({
             </div>
 
             {/* Contract Articles */}
-            <div className="space-y-8">
+            <div className="space-y-8" dir="rtl">
               {LEGAL_CONTRACT_ARTICLES.map((article) => (
-                <div key={article.number} className="space-y-3">
-                  <h3 className="text-lg font-bold text-primary flex items-center gap-2 border-r-4 border-primary pr-3">
+                <div key={article.number} className="space-y-3 text-right">
+                  <h3 className="text-lg font-bold text-primary flex items-center gap-2 flex-row-reverse justify-end border-r-4 border-primary pr-3">
                     {article.title}
                   </h3>
                   <div className="space-y-2 pr-4">
                     {article.clauses.map((clause, idx) => (
                       <p
                         key={idx}
-                        className="text-sm leading-relaxed text-muted-foreground pr-4 border-r-2 border-muted py-1"
+                        className="text-sm leading-relaxed text-muted-foreground pr-4 border-r-2 border-muted py-1 text-right"
                       >
                         {clause}
                       </p>
@@ -473,8 +474,8 @@ export function OfficialContractViewer({
             <Separator className="my-8" />
 
             {/* ═══════════ Financial Summary ═══════════ */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-bold text-primary flex items-center gap-2 border-r-4 border-primary pr-3">
+            <div className="space-y-6" dir="rtl">
+              <h3 className="text-lg font-bold text-primary flex items-center gap-2 flex-row-reverse justify-end border-r-4 border-primary pr-3">
                 <FileText className="w-5 h-5" />
                 ملخص الطلب والتفاصيل المالية
               </h3>
@@ -482,7 +483,7 @@ export function OfficialContractViewer({
               {/* Services Table - Responsive */}
               <div className="rounded-xl border-2 border-primary/20 overflow-hidden shadow-sm">
                 <div className="bg-gradient-to-l from-primary/10 to-primary/5 px-4 py-3 border-b border-primary/20">
-                  <h4 className="font-bold text-primary flex items-center gap-2">
+                  <h4 className="font-bold text-primary flex items-center gap-2 flex-row-reverse justify-end text-right">
                     <ScrollText className="w-4 h-4" />
                     الخدمات المُموّلة
                   </h4>
@@ -525,17 +526,17 @@ export function OfficialContractViewer({
                 {/* Mobile Cards - RTL Optimized */}
                 <div className="sm:hidden divide-y" dir="rtl">
                   {contractData.services_list.map((service, i) => (
-                    <div key={i} className="p-4 space-y-3 hover:bg-muted/30">
-                      <div className="flex items-center justify-between flex-row-reverse">
-                        <Badge variant="secondary" className="font-mono">
-                          الكمية: {service.quantity}
-                        </Badge>
-                        <div className="flex items-center gap-2 flex-row-reverse">
-                          <span className="font-bold text-right">{service.name}</span>
+                    <div key={i} className="p-4 space-y-3 hover:bg-muted/30 text-right">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
                           <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-sm font-bold flex items-center justify-center">
                             {i + 1}
                           </span>
+                          <span className="font-bold">{service.name}</span>
                         </div>
+                        <Badge variant="secondary" className="font-mono">
+                          الكمية: {service.quantity}
+                        </Badge>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div className="flex flex-col text-right">
@@ -553,9 +554,9 @@ export function OfficialContractViewer({
               </div>
 
               {/* Financial Details Table - Responsive */}
-              <div className="rounded-xl border-2 border-amber-500/30 overflow-hidden shadow-sm">
+              <div className="rounded-xl border-2 border-amber-500/30 overflow-hidden shadow-sm" dir="rtl">
                 <div className="bg-gradient-to-l from-amber-500/10 to-amber-500/5 px-4 py-3 border-b border-amber-500/20">
-                  <h4 className="font-bold text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                  <h4 className="font-bold text-amber-700 dark:text-amber-400 flex items-center gap-2 flex-row-reverse justify-end text-right">
                     <Scale className="w-4 h-4" />
                     التفاصيل المالية
                   </h4>
@@ -566,27 +567,27 @@ export function OfficialContractViewer({
                   <div className="space-y-3">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {/* Services Value */}
-                      <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                        <span className="text-sm text-muted-foreground">قيمة الخدمات</span>
+                      <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg flex-row-reverse">
                         <span className="font-mono font-medium">{formatCurrency(contractData.total_services_value)} ر.س</span>
+                        <span className="text-sm text-muted-foreground">قيمة الخدمات</span>
                       </div>
                       {/* Admin Fees */}
-                      <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                        <span className="text-sm text-muted-foreground">الرسوم الإدارية</span>
+                      <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg flex-row-reverse">
                         <span className="font-mono font-medium">{formatCurrency(contractData.admin_fees)} ر.س</span>
+                        <span className="text-sm text-muted-foreground">الرسوم الإدارية</span>
                       </div>
                     </div>
 
                     {/* VAT */}
-                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <span className="text-sm text-muted-foreground">ضريبة القيمة المضافة (15%)</span>
+                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg flex-row-reverse">
                       <span className="font-mono font-medium">{formatCurrency(contractData.vat_amount)} ر.س</span>
+                      <span className="text-sm text-muted-foreground">ضريبة القيمة المضافة (15%)</span>
                     </div>
 
                     {/* Grand Total */}
-                    <div className="flex items-center justify-between p-4 bg-gradient-to-l from-primary/20 to-primary/10 rounded-lg border-2 border-primary/30">
-                      <span className="font-bold text-lg">الإجمالي الكلي</span>
+                    <div className="flex items-center justify-between p-4 bg-gradient-to-l from-primary/20 to-primary/10 rounded-lg border-2 border-primary/30 flex-row-reverse">
                       <span className="font-mono font-bold text-xl text-primary">{formatCurrency(contractData.grand_total)} ر.س</span>
+                      <span className="font-bold text-lg">الإجمالي الكلي</span>
                     </div>
                   </div>
 
@@ -594,7 +595,7 @@ export function OfficialContractViewer({
 
                   {/* Installment Details */}
                   <div className="space-y-3">
-                    <h5 className="font-bold text-sm text-muted-foreground flex items-center gap-2">
+                    <h5 className="font-bold text-sm text-muted-foreground flex items-center gap-2 flex-row-reverse justify-end text-right">
                       <Clock className="w-4 h-4" />
                       تفاصيل الأقساط
                     </h5>
@@ -627,19 +628,19 @@ export function OfficialContractViewer({
 
                     {/* Payment Dates */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                      <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                        <span className="text-sm text-muted-foreground flex items-center gap-2">
+                      <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg flex-row-reverse">
+                        <span className="font-bold">{contractData.first_installment_date}</span>
+                        <span className="text-sm text-muted-foreground flex items-center gap-2 flex-row-reverse">
                           <CheckCircle2 className="w-4 h-4 text-green-500" />
                           تاريخ أول قسط
                         </span>
-                        <span className="font-bold">{contractData.first_installment_date}</span>
                       </div>
-                      <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                        <span className="text-sm text-muted-foreground flex items-center gap-2">
+                      <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg flex-row-reverse">
+                        <span className="font-bold">{contractData.last_installment_date}</span>
+                        <span className="text-sm text-muted-foreground flex items-center gap-2 flex-row-reverse">
                           <CheckCircle2 className="w-4 h-4 text-primary" />
                           تاريخ آخر قسط
                         </span>
-                        <span className="font-bold">{contractData.last_installment_date}</span>
                       </div>
                     </div>
                   </div>
@@ -650,13 +651,13 @@ export function OfficialContractViewer({
             <Separator className="my-8" />
 
             {/* ═══════════ Client Acknowledgments ═══════════ */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-primary flex items-center gap-2 border-r-4 border-primary pr-3">
+            <div className="space-y-4" dir="rtl">
+              <h3 className="text-lg font-bold text-primary flex items-center gap-2 flex-row-reverse justify-end border-r-4 border-primary pr-3 text-right">
                 إقرارات العميل
               </h3>
               <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
                 {CLIENT_LEGAL_ACKNOWLEDGMENTS.map((ack, i) => (
-                  <div key={i} className="flex items-start gap-3">
+                  <div key={i} className="flex items-start gap-3 flex-row-reverse text-right">
                     <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                     <p className="text-sm leading-relaxed">{ack}</p>
                   </div>
@@ -667,20 +668,24 @@ export function OfficialContractViewer({
             <Separator className="my-8" />
 
             {/* ═══════════ Executive Bond Notice ═══════════ */}
-            <Alert className="border-2 border-purple-500 bg-purple-500/10">
-              <FileSignature className="h-5 w-5 text-purple-600" />
-              <AlertTitle className="font-bold text-purple-700 dark:text-purple-400">
-                {LEGAL_WARNINGS.executiveBond}
-              </AlertTitle>
-              <AlertDescription className="text-purple-800 dark:text-purple-300 space-y-2">
-                <p>
-                  بعد اعتماد هذا العقد، سيتم إصدار سند تنفيذي عبر منصة نافذ الرسمية.
-                  يجب عليك توقيعه عبر المنصة لإتمام عملية التمويل.
-                </p>
-                <p className="font-semibold">
-                  السند التنفيذي قابل للتنفيذ الجبري وفقاً لنظام التنفيذ السعودي.
-                </p>
-              </AlertDescription>
+            <Alert className="border-2 border-purple-500 bg-purple-500/10" dir="rtl">
+              <div className="flex items-start gap-3 flex-row-reverse text-right">
+                <FileSignature className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <AlertTitle className="font-bold text-purple-700 dark:text-purple-400 text-right">
+                    {LEGAL_WARNINGS.executiveBond}
+                  </AlertTitle>
+                  <AlertDescription className="text-purple-800 dark:text-purple-300 space-y-2 text-right">
+                    <p>
+                      بعد اعتماد هذا العقد، سيتم إصدار سند تنفيذي عبر منصة نافذ الرسمية.
+                      يجب عليك توقيعه عبر المنصة لإتمام عملية التمويل.
+                    </p>
+                    <p className="font-semibold">
+                      السند التنفيذي قابل للتنفيذ الجبري وفقاً لنظام التنفيذ السعودي.
+                    </p>
+                  </AlertDescription>
+                </div>
+              </div>
             </Alert>
 
             {/* End of Contract Marker */}
