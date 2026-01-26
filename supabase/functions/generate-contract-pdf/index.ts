@@ -303,7 +303,6 @@ const LEGAL_CONTRACT_ARTICLES = [
     clauses: [
       "قيمة التمويل والأقساط محددة في الملخص المالي المرفق.",
       "يلتزم الطرف الثاني بسداد الأقساط في مواعيدها المحددة.",
-      "تُحتسب ضريبة القيمة المضافة (15%) وفقاً للأنظمة المعمول بها.",
     ],
   },
   {
@@ -388,18 +387,15 @@ function formatDate(dateStr: string): string {
 function generateContractHTML(data: ContractData, approval?: ApprovalRecord): string {
   const contractDate = formatDate(data.contract_date);
   
-  // Build services table rows
+  // Build services table rows - بدون ضريبة
   const servicesRows = data.services.map((service, index) => {
-    const vat = service.total_price * 0.15;
-    const totalWithVat = service.total_price + vat;
     return `
       <tr>
         <td>${index + 1}</td>
         <td>${service.name}</td>
         <td>${service.quantity}</td>
         <td>${formatCurrency(service.unit_price)}</td>
-        <td>${formatCurrency(vat)}</td>
-        <td>${formatCurrency(totalWithVat)}</td>
+        <td>${formatCurrency(service.total_price)}</td>
       </tr>
     `;
   }).join("");
@@ -901,7 +897,7 @@ function generateContractHTML(data: ContractData, approval?: ApprovalRecord): st
 
     <div class="page-break"></div>
 
-    <!-- Services Table -->
+    <!-- Services Table - بدون ضريبة -->
     <h2 style="font-size: 14pt; margin-bottom: 15px;">جدول الخدمات الممولة</h2>
     <table>
       <thead>
@@ -910,7 +906,6 @@ function generateContractHTML(data: ContractData, approval?: ApprovalRecord): st
           <th>اسم الخدمة</th>
           <th>الكمية</th>
           <th>السعر</th>
-          <th>الضريبة (15%)</th>
           <th>الإجمالي</th>
         </tr>
       </thead>
@@ -919,23 +914,18 @@ function generateContractHTML(data: ContractData, approval?: ApprovalRecord): st
         <tr class="total-row">
           <td colspan="3">الإجمالي</td>
           <td>${formatCurrency(data.total_services_value)}</td>
-          <td>${formatCurrency(data.vat_amount)}</td>
           <td>${formatCurrency(data.grand_total)}</td>
         </tr>
       </tbody>
     </table>
 
-    <!-- Financial Summary -->
+    <!-- Financial Summary - بدون ضريبة -->
     <div class="financial-summary">
       <h3>الملخص المالي</h3>
       <div class="summary-grid">
         <div class="summary-item">
           <div class="label">إجمالي الخدمات</div>
           <div class="value">${formatCurrency(data.total_services_value)}</div>
-        </div>
-        <div class="summary-item">
-          <div class="label">ضريبة القيمة المضافة</div>
-          <div class="value">${formatCurrency(data.vat_amount)}</div>
         </div>
         <div class="summary-item">
           <div class="label">المبلغ الإجمالي</div>
@@ -1018,7 +1008,12 @@ serve(async (req) => {
   }
 
   try {
-    const { application_id, include_approval = true } = await req.json();
+    const { 
+      application_id, 
+      include_approval = true,
+      override_name,           // تعديل الاسم
+      override_installments,   // تعديل عدد الأقساط
+    } = await req.json();
 
     if (!application_id) {
       return new Response(
@@ -1058,19 +1053,45 @@ serve(async (req) => {
       .eq("application_id", application_id)
       .order("installment_number");
 
-    // Build contract data
+    // Build contract data - بدون ضريبة
     const approvedAmount = application.approved_amount || application.requested_amount;
-    const vatAmount = approvedAmount * 0.15;
-    const grandTotal = approvedAmount + vatAmount;
-    const installmentAmount = grandTotal / (application.plan?.installments_count || 3);
+    const grandTotal = approvedAmount; // بدون ضريبة
+    
+    // استخدام عدد الأقساط المعدل أو الأصلي
+    const finalInstallmentsCount = override_installments || application.plan?.installments_count || 3;
+    const installmentAmount = grandTotal / finalInstallmentsCount;
+    
+    // استخدام الاسم المعدل أو الأصلي
+    const finalCustomerName = override_name || application.full_name;
+
+    // إنشاء جدول أقساط جديد إذا تم تعديل عدد الأقساط
+    let installmentsSchedule = (installments || []).map((inst: any) => ({
+      number: inst.installment_number,
+      amount: inst.amount,
+      due_date: inst.due_date,
+    }));
+    
+    // إذا تم تعديل عدد الأقساط، أنشئ جدول جديد
+    if (override_installments && override_installments !== application.plan?.installments_count) {
+      const startDate = new Date();
+      installmentsSchedule = Array.from({ length: finalInstallmentsCount }, (_, i) => {
+        const dueDate = new Date(startDate);
+        dueDate.setMonth(dueDate.getMonth() + i + 1);
+        return {
+          number: i + 1,
+          amount: installmentAmount,
+          due_date: dueDate.toISOString(),
+        };
+      });
+    }
 
     const contractData: ContractData = {
       application_id: application.id,
       application_number: application.application_number,
       contract_date: application.approved_at || application.created_at,
       
-      // Customer info from application (NOT username)
-      customer_name: application.full_name,
+      // Customer info - استخدام الاسم المعدل
+      customer_name: finalCustomerName,
       customer_national_id: application.national_id,
       customer_phone: application.phone,
       customer_email: application.email,
@@ -1086,20 +1107,16 @@ serve(async (req) => {
       
       total_services_value: approvedAmount,
       admin_fees: 0,
-      vat_amount: vatAmount,
+      vat_amount: 0,        // بدون ضريبة
       grand_total: grandTotal,
       financed_amount: grandTotal,
       
       // Installments
-      installments_count: application.plan?.installments_count || 3,
+      installments_count: finalInstallmentsCount,
       installment_amount: installmentAmount,
-      first_installment_date: installments?.[0]?.due_date || new Date().toISOString(),
-      last_installment_date: installments?.[installments.length - 1]?.due_date || new Date().toISOString(),
-      installments_schedule: (installments || []).map((inst: any) => ({
-        number: inst.installment_number,
-        amount: inst.amount,
-        due_date: inst.due_date,
-      })),
+      first_installment_date: installmentsSchedule[0]?.due_date || new Date().toISOString(),
+      last_installment_date: installmentsSchedule[installmentsSchedule.length - 1]?.due_date || new Date().toISOString(),
+      installments_schedule: installmentsSchedule,
     };
 
     // Get approval record if exists and requested
