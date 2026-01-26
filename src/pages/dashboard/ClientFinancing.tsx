@@ -633,6 +633,7 @@ export default function ClientFinancing() {
               contractNumber={currentApplication.contract_number || ""}
               applicationNumber={currentApplication.application_number}
               serviceBalance={serviceBalance}
+              isBalanceLoading={isServiceCreditLoading}
               totalAmount={currentApplication.approved_amount || currentApplication.requested_amount}
               paidAmount={totalPaid}
               remainingAmount={totalRemaining}

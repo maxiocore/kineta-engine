@@ -16,6 +16,7 @@ interface FinancingHeroCardProps {
   contractNumber: string;
   applicationNumber: string;
   serviceBalance: number;
+  isBalanceLoading?: boolean;
   totalAmount: number;
   paidAmount: number;
   remainingAmount: number;
@@ -57,6 +58,7 @@ export default function FinancingHeroCard({
   contractNumber,
   applicationNumber,
   serviceBalance,
+  isBalanceLoading = false,
   totalAmount,
   paidAmount,
   remainingAmount,
@@ -117,9 +119,13 @@ export default function FinancingHeroCard({
                 <p className="text-emerald-300 text-sm font-medium">رصيد الخدمات المتاح</p>
               </div>
               <div className="flex items-baseline gap-1 sm:gap-2">
-                <span className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight">
-                  <BidiNumber value={serviceBalance} locale="ar-SA" />
-                </span>
+                {isBalanceLoading ? (
+                  <div className="h-12 sm:h-14 lg:h-16 w-32 sm:w-40 lg:w-48 bg-white/10 animate-pulse rounded-lg" />
+                ) : (
+                  <span className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight">
+                    <BidiNumber value={serviceBalance ?? 0} locale="ar-SA" />
+                  </span>
+                )}
                 <span className="text-amber-400 text-lg sm:text-xl lg:text-2xl font-bold">ر.س</span>
               </div>
             </div>
