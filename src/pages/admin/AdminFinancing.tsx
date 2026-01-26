@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useServerContractPdf } from "@/hooks/useServerContractPdf";
 import { motion } from "framer-motion";
 import { 
   Landmark, 
@@ -1269,6 +1270,52 @@ export default function AdminFinancing() {
                                   >
                                     <CreditCard className="h-4 w-4 ml-2" />
                                     إدارة الأقساط
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                              
+                              {/* زر تحميل العقد PDF - يظهر للطلبات التي لها عقد */}
+                              {(app.contract_number || ["contract_signed", "awaiting_bond", "active", "completed"].includes(app.status)) && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={async () => {
+                                      toast.loading("جاري توليد العقد...", { id: "contract-pdf" });
+                                      try {
+                                        const response = await supabase.functions.invoke('generate-contract-pdf', {
+                                          body: {
+                                            application_id: app.id,
+                                            include_approval: true,
+                                          },
+                                        });
+                                        
+                                        if (response.error || !response.data?.success) {
+                                          throw new Error(response.error?.message || response.data?.error || 'فشل توليد العقد');
+                                        }
+                                        
+                                        // Open HTML in new window for printing as PDF
+                                        const printWindow = window.open('', '_blank');
+                                        if (printWindow) {
+                                          printWindow.document.write(response.data.html);
+                                          printWindow.document.close();
+                                          printWindow.onload = () => {
+                                            setTimeout(() => {
+                                              printWindow.print();
+                                            }, 1000);
+                                          };
+                                          toast.success("تم فتح العقد للطباعة", { id: "contract-pdf" });
+                                        } else {
+                                          toast.error("تم حظر النوافذ المنبثقة", { id: "contract-pdf" });
+                                        }
+                                      } catch (error) {
+                                        console.error('Error generating contract:', error);
+                                        toast.error("فشل توليد العقد", { id: "contract-pdf" });
+                                      }
+                                    }}
+                                    className="text-primary"
+                                  >
+                                    <Download className="h-4 w-4 ml-2" />
+                                    تحميل العقد PDF
                                   </DropdownMenuItem>
                                 </>
                               )}
