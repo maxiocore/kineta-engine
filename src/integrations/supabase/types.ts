@@ -3412,6 +3412,7 @@ export type Database = {
           failure_reason: string | null
           id: string
           ip_address: unknown
+          metadata: Json | null
           order_id: string | null
           reference_id: string | null
           reference_type: string | null
@@ -3435,6 +3436,7 @@ export type Database = {
           failure_reason?: string | null
           id?: string
           ip_address?: unknown
+          metadata?: Json | null
           order_id?: string | null
           reference_id?: string | null
           reference_type?: string | null
@@ -3458,6 +3460,7 @@ export type Database = {
           failure_reason?: string | null
           id?: string
           ip_address?: unknown
+          metadata?: Json | null
           order_id?: string | null
           reference_id?: string | null
           reference_type?: string | null
