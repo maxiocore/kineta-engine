@@ -107,7 +107,8 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.R
   under_review: { label: "قيد المراجعة", color: "bg-blue-500/20 text-blue-400 border-blue-500/30", icon: <Eye className="h-3 w-3" /> },
   documents_required: { label: "مستندات مطلوبة", color: "bg-purple-500/20 text-purple-400 border-purple-500/30", icon: <FileQuestion className="h-3 w-3" /> },
   awaiting_contract: { label: "بانتظار توقيع العقد", color: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30", icon: <FileText className="h-3 w-3" /> },
-  awaiting_signature: { label: "بانتظار توقيع الكمبيالة", color: "bg-orange-500/20 text-orange-400 border-orange-500/30", icon: <FileSignature className="h-3 w-3" /> },
+  contract_signed: { label: "تم توقيع العقد", color: "bg-purple-500/20 text-purple-400 border-purple-500/30", icon: <FileSignature className="h-3 w-3" /> },
+  awaiting_bond: { label: "بانتظار السند التنفيذي", color: "bg-orange-500/20 text-orange-400 border-orange-500/30", icon: <FileSignature className="h-3 w-3" /> },
   approved: { label: "موافق عليه", color: "bg-green-500/20 text-green-400 border-green-500/30", icon: <CheckCircle2 className="h-3 w-3" /> },
   rejected: { label: "مرفوض", color: "bg-red-500/20 text-red-400 border-red-500/30", icon: <XCircle className="h-3 w-3" /> },
   active: { label: "نشط", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30", icon: <TrendingUp className="h-3 w-3" /> },
@@ -1129,19 +1130,21 @@ export default function AdminFinancing() {
                               
                               {app.status === "awaiting_contract" && (
                                 <>
-                                  <DropdownMenuSeparator />
+                                <DropdownMenuSeparator />
                                   <DropdownMenuItem
-                                    onClick={() => sendPromissoryNoteMutation.mutate({ id: app.id })}
-                                    className="text-orange-400"
-                                    disabled={sendPromissoryNoteMutation.isPending}
+                                    onClick={() => {
+                                      setSelectedApplication(app);
+                                      setShowActivateDialog(true);
+                                    }}
+                                    className="text-emerald-400"
                                   >
-                                    <FileSignature className="h-4 w-4 ml-2" />
-                                    تأكيد توقيع العقد وإرسال الكمبيالة
+                                    <CheckCircle2 className="h-4 w-4 ml-2" />
+                                    تأكيد العقد وتفعيل التمويل
                                   </DropdownMenuItem>
                                 </>
                               )}
                               
-                              {app.status === "awaiting_signature" && (
+                              {(app.status === "contract_signed" || app.status === "awaiting_bond") && (
                                 <>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
@@ -1152,7 +1155,7 @@ export default function AdminFinancing() {
                                     className="text-emerald-400"
                                   >
                                     <CheckCircle2 className="h-4 w-4 ml-2" />
-                                    تفعيل التمويل (تم استلام الكمبيالة)
+                                    تفعيل التمويل (تم توقيع السند التنفيذي)
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     onClick={() => {
