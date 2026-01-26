@@ -15,9 +15,22 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
     // Fix duplicate React instances causing useLocation/useContext errors
-    dedupe: ['react', 'react-dom', 'react-router-dom'],
+    dedupe: [
+      'react', 
+      'react-dom', 
+      'react-router-dom',
+      'input-otp',
+      '@radix-ui/react-context',
+    ],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom'],
+    include: [
+      'react', 
+      'react-dom', 
+      'react-router-dom',
+      'input-otp',
+    ],
+    // Force re-bundling to fix cache issues
+    force: true,
   },
 }));
