@@ -8,7 +8,28 @@
  * - Rate limiting support
  * - Professional Arabic banking-style messages
  * - Deep link support for status tracking
+ * - Template-based financing messages
  */
+
+import {
+  TEMPLATES_REGISTRY,
+  buildMessage,
+  generateDeepLink,
+  formatDateArabic,
+  formatAmount,
+  type TemplateVariables,
+  type WhatsAppTemplate,
+} from './whatsapp-templates.ts';
+
+// Re-export template utilities
+export { 
+  TEMPLATES_REGISTRY, 
+  buildMessage, 
+  generateDeepLink, 
+  formatDateArabic, 
+  formatAmount 
+};
+export type { TemplateVariables, WhatsAppTemplate };
 
 // ============================================================================
 // CONFIGURATION & TYPES
@@ -17,6 +38,7 @@
 const SMARTWATS_BASE_URL = 'https://app.smartwats.com/api';
 const SMARTWATS_INSTANCE_ID = Deno.env.get('SMARTWATS_INSTANCE_ID');
 const SMARTWATS_ACCESS_TOKEN = Deno.env.get('SMARTWATS_ACCESS_TOKEN');
+const BASE_URL = Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.lovable.app') || 'https://maxiocore.com';
 
 // Retry configuration
 const MAX_RETRIES = 3;
@@ -31,7 +53,8 @@ export enum WhatsAppErrorType {
   RATE_LIMITED = 'RATE_LIMITED',
   SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
   UNKNOWN = 'UNKNOWN_ERROR',
-  NOT_CONFIGURED = 'NOT_CONFIGURED'
+  NOT_CONFIGURED = 'NOT_CONFIGURED',
+  TEMPLATE_NOT_FOUND = 'TEMPLATE_NOT_FOUND'
 }
 
 export interface WhatsAppError {
@@ -62,6 +85,21 @@ export interface TemplateStatusParams {
   orderNumber?: string;
   amount?: number;
   customerName?: string;
+}
+
+// Financing-specific params
+export interface FinancingNotificationParams {
+  status: string;
+  customerName: string;
+  applicationNumber: string;
+  approvedAmount?: number;
+  installmentsCount?: number;
+  installmentAmount?: number;
+  nextPaymentDate?: string;
+  contractExpiry?: string;
+  rejectionReason?: string;
+  requiredDocuments?: string[];
+  conditionsList?: string[];
 }
 
 // ============================================================================
@@ -325,7 +363,75 @@ export const WhatsAppProvider = {
   },
 
   /**
-   * Send a status update with deep link
+   * Send financing notification using template
+   */
+  async sendFinancingNotification(
+    to: string,
+    params: FinancingNotificationParams
+  ): Promise<WhatsAppSendResult> {
+    const { status, customerName, applicationNumber } = params;
+    
+    // Get template for this status
+    const template = TEMPLATES_REGISTRY[status.toUpperCase()];
+    
+    if (!template) {
+      console.warn(`[WhatsApp] No template found for status: ${status}`);
+      return {
+        success: false,
+        error: {
+          type: WhatsAppErrorType.TEMPLATE_NOT_FOUND,
+          message: `قالب غير موجود للحالة: ${status}`,
+          retryable: false
+        },
+        attempts: 0,
+        timestamp: new Date().toISOString()
+      };
+    }
+
+    // Build variables
+    const variables: Partial<TemplateVariables> = {
+      customer_name: customerName,
+      application_number: applicationNumber,
+      deep_link: generateDeepLink(BASE_URL, applicationNumber),
+    };
+
+    // Add optional variables
+    if (params.approvedAmount) {
+      variables.approved_amount = params.approvedAmount;
+    }
+    if (params.installmentsCount) {
+      variables.installments_count = params.installmentsCount;
+    }
+    if (params.installmentAmount) {
+      variables.installment_amount = params.installmentAmount;
+    }
+    if (params.nextPaymentDate) {
+      variables.next_payment_date = formatDateArabic(params.nextPaymentDate);
+    }
+    if (params.contractExpiry) {
+      variables.contract_expiry = formatDateArabic(params.contractExpiry);
+    }
+    if (params.rejectionReason) {
+      variables.rejection_reason = params.rejectionReason;
+    }
+    if (params.requiredDocuments) {
+      variables.required_documents = params.requiredDocuments;
+    }
+
+    // Build message from template
+    const message = buildMessage(template, variables);
+    
+    console.log(`[WhatsApp] Sending financing notification - Status: ${status}, Application: ${applicationNumber}`);
+    
+    return sendWithRetry(to, message, { 
+      type: 'financing',
+      referenceId: applicationNumber,
+      priority: 'high'
+    });
+  },
+
+  /**
+   * Send a status update with deep link (legacy support)
    */
   async sendTemplateStatus(
     to: string,
@@ -334,23 +440,27 @@ export const WhatsAppProvider = {
   ): Promise<WhatsAppSendResult> {
     const { status, applicationNumber, orderNumber, amount, customerName } = params;
     
-    // Build status message based on context
-    let message: string;
-    
+    // Use new template system for financing
     if (applicationNumber) {
-      // Financing status
-      message = buildFinancingStatusMessage(applicationNumber, status, amount, customerName, deepLinkPath);
-    } else if (orderNumber) {
-      // Order status
+      return this.sendFinancingNotification(to, {
+        status,
+        customerName: customerName || 'العميل الكريم',
+        applicationNumber,
+        approvedAmount: amount,
+      });
+    }
+    
+    // Build status message for orders
+    let message: string;
+    if (orderNumber) {
       message = buildOrderStatusMessage(orderNumber, status, deepLinkPath);
     } else {
-      // Generic status
       message = buildGenericStatusMessage(status, deepLinkPath);
     }
     
     return sendWithRetry(to, message, { 
-      type: applicationNumber ? 'financing' : 'order',
-      referenceId: applicationNumber || orderNumber
+      type: 'order',
+      referenceId: orderNumber
     });
   },
 
@@ -366,7 +476,7 @@ export const WhatsAppProvider = {
 💡 يرجى التحقق من صندوق الوارد (وربما مجلد الرسائل غير المرغوبة).
 
 ━━━━━━━━━━━━━━━━━━━━━
-_MaxioCore_`;
+_ماكسيو كور_`;
     
     return sendWithRetry(to, message, { type: 'auth' });
   },
@@ -375,26 +485,66 @@ _MaxioCore_`;
    * Send welcome message for new users
    */
   async sendWelcome(to: string, customerName?: string): Promise<WhatsAppSendResult> {
-    const message = `🎉 *مرحباً بك في MaxioCore*
+    const message = `مرحباً بك في ماكسيو كور 🎉
 ━━━━━━━━━━━━━━━━━━━━━
 
-${customerName ? `أهلاً *${customerName}*!\n` : ''}
-نحن سعداء بانضمامك إلينا.
+${customerName ? `أهلاً *${customerName}*!\n` : ''}نحن سعداء بانضمامك إلينا.
 
-🚀 *ابدأ الآن واستفد من خدماتنا المتميزة:*
+🚀 *ابدأ الآن واستفد من خدماتنا:*
 • خدمات سوشيال ميديا احترافية
-• تمويل الخدمات بدون فوائد
+• تمويل الخدمات (رصيد داخل المنصة)
 • دعم فني على مدار الساعة
 
-🔗 *استكشف المنصة:*
-maxiocore.com/dashboard
+🔗 استكشف المنصة:
+${BASE_URL}/dashboard
 
 ━━━━━━━━━━━━━━━━━━━━━
-📞 فريق الدعم متاح لخدمتك
-
-_شركة علي صالح الشهري القابضة - MaxioCore_`;
+_شركة علي صالح الشهري القابضة_
+_ماكسيو كور - شريكك التقني_`;
     
     return sendWithRetry(to, message, { type: 'general' });
+  },
+
+  /**
+   * Send payment reminder
+   */
+  async sendPaymentReminder(
+    to: string,
+    params: {
+      customerName: string;
+      installmentAmount: number;
+      dueDate: string;
+      applicationNumber: string;
+    }
+  ): Promise<WhatsAppSendResult> {
+    return this.sendFinancingNotification(to, {
+      status: 'PAYMENT_DUE',
+      customerName: params.customerName,
+      applicationNumber: params.applicationNumber,
+      installmentAmount: params.installmentAmount,
+      nextPaymentDate: params.dueDate,
+    });
+  },
+
+  /**
+   * Send payment overdue notice
+   */
+  async sendPaymentOverdue(
+    to: string,
+    params: {
+      customerName: string;
+      installmentAmount: number;
+      dueDate: string;
+      applicationNumber: string;
+    }
+  ): Promise<WhatsAppSendResult> {
+    return this.sendFinancingNotification(to, {
+      status: 'PAYMENT_OVERDUE',
+      customerName: params.customerName,
+      applicationNumber: params.applicationNumber,
+      installmentAmount: params.installmentAmount,
+      nextPaymentDate: params.dueDate,
+    });
   },
 
   /**
@@ -413,6 +563,13 @@ _شركة علي صالح الشهري القابضة - MaxioCore_`;
       valid: isValidSaudiNumber(formatted),
       formatted
     };
+  },
+
+  /**
+   * Get available template statuses
+   */
+  getAvailableStatuses(): string[] {
+    return Object.keys(TEMPLATES_REGISTRY);
   }
 };
 
