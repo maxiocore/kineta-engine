@@ -26,6 +26,7 @@ import {
   TrendingUp,
   DollarSign,
   ChevronRight,
+  ChevronLeft,
   ChevronDown,
   Calculator,
   BookOpen,
@@ -771,6 +772,15 @@ export default function ClientFinancing() {
                         </Link>
                       </Button>
                     )}
+
+                    {/* View Application Details Button - Always visible */}
+                    <Button asChild variant="outline" className="mb-4 mr-2 border-emerald-500/50 text-emerald-600 hover:bg-emerald-500/10">
+                      <Link to={`/dashboard/financing/status/${applications[0].id}`}>
+                        <Eye className="h-4 w-4 ml-2" />
+                        عرض تفاصيل الطلب
+                        <ChevronLeft className="h-4 w-4 mr-1" />
+                      </Link>
+                    </Button>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 p-4 bg-muted/30 rounded-xl">
                       <div>
