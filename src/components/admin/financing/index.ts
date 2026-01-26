@@ -8,3 +8,4 @@
 export { OfferSetupForm } from './OfferSetupForm';
 export { FinancingTimeline, FinancingTimelineCompact } from './FinancingTimeline';
 export { AdminActionsBar } from './AdminActionsBar';
+export { SendAcknowledgmentDialog } from './SendAcknowledgmentDialog';

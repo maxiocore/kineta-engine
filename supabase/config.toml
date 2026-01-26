@@ -122,3 +122,6 @@ verify_jwt = false
 
 [functions.login-alert]
 verify_jwt = false
+
+[functions.generate-acknowledgment-pdf]
+verify_jwt = false
