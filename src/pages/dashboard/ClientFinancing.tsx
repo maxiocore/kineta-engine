@@ -1054,6 +1054,21 @@ export default function ClientFinancing() {
                           </div>
                         )}
 
+                        {/* View Application Details Button - Always visible */}
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          <Button 
+                            asChild 
+                            variant="default"
+                            className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
+                          >
+                            <Link to={`/dashboard/financing/status/${app.id}`}>
+                              <Eye className="h-4 w-4 ml-2" />
+                              عرض تفاصيل الطلب
+                              <ChevronLeft className="h-4 w-4 mr-1" />
+                            </Link>
+                          </Button>
+                        </div>
+
                         {app.status === "active" && (
                           <Button 
                             variant="outline" 
