@@ -67,6 +67,18 @@ export {
   getRequiredFields
 } from './validator';
 
+// Bond States
+export {
+  type ExecutiveBondStatus as BondStatus,
+  BOND_STATES,
+  getBondState,
+  isBondTerminal,
+  canCustomerAct,
+  getNextExpectedStatus,
+  getOrderedBondStates,
+  getBondProgress
+} from './bondStates';
+
 // Timeline
 export {
   getTimelineEvents,
