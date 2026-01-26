@@ -15,26 +15,40 @@ import {
   ShoppingBag,
   AlertTriangle,
   CheckCircle2,
-  Ban
+  Ban,
+  Wallet
 } from 'lucide-react';
 import { useServiceCredit } from '@/hooks/useServiceCredit';
 import { formatCurrency } from '@/lib/utils';
+import { TransferToWalletButton } from './TransferToWalletButton';
 
 interface ServiceCreditBalanceProps {
   showDetails?: boolean;
   compact?: boolean;
+  showTransferButton?: boolean;
+  applicationId?: string;
 }
 
-export function ServiceCreditBalance({ showDetails = true, compact = false }: ServiceCreditBalanceProps) {
+export function ServiceCreditBalance({ 
+  showDetails = true, 
+  compact = false,
+  showTransferButton = true,
+  applicationId
+}: ServiceCreditBalanceProps) {
   const {
     summary,
     contractNumber,
     applicationNumber,
+    credit,
     isLoading,
     error,
     hasCredit,
     isFrozen,
+    refetch
   } = useServiceCredit();
+
+  // Use provided applicationId or get from credit
+  const effectiveApplicationId = applicationId || credit?.application_id;
 
   if (isLoading) {
     return (
@@ -159,13 +173,28 @@ export function ServiceCreditBalance({ showDetails = true, compact = false }: Se
           )}
         </div>
 
+        {/* زر التحويل إلى رصيد المنصة */}
+        {showTransferButton && effectiveApplicationId && !isFrozen && (summary?.availableBalance || 0) > 0 && (
+          <div className="pt-2 border-t">
+            <TransferToWalletButton
+              applicationId={effectiveApplicationId}
+              availableBalance={summary?.availableBalance || 0}
+              onTransferComplete={refetch}
+              className="w-full"
+            />
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              حوّل رصيدك لشراء الخدمات مباشرة
+            </p>
+          </div>
+        )}
+
         {/* تنبيه الاستخدام */}
         <Alert className="bg-blue-50 border-blue-200">
           <ShoppingBag className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-800 text-xs">
             هذا الرصيد مخصص لشراء الخدمات داخل منصة MaxioCore فقط.
             <br />
-            لا يمكن سحبه أو تحويله.
+            لا يمكن سحبه أو تحويله خارج المنصة.
           </AlertDescription>
         </Alert>
 
@@ -173,11 +202,11 @@ export function ServiceCreditBalance({ showDetails = true, compact = false }: Se
         <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground">
           <div className="flex flex-col items-center gap-1 p-2 bg-background/50 rounded">
             <Ban className="h-4 w-4 text-red-400" />
-            <span>لا سحب</span>
+            <span>لا سحب خارجي</span>
           </div>
           <div className="flex flex-col items-center gap-1 p-2 bg-background/50 rounded">
-            <Ban className="h-4 w-4 text-red-400" />
-            <span>لا تحويل</span>
+            <Wallet className="h-4 w-4 text-emerald-400" />
+            <span>تحويل داخلي</span>
           </div>
           <div className="flex flex-col items-center gap-1 p-2 bg-background/50 rounded">
             <ShoppingBag className="h-4 w-4 text-emerald-400" />
