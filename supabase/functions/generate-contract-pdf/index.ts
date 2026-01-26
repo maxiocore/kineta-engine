@@ -1128,15 +1128,17 @@ serve(async (req) => {
       || application.contract_override_name 
       || application.full_name;
 
-    // إنشاء جدول أقساط جديد إذا تم تعديل عدد الأقساط
-    let installmentsSchedule = (installments || []).map((inst: any) => ({
-      number: inst.installment_number,
-      amount: inst.amount,
-      due_date: inst.due_date,
-    }));
+    // تحديد عدد الأقساط الأصلي من الخطة
+    const originalInstallmentsCount = application.plan?.installments_count || 3;
     
-    // إذا تم تعديل عدد الأقساط، أنشئ جدول جديد
-    if (override_installments && override_installments !== application.plan?.installments_count) {
+    // هل تم تعديل عدد الأقساط؟
+    const installmentsModified = finalInstallmentsCount !== originalInstallmentsCount;
+    
+    // إنشاء جدول أقساط
+    let installmentsSchedule: { number: number; amount: number; due_date: string }[] = [];
+    
+    // إذا تم تعديل عدد الأقساط (من الواجهة أو من قاعدة البيانات)، أنشئ جدول جديد
+    if (installmentsModified || !installments || installments.length === 0) {
       const startDate = new Date();
       installmentsSchedule = Array.from({ length: finalInstallmentsCount }, (_, i) => {
         const dueDate = new Date(startDate);
@@ -1147,6 +1149,13 @@ serve(async (req) => {
           due_date: dueDate.toISOString(),
         };
       });
+    } else {
+      // استخدام الأقساط الموجودة
+      installmentsSchedule = (installments || []).map((inst: any) => ({
+        number: inst.installment_number,
+        amount: inst.amount,
+        due_date: inst.due_date,
+      }));
     }
 
     const contractData: ContractData = {
