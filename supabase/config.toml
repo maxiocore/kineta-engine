@@ -131,3 +131,6 @@ verify_jwt = false
 
 [functions.executive-bond-workflow]
 verify_jwt = false
+
+[functions.financing-completion-notify]
+verify_jwt = false

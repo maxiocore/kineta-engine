@@ -209,7 +209,7 @@ export const TEMPLATE_CREDIT_DEPOSITED: WhatsAppTemplate = {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// 8️⃣ PROCESS COMPLETED - اكتملت العملية
+// 8️⃣ PROCESS COMPLETED - اكتملت العملية (كل الأقساط)
 // ═══════════════════════════════════════════════════════════════
 export const TEMPLATE_COMPLETED: WhatsAppTemplate = {
   id: 'financing_completed',
@@ -231,6 +231,49 @@ export const TEMPLATE_COMPLETED: WhatsAppTemplate = {
 
 ماكسيو كور`,
   variables: ['customer_name', 'application_number', 'deep_link']
+};
+
+// ═══════════════════════════════════════════════════════════════
+// 8️⃣.1️⃣ FINANCING FULLY COMPLETED - اكتمال التمويل (موافقة + توقيع + إيداع)
+// ═══════════════════════════════════════════════════════════════
+export const TEMPLATE_FINANCING_FULLY_COMPLETED: WhatsAppTemplate = {
+  id: 'financing_fully_completed',
+  name: 'Financing Fully Completed',
+  name_ar: 'اكتمال التمويل',
+  status: 'FINANCING_FULLY_COMPLETED',
+  message: `🎊 *اكتمال التمويل بنجاح*
+━━━━━━━━━━━━━━━━━━━━━
+
+مرحباً {{customer_name}} 👋
+
+✅ تهانينا! اكتملت عملية التمويل لطلبك بنجاح.
+
+📋 *تفاصيل الطلب:*
+• رقم الطلب: {{application_number}}
+• رصيد الخدمات: {{approved_amount}} ر.س
+
+⚠️ *ملاحظة مهمة:*
+هذا رصيد خدمات داخل منصة ماكسيو كور ولا يُصرف نقداً.
+
+━━━━━━━━━━━━━━━━━━━━━
+
+📄 *تحميل المستندات:*
+_(صالحة لمدة 24 ساعة)_
+
+📑 العقد النهائي:
+{{contract_url}}
+
+📝 الإقرار الموقع:
+{{acknowledgment_url}}
+
+━━━━━━━━━━━━━━━━━━━━━
+
+🔗 *عرض حسابك:*
+{{deep_link}}
+
+━━━━━━━━━━━━━━━━━━━━━
+_ماكسيو كور - شريكك التقني_`,
+  variables: ['customer_name', 'application_number', 'approved_amount', 'contract_url', 'acknowledgment_url', 'deep_link']
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -321,6 +364,7 @@ export const TEMPLATES_REGISTRY: Record<string, WhatsAppTemplate> = {
   'CREDIT_DEPOSITED': TEMPLATE_CREDIT_DEPOSITED,
   'ACTIVE': TEMPLATE_CREDIT_DEPOSITED,
   'COMPLETED': TEMPLATE_COMPLETED,
+  'FINANCING_FULLY_COMPLETED': TEMPLATE_FINANCING_FULLY_COMPLETED,
   'PAYMENT_DUE': TEMPLATE_PAYMENT_REMINDER,
   'PAYMENT_OVERDUE': TEMPLATE_PAYMENT_OVERDUE,
   'PROMISSORY_SIGNED': TEMPLATE_PROMISSORY_SIGNED,
