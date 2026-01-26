@@ -475,76 +475,173 @@ export function OfficialContractViewer({
             {/* ═══════════ Financial Summary ═══════════ */}
             <div className="space-y-6">
               <h3 className="text-lg font-bold text-primary flex items-center gap-2 border-r-4 border-primary pr-3">
+                <FileText className="w-5 h-5" />
                 ملخص الطلب والتفاصيل المالية
               </h3>
 
-              {/* Services Table */}
-              <div className="rounded-lg border overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/80">
-                      <TableHead className="text-right font-bold w-12">#</TableHead>
-                      <TableHead className="text-right font-bold">الخدمة</TableHead>
-                      <TableHead className="text-center font-bold">الكمية</TableHead>
-                      <TableHead className="text-left font-bold">السعر</TableHead>
-                      <TableHead className="text-left font-bold">الإجمالي</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {contractData.services_list.map((service, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="font-medium">{i + 1}</TableCell>
-                        <TableCell className="font-medium">{service.name}</TableCell>
-                        <TableCell className="text-center">{service.quantity}</TableCell>
-                        <TableCell className="text-left font-mono">{formatCurrency(service.unit_price)} ر.س</TableCell>
-                        <TableCell className="text-left font-mono font-bold">{formatCurrency(service.total_price)} ر.س</TableCell>
+              {/* Services Table - Responsive */}
+              <div className="rounded-xl border-2 border-primary/20 overflow-hidden shadow-sm">
+                <div className="bg-gradient-to-l from-primary/10 to-primary/5 px-4 py-3 border-b border-primary/20">
+                  <h4 className="font-bold text-primary flex items-center gap-2">
+                    <ScrollText className="w-4 h-4" />
+                    الخدمات المُموّلة
+                  </h4>
+                </div>
+                
+                {/* Desktop Table */}
+                <div className="hidden sm:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50 hover:bg-muted/50">
+                        <TableHead className="text-right font-bold w-12 text-foreground">#</TableHead>
+                        <TableHead className="text-right font-bold text-foreground">وصف الخدمة</TableHead>
+                        <TableHead className="text-center font-bold text-foreground w-20">الكمية</TableHead>
+                        <TableHead className="text-left font-bold text-foreground w-32">سعر الوحدة</TableHead>
+                        <TableHead className="text-left font-bold text-foreground w-36">الإجمالي</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {contractData.services_list.map((service, i) => (
+                        <TableRow key={i} className="hover:bg-muted/30">
+                          <TableCell className="font-bold text-primary">{i + 1}</TableCell>
+                          <TableCell className="font-medium">{service.name}</TableCell>
+                          <TableCell className="text-center">
+                            <Badge variant="secondary" className="font-mono">
+                              {service.quantity}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-left font-mono text-muted-foreground">
+                            {formatCurrency(service.unit_price)} ر.س
+                          </TableCell>
+                          <TableCell className="text-left font-mono font-bold text-primary">
+                            {formatCurrency(service.total_price)} ر.س
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Mobile Cards */}
+                <div className="sm:hidden divide-y">
+                  {contractData.services_list.map((service, i) => (
+                    <div key={i} className="p-4 space-y-3 hover:bg-muted/30">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-sm font-bold flex items-center justify-center">
+                            {i + 1}
+                          </span>
+                          <span className="font-bold">{service.name}</span>
+                        </div>
+                        <Badge variant="secondary" className="font-mono">
+                          الكمية: {service.quantity}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="flex flex-col">
+                          <span className="text-muted-foreground text-xs">سعر الوحدة</span>
+                          <span className="font-mono">{formatCurrency(service.unit_price)} ر.س</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-muted-foreground text-xs">الإجمالي</span>
+                          <span className="font-mono font-bold text-primary">{formatCurrency(service.total_price)} ر.س</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {/* Financial Details */}
-              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">قيمة الخدمات:</span>
-                    <span className="font-mono">{formatCurrency(contractData.total_services_value)} ر.س</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">الرسوم الإدارية:</span>
-                    <span className="font-mono">{formatCurrency(contractData.admin_fees)} ر.س</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">ضريبة القيمة المضافة (15%):</span>
-                    <span className="font-mono">{formatCurrency(contractData.vat_amount)} ر.س</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>الإجمالي:</span>
-                    <span className="font-mono text-primary">{formatCurrency(contractData.grand_total)} ر.س</span>
-                  </div>
+              {/* Financial Details Table - Responsive */}
+              <div className="rounded-xl border-2 border-amber-500/30 overflow-hidden shadow-sm">
+                <div className="bg-gradient-to-l from-amber-500/10 to-amber-500/5 px-4 py-3 border-b border-amber-500/20">
+                  <h4 className="font-bold text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                    <Scale className="w-4 h-4" />
+                    التفاصيل المالية
+                  </h4>
                 </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">المبلغ الممول:</span>
-                    <span className="font-mono font-bold">{formatCurrency(contractData.financed_amount)} ر.س</span>
+
+                <div className="p-4">
+                  {/* Cost Breakdown */}
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* Services Value */}
+                      <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <span className="text-sm text-muted-foreground">قيمة الخدمات</span>
+                        <span className="font-mono font-medium">{formatCurrency(contractData.total_services_value)} ر.س</span>
+                      </div>
+                      {/* Admin Fees */}
+                      <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <span className="text-sm text-muted-foreground">الرسوم الإدارية</span>
+                        <span className="font-mono font-medium">{formatCurrency(contractData.admin_fees)} ر.س</span>
+                      </div>
+                    </div>
+
+                    {/* VAT */}
+                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                      <span className="text-sm text-muted-foreground">ضريبة القيمة المضافة (15%)</span>
+                      <span className="font-mono font-medium">{formatCurrency(contractData.vat_amount)} ر.س</span>
+                    </div>
+
+                    {/* Grand Total */}
+                    <div className="flex items-center justify-between p-4 bg-gradient-to-l from-primary/20 to-primary/10 rounded-lg border-2 border-primary/30">
+                      <span className="font-bold text-lg">الإجمالي الكلي</span>
+                      <span className="font-mono font-bold text-xl text-primary">{formatCurrency(contractData.grand_total)} ر.س</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">عدد الأقساط:</span>
-                    <span className="font-bold">{contractData.installments_count} قسط</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">قيمة القسط:</span>
-                    <span className="font-mono font-bold">{formatCurrency(contractData.installment_amount)} ر.س</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">تاريخ أول قسط:</span>
-                    <span>{contractData.first_installment_date}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">تاريخ آخر قسط:</span>
-                    <span>{contractData.last_installment_date}</span>
+
+                  <Separator className="my-4" />
+
+                  {/* Installment Details */}
+                  <div className="space-y-3">
+                    <h5 className="font-bold text-sm text-muted-foreground flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      تفاصيل الأقساط
+                    </h5>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      {/* Financed Amount */}
+                      <div className="p-3 bg-primary/5 rounded-lg border border-primary/20 text-center">
+                        <p className="text-xs text-muted-foreground mb-1">المبلغ الممول</p>
+                        <p className="font-mono font-bold text-primary text-lg">{formatCurrency(contractData.financed_amount)} ر.س</p>
+                      </div>
+                      
+                      {/* Number of Installments */}
+                      <div className="p-3 bg-blue-500/5 rounded-lg border border-blue-500/20 text-center">
+                        <p className="text-xs text-muted-foreground mb-1">عدد الأقساط</p>
+                        <p className="font-bold text-blue-600 dark:text-blue-400 text-lg">{contractData.installments_count} قسط</p>
+                      </div>
+                      
+                      {/* Installment Amount */}
+                      <div className="p-3 bg-green-500/5 rounded-lg border border-green-500/20 text-center">
+                        <p className="text-xs text-muted-foreground mb-1">قيمة القسط</p>
+                        <p className="font-mono font-bold text-green-600 dark:text-green-400 text-lg">{formatCurrency(contractData.installment_amount)} ر.س</p>
+                      </div>
+                      
+                      {/* Payment Period */}
+                      <div className="p-3 bg-purple-500/5 rounded-lg border border-purple-500/20 text-center">
+                        <p className="text-xs text-muted-foreground mb-1">مدة السداد</p>
+                        <p className="font-bold text-purple-600 dark:text-purple-400 text-lg">{contractData.installments_count} شهر</p>
+                      </div>
+                    </div>
+
+                    {/* Payment Dates */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                      <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <span className="text-sm text-muted-foreground flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          تاريخ أول قسط
+                        </span>
+                        <span className="font-bold">{contractData.first_installment_date}</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <span className="text-sm text-muted-foreground flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-primary" />
+                          تاريخ آخر قسط
+                        </span>
+                        <span className="font-bold">{contractData.last_installment_date}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
