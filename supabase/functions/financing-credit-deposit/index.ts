@@ -204,15 +204,15 @@ serve(async (req) => {
     let balanceAfter: number;
 
     if (existingCredit) {
-      // Update existing credit
-      balanceBefore = Number(existingCredit.available_balance);
-      balanceAfter = balanceBefore + approvedAmount;
+      // Update existing credit - available_balance is computed (total_credited - total_used)
+      balanceBefore = Number(existingCredit.total_credited) - Number(existingCredit.total_used);
+      const newTotalCredited = Number(existingCredit.total_credited) + approvedAmount;
+      balanceAfter = newTotalCredited - Number(existingCredit.total_used);
       
       const { error: updateError } = await supabase
         .from('service_credits')
         .update({
-          total_credited: Number(existingCredit.total_credited) + approvedAmount,
-          available_balance: balanceAfter,
+          total_credited: newTotalCredited,
           updated_at: new Date().toISOString()
         })
         .eq('id', existingCredit.id);
@@ -233,7 +233,6 @@ serve(async (req) => {
         .insert({
           user_id: application.user_id,
           total_credited: approvedAmount,
-          available_balance: approvedAmount,
           total_used: 0,
           application_id: applicationId,
           source_type: 'financing',
