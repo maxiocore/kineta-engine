@@ -263,13 +263,13 @@ export default function FinancingStatus() {
         </Card>
 
         {/* Main Content Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" dir="rtl">
           <TabsList className="w-full grid grid-cols-2 mb-4">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
+            <TabsTrigger value="overview" className="flex items-center gap-2 flex-row-reverse">
               <FileText className="h-4 w-4" />
               نظرة عامة
             </TabsTrigger>
-            <TabsTrigger value="installments" className="flex items-center gap-2">
+            <TabsTrigger value="installments" className="flex items-center gap-2 flex-row-reverse">
               <Calendar className="h-4 w-4" />
               سجل الأقساط
             </TabsTrigger>
