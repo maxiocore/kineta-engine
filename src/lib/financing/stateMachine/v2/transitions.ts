@@ -324,7 +324,7 @@ export const ACKNOWLEDGMENT_TRANSITIONS: StateTransition<AcknowledgmentStatus>[]
 ];
 
 // ==========================================
-// انتقالات حالات سند الأمر
+// انتقالات حالات سند الأمر (محدثة)
 // ==========================================
 export const BOND_TRANSITIONS: StateTransition<ExecutiveBondStatus>[] = [
   {
@@ -333,29 +333,45 @@ export const BOND_TRANSITIONS: StateTransition<ExecutiveBondStatus>[] = [
     actors: ['admin'],
     conditionAr: 'بدء إصدار السند في نافذ',
     requiresAudit: true,
-    customerVisible: false
+    customerVisible: true
   },
   {
     from: 'ISSUING',
     to: 'ISSUED',
     actors: ['admin'],
-    conditionAr: 'تم إصدار السند',
+    conditionAr: 'تم إصدار السند في نافذ',
     requiresAudit: true,
-    customerVisible: false
+    customerVisible: true
+  },
+  {
+    from: 'ISSUING',
+    to: 'SENT_TO_CLIENT',
+    actors: ['admin'],
+    conditionAr: 'إرسال السند مباشرة للعميل',
+    requiresAudit: true,
+    customerVisible: true
   },
   {
     from: 'ISSUED',
-    to: 'SENT',
+    to: 'SENT_TO_CLIENT',
     actors: ['admin'],
     conditionAr: 'إرسال إشعار للعميل',
     requiresAudit: true,
     customerVisible: true
   },
   {
-    from: 'SENT',
-    to: 'SIGNED',
+    from: 'SENT_TO_CLIENT',
+    to: 'SIGNED_BY_CLIENT',
     actors: ['customer'],
     conditionAr: 'تأكيد توقيع العميل',
+    requiresAudit: true,
+    customerVisible: true
+  },
+  {
+    from: 'SIGNED_BY_CLIENT',
+    to: 'VERIFIED_BY_ADMIN',
+    actors: ['admin'],
+    conditionAr: 'اعتماد السند من الإدارة',
     requiresAudit: true,
     customerVisible: true
   }

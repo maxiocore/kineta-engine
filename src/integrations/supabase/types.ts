@@ -1601,6 +1601,72 @@ export type Database = {
           },
         ]
       }
+      executive_bond_events: {
+        Row: {
+          actor_id: string | null
+          actor_role: string
+          application_id: string
+          bond_id: string
+          created_at: string | null
+          event_type: string
+          from_status: string | null
+          id: string
+          ip_address: unknown
+          metadata: Json | null
+          to_status: string
+          user_agent: string | null
+          whatsapp_message_id: string | null
+          whatsapp_sent: boolean | null
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_role?: string
+          application_id: string
+          bond_id: string
+          created_at?: string | null
+          event_type: string
+          from_status?: string | null
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          to_status: string
+          user_agent?: string | null
+          whatsapp_message_id?: string | null
+          whatsapp_sent?: boolean | null
+        }
+        Update: {
+          actor_id?: string | null
+          actor_role?: string
+          application_id?: string
+          bond_id?: string
+          created_at?: string | null
+          event_type?: string
+          from_status?: string | null
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          to_status?: string
+          user_agent?: string | null
+          whatsapp_message_id?: string | null
+          whatsapp_sent?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "executive_bond_events_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "financing_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "executive_bond_events_bond_id_fkey"
+            columns: ["bond_id"]
+            isOneToOne: false
+            referencedRelation: "financing_executive_bonds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorite_import_categories: {
         Row: {
           apply_profit_margin: boolean | null
@@ -1867,6 +1933,7 @@ export type Database = {
           created_at: string
           current_phase: string | null
           email: string
+          executive_bond_id: string | null
           executive_bond_sent_at: string | null
           executive_bond_signed_at: string | null
           executive_bond_state: string | null
@@ -1906,6 +1973,7 @@ export type Database = {
           created_at?: string
           current_phase?: string | null
           email: string
+          executive_bond_id?: string | null
           executive_bond_sent_at?: string | null
           executive_bond_signed_at?: string | null
           executive_bond_state?: string | null
@@ -1945,6 +2013,7 @@ export type Database = {
           created_at?: string
           current_phase?: string | null
           email?: string
+          executive_bond_id?: string | null
           executive_bond_sent_at?: string | null
           executive_bond_signed_at?: string | null
           executive_bond_state?: string | null
@@ -1969,6 +2038,13 @@ export type Database = {
           workflow_status?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "financing_applications_executive_bond_id_fkey"
+            columns: ["executive_bond_id"]
+            isOneToOne: false
+            referencedRelation: "financing_executive_bonds"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "financing_applications_plan_id_fkey"
             columns: ["plan_id"]
@@ -2376,6 +2452,7 @@ export type Database = {
       }
       financing_executive_bonds: {
         Row: {
+          admin_verification_notes: string | null
           application_id: string
           bond_amount: number | null
           bond_number: string | null
@@ -2388,12 +2465,22 @@ export type Database = {
           nafith_reference: string | null
           sent_by: string | null
           sent_notification_at: string | null
+          sent_to_client_at: string | null
+          sent_to_client_by: string | null
           signed_at: string | null
+          signed_by_client_at: string | null
+          signed_by_client_ip: unknown
+          signed_by_client_user_agent: string | null
           signed_confirmed_by_customer: boolean | null
           status: Database["public"]["Enums"]["executive_bond_status"] | null
           updated_at: string | null
+          verified_by_admin_at: string | null
+          verified_by_admin_id: string | null
+          whatsapp_notification_sent_at: string | null
+          whatsapp_notification_status: string | null
         }
         Insert: {
+          admin_verification_notes?: string | null
           application_id: string
           bond_amount?: number | null
           bond_number?: string | null
@@ -2406,12 +2493,22 @@ export type Database = {
           nafith_reference?: string | null
           sent_by?: string | null
           sent_notification_at?: string | null
+          sent_to_client_at?: string | null
+          sent_to_client_by?: string | null
           signed_at?: string | null
+          signed_by_client_at?: string | null
+          signed_by_client_ip?: unknown
+          signed_by_client_user_agent?: string | null
           signed_confirmed_by_customer?: boolean | null
           status?: Database["public"]["Enums"]["executive_bond_status"] | null
           updated_at?: string | null
+          verified_by_admin_at?: string | null
+          verified_by_admin_id?: string | null
+          whatsapp_notification_sent_at?: string | null
+          whatsapp_notification_status?: string | null
         }
         Update: {
+          admin_verification_notes?: string | null
           application_id?: string
           bond_amount?: number | null
           bond_number?: string | null
@@ -2424,10 +2521,19 @@ export type Database = {
           nafith_reference?: string | null
           sent_by?: string | null
           sent_notification_at?: string | null
+          sent_to_client_at?: string | null
+          sent_to_client_by?: string | null
           signed_at?: string | null
+          signed_by_client_at?: string | null
+          signed_by_client_ip?: unknown
+          signed_by_client_user_agent?: string | null
           signed_confirmed_by_customer?: boolean | null
           status?: Database["public"]["Enums"]["executive_bond_status"] | null
           updated_at?: string | null
+          verified_by_admin_at?: string | null
+          verified_by_admin_id?: string | null
+          whatsapp_notification_sent_at?: string | null
+          whatsapp_notification_status?: string | null
         }
         Relationships: [
           {
@@ -4789,6 +4895,9 @@ export type Database = {
         | "NOT_ISSUED"
         | "ISSUING"
         | "ISSUED"
+        | "SENT_TO_CLIENT"
+        | "SIGNED_BY_CLIENT"
+        | "VERIFIED_BY_ADMIN"
         | "SENT"
         | "SIGNED"
       financing_application_status:
@@ -4964,6 +5073,9 @@ export const Constants = {
         "NOT_ISSUED",
         "ISSUING",
         "ISSUED",
+        "SENT_TO_CLIENT",
+        "SIGNED_BY_CLIENT",
+        "VERIFIED_BY_ADMIN",
         "SENT",
         "SIGNED",
       ],

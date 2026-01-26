@@ -128,3 +128,6 @@ verify_jwt = false
 
 [functions.contract-signing-otp]
 verify_jwt = false
+
+[functions.executive-bond-workflow]
+verify_jwt = false
