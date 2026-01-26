@@ -217,6 +217,31 @@ export function getWalletCreditedWhatsApp(name: string, amount: number, source: 
 ماكسيو كور`;
 }
 
+export function getWalletDebitedWhatsApp(name: string, amount: number, description: string): string {
+  return `📤 ماكسيو كور - إشعار المحفظة
+
+مرحباً ${name}،
+
+تم خصم ${formatAmountAr(amount)} من محفظتك
+📌 الوصف: ${description}
+
+سجّل دخولك لمتابعة معاملاتك.
+
+ماكسيو كور`;
+}
+
+export function getWalletInsufficientWhatsApp(name: string): string {
+  return `⚠️ ماكسيو كور - رصيد غير كافٍ
+
+مرحباً ${name}،
+
+لم تتم العملية لأن رصيد محفظتك غير كافٍ.
+
+💳 قم بشحن محفظتك لإتمام العملية.
+
+ماكسيو كور`;
+}
+
 export function getWalletSuspendedWhatsApp(name: string): string {
   return `⚠️ تنبيه هام - ماكسيو كور
 
@@ -227,4 +252,71 @@ export function getWalletSuspendedWhatsApp(name: string): string {
 📧 يُرجى مراجعة بريدك الإلكتروني للتفاصيل والتواصل مع الدعم.
 
 ماكسيو كور`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// WALLET INSUFFICIENT EMAIL
+// ─────────────────────────────────────────────────────────────
+
+export interface WalletInsufficientData {
+  name: string;
+  requiredAmount: number;
+  currentBalance: number;
+  dashboardLink: string;
+}
+
+export function getWalletInsufficientEmailHtml(data: WalletInsufficientData): string {
+  return `
+    <!DOCTYPE html>
+    <html dir="rtl" lang="ar">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0a0a0a; color: #ffffff; padding: 40px 20px; margin: 0;">
+      <div style="max-width: 500px; margin: 0 auto; background: linear-gradient(145deg, #1a1a2e, #16213e); border-radius: 16px; padding: 40px; border: 1px solid #2a2a4a;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">MaxioCore</h1>
+          <p style="color: #94a3b8; margin-top: 8px;">إشعار المحفظة</p>
+        </div>
+        
+        <div style="background: #f59e0b20; border-radius: 12px; padding: 30px; text-align: center; margin-bottom: 30px; border: 1px solid #f59e0b40;">
+          <p style="color: #f59e0b; font-size: 24px; margin: 0 0 15px 0;">⚠️ رصيد غير كافٍ</p>
+          <p style="color: #fbbf24; margin: 10px 0;">
+            مرحباً ${data.name}،
+          </p>
+          <p style="color: #94a3b8; margin: 10px 0;">
+            لم تتم العملية لأن رصيد محفظتك غير كافٍ.
+          </p>
+          <div style="background: #0f172a; border-radius: 8px; padding: 15px; margin-top: 20px;">
+            <table style="width: 100%; text-align: right; color: #94a3b8;">
+              <tr>
+                <td style="padding: 5px 0;">المبلغ المطلوب:</td>
+                <td style="color: #f59e0b; padding: 5px 0; font-weight: bold;">${formatAmountAr(data.requiredAmount)}</td>
+              </tr>
+              <tr>
+                <td style="padding: 5px 0;">الرصيد الحالي:</td>
+                <td style="color: #ef4444; padding: 5px 0; font-weight: bold;">${formatAmountAr(data.currentBalance)}</td>
+              </tr>
+              <tr>
+                <td style="padding: 5px 0;">النقص:</td>
+                <td style="color: #fbbf24; padding: 5px 0; font-weight: bold;">${formatAmountAr(data.requiredAmount - data.currentBalance)}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        
+        <div style="text-align: center; margin-bottom: 20px;">
+          <a href="${data.dashboardLink}" style="display: inline-block; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold;">
+            شحن المحفظة
+          </a>
+        </div>
+        
+        <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
+          ماكسيو كور - شريكك التقني
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
 }
