@@ -25,7 +25,10 @@ const ELIGIBLE_STATUSES = [
   'FIN_CONTRACT_FINALIZED',
   'APPROVED',
   'APPROVED_WITH_LIMITS',
-  'CONTRACT_FINALIZED'
+  'CONTRACT_FINALIZED',
+  'awaiting_signature',      // Legacy status - contract signed awaiting deposit
+  'contract_signed',         // Alternative legacy status
+  'CONTRACT_ACCEPTED'        // New state machine status
 ];
 
 interface DepositRequest {
