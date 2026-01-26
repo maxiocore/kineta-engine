@@ -234,8 +234,10 @@ serve(async (req) => {
           user_id: application.user_id,
           total_credited: approvedAmount,
           available_balance: approvedAmount,
-          used_balance: 0,
-          financing_application_id: applicationId,
+          total_used: 0,
+          application_id: applicationId,
+          source_type: 'financing',
+          source_reference_id: applicationId,
           is_active: true,
           expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 12 months
         })
