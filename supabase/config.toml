@@ -116,3 +116,9 @@ verify_jwt = false
 
 [functions.financing-credit-deposit]
 verify_jwt = false
+
+[functions.auth-notify]
+verify_jwt = false
+
+[functions.login-alert]
+verify_jwt = false
