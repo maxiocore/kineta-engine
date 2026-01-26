@@ -13,14 +13,19 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // Force single React instance
+      "react": path.resolve(__dirname, "./node_modules/react"),
+      "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
+      "react-router-dom": path.resolve(__dirname, "./node_modules/react-router-dom"),
     },
-    // Fix duplicate React instances causing useLocation/useContext errors
     dedupe: [
       'react', 
       'react-dom', 
       'react-router-dom',
       'input-otp',
       '@radix-ui/react-context',
+      '@tanstack/react-query',
+      'framer-motion',
     ],
   },
   optimizeDeps: {
@@ -29,8 +34,20 @@ export default defineConfig(({ mode }) => ({
       'react-dom', 
       'react-router-dom',
       'input-otp',
+      '@tanstack/react-query',
     ],
-    // Force re-bundling to fix cache issues
     force: true,
+    esbuildOptions: {
+      // Ensure consistent React resolution
+      define: {
+        global: 'globalThis',
+      },
+    },
+  },
+  build: {
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true,
+    },
   },
 }));
