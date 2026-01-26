@@ -2,13 +2,14 @@
  * صفحة اعتماد العقد الرسمي
  * Official Contract Signing Page
  * 
- * يستخدم OfficialContractViewer الجديد مع:
+ * يستخدم التوليد السيرفري للعقود مع:
  * - قراءة إلزامية (95% scroll + 60 ثانية)
  * - موافقة صريحة
  * - لا كمبيالة
+ * - توليد PDF سيرفري (Arabic Shaping + Bidi RTL)
  */
 
-import { useMemo, useRef, useCallback } from "react";
+import { useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,12 +27,11 @@ import {
   AlertTriangle, 
   Loader2,
   Shield,
-  Download
+  Download,
+  Eye
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 import { 
   OfficialContractViewer, 
   type ContractAcceptanceRecord 
@@ -40,6 +40,7 @@ import { ExecutiveBondStatus } from "@/components/financing/contract/ExecutiveBo
 import { COMPANY_INFO } from "@/lib/financing/serviceFinancingPolicy";
 import { type LegalContractData } from "@/lib/financing/legalContractContent";
 import { type ExecutiveBondState } from "@/lib/financing/stateMachine/contractStates";
+import { useServerContractPdf } from "@/hooks/useServerContractPdf";
 
 export default function SignContract() {
   const { applicationId } = useParams();
@@ -316,95 +317,47 @@ export default function SignContract() {
     );
   }
 
+  // Server-side PDF hook for signed contracts
+  const serverPdf = useServerContractPdf();
+
+  // Load contract PDF when viewing signed contract
+  useEffect(() => {
+    if (hasContractSigned && application?.status !== "awaiting_contract" && applicationId) {
+      serverPdf.generateContract(applicationId);
+    }
+  }, [hasContractSigned, application?.status, applicationId]);
+
   // If contract already signed - show executive bond status with download button
   if (hasContractSigned && application.status !== "awaiting_contract") {
-    // PDF Download function
+    // Server-side PDF Download function
     const handleDownloadContract = async () => {
-      try {
-        toast.loading("جاري إنشاء ملف العقد...", { id: "pdf-gen" });
-        
-        // Create a hidden container for the PDF content
-        const container = document.createElement("div");
-        container.style.position = "absolute";
-        container.style.left = "-9999px";
-        container.style.width = "800px";
-        container.style.fontFamily = "Tajawal, Cairo, 'Noto Kufi Arabic', sans-serif";
-        container.style.direction = "rtl";
-        container.style.padding = "40px";
-        container.style.backgroundColor = "white";
-        container.innerHTML = `
-          <div style="text-align: center; margin-bottom: 30px; border-bottom: 3px solid #8B5CF6; padding-bottom: 20px;">
-            <h1 style="font-size: 24px; color: #8B5CF6; margin-bottom: 10px;">عقد تمويل خدمات</h1>
-            <p style="color: #666;">رقم العقد: CNT-${applicationId?.substring(0, 8).toUpperCase()}</p>
-            <p style="color: #666;">رقم الطلب: ${application.application_number}</p>
-            <p style="color: #666;">تاريخ التوقيع: ${format(new Date(application.contract_signed_at || new Date()), "dd/MM/yyyy", { locale: ar })}</p>
-          </div>
-          
-          <div style="margin-bottom: 25px; padding: 15px; background: #F3F4F6; border-radius: 8px;">
-            <h3 style="color: #8B5CF6; margin-bottom: 10px;">بيانات العميل</h3>
-            <p><strong>الاسم:</strong> ${application.full_name}</p>
-            <p><strong>رقم الهوية:</strong> ${application.national_id}</p>
-            <p><strong>رقم الجوال:</strong> ${application.phone}</p>
-            <p><strong>البريد الإلكتروني:</strong> ${application.email}</p>
-          </div>
-          
-          <div style="margin-bottom: 25px; padding: 15px; background: #FEF3C7; border-radius: 8px; border: 1px solid #F59E0B;">
-            <h3 style="color: #D97706; margin-bottom: 10px;">التفاصيل المالية</h3>
-            <table style="width: 100%; border-collapse: collapse;">
-              <tr style="border-bottom: 1px solid #E5E7EB;">
-                <td style="padding: 8px; text-align: right;">المبلغ الممول</td>
-                <td style="padding: 8px; text-align: left; font-weight: bold;">${new Intl.NumberFormat("ar-SA", { minimumFractionDigits: 2 }).format((application.approved_amount || application.requested_amount) * 1.15)} ر.س</td>
-              </tr>
-              <tr style="border-bottom: 1px solid #E5E7EB;">
-                <td style="padding: 8px; text-align: right;">عدد الأقساط</td>
-                <td style="padding: 8px; text-align: left; font-weight: bold;">${application.financing_plans?.installments_count || 6} قسط</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px; text-align: right;">قيمة القسط</td>
-                <td style="padding: 8px; text-align: left; font-weight: bold;">${new Intl.NumberFormat("ar-SA", { minimumFractionDigits: 2 }).format(((application.approved_amount || application.requested_amount) * 1.15) / (application.financing_plans?.installments_count || 6))} ر.س</td>
-              </tr>
-            </table>
-          </div>
-          
-          <div style="margin-bottom: 25px; padding: 15px; background: #D1FAE5; border-radius: 8px; border: 1px solid #10B981;">
-            <h3 style="color: #059669; margin-bottom: 10px;">حالة العقد</h3>
-            <p style="color: #059669; font-weight: bold;">✓ تم اعتماد العقد بنجاح</p>
-            <p style="color: #666; font-size: 12px;">تاريخ التوقيع: ${format(new Date(application.contract_signed_at || new Date()), "dd/MM/yyyy HH:mm", { locale: ar })}</p>
-          </div>
-          
-          <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #E5E7EB; text-align: center; color: #9CA3AF; font-size: 11px;">
-            <p>هذا العقد ملزم قانونياً لكلا الطرفين</p>
-            <p>تم إنشاء هذا المستند إلكترونياً بتاريخ ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: ar })}</p>
-          </div>
-        `;
-        
-        document.body.appendChild(container);
-        
-        const canvas = await html2canvas(container, {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: "#ffffff",
-        });
-        
-        document.body.removeChild(container);
-        
-        const pdf = new jsPDF({
-          orientation: "portrait",
-          unit: "mm",
-          format: "a4",
-        });
-        
-        const imgWidth = 210;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        
-        pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, imgWidth, imgHeight);
-        pdf.save(`عقد_تمويل_${application.application_number}.pdf`);
-        
-        toast.success("تم تحميل العقد بنجاح", { id: "pdf-gen" });
-      } catch (error) {
-        console.error("PDF generation error:", error);
-        toast.error("حدث خطأ أثناء إنشاء ملف العقد", { id: "pdf-gen" });
+      if (serverPdf.contractHtml) {
+        serverPdf.downloadContract(application.application_number);
+      } else {
+        toast.loading("جاري توليد العقد...", { id: "pdf-gen" });
+        const result = await serverPdf.generateContract(applicationId!);
+        if (result) {
+          serverPdf.downloadContract(application.application_number);
+          toast.success("سيتم فتح نافذة الطباعة", { id: "pdf-gen" });
+        } else {
+          toast.error("فشل توليد العقد", { id: "pdf-gen" });
+        }
+      }
+    };
+
+    // Preview contract in new window
+    const handlePreviewContract = async () => {
+      if (serverPdf.contractHtml) {
+        serverPdf.previewContract();
+      } else {
+        toast.loading("جاري توليد العقد...", { id: "pdf-preview" });
+        const result = await serverPdf.generateContract(applicationId!);
+        if (result) {
+          serverPdf.previewContract();
+          toast.dismiss("pdf-preview");
+        } else {
+          toast.error("فشل توليد العقد", { id: "pdf-preview" });
+        }
       }
     };
 
@@ -450,14 +403,34 @@ export default function SignContract() {
                     <p className="text-sm text-muted-foreground">احفظ نسخة من عقد التمويل الموقّع</p>
                   </div>
                 </div>
-                <Button 
-                  onClick={handleDownloadContract}
-                  className="w-full sm:w-auto gap-2"
-                  variant="default"
-                >
-                  <Download className="w-4 h-4" />
-                  تحميل العقد PDF
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handlePreviewContract}
+                    variant="outline"
+                    disabled={serverPdf.isLoading}
+                    className="gap-2"
+                  >
+                    {serverPdf.isLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                    معاينة
+                  </Button>
+                  <Button 
+                    onClick={handleDownloadContract}
+                    disabled={serverPdf.isLoading}
+                    className="gap-2"
+                    variant="default"
+                  >
+                    {serverPdf.isLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Download className="w-4 h-4" />
+                    )}
+                    تحميل PDF
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
