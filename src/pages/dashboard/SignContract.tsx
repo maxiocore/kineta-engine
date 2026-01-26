@@ -101,7 +101,8 @@ export default function SignContract() {
       if (error) throw error;
 
       // Create financing contract record with full acceptance data
-      await supabase.from("financing_contracts").insert([{
+      // Note: acceptance_ip_address requires inet type, so we skip it here and let the database handle it
+      const contractInsertResult = await supabase.from("financing_contracts").insert([{
         application_id: applicationId,
         user_id: user?.id,
         contract_number: `CNT-${Date.now()}`,
@@ -111,17 +112,22 @@ export default function SignContract() {
         finalized_at: new Date().toISOString(),
         acceptance_checkbox: acceptanceRecord.checkbox_accepted,
         acceptance_button_clicked: acceptanceRecord.button_clicked,
-        acceptance_ip_address: acceptanceRecord.ip_address || '0.0.0.0',
         acceptance_user_agent: acceptanceRecord.user_agent || navigator.userAgent,
         acceptance_device_info: {
           readingTimeSeconds: acceptanceRecord.reading_time_seconds,
           scrollCompleted: acceptanceRecord.scroll_completed,
           pdfHash: acceptanceRecord.pdf_hash,
+          ipAddress: acceptanceRecord.ip_address, // Store IP in device_info instead
         },
         pdf_hash: acceptanceRecord.pdf_hash,
         viewed_at: new Date().toISOString(),
         viewed_count: 1,
       }]);
+
+      if (contractInsertResult.error) {
+        console.error("Contract insert error:", contractInsertResult.error);
+        throw contractInsertResult.error;
+      }
 
       // Log activity
       try {
