@@ -47,6 +47,9 @@ export default function SignContract() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  
+  // Server-side PDF hook - MUST be called before any conditional returns
+  const serverPdf = useServerContractPdf();
 
   const { data: application, isLoading, error } = useQuery({
     queryKey: ["financing-application", applicationId],
@@ -268,6 +271,19 @@ export default function SignContract() {
     };
   }, [application, applicationId]);
 
+  // Check if financing is already active or completed
+  const isFinancingActive = application ? ["active", "approved", "completed"].includes(application.status) : false;
+  const hasContractSigned = application ? (!!application.contract_signed_at || !!application.contract_document_url) : false;
+
+  // Load contract PDF when viewing signed contract - MUST be before any conditional returns
+  useEffect(() => {
+    if (hasContractSigned && application?.status !== "awaiting_contract" && applicationId) {
+      serverPdf.generateContract(applicationId);
+    }
+  }, [hasContractSigned, application?.status, applicationId, serverPdf]);
+
+  // ============ Conditional Returns ============
+  
   if (isLoading) {
     return (
       <ClientDashboardLayout>
@@ -292,10 +308,6 @@ export default function SignContract() {
       </ClientDashboardLayout>
     );
   }
-
-  // Check if financing is already active or completed
-  const isFinancingActive = ["active", "approved", "completed"].includes(application.status);
-  const hasContractSigned = !!application.contract_signed_at || !!application.contract_document_url;
   
   // If financing is active, show success message
   if (isFinancingActive) {
@@ -316,16 +328,6 @@ export default function SignContract() {
       </ClientDashboardLayout>
     );
   }
-
-  // Server-side PDF hook for signed contracts
-  const serverPdf = useServerContractPdf();
-
-  // Load contract PDF when viewing signed contract
-  useEffect(() => {
-    if (hasContractSigned && application?.status !== "awaiting_contract" && applicationId) {
-      serverPdf.generateContract(applicationId);
-    }
-  }, [hasContractSigned, application?.status, applicationId]);
 
   // If contract already signed - show executive bond status with download button
   if (hasContractSigned && application.status !== "awaiting_contract") {
