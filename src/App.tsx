@@ -72,7 +72,7 @@ const FinancingEligibility = lazy(() => import("./pages/dashboard/FinancingEligi
 const FinancingApply = lazy(() => import("./pages/dashboard/FinancingApply"));
 const FinancingDocuments = lazy(() => import("./pages/dashboard/FinancingDocuments"));
 const SignContract = lazy(() => import("./pages/dashboard/SignContract"));
-const SignPromissoryNote = lazy(() => import("./pages/dashboard/SignPromissoryNote"));
+// SignPromissoryNote removed - الكمبيالة محذوفة نهائياً
 const FinancingPayment = lazy(() => import("./pages/dashboard/FinancingPayment"));
 const ClientFinancingPayments = lazy(() => import("./pages/dashboard/ClientFinancingPayments"));
 const FinancingStatus = lazy(() => import("./pages/dashboard/FinancingStatus"));
@@ -344,11 +344,7 @@ const App = () => (
                         <SignContract />
                       </ProtectedRoute>
                     } />
-                    <Route path="/dashboard/financing/sign-promissory/:applicationId" element={
-                      <ProtectedRoute>
-                        <SignPromissoryNote />
-                      </ProtectedRoute>
-                    } />
+                    {/* Promissory note route removed - الكمبيالة محذوفة نهائياً */}
                     <Route path="/dashboard/financing/payment" element={
                       <ProtectedRoute>
                         <FinancingPayment />
