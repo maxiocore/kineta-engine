@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -123,6 +124,7 @@ const installmentStatusConfig: Record<string, { label: string; color: string }> 
 };
 
 export default function AdminFinancing() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -523,6 +525,7 @@ export default function AdminFinancing() {
       const approved_amount = application.approved_amount;
       const plan = application.financing_plans;
 
+      // Create installments if plan exists
       if (plan) {
         const installmentAmount = approved_amount / plan.installments_count;
         const installmentsToCreate = [];
@@ -544,127 +547,62 @@ export default function AdminFinancing() {
         await supabase
           .from("financing_installments")
           .insert(installmentsToCreate);
-
-        // Add financing amount to service_credits (non-cash credit)
-        // Get the financing contract
-        const { data: contract } = await supabase
-          .from("financing_contracts")
-          .select("id")
-          .eq("application_id", id)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
-
-        // Create or update service credit record
-        const { data: existingCredit } = await supabase
-          .from("service_credits")
-          .select("*")
-          .eq("user_id", application.user_id)
-          .eq("is_active", true)
-          .single();
-
-        if (existingCredit) {
-          // Update existing credit
-          const newTotal = Number(existingCredit.total_credited) + approved_amount;
-          const newAvailable = Number(existingCredit.available_balance) + approved_amount;
-          
-          await supabase
-            .from("service_credits")
-            .update({
-              total_credited: newTotal,
-              available_balance: newAvailable,
-              updated_at: new Date().toISOString()
-            })
-            .eq("id", existingCredit.id);
-
-          // Log the transaction
-          await supabase
-            .from("service_credit_transactions")
-            .insert({
-              credit_id: existingCredit.id,
-              user_id: application.user_id,
-              transaction_type: "credit",
-              amount: approved_amount,
-              balance_before: Number(existingCredit.available_balance),
-              balance_after: newAvailable,
-              reference_type: "financing",
-              reference_id: id,
-              description: `Service financing credit - Application #${application.application_number}`,
-              description_ar: `رصيد تمويل خدمات - طلب رقم ${application.application_number}`,
-              status: "completed"
-            });
-        } else {
-          // Create new service credit
-          const { data: newCredit } = await supabase
-            .from("service_credits")
-            .insert({
-              user_id: application.user_id,
-              total_credited: approved_amount,
-              total_used: 0,
-              available_balance: approved_amount,
-              source_type: "financing",
-              source_reference_id: id,
-              contract_id: contract?.id || null,
-              application_id: id,
-              is_active: true,
-              is_frozen: false
-            })
-            .select()
-            .single();
-
-          if (newCredit) {
-            // Log the initial credit transaction
-            await supabase
-              .from("service_credit_transactions")
-              .insert({
-                credit_id: newCredit.id,
-                user_id: application.user_id,
-                transaction_type: "credit",
-                amount: approved_amount,
-                balance_before: 0,
-                balance_after: approved_amount,
-                reference_type: "financing",
-                reference_id: id,
-                description: `Initial service financing credit - Application #${application.application_number}`,
-                description_ar: `رصيد تمويل خدمات أولي - طلب رقم ${application.application_number}`,
-                status: "completed"
-              });
-          }
-        }
-
-        // Send credit deposited notification via unified system
-        try {
-          await notifyCreditDeposited(
-            id,
-            application.application_number,
-            application.email,
-            application.full_name,
-            approved_amount
-          );
-        } catch (emailError) {
-          console.error("Failed to send credit deposited email:", emailError);
-        }
       }
 
-      // Update status to active with signed date
-      await supabase
-        .from("financing_applications")
-        .update({ 
-          status: "active",
-          approved_at: new Date().toISOString(),
-          contract_signed_at: new Date().toISOString()
-        })
-        .eq("id", id);
+      // Call the unified credit deposit edge function
+      // This handles: credit creation, ledger entry, status update, email, WhatsApp
+      const { data: depositResult, error: depositError } = await supabase.functions.invoke(
+        'financing-credit-deposit',
+        {
+          body: {
+            applicationId: id,
+            actorId: user?.id
+          }
+        }
+      );
+
+      if (depositError) {
+        console.error("Credit deposit edge function error:", depositError);
+        throw new Error("فشل في إيداع رصيد الخدمات");
+      }
+
+      if (!depositResult?.success && depositResult?.action !== 'already_deposited') {
+        throw new Error(depositResult?.messageAr || "فشل في معالجة الإيداع");
+      }
+
+      // If already deposited, just update status to active
+      if (depositResult?.action === 'already_deposited') {
+        console.log("Credit already deposited, updating status only");
+      }
+
+      // Update status to active with signed date (if not already done by edge function)
+      if (depositResult?.action !== 'deposited') {
+        await supabase
+          .from("financing_applications")
+          .update({ 
+            status: "active",
+            approved_at: new Date().toISOString(),
+            contract_signed_at: new Date().toISOString()
+          })
+          .eq("id", id);
+      }
+
+      return depositResult;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["financing-applications"] });
       queryClient.invalidateQueries({ queryKey: ["financing-stats"] });
-      toast.success("تم تفعيل التمويل وإضافة الرصيد لحساب العميل");
+      
+      const notificationInfo = data?.notificationsSent 
+        ? ` (بريد: ${data.notificationsSent.email ? '✓' : '✗'}, واتساب: ${data.notificationsSent.whatsapp ? '✓' : '✗'})`
+        : '';
+      
+      toast.success(`تم تفعيل التمويل وإضافة الرصيد لحساب العميل${notificationInfo}`);
       setShowActivateDialog(false);
       setSelectedApplication(null);
     },
     onError: (error) => {
-      toast.error("حدث خطأ أثناء تفعيل التمويل");
+      toast.error(error instanceof Error ? error.message : "حدث خطأ أثناء تفعيل التمويل");
       console.error(error);
     },
   });
