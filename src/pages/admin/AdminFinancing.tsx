@@ -149,6 +149,13 @@ export default function AdminFinancing() {
   const [showReceiptsSection, setShowReceiptsSection] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<any>(null);
   const [showReceiptDialog, setShowReceiptDialog] = useState(false);
+  
+  // Contract PDF customization dialog
+  const [showContractPdfDialog, setShowContractPdfDialog] = useState(false);
+  const [contractPdfData, setContractPdfData] = useState({ 
+    override_name: "", 
+    override_installments: "" 
+  });
 
   // Fetch payment receipts
   const { data: paymentReceipts = [], refetch: refetchReceipts } = useQuery({
@@ -1279,38 +1286,13 @@ export default function AdminFinancing() {
                                 <>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
-                                    onClick={async () => {
-                                      toast.loading("جاري توليد العقد...", { id: "contract-pdf" });
-                                      try {
-                                        const response = await supabase.functions.invoke('generate-contract-pdf', {
-                                          body: {
-                                            application_id: app.id,
-                                            include_approval: true,
-                                          },
-                                        });
-                                        
-                                        if (response.error || !response.data?.success) {
-                                          throw new Error(response.error?.message || response.data?.error || 'فشل توليد العقد');
-                                        }
-                                        
-                                        // Open HTML in new window for printing as PDF
-                                        const printWindow = window.open('', '_blank');
-                                        if (printWindow) {
-                                          printWindow.document.write(response.data.html);
-                                          printWindow.document.close();
-                                          printWindow.onload = () => {
-                                            setTimeout(() => {
-                                              printWindow.print();
-                                            }, 1000);
-                                          };
-                                          toast.success("تم فتح العقد للطباعة", { id: "contract-pdf" });
-                                        } else {
-                                          toast.error("تم حظر النوافذ المنبثقة", { id: "contract-pdf" });
-                                        }
-                                      } catch (error) {
-                                        console.error('Error generating contract:', error);
-                                        toast.error("فشل توليد العقد", { id: "contract-pdf" });
-                                      }
+                                    onClick={() => {
+                                      setSelectedApplication(app);
+                                      setContractPdfData({
+                                        override_name: app.full_name,
+                                        override_installments: String(app.financing_plans?.installments_count || 3),
+                                      });
+                                      setShowContractPdfDialog(true);
                                     }}
                                     className="text-primary"
                                   >
@@ -1901,6 +1883,106 @@ export default function AdminFinancing() {
                 disabled={editApplicationMutation.isPending}
               >
                 {editApplicationMutation.isPending ? "جاري الحفظ..." : "حفظ التغييرات"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Contract PDF Customization Dialog */}
+        <Dialog open={showContractPdfDialog} onOpenChange={setShowContractPdfDialog}>
+          <DialogContent className="max-w-md" dir="rtl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                تخصيص العقد
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>اسم العميل في العقد</Label>
+                <Input
+                  value={contractPdfData.override_name}
+                  onChange={(e) => setContractPdfData(prev => ({ ...prev, override_name: e.target.value }))}
+                  placeholder="اسم العميل"
+                  dir="rtl"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>عدد الأقساط</Label>
+                <Select
+                  value={contractPdfData.override_installments}
+                  onValueChange={(value) => setContractPdfData(prev => ({ ...prev, override_installments: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر عدد الأقساط" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">قسط واحد</SelectItem>
+                    <SelectItem value="2">قسطين</SelectItem>
+                    <SelectItem value="3">3 أقساط</SelectItem>
+                    <SelectItem value="4">4 أقساط</SelectItem>
+                    <SelectItem value="5">5 أقساط</SelectItem>
+                    <SelectItem value="6">6 أقساط</SelectItem>
+                    <SelectItem value="9">9 أقساط</SelectItem>
+                    <SelectItem value="12">12 قسط</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <DialogFooter className="gap-2 mt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowContractPdfDialog(false)}
+              >
+                إلغاء
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (!selectedApplication) return;
+                  
+                  toast.loading("جاري توليد العقد...", { id: "contract-pdf" });
+                  try {
+                    const response = await supabase.functions.invoke('generate-contract-pdf', {
+                      body: {
+                        application_id: selectedApplication.id,
+                        include_approval: true,
+                        override_name: contractPdfData.override_name || undefined,
+                        override_installments: contractPdfData.override_installments 
+                          ? parseInt(contractPdfData.override_installments) 
+                          : undefined,
+                      },
+                    });
+                    
+                    if (response.error || !response.data?.success) {
+                      throw new Error(response.error?.message || response.data?.error || 'فشل توليد العقد');
+                    }
+                    
+                    // Open HTML in new window for printing as PDF
+                    const printWindow = window.open('', '_blank');
+                    if (printWindow) {
+                      printWindow.document.write(response.data.html);
+                      printWindow.document.close();
+                      printWindow.onload = () => {
+                        setTimeout(() => {
+                          printWindow.print();
+                        }, 1000);
+                      };
+                      toast.success("تم فتح العقد للطباعة", { id: "contract-pdf" });
+                      setShowContractPdfDialog(false);
+                    } else {
+                      toast.error("تم حظر النوافذ المنبثقة", { id: "contract-pdf" });
+                    }
+                  } catch (error) {
+                    console.error('Error generating contract:', error);
+                    toast.error("فشل توليد العقد", { id: "contract-pdf" });
+                  }
+                }}
+              >
+                <Download className="h-4 w-4 ml-2" />
+                توليد العقد
               </Button>
             </DialogFooter>
           </DialogContent>
