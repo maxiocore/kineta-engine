@@ -1944,6 +1944,7 @@ export default function AdminFinancing() {
                 إلغاء
               </Button>
               <Button
+                variant="secondary"
                 onClick={async () => {
                   if (!selectedApplication) return;
                   
@@ -1975,7 +1976,6 @@ export default function AdminFinancing() {
                         }, 1000);
                       };
                       toast.success("تم فتح العقد للطباعة", { id: "contract-pdf" });
-                      setShowContractPdfDialog(false);
                     } else {
                       toast.error("تم حظر النوافذ المنبثقة", { id: "contract-pdf" });
                     }
@@ -1986,7 +1986,56 @@ export default function AdminFinancing() {
                 }}
               >
                 <Download className="h-4 w-4 ml-2" />
-                توليد العقد
+                معاينة فقط
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (!selectedApplication) return;
+                  
+                  toast.loading("جاري حفظ التعديلات وإرسال العقد...", { id: "contract-save" });
+                  try {
+                    // 1. حفظ التعديلات في قاعدة البيانات
+                    const overrideName = contractPdfData.override_name !== selectedApplication.full_name 
+                      ? contractPdfData.override_name 
+                      : null;
+                    const overrideInstallments = contractPdfData.override_installments 
+                      && parseInt(contractPdfData.override_installments) !== (selectedApplication.financing_plans?.installments_count || 3)
+                      ? parseInt(contractPdfData.override_installments) 
+                      : null;
+                    
+                    const { error: updateError } = await supabase
+                      .from("financing_applications")
+                      .update({
+                        contract_override_name: overrideName,
+                        contract_override_installments: overrideInstallments,
+                        updated_at: new Date().toISOString(),
+                      })
+                      .eq("id", selectedApplication.id);
+                    
+                    if (updateError) throw updateError;
+                    
+                    // 2. إرسال إشعار للعميل بالعقد المحدث
+                    await notifyContractPresented(
+                      selectedApplication.id,
+                      selectedApplication.application_number,
+                      selectedApplication.email,
+                      contractPdfData.override_name || selectedApplication.full_name,
+                      selectedApplication.approved_amount || selectedApplication.requested_amount
+                    );
+                    
+                    // 3. تحديث البيانات
+                    queryClient.invalidateQueries({ queryKey: ["admin-financing-applications"] });
+                    
+                    toast.success("تم حفظ التعديلات وإرسال العقد للعميل", { id: "contract-save" });
+                    setShowContractPdfDialog(false);
+                  } catch (error) {
+                    console.error('Error saving contract changes:', error);
+                    toast.error("فشل حفظ التعديلات", { id: "contract-save" });
+                  }
+                }}
+              >
+                <Send className="h-4 w-4 ml-2" />
+                حفظ وإرسال للعميل
               </Button>
             </DialogFooter>
           </DialogContent>
