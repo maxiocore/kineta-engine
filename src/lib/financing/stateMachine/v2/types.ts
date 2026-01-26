@@ -27,7 +27,22 @@ export type ApplicationStatus =
   | 'COMPLETED'                // مكتمل
   | 'DECLINED'                 // مرفوض
   | 'CANCELLED'                // ملغي
-  | 'EXPIRED';                 // منتهي الصلاحية
+  | 'EXPIRED'                  // منتهي الصلاحية
+  // حالات الإيداع الجديدة
+  | 'CREDIT_DEPOSIT_PENDING'   // قيد معالجة الإيداع
+  | 'CREDIT_DEPOSITED'         // تم الإيداع
+  | 'CREDIT_DEPOSIT_FAILED'    // فشل الإيداع
+  | 'RETRY_SCHEDULED';         // مجدول لإعادة المحاولة
+
+// ==========================================
+// حالات سجل الإيداع (Deposit Ledger)
+// ==========================================
+export type DepositLedgerStatus =
+  | 'PENDING'          // قيد الانتظار
+  | 'PROCESSING'       // جاري المعالجة
+  | 'DEPOSITED'        // تم الإيداع
+  | 'FAILED'           // فشل
+  | 'RETRY_SCHEDULED'; // مجدول للمحاولة
 
 // ==========================================
 // حالات العقد

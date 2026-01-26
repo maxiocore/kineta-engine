@@ -1931,7 +1931,9 @@ export type Database = {
           contract_override_name: string | null
           contract_signed_at: string | null
           created_at: string
+          credit_deposit_status: string | null
           current_phase: string | null
+          deposit_ledger_id: string | null
           email: string
           executive_bond_id: string | null
           executive_bond_sent_at: string | null
@@ -1939,6 +1941,7 @@ export type Database = {
           executive_bond_state: string | null
           full_name: string
           id: string
+          last_deposit_attempt_at: string | null
           national_id: string
           phase_updated_at: string | null
           phone: string
@@ -1971,7 +1974,9 @@ export type Database = {
           contract_override_name?: string | null
           contract_signed_at?: string | null
           created_at?: string
+          credit_deposit_status?: string | null
           current_phase?: string | null
+          deposit_ledger_id?: string | null
           email: string
           executive_bond_id?: string | null
           executive_bond_sent_at?: string | null
@@ -1979,6 +1984,7 @@ export type Database = {
           executive_bond_state?: string | null
           full_name: string
           id?: string
+          last_deposit_attempt_at?: string | null
           national_id: string
           phase_updated_at?: string | null
           phone: string
@@ -2011,7 +2017,9 @@ export type Database = {
           contract_override_name?: string | null
           contract_signed_at?: string | null
           created_at?: string
+          credit_deposit_status?: string | null
           current_phase?: string | null
+          deposit_ledger_id?: string | null
           email?: string
           executive_bond_id?: string | null
           executive_bond_sent_at?: string | null
@@ -2019,6 +2027,7 @@ export type Database = {
           executive_bond_state?: string | null
           full_name?: string
           id?: string
+          last_deposit_attempt_at?: string | null
           national_id?: string
           phase_updated_at?: string | null
           phone?: string
@@ -2038,6 +2047,13 @@ export type Database = {
           workflow_status?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "financing_applications_deposit_ledger_id_fkey"
+            columns: ["deposit_ledger_id"]
+            isOneToOne: false
+            referencedRelation: "financing_deposit_ledger"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "financing_applications_executive_bond_id_fkey"
             columns: ["executive_bond_id"]
@@ -2297,6 +2313,108 @@ export type Database = {
           {
             foreignKeyName: "financing_contracts_parent_contract_id_fkey"
             columns: ["parent_contract_id"]
+            isOneToOne: false
+            referencedRelation: "financing_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financing_deposit_ledger: {
+        Row: {
+          amount: number
+          application_id: string
+          balance_after: number | null
+          balance_before: number | null
+          contract_id: string | null
+          contract_version: number
+          created_at: string
+          credit_id: string | null
+          deposit_key: string
+          failure_code: string | null
+          failure_reason: string | null
+          id: string
+          initiated_by: string | null
+          initiated_by_role: string | null
+          ledger_checksum: string | null
+          ledger_entry_id: string | null
+          max_retries: number | null
+          next_retry_at: string | null
+          processing_completed_at: string | null
+          processing_duration_ms: number | null
+          processing_started_at: string | null
+          retry_count: number | null
+          status: string
+          transaction_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          application_id: string
+          balance_after?: number | null
+          balance_before?: number | null
+          contract_id?: string | null
+          contract_version?: number
+          created_at?: string
+          credit_id?: string | null
+          deposit_key: string
+          failure_code?: string | null
+          failure_reason?: string | null
+          id?: string
+          initiated_by?: string | null
+          initiated_by_role?: string | null
+          ledger_checksum?: string | null
+          ledger_entry_id?: string | null
+          max_retries?: number | null
+          next_retry_at?: string | null
+          processing_completed_at?: string | null
+          processing_duration_ms?: number | null
+          processing_started_at?: string | null
+          retry_count?: number | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          application_id?: string
+          balance_after?: number | null
+          balance_before?: number | null
+          contract_id?: string | null
+          contract_version?: number
+          created_at?: string
+          credit_id?: string | null
+          deposit_key?: string
+          failure_code?: string | null
+          failure_reason?: string | null
+          id?: string
+          initiated_by?: string | null
+          initiated_by_role?: string | null
+          ledger_checksum?: string | null
+          ledger_entry_id?: string | null
+          max_retries?: number | null
+          next_retry_at?: string | null
+          processing_completed_at?: string | null
+          processing_duration_ms?: number | null
+          processing_started_at?: string | null
+          retry_count?: number | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_deposit_ledger_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "financing_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financing_deposit_ledger_contract_id_fkey"
+            columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "financing_contracts"
             referencedColumns: ["id"]
@@ -4827,6 +4945,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      atomic_credit_deposit: {
+        Args: {
+          p_actor_id?: string
+          p_actor_role?: string
+          p_application_id: string
+        }
+        Returns: Json
+      }
+      calculate_service_credit_balance: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
       check_email_rate_limit: {
         Args: {
           p_email: string
@@ -4871,6 +5001,25 @@ export type Database = {
       increment_email_rate_limit: {
         Args: { p_email: string }
         Returns: undefined
+      }
+      reconcile_credit_deposits: {
+        Args: never
+        Returns: {
+          application_id: string
+          application_number: string
+          deposit_status: string
+          discrepancy_type: string
+          expected_amount: number
+          ledger_balance: number
+          recommended_action: string
+        }[]
+      }
+      retry_failed_deposits: {
+        Args: never
+        Returns: {
+          application_id: string
+          result: Json
+        }[]
       }
       update_overdue_installments: { Args: never; Returns: undefined }
       withdraw_cashback: {
