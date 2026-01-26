@@ -458,7 +458,10 @@ export default function SignContract() {
     );
   }
 
-  if (application.status !== "awaiting_contract") {
+  // Allow contract signing for both awaiting_contract and contract_presented statuses
+  const canSignContract = ["awaiting_contract", "contract_presented", "CONTRACT_PRESENTED"].includes(application.status);
+  
+  if (!canSignContract) {
     return (
       <ClientDashboardLayout>
         <Alert>
