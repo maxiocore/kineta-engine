@@ -93,14 +93,6 @@ export const PRODUCT_SELECTION_MICROCOPY = {
       color: "from-purple-500 to-pink-500",
       features: ["إعلانات مدفوعة", "إدارة حسابات", "SEO"],
     },
-    {
-      id: "hosting" as const,
-      title: "خدمات الاستضافة",
-      description: "استضافة وسيرفرات وخدمات سحابية",
-      icon: "Server",
-      color: "from-emerald-500 to-teal-500",
-      features: ["استضافة مواقع", "سيرفرات VPS", "خدمات سحابية"],
-    },
   ],
   
   selectPrompt: "اختر فئة الخدمات",
