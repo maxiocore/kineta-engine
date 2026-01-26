@@ -269,14 +269,84 @@ export async function signInWithEmail(email: string, password: string): Promise<
     // Success - clear any lockout info
     clearLockoutInfo(email);
 
+    // Send login alert notification (only if email is verified)
+    if (data.user?.email_confirmed_at) {
+      sendLoginAlertNotification(data.user.id, email);
+    }
+
     return { success: true };
-  } catch (e: any) {
+  } catch (e: unknown) {
     return {
       success: false,
       error: 'حدث خطأ غير متوقع',
       errorCode: 'UNEXPECTED_ERROR'
     };
   }
+}
+
+/**
+ * Send login alert notification (async - non-blocking)
+ */
+async function sendLoginAlertNotification(userId: string, email: string): Promise<void> {
+  try {
+    // Get user profile for name and phone
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name, phone')
+      .eq('id', userId)
+      .maybeSingle();
+
+    // Collect device info
+    const deviceInfo = collectDeviceInfo();
+
+    await supabase.functions.invoke('login-alert', {
+      body: {
+        userId,
+        email,
+        phone: profile?.phone,
+        name: profile?.full_name || 'العميل',
+        deviceFingerprint: deviceInfo.fingerprint,
+        deviceType: deviceInfo.deviceType,
+        userAgent: navigator.userAgent,
+        geoCity: undefined, // Could be obtained from IP geolocation service
+        geoCountry: undefined,
+        isEmailVerified: true,
+        baseUrl: window.location.origin
+      }
+    });
+  } catch (e) {
+    // Non-blocking - just log the error
+    console.error('Failed to send login alert:', e);
+  }
+}
+
+/**
+ * Collect device information for login alerts
+ */
+function collectDeviceInfo(): { fingerprint: string; deviceType: string } {
+  // Simple fingerprint based on available browser info
+  const components = [
+    navigator.userAgent,
+    navigator.language,
+    screen.width + 'x' + screen.height,
+    new Date().getTimezoneOffset().toString()
+  ];
+  
+  const fingerprint = btoa(components.join('|')).substring(0, 32);
+  
+  // Detect device type
+  const ua = navigator.userAgent.toLowerCase();
+  let deviceType = 'متصفح ويب';
+  
+  if (/iphone/.test(ua)) deviceType = 'آيفون';
+  else if (/ipad/.test(ua)) deviceType = 'آيباد';
+  else if (/android.*mobile/.test(ua)) deviceType = 'هاتف أندرويد';
+  else if (/android/.test(ua)) deviceType = 'جهاز أندرويد';
+  else if (/macintosh|mac os/.test(ua)) deviceType = 'ماك';
+  else if (/windows/.test(ua)) deviceType = 'ويندوز';
+  else if (/linux/.test(ua)) deviceType = 'لينكس';
+  
+  return { fingerprint, deviceType };
 }
 
 /**
