@@ -134,3 +134,9 @@ verify_jwt = false
 
 [functions.financing-completion-notify]
 verify_jwt = false
+
+[functions.wallet-internal-transfer]
+verify_jwt = false
+
+[functions.financing-reconciliation]
+verify_jwt = false

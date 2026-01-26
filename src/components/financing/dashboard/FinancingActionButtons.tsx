@@ -5,20 +5,28 @@ import {
   Calendar, 
   Receipt,
   Banknote,
-  ChevronLeft
+  ChevronLeft,
+  ArrowLeftRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { TransferToWalletButton } from "@/components/financing/TransferToWalletButton";
 
 interface FinancingActionButtonsProps {
   applicationId: string;
   showPaymentButton?: boolean;
   showReceiptsButton?: boolean;
+  showTransferButton?: boolean;
+  availableBalance?: number;
+  onTransferComplete?: () => void;
 }
 
 export default function FinancingActionButtons({ 
   applicationId,
   showPaymentButton = true,
-  showReceiptsButton = true
+  showReceiptsButton = true,
+  showTransferButton = false,
+  availableBalance = 0,
+  onTransferComplete
 }: FinancingActionButtonsProps) {
   return (
     <motion.div
@@ -28,6 +36,16 @@ export default function FinancingActionButtons({
       className="flex flex-wrap gap-2 sm:gap-3"
       dir="rtl"
     >
+      {/* زر التحويل للرصيد - يظهر أولاً إذا كان متاحاً */}
+      {showTransferButton && availableBalance > 0 && (
+        <TransferToWalletButton
+          applicationId={applicationId}
+          availableBalance={availableBalance}
+          onTransferComplete={onTransferComplete}
+          className="flex-1 sm:flex-none"
+        />
+      )}
+
       <Button 
         asChild 
         variant="default"

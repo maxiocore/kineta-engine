@@ -3115,6 +3115,83 @@ export type Database = {
           },
         ]
       }
+      internal_transfers: {
+        Row: {
+          amount: number
+          application_id: string | null
+          created_at: string
+          destination_balance_after: number | null
+          destination_balance_before: number | null
+          destination_type: string
+          device_info: Json | null
+          error_message: string | null
+          id: string
+          idempotency_key: string
+          ip_address: unknown
+          processing_completed_at: string | null
+          processing_started_at: string | null
+          source_balance_after: number | null
+          source_balance_before: number | null
+          source_type: string
+          status: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          application_id?: string | null
+          created_at?: string
+          destination_balance_after?: number | null
+          destination_balance_before?: number | null
+          destination_type: string
+          device_info?: Json | null
+          error_message?: string | null
+          id?: string
+          idempotency_key: string
+          ip_address?: unknown
+          processing_completed_at?: string | null
+          processing_started_at?: string | null
+          source_balance_after?: number | null
+          source_balance_before?: number | null
+          source_type: string
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          application_id?: string | null
+          created_at?: string
+          destination_balance_after?: number | null
+          destination_balance_before?: number | null
+          destination_type?: string
+          device_info?: Json | null
+          error_message?: string | null
+          id?: string
+          idempotency_key?: string
+          ip_address?: unknown
+          processing_completed_at?: string | null
+          processing_started_at?: string | null
+          source_balance_after?: number | null
+          source_balance_before?: number | null
+          source_type?: string
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_transfers_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "financing_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_applications: {
         Row: {
           admin_notes: string | null
@@ -4485,6 +4562,7 @@ export type Database = {
       user_balances: {
         Row: {
           balance: number
+          created_at: string | null
           id: string
           total_deposited: number
           total_spent: number
@@ -4493,6 +4571,7 @@ export type Database = {
         }
         Insert: {
           balance?: number
+          created_at?: string | null
           id?: string
           total_deposited?: number
           total_spent?: number
@@ -4501,6 +4580,7 @@ export type Database = {
         }
         Update: {
           balance?: number
+          created_at?: string | null
           id?: string
           total_deposited?: number
           total_spent?: number
@@ -4957,6 +5037,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: number
       }
+      can_execute_internal_transfer: {
+        Args: { p_application_id?: string; p_user_id: string }
+        Returns: Json
+      }
       check_email_rate_limit: {
         Args: {
           p_email: string
@@ -4964,6 +5048,14 @@ export type Database = {
           p_max_per_hour?: number
         }
         Returns: boolean
+      }
+      check_transfer_rate_limit: {
+        Args: {
+          p_max_transfers?: number
+          p_user_id: string
+          p_window_minutes?: number
+        }
+        Returns: Json
       }
       cleanup_email_rate_limits: { Args: never; Returns: undefined }
       create_contract_new_version: {
@@ -4981,6 +5073,18 @@ export type Database = {
           p_order_id: string
           p_service_id: string
           p_service_name: string
+          p_user_agent?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      execute_internal_transfer: {
+        Args: {
+          p_amount: number
+          p_application_id: string
+          p_device_info?: Json
+          p_idempotency_key: string
+          p_ip_address?: unknown
           p_user_agent?: string
           p_user_id: string
         }
