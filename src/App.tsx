@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
+const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -177,6 +178,7 @@ const App = () => (
                     <Route path="/developers/examples" element={<CodeExamples />} />
                     <Route path="/developers/sdk" element={<SdkDownloads />} />
                     <Route path="/auth" element={<Auth />} />
+                    <Route path="/auth/reset-password" element={<ResetPassword />} />
                     
                     {/* Client Dashboard Routes */}
                     <Route path="/dashboard" element={
