@@ -812,6 +812,54 @@ function generateContractHTML(data: ContractData, approval?: ApprovalRecord): st
       color: #6b7280;
     }
     
+    /* Company Stamp */
+    .company-stamp {
+      width: 120px;
+      height: 120px;
+      margin: 15px auto;
+      border: 3px solid #1e40af;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background: radial-gradient(circle, rgba(30, 64, 175, 0.05) 0%, transparent 70%);
+    }
+    
+    .stamp-outer-ring {
+      position: absolute;
+      width: 110px;
+      height: 110px;
+      border: 2px dashed #3b82f6;
+      border-radius: 50%;
+    }
+    
+    .stamp-company-name {
+      font-size: 7pt;
+      font-weight: 700;
+      color: #1e40af;
+      text-align: center;
+      line-height: 1.3;
+      padding: 0 10px;
+    }
+    
+    .stamp-cr {
+      font-size: 6pt;
+      color: #3b82f6;
+      margin-top: 3px;
+    }
+    
+    .stamp-verified {
+      font-size: 8pt;
+      font-weight: 700;
+      color: #16a34a;
+      margin-top: 5px;
+      padding: 2px 8px;
+      border: 1px solid #16a34a;
+      border-radius: 3px;
+    }
+    
     /* Footer */
     .footer {
       margin-top: 40px;
@@ -977,6 +1025,17 @@ function generateContractHTML(data: ContractData, approval?: ApprovalRecord): st
       <div class="signature-box">
         <h4>الطرف الأول</h4>
         <div class="name">${COMPANY_INFO.name}</div>
+        
+        <!-- ختم الشركة الرقمي -->
+        <div class="company-stamp">
+          <div class="stamp-outer-ring"></div>
+          <div class="stamp-company-name">
+            شركة علي صالح الشهري<br/>القابضة
+          </div>
+          <div class="stamp-cr">س.ت ${COMPANY_INFO.commercialRegister}</div>
+          <div class="stamp-verified">✓ معتمد</div>
+        </div>
+        
         <div class="signature-line">التوقيع والختم</div>
       </div>
       <div class="signature-box">

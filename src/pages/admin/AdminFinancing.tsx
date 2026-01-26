@@ -1927,6 +1927,10 @@ export default function AdminFinancing() {
                     <SelectItem value="6">6 أقساط</SelectItem>
                     <SelectItem value="9">9 أقساط</SelectItem>
                     <SelectItem value="12">12 قسط</SelectItem>
+                    <SelectItem value="18">18 قسط</SelectItem>
+                    <SelectItem value="24">24 قسط</SelectItem>
+                    <SelectItem value="30">30 قسط</SelectItem>
+                    <SelectItem value="36">36 قسط</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
