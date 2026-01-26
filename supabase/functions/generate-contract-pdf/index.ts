@@ -4,10 +4,12 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  * 
  * توليد PDF سيرفري مع:
- * ✅ Arabic Shaping (ربط الحروف)
- * ✅ Bidi RTL (اتجاه النص الصحيح)
- * ✅ Embedded Font (خط Amiri مضمن)
- * ✅ Professional Banking Contract Design
+ * ✅ Arabic Shaping (ربط الحروف) - محسّن
+ * ✅ Bidi RTL (اتجاه النص الصحيح) - محسّن
+ * ✅ Embedded Font (خط Amiri + Noto Naskh Arabic) - مضمّن
+ * ✅ Professional Banking Contract Design - تصميم مصرفي رسمي
+ * ✅ RTL Tables - جداول عربية صحيحة
+ * ✅ Numbered Clauses - بنود مرقمة
  * 
  * لا يستخدم jsPDF أو html2canvas أو أي Canvas rendering
  */
@@ -71,7 +73,7 @@ interface ApprovalRecord {
 }
 
 // ============================================
-// Arabic Text Processing
+// Arabic Text Processing - Enhanced
 // ============================================
 
 /**
@@ -93,62 +95,55 @@ function isArabicChar(char: string): boolean {
  * Each letter has: isolated, initial, medial, final forms
  */
 const arabicForms: Record<string, [string, string, string, string]> = {
-  'ا': ['ﺍ', 'ﺍ', 'ﺎ', 'ﺎ'], // Alef
-  'أ': ['ﺃ', 'ﺃ', 'ﺄ', 'ﺄ'], // Alef with Hamza above
-  'إ': ['ﺇ', 'ﺇ', 'ﺈ', 'ﺈ'], // Alef with Hamza below
-  'آ': ['ﺁ', 'ﺁ', 'ﺂ', 'ﺂ'], // Alef with Madda
-  'ء': ['ء', 'ء', 'ء', 'ء'], // Hamza (doesn't connect)
-  'ب': ['ﺏ', 'ﺑ', 'ﺒ', 'ﺐ'], // Ba
-  'ت': ['ﺕ', 'ﺗ', 'ﺘ', 'ﺖ'], // Ta
-  'ث': ['ﺙ', 'ﺛ', 'ﺜ', 'ﺚ'], // Tha
-  'ج': ['ﺝ', 'ﺟ', 'ﺠ', 'ﺞ'], // Jeem
-  'ح': ['ﺡ', 'ﺣ', 'ﺤ', 'ﺢ'], // Ha
-  'خ': ['ﺥ', 'ﺧ', 'ﺨ', 'ﺦ'], // Kha
-  'د': ['ﺩ', 'ﺩ', 'ﺪ', 'ﺪ'], // Dal
-  'ذ': ['ﺫ', 'ﺫ', 'ﺬ', 'ﺬ'], // Thal
-  'ر': ['ﺭ', 'ﺭ', 'ﺮ', 'ﺮ'], // Ra
-  'ز': ['ﺯ', 'ﺯ', 'ﺰ', 'ﺰ'], // Zay
-  'س': ['ﺱ', 'ﺳ', 'ﺴ', 'ﺲ'], // Seen
-  'ش': ['ﺵ', 'ﺷ', 'ﺸ', 'ﺶ'], // Sheen
-  'ص': ['ﺹ', 'ﺻ', 'ﺼ', 'ﺺ'], // Sad
-  'ض': ['ﺽ', 'ﺿ', 'ﻀ', 'ﺾ'], // Dad
-  'ط': ['ﻁ', 'ﻃ', 'ﻄ', 'ﻂ'], // Ta
-  'ظ': ['ﻅ', 'ﻇ', 'ﻈ', 'ﻆ'], // Za
-  'ع': ['ﻉ', 'ﻋ', 'ﻌ', 'ﻊ'], // Ain
-  'غ': ['ﻍ', 'ﻏ', 'ﻐ', 'ﻎ'], // Ghain
-  'ف': ['ﻑ', 'ﻓ', 'ﻔ', 'ﻒ'], // Fa
-  'ق': ['ﻕ', 'ﻗ', 'ﻘ', 'ﻖ'], // Qaf
-  'ك': ['ﻙ', 'ﻛ', 'ﻜ', 'ﻚ'], // Kaf
-  'ل': ['ﻝ', 'ﻟ', 'ﻠ', 'ﻞ'], // Lam
-  'م': ['ﻡ', 'ﻣ', 'ﻤ', 'ﻢ'], // Meem
-  'ن': ['ﻥ', 'ﻧ', 'ﻨ', 'ﻦ'], // Noon
-  'ه': ['ﻩ', 'ﻫ', 'ﻬ', 'ﻪ'], // Ha
-  'ة': ['ﺓ', 'ﺓ', 'ﺔ', 'ﺔ'], // Ta Marbuta
-  'و': ['ﻭ', 'ﻭ', 'ﻮ', 'ﻮ'], // Waw
-  'ؤ': ['ﺅ', 'ﺅ', 'ﺆ', 'ﺆ'], // Waw with Hamza
-  'ي': ['ﻱ', 'ﻳ', 'ﻴ', 'ﻲ'], // Ya
-  'ى': ['ﻯ', 'ﻯ', 'ﻰ', 'ﻰ'], // Alef Maksura
-  'ئ': ['ﺉ', 'ﺋ', 'ﺌ', 'ﺊ'], // Ya with Hamza
-  'لا': ['ﻻ', 'ﻻ', 'ﻼ', 'ﻼ'], // Lam-Alef
-  'لأ': ['ﻷ', 'ﻷ', 'ﻸ', 'ﻸ'], // Lam-Alef with Hamza
-  'لإ': ['ﻹ', 'ﻹ', 'ﻺ', 'ﻺ'], // Lam-Alef with Hamza below
-  'لآ': ['ﻵ', 'ﻵ', 'ﻶ', 'ﻶ'], // Lam-Alef with Madda
+  'ا': ['ﺍ', 'ﺍ', 'ﺎ', 'ﺎ'],
+  'أ': ['ﺃ', 'ﺃ', 'ﺄ', 'ﺄ'],
+  'إ': ['ﺇ', 'ﺇ', 'ﺈ', 'ﺈ'],
+  'آ': ['ﺁ', 'ﺁ', 'ﺂ', 'ﺂ'],
+  'ء': ['ء', 'ء', 'ء', 'ء'],
+  'ب': ['ﺏ', 'ﺑ', 'ﺒ', 'ﺐ'],
+  'ت': ['ﺕ', 'ﺗ', 'ﺘ', 'ﺖ'],
+  'ث': ['ﺙ', 'ﺛ', 'ﺜ', 'ﺚ'],
+  'ج': ['ﺝ', 'ﺟ', 'ﺠ', 'ﺞ'],
+  'ح': ['ﺡ', 'ﺣ', 'ﺤ', 'ﺢ'],
+  'خ': ['ﺥ', 'ﺧ', 'ﺨ', 'ﺦ'],
+  'د': ['ﺩ', 'ﺩ', 'ﺪ', 'ﺪ'],
+  'ذ': ['ﺫ', 'ﺫ', 'ﺬ', 'ﺬ'],
+  'ر': ['ﺭ', 'ﺭ', 'ﺮ', 'ﺮ'],
+  'ز': ['ﺯ', 'ﺯ', 'ﺰ', 'ﺰ'],
+  'س': ['ﺱ', 'ﺳ', 'ﺴ', 'ﺲ'],
+  'ش': ['ﺵ', 'ﺷ', 'ﺸ', 'ﺶ'],
+  'ص': ['ﺹ', 'ﺻ', 'ﺼ', 'ﺺ'],
+  'ض': ['ﺽ', 'ﺿ', 'ﻀ', 'ﺾ'],
+  'ط': ['ﻁ', 'ﻃ', 'ﻄ', 'ﻂ'],
+  'ظ': ['ﻅ', 'ﻇ', 'ﻈ', 'ﻆ'],
+  'ع': ['ﻉ', 'ﻋ', 'ﻌ', 'ﻊ'],
+  'غ': ['ﻍ', 'ﻏ', 'ﻐ', 'ﻎ'],
+  'ف': ['ﻑ', 'ﻓ', 'ﻔ', 'ﻒ'],
+  'ق': ['ﻕ', 'ﻗ', 'ﻘ', 'ﻖ'],
+  'ك': ['ﻙ', 'ﻛ', 'ﻜ', 'ﻚ'],
+  'ل': ['ﻝ', 'ﻟ', 'ﻠ', 'ﻞ'],
+  'م': ['ﻡ', 'ﻣ', 'ﻤ', 'ﻢ'],
+  'ن': ['ﻥ', 'ﻧ', 'ﻨ', 'ﻦ'],
+  'ه': ['ﻩ', 'ﻫ', 'ﻬ', 'ﻪ'],
+  'ة': ['ﺓ', 'ﺓ', 'ﺔ', 'ﺔ'],
+  'و': ['ﻭ', 'ﻭ', 'ﻮ', 'ﻮ'],
+  'ؤ': ['ﺅ', 'ﺅ', 'ﺆ', 'ﺆ'],
+  'ي': ['ﻱ', 'ﻳ', 'ﻴ', 'ﻲ'],
+  'ى': ['ﻯ', 'ﻯ', 'ﻰ', 'ﻰ'],
+  'ئ': ['ﺉ', 'ﺋ', 'ﺌ', 'ﺊ'],
+  'لا': ['ﻻ', 'ﻻ', 'ﻼ', 'ﻼ'],
+  'لأ': ['ﻷ', 'ﻷ', 'ﻸ', 'ﻸ'],
+  'لإ': ['ﻹ', 'ﻹ', 'ﻺ', 'ﻺ'],
+  'لآ': ['ﻵ', 'ﻵ', 'ﻶ', 'ﻶ'],
 };
 
 // Letters that don't connect to the next letter
 const nonConnectingLetters = new Set(['ا', 'أ', 'إ', 'آ', 'د', 'ذ', 'ر', 'ز', 'و', 'ؤ', 'ء', 'ة']);
 
-/**
- * Check if letter can connect to next
- */
 function canConnectNext(char: string): boolean {
   return !nonConnectingLetters.has(char);
 }
 
-/**
- * Get the appropriate form of an Arabic letter based on position
- * 0 = isolated, 1 = initial, 2 = medial, 3 = final
- */
 function getLetterForm(char: string, prevConnects: boolean, nextConnects: boolean): string {
   const forms = arabicForms[char];
   if (!forms) return char;
@@ -159,9 +154,6 @@ function getLetterForm(char: string, prevConnects: boolean, nextConnects: boolea
   return forms[3]; // final
 }
 
-/**
- * Shape Arabic text - connect letters properly
- */
 function shapeArabic(text: string): string {
   if (!text) return '';
   
@@ -185,7 +177,7 @@ function shapeArabic(text: string): string {
         const afterNextConnects = i + 2 < chars.length && isArabicChar(chars[i + 2]);
         
         result.push(getLetterForm(ligature, prevConnects, afterNextConnects && canConnectNext(nextChar)));
-        i++; // Skip next character as it's part of ligature
+        i++;
         continue;
       }
     }
@@ -199,13 +191,9 @@ function shapeArabic(text: string): string {
   return result.join('');
 }
 
-/**
- * Apply Bidi algorithm - reverse Arabic text for correct RTL display
- */
 function applyBidi(text: string): string {
   if (!text) return '';
   
-  // Split into segments (Arabic vs non-Arabic)
   const segments: { text: string; isArabic: boolean }[] = [];
   let currentSegment = '';
   let isCurrentArabic = false;
@@ -232,16 +220,12 @@ function applyBidi(text: string): string {
     segments.push({ text: currentSegment, isArabic: isCurrentArabic });
   }
   
-  // Reverse segments order and reverse Arabic text within segments
   return segments
     .reverse()
     .map(seg => seg.isArabic ? [...seg.text].reverse().join('') : seg.text)
     .join('');
 }
 
-/**
- * Process Arabic text: Shape + Bidi
- */
 function processArabicText(text: string): string {
   if (!text) return '';
   const shaped = shapeArabic(text);
@@ -264,99 +248,115 @@ const COMPANY_INFO = {
 };
 
 // ============================================
-// Contract Articles
+// Contract Articles - Enhanced
 // ============================================
 
 const LEGAL_CONTRACT_ARTICLES = [
   {
     number: 1,
-    title: "المادة الأولى: تعريفات وتفسيرات",
+    title: "تعريفات وتفسيرات",
     clauses: [
       '"الطرف الأول" أو "الممول": شركة علي صالح الشهري القابضة، سجل تجاري رقم (4030554749).',
       '"الطرف الثاني" أو "العميل": الشخص المحدد بياناته في صدر هذا العقد والذي تقدم بطلب التمويل.',
       '"التمويل": المبلغ المخصص حصرياً لشراء الخدمات، ولا يشمل أي صرف نقدي للعميل.',
       '"رصيد الخدمات": الرصيد الائتماني المضاف لحساب العميل داخل المنصة.',
+      '"السند التنفيذي": صك قانوني يصدر عبر منصة نافذ يضمن حقوق الطرف الأول.',
     ],
   },
   {
     number: 2,
-    title: "المادة الثانية: طبيعة التمويل",
+    title: "طبيعة التمويل",
     clauses: [
-      "يُقر الطرف الثاني بأن هذا عقد تمويل خدمات وليس قرضاً نقدياً.",
-      "لن يحصل الطرف الثاني على أي مبلغ نقدي بموجب هذا العقد.",
-      "قيمة التمويل تُضاف كرصيد خدمات ولا يجوز تحويلها لنقد.",
-      "الدفع يتم مباشرة من الطرف الأول لمزودي الخدمات.",
+      "يُقر الطرف الثاني بأن هذا عقد تمويل خدمات وليس قرضاً نقدياً بأي شكل من الأشكال.",
+      "لن يحصل الطرف الثاني على أي مبلغ نقدي بموجب هذا العقد تحت أي ظرف.",
+      "قيمة التمويل تُضاف كرصيد خدمات داخل المنصة ولا يجوز تحويلها لنقد أو سحبها.",
+      "الدفع يتم مباشرة من الطرف الأول لمزودي الخدمات نيابةً عن العميل.",
     ],
   },
   {
     number: 3,
-    title: "المادة الثالثة: نطاق التمويل",
+    title: "نطاق التمويل واستخدام الرصيد",
     clauses: [
-      "يشمل التمويل حصرياً الخدمات المحددة في ملخص الطلب المرفق.",
+      "يشمل التمويل حصرياً الخدمات المحددة في ملخص الطلب والجدول المرفق بهذا العقد.",
       "لا يجوز استخدام رصيد الخدمات إلا لشراء الخدمات المتاحة على المنصة.",
-      "لا يجوز تعديل الخدمات الممولة إلا بموافقة خطية مسبقة.",
+      "لا يجوز تعديل الخدمات الممولة إلا بموافقة خطية مسبقة من الطرف الأول.",
+      "أي رصيد غير مستخدم لا يُسترد ولا يُحوّل لنقد.",
     ],
   },
   {
     number: 4,
-    title: "المادة الرابعة: الأقساط والسداد",
+    title: "الأقساط وجدول السداد",
     clauses: [
-      "قيمة التمويل والأقساط محددة في الملخص المالي المرفق.",
-      "يلتزم الطرف الثاني بسداد الأقساط في مواعيدها المحددة.",
+      "قيمة التمويل الإجمالية والأقساط الشهرية محددة في الملخص المالي المرفق.",
+      "يلتزم الطرف الثاني بسداد الأقساط في مواعيدها المحددة دون تأخير.",
+      "يبدأ استحقاق القسط الأول من تاريخ تفعيل رصيد الخدمات.",
+      "تُسدد الأقساط عبر وسائل الدفع المعتمدة في المنصة.",
     ],
   },
   {
     number: 5,
-    title: "المادة الخامسة: التزامات العميل",
+    title: "التزامات العميل",
     clauses: [
-      "سداد جميع الأقساط في مواعيدها دون تأخير.",
-      "جميع البيانات المقدمة صحيحة ودقيقة.",
-      "إبلاغ الطرف الأول بأي تغيير في البيانات فوراً.",
+      "سداد جميع الأقساط في مواعيدها المحددة دون تأخير أو مماطلة.",
+      "ضمان صحة ودقة جميع البيانات المقدمة في طلب التمويل.",
+      "إبلاغ الطرف الأول فوراً بأي تغيير في بيانات الاتصال أو الهوية.",
+      "عدم استخدام رصيد الخدمات بشكل مخالف لشروط الاستخدام.",
+      "توقيع السند التنفيذي خلال المدة المحددة.",
     ],
   },
   {
     number: 6,
-    title: "المادة السادسة: التأخر في السداد",
+    title: "التأخر في السداد والغرامات",
     clauses: [
-      "غرامة تأخير (2%) من قيمة القسط المتأخر عن كل شهر.",
-      "إيقاف رصيد الخدمات عند تأخر قسطين متتاليين.",
-      "استحقاق فوري لكامل المبلغ عند تأخر ثلاثة أقساط.",
+      "غرامة تأخير بنسبة (2%) من قيمة القسط المتأخر عن كل شهر تأخير.",
+      "إيقاف رصيد الخدمات فوراً عند تأخر قسطين متتاليين.",
+      "استحقاق فوري لكامل المبلغ المتبقي عند تأخر ثلاثة أقساط أو أكثر.",
+      "يحق للطرف الأول اتخاذ الإجراءات القانونية لتحصيل المستحقات.",
     ],
   },
   {
     number: 7,
-    title: "المادة السابعة: السند التنفيذي",
+    title: "السند التنفيذي",
     clauses: [
-      "يُصدر السند التنفيذي عبر منصة نافذ بعد اعتماد العقد.",
-      "يلتزم الطرف الثاني بتوقيع السند خلال (7) أيام.",
-      "لا يتم تفعيل رصيد الخدمات إلا بعد توقيع السند.",
+      "يُصدر السند التنفيذي عبر منصة نافذ الحكومية بعد اعتماد هذا العقد.",
+      "يلتزم الطرف الثاني بتوقيع السند إلكترونياً خلال (7) أيام عمل.",
+      "لا يتم تفعيل رصيد الخدمات إلا بعد توقيع السند التنفيذي.",
+      "يُعتبر السند التنفيذي ضماناً قانونياً ملزماً للسداد.",
     ],
   },
   {
     number: 8,
-    title: "المادة الثامنة: القانون الواجب التطبيق",
+    title: "إنهاء العقد",
     clauses: [
-      "يخضع هذا العقد لأنظمة المملكة العربية السعودية.",
-      "المحاكم التجارية بمدينة الرياض هي المختصة حصرياً.",
+      "ينتهي هذا العقد بسداد كامل الأقساط المستحقة.",
+      "يحق للطرف الأول إنهاء العقد فوراً في حال إخلال العميل بأي من التزاماته.",
+      "في حال الإنهاء المبكر، تستحق كافة الأقساط المتبقية فوراً.",
+    ],
+  },
+  {
+    number: 9,
+    title: "القانون الواجب التطبيق",
+    clauses: [
+      "يخضع هذا العقد لأنظمة المملكة العربية السعودية المعمول بها.",
+      "المحاكم التجارية بمدينة الرياض هي المختصة حصرياً بالنظر في أي نزاع.",
+      "يُعتبر هذا العقد كاملاً ونافذاً بمجرد الموافقة الإلكترونية.",
     ],
   },
 ];
 
 const CLIENT_ACKNOWLEDGMENTS = [
-  "أُقر بأنني قرأت جميع بنود هذا العقد وفهمتها فهماً تاماً.",
+  "أُقر بأنني قرأت جميع بنود هذا العقد وفهمتها فهماً تاماً ودقيقاً.",
   "أُقر بأن هذا عقد تمويل خدمات وليس تمويلاً نقدياً.",
-  "أُقر بأن المعلومات التي قدمتها صحيحة ودقيقة.",
-  "أُقر بالتزامي بسداد جميع الأقساط في مواعيدها.",
+  "أُقر بأن المعلومات التي قدمتها صحيحة ودقيقة وأتحمل مسؤوليتها كاملة.",
+  "أُقر بالتزامي بسداد جميع الأقساط في مواعيدها المحددة.",
   "أُقر بموافقتي على إصدار سند تنفيذي عبر منصة نافذ.",
+  "أُقر بأنني أهل للتعاقد وأتمتع بالأهلية القانونية الكاملة.",
 ];
 
 // ============================================
-// PDF Generation using PDFKit-like approach with raw PDF
+// Helper Functions
 // ============================================
 
-/**
- * Format currency in Arabic
- */
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("ar-SA", {
     minimumFractionDigits: 2,
@@ -364,9 +364,6 @@ function formatCurrency(amount: number): string {
   }).format(amount) + " ر.س";
 }
 
-/**
- * Format date in Arabic
- */
 function formatDate(dateStr: string): string {
   try {
     const date = new Date(dateStr);
@@ -380,22 +377,36 @@ function formatDate(dateStr: string): string {
   }
 }
 
-/**
- * Generate contract HTML content that will be converted to PDF
- * Using a proper HTML template that can be styled with Arabic fonts
- */
+function formatHijriDate(dateStr: string): string {
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("ar-SA-u-ca-islamic", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
+
+// ============================================
+// Enhanced HTML Template
+// ============================================
+
 function generateContractHTML(data: ContractData, approval?: ApprovalRecord): string {
   const contractDate = formatDate(data.contract_date);
+  const hijriDate = formatHijriDate(data.contract_date);
   
-  // Build services table rows - بدون ضريبة
+  // Build services table rows
   const servicesRows = data.services.map((service, index) => {
     return `
       <tr>
-        <td>${index + 1}</td>
-        <td>${service.name}</td>
-        <td>${service.quantity}</td>
-        <td>${formatCurrency(service.unit_price)}</td>
-        <td>${formatCurrency(service.total_price)}</td>
+        <td class="cell-number">${index + 1}</td>
+        <td class="cell-text">${service.name}</td>
+        <td class="cell-number">${service.quantity}</td>
+        <td class="cell-currency">${formatCurrency(service.unit_price)}</td>
+        <td class="cell-currency">${formatCurrency(service.total_price)}</td>
       </tr>
     `;
   }).join("");
@@ -403,59 +414,71 @@ function generateContractHTML(data: ContractData, approval?: ApprovalRecord): st
   // Build installments table rows
   const installmentsRows = data.installments_schedule.map((inst) => `
     <tr>
-      <td>${inst.number}</td>
-      <td>${formatCurrency(inst.amount)}</td>
-      <td>${formatDate(inst.due_date)}</td>
-      <td>غير مسدد</td>
+      <td class="cell-number">${inst.number}</td>
+      <td class="cell-currency">${formatCurrency(inst.amount)}</td>
+      <td class="cell-text">${formatDate(inst.due_date)}</td>
+      <td class="cell-status"><span class="status-pending">غير مسدد</span></td>
     </tr>
   `).join("");
 
-  // Build articles HTML
-  const articlesHTML = LEGAL_CONTRACT_ARTICLES.map(article => `
+  // Build articles HTML with proper numbering
+  const articlesHTML = LEGAL_CONTRACT_ARTICLES.map((article, articleIndex) => `
     <div class="article">
-      <h3 class="article-title">${article.title}</h3>
-      <ul class="article-clauses">
-        ${article.clauses.map(clause => `<li>${clause}</li>`).join("")}
-      </ul>
+      <h3 class="article-title">
+        <span class="article-number">المادة ${toArabicNumber(article.number)}</span>
+        <span class="article-name">${article.title}</span>
+      </h3>
+      <ol class="article-clauses">
+        ${article.clauses.map((clause, clauseIndex) => `
+          <li>
+            <span class="clause-number">${article.number}-${clauseIndex + 1}</span>
+            <span class="clause-text">${clause}</span>
+          </li>
+        `).join("")}
+      </ol>
     </div>
   `).join("");
 
-  // Build acknowledgments
+  // Build acknowledgments with checkboxes
   const acknowledgmentsHTML = CLIENT_ACKNOWLEDGMENTS.map((ack, i) => `
-    <div class="acknowledgment">
-      <span class="checkbox">☑</span>
-      <span>${i + 1}. ${ack}</span>
+    <div class="acknowledgment-item">
+      <span class="check-icon">☑</span>
+      <span class="ack-number">${i + 1}.</span>
+      <span class="ack-text">${ack}</span>
     </div>
   `).join("");
 
   // Approval section
   const approvalSection = approval ? `
     <div class="approval-section">
-      <h3>بيانات الموافقة الإلكترونية</h3>
-      <table class="approval-table">
-        <tr>
-          <td><strong>تاريخ الموافقة:</strong></td>
-          <td>${formatDate(approval.approved_at)}</td>
-        </tr>
+      <div class="approval-header">
+        <span class="approval-icon">✓</span>
+        <h3>بيانات الموافقة الإلكترونية</h3>
+      </div>
+      <div class="approval-grid">
+        <div class="approval-item">
+          <span class="approval-label">تاريخ الموافقة:</span>
+          <span class="approval-value">${formatDate(approval.approved_at)}</span>
+        </div>
         ${approval.ip_address ? `
-        <tr>
-          <td><strong>عنوان IP:</strong></td>
-          <td dir="ltr">${approval.ip_address}</td>
-        </tr>
+        <div class="approval-item">
+          <span class="approval-label">عنوان IP:</span>
+          <span class="approval-value ltr">${approval.ip_address}</span>
+        </div>
         ` : ""}
         ${approval.reading_time_seconds ? `
-        <tr>
-          <td><strong>مدة القراءة:</strong></td>
-          <td>${Math.floor(approval.reading_time_seconds / 60)} دقيقة و ${approval.reading_time_seconds % 60} ثانية</td>
-        </tr>
+        <div class="approval-item">
+          <span class="approval-label">مدة القراءة:</span>
+          <span class="approval-value">${Math.floor(approval.reading_time_seconds / 60)} دقيقة و ${approval.reading_time_seconds % 60} ثانية</span>
+        </div>
         ` : ""}
         ${approval.scroll_percentage ? `
-        <tr>
-          <td><strong>نسبة التمرير:</strong></td>
-          <td>${approval.scroll_percentage}%</td>
-        </tr>
+        <div class="approval-item">
+          <span class="approval-label">نسبة التمرير:</span>
+          <span class="approval-value">${approval.scroll_percentage}%</span>
+        </div>
         ` : ""}
-      </table>
+      </div>
     </div>
   ` : "";
 
@@ -467,8 +490,26 @@ function generateContractHTML(data: ContractData, approval?: ApprovalRecord): st
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>عقد تمويل خدمات - ${data.application_number}</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
+    /* Font Import - Multiple Arabic Fonts for Better Compatibility */
+    @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap');
     
+    /* CSS Variables for Consistent Theming */
+    :root {
+      --primary-color: #1e3a5f;
+      --secondary-color: #2563eb;
+      --accent-color: #0d47a1;
+      --success-color: #166534;
+      --warning-color: #b45309;
+      --danger-color: #dc2626;
+      --text-primary: #1f2937;
+      --text-secondary: #4b5563;
+      --text-muted: #6b7280;
+      --border-color: #e5e7eb;
+      --bg-light: #f8fafc;
+      --bg-section: #f3f4f6;
+    }
+    
+    /* Reset and Base Styles */
     * {
       margin: 0;
       padding: 0;
@@ -476,557 +517,945 @@ function generateContractHTML(data: ContractData, approval?: ApprovalRecord): st
     }
     
     body {
-      font-family: 'Amiri', 'Times New Roman', serif;
+      font-family: 'Amiri', 'Noto Naskh Arabic', 'Traditional Arabic', 'Arial', serif;
       font-size: 12pt;
-      line-height: 1.8;
-      color: #1f2937;
+      line-height: 1.9;
+      color: var(--text-primary);
       direction: rtl;
       text-align: right;
       background: white;
-      padding: 20mm;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
     
+    /* Page Container */
     .page {
       max-width: 210mm;
       margin: 0 auto;
+      padding: 15mm 20mm;
       background: white;
     }
     
-    /* Header */
+    /* ===================== HEADER ===================== */
     .header {
-      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
-      padding: 20px;
-      border-bottom: 3px solid #3b82f6;
-      margin-bottom: 20px;
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
+      padding-bottom: 20px;
+      margin-bottom: 25px;
+      border-bottom: 4px double var(--primary-color);
     }
     
-    .company-info h1 {
+    .company-section {
+      flex: 1;
+    }
+    
+    .company-logo {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    
+    .company-logo-text {
+      color: white;
+      font-size: 24pt;
+      font-weight: 700;
+    }
+    
+    .company-name {
       font-size: 18pt;
       font-weight: 700;
-      color: #1f2937;
+      color: var(--primary-color);
       margin-bottom: 5px;
     }
     
-    .company-info p {
+    .company-name-en {
       font-size: 10pt;
-      color: #6b7280;
+      color: var(--text-muted);
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+    
+    .company-details {
+      font-size: 9pt;
+      color: var(--text-secondary);
+      line-height: 1.6;
     }
     
     .contract-meta {
       text-align: left;
       direction: ltr;
+      min-width: 180px;
     }
     
-    .contract-meta .contract-number {
+    .contract-badge {
+      background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
       font-size: 11pt;
       font-weight: 700;
-      color: #3b82f6;
-    }
-    
-    .contract-meta .contract-date {
-      font-size: 10pt;
-      color: #6b7280;
-    }
-    
-    /* Title Section */
-    .title-section {
-      text-align: center;
-      margin: 30px 0;
-    }
-    
-    .bismillah {
-      font-size: 16pt;
-      color: #6b7280;
-      margin-bottom: 15px;
-    }
-    
-    .main-title {
-      font-size: 24pt;
-      font-weight: 700;
-      color: #1f2937;
+      display: inline-block;
       margin-bottom: 10px;
     }
     
-    .title-underline {
-      width: 100px;
-      height: 3px;
-      background: #3b82f6;
-      margin: 0 auto 20px;
-    }
-    
-    /* Parties Section */
-    .parties-section {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 25px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-    
-    .party {
-      padding: 15px;
-    }
-    
-    .party-title {
-      font-size: 12pt;
+    .contract-number {
+      font-size: 11pt;
       font-weight: 700;
-      color: #3b82f6;
-      margin-bottom: 10px;
-      border-bottom: 1px solid #e5e7eb;
-      padding-bottom: 5px;
-    }
-    
-    .party-info p {
-      font-size: 10pt;
-      margin-bottom: 3px;
-    }
-    
-    .party-info strong {
-      color: #1f2937;
-    }
-    
-    /* Warning Box */
-    .warning-box {
-      background: #fef3c7;
-      border: 2px solid #f59e0b;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 25px;
-    }
-    
-    .warning-box h4 {
-      color: #b45309;
-      font-size: 12pt;
+      color: var(--secondary-color);
       margin-bottom: 5px;
     }
     
-    .warning-box p {
-      color: #92400e;
-      font-size: 10pt;
+    .contract-date {
+      font-size: 9pt;
+      color: var(--text-muted);
     }
     
-    /* Articles */
-    .articles-section h2 {
+    /* ===================== TITLE SECTION ===================== */
+    .title-section {
+      text-align: center;
+      margin: 30px 0 35px;
+    }
+    
+    .bismillah {
+      font-size: 18pt;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+      font-weight: 400;
+    }
+    
+    .main-title {
+      font-size: 26pt;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+    
+    .title-decoration {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+    
+    .title-line {
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--secondary-color));
+    }
+    
+    .title-line.reverse {
+      background: linear-gradient(90deg, var(--secondary-color), transparent);
+    }
+    
+    .title-diamond {
+      width: 10px;
+      height: 10px;
+      background: var(--secondary-color);
+      transform: rotate(45deg);
+    }
+    
+    /* ===================== PARTIES SECTION ===================== */
+    .parties-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+    
+    .party-card {
+      background: var(--bg-light);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+    }
+    
+    .party-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 5px;
+      height: 100%;
+      background: var(--secondary-color);
+      border-radius: 12px 0 0 12px;
+    }
+    
+    .party-title {
+      font-size: 13pt;
+      font-weight: 700;
+      color: var(--secondary-color);
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px dashed var(--border-color);
+    }
+    
+    .party-info {
+      font-size: 10pt;
+      line-height: 1.8;
+    }
+    
+    .party-info p {
+      margin-bottom: 5px;
+    }
+    
+    .party-info strong {
+      color: var(--text-primary);
+      font-size: 11pt;
+    }
+    
+    .party-info .label {
+      color: var(--text-muted);
+      display: inline-block;
+      min-width: 80px;
+    }
+    
+    /* ===================== WARNING BOX ===================== */
+    .warning-box {
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      border: 2px solid #f59e0b;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+    }
+    
+    .warning-icon {
+      font-size: 28pt;
+      line-height: 1;
+    }
+    
+    .warning-content h4 {
+      color: #b45309;
+      font-size: 13pt;
+      margin-bottom: 8px;
+    }
+    
+    .warning-content p {
+      color: #92400e;
+      font-size: 10pt;
+      line-height: 1.7;
+    }
+    
+    /* ===================== ARTICLES SECTION ===================== */
+    .articles-section {
+      margin-bottom: 30px;
+    }
+    
+    .section-header {
+      background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+      color: white;
+      padding: 15px 25px;
+      border-radius: 10px 10px 0 0;
       font-size: 16pt;
       font-weight: 700;
-      color: #1f2937;
-      margin-bottom: 15px;
-      padding-bottom: 5px;
-      border-bottom: 2px solid #3b82f6;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .section-header-icon {
+      font-size: 20pt;
+    }
+    
+    .articles-container {
+      border: 1px solid var(--border-color);
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+      padding: 25px;
+      background: white;
     }
     
     .article {
-      margin-bottom: 20px;
+      margin-bottom: 25px;
       page-break-inside: avoid;
     }
     
+    .article:last-child {
+      margin-bottom: 0;
+    }
+    
     .article-title {
-      font-size: 12pt;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--secondary-color);
+    }
+    
+    .article-number {
+      background: var(--secondary-color);
+      color: white;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 10pt;
       font-weight: 700;
-      color: #3b82f6;
-      margin-bottom: 8px;
+      white-space: nowrap;
+    }
+    
+    .article-name {
+      font-size: 13pt;
+      font-weight: 700;
+      color: var(--primary-color);
     }
     
     .article-clauses {
       list-style: none;
-      padding-right: 15px;
+      padding-right: 10px;
     }
     
     .article-clauses li {
       font-size: 10pt;
-      margin-bottom: 5px;
-      padding-right: 20px;
-      position: relative;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.8;
     }
     
-    .article-clauses li::before {
-      content: "•";
-      position: absolute;
-      right: 0;
-      color: #3b82f6;
+    .clause-number {
+      background: var(--bg-section);
+      color: var(--secondary-color);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 9pt;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
     
-    /* Tables */
+    .clause-text {
+      flex: 1;
+    }
+    
+    /* ===================== TABLES ===================== */
+    .table-section {
+      margin-bottom: 30px;
+    }
+    
+    .table-header {
+      background: var(--secondary-color);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px 8px 0 0;
+      font-size: 14pt;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 15px 0;
       font-size: 10pt;
-    }
-    
-    th, td {
-      border: 1px solid #e5e7eb;
-      padding: 10px;
-      text-align: center;
+      background: white;
     }
     
     th {
-      background: #3b82f6;
+      background: linear-gradient(180deg, #374151, #1f2937);
       color: white;
+      padding: 14px 12px;
       font-weight: 700;
+      text-align: center;
+      border: 1px solid #4b5563;
+    }
+    
+    td {
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      text-align: center;
     }
     
     tr:nth-child(even) {
-      background: #f9fafb;
+      background: var(--bg-light);
+    }
+    
+    tr:hover {
+      background: #e0e7ff;
+    }
+    
+    .cell-number {
+      font-weight: 600;
+      color: var(--secondary-color);
+    }
+    
+    .cell-text {
+      text-align: right;
+    }
+    
+    .cell-currency {
+      font-weight: 600;
+      color: var(--success-color);
+      direction: rtl;
+    }
+    
+    .cell-status {
+      text-align: center;
+    }
+    
+    .status-pending {
+      background: #fef3c7;
+      color: #b45309;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 9pt;
+      font-weight: 600;
+    }
+    
+    .status-paid {
+      background: #dcfce7;
+      color: #166534;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 9pt;
+      font-weight: 600;
     }
     
     .total-row {
-      background: #e0e7ff !important;
+      background: linear-gradient(90deg, #dbeafe, #eff6ff) !important;
       font-weight: 700;
     }
     
-    /* Financial Summary */
+    .total-row td {
+      color: var(--primary-color);
+      font-size: 11pt;
+    }
+    
+    /* ===================== FINANCIAL SUMMARY ===================== */
     .financial-summary {
-      background: #f0f9ff;
-      border: 1px solid #bae6fd;
-      border-radius: 8px;
-      padding: 20px;
-      margin: 20px 0;
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      border: 2px solid var(--secondary-color);
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 30px;
     }
     
-    .financial-summary h3 {
-      font-size: 14pt;
+    .summary-header {
+      font-size: 15pt;
       font-weight: 700;
-      color: #1f2937;
-      margin-bottom: 15px;
+      color: var(--primary-color);
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px dashed var(--secondary-color);
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
     
     .summary-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
+      gap: 20px;
     }
     
     .summary-item {
       background: white;
-      padding: 15px;
-      border-radius: 6px;
+      padding: 18px;
+      border-radius: 10px;
       text-align: center;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border: 1px solid rgba(37, 99, 235, 0.2);
     }
     
     .summary-item .label {
       font-size: 9pt;
-      color: #6b7280;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: block;
     }
     
     .summary-item .value {
-      font-size: 14pt;
+      font-size: 16pt;
       font-weight: 700;
-      color: #1f2937;
+      color: var(--primary-color);
     }
     
-    /* Acknowledgments */
+    .summary-item.highlight {
+      background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+      border: none;
+    }
+    
+    .summary-item.highlight .label {
+      color: rgba(255,255,255,0.8);
+    }
+    
+    .summary-item.highlight .value {
+      color: white;
+    }
+    
+    /* ===================== ACKNOWLEDGMENTS ===================== */
     .acknowledgments-section {
-      background: #f0fdf4;
-      border: 1px solid #86efac;
-      border-radius: 8px;
-      padding: 20px;
-      margin: 20px 0;
-    }
-    
-    .acknowledgments-section h3 {
-      font-size: 14pt;
-      font-weight: 700;
-      color: #166534;
-      margin-bottom: 15px;
-    }
-    
-    .acknowledgment {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      margin-bottom: 8px;
-      font-size: 10pt;
-    }
-    
-    .checkbox {
-      color: #16a34a;
-      font-size: 14pt;
-    }
-    
-    /* Approval Section */
-    .approval-section {
-      background: #eff6ff;
-      border: 2px solid #3b82f6;
-      border-radius: 8px;
-      padding: 20px;
-      margin: 20px 0;
-    }
-    
-    .approval-section h3 {
-      font-size: 14pt;
-      font-weight: 700;
-      color: #1d4ed8;
-      margin-bottom: 15px;
-    }
-    
-    .approval-table {
-      width: auto;
-    }
-    
-    .approval-table td {
-      text-align: right;
-      padding: 8px 15px;
-    }
-    
-    /* Signature Section */
-    .signature-section {
-      margin-top: 40px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px;
-    }
-    
-    .signature-box {
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 20px;
-      text-align: center;
-    }
-    
-    .signature-box h4 {
-      font-size: 12pt;
-      font-weight: 700;
-      color: #1f2937;
-      margin-bottom: 10px;
-    }
-    
-    .signature-box .name {
-      font-size: 11pt;
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+      border: 2px solid #86efac;
+      border-radius: 15px;
+      padding: 25px;
       margin-bottom: 30px;
     }
     
-    .signature-line {
-      border-top: 1px solid #1f2937;
-      width: 80%;
-      margin: 0 auto;
-      padding-top: 5px;
-      font-size: 9pt;
-      color: #6b7280;
+    .acknowledgments-header {
+      font-size: 14pt;
+      font-weight: 700;
+      color: var(--success-color);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
     
-    /* Company Stamp */
+    .acknowledgment-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding: 10px 15px;
+      background: white;
+      border-radius: 8px;
+      border-right: 4px solid #22c55e;
+    }
+    
+    .check-icon {
+      color: #22c55e;
+      font-size: 16pt;
+      line-height: 1;
+    }
+    
+    .ack-number {
+      color: var(--success-color);
+      font-weight: 700;
+      min-width: 20px;
+    }
+    
+    .ack-text {
+      font-size: 10pt;
+      color: var(--text-primary);
+      line-height: 1.7;
+    }
+    
+    /* ===================== APPROVAL SECTION ===================== */
+    .approval-section {
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      border: 2px solid var(--secondary-color);
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 30px;
+    }
+    
+    .approval-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .approval-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--success-color);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20pt;
+    }
+    
+    .approval-header h3 {
+      font-size: 14pt;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+    
+    .approval-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+    
+    .approval-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 15px;
+      background: white;
+      border-radius: 8px;
+    }
+    
+    .approval-label {
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 10pt;
+    }
+    
+    .approval-value {
+      color: var(--text-primary);
+      font-size: 10pt;
+    }
+    
+    .approval-value.ltr {
+      direction: ltr;
+      text-align: left;
+    }
+    
+    /* ===================== SIGNATURE SECTION ===================== */
+    .signature-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-top: 40px;
+      padding-top: 30px;
+      border-top: 2px solid var(--border-color);
+    }
+    
+    .signature-box {
+      border: 2px solid var(--border-color);
+      border-radius: 15px;
+      padding: 25px;
+      text-align: center;
+      background: var(--bg-light);
+    }
+    
+    .signature-box h4 {
+      font-size: 13pt;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 15px;
+    }
+    
+    .signature-box .name {
+      font-size: 12pt;
+      color: var(--text-primary);
+      margin-bottom: 25px;
+      font-weight: 600;
+    }
+    
+    /* Company Stamp - Enhanced */
     .company-stamp {
-      width: 120px;
-      height: 120px;
-      margin: 15px auto;
-      border: 3px solid #1e40af;
+      width: 130px;
+      height: 130px;
+      margin: 20px auto;
+      border: 4px solid var(--primary-color);
       border-radius: 50%;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       position: relative;
-      background: radial-gradient(circle, rgba(30, 64, 175, 0.05) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(30, 58, 95, 0.05) 0%, transparent 70%);
     }
     
     .stamp-outer-ring {
       position: absolute;
-      width: 110px;
-      height: 110px;
-      border: 2px dashed #3b82f6;
+      width: 120px;
+      height: 120px;
+      border: 2px dashed var(--secondary-color);
       border-radius: 50%;
     }
     
     .stamp-company-name {
-      font-size: 7pt;
+      font-size: 8pt;
       font-weight: 700;
-      color: #1e40af;
+      color: var(--primary-color);
       text-align: center;
-      line-height: 1.3;
-      padding: 0 10px;
+      line-height: 1.4;
+      padding: 0 15px;
     }
     
     .stamp-cr {
-      font-size: 6pt;
-      color: #3b82f6;
-      margin-top: 3px;
+      font-size: 7pt;
+      color: var(--secondary-color);
+      margin-top: 5px;
     }
     
     .stamp-verified {
-      font-size: 8pt;
+      font-size: 9pt;
       font-weight: 700;
-      color: #16a34a;
-      margin-top: 5px;
-      padding: 2px 8px;
-      border: 1px solid #16a34a;
-      border-radius: 3px;
+      color: var(--success-color);
+      margin-top: 8px;
+      padding: 3px 10px;
+      border: 2px solid var(--success-color);
+      border-radius: 5px;
+      background: white;
     }
     
-    /* Footer */
+    .signature-line {
+      border-top: 2px solid var(--text-primary);
+      width: 80%;
+      margin: 0 auto;
+      padding-top: 8px;
+      font-size: 10pt;
+      color: var(--text-muted);
+    }
+    
+    .electronic-badge {
+      background: var(--success-color);
+      color: white;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 10pt;
+      font-weight: 600;
+      display: inline-block;
+      margin-top: 15px;
+    }
+    
+    /* ===================== FOOTER ===================== */
     .footer {
       margin-top: 40px;
-      padding-top: 15px;
-      border-top: 1px solid #e5e7eb;
-      font-size: 9pt;
-      color: #6b7280;
+      padding-top: 20px;
+      border-top: 3px double var(--border-color);
       text-align: center;
     }
     
-    /* Page breaks */
+    .footer-content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 30px;
+      margin-bottom: 15px;
+    }
+    
+    .footer-item {
+      font-size: 9pt;
+      color: var(--text-muted);
+    }
+    
+    .footer-divider {
+      width: 1px;
+      height: 15px;
+      background: var(--border-color);
+    }
+    
+    .footer-copyright {
+      font-size: 8pt;
+      color: var(--text-muted);
+    }
+    
+    .page-number {
+      position: fixed;
+      bottom: 10mm;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 9pt;
+      color: var(--text-muted);
+    }
+    
+    /* ===================== PAGE BREAKS ===================== */
     .page-break {
       page-break-after: always;
     }
     
+    /* ===================== PRINT STYLES ===================== */
     @media print {
       body {
-        padding: 15mm;
+        padding: 0;
+        font-size: 11pt;
+      }
+      
+      .page {
+        padding: 10mm 15mm;
+        max-width: none;
       }
       
       .page-break {
         page-break-after: always;
       }
+      
+      .no-print {
+        display: none;
+      }
+    }
+    
+    /* ===================== LTR HELPER ===================== */
+    .ltr {
+      direction: ltr;
+      text-align: left;
     }
   </style>
 </head>
 <body>
   <div class="page">
-    <!-- Header -->
+    <!-- ============= HEADER ============= -->
     <div class="header">
-      <div class="company-info">
-        <h1>${COMPANY_INFO.name}</h1>
-        <p>سجل تجاري: ${COMPANY_INFO.commercialRegister}</p>
-        <p>${COMPANY_INFO.address}</p>
+      <div class="company-section">
+        <div class="company-logo">
+          <span class="company-logo-text">ع</span>
+        </div>
+        <div class="company-name">${COMPANY_INFO.name}</div>
+        <div class="company-name-en">${COMPANY_INFO.nameEn}</div>
+        <div class="company-details">
+          سجل تجاري: ${COMPANY_INFO.commercialRegister}<br>
+          ${COMPANY_INFO.address}
+        </div>
       </div>
       <div class="contract-meta">
+        <div class="contract-badge">عقد رسمي</div>
         <div class="contract-number">رقم العقد: ${data.application_number}</div>
-        <div class="contract-date">تاريخ الإصدار: ${contractDate}</div>
-        <div class="contract-date">عقد تمويل خدمات رسمي</div>
+        <div class="contract-date">التاريخ الميلادي: ${contractDate}</div>
+        ${hijriDate ? `<div class="contract-date">التاريخ الهجري: ${hijriDate}</div>` : ""}
       </div>
     </div>
 
-    <!-- Title -->
+    <!-- ============= TITLE ============= -->
     <div class="title-section">
-      <div class="bismillah">بسم الله الرحمن الرحيم</div>
+      <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
       <h1 class="main-title">عقد تمويل خدمات</h1>
-      <div class="title-underline"></div>
+      <div class="title-decoration">
+        <div class="title-line reverse"></div>
+        <div class="title-diamond"></div>
+        <div class="title-line"></div>
+      </div>
     </div>
 
-    <!-- Parties -->
+    <!-- ============= PARTIES ============= -->
     <div class="parties-section">
-      <div class="party">
+      <div class="party-card">
         <div class="party-title">الطرف الأول (الممول / مزود الخدمة)</div>
         <div class="party-info">
           <p><strong>${COMPANY_INFO.name}</strong></p>
-          <p>سجل تجاري: ${COMPANY_INFO.commercialRegister}</p>
-          <p>${COMPANY_INFO.address}</p>
+          <p><span class="label">سجل تجاري:</span> ${COMPANY_INFO.commercialRegister}</p>
+          <p><span class="label">العنوان:</span> ${COMPANY_INFO.address}</p>
         </div>
       </div>
-      <div class="party">
+      <div class="party-card">
         <div class="party-title">الطرف الثاني (العميل / المستفيد)</div>
         <div class="party-info">
           <p><strong>${data.customer_name}</strong></p>
-          <p>رقم الهوية: ${data.customer_national_id}</p>
-          <p>الجوال: ${data.customer_phone}</p>
-          <p>البريد: ${data.customer_email}</p>
-          ${data.customer_address ? `<p>العنوان: ${data.customer_address}</p>` : ""}
+          <p><span class="label">رقم الهوية:</span> ${data.customer_national_id}</p>
+          <p><span class="label">الجوال:</span> <span class="ltr">${data.customer_phone}</span></p>
+          <p><span class="label">البريد:</span> <span class="ltr">${data.customer_email}</span></p>
+          ${data.customer_address ? `<p><span class="label">العنوان:</span> ${data.customer_address}</p>` : ""}
         </div>
       </div>
     </div>
 
-    <!-- Warning -->
+    <!-- ============= WARNING ============= -->
     <div class="warning-box">
-      <h4>⚠️ تنبيه مهم: هذا عقد تمويل خدمات فقط - غير نقدي</h4>
-      <p>لن يتم صرف أي مبلغ نقدي للعميل. قيمة التمويل تُضاف كرصيد خدمات داخل المنصة فقط لاستخدامها في شراء الخدمات.</p>
+      <span class="warning-icon">⚠️</span>
+      <div class="warning-content">
+        <h4>تنبيه هام: هذا عقد تمويل خدمات فقط - غير نقدي</h4>
+        <p>لن يتم صرف أي مبلغ نقدي للعميل بأي شكل من الأشكال. قيمة التمويل تُضاف كرصيد خدمات داخل المنصة فقط لاستخدامها في شراء الخدمات المتاحة، ولا يمكن سحبها أو تحويلها لنقد.</p>
+      </div>
     </div>
 
-    <!-- Articles -->
+    <!-- ============= ARTICLES ============= -->
     <div class="articles-section">
-      <h2>بنود العقد</h2>
-      ${articlesHTML}
+      <div class="section-header">
+        <span class="section-header-icon">📜</span>
+        بنود العقد وأحكامه
+      </div>
+      <div class="articles-container">
+        ${articlesHTML}
+      </div>
     </div>
 
     <div class="page-break"></div>
 
-    <!-- Services Table - بدون ضريبة -->
-    <h2 style="font-size: 14pt; margin-bottom: 15px;">جدول الخدمات الممولة</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>اسم الخدمة</th>
-          <th>الكمية</th>
-          <th>السعر</th>
-          <th>الإجمالي</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${servicesRows}
-        <tr class="total-row">
-          <td colspan="3">الإجمالي</td>
-          <td>${formatCurrency(data.total_services_value)}</td>
-          <td>${formatCurrency(data.grand_total)}</td>
-        </tr>
-      </tbody>
-    </table>
+    <!-- ============= SERVICES TABLE ============= -->
+    <div class="table-section">
+      <div class="table-header">
+        📋 جدول الخدمات الممولة
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 50px;">#</th>
+            <th>وصف الخدمة</th>
+            <th style="width: 80px;">الكمية</th>
+            <th style="width: 120px;">سعر الوحدة</th>
+            <th style="width: 120px;">الإجمالي</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${servicesRows}
+          <tr class="total-row">
+            <td colspan="4">الإجمالي الكلي</td>
+            <td class="cell-currency">${formatCurrency(data.grand_total)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-    <!-- Financial Summary - بدون ضريبة -->
+    <!-- ============= FINANCIAL SUMMARY ============= -->
     <div class="financial-summary">
-      <h3>الملخص المالي</h3>
+      <div class="summary-header">
+        💰 الملخص المالي للتمويل
+      </div>
       <div class="summary-grid">
         <div class="summary-item">
-          <div class="label">إجمالي الخدمات</div>
-          <div class="value">${formatCurrency(data.total_services_value)}</div>
+          <span class="label">إجمالي قيمة الخدمات</span>
+          <span class="value">${formatCurrency(data.total_services_value)}</span>
+        </div>
+        <div class="summary-item highlight">
+          <span class="label">المبلغ الممول</span>
+          <span class="value">${formatCurrency(data.financed_amount)}</span>
         </div>
         <div class="summary-item">
-          <div class="label">المبلغ الإجمالي</div>
-          <div class="value">${formatCurrency(data.grand_total)}</div>
+          <span class="label">عدد الأقساط</span>
+          <span class="value">${data.installments_count} قسط</span>
         </div>
         <div class="summary-item">
-          <div class="label">عدد الأقساط</div>
-          <div class="value">${data.installments_count} قسط</div>
+          <span class="label">قيمة القسط الشهري</span>
+          <span class="value">${formatCurrency(data.installment_amount)}</span>
         </div>
         <div class="summary-item">
-          <div class="label">قيمة القسط</div>
-          <div class="value">${formatCurrency(data.installment_amount)}</div>
+          <span class="label">تاريخ أول قسط</span>
+          <span class="value">${formatDate(data.first_installment_date)}</span>
         </div>
         <div class="summary-item">
-          <div class="label">المبلغ الممول</div>
-          <div class="value">${formatCurrency(data.financed_amount)}</div>
+          <span class="label">تاريخ آخر قسط</span>
+          <span class="value">${formatDate(data.last_installment_date)}</span>
         </div>
       </div>
     </div>
 
-    <!-- Installments Table -->
-    <h2 style="font-size: 14pt; margin-bottom: 15px;">جدول الأقساط</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>رقم القسط</th>
-          <th>المبلغ</th>
-          <th>تاريخ الاستحقاق</th>
-          <th>الحالة</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${installmentsRows}
-      </tbody>
-    </table>
+    <!-- ============= INSTALLMENTS TABLE ============= -->
+    <div class="table-section">
+      <div class="table-header">
+        📅 جدول الأقساط الشهرية
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 80px;">رقم القسط</th>
+            <th style="width: 150px;">المبلغ</th>
+            <th>تاريخ الاستحقاق</th>
+            <th style="width: 120px;">الحالة</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${installmentsRows}
+        </tbody>
+      </table>
+    </div>
 
     <div class="page-break"></div>
 
-    <!-- Acknowledgments -->
+    <!-- ============= ACKNOWLEDGMENTS ============= -->
     <div class="acknowledgments-section">
-      <h3>إقرارات العميل</h3>
+      <div class="acknowledgments-header">
+        ✅ إقرارات العميل
+      </div>
       ${acknowledgmentsHTML}
     </div>
 
     ${approvalSection}
 
-    <!-- Signature Section -->
+    <!-- ============= SIGNATURES ============= -->
     <div class="signature-section">
       <div class="signature-box">
         <h4>الطرف الأول</h4>
         <div class="name">${COMPANY_INFO.name}</div>
         
-        <!-- ختم الشركة الرقمي -->
         <div class="company-stamp">
           <div class="stamp-outer-ring"></div>
           <div class="stamp-company-name">
@@ -1038,17 +1467,31 @@ function generateContractHTML(data: ContractData, approval?: ApprovalRecord): st
         
         <div class="signature-line">التوقيع والختم</div>
       </div>
+      
       <div class="signature-box">
         <h4>الطرف الثاني</h4>
         <div class="name">${data.customer_name}</div>
-        <div class="signature-line">${approval ? "موافقة إلكترونية" : "التوقيع"}</div>
+        
+        <div style="height: 100px; display: flex; align-items: center; justify-content: center;">
+          ${approval ? `<div class="electronic-badge">✓ موافقة إلكترونية</div>` : `<span style="color: var(--text-muted); font-style: italic;">في انتظار التوقيع...</span>`}
+        </div>
+        
+        <div class="signature-line">التوقيع</div>
       </div>
     </div>
 
-    <!-- Footer -->
+    <!-- ============= FOOTER ============= -->
     <div class="footer">
-      <p>${COMPANY_INFO.name} - جميع الحقوق محفوظة</p>
-      <p>عقد تمويل خدمات رسمي - رقم ${data.application_number}</p>
+      <div class="footer-content">
+        <span class="footer-item">${COMPANY_INFO.name}</span>
+        <div class="footer-divider"></div>
+        <span class="footer-item">سجل تجاري: ${COMPANY_INFO.commercialRegister}</span>
+        <div class="footer-divider"></div>
+        <span class="footer-item">رقم العقد: ${data.application_number}</span>
+      </div>
+      <div class="footer-copyright">
+        جميع الحقوق محفوظة © ${new Date().getFullYear()} - هذا العقد وثيقة رسمية وملزمة قانوناً
+      </div>
     </div>
   </div>
 </body>
@@ -1056,12 +1499,17 @@ function generateContractHTML(data: ContractData, approval?: ApprovalRecord): st
   `;
 }
 
+// Helper function to convert numbers to Arabic
+function toArabicNumber(num: number): string {
+  const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+  return String(num).split('').map(d => arabicNumbers[parseInt(d)] || d).join('');
+}
+
 // ============================================
 // Main Handler
 // ============================================
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -1070,8 +1518,8 @@ serve(async (req) => {
     const { 
       application_id, 
       include_approval = true,
-      override_name,           // تعديل الاسم
-      override_installments,   // تعديل عدد الأقساط
+      override_name,
+      override_installments,
     } = await req.json();
 
     if (!application_id) {
@@ -1081,12 +1529,10 @@ serve(async (req) => {
       );
     }
 
-    // Initialize Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch application data
     const { data: application, error: appError } = await supabase
       .from("financing_applications")
       .select(`
@@ -1105,39 +1551,30 @@ serve(async (req) => {
       );
     }
 
-    // Fetch installments
     const { data: installments } = await supabase
       .from("financing_installments")
       .select("*")
       .eq("application_id", application_id)
       .order("installment_number");
 
-    // Build contract data - بدون ضريبة
     const approvedAmount = application.approved_amount || application.requested_amount;
-    const grandTotal = approvedAmount; // بدون ضريبة
+    const grandTotal = approvedAmount;
     
-    // استخدام عدد الأقساط: المرسل من الواجهة > المحفوظ في قاعدة البيانات > الخطة الأصلية
     const finalInstallmentsCount = override_installments 
       || application.contract_override_installments 
       || application.plan?.installments_count 
       || 3;
     const installmentAmount = grandTotal / finalInstallmentsCount;
     
-    // استخدام الاسم: المرسل من الواجهة > المحفوظ في قاعدة البيانات > الاسم الأصلي
     const finalCustomerName = override_name 
       || application.contract_override_name 
       || application.full_name;
 
-    // تحديد عدد الأقساط الأصلي من الخطة
     const originalInstallmentsCount = application.plan?.installments_count || 3;
-    
-    // هل تم تعديل عدد الأقساط؟
     const installmentsModified = finalInstallmentsCount !== originalInstallmentsCount;
     
-    // إنشاء جدول أقساط
     let installmentsSchedule: { number: number; amount: number; due_date: string }[] = [];
     
-    // إذا تم تعديل عدد الأقساط (من الواجهة أو من قاعدة البيانات)، أنشئ جدول جديد
     if (installmentsModified || !installments || installments.length === 0) {
       const startDate = new Date();
       installmentsSchedule = Array.from({ length: finalInstallmentsCount }, (_, i) => {
@@ -1150,7 +1587,6 @@ serve(async (req) => {
         };
       });
     } else {
-      // استخدام الأقساط الموجودة
       installmentsSchedule = (installments || []).map((inst: any) => ({
         number: inst.installment_number,
         amount: inst.amount,
@@ -1162,29 +1598,22 @@ serve(async (req) => {
       application_id: application.id,
       application_number: application.application_number,
       contract_date: application.approved_at || application.created_at,
-      
-      // Customer info - استخدام الاسم المعدل
       customer_name: finalCustomerName,
       customer_national_id: application.national_id,
       customer_phone: application.phone,
       customer_email: application.email,
       customer_address: application.address,
-      
-      // Services
       services: [{
         name: application.service?.name_ar || application.service_description || "خدمات رقمية",
         quantity: 1,
         unit_price: approvedAmount,
         total_price: approvedAmount,
       }],
-      
       total_services_value: approvedAmount,
       admin_fees: 0,
-      vat_amount: 0,        // بدون ضريبة
+      vat_amount: 0,
       grand_total: grandTotal,
       financed_amount: grandTotal,
-      
-      // Installments
       installments_count: finalInstallmentsCount,
       installment_amount: installmentAmount,
       first_installment_date: installmentsSchedule[0]?.due_date || new Date().toISOString(),
@@ -1192,7 +1621,6 @@ serve(async (req) => {
       installments_schedule: installmentsSchedule,
     };
 
-    // Get approval record if exists and requested
     let approvalRecord: ApprovalRecord | undefined;
     if (include_approval && application.contract?.[0]) {
       const contract = application.contract[0];
@@ -1207,11 +1635,8 @@ serve(async (req) => {
       }
     }
 
-    // Generate HTML content
     const htmlContent = generateContractHTML(contractData, approvalRecord);
 
-    // Return HTML that can be converted to PDF on client or via external service
-    // For now, return HTML for rendering or conversion
     return new Response(
       JSON.stringify({
         success: true,
