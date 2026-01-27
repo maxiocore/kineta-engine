@@ -5,7 +5,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const TWILIO_ACCOUNT_SID = Deno.env.get('TWILIO_ACCOUNT_SID');
 const TWILIO_AUTH_TOKEN = Deno.env.get('TWILIO_AUTH_TOKEN');
-const TWILIO_PHONE_NUMBER = Deno.env.get('TWILIO_PHONE_NUMBER');
+// Use Alphanumeric Sender ID for Saudi Arabia (e.g., "MaxioCore")
+// Or a Saudi number if available
+const TWILIO_SENDER_ID = Deno.env.get('TWILIO_SENDER_ID') || Deno.env.get('TWILIO_PHONE_NUMBER') || 'MaxioCore';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -34,7 +36,7 @@ export function formatPhoneNumber(phone: string): string {
 
 // Send SMS via Twilio API
 async function sendSMSTwilio(phone: string, message: string): Promise<SMSResult> {
-  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
+  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_SENDER_ID) {
     console.error('Twilio credentials are not configured');
     return { success: false, error: 'Twilio credentials not configured', provider: 'twilio' };
   }
@@ -42,7 +44,7 @@ async function sendSMSTwilio(phone: string, message: string): Promise<SMSResult>
   const formattedPhone = formatPhoneNumber(phone);
   
   try {
-    console.log(`[Twilio] Sending SMS to ${formattedPhone}`);
+    console.log(`[Twilio] Sending SMS to ${formattedPhone} from ${TWILIO_SENDER_ID}`);
     
     const authString = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
     
@@ -56,7 +58,7 @@ async function sendSMSTwilio(phone: string, message: string): Promise<SMSResult>
         },
         body: new URLSearchParams({
           To: formattedPhone,
-          From: TWILIO_PHONE_NUMBER,
+          From: TWILIO_SENDER_ID,
           Body: message,
         }),
       }
