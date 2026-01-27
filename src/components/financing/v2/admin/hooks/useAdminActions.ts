@@ -186,11 +186,13 @@ export function useAdminActions(): UseAdminActionsReturn {
           await supabase.functions.invoke('financing-status-email', {
             body: {
               applicationId,
+              applicationNumber: app.application_number, // مطلوب!
               status: notificationConfig.status,
               recipientEmail: app.email,
               recipientName: app.full_name,
               approvedAmount: app.approved_amount || app.requested_amount,
               rejectionReason: reason,
+              baseUrl: 'https://maxiocore.com',
             }
           });
           console.log(`[V2] Email notification sent for ${actionType}`);
