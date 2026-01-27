@@ -77,6 +77,7 @@ const FinancingPayment = lazy(() => import("./pages/dashboard/FinancingPayment")
 const ClientFinancingPayments = lazy(() => import("./pages/dashboard/ClientFinancingPayments"));
 const FinancingStatus = lazy(() => import("./pages/dashboard/FinancingStatus"));
 const UnifiedFinancingStatus = lazy(() => import("./pages/dashboard/UnifiedFinancingStatus"));
+const FinancingV2 = lazy(() => import("./pages/dashboard/FinancingV2"));
 
 // Lazy load pages - Dev Services
 const DevServicesPage = lazy(() => import("./pages/dashboard/DevServicesPage"));
@@ -310,6 +311,11 @@ const App = () => (
                       </ProtectedRoute>
                     } />
                     <Route path="/dashboard/financing" element={
+                      <ProtectedRoute>
+                        <FinancingV2 />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/dashboard/financing/legacy" element={
                       <ProtectedRoute>
                         <ClientFinancing />
                       </ProtectedRoute>
