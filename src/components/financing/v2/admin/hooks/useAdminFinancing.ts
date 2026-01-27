@@ -3,11 +3,11 @@
  * هوك البيانات الرئيسي للأدمن
  */
 
-import { useState, useMemo, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import type { AdminFilters, AdminStats, AdminApplicationView, DEFAULT_FILTERS } from '../types';
+import type { AdminFilters, AdminStats, AdminApplicationView } from '../types';
+import { normalizeStatus } from '../../utils/statusNormalizer';
 import type { FinancingStatus } from '../../types';
 
 interface UseAdminFinancingReturn {
@@ -75,10 +75,10 @@ export function useAdminFinancing(): UseAdminFinancingReturn {
       const { data, error } = await query;
       if (error) throw error;
 
-      // Transform to AdminApplicationView
+      // Transform to AdminApplicationView with normalized status
       return (data || []).map((app: any) => ({
         ...app,
-        status: app.status as FinancingStatus,
+        status: normalizeStatus(app.status), // تحويل الحالة القديمة للجديدة
         contract_version: app.contract_version || 1,
         plan_name_ar: app.financing_plans?.name_ar,
         plan_installments_count: app.financing_plans?.installments_count,
