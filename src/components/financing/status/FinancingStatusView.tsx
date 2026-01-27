@@ -7,6 +7,7 @@ import { FinancingStatusCard } from './FinancingStatusCard';
 import { FinancingActivityLog, statusChangeToActivity } from './FinancingActivityLog';
 import { FinancingStatusPageSkeleton } from './FinancingStatusSkeleton';
 import { FinancingApplicationStatus } from '@/lib/financing/stateMachine';
+import { normalizeStatus } from '@/lib/financing/statusNormalizer';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -78,9 +79,9 @@ export function FinancingStatusView({ applicationId, className }: FinancingStatu
 
       if (appError) throw appError;
       
-      // تعيين الحالة الافتراضية إذا كانت فارغة
-      const validStatus = (appData.status as FinancingApplicationStatus) || 'DRAFT';
-      setApplication({ ...appData, status: validStatus } as FinancingApplication);
+      // تحويل الحالة من تنسيق DB إلى تنسيق UI
+      const normalizedAppStatus = normalizeStatus(appData.status);
+      setApplication({ ...appData, status: normalizedAppStatus } as FinancingApplication);
 
       // جلب سجل الحالات - نستخدم جدول مختلف أو نحاكي البيانات
       // في الإنتاج، ستكون هذه البيانات من جدول order_status_history أو مشابه

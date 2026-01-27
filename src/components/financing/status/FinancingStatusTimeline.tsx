@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
 import { Check, Clock, AlertCircle, Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { FinancingApplicationStatus, STATE_DEFINITIONS } from '@/lib/financing/stateMachine';
+import { FinancingApplicationStatus } from '@/lib/financing/stateMachine';
+import { normalizeStatus, isNegativeStatus } from '@/lib/financing/statusNormalizer';
 
 interface TimelineStep {
   status: FinancingApplicationStatus;
@@ -12,7 +13,7 @@ interface TimelineStep {
 }
 
 interface FinancingStatusTimelineProps {
-  currentStatus: FinancingApplicationStatus;
+  currentStatus: FinancingApplicationStatus | string;
   className?: string;
 }
 
@@ -53,22 +54,24 @@ const SHORT_LABELS: Record<FinancingApplicationStatus, string> = {
 };
 
 export function FinancingStatusTimeline({ currentStatus, className }: FinancingStatusTimelineProps) {
-  const currentIndex = STATUS_ORDER.indexOf(currentStatus);
-  const isTerminalNegative = ['DECLINED', 'EXPIRED', 'CANCELLED'].includes(currentStatus);
+  // تحويل الحالة من تنسيق DB إلى تنسيق UI
+  const normalizedStatus = normalizeStatus(currentStatus as string);
+  const currentIndex = STATUS_ORDER.indexOf(normalizedStatus);
+  const isTerminalNegative = isNegativeStatus(normalizedStatus);
 
   const steps: TimelineStep[] = STATUS_ORDER.map((status, index) => ({
     status,
     label: SHORT_LABELS[status],
     isCompleted: index < currentIndex,
-    isCurrent: status === currentStatus,
+    isCurrent: status === normalizedStatus,
     isUpcoming: index > currentIndex
   }));
 
   // إذا كانت حالة نهائية سلبية، نعرضها بشكل مختلف
   if (isTerminalNegative) {
     const terminalStep: TimelineStep = {
-      status: currentStatus,
-      label: SHORT_LABELS[currentStatus],
+      status: normalizedStatus,
+      label: SHORT_LABELS[normalizedStatus],
       isCompleted: false,
       isCurrent: true,
       isUpcoming: false
