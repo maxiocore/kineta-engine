@@ -270,38 +270,21 @@ serve(async (req) => {
           .eq('id', user.id)
           .single();
 
-        // Send WhatsApp notification
+        // Send WhatsApp notification using template
         if (profile?.phone) {
           try {
-            const whatsappMessage = `✅ *إشعار تحويل رصيد*
-━━━━━━━━━━━━━━━━━━━━━
-مرحباً ${profile.full_name || 'عزيزي العميل'}،
-
-تم تحويل رصيد التمويل إلى رصيد المنصة بنجاح.
-
-💰 *تفاصيل التحويل:*
-• المبلغ المُحوّل: ${body.amount.toFixed(2)} ر.س
-• الرصيد السابق (تمويل): ${transferResult.source_balance_before.toFixed(2)} ر.س
-• الرصيد الحالي (تمويل): ${transferResult.source_balance_after.toFixed(2)} ر.س
-• رصيد المنصة الجديد: ${transferResult.destination_balance_after.toFixed(2)} ر.س
-
-📱 يمكنك استخدام رصيدك لشراء الخدمات من المنصة.
-
-⚠️ *تنويه هام:*
-الرصيد مخصص للاستخدام داخل المنصة فقط ولا يمكن سحبه أو تحويله خارج المنصة.
-
-━━━━━━━━━━━━━━━━━━━━━
-_ماكسيو كور - خدماتك في مكان واحد_`;
-
+            // Use unified whatsapp-send with template
             await serviceClient.functions.invoke('whatsapp-send', {
               body: {
-                action: 'send_text',
+                action: 'send_status',
                 phone: profile.phone,
-                message: whatsappMessage,
-                type: 'balance',
-                referenceId: transferResult.transfer_id
+                status: 'INTERNAL_TRANSFER',
+                customerName: profile.full_name || 'العميل الكريم',
+                amount: body.amount,
+                deepLinkPath: '/dashboard/services'
               }
             });
+            console.log('[InternalTransfer] WhatsApp notification sent via template');
           } catch (whatsappError) {
             console.error('[InternalTransfer] WhatsApp notification failed:', whatsappError);
           }
