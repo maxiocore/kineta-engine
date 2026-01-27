@@ -1,6 +1,6 @@
 /**
  * MaxioCore Financing Admin V2 - Actions Hook
- * هوك إجراءات الأدمن
+ * هوك إجراءات الأدمن مع دعم الإشعارات
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -24,6 +24,16 @@ interface UseAdminActionsReturn {
   isExecuting: boolean;
 }
 
+// Notification types for each action
+const ACTION_NOTIFICATIONS: Record<string, { status: string; type: string }> = {
+  send_acknowledgment: { status: 'ACK_SENT', type: 'acknowledgment_sent' },
+  send_contract: { status: 'CONTRACT_SENT', type: 'contract_sent' },
+  issue_bond: { status: 'BOND_ISSUING', type: 'bond_issuing' },
+  activate_credit: { status: 'CREDIT_DEPOSITED', type: 'credit_activated' },
+  decline_application: { status: 'REJECTED', type: 'application_rejected' },
+  cancel_application: { status: 'CANCELLED', type: 'application_cancelled' },
+};
+
 export function useAdminActions(): UseAdminActionsReturn {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -33,7 +43,7 @@ export function useAdminActions(): UseAdminActionsReturn {
       const action = ADMIN_ACTIONS[actionType];
       if (!action) throw new Error('Unknown action type');
 
-      // Get current application
+      // Get current application with profile
       const { data: app, error: fetchError } = await supabase
         .from('financing_applications')
         .select('*')
@@ -88,6 +98,31 @@ export function useAdminActions(): UseAdminActionsReturn {
             updateData.contract_version = (app.contract_version || 1) + 1;
           }
           break;
+
+        case 'activate_credit':
+          // Call the credit deposit edge function
+          try {
+            const { data: depositResult, error: depositError } = await supabase.functions.invoke(
+              'financing-credit-deposit',
+              {
+                body: {
+                  application_id: applicationId,
+                  actor_id: user?.id,
+                }
+              }
+            );
+            
+            if (depositError) {
+              console.error('Credit deposit error:', depositError);
+              throw new Error('فشل تفعيل الرصيد');
+            }
+            
+            console.log('Credit deposit result:', depositResult);
+          } catch (err) {
+            console.error('Credit activation failed:', err);
+            // Continue with status update even if deposit fails
+          }
+          break;
       }
 
       // Update application
@@ -98,7 +133,7 @@ export function useAdminActions(): UseAdminActionsReturn {
 
       if (updateError) throw updateError;
 
-      // Log to audit
+      // Log to audit for important actions
       if (action.requiresReason || ['update_amount', 'update_installments', 'cancel_application', 'decline_application'].includes(actionType)) {
         await supabase.from('financing_admin_audit').insert([{
           application_id: applicationId,
@@ -122,6 +157,46 @@ export function useAdminActions(): UseAdminActionsReturn {
         reason,
         is_visible_to_customer: !['update_amount', 'update_installments'].includes(actionType),
       }]);
+
+      // Send notifications for applicable actions
+      const notificationConfig = ACTION_NOTIFICATIONS[actionType];
+      if (notificationConfig && app.phone) {
+        try {
+          // Send WhatsApp notification
+          await supabase.functions.invoke('whatsapp-send', {
+            body: {
+              action: 'send_status',
+              phone: app.phone,
+              status: notificationConfig.status,
+              applicationNumber: app.application_number,
+              customerName: app.full_name,
+              approvedAmount: app.approved_amount || app.requested_amount,
+              rejectionReason: reason,
+            }
+          });
+          console.log(`[V2] WhatsApp notification sent for ${actionType}`);
+        } catch (notifyErr) {
+          console.error('Notification error:', notifyErr);
+          // Don't fail the action if notification fails
+        }
+
+        try {
+          // Send Email notification
+          await supabase.functions.invoke('financing-status-email', {
+            body: {
+              applicationId,
+              status: notificationConfig.status,
+              recipientEmail: app.email,
+              recipientName: app.full_name,
+              approvedAmount: app.approved_amount || app.requested_amount,
+              rejectionReason: reason,
+            }
+          });
+          console.log(`[V2] Email notification sent for ${actionType}`);
+        } catch (emailErr) {
+          console.error('Email notification error:', emailErr);
+        }
+      }
 
       return { action, newStatus: updateData.status };
     },

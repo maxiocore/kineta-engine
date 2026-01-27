@@ -1,9 +1,10 @@
 /**
  * MaxioCore Financing System v2 - Financing Data Hook
- * Hook لجلب بيانات التمويل للعميل
+ * Hook لجلب بيانات التمويل للعميل مع دعم Realtime
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import type { 
@@ -15,6 +16,7 @@ import type {
   FinancingStatus,
 } from '../types';
 import { getStatusConfig, getStatusIndex, TIMELINE_ORDER } from '../config/statusConfig';
+import { normalizeStatus } from '../utils/statusNormalizer';
 
 interface UseFinancingDataReturn {
   application: FinancingApplication | null;
@@ -31,6 +33,7 @@ interface UseFinancingDataReturn {
 
 export function useFinancingData(): UseFinancingDataReturn {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   // Fetch latest financing application
   const { 
@@ -52,11 +55,46 @@ export function useFinancingData(): UseFinancingDataReturn {
         .maybeSingle();
 
       if (error) throw error;
-      return data as FinancingApplication | null;
+      
+      if (!data) return null;
+
+      // Normalize status to V2 format
+      return {
+        ...data,
+        status: normalizeStatus(data.status),
+      } as FinancingApplication;
     },
     enabled: !!user?.id,
     staleTime: 30 * 1000, // 30 seconds
   });
+
+  // Realtime subscription for application updates
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel('financing-v2-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'financing_applications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('[V2 Realtime] Application update:', payload);
+          // Invalidate and refetch
+          queryClient.invalidateQueries({ queryKey: ['financing-application-v2', user.id] });
+          queryClient.invalidateQueries({ queryKey: ['financing-documents-v2'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   // Fetch service credit balance
   const { 
@@ -107,15 +145,14 @@ export function useFinancingData(): UseFinancingDataReturn {
     staleTime: 60 * 1000,
   });
 
+  // Get normalized status
+  const currentStatus = (application?.status as FinancingStatus) || 'DRAFT';
+
   // Build timeline steps based on current status
-  const timelineSteps: TimelineStep[] = buildTimelineSteps(
-    (application?.status as FinancingStatus) || 'DRAFT'
-  );
+  const timelineSteps: TimelineStep[] = buildTimelineSteps(currentStatus);
 
   // Get customer actions based on current status
-  const customerActions: CustomerAction[] = getCustomerActions(
-    (application?.status as FinancingStatus) || 'DRAFT'
-  );
+  const customerActions: CustomerAction[] = getCustomerActions(currentStatus);
 
   // Get next pending installment
   const nextInstallment = installments.find(i => i.status === 'pending') || null;
