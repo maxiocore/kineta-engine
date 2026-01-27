@@ -39,7 +39,7 @@ const SMARTWATS_BASE_URL = 'https://app.smartwats.com/api';
 const SMARTWATS_INSTANCE_ID = Deno.env.get('SMARTWATS_INSTANCE_ID');
 const SMARTWATS_ACCESS_TOKEN = Deno.env.get('SMARTWATS_ACCESS_TOKEN');
 // استخدام الرابط الرسمي للموقع - لا نكشف روابط Supabase الداخلية
-const BASE_URL = Deno.env.get('SITE_URL') || 'https://kineta-engine.lovable.app';
+const BASE_URL = 'https://maxiocore.com';
 
 // Retry configuration
 const MAX_RETRIES = 3;
