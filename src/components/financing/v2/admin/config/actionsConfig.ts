@@ -140,6 +140,7 @@ export const ADMIN_ACTIONS: Record<AdminActionType, AdminActionConfig> = {
     requiresConfirmation: true,
     requiresReason: true,
     applicableStatuses: [
+      'SUBMITTED',
       'UNDER_REVIEW', 
       'OFFER_READY', 
       'ACK_PENDING', 
@@ -147,9 +148,10 @@ export const ADMIN_ACTIONS: Record<AdminActionType, AdminActionConfig> = {
       'CONTRACT_PENDING',
       'CONTRACT_SIGNED',
       'BOND_PENDING',
+      'BOND_SIGNED',
     ],
     targetStatus: 'CANCELLED',
-    permission: 'manager',
+    permission: 'basic', // أي أدمن يستطيع الإلغاء
   },
 };
 
