@@ -1916,6 +1916,56 @@ export type Database = {
           },
         ]
       }
+      financing_admin_audit: {
+        Row: {
+          action_type: string
+          admin_id: string
+          application_id: string
+          contract_version: number | null
+          created_at: string | null
+          id: string
+          ip_address: unknown
+          new_value: Json | null
+          old_value: Json | null
+          reason: string
+          user_agent: string | null
+        }
+        Insert: {
+          action_type: string
+          admin_id: string
+          application_id: string
+          contract_version?: number | null
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          new_value?: Json | null
+          old_value?: Json | null
+          reason: string
+          user_agent?: string | null
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string
+          application_id?: string
+          contract_version?: number | null
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          new_value?: Json | null
+          old_value?: Json | null
+          reason?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financing_admin_audit_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "financing_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financing_applications: {
         Row: {
           address: string | null
@@ -1923,6 +1973,9 @@ export type Database = {
           application_number: string
           approved_amount: number | null
           approved_at: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           commercial_register: string | null
           company_name: string | null
           contract_document_url: string | null
@@ -1930,6 +1983,7 @@ export type Database = {
           contract_override_installments: number | null
           contract_override_name: string | null
           contract_signed_at: string | null
+          contract_version: number | null
           created_at: string
           credit_deposit_status: string | null
           current_phase: string | null
@@ -1966,6 +2020,9 @@ export type Database = {
           application_number: string
           approved_amount?: number | null
           approved_at?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           commercial_register?: string | null
           company_name?: string | null
           contract_document_url?: string | null
@@ -1973,6 +2030,7 @@ export type Database = {
           contract_override_installments?: number | null
           contract_override_name?: string | null
           contract_signed_at?: string | null
+          contract_version?: number | null
           created_at?: string
           credit_deposit_status?: string | null
           current_phase?: string | null
@@ -2009,6 +2067,9 @@ export type Database = {
           application_number?: string
           approved_amount?: number | null
           approved_at?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           commercial_register?: string | null
           company_name?: string | null
           contract_document_url?: string | null
@@ -2016,6 +2077,7 @@ export type Database = {
           contract_override_installments?: number | null
           contract_override_name?: string | null
           contract_signed_at?: string | null
+          contract_version?: number | null
           created_at?: string
           credit_deposit_status?: string | null
           current_phase?: string | null
@@ -5037,6 +5099,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: number
       }
+      can_admin_action: {
+        Args: { _action: string; _user_id: string }
+        Returns: boolean
+      }
       can_execute_internal_transfer: {
         Args: { p_application_id?: string; p_user_id: string }
         Returns: Json
@@ -5095,6 +5161,7 @@ export type Database = {
         Returns: boolean
       }
       get_public_stats: { Args: never; Returns: Json }
+      get_user_role: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -5106,6 +5173,7 @@ export type Database = {
         Args: { p_email: string }
         Returns: undefined
       }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
       reconcile_credit_deposits: {
         Args: never
         Returns: {
@@ -5133,7 +5201,7 @@ export type Database = {
     }
     Enums: {
       acknowledgment_status: "NOT_SENT" | "SENT" | "VIEWED" | "SIGNED"
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "client"
       contract_document_status:
         | "NOT_SENT"
         | "SENT"
@@ -5310,7 +5378,7 @@ export const Constants = {
   public: {
     Enums: {
       acknowledgment_status: ["NOT_SENT", "SENT", "VIEWED", "SIGNED"],
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "client"],
       contract_document_status: [
         "NOT_SENT",
         "SENT",
