@@ -58,3 +58,14 @@ export interface ActivityItem {
 }
 
 export type ViewMode = 'home' | 'status' | 'wallet' | 'services';
+
+// ═══════════════════════════════════════════════════════════════════
+// Segment Control Types
+// ═══════════════════════════════════════════════════════════════════
+
+export interface SegmentItem {
+  id: string;
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  badge?: number;
+}
