@@ -350,6 +350,158 @@ export const TEMPLATE_PROMISSORY_SIGNED: WhatsAppTemplate = {
 };
 
 // ═══════════════════════════════════════════════════════════════
+// 1️⃣2️⃣ ACKNOWLEDGMENT SENT - إرسال الإقرار للتوقيع
+// ═══════════════════════════════════════════════════════════════
+export const TEMPLATE_ACKNOWLEDGMENT_SENT: WhatsAppTemplate = {
+  id: 'financing_acknowledgment_sent',
+  name: 'Acknowledgment Sent',
+  name_ar: 'إرسال الإقرار',
+  status: 'ACK_SENT',
+  message: `مرحباً {{customer_name}} 📄
+
+تم إرسال إقرار قراءة الشروط لطلب التمويل رقم {{application_number}}.
+
+يرجى الدخول للمنصة وقراءته وتوقيعه لاستكمال إجراءات التمويل.
+
+📋 قراءة وتوقيع الإقرار:
+{{deep_link}}
+
+ماكسيو كور`,
+  variables: ['customer_name', 'application_number', 'deep_link']
+};
+
+// ═══════════════════════════════════════════════════════════════
+// 1️⃣3️⃣ ACKNOWLEDGMENT SIGNED - تم توقيع الإقرار
+// ═══════════════════════════════════════════════════════════════
+export const TEMPLATE_ACKNOWLEDGMENT_SIGNED: WhatsAppTemplate = {
+  id: 'financing_acknowledgment_signed',
+  name: 'Acknowledgment Signed',
+  name_ar: 'تم توقيع الإقرار',
+  status: 'ACK_SIGNED',
+  message: `مرحباً {{customer_name}} ✅
+
+تم استلام توقيعك على إقرار الشروط لطلب التمويل رقم {{application_number}}.
+
+سيتم إرسال عقد التمويل الرسمي قريباً للمراجعة والتوقيع.
+
+📋 متابعة حالة الطلب:
+{{deep_link}}
+
+ماكسيو كور`,
+  variables: ['customer_name', 'application_number', 'deep_link']
+};
+
+// ═══════════════════════════════════════════════════════════════
+// 1️⃣4️⃣ CONTRACT SENT - إرسال العقد للتوقيع
+// ═══════════════════════════════════════════════════════════════
+export const TEMPLATE_CONTRACT_SENT: WhatsAppTemplate = {
+  id: 'financing_contract_sent',
+  name: 'Contract Sent',
+  name_ar: 'إرسال العقد',
+  status: 'CONTRACT_SENT',
+  message: `مرحباً {{customer_name}} 📝
+
+تم إرسال عقد التمويل الرسمي لطلب رقم {{application_number}}.
+
+💰 المبلغ المعتمد: {{approved_amount}} ر.س
+   (رصيد خدمات داخل المنصة فقط)
+
+يرجى مراجعته وتوقيعه داخل المنصة لإتمام عملية التمويل.
+
+✍️ مراجعة وتوقيع العقد:
+{{deep_link}}
+
+ماكسيو كور`,
+  variables: ['customer_name', 'application_number', 'approved_amount', 'deep_link']
+};
+
+// ═══════════════════════════════════════════════════════════════
+// 1️⃣5️⃣ CONTRACT SIGNED - تم توقيع العقد
+// ═══════════════════════════════════════════════════════════════
+export const TEMPLATE_CONTRACT_SIGNED: WhatsAppTemplate = {
+  id: 'financing_contract_signed',
+  name: 'Contract Signed',
+  name_ar: 'تم توقيع العقد',
+  status: 'CONTRACT_SIGNED',
+  message: `مرحباً {{customer_name}} ✅
+
+تم اعتماد توقيع عقد التمويل بنجاح لطلب رقم {{application_number}}.
+
+جاري استكمال الإجراءات وسيتم إشعارك بالخطوات القادمة.
+
+📋 متابعة حالة الطلب:
+{{deep_link}}
+
+ماكسيو كور`,
+  variables: ['customer_name', 'application_number', 'deep_link']
+};
+
+// ═══════════════════════════════════════════════════════════════
+// 1️⃣6️⃣ BOND ISSUING - جاري إصدار سند الأمر
+// ═══════════════════════════════════════════════════════════════
+export const TEMPLATE_BOND_ISSUING: WhatsAppTemplate = {
+  id: 'financing_bond_issuing',
+  name: 'Bond Issuing',
+  name_ar: 'جاري إصدار السند',
+  status: 'BOND_ISSUING',
+  message: `مرحباً {{customer_name}} ⏳
+
+جاري إصدار سند الأمر لطلب التمويل رقم {{application_number}}.
+
+سيتم إشعارك فور اكتمال الإصدار لتأكيد التوقيع.
+
+📋 متابعة الحالة:
+{{deep_link}}
+
+ماكسيو كور`,
+  variables: ['customer_name', 'application_number', 'deep_link']
+};
+
+// ═══════════════════════════════════════════════════════════════
+// 1️⃣7️⃣ BOND SENT TO CLIENT - إرسال السند للعميل
+// ═══════════════════════════════════════════════════════════════
+export const TEMPLATE_BOND_SENT: WhatsAppTemplate = {
+  id: 'financing_bond_sent',
+  name: 'Bond Sent to Client',
+  name_ar: 'إرسال السند للعميل',
+  status: 'BOND_SENT',
+  message: `مرحباً {{customer_name}} 📄
+
+تم إرسال سند الأمر لطلب التمويل رقم {{application_number}}.
+
+يرجى مراجعته عبر منصة نافذ وتأكيد التوقيع في المنصة.
+
+✅ تأكيد التوقيع:
+{{deep_link}}
+
+ماكسيو كور`,
+  variables: ['customer_name', 'application_number', 'deep_link']
+};
+
+// ═══════════════════════════════════════════════════════════════
+// 1️⃣8️⃣ INTERNAL TRANSFER - تحويل الرصيد الداخلي
+// ═══════════════════════════════════════════════════════════════
+export const TEMPLATE_INTERNAL_TRANSFER: WhatsAppTemplate = {
+  id: 'financing_internal_transfer',
+  name: 'Internal Transfer',
+  name_ar: 'تحويل داخلي',
+  status: 'INTERNAL_TRANSFER',
+  message: `مرحباً {{customer_name}} 💰
+
+تم تحويل رصيد التمويل إلى رصيد الخدمات داخل حسابك بقيمة {{amount}} ر.س.
+
+يمكنك استخدامه فورًا لشراء الخدمات داخل المنصة.
+
+⚠️ تنويه: الرصيد مخصص للاستخدام داخل المنصة فقط ولا يمكن سحبه أو تحويله خارجها.
+
+🛒 تصفح الخدمات:
+{{deep_link}}
+
+ماكسيو كور`,
+  variables: ['customer_name', 'amount', 'deep_link']
+};
+
+// ═══════════════════════════════════════════════════════════════
 // TEMPLATE REGISTRY - سجل القوالب
 // ═══════════════════════════════════════════════════════════════
 export const TEMPLATES_REGISTRY: Record<string, WhatsAppTemplate> = {
@@ -368,7 +520,19 @@ export const TEMPLATES_REGISTRY: Record<string, WhatsAppTemplate> = {
   'PAYMENT_DUE': TEMPLATE_PAYMENT_REMINDER,
   'PAYMENT_OVERDUE': TEMPLATE_PAYMENT_OVERDUE,
   'PROMISSORY_SIGNED': TEMPLATE_PROMISSORY_SIGNED,
-  'CONTRACT_SIGNED': TEMPLATE_CONTRACT_READY,
+  // New templates
+  'ACK_SENT': TEMPLATE_ACKNOWLEDGMENT_SENT,
+  'ACKNOWLEDGMENT_SENT': TEMPLATE_ACKNOWLEDGMENT_SENT,
+  'ACK_SIGNED': TEMPLATE_ACKNOWLEDGMENT_SIGNED,
+  'ACKNOWLEDGMENT_SIGNED': TEMPLATE_ACKNOWLEDGMENT_SIGNED,
+  'CONTRACT_SENT': TEMPLATE_CONTRACT_SENT,
+  'AWAITING_CONTRACT': TEMPLATE_CONTRACT_SENT,
+  'CONTRACT_SIGNED': TEMPLATE_CONTRACT_SIGNED,
+  'BOND_ISSUING': TEMPLATE_BOND_ISSUING,
+  'AWAITING_BOND': TEMPLATE_BOND_ISSUING,
+  'BOND_SENT': TEMPLATE_BOND_SENT,
+  'SENT_TO_CLIENT': TEMPLATE_BOND_SENT,
+  'INTERNAL_TRANSFER': TEMPLATE_INTERNAL_TRANSFER,
 };
 
 // ═══════════════════════════════════════════════════════════════
