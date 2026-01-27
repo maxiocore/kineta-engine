@@ -122,7 +122,7 @@ const AdminPaymentsHub = lazy(() => import("./pages/admin/AdminPaymentsHub"));
 const AdminChallenges = lazy(() => import("./pages/admin/AdminChallenges"));
 const AdminContactMessages = lazy(() => import("./pages/admin/AdminContactMessages"));
 const AdminCareers = lazy(() => import("./pages/admin/AdminCareers"));
-const AdminFinancing = lazy(() => import("./pages/admin/AdminFinancing"));
+const AdminFinancing = lazy(() => import("./pages/admin/AdminFinancingV2"));
 const AdminDevOrders = lazy(() => import("./pages/admin/AdminDevOrders"));
 const AdminDevOrderDetails = lazy(() => import("./pages/admin/AdminDevOrderDetails"));
 const AdminUnifiedOrders = lazy(() => import("./pages/admin/AdminUnifiedOrders"));
