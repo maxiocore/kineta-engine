@@ -9,6 +9,9 @@ export * from './types';
 // Config
 export * from './config';
 
+// Utils
+export * from './utils';
+
 // Hooks
 export * from './hooks';
 

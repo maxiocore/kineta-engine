@@ -22,6 +22,7 @@ import { FinancingHeroCardV2 } from './FinancingHeroCardV2';
 import { FinancingTimelineV2, CompactTimeline } from './FinancingTimelineV2';
 import { ActionButtonsV2, QuickActionCards } from './ActionButtonsV2';
 import { InstallmentsTableV2 } from './InstallmentsTableV2';
+import { DocumentsViewer } from './DocumentsViewer';
 import type { CustomerAction, FinancingStatus } from '../types';
 import { toast } from 'sonner';
 
@@ -309,10 +310,7 @@ export default function ClientFinancingV2() {
                     <CardTitle>المستندات</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-center py-12 text-muted-foreground">
-                      <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>لا توجد مستندات متاحة حالياً</p>
-                    </div>
+                    <DocumentsViewer applicationId={application.id} />
                   </CardContent>
                 </Card>
               </TabsContent>
