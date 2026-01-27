@@ -146,7 +146,7 @@ serve(async (req) => {
     if (application) {
       // إرسال Email
       try {
-        const baseUrl = Deno.env.get('SITE_URL') || 'https://kineta-engine.lovable.app';
+        const baseUrl = 'https://maxiocore.com';
         
         const { error: emailError } = await supabase.functions.invoke('financing-status-email', {
           body: {

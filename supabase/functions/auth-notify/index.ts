@@ -268,7 +268,7 @@ serve(async (req) => {
     switch (action) {
       case 'account_created': {
         // Send verification email (PRIMARY - required)
-        const verificationLink = data?.verificationLink || `${Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '.lovable.app')}/auth/verify`;
+        const verificationLink = data?.verificationLink || `https://maxiocore.com/auth/verify`;
         
         const { error: emailError } = await resend.emails.send({
           from: "MaxioCore <noreply@maxiocore.com>",
