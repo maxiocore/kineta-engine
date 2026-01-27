@@ -51,7 +51,7 @@ export default function FinancingActionButtons({
         variant="default"
         className="flex-1 sm:flex-none bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
       >
-        <Link to={`/dashboard/financing/status/${applicationId}`}>
+        <Link to="/dashboard/financing">
           <Eye className="h-4 w-4 ml-2" />
           عرض تفاصيل التمويل
           <ChevronLeft className="h-4 w-4 mr-1" />
@@ -63,7 +63,7 @@ export default function FinancingActionButtons({
         variant="outline"
         className="flex-1 sm:flex-none"
       >
-        <Link to={`/dashboard/financing/status/${applicationId}#installments`}>
+        <Link to="/dashboard/financing">
           <Calendar className="h-4 w-4 ml-2" />
           سجل الأقساط
         </Link>
