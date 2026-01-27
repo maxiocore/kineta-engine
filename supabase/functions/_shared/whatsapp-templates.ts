@@ -513,6 +513,7 @@ export const TEMPLATES_REGISTRY: Record<string, WhatsAppTemplate> = {
   'APPROVED': TEMPLATE_APPROVED,
   'APPROVED_CONDITIONAL': TEMPLATE_APPROVED_CONDITIONAL,
   'REJECTED': TEMPLATE_REJECTED,
+  'DECLINED': TEMPLATE_REJECTED,
   'CREDIT_DEPOSITED': TEMPLATE_CREDIT_DEPOSITED,
   'ACTIVE': TEMPLATE_CREDIT_DEPOSITED,
   'COMPLETED': TEMPLATE_COMPLETED,
@@ -533,6 +534,24 @@ export const TEMPLATES_REGISTRY: Record<string, WhatsAppTemplate> = {
   'BOND_SENT': TEMPLATE_BOND_SENT,
   'SENT_TO_CLIENT': TEMPLATE_BOND_SENT,
   'INTERNAL_TRANSFER': TEMPLATE_INTERNAL_TRANSFER,
+  // Cancellation status - uses same as rejected but with different message
+  'CANCELLED': {
+    id: 'financing_cancelled',
+    name: 'Application Cancelled',
+    name_ar: 'تم إلغاء الطلب',
+    status: 'CANCELLED',
+    message: `مرحباً {{customer_name}}
+
+📋 تم إلغاء طلب التمويل رقم {{application_number}}
+
+يمكنك التقدم بطلب جديد في أي وقت.
+
+📱 تقديم طلب جديد:
+{{deep_link}}
+
+ماكسيو كور`,
+    variables: ['customer_name', 'application_number', 'deep_link']
+  },
 };
 
 // ═══════════════════════════════════════════════════════════════
