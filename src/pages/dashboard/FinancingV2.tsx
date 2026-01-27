@@ -1,15 +1,14 @@
 /**
- * MaxioCore Financing System v2 - Client Dashboard Page
- * صفحة التمويل للعميل - النسخة الجديدة
+ * MaxioCore Financing System v3 - Client Dashboard Page
+ * صفحة التمويل للعميل - النسخة الجديدة (FinTech Style)
  */
 
 import { lazy, Suspense } from 'react';
-import ClientDashboardLayout from '@/components/dashboard/ClientDashboardLayout';
 import { Loader2 } from 'lucide-react';
 
-// Lazy load the main component
-const ClientFinancingV2 = lazy(() => 
-  import('@/components/financing/v2/client/ClientFinancingV2')
+// Lazy load the V3 component
+const ClientFinancingV3 = lazy(() => 
+  import('@/components/financing/v3/ClientFinancingV3')
 );
 
 // Loading skeleton
@@ -27,7 +26,7 @@ function FinancingLoadingSkeleton() {
 export default function FinancingV2Page() {
   return (
     <Suspense fallback={<FinancingLoadingSkeleton />}>
-      <ClientFinancingV2 />
+      <ClientFinancingV3 />
     </Suspense>
   );
 }
