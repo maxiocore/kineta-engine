@@ -46,7 +46,7 @@ const handler = async (req: Request): Promise<Response> => {
       minute: '2-digit'
     });
 
-    const dashboardUrl = `${Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '.lovable.app')}/dashboard`;
+    const dashboardUrl = 'https://maxiocore.com/dashboard';
 
     const emailHtml = `
 <!DOCTYPE html>

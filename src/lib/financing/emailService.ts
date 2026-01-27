@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { FinancingApplicationStatus } from './stateMachine/types';
 
-const BASE_URL = typeof window !== 'undefined' ? window.location.origin : '';
+const BASE_URL = 'https://maxiocore.com';
 
 interface SendStatusEmailParams {
   applicationId: string;

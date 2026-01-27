@@ -196,7 +196,7 @@ serve(async (req) => {
     // ═══════════════════════════════════════════════════════════════
     // STEP 4: Build WhatsApp Message
     // ═══════════════════════════════════════════════════════════════
-    const baseUrl = Deno.env.get('SITE_URL') || 'https://kineta-engine.lovable.app';
+    const baseUrl = 'https://maxiocore.com';
     
     const whatsappMessage = buildCompletionMessage({
       customerName: application.full_name,
