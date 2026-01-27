@@ -776,7 +776,7 @@ export function EligibilityWizard() {
                 key="result"
                 decision={decision}
                 onReset={handleReset}
-                onApply={() => window.location.href = "/dashboard/financing/apply"}
+                onApply={() => window.location.href = "/dashboard/financing"}
               />
             )}
           </AnimatePresence>

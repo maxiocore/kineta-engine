@@ -64,8 +64,8 @@ const ClientCashback = lazy(() => import("./pages/dashboard/ClientCashback"));
 const ClientChallenges = lazy(() => import("./pages/dashboard/ClientChallenges"));
 const ClientFinancialHub = lazy(() => import("./pages/dashboard/ClientFinancialHub"));
 
-// Lazy load pages - Financing
-const ClientFinancing = lazy(() => import("./pages/dashboard/ClientFinancing"));
+// Lazy load pages - Financing (V2 System)
+const FinancingV2 = lazy(() => import("./pages/dashboard/FinancingV2"));
 const FinancingGuide = lazy(() => import("./pages/dashboard/FinancingGuide"));
 const FinancingCalculator = lazy(() => import("./pages/dashboard/FinancingCalculator"));
 const FinancingEligibility = lazy(() => import("./pages/dashboard/FinancingEligibility"));
@@ -75,9 +75,6 @@ const SignContract = lazy(() => import("./pages/dashboard/SignContract"));
 // SignPromissoryNote removed - الكمبيالة محذوفة نهائياً
 const FinancingPayment = lazy(() => import("./pages/dashboard/FinancingPayment"));
 const ClientFinancingPayments = lazy(() => import("./pages/dashboard/ClientFinancingPayments"));
-const FinancingStatus = lazy(() => import("./pages/dashboard/FinancingStatus"));
-const UnifiedFinancingStatus = lazy(() => import("./pages/dashboard/UnifiedFinancingStatus"));
-const FinancingV2 = lazy(() => import("./pages/dashboard/FinancingV2"));
 
 // Lazy load pages - Dev Services
 const DevServicesPage = lazy(() => import("./pages/dashboard/DevServicesPage"));
@@ -310,14 +307,22 @@ const App = () => (
                         <ClientFinancialHub />
                       </ProtectedRoute>
                     } />
+                    {/* Financing V2 - Main Dashboard */}
                     <Route path="/dashboard/financing" element={
                       <ProtectedRoute>
                         <FinancingV2 />
                       </ProtectedRoute>
                     } />
-                    <Route path="/dashboard/financing/legacy" element={
+                    {/* Redirect status page to main V2 dashboard */}
+                    <Route path="/dashboard/financing/status/:applicationId" element={
                       <ProtectedRoute>
-                        <ClientFinancing />
+                        <FinancingV2 />
+                      </ProtectedRoute>
+                    } />
+                    {/* Unified Status Page - redirect to V2 */}
+                    <Route path="/financing/status/:applicationId" element={
+                      <ProtectedRoute>
+                        <FinancingV2 />
                       </ProtectedRoute>
                     } />
                     <Route path="/dashboard/financing/guide" element={
@@ -359,17 +364,6 @@ const App = () => (
                     <Route path="/dashboard/financing/payments" element={
                       <ProtectedRoute>
                         <ClientFinancingPayments />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/dashboard/financing/status/:applicationId" element={
-                      <ProtectedRoute>
-                        <FinancingStatus />
-                      </ProtectedRoute>
-                    } />
-                    {/* Unified Status Page with Deep Link Support */}
-                    <Route path="/financing/status/:applicationId" element={
-                      <ProtectedRoute>
-                        <UnifiedFinancingStatus />
                       </ProtectedRoute>
                     } />
                     
