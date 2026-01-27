@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import type { AdminActionType } from '../types';
 import type { FinancingStatus } from '../../types';
 import { ADMIN_ACTIONS, type AdminActionConfig } from '../config/actionsConfig';
+import { normalizeStatus } from '../../utils/statusNormalizer';
 import type { Json } from '@/integrations/supabase/types';
 
 interface ExecuteActionParams {
@@ -53,10 +54,10 @@ export function useAdminActions(): UseAdminActionsReturn {
       if (fetchError) throw fetchError;
       if (!app) throw new Error('Application not found');
 
-      // Validate action is applicable
-      const currentStatus = app.status as FinancingStatus;
+      // Validate action is applicable - normalize the status first!
+      const currentStatus = normalizeStatus(app.status);
       if (!action.applicableStatuses.includes(currentStatus)) {
-        throw new Error(`الإجراء غير متاح للحالة الحالية`);
+        throw new Error(`الإجراء غير متاح للحالة الحالية: ${currentStatus}`);
       }
 
       // Prepare update data
