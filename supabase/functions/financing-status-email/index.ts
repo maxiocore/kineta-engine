@@ -329,6 +329,59 @@ const EMAIL_CONTENT: Record<string, {
     showDisclaimer: true,
     priority: 1
   },
+  // Bond lifecycle statuses
+  BOND_ISSUING: {
+    subject: '⏳ جاري إصدار السند التنفيذي | ASH HOLDING',
+    headline: 'جاري إصدار السند التنفيذي',
+    description: 'تم البدء في إصدار السند التنفيذي (سند لأمر) عبر منصة نافذ لطلب التمويل الخاص بكم. سنُشعركم فور اكتمال الإصدار.',
+    ctaText: 'متابعة حالة الطلب',
+    ctaPath: '/dashboard/financing/status',
+    type: 'info',
+    showDisclaimer: true,
+    priority: 2
+  },
+  BOND_ISSUED: {
+    subject: '✅ تم إصدار السند التنفيذي | ASH HOLDING',
+    headline: 'تم إصدار السند التنفيذي بنجاح',
+    description: 'تم إصدار السند التنفيذي بنجاح عبر منصة نافذ. سيتم إرساله إليكم قريبًا لتأكيد التوقيع.',
+    ctaText: 'متابعة حالة الطلب',
+    ctaPath: '/dashboard/financing/status',
+    type: 'success',
+    showDisclaimer: true,
+    priority: 1
+  },
+  BOND_SENT_TO_CLIENT: {
+    subject: '📄 تم إرسال السند التنفيذي للتوقيع | ASH HOLDING',
+    headline: 'السند التنفيذي جاهز للتوقيع',
+    description: 'تم إرسال السند التنفيذي إليكم عبر منصة نافذ. يُرجى مراجعته وتوقيعه ثم تأكيد التوقيع عبر المنصة.',
+    ctaText: 'تأكيد التوقيع',
+    ctaPath: '/dashboard/financing/status',
+    additionalNote: 'يُرجى تأكيد التوقيع خلال 7 أيام.',
+    type: 'info',
+    showDisclaimer: true,
+    priority: 1
+  },
+  BOND_SIGNED_BY_CLIENT: {
+    subject: '✅ تم تأكيد توقيع السند | ASH HOLDING',
+    headline: 'تم تأكيد توقيعكم على السند',
+    description: 'تم استلام تأكيد توقيعكم على السند التنفيذي بنجاح. جارٍ المراجعة النهائية واعتماد السند من الإدارة.',
+    ctaText: 'متابعة حالة الطلب',
+    ctaPath: '/dashboard/financing/status',
+    type: 'success',
+    showDisclaimer: true,
+    priority: 2
+  },
+  BOND_VERIFIED_BY_ADMIN: {
+    subject: '🎉 تم اعتماد السند التنفيذي | ASH HOLDING',
+    headline: 'تم اعتماد السند التنفيذي',
+    description: 'تم التحقق من السند التنفيذي واعتماده بنجاح. جارٍ إضافة رصيد الخدمات إلى حسابكم.',
+    ctaText: 'متابعة حالة الطلب',
+    ctaPath: '/dashboard/financing/status',
+    additionalNote: 'سيتم إضافة رصيد الخدمات خلال ساعات قليلة.',
+    type: 'success',
+    showDisclaimer: true,
+    priority: 1
+  },
   CREDIT_DEPOSITED: {
     subject: '🎉💎 تم إيداع رصيد الخدمات بنجاح! | ASH HOLDING',
     headline: 'تهانينا! رصيد الخدمات جاهز للاستخدام!',
