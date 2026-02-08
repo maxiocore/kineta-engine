@@ -63,7 +63,7 @@ const TermsOfService = () => {
       icon: Scale,
       title: "الملكية الفكرية",
       content: [
-        "جميع المحتويات والعلامات التجارية والشعارات هي ملك لـ MaxioCore.",
+        "جميع المحتويات والعلامات التجارية والشعارات هي ملك لـ ASH HOLDING.",
         "لا يجوز نسخ أو إعادة إنتاج أي محتوى دون إذن كتابي مسبق.",
         "المحتوى الذي تقدمه لنا يبقى ملكاً لك، مع منحنا ترخيصاً لاستخدامه في تقديم الخدمات.",
         "نحترم حقوق الملكية الفكرية للآخرين ونتوقع منك نفس الشيء."
@@ -172,10 +172,10 @@ const TermsOfService = () => {
               إذا كانت لديك أي أسئلة حول شروط الاستخدام، لا تتردد في التواصل معنا.
             </p>
             <a 
-              href="mailto:legal@maxiocore.com" 
+              href="mailto:legal@ashholding.com" 
               className="text-purple-400 hover:text-purple-300 font-medium"
             >
-              legal@maxiocore.com
+              legal@ashholding.com
             </a>
           </motion.div>
         </div>

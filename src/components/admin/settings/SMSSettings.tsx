@@ -136,7 +136,7 @@ export const SMSSettings = () => {
       const { data, error } = await supabase.functions.invoke('sms-notify', {
         body: {
           phone: testPhone,
-          message: 'مرحباً! هذه رسالة اختبار من MaxioCore 🎉 تم الإرسال بنجاح!',
+          message: 'مرحباً! هذه رسالة اختبار من ASH HOLDING 🎉 تم الإرسال بنجاح!',
           type: 'general'
         }
       });

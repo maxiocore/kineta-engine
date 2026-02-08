@@ -25,7 +25,7 @@ async function sendEmail(to: string[], subject: string, html: string) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "MaxioCore <noreply@maxiocore.com>",
+      from: "ASH HOLDING <noreply@ashholding.com>",
       to,
       subject,
       html,
@@ -151,7 +151,7 @@ const handler = async (req: Request): Promise<Response> => {
                 📩 رسالة جديدة
               </h1>
               <p style="margin: 0; color: #94a3b8; font-size: 14px;">
-                من صفحة التواصل - MaxioCore
+                من صفحة التواصل - ASH HOLDING
               </p>
             </td>
           </tr>
@@ -249,7 +249,7 @@ const handler = async (req: Request): Promise<Response> => {
           <tr>
             <td style="background-color: #f1f5f9; padding: 20px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
               <p style="margin: 0; font-size: 12px; color: #64748b;">
-                © ${new Date().getFullYear()} MaxioCore - جميع الحقوق محفوظة
+                © ${new Date().getFullYear()} ASH HOLDING - جميع الحقوق محفوظة
               </p>
             </td>
           </tr>
@@ -299,7 +299,7 @@ const handler = async (req: Request): Promise<Response> => {
                 تم استلام رسالتك بنجاح!
               </h1>
               <p style="margin: 0; color: rgba(255,255,255,0.9); font-size: 15px;">
-                شكراً لتواصلك مع MaxioCore
+                شكراً لتواصلك مع ASH HOLDING
               </p>
             </td>
           </tr>
@@ -357,7 +357,7 @@ const handler = async (req: Request): Promise<Response> => {
               <!-- Signature -->
               <p style="margin: 0; color: #64748b; font-size: 14px; line-height: 1.7;">
                 مع أطيب التحيات،<br>
-                <strong style="color: #0f172a;">فريق MaxioCore</strong>
+                <strong style="color: #0f172a;">فريق ASH HOLDING</strong>
               </p>
               
             </td>
@@ -370,7 +370,7 @@ const handler = async (req: Request): Promise<Response> => {
                 هذا البريد الإلكتروني تم إرساله تلقائياً، يرجى عدم الرد عليه مباشرة.
               </p>
               <p style="margin: 0; font-size: 12px; color: #94a3b8;">
-                © ${new Date().getFullYear()} MaxioCore - جميع الحقوق محفوظة
+                © ${new Date().getFullYear()} ASH HOLDING - جميع الحقوق محفوظة
               </p>
             </td>
           </tr>
@@ -385,7 +385,7 @@ const handler = async (req: Request): Promise<Response> => {
 
         await sendEmail(
           [email],
-          "✅ تم استلام رسالتك - MaxioCore",
+          "✅ تم استلام رسالتك - ASH HOLDING",
           confirmationHtml
         );
         console.log("Confirmation email sent to user");

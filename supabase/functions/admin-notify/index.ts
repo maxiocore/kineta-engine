@@ -255,7 +255,7 @@ function getAdminEmailWrapper(content: string, title: string): string {
     <div class="email-container">
       <div class="email-header">
         <div class="header-badge">🔔 إشعار إداري</div>
-        <div class="logo">MaxioCore</div>
+        <div class="logo">ASH HOLDING</div>
         <div class="header-subtitle">لوحة تحكم المشرفين</div>
       </div>
       
@@ -275,9 +275,9 @@ function getAdminEmailWrapper(content: string, title: string): string {
       
       <div class="email-footer">
         <div class="footer-text">
-          📧 <a href="mailto:info@maxiocore.com">info@maxiocore.com</a>
+          📧 <a href="mailto:info@ashholding.com">info@ashholding.com</a>
           <br><br>
-          هذا بريد إداري تلقائي من نظام MaxioCore
+          هذا بريد إداري تلقائي من نظام ASH HOLDING
         </div>
       </div>
     </div>
@@ -299,7 +299,7 @@ function getAdminNotificationContent(type: AdminNotificationType, data: Record<s
             <span>تسجيل عضو جديد</span>
           </div>
           <div class="message">
-            انضم عضو جديد إلى منصة MaxioCore
+            انضم عضو جديد إلى منصة ASH HOLDING
           </div>
           
           <div class="info-card">
@@ -754,7 +754,7 @@ function getAdminNotificationContent(type: AdminNotificationType, data: Record<s
 
     default:
       return {
-        subject: 'إشعار إداري - MaxioCore',
+        subject: 'إشعار إداري - ASH HOLDING',
         content: `
           <div class="alert-title">
             <span class="alert-icon">🔔</span>
@@ -834,7 +834,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send to all admins
     const emailResponse = await resend.emails.send({
-      from: "MaxioCore Admin <info@maxiocore.com>",
+      from: "ASH HOLDING Admin <info@ashholding.com>",
       to: adminEmails,
       subject: subject,
       html: html,

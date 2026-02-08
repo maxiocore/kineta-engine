@@ -102,8 +102,8 @@ const templates: NotificationTemplate[] = [
     id: 'welcome',
     name: 'Welcome',
     name_ar: 'ترحيب',
-    title: 'Welcome to MaxioCore!',
-    title_ar: 'مرحباً بك في MaxioCore!',
+    title: 'Welcome to ASH HOLDING!',
+    title_ar: 'مرحباً بك في ASH HOLDING!',
     message: 'We\'re excited to have you. Explore our services and grow your business.',
     message_ar: 'نحن سعداء بانضمامك إلينا. استكشف خدماتنا ونمّي أعمالك معنا.',
     type: 'general',
@@ -379,7 +379,7 @@ const AdminAppNotifications = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500 uppercase tracking-wide">MaxioCore</span>
+                    <span className="text-xs text-gray-500 uppercase tracking-wide">ASH HOLDING</span>
                     <span className="text-xs text-gray-400">الآن</span>
                   </div>
                   <h4 className="font-semibold text-sm mt-1 text-gray-900 dark:text-white">
@@ -435,7 +435,7 @@ const AdminAppNotifications = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-400">MaxioCore • الآن</span>
+                  <span className="text-xs text-gray-400">ASH HOLDING • الآن</span>
                 </div>
                 <h4 className="font-medium text-sm text-white mt-0.5">
                   {formData.title_ar || 'عنوان الإشعار'}

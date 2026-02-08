@@ -178,7 +178,7 @@ export const InstallPrompt = ({ variant = 'button', className = '' }: InstallPro
               <Smartphone className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold">ثبّت MaxioCore</p>
+              <p className="font-semibold">ثبّت ASH HOLDING</p>
               <p className="text-sm text-muted-foreground truncate">وصول سريع وإشعارات فورية</p>
             </div>
             <div className="flex items-center gap-2">

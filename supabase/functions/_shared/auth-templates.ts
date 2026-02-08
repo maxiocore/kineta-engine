@@ -132,7 +132,7 @@ export function getLoginAlertEmailHtml(data: LoginAlertData): string {
     <body style="${EMAIL_BASE_STYLES}">
       <div style="${CONTAINER_STYLES}">
         <div style="${HEADER_STYLES}">
-          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">MaxioCore</h1>
+          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">ASH HOLDING</h1>
           <p style="color: #94a3b8; margin-top: 8px;">إشعار أمني</p>
         </div>
         
@@ -165,7 +165,7 @@ export function getLoginAlertEmailHtml(data: LoginAlertData): string {
         </div>
         
         <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
-          ماكسيو كور - شريكك التقني
+          ASH HOLDING - شريكك التقني
         </p>
       </div>
     </body>
@@ -179,7 +179,7 @@ export function getLoginAlertEmailPlain(data: LoginAlertData): string {
     : 'موقع غير محدد';
   
   return `
-تم تسجيل الدخول إلى حسابك - MaxioCore
+تم تسجيل الدخول إلى حسابك - ASH HOLDING
 
 مرحباً ${data.name}،
 
@@ -192,7 +192,7 @@ export function getLoginAlertEmailPlain(data: LoginAlertData): string {
 إذا لم تكن أنت، أمّن حسابك الآن:
 ${data.securityLink}
 
-ماكسيو كور - شريكك التقني
+ASH HOLDING - شريكك التقني
   `.trim();
 }
 
@@ -211,7 +211,7 @@ export function getAccountLockedEmailHtml(data: AccountLockedData): string {
     <body style="${EMAIL_BASE_STYLES}">
       <div style="${CONTAINER_STYLES}">
         <div style="${HEADER_STYLES}">
-          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">MaxioCore</h1>
+          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">ASH HOLDING</h1>
           <p style="color: #94a3b8; margin-top: 8px;">تنبيه أمني</p>
         </div>
         
@@ -237,7 +237,7 @@ export function getAccountLockedEmailHtml(data: AccountLockedData): string {
         </div>
         
         <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
-          ماكسيو كور - شريكك التقني
+          ASH HOLDING - شريكك التقني
         </p>
       </div>
     </body>
@@ -260,7 +260,7 @@ export function getPasswordChangedEmailHtml(data: PasswordChangedData): string {
     <body style="${EMAIL_BASE_STYLES}">
       <div style="${CONTAINER_STYLES}">
         <div style="${HEADER_STYLES}">
-          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">MaxioCore</h1>
+          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">ASH HOLDING</h1>
           <p style="color: #94a3b8; margin-top: 8px;">تأكيد أمني</p>
         </div>
         
@@ -281,7 +281,7 @@ export function getPasswordChangedEmailHtml(data: PasswordChangedData): string {
         </div>
         
         <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
-          ماكسيو كور - شريكك التقني
+          ASH HOLDING - شريكك التقني
         </p>
       </div>
     </body>
@@ -304,7 +304,7 @@ export function getEmailVerificationHtml(data: EmailVerificationData): string {
     <body style="${EMAIL_BASE_STYLES}">
       <div style="${CONTAINER_STYLES}">
         <div style="${HEADER_STYLES}">
-          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">MaxioCore</h1>
+          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">ASH HOLDING</h1>
           <p style="color: #94a3b8; margin-top: 8px;">نظام التمويل الآمن</p>
         </div>
         
@@ -325,7 +325,7 @@ export function getEmailVerificationHtml(data: EmailVerificationData): string {
         </div>
         
         <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
-          ماكسيو كور - شريكك التقني
+          ASH HOLDING - شريكك التقني
         </p>
       </div>
     </body>
@@ -348,7 +348,7 @@ export function getPasswordResetEmailHtml(data: PasswordResetData): string {
     <body style="${EMAIL_BASE_STYLES}">
       <div style="${CONTAINER_STYLES}">
         <div style="${HEADER_STYLES}">
-          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">MaxioCore</h1>
+          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">ASH HOLDING</h1>
           <p style="color: #94a3b8; margin-top: 8px;">استعادة كلمة المرور</p>
         </div>
         
@@ -369,7 +369,7 @@ export function getPasswordResetEmailHtml(data: PasswordResetData): string {
         </div>
         
         <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
-          ماكسيو كور - شريكك التقني
+          ASH HOLDING - شريكك التقني
         </p>
       </div>
     </body>
@@ -384,7 +384,7 @@ export function getPasswordResetEmailHtml(data: PasswordResetData): string {
 export function getLoginAlertWhatsApp(name: string, loginTime: string, city?: string): string {
   const location = city || 'موقع غير محدد';
   
-  return `🔐 تنبيه أمني - ماكسيو كور
+  return `🔐 تنبيه أمني - ASH HOLDING
 
 مرحباً ${name}،
 
@@ -394,11 +394,11 @@ export function getLoginAlertWhatsApp(name: string, loginTime: string, city?: st
 
 إذا لم تكن أنت، راجع بريدك الإلكتروني لتأمين حسابك.
 
-ماكسيو كور`;
+ASH HOLDING`;
 }
 
 export function getAccountLockedWhatsApp(name: string, durationMinutes: number): string {
-  return `⚠️ تنبيه أمني - ماكسيو كور
+  return `⚠️ تنبيه أمني - ASH HOLDING
 
 مرحباً ${name}،
 
@@ -408,11 +408,11 @@ export function getAccountLockedWhatsApp(name: string, durationMinutes: number):
 
 📧 لمزيد من التفاصيل، راجع بريدك الإلكتروني.
 
-ماكسيو كور`;
+ASH HOLDING`;
 }
 
 export function getPasswordChangedWhatsApp(name: string): string {
-  return `🔐 تأكيد أمني - ماكسيو كور
+  return `🔐 تأكيد أمني - ASH HOLDING
 
 مرحباً ${name}،
 
@@ -420,17 +420,17 @@ export function getPasswordChangedWhatsApp(name: string): string {
 
 ⚠️ إذا لم تكن أنت، تواصل مع الدعم الفني فوراً.
 
-ماكسيو كور`;
+ASH HOLDING`;
 }
 
 export function getAccountCreatedWhatsApp(name: string): string {
   return `مرحباً ${name} 👋
 
-✅ تم إنشاء حسابك في ماكسيو كور بنجاح!
+✅ تم إنشاء حسابك في ASH HOLDING بنجاح!
 
 📧 يُرجى تفقد بريدك الإلكتروني لتأكيد الحساب وتفعيله.
 
-ماكسيو كور - شريكك التقني`;
+ASH HOLDING - شريكك التقني`;
 }
 
 export function getEmailVerifiedWhatsApp(name: string): string {
@@ -440,5 +440,5 @@ export function getEmailVerifiedWhatsApp(name: string): string {
 
 يمكنك الآن تسجيل الدخول والاستفادة من جميع خدماتنا.
 
-ماكسيو كور - شريكك التقني`;
+ASH HOLDING - شريكك التقني`;
 }

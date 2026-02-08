@@ -176,9 +176,9 @@ serve(async (req) => {
     // ─────────────────────────────────────────────────────────────
     try {
       const { error: emailError } = await resend.emails.send({
-        from: "MaxioCore Security <security@maxiocore.com>",
+        from: "ASH HOLDING Security <security@ashholding.com>",
         to: [email],
-        subject: "🔐 تم تسجيل الدخول إلى حسابك - MaxioCore",
+        subject: "🔐 تم تسجيل الدخول إلى حسابك - ASH HOLDING",
         html: getLoginAlertEmailHtml(alertData),
         text: getLoginAlertEmailPlain(alertData),
       });

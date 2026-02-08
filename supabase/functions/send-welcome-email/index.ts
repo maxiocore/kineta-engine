@@ -46,7 +46,7 @@ const handler = async (req: Request): Promise<Response> => {
       minute: '2-digit'
     });
 
-    const dashboardUrl = 'https://maxiocore.com/dashboard';
+    const dashboardUrl = 'https://ashholding.com/dashboard';
 
     const emailHtml = `
 <!DOCTYPE html>
@@ -55,7 +55,7 @@ const handler = async (req: Request): Promise<Response> => {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>مرحباً بك في MaxioCore</title>
+  <title>مرحباً بك في ASH HOLDING</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif; background-color: #f0f4f8; direction: rtl; text-align: right;">
   <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; background-color: #f0f4f8;">
@@ -69,10 +69,10 @@ const handler = async (req: Request): Promise<Response> => {
               <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                 <tr>
                   <td align="center">
-                    <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 20px; margin: 0 auto 20px; line-height: 80px;">
-                      <span style="font-size: 42px; font-weight: 800; color: white;">M</span>
+                     <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 20px; margin: 0 auto 20px; line-height: 80px;">
+                      <span style="font-size: 42px; font-weight: 800; color: white;">A</span>
                     </div>
-                    <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: white;">🎉 مرحباً بك في MaxioCore!</h1>
+                    <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: white;">🎉 مرحباً بك في ASH HOLDING!</h1>
                     <p style="margin: 12px 0 0; font-size: 15px; color: rgba(255,255,255,0.9);">رحلة نجاحك الرقمي تبدأ الآن</p>
                   </td>
                 </tr>
@@ -90,7 +90,7 @@ const handler = async (req: Request): Promise<Response> => {
                   <td align="center">
                     <h2 style="margin: 0 0 12px; font-size: 24px; color: #1e293b; font-weight: 700;">أهلاً بك ${name}! 👋</h2>
                     <p style="margin: 0; font-size: 16px; color: #475569; line-height: 1.8;">
-                      يسعدنا انضمامك إلى عائلة MaxioCore. أنت الآن جزء من مجتمع يضم آلاف المسوقين الناجحين.
+                      يسعدنا انضمامك إلى عائلة ASH HOLDING. أنت الآن جزء من مجتمع يضم آلاف المسوقين الناجحين.
                     </p>
                   </td>
                 </tr>
@@ -248,7 +248,7 @@ const handler = async (req: Request): Promise<Response> => {
                 <tr>
                   <td align="center">
                     <p style="margin: 0 0 10px; font-size: 14px; color: rgba(255,255,255,0.9);">
-                      مع تحيات فريق MaxioCore
+                      مع تحيات فريق ASH HOLDING
                     </p>
                     <p style="margin: 0; font-size: 12px; color: #64748b;">
                       هذه الرسالة آلية، لا تحتاج للرد عليها
@@ -268,9 +268,9 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: "MaxioCore <noreply@maxiocore.com>",
+      from: "ASH HOLDING <noreply@ashholding.com>",
       to: [email],
-      subject: "🎉 مرحباً بك في MaxioCore - رحلة نجاحك تبدأ الآن!",
+      subject: "🎉 مرحباً بك في ASH HOLDING - رحلة نجاحك تبدأ الآن!",
       html: emailHtml,
     });
 
@@ -280,7 +280,7 @@ const handler = async (req: Request): Promise<Response> => {
     await supabase.from('emails').insert({
       recipient_email: email,
       recipient_name: name,
-      subject: "مرحباً بك في MaxioCore",
+      subject: "مرحباً بك في ASH HOLDING",
       content: emailHtml,
       status: 'sent',
       sent_at: new Date().toISOString(),
@@ -289,7 +289,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send welcome SMS if phone is provided
     if (phone) {
-      const smsMessage = `مرحباً بك ${name} في ماكسيو كور! 🎉 حسابك جاهز الآن. ابدأ رحلتك: maxiocore.com/dashboard`;
+      const smsMessage = `مرحباً بك ${name} في ASH HOLDING! 🎉 حسابك جاهز الآن. ابدأ رحلتك: ashholding.com/dashboard`;
       const smsResult = await sendSMS(phone, smsMessage);
       console.log("Welcome SMS result:", smsResult);
       

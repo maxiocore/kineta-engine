@@ -30,7 +30,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (type === 'new_application') {
       // Send confirmation to applicant
       const applicantEmail1 = await resend.emails.send({
-        from: "Maxiocore Careers <careers@resend.dev>",
+        from: "ASH HOLDING Careers <careers@resend.dev>",
         to: [applicantEmail],
         subject: `تم استلام طلبك للوظيفة: ${jobTitle}`,
         html: `
@@ -48,7 +48,7 @@ const handler = async (req: Request): Promise<Response> => {
               </p>
               
               <p style="color: #4a5568; font-size: 16px; line-height: 1.8; margin-bottom: 20px;">
-                شكراً لاهتمامك بالانضمام إلى فريق <strong>Maxiocore</strong>! 
+                شكراً لاهتمامك بالانضمام إلى فريق <strong>ASH HOLDING</strong>! 
                 لقد استلمنا طلبك لوظيفة <strong style="color: #667eea;">${jobTitle}</strong>.
               </p>
               
@@ -69,7 +69,7 @@ const handler = async (req: Request): Promise<Response> => {
               
               <p style="color: #4a5568; font-size: 16px; line-height: 1.8;">
                 نتمنى لك التوفيق!<br>
-                <strong>فريق الموارد البشرية - Maxiocore</strong>
+                <strong>فريق الموارد البشرية - ASH HOLDING</strong>
               </p>
               
               <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
@@ -86,8 +86,8 @@ const handler = async (req: Request): Promise<Response> => {
 
       // Send notification to admin (you can configure admin email)
       const adminNotification = await resend.emails.send({
-        from: "Maxiocore System <noreply@resend.dev>",
-        to: ["hr@maxiocore.com"], // Configure your admin email
+        from: "ASH HOLDING System <noreply@resend.dev>",
+        to: ["hr@ashholding.com"], // Configure your admin email
         subject: `📥 طلب توظيف جديد: ${jobTitle}`,
         html: `
           <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -111,7 +111,7 @@ const handler = async (req: Request): Promise<Response> => {
               </table>
               
               <div style="margin-top: 24px;">
-                <a href="https://maxiocore.com/admin/careers" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+                <a href="https://ashholding.com/admin/careers" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
                   عرض الطلب في لوحة التحكم
                 </a>
               </div>
@@ -166,7 +166,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       const statusEmail = await resend.emails.send({
-        from: "Maxiocore Careers <careers@resend.dev>",
+        from: "ASH HOLDING Careers <careers@resend.dev>",
         to: [applicantEmail],
         subject: `${subject} - ${jobTitle}`,
         html: `
@@ -207,13 +207,13 @@ const handler = async (req: Request): Promise<Response> => {
               
               <p style="color: #4a5568; font-size: 16px; line-height: 1.8;">
                 مع أطيب التحيات،<br>
-                <strong>فريق الموارد البشرية - Maxiocore</strong>
+                <strong>فريق الموارد البشرية - ASH HOLDING</strong>
               </p>
               
               <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
               
               <p style="color: #a0aec0; font-size: 12px; text-align: center; margin: 0;">
-                هذه رسالة تلقائية من نظام التوظيف في Maxiocore
+                هذه رسالة تلقائية من نظام التوظيف في ASH HOLDING
               </p>
             </div>
           </div>
