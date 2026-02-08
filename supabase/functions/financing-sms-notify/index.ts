@@ -30,6 +30,7 @@ type FinancingSMSEvent =
   | 'application_submitted'
   | 'application_approved'
   | 'application_rejected'
+  | 'acknowledgment_signed'
   | 'contract_signed'
   | 'financing_completed';
 
@@ -97,6 +98,14 @@ function buildSMSMessage(event: FinancingSMSEvent, data: FinancingSMSRequest): s
         `يمكنك التواصل مع فريق الدعم لمزيد من التفاصيل.`,
         `فريق ASH HOLDING`,
       ].filter(Boolean).join('\n');
+
+    case 'acknowledgment_signed':
+      return [
+        `عزيزي ${name}،`,
+        `تم توقيع إقرار الشروط والأحكام لطلب التمويل رقم ${appNum} بنجاح.`,
+        `سيتم إرسال العقد الرسمي لك قريباً لإتمام التوقيع.`,
+        `فريق ASH HOLDING`,
+      ].join('\n');
 
     case 'contract_signed':
       return [
@@ -221,6 +230,7 @@ serve(async (req) => {
       'eligibility_passed', 'eligibility_failed',
       'application_submitted',
       'application_approved', 'application_rejected',
+      'acknowledgment_signed',
       'contract_signed',
       'financing_completed',
     ];
