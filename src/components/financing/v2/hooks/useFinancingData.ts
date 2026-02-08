@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v2 - Financing Data Hook
+ * ASH HOLDING Financing System v2 - Financing Data Hook
  * Hook لجلب بيانات التمويل للعميل مع دعم Realtime
  */
 

@@ -150,8 +150,8 @@ export const usePushNotifications = () => {
           statusMessageAr = 'أضف التطبيق للشاشة الرئيسية لتفعيل الإشعارات';
         } else if (currentPermission === 'denied') {
           status = 'permission_denied';
-          statusMessage = 'Notifications are blocked. Enable in Settings > MaxioCore';
-          statusMessageAr = 'الإشعارات محظورة. فعّلها من الإعدادات > MaxioCore';
+          statusMessage = 'Notifications are blocked. Enable in Settings > ASH HOLDING';
+          statusMessageAr = 'الإشعارات محظورة. فعّلها من الإعدادات > ASH HOLDING';
         } else if (currentPermission === 'granted') {
           status = 'permission_granted';
           isSupported = true;

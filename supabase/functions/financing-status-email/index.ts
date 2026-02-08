@@ -500,7 +500,7 @@ function generateEmailHtml(
                     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
                       <tr>
                         <td style="background-color: rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 24px;">
-                          <span style="color: #ffffff; font-size: 28px; font-weight: bold; letter-spacing: 1px;">MaxioCore</span>
+                          <span style="color: #ffffff; font-size: 28px; font-weight: bold; letter-spacing: 1px;">ASH HOLDING</span>
                         </td>
                       </tr>
                     </table>
@@ -634,7 +634,7 @@ function generateEmailHtml(
                 <tr>
                   <td align="center">
                     <p style="color: #94a3b8; font-size: 13px; margin: 0 0 8px 0;">
-                      هذا البريد مُرسل تلقائيًا من منصة MaxioCore
+                      هذا البريد مُرسل تلقائيًا من منصة ASH HOLDING
                     </p>
                     <p style="color: #64748b; font-size: 12px; margin: 0 0 16px 0;">
                       شركة علي صالح الشهري القابضة - المملكة العربية السعودية
@@ -658,7 +658,7 @@ function generateEmailHtml(
                     </table>
                     
                     <p style="color: #475569; font-size: 11px; margin: 16px 0 0 0;">
-                      © ${new Date().getFullYear()} MaxioCore. جميع الحقوق محفوظة.
+                      © ${new Date().getFullYear()} ASH HOLDING. جميع الحقوق محفوظة.
                     </p>
                   </td>
                 </tr>
@@ -711,10 +711,10 @@ ${content.additionalNote ? `⚠️ ${content.additionalNote}\n\n` : ''}`;
 ${content.ctaText}: ${data.baseUrl}${content.ctaPath}
 ---
 
-هذا البريد مُرسل تلقائيًا من منصة MaxioCore
+هذا البريد مُرسل تلقائيًا من منصة ASH HOLDING
 شركة علي صالح الشهري القابضة - المملكة العربية السعودية
 
-© ${new Date().getFullYear()} MaxioCore. جميع الحقوق محفوظة.`;
+© ${new Date().getFullYear()} ASH HOLDING. جميع الحقوق محفوظة.`;
 
   return text;
 }

@@ -192,7 +192,7 @@ export function useAdminActions(): UseAdminActionsReturn {
               recipientName: app.full_name,
               approvedAmount: app.approved_amount || app.requested_amount,
               rejectionReason: reason,
-              baseUrl: 'https://maxiocore.com',
+              baseUrl: 'https://ashholding.com',
             }
           });
           console.log(`[V2] Email notification sent for ${actionType}`);

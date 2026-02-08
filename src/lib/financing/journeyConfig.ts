@@ -1,6 +1,6 @@
 /**
  * =====================================================
- * MaxioCore Financing Application Journey Configuration
+ * ASH HOLDING Financing Application Journey Configuration
  * =====================================================
  * 
  * Professional FinTech Lending Journey Design
@@ -544,7 +544,7 @@ export const MICROCOPY = {
     ],
     section_conditions: 'شروط التمويل',
     conditions: [
-      'التمويل مخصص لشراء خدمات MaxioCore فقط وليس نقدياً',
+      'التمويل مخصص لشراء خدمات ASH HOLDING فقط وليس نقدياً',
       'يُضاف المبلغ الممول كرصيد في حسابك لدى المنصة',
       'يجب توقيع عقد التمويل والسند لأمر إلكترونياً',
       'في حال التعثر، يحق للمنصة اتخاذ الإجراءات النظامية',

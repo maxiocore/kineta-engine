@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v2 - Config Barrel Export
+ * ASH HOLDING Financing System v2 - Config Barrel Export
  */
 
 export * from './statusConfig';

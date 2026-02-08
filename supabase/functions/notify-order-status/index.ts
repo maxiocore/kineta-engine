@@ -226,7 +226,7 @@ function getEmailTemplate(
           <!-- CTA Button -->
           <tr>
             <td style="padding: 0 40px 45px; text-align: center;">
-              <a href="https://maxiocore.com/dashboard/orders" class="animate-pulse" style="display: inline-block; padding: 20px 55px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; border-radius: 16px; font-weight: 700; font-size: 20px; box-shadow: 0 15px 40px rgba(99, 102, 241, 0.4);">
+              <a href="https://ashholding.com/dashboard/orders" class="animate-pulse" style="display: inline-block; padding: 20px 55px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; border-radius: 16px; font-weight: 700; font-size: 20px; box-shadow: 0 15px 40px rgba(99, 102, 241, 0.4);">
                 📋 تتبع طلبك الآن
               </a>
             </td>
@@ -240,13 +240,13 @@ function getEmailTemplate(
                   <td align="center">
                     <!-- Logo -->
                     <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 16px; margin: 0 auto 20px; line-height: 60px; text-align: center;">
-                      <span style="font-size: 30px; font-weight: 800; color: #ffffff;">M</span>
+                      <span style="font-size: 30px; font-weight: 800; color: #ffffff;">A</span>
                     </div>
                     <p style="margin: 0 0 18px; font-size: 17px; color: #cbd5e1; line-height: 1.8;">
                       إذا كانت لديك أي استفسارات، لا تتردد في التواصل معنا.
                     </p>
                     <p style="margin: 0; font-size: 14px; color: #64748b;">
-                      © ${new Date().getFullYear()} MaxioCore. جميع الحقوق محفوظة.
+                      © ${new Date().getFullYear()} ASH HOLDING. جميع الحقوق محفوظة.
                     </p>
                   </td>
                 </tr>
@@ -354,7 +354,7 @@ serve(async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "MaxioCore <noreply@maxiocore.com>",
+        from: "ASH HOLDING <noreply@ashholding.com>",
         to: [profile.email],
         subject: `${statusInfo.emoji} تحديث حالة طلبك ${order.order_number} - ${statusInfo.ar}`,
         html: emailHtml,
@@ -385,7 +385,7 @@ serve(async (req: Request): Promise<Response> => {
     
     // Send SMS notification if phone is available
     if (profile.phone) {
-      const smsMessage = `ماكسيو كور: تم تحديث طلبك رقم ${order.order_number} إلى "${statusInfo.ar}". تتبع الطلب: maxiocore.com/dashboard/orders`;
+      const smsMessage = `ASH HOLDING: تم تحديث طلبك رقم ${order.order_number} إلى "${statusInfo.ar}". تتبع الطلب: ashholding.com/dashboard/orders`;
       const smsResult = await sendSMS(profile.phone, smsMessage);
       console.log("SMS result:", smsResult);
       

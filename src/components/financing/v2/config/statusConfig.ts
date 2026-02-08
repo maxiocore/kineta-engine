@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v2 - Status Configuration
+ * ASH HOLDING Financing System v2 - Status Configuration
  * تكوين الحالات للنظام الجديد
  */
 

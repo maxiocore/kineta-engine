@@ -611,6 +611,6 @@ export async function sendFinancingApplicationReceivedSMS(
     userId?: string;
   }
 ): Promise<EmailResult> {
-  const message = `ماكسيو كور: مرحباً ${data.name}، تم استلام طلب التمويل #${data.applicationNumber} بنجاح. سيتم مراجعته وإبلاغك بالنتيجة قريباً.`;
+  const message = `ASH HOLDING: مرحباً ${data.name}، تم استلام طلب التمويل #${data.applicationNumber} بنجاح. سيتم مراجعته وإبلاغك بالنتيجة قريباً.`;
   return sendSMS(phone, message, 'financing_received', data.userId, data.applicationNumber);
 }

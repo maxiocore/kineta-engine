@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing V2 - Documents Viewer
+ * ASH HOLDING Financing V2 - Documents Viewer
  * عارض المستندات للعميل
  */
 

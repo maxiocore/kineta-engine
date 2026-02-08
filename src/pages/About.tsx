@@ -180,7 +180,7 @@ const About = () => {
                   نحن{" "}
                   <span className="relative inline-block">
                     <span className="bg-gradient-to-l from-cyan-400 via-primary to-accent bg-clip-text text-transparent">
-                      MaxioCore
+                      ASH HOLDING
                     </span>
                     <motion.div
                       initial={{ scaleX: 0 }}
@@ -563,7 +563,7 @@ const About = () => {
                 </div>
                 
                 <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                  لماذا تختار <span className="text-primary">MaxioCore</span>؟
+                  لماذا تختار <span className="text-primary">ASH HOLDING</span>؟
                 </h2>
                 
                 <div className="space-y-4">

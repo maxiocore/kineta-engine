@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { FinancingApplicationStatus } from './stateMachine/types';
 
-const BASE_URL = 'https://maxiocore.com';
+const BASE_URL = 'https://ashholding.com';
 
 interface SendStatusEmailParams {
   applicationId: string;
@@ -94,7 +94,7 @@ export function shouldSendStatusEmail(status: FinancingApplicationStatus): boole
  *   recipientName: "أحمد محمد",
  *   applicationNumber: "FIN-1704067200000",
  *   approvedAmount: 15000,
- *   baseUrl: "https://maxiocore.com",
+ *   baseUrl: "https://ashholding.com",
  *   eventId: "uuid-of-activity-log-event",
  *   emailTemplateId: "financing_status_approved"
  * }
@@ -132,7 +132,7 @@ export const EXAMPLE_EMAIL_PAYLOAD = {
   recipientName: "أحمد محمد",
   applicationNumber: "FIN-1704067200000",
   approvedAmount: 15000,
-  baseUrl: "https://maxiocore.com",
+  baseUrl: "https://ashholding.com",
   eventId: "uuid-of-activity-log-event",
   emailTemplateId: "financing_status_approved"
 };

@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v2 - Main Client Dashboard Page
+ * ASH HOLDING Financing System v2 - Main Client Dashboard Page
  * صفحة التمويل الرئيسية للعميل
  */
 

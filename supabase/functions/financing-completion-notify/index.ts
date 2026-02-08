@@ -196,7 +196,7 @@ serve(async (req) => {
     // ═══════════════════════════════════════════════════════════════
     // STEP 4: Build WhatsApp Message
     // ═══════════════════════════════════════════════════════════════
-    const baseUrl = 'https://maxiocore.com';
+    const baseUrl = 'https://ashholding.com';
     
     const whatsappMessage = buildCompletionMessage({
       customerName: application.full_name,

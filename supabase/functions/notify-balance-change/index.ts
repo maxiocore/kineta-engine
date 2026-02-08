@@ -138,10 +138,10 @@ serve(async (req: Request): Promise<Response> => {
                           <span style="font-size: 36px;">${isAdd ? '💰' : '📤'}</span>
                         </div>
                         <h1 style="color: #ffffff; margin: 20px 0 0 0; font-size: 28px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                          ماكسيو كور
+                          ASH HOLDING
                         </h1>
                         <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 14px; letter-spacing: 3px; font-weight: 300;">
-                          MAXIOCORE FINANCIAL
+                          ASH HOLDING FINANCIAL
                         </p>
                       </td>
                     </tr>
@@ -361,7 +361,7 @@ serve(async (req: Request): Promise<Response> => {
                   <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
                       <td align="center" style="padding: 0 40px 40px 40px;">
-                        <a href="https://maxiocore.com/dashboard/financial" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%); color: #ffffff; text-decoration: none; padding: 18px 48px; border-radius: 14px; font-weight: 700; font-size: 16px; box-shadow: 0 10px 30px -5px rgba(99, 102, 241, 0.5); transition: all 0.3s ease;">
+                        <a href="https://ashholding.com/dashboard/financial" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%); color: #ffffff; text-decoration: none; padding: 18px 48px; border-radius: 14px; font-weight: 700; font-size: 16px; box-shadow: 0 10px 30px -5px rgba(99, 102, 241, 0.5); transition: all 0.3s ease;">
                           📊 عرض تفاصيل حسابي
                         </a>
                       </td>
@@ -412,13 +412,13 @@ serve(async (req: Request): Promise<Response> => {
                         <table cellpadding="0" cellspacing="0">
                           <tr>
                             <td style="padding: 0 12px;">
-                              <a href="mailto:support@maxiocore.com" style="display: inline-block; background: #ffffff; padding: 10px 16px; border-radius: 8px; text-decoration: none; color: #475569; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                                📧 support@maxiocore.com
+                              <a href="mailto:support@ashholding.com" style="display: inline-block; background: #ffffff; padding: 10px 16px; border-radius: 8px; text-decoration: none; color: #475569; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                📧 support@ashholding.com
                               </a>
                             </td>
                             <td style="padding: 0 12px;">
-                              <a href="https://maxiocore.com" style="display: inline-block; background: #ffffff; padding: 10px 16px; border-radius: 8px; text-decoration: none; color: #475569; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                                🌐 maxiocore.com
+                              <a href="https://ashholding.com" style="display: inline-block; background: #ffffff; padding: 10px 16px; border-radius: 8px; text-decoration: none; color: #475569; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                🌐 ashholding.com
                               </a>
                             </td>
                           </tr>
@@ -435,7 +435,7 @@ serve(async (req: Request): Promise<Response> => {
                           هذا البريد الإلكتروني تم إرساله تلقائياً - لا تقم بالرد عليه مباشرة
                         </p>
                         <p style="color: #94a3b8; margin: 0; font-size: 12px; text-align: center;">
-                          © ${new Date().getFullYear()} MAXIOCORE. جميع الحقوق محفوظة
+                          © ${new Date().getFullYear()} ASH HOLDING. جميع الحقوق محفوظة
                         </p>
                       </td>
                     </tr>

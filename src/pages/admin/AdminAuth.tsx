@@ -117,9 +117,9 @@ const AdminAuth = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 mb-8">
             <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
-              <span className="font-display font-bold text-xl text-primary-foreground">M</span>
+              <span className="font-display font-bold text-xl text-primary-foreground">A</span>
             </div>
-            <span className="font-display font-bold text-xl">MaxioCore</span>
+            <span className="font-display font-bold text-xl">ASH HOLDING</span>
           </Link>
 
           {/* Header */}
