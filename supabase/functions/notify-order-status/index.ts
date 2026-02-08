@@ -346,32 +346,34 @@ serve(async (req: Request): Promise<Response> => {
       order.total_price
     );
     
-    // Send email using Resend API
-    const emailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "ASH HOLDING <noreply@ash-holding.sa>",
-        to: [profile.email],
-        subject: `${statusInfo.emoji} تحديث حالة طلبك ${order.order_number} - ${statusInfo.ar}`,
-        html: emailHtml,
-      }),
-    });
-    
-    const emailResult = await emailResponse.json();
-    
-    if (!emailResponse.ok) {
-      console.error("Error sending email:", emailResult);
-      return new Response(
-        JSON.stringify({ error: "Failed to send email", details: emailResult }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Send email using Resend API (non-blocking - won't prevent SMS/WhatsApp)
+    let emailSent = false;
+    try {
+      const emailResponse = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${RESEND_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: "ASH HOLDING <noreply@ash-holding.sa>",
+          to: [profile.email],
+          subject: `${statusInfo.emoji} تحديث حالة طلبك ${order.order_number} - ${statusInfo.ar}`,
+          html: emailHtml,
+        }),
+      });
+      
+      const emailResult = await emailResponse.json();
+      
+      if (!emailResponse.ok) {
+        console.error("Error sending email (continuing with SMS/WhatsApp):", emailResult);
+      } else {
+        emailSent = true;
+        console.log("Email sent successfully:", emailResult);
+      }
+    } catch (emailError) {
+      console.error("Email send failed (continuing with SMS/WhatsApp):", emailError);
     }
-    
-    console.log("Email sent successfully:", emailResult);
     
     // Log the email in the emails table
     await supabase.from("emails").insert({
@@ -379,7 +381,7 @@ serve(async (req: Request): Promise<Response> => {
       recipient_name: profile.full_name,
       subject: `تحديث حالة طلبك ${order.order_number}`,
       content: `تم تحديث حالة طلبك من ${oldStatus || 'جديد'} إلى ${newStatus}`,
-      status: "sent",
+      status: emailSent ? "sent" : "failed",
       sent_at: new Date().toISOString(),
     });
     
