@@ -1,12 +1,15 @@
 /**
  * ASH HOLDING Financing Admin V2 - Main Admin Dashboard
- * لوحة تحكم الأدمن الرئيسية - الإصدار الثاني
+ * لوحة تحكم الأدمن الرئيسية - الإصدار المحسّن
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AdminDashboardLayout from '@/components/dashboard/AdminDashboardLayout';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Landmark } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   AdminStatsCards,
   AdminFiltersBar,
@@ -17,6 +20,7 @@ import {
 import type { AdminApplicationView } from '@/components/financing/v2/admin';
 
 export function AdminFinancingV2() {
+  const queryClient = useQueryClient();
   const {
     applications,
     stats,
@@ -29,13 +33,57 @@ export function AdminFinancingV2() {
 
   const [selectedApp, setSelectedApp] = useState<AdminApplicationView | null>(null);
 
+  // Real-time subscription for instant sync with client dashboard
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-financing-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'financing_applications',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-financing-v2'] });
+          queryClient.invalidateQueries({ queryKey: ['admin-financing-stats-v2'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'financing_activity_log',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-audit-log'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  // Keep selectedApp in sync with refreshed data
+  useEffect(() => {
+    if (selectedApp && applications.length > 0) {
+      const updated = applications.find(a => a.id === selectedApp.id);
+      if (updated && updated.status !== selectedApp.status) {
+        setSelectedApp(updated);
+      }
+    }
+  }, [applications, selectedApp]);
+
   const handleSelectApp = (app: AdminApplicationView) => {
     setSelectedApp(app);
   };
 
   const handleCloseDetails = () => {
     setSelectedApp(null);
-    refetch(); // Refresh after closing
+    refetch();
   };
 
   return (
@@ -59,17 +107,23 @@ export function AdminFinancingV2() {
               </p>
             </div>
           </div>
+          <div className="flex items-center gap-2">
+            {stats.pendingReview > 0 && (
+              <Badge variant="destructive" className="animate-pulse">
+                {stats.pendingReview} بانتظار المراجعة
+              </Badge>
+            )}
+          </div>
         </div>
 
         {/* Stats */}
         <AdminStatsCards stats={stats} isLoading={isLoading} />
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Applications List */}
-          <div className={selectedApp ? 'lg:col-span-2' : 'lg:col-span-3'}>
+          <div className={selectedApp ? 'lg:col-span-7' : 'lg:col-span-12'}>
             <div className="space-y-4">
-              {/* Filters */}
               <AdminFiltersBar
                 filters={filters}
                 onFilterChange={setFilters}
@@ -77,8 +131,6 @@ export function AdminFinancingV2() {
                 onRefresh={refetch}
                 isLoading={isLoading}
               />
-
-              {/* Table */}
               <ApplicationsTable
                 applications={applications}
                 isLoading={isLoading}
@@ -88,19 +140,21 @@ export function AdminFinancingV2() {
             </div>
           </div>
 
-          {/* Details Panel */}
+          {/* Details Panel - wider for better UX */}
           <AnimatePresence>
             {selectedApp && (
               <motion.div
                 initial={{ opacity: 0, width: 0 }}
                 animate={{ opacity: 1, width: 'auto' }}
                 exit={{ opacity: 0, width: 0 }}
-                className="lg:col-span-1"
+                className="lg:col-span-5"
               >
-                <ApplicationDetailsPanel
-                  application={selectedApp}
-                  onClose={handleCloseDetails}
-                />
+                <div className="sticky top-6">
+                  <ApplicationDetailsPanel
+                    application={selectedApp}
+                    onClose={handleCloseDetails}
+                  />
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
