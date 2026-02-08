@@ -458,13 +458,34 @@ ASH HOLDING`,
 };
 
 // ═══════════════════════════════════════════════════════════════
-// 1️⃣7️⃣ BOND SENT TO CLIENT - إرسال السند للعميل
+// 1️⃣7️⃣ BOND ISSUED - تم إصدار السند
+// ═══════════════════════════════════════════════════════════════
+export const TEMPLATE_BOND_ISSUED: WhatsAppTemplate = {
+  id: 'financing_bond_issued',
+  name: 'Bond Issued',
+  name_ar: 'تم إصدار السند',
+  status: 'BOND_ISSUED',
+  message: `مرحباً {{customer_name}} ✅
+
+تم إصدار سند الأمر بنجاح لطلب التمويل رقم {{application_number}} عبر نافذ.
+
+سيتم إرسال السند إليك قريباً لتأكيد التوقيع.
+
+📋 متابعة الحالة:
+{{deep_link}}
+
+ASH HOLDING`,
+  variables: ['customer_name', 'application_number', 'deep_link']
+};
+
+// ═══════════════════════════════════════════════════════════════
+// 1️⃣8️⃣ BOND SENT TO CLIENT - إرسال السند للعميل
 // ═══════════════════════════════════════════════════════════════
 export const TEMPLATE_BOND_SENT: WhatsAppTemplate = {
   id: 'financing_bond_sent',
   name: 'Bond Sent to Client',
   name_ar: 'إرسال السند للعميل',
-  status: 'BOND_SENT',
+  status: 'BOND_SENT_TO_CLIENT',
   message: `مرحباً {{customer_name}} 📄
 
 تم إرسال سند الأمر لطلب التمويل رقم {{application_number}}.
@@ -479,7 +500,49 @@ ASH HOLDING`,
 };
 
 // ═══════════════════════════════════════════════════════════════
-// 1️⃣8️⃣ INTERNAL TRANSFER - تحويل الرصيد الداخلي
+// 1️⃣9️⃣ BOND SIGNED BY CLIENT - تم توقيع السند من العميل
+// ═══════════════════════════════════════════════════════════════
+export const TEMPLATE_BOND_SIGNED_BY_CLIENT: WhatsAppTemplate = {
+  id: 'financing_bond_signed_by_client',
+  name: 'Bond Signed by Client',
+  name_ar: 'تم توقيع السند',
+  status: 'BOND_SIGNED_BY_CLIENT',
+  message: `مرحباً {{customer_name}} ✅
+
+تم استلام توقيعك على سند الأمر لطلب التمويل رقم {{application_number}}.
+
+جاري اعتماد السند من الإدارة وسيتم إشعارك بالخطوات القادمة.
+
+📋 متابعة الحالة:
+{{deep_link}}
+
+ASH HOLDING`,
+  variables: ['customer_name', 'application_number', 'deep_link']
+};
+
+// ═══════════════════════════════════════════════════════════════
+// 2️⃣0️⃣ BOND VERIFIED BY ADMIN - تم اعتماد السند
+// ═══════════════════════════════════════════════════════════════
+export const TEMPLATE_BOND_VERIFIED: WhatsAppTemplate = {
+  id: 'financing_bond_verified',
+  name: 'Bond Verified by Admin',
+  name_ar: 'تم اعتماد السند',
+  status: 'BOND_VERIFIED_BY_ADMIN',
+  message: `مرحباً {{customer_name}} 🎉
+
+تم اعتماد سند الأمر بنجاح لطلب التمويل رقم {{application_number}}.
+
+جاري تفعيل رصيد الخدمات في حسابك وسيتم إشعارك فور الإضافة.
+
+📋 متابعة الحالة:
+{{deep_link}}
+
+ASH HOLDING`,
+  variables: ['customer_name', 'application_number', 'deep_link']
+};
+
+// ═══════════════════════════════════════════════════════════════
+// 2️⃣1️⃣ INTERNAL TRANSFER - تحويل الرصيد الداخلي
 // ═══════════════════════════════════════════════════════════════
 export const TEMPLATE_INTERNAL_TRANSFER: WhatsAppTemplate = {
   id: 'financing_internal_transfer',
@@ -532,8 +595,12 @@ export const TEMPLATES_REGISTRY: Record<string, WhatsAppTemplate> = {
   'CONTRACT_SIGNED': TEMPLATE_CONTRACT_SIGNED,
   'BOND_ISSUING': TEMPLATE_BOND_ISSUING,
   'AWAITING_BOND': TEMPLATE_BOND_ISSUING,
+  'BOND_ISSUED': TEMPLATE_BOND_ISSUED,
   'BOND_SENT': TEMPLATE_BOND_SENT,
+  'BOND_SENT_TO_CLIENT': TEMPLATE_BOND_SENT,
   'SENT_TO_CLIENT': TEMPLATE_BOND_SENT,
+  'BOND_SIGNED_BY_CLIENT': TEMPLATE_BOND_SIGNED_BY_CLIENT,
+  'BOND_VERIFIED_BY_ADMIN': TEMPLATE_BOND_VERIFIED,
   'INTERNAL_TRANSFER': TEMPLATE_INTERNAL_TRANSFER,
   // Cancellation status - uses same as rejected but with different message
   'CANCELLED': {
