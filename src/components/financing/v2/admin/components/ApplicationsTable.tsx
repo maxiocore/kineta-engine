@@ -28,6 +28,8 @@ import {
   FileText,
   Stamp,
   Zap,
+  CheckCircle,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -46,7 +48,7 @@ import { useAdminActions } from '../hooks/useAdminActions';
 import { cn } from '@/lib/utils';
 
 const INLINE_ICON_MAP: Record<string, React.ElementType> = {
-  Search, FileCheck, Send, FileText, Stamp, Wallet, Zap,
+  Search, FileCheck, Send, FileText, Stamp, Wallet, Zap, CheckCircle, ShieldCheck,
 };
 
 interface ApplicationsTableProps {
