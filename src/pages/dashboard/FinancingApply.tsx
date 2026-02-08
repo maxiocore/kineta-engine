@@ -136,7 +136,7 @@ export default function FinancingApply() {
 
       // Send email notification to admin
       try {
-        await sendFinancingNewApplicationEmail("info@ashholding.com", {
+        await sendFinancingNewApplicationEmail("info@ash-holding.sa", {
           applicantName: formData.full_name,
           applicantEmail: formData.email,
           applicantPhone: formData.phone,

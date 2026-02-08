@@ -397,7 +397,7 @@ export default function DevOrderWizard() {
       try {
         await supabase.functions.invoke("send-email", {
           body: {
-            to: "info@ashholding.com",
+            to: "info@ash-holding.sa",
             type: "dev_order_created_admin",
             data: {
               orderNumber: orderNo,

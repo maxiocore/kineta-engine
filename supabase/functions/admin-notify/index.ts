@@ -275,7 +275,7 @@ function getAdminEmailWrapper(content: string, title: string): string {
       
       <div class="email-footer">
         <div class="footer-text">
-          📧 <a href="mailto:info@ashholding.com">info@ashholding.com</a>
+          📧 <a href="mailto:info@ash-holding.sa">info@ash-holding.sa</a>
           <br><br>
           هذا بريد إداري تلقائي من نظام ASH HOLDING
         </div>
@@ -834,7 +834,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send to all admins
     const emailResponse = await resend.emails.send({
-      from: "ASH HOLDING Admin <info@ashholding.com>",
+      from: "ASH HOLDING Admin <info@ash-holding.sa>",
       to: adminEmails,
       subject: subject,
       html: html,

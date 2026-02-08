@@ -412,8 +412,8 @@ serve(async (req: Request): Promise<Response> => {
                         <table cellpadding="0" cellspacing="0">
                           <tr>
                             <td style="padding: 0 12px;">
-                              <a href="mailto:support@ashholding.com" style="display: inline-block; background: #ffffff; padding: 10px 16px; border-radius: 8px; text-decoration: none; color: #475569; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                                📧 support@ashholding.com
+                              <a href="mailto:support@ash-holding.sa" style="display: inline-block; background: #ffffff; padding: 10px 16px; border-radius: 8px; text-decoration: none; color: #475569; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                📧 support@ash-holding.sa
                               </a>
                             </td>
                             <td style="padding: 0 12px;">
@@ -469,7 +469,7 @@ serve(async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "ASH HOLDING <noreply@ashholding.com>",
+        from: "ASH HOLDING <noreply@ash-holding.sa>",
         to: [profile.email],
         subject: isAdd 
           ? `🏦 إيصال إيداع | تم إضافة ${amount.toLocaleString('ar-SA')} ر.س لحسابك` 

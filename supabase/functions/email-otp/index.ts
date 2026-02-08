@@ -73,7 +73,7 @@ async function isEmailUsedByOther(
 async function sendOTPEmail(email: string, otp: string, userName?: string): Promise<boolean> {
   try {
     const { error } = await resend.emails.send({
-      from: "ASH HOLDING <noreply@ashholding.com>",
+      from: "ASH HOLDING <noreply@ash-holding.sa>",
       to: [email],
       subject: "رمز التحقق - ASH HOLDING",
       html: `

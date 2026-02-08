@@ -263,7 +263,7 @@ function getEmailTemplate(
                         © ${new Date().getFullYear()} ASH HOLDING. جميع الحقوق محفوظة.
                       </p>
                       <p style="margin: 5px 0 0; font-size: 10px; color: rgba(255,255,255,0.5);">
-                        رقم المرجع: ${receiptNumber} | للاستفسارات: support@ashholding.com
+                        رقم المرجع: ${receiptNumber} | للاستفسارات: support@ash-holding.sa
                       </p>
                     </div>
                   </td>
@@ -379,7 +379,7 @@ serve(async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "ASH HOLDING <noreply@ashholding.com>",
+        from: "ASH HOLDING <noreply@ash-holding.sa>",
         to: [profile.email],
         subject: `✅ تم إيداع ${formatAmountArabic(deposit.total_credited)} ر.س في حسابك بنجاح`,
         html: emailHtml,

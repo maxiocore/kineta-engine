@@ -734,7 +734,7 @@ const ClientOrderDetails = () => {
                   تاريخ الطباعة: ${format(new Date(), 'dd/MM/yyyy HH:mm')}
                 </p>
                 <p style="color: #9CA3AF; font-size: 9px; margin: 5px 0 0;">
-                  info@ashholding.com | www.ashholding.com
+                  info@ash-holding.sa | www.ash-holding.sa
                 </p>
               </td>
               <td style="text-align: left; vertical-align: middle;">

@@ -633,7 +633,7 @@ export const generateDepositReceipt = async (data: DepositReceiptData) => {
       <div class="footer-section">
         <div class="footer-brand">ASH HOLDING</div>
         <div class="footer-note">This is an official electronic receipt</div>
-        <div class="footer-contact">Contact: support@ashholding.com</div>
+        <div class="footer-contact">Contact: support@ash-holding.sa</div>
         <div class="footer-ref">
           Reference: ${receiptNumber} | Date: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
         </div>
@@ -787,7 +787,7 @@ export const generateCashbackReceipt = async (data: CashbackReceiptData) => {
       <div class="footer-section">
         <div class="footer-brand">ASH HOLDING</div>
         <div class="footer-note">This is an official electronic receipt</div>
-        <div class="footer-contact">Contact: support@ashholding.com</div>
+        <div class="footer-contact">Contact: support@ash-holding.sa</div>
         <div class="footer-ref">
           Reference: ${receiptNumber} | Date: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
         </div>
@@ -970,7 +970,7 @@ export const generateOrderReceipt = async (data: OrderReceiptData) => {
       <div class="footer-section">
         <div class="footer-brand blue">ASH HOLDING</div>
         <div class="footer-note">This is an official electronic receipt</div>
-        <div class="footer-contact">Contact: support@ashholding.com</div>
+        <div class="footer-contact">Contact: support@ash-holding.sa</div>
         <div class="footer-ref">
           Reference: ${receiptNumber} | Date: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
         </div>
@@ -1343,7 +1343,7 @@ export const generateRewardsStatement = async (data: RewardsStatementData) => {
       <div class="footer-section">
         <div class="footer-brand purple">ASH HOLDING</div>
         <div class="footer-note">This is an official electronic statement</div>
-        <div class="footer-contact">Contact: support@ashholding.com</div>
+        <div class="footer-contact">Contact: support@ash-holding.sa</div>
         <div class="footer-ref">
           Reference: ${statementNumber} | Date: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
         </div>
