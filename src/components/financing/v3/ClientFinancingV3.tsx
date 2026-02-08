@@ -164,8 +164,20 @@ export default function ClientFinancingV3() {
               </p>
             </div>
 
-            {/* New Application Button - shown when has terminated/declined app or eligible */}
-            {application && isTerminalNegative && canApply() && (
+            {/* New Application Button - always show for terminated apps */}
+            {application && isTerminalNegative && (
+              <Button
+                size="lg"
+                onClick={() => navigate('/dashboard/financing/apply')}
+                className="gap-2 shadow-lg shadow-primary/15 rounded-xl h-11"
+              >
+                <Plus className="w-4 h-4" />
+                طلب تمويل جديد
+              </Button>
+            )}
+
+            {/* No Application - New button */}
+            {!application && (
               <Button
                 size="lg"
                 onClick={() => navigate('/dashboard/financing/apply')}
@@ -278,31 +290,16 @@ export default function ClientFinancingV3() {
                 )}
               </AnimatePresence>
 
-              {/* New Application CTA for terminated apps */}
-              {isTerminalNegative && canApply() && (
+              {/* Eligibility Re-check + New Application for terminated apps */}
+              {isTerminalNegative && (
                 <motion.div
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-6"
+                  className="mt-6 space-y-5"
                 >
-                  <Card className="border-dashed border-2 border-primary/20 bg-primary/[0.02] rounded-2xl">
-                    <CardContent className="p-5 flex flex-col sm:flex-row items-center gap-4">
-                      <div className="flex-1 text-center sm:text-right">
-                        <h3 className="font-bold text-foreground mb-0.5">هل تريد تقديم طلب جديد؟</h3>
-                        <p className="text-sm text-muted-foreground">
-                          يمكنك تقديم طلب تمويل خدمات جديد بناءً على أهليتك الحالية
-                        </p>
-                      </div>
-                      <Button
-                        size="lg"
-                        onClick={() => navigate('/dashboard/financing/apply')}
-                        className="gap-2 rounded-xl h-12 px-6 shadow-lg shadow-primary/15 whitespace-nowrap"
-                      >
-                        <Plus className="w-4 h-4" />
-                        طلب تمويل جديد
-                      </Button>
-                    </CardContent>
-                  </Card>
+                  <EligibilitySection
+                    onEligible={() => navigate('/dashboard/financing/apply')}
+                  />
                 </motion.div>
               )}
             </motion.div>
