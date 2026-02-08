@@ -331,6 +331,7 @@ export function LoanApplicationWizard() {
 
       if (error) throw error;
 
+      // Send WhatsApp + Email notifications
       try {
         await notifySubmitted(
           newApp.id,
@@ -341,6 +342,24 @@ export function LoanApplicationWizard() {
         console.log("Loan application notification sent (WhatsApp + Email)");
       } catch (notifyError) {
         console.error("Failed to send submission notification:", notifyError);
+      }
+
+      // Send SMS notification
+      try {
+        await supabase.functions.invoke('financing-sms-notify', {
+          body: {
+            event: 'application_submitted',
+            phone: profile?.phone || "",
+            customerName: profile?.full_name || "",
+            applicationId: newApp.id,
+            applicationNumber: newApp.application_number,
+            approvedAmount: data.amount,
+            userId: user.id,
+          }
+        });
+        console.log("Loan application SMS sent");
+      } catch (smsErr) {
+        console.error("Failed to send SMS:", smsErr);
       }
 
       localStorage.removeItem(STORAGE_KEY);

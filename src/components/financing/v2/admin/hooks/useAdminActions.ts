@@ -25,14 +25,16 @@ interface UseAdminActionsReturn {
   isExecuting: boolean;
 }
 
-// Notification types for each action
-const ACTION_NOTIFICATIONS: Record<string, { status: string; type: string }> = {
+// Notification types for each action (WhatsApp + Email + SMS)
+const ACTION_NOTIFICATIONS: Record<string, { status: string; type: string; smsEvent?: string }> = {
   send_acknowledgment: { status: 'ACK_SENT', type: 'acknowledgment_sent' },
   send_contract: { status: 'CONTRACT_SENT', type: 'contract_sent' },
   issue_bond: { status: 'BOND_ISSUING', type: 'bond_issuing' },
-  activate_credit: { status: 'CREDIT_DEPOSITED', type: 'credit_activated' },
-  decline_application: { status: 'REJECTED', type: 'application_rejected' },
+  activate_credit: { status: 'CREDIT_DEPOSITED', type: 'credit_activated', smsEvent: 'financing_completed' },
+  decline_application: { status: 'REJECTED', type: 'application_rejected', smsEvent: 'application_rejected' },
   cancel_application: { status: 'CANCELLED', type: 'application_cancelled' },
+  review_application: { status: 'UNDER_REVIEW', type: 'review_started' },
+  prepare_offer: { status: 'OFFER_READY', type: 'offer_ready', smsEvent: 'application_approved' },
 };
 
 export function useAdminActions(): UseAdminActionsReturn {
@@ -198,6 +200,27 @@ export function useAdminActions(): UseAdminActionsReturn {
           console.log(`[V2] Email notification sent for ${actionType}`);
         } catch (emailErr) {
           console.error('Email notification error:', emailErr);
+        }
+
+        // Send SMS notification via Msegat (financing-sms-notify)
+        if (notificationConfig.smsEvent) {
+          try {
+            await supabase.functions.invoke('financing-sms-notify', {
+              body: {
+                event: notificationConfig.smsEvent,
+                phone: app.phone,
+                customerName: app.full_name,
+                applicationId,
+                applicationNumber: app.application_number,
+                approvedAmount: app.approved_amount || app.requested_amount,
+                rejectionReason: reason,
+                userId: app.user_id,
+              }
+            });
+            console.log(`[V2] SMS notification sent for ${actionType} (event: ${notificationConfig.smsEvent})`);
+          } catch (smsErr) {
+            console.error('SMS notification error:', smsErr);
+          }
         }
       }
 

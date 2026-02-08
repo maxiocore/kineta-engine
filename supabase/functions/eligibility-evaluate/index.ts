@@ -521,6 +521,30 @@ Deno.serve(async (req) => {
 
     // Return result
     if (decision === 'DECLINED') {
+      // Send SMS for eligibility failure
+      try {
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('phone, full_name')
+          .eq('id', body.user_id)
+          .maybeSingle();
+
+        if (userProfile?.phone) {
+          await supabase.functions.invoke('financing-sms-notify', {
+            body: {
+              event: 'eligibility_failed',
+              phone: userProfile.phone,
+              customerName: userProfile.full_name || 'عميلنا الكريم',
+              applicationId: body.session_id,
+              userId: body.user_id,
+            }
+          });
+          console.log('[ELIGIBILITY-EVALUATE] SMS sent for eligibility_failed');
+        }
+      } catch (smsErr) {
+        console.error('[ELIGIBILITY-EVALUATE] SMS error:', smsErr);
+      }
+
       return new Response(
         JSON.stringify({
           success: false,
@@ -551,6 +575,31 @@ Deno.serve(async (req) => {
     if (decision === 'MANUAL_REVIEW') {
       result.conditions = ['Subject to document verification', 'Final approval within 2 business days'];
       result.conditions_ar = ['خاضع للتحقق من المستندات', 'الموافقة النهائية خلال يومي عمل'];
+    }
+
+    // Send SMS for eligibility passed
+    try {
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('phone, full_name')
+        .eq('id', body.user_id)
+        .maybeSingle();
+
+      if (userProfile?.phone) {
+        await supabase.functions.invoke('financing-sms-notify', {
+          body: {
+            event: 'eligibility_passed',
+            phone: userProfile.phone,
+            customerName: userProfile.full_name || 'عميلنا الكريم',
+            applicationId: applicationId || body.session_id,
+            approvedAmount: result.financing_limit,
+            userId: body.user_id,
+          }
+        });
+        console.log('[ELIGIBILITY-EVALUATE] SMS sent for eligibility_passed');
+      }
+    } catch (smsErr) {
+      console.error('[ELIGIBILITY-EVALUATE] SMS error:', smsErr);
     }
 
     return new Response(

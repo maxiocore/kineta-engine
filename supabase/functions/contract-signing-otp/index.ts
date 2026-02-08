@@ -596,6 +596,32 @@ serve(async (req) => {
         req
       );
 
+      // Send SMS notification for contract_signed
+      try {
+        const { data: appData } = await supabase
+          .from('financing_applications')
+          .select('phone, full_name, application_number, approved_amount, requested_amount, user_id')
+          .eq('id', application_id)
+          .single();
+
+        if (appData?.phone) {
+          await supabase.functions.invoke('financing-sms-notify', {
+            body: {
+              event: 'contract_signed',
+              phone: appData.phone,
+              customerName: appData.full_name,
+              applicationId: application_id,
+              applicationNumber: appData.application_number,
+              approvedAmount: appData.approved_amount || appData.requested_amount,
+              userId: appData.user_id,
+            }
+          });
+          console.log('[Contract-OTP] SMS sent for contract_signed');
+        }
+      } catch (smsErr) {
+        console.error('[Contract-OTP] SMS send error:', smsErr);
+      }
+
       return new Response(
         JSON.stringify({ 
           success: true, 
