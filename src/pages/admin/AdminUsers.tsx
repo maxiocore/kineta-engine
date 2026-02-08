@@ -319,34 +319,26 @@ const AdminUsers = () => {
   const handleConfirmDelete = async () => {
     setDeleting(true);
     try {
-      if (deleteType === "single" && deletingId) {
-        await supabase.from("coupon_usages").delete().eq("user_id", deletingId);
-        await supabase.from("orders").delete().eq("user_id", deletingId);
-        await supabase.from("notifications").delete().eq("user_id", deletingId);
-        await supabase.from("ticket_messages").delete().eq("sender_id", deletingId);
-        await supabase.from("support_tickets").delete().eq("user_id", deletingId);
-        await supabase.from("user_roles").delete().eq("user_id", deletingId);
-        const { error } = await supabase.from("profiles").delete().eq("id", deletingId);
+      const idsToDelete = deleteType === "single" && deletingId ? [deletingId] : selectedIds;
+      
+      if (idsToDelete.length === 0) return;
 
-        if (error) throw error;
-        toast.success("تم حذف المستخدم بنجاح");
-        setSelectedIds(prev => prev.filter(id => id !== deletingId));
-      } else if (deleteType === "bulk") {
-        setDeleteProgress({ current: 0, total: selectedIds.length });
-        for (let i = 0; i < selectedIds.length; i++) {
-          const userId = selectedIds[i];
-          await supabase.from("coupon_usages").delete().eq("user_id", userId);
-          await supabase.from("orders").delete().eq("user_id", userId);
-          await supabase.from("notifications").delete().eq("user_id", userId);
-          await supabase.from("ticket_messages").delete().eq("sender_id", userId);
-          await supabase.from("support_tickets").delete().eq("user_id", userId);
-          await supabase.from("user_roles").delete().eq("user_id", userId);
-          await supabase.from("profiles").delete().eq("id", userId);
-          setDeleteProgress({ current: i + 1, total: selectedIds.length });
-        }
-        toast.success(`تم حذف ${selectedIds.length} مستخدم بنجاح`);
-        setSelectedIds([]);
+      setDeleteProgress({ current: 0, total: idsToDelete.length });
+
+      const { data, error } = await supabase.functions.invoke("admin-delete-user", {
+        body: { userIds: idsToDelete },
+      });
+
+      if (error) throw error;
+
+      if (data?.failed > 0) {
+        toast.warning(`تم حذف ${data.deleted} مستخدم، فشل ${data.failed}`);
+      } else {
+        toast.success(`تم حذف ${data.deleted} مستخدم بنجاح`);
       }
+
+      setDeleteProgress({ current: idsToDelete.length, total: idsToDelete.length });
+      setSelectedIds([]);
       fetchUsers();
     } catch (error) {
       console.error("Error deleting user(s):", error);
