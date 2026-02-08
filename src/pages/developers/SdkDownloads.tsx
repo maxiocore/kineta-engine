@@ -11,57 +11,57 @@ const SdkDownloads = () => {
       name: "JavaScript / Node.js",
       description: "مكتبة رسمية لـ Node.js والمتصفح",
       version: "2.1.0",
-      installCommand: "npm install @maxiocore/sdk",
+      installCommand: "npm install @ashholding/sdk",
       icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg",
       docs: "/developers/getting-started",
-      github: "https://github.com/maxiocore/sdk-js",
+      github: "https://github.com/ashholding/sdk-js",
       features: ["TypeScript support", "Promise-based", "Browser & Node.js"],
     },
     {
       name: "Python",
       description: "مكتبة Python رسمية مع دعم async",
       version: "1.5.0",
-      installCommand: "pip install maxiocore",
+      installCommand: "pip install ashholding",
       icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
       docs: "/developers/getting-started",
-      github: "https://github.com/maxiocore/sdk-python",
+      github: "https://github.com/ashholding/sdk-python",
       features: ["Async support", "Type hints", "Python 3.8+"],
     },
     {
       name: "PHP",
       description: "مكتبة PHP مع دعم Composer",
       version: "1.3.0",
-      installCommand: "composer require maxiocore/sdk",
+      installCommand: "composer require ashholding/sdk",
       icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg",
       docs: "/developers/getting-started",
-      github: "https://github.com/maxiocore/sdk-php",
+      github: "https://github.com/ashholding/sdk-php",
       features: ["PSR-4 autoloading", "PHP 8.0+", "Laravel support"],
     },
     {
       name: "Ruby",
       description: "Ruby gem رسمي للتكامل السريع",
       version: "1.0.0",
-      installCommand: "gem install maxiocore",
+      installCommand: "gem install ashholding",
       icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/ruby/ruby-original.svg",
       docs: "/developers/getting-started",
-      github: "https://github.com/maxiocore/sdk-ruby",
+      github: "https://github.com/ashholding/sdk-ruby",
       features: ["Rails integration", "Ruby 3.0+", "Thread-safe"],
     },
     {
       name: "Go",
       description: "مكتبة Go خفيفة وسريعة",
       version: "0.9.0",
-      installCommand: "go get github.com/maxiocore/sdk-go",
+      installCommand: "go get github.com/ashholding/sdk-go",
       icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/go/go-original.svg",
       docs: "/developers/getting-started",
-      github: "https://github.com/maxiocore/sdk-go",
+      github: "https://github.com/ashholding/sdk-go",
       features: ["Zero dependencies", "Context support", "Go 1.18+"],
     },
     {
       name: "REST API",
       description: "استخدم API مباشرة مع أي لغة",
       version: "v1",
-      installCommand: "curl https://api.maxiocore.com/api/v1/...",
+      installCommand: "curl https://api.ashholding.com/api/v1/...",
       icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/fastapi/fastapi-original.svg",
       docs: "/developers/api-reference",
       github: null,
@@ -73,20 +73,20 @@ const SdkDownloads = () => {
     {
       name: "Order Widget",
       description: "نموذج طلب جاهز يمكن تضمينه في أي موقع",
-      code: `<script src="https://cdn.maxiocore.com/widget.js"></script>
-<div id="maxiocore-order" data-api-key="YOUR_KEY"></div>`,
+      code: `<script src="https://cdn.ashholding.com/widget.js"></script>
+<div id="ashholding-order" data-api-key="YOUR_KEY"></div>`,
     },
     {
       name: "Services Catalog",
       description: "عرض كتالوج الخدمات مع البحث والفلترة",
-      code: `<script src="https://cdn.maxiocore.com/catalog.js"></script>
-<div id="maxiocore-catalog" data-api-key="YOUR_KEY"></div>`,
+      code: `<script src="https://cdn.ashholding.com/catalog.js"></script>
+<div id="ashholding-catalog" data-api-key="YOUR_KEY"></div>`,
     },
     {
       name: "Order Tracker",
       description: "تتبع حالة الطلب للعملاء",
-      code: `<script src="https://cdn.maxiocore.com/tracker.js"></script>
-<div id="maxiocore-tracker" data-api-key="YOUR_KEY"></div>`,
+      code: `<script src="https://cdn.ashholding.com/tracker.js"></script>
+<div id="ashholding-tracker" data-api-key="YOUR_KEY"></div>`,
     },
   ];
 
@@ -115,7 +115,7 @@ const SdkDownloads = () => {
             </h1>
             
             <p className="text-lg text-muted-foreground">
-              مكتبات SDK رسمية وأدوات لتسهيل التكامل مع منصة MaxioCore
+              مكتبات SDK رسمية وأدوات لتسهيل التكامل مع منصة ASH HOLDING
             </p>
           </motion.div>
         </section>

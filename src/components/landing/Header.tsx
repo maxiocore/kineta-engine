@@ -77,7 +77,7 @@ const Header = () => {
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
               >
-                MaxioCore
+                ASH HOLDING
               </motion.span>
             </Link>
 
@@ -214,7 +214,7 @@ const Header = () => {
                       className="text-lg xs:text-xl font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
                       style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
                     >
-                      MaxioCore
+                      ASH HOLDING
                     </span>
                   </Link>
                   <button

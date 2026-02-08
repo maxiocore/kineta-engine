@@ -38,7 +38,7 @@ export function JourneyHeader({ currentScreen, onBack, canGoBack }: JourneyHeade
         {/* Logo/Title - Center */}
         <div className="text-center">
           <h1 className="font-bold text-lg bg-gradient-to-l from-emerald-400 to-teal-500 bg-clip-text text-transparent">
-            تمويل MaxioCore
+            تمويل ASH HOLDING
           </h1>
         </div>
 

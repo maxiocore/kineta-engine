@@ -28,18 +28,18 @@ const API_KEY = "your_api_key_here";`,
     {
       icon: Code2,
       title: "2. تثبيت المكتبة",
-      description: "قم بتثبيت مكتبة MaxioCore SDK في مشروعك.",
-      code: `npm install @maxiocore/sdk
+      description: "قم بتثبيت مكتبة ASH HOLDING SDK في مشروعك.",
+      code: `npm install @ashholding/sdk
 # أو
-yarn add @maxiocore/sdk`,
+yarn add @ashholding/sdk`,
     },
     {
       icon: Rocket,
       title: "3. إرسال أول طلب",
       description: "استخدم الكود التالي لإرسال أول طلب إلى API.",
-      code: `import { MaxioCore } from '@maxiocore/sdk';
+      code: `import { AshHolding } from '@ashholding/sdk';
 
-const client = new MaxioCore({
+const client = new AshHolding({
   apiKey: 'your_api_key_here'
 });
 
@@ -75,12 +75,12 @@ console.log(services);`,
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">
               ابدأ التكامل مع{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-l from-primary to-accent">
-                MaxioCore API
+                ASH HOLDING API
               </span>
             </h1>
             
             <p className="text-lg text-muted-foreground mb-8">
-              دليل سريع لربط موقعك أو تطبيقك بمنصة MaxioCore خلال دقائق معدودة
+              دليل سريع لربط موقعك أو تطبيقك بمنصة ASH HOLDING خلال دقائق معدودة
             </p>
 
             <div className="flex flex-wrap justify-center gap-4">

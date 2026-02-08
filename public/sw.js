@@ -1,11 +1,11 @@
-// MaxioCore Professional Service Worker v3.0
+// ASH HOLDING Professional Service Worker v3.0
 // Supports: Push Notifications, Offline Caching, Background Sync
 // Features: iOS 16.4+ Push, Unified Payload, Action Handling
 
 const CACHE_VERSION = 'v3';
-const STATIC_CACHE = `maxiocore-static-${CACHE_VERSION}`;
-const DYNAMIC_CACHE = `maxiocore-dynamic-${CACHE_VERSION}`;
-const NOTIFICATION_TAG_PREFIX = 'maxiocore-';
+const STATIC_CACHE = `ashholding-static-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `ashholding-dynamic-${CACHE_VERSION}`;
+const NOTIFICATION_TAG_PREFIX = 'ashholding-';
 
 // Static assets to cache on install
 const STATIC_ASSETS = [
@@ -20,7 +20,7 @@ const STATIC_ASSETS = [
 
 // ========== INSTALL EVENT ==========
 self.addEventListener('install', (event) => {
-  console.log('[SW v3] Installing MaxioCore Service Worker...');
+  console.log('[SW v3] Installing ASH HOLDING Service Worker...');
   
   event.waitUntil(
     caches.open(STATIC_CACHE)
@@ -134,7 +134,7 @@ self.addEventListener('push', (event) => {
   
   // Default notification data
   const defaults = {
-    title: 'MaxioCore',
+    title: 'ASH HOLDING',
     body: 'لديك إشعار جديد',
     icon: '/pwa-192x192.png',
     badge: '/pwa-192x192.png',
@@ -383,4 +383,4 @@ async function checkForNewNotifications() {
   console.log('[SW v3] Checking for new notifications...');
 }
 
-console.log('[SW v3] MaxioCore Service Worker v3 loaded');
+console.log('[SW v3] ASH HOLDING Service Worker v3 loaded');

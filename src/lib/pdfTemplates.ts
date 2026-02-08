@@ -512,9 +512,9 @@ export const generateDepositReceipt = async (data: DepositReceiptData) => {
       <div class="header-section">
         <div class="header-content">
           <div class="brand-section">
-            <div class="brand-logo">M</div>
+            <div class="brand-logo">A</div>
             <div class="brand-info">
-              <div class="brand-name-main">MAXIOCORE</div>
+              <div class="brand-name-main">ASH HOLDING</div>
               <div class="brand-name-sub">Digital Services</div>
             </div>
           </div>
@@ -608,7 +608,7 @@ export const generateDepositReceipt = async (data: DepositReceiptData) => {
         </div>
         <div class="sig-main">
           <div class="sig-title">Digitally Verified</div>
-          <div class="sig-signer">Digital Signature: <span>MAXIOCORE</span></div>
+          <div class="sig-signer">Digital Signature: <span>ASH HOLDING</span></div>
           <div class="sig-codes">
             <div class="sig-code-item">
               <span>Verification:</span>
@@ -631,9 +631,9 @@ export const generateDepositReceipt = async (data: DepositReceiptData) => {
       
       <!-- Footer -->
       <div class="footer-section">
-        <div class="footer-brand">MAXIOCORE</div>
+        <div class="footer-brand">ASH HOLDING</div>
         <div class="footer-note">This is an official electronic receipt</div>
-        <div class="footer-contact">Contact: support@maxiocore.com</div>
+        <div class="footer-contact">Contact: support@ashholding.com</div>
         <div class="footer-ref">
           Reference: ${receiptNumber} | Date: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
         </div>
@@ -678,9 +678,9 @@ export const generateCashbackReceipt = async (data: CashbackReceiptData) => {
       <div class="header-section">
         <div class="header-content">
           <div class="brand-section">
-            <div class="brand-logo">M</div>
+            <div class="brand-logo">A</div>
             <div class="brand-info">
-              <div class="brand-name-main">MAXIOCORE</div>
+              <div class="brand-name-main">ASH HOLDING</div>
               <div class="brand-name-sub">Digital Services</div>
             </div>
           </div>
@@ -762,7 +762,7 @@ export const generateCashbackReceipt = async (data: CashbackReceiptData) => {
         </div>
         <div class="sig-main">
           <div class="sig-title">Digitally Verified</div>
-          <div class="sig-signer">Digital Signature: <span>MAXIOCORE</span></div>
+          <div class="sig-signer">Digital Signature: <span>ASH HOLDING</span></div>
           <div class="sig-codes">
             <div class="sig-code-item">
               <span>Verification:</span>
@@ -785,9 +785,9 @@ export const generateCashbackReceipt = async (data: CashbackReceiptData) => {
       
       <!-- Footer -->
       <div class="footer-section">
-        <div class="footer-brand">MAXIOCORE</div>
+        <div class="footer-brand">ASH HOLDING</div>
         <div class="footer-note">This is an official electronic receipt</div>
-        <div class="footer-contact">Contact: support@maxiocore.com</div>
+        <div class="footer-contact">Contact: support@ashholding.com</div>
         <div class="footer-ref">
           Reference: ${receiptNumber} | Date: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
         </div>
@@ -840,9 +840,9 @@ export const generateOrderReceipt = async (data: OrderReceiptData) => {
       <div class="header-section blue">
         <div class="header-content">
           <div class="brand-section">
-            <div class="brand-logo">M</div>
+            <div class="brand-logo">A</div>
             <div class="brand-info">
-              <div class="brand-name-main">MAXIOCORE</div>
+              <div class="brand-name-main">ASH HOLDING</div>
               <div class="brand-name-sub">Digital Services</div>
             </div>
           </div>
@@ -945,7 +945,7 @@ export const generateOrderReceipt = async (data: OrderReceiptData) => {
         </div>
         <div class="sig-main">
           <div class="sig-title blue">Digitally Verified</div>
-          <div class="sig-signer blue">Digital Signature: <span>MAXIOCORE</span></div>
+          <div class="sig-signer blue">Digital Signature: <span>ASH HOLDING</span></div>
           <div class="sig-codes">
             <div class="sig-code-item">
               <span>Verification:</span>
@@ -968,9 +968,9 @@ export const generateOrderReceipt = async (data: OrderReceiptData) => {
       
       <!-- Footer -->
       <div class="footer-section">
-        <div class="footer-brand blue">MAXIOCORE</div>
+        <div class="footer-brand blue">ASH HOLDING</div>
         <div class="footer-note">This is an official electronic receipt</div>
-        <div class="footer-contact">Contact: support@maxiocore.com</div>
+        <div class="footer-contact">Contact: support@ashholding.com</div>
         <div class="footer-ref">
           Reference: ${receiptNumber} | Date: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
         </div>
@@ -1009,7 +1009,7 @@ export const generateChallengeCertificate = async (data: ChallengeCertificateDat
         <div style="text-align: center; margin-bottom: 30px;">
           <div style="background: linear-gradient(135deg, #7c3aed, #5b21b6); color: #fff; padding: 20px 50px; border-radius: 12px; display: inline-block;">
             <h1 style="font-size: 28px; font-weight: 800; margin: 0;">Challenge Certificate</h1>
-            <p style="font-size: 12px; opacity: 0.9; margin: 5px 0 0;">MAXIOCORE Digital Services</p>
+            <p style="font-size: 12px; opacity: 0.9; margin: 5px 0 0;">ASH HOLDING Digital Services</p>
           </div>
         </div>
         
@@ -1059,7 +1059,7 @@ export const generateChallengeCertificate = async (data: ChallengeCertificateDat
           </div>
           <div class="sig-main">
             <div class="sig-title purple">Digitally Verified</div>
-            <div class="sig-signer purple">Digital Signature: <span>MAXIOCORE</span></div>
+            <div class="sig-signer purple">Digital Signature: <span>ASH HOLDING</span></div>
             <div class="sig-codes">
               <div class="sig-code-item">
                 <span>Certificate:</span>
@@ -1082,7 +1082,7 @@ export const generateChallengeCertificate = async (data: ChallengeCertificateDat
         
         <!-- Footer -->
         <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px dashed #e5e7eb;">
-          <div style="font-size: 18px; font-weight: 800; color: #7c3aed;">MAXIOCORE</div>
+          <div style="font-size: 18px; font-weight: 800; color: #7c3aed;">ASH HOLDING</div>
           <div style="font-size: 11px; color: #9ca3af; margin-top: 5px;">Digital Services</div>
         </div>
         
@@ -1120,7 +1120,7 @@ export const generateBadgeCertificate = async (data: BadgeCertificateData) => {
         <div style="text-align: center; margin-bottom: 30px;">
           <div style="background: linear-gradient(135deg, #d97706, #92400e); color: #fff; padding: 20px 50px; border-radius: 12px; display: inline-block;">
             <h1 style="font-size: 28px; font-weight: 800; margin: 0;">Badge Certificate</h1>
-            <p style="font-size: 12px; opacity: 0.9; margin: 5px 0 0;">MAXIOCORE Digital Services</p>
+            <p style="font-size: 12px; opacity: 0.9; margin: 5px 0 0;">ASH HOLDING Digital Services</p>
           </div>
         </div>
         
@@ -1162,7 +1162,7 @@ export const generateBadgeCertificate = async (data: BadgeCertificateData) => {
           </div>
           <div class="sig-main">
             <div class="sig-title" style="color: #b45309;">Digitally Verified</div>
-            <div class="sig-signer" style="color: #374151;">Digital Signature: <span style="color: #92400e;">MAXIOCORE</span></div>
+            <div class="sig-signer" style="color: #374151;">Digital Signature: <span style="color: #92400e;">ASH HOLDING</span></div>
             <div class="sig-codes">
               <div class="sig-code-item">
                 <span>Certificate:</span>
@@ -1185,7 +1185,7 @@ export const generateBadgeCertificate = async (data: BadgeCertificateData) => {
         
         <!-- Footer -->
         <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px dashed #e5e7eb;">
-          <div style="font-size: 18px; font-weight: 800; color: #d97706;">MAXIOCORE</div>
+          <div style="font-size: 18px; font-weight: 800; color: #d97706;">ASH HOLDING</div>
           <div style="font-size: 11px; color: #9ca3af; margin-top: 5px;">Digital Services</div>
         </div>
         
@@ -1239,9 +1239,9 @@ export const generateRewardsStatement = async (data: RewardsStatementData) => {
       <div class="header-section purple">
         <div class="header-content">
           <div class="brand-section">
-            <div class="brand-logo">M</div>
+            <div class="brand-logo">A</div>
             <div class="brand-info">
-              <div class="brand-name-main">MAXIOCORE</div>
+              <div class="brand-name-main">ASH HOLDING</div>
               <div class="brand-name-sub">Digital Services</div>
             </div>
           </div>
@@ -1318,7 +1318,7 @@ export const generateRewardsStatement = async (data: RewardsStatementData) => {
         </div>
         <div class="sig-main">
           <div class="sig-title purple">Digitally Verified</div>
-          <div class="sig-signer purple">Digital Signature: <span>MAXIOCORE</span></div>
+          <div class="sig-signer purple">Digital Signature: <span>ASH HOLDING</span></div>
           <div class="sig-codes">
             <div class="sig-code-item">
               <span>Statement:</span>
@@ -1341,9 +1341,9 @@ export const generateRewardsStatement = async (data: RewardsStatementData) => {
       
       <!-- Footer -->
       <div class="footer-section">
-        <div class="footer-brand purple">MAXIOCORE</div>
+        <div class="footer-brand purple">ASH HOLDING</div>
         <div class="footer-note">This is an official electronic statement</div>
-        <div class="footer-contact">Contact: support@maxiocore.com</div>
+        <div class="footer-contact">Contact: support@ashholding.com</div>
         <div class="footer-ref">
           Reference: ${statementNumber} | Date: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
         </div>

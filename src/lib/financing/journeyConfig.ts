@@ -58,7 +58,7 @@ export const JOURNEY_SCREENS: Record<JourneyScreen, ScreenConfig> = {
     id: 'welcome',
     order: 0,
     title: 'Welcome',
-    title_ar: 'مرحباً بك في تمويل MaxioCore',
+    title_ar: 'مرحباً بك في تمويل ASH HOLDING',
     subtitle: 'Get financing for your digital services',
     subtitle_ar: 'احصل على تمويل لخدماتك الرقمية بدون فوائد',
     icon: 'Sparkles',

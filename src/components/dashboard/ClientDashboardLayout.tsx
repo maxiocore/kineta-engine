@@ -300,7 +300,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                     whileHover={{ scale: 1.03 }}
                     transition={{ type: "spring", stiffness: 400, damping: 20 }}
                   >
-                    MaxioCore
+                    ASH HOLDING
                   </motion.span>
                 </Link>
               </motion.div>
