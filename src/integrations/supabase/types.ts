@@ -4445,9 +4445,12 @@ export type Database = {
         Row: {
           created_at: string
           error_message: string | null
+          external_id: string | null
           id: string
+          idempotency_key: string | null
           message: string
           phone: string
+          provider: string | null
           reference_id: string | null
           status: string
           type: string
@@ -4456,9 +4459,12 @@ export type Database = {
         Insert: {
           created_at?: string
           error_message?: string | null
+          external_id?: string | null
           id?: string
+          idempotency_key?: string | null
           message: string
           phone: string
+          provider?: string | null
           reference_id?: string | null
           status?: string
           type?: string
@@ -4467,9 +4473,12 @@ export type Database = {
         Update: {
           created_at?: string
           error_message?: string | null
+          external_id?: string | null
           id?: string
+          idempotency_key?: string | null
           message?: string
           phone?: string
+          provider?: string | null
           reference_id?: string | null
           status?: string
           type?: string
