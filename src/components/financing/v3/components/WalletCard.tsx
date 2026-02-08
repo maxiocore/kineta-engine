@@ -1,6 +1,6 @@
 /**
- * ASH HOLDING Financing System v3 - Wallet Card Component
- * بطاقة رصيد الخدمات بأسلوب Neobank
+ * ASH HOLDING Financing System v3 - Wallet Card
+ * بطاقة رصيد الخدمات - Neobank iOS Style
  */
 
 import { motion } from 'framer-motion';
@@ -33,94 +33,82 @@ export function WalletCard({
   canTransfer = false,
   className,
 }: WalletCardProps) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ar-SA', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
+  const fmt = (n: number) =>
+    new Intl.NumberFormat('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 
-  const availableBalance = serviceCredit?.available_balance ?? 0;
+  const balance = serviceCredit?.available_balance ?? 0;
   const totalCredited = serviceCredit?.total_credited ?? 0;
   const totalUsed = serviceCredit?.total_used ?? 0;
   const isFrozen = serviceCredit?.is_frozen ?? false;
-  const hasBalance = availableBalance > 0;
+  const hasBalance = balance > 0;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className={cn('rounded-3xl bg-card border border-border overflow-hidden', className)}
+      className={cn('rounded-2xl bg-card border border-border overflow-hidden', className)}
     >
-      {/* Header */}
-      <div className="relative p-6 bg-gradient-to-br from-primary/5 via-background to-primary/10">
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-0 left-0 w-32 h-32 bg-primary rounded-full blur-3xl" />
-        </div>
+      {/* Header Section */}
+      <div className="relative p-5 pb-6">
+        <div className="absolute inset-0 bg-gradient-to-bl from-primary/[0.04] to-transparent pointer-events-none" />
 
         <div className="relative">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <Wallet className="w-6 h-6 text-primary" />
+              <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <Wallet className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-bold text-lg">رصيد الخدمات</h3>
-                <p className="text-xs text-muted-foreground">متاح للاستخدام</p>
+                <h3 className="font-bold text-[15px]">رصيد الخدمات</h3>
+                <p className="text-[11px] text-muted-foreground">متاح للاستخدام</p>
               </div>
             </div>
 
-            {isFrozen && (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-destructive/10 text-destructive text-xs">
+            {isFrozen ? (
+              <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-destructive/10 text-destructive text-[11px] font-medium">
                 <Lock className="w-3 h-3" />
-                <span>مجمّد</span>
+                مجمّد
               </div>
-            )}
-
-            {hasBalance && !isFrozen && (
-              <motion.div
-                animate={{ rotate: [0, 15, -15, 0] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              >
-                <Sparkles className="w-5 h-5 text-primary" />
+            ) : hasBalance ? (
+              <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ duration: 4, repeat: Infinity }}>
+                <Sparkles className="w-4 h-4 text-primary opacity-60" />
               </motion.div>
-            )}
+            ) : null}
           </div>
 
-          {/* Balance Display */}
-          <div className="mb-6">
+          {/* Balance */}
+          <div className="mb-5">
             <div className="flex items-baseline gap-2">
               <motion.span
-                className="text-4xl font-bold text-foreground tabular-nums"
+                className="text-[36px] font-extrabold text-foreground tabular-nums leading-none tracking-tight"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
+                transition={{ delay: 0.15 }}
               >
-                {formatCurrency(availableBalance)}
+                {fmt(balance)}
               </motion.span>
-              <span className="text-lg text-muted-foreground">ر.س</span>
+              <span className="text-base text-muted-foreground font-medium">ر.س</span>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3">
+          <div className="flex gap-2.5">
             {canTransfer && onTransfer && (
               <Button
                 onClick={onTransfer}
                 disabled={!hasBalance || isFrozen}
-                className="flex-1 gap-2"
+                className="flex-1 gap-2 h-11 rounded-xl"
               >
                 تحويل الرصيد
                 <ArrowRight className="w-4 h-4" />
               </Button>
             )}
-            
             {onUseCredit && (
               <Button
                 onClick={onUseCredit}
                 variant={canTransfer ? 'outline' : 'default'}
                 disabled={!hasBalance || isFrozen}
-                className="flex-1 gap-2"
+                className="flex-1 gap-2 h-11 rounded-xl"
               >
                 استخدم الرصيد
                 <ArrowLeft className="w-4 h-4" />
@@ -130,41 +118,32 @@ export function WalletCard({
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="p-5 border-t border-border">
+      {/* Stats Bar */}
+      <div className="px-5 py-4 border-t border-border bg-muted/30">
         <div className="grid grid-cols-2 gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-success" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">إجمالي الإيداعات</p>
-              <p className="font-semibold tabular-nums">
-                {formatCurrency(totalCredited)} <span className="text-xs text-muted-foreground">ر.س</span>
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-              <TrendingDown className="w-5 h-5 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">إجمالي الاستخدام</p>
-              <p className="font-semibold tabular-nums">
-                {formatCurrency(totalUsed)} <span className="text-xs text-muted-foreground">ر.س</span>
-              </p>
-            </div>
-          </div>
+          <StatItem
+            icon={TrendingUp}
+            iconColor="text-emerald-500"
+            iconBg="bg-emerald-500/10"
+            label="إجمالي الإيداعات"
+            value={fmt(totalCredited)}
+          />
+          <StatItem
+            icon={TrendingDown}
+            iconColor="text-muted-foreground"
+            iconBg="bg-muted"
+            label="إجمالي الاستخدام"
+            value={fmt(totalUsed)}
+          />
         </div>
       </div>
 
-      {/* Warning if frozen */}
+      {/* Frozen Warning */}
       {isFrozen && (
-        <div className="px-5 py-3 bg-destructive/5 border-t border-destructive/20">
-          <div className="flex items-center gap-2 text-destructive text-sm">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>الرصيد مجمّد مؤقتاً. يرجى التواصل مع الدعم.</span>
+        <div className="px-5 py-3 bg-destructive/5 border-t border-destructive/15">
+          <div className="flex items-center gap-2 text-destructive text-xs">
+            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+            الرصيد مجمّد مؤقتاً. يرجى التواصل مع الدعم.
           </div>
         </div>
       )}
@@ -172,8 +151,30 @@ export function WalletCard({
   );
 }
 
+function StatItem({ icon: Icon, iconColor, iconBg, label, value }: {
+  icon: React.ComponentType<{ className?: string }>;
+  iconColor: string;
+  iconBg: string;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center gap-2.5">
+      <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center', iconBg)}>
+        <Icon className={cn('w-4 h-4', iconColor)} />
+      </div>
+      <div>
+        <p className="text-[10px] text-muted-foreground">{label}</p>
+        <p className="text-sm font-semibold tabular-nums">
+          {value} <span className="text-[10px] text-muted-foreground">ر.س</span>
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════════
-// Mini Wallet Card (for sidebar)
+// Mini Wallet Card (sidebar)
 // ═══════════════════════════════════════════════════════════════════
 
 interface MiniWalletCardProps {
@@ -183,19 +184,12 @@ interface MiniWalletCardProps {
 }
 
 export function MiniWalletCard({ balance, onClick, className }: MiniWalletCardProps) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ar-SA', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
   return (
     <motion.button
       onClick={onClick}
       className={cn(
-        'w-full p-4 rounded-xl bg-primary/5 border border-primary/20 text-right',
-        'hover:bg-primary/10 hover:border-primary/30 transition-all',
+        'w-full p-4 rounded-xl bg-primary/5 border border-primary/15 text-right',
+        'hover:bg-primary/10 hover:border-primary/25 transition-all',
         className
       )}
       whileHover={{ scale: 1.02 }}
@@ -205,12 +199,12 @@ export function MiniWalletCard({ balance, onClick, className }: MiniWalletCardPr
         <ArrowLeft className="w-4 h-4 text-primary" />
         <div className="flex items-center gap-2">
           <Wallet className="w-4 h-4 text-primary" />
-          <span className="text-xs text-muted-foreground">رصيد الخدمات</span>
+          <span className="text-[11px] text-muted-foreground">رصيد الخدمات</span>
         </div>
       </div>
       <div className="mt-2 flex items-baseline gap-1 justify-end">
-        <span className="text-2xl font-bold text-foreground tabular-nums">
-          {formatCurrency(balance)}
+        <span className="text-2xl font-extrabold text-foreground tabular-nums">
+          {new Intl.NumberFormat('ar-SA', { maximumFractionDigits: 0 }).format(balance)}
         </span>
         <span className="text-xs text-muted-foreground">ر.س</span>
       </div>

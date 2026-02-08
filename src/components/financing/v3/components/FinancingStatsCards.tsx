@@ -1,6 +1,6 @@
 /**
- * ASH HOLDING Financing System v3 - Stats Cards Component
- * بطاقات الإحصائيات السريعة
+ * ASH HOLDING Financing System v3 - Stats Cards
+ * بطاقات الإحصائيات - iOS Banking Widgets
  */
 
 import { motion } from 'framer-motion';
@@ -10,7 +10,6 @@ import {
   Wallet,
   Calendar,
   Receipt,
-  ArrowUpRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { FinancingStats } from '../types';
@@ -22,120 +21,78 @@ interface FinancingStatsCardsProps {
 }
 
 export function FinancingStatsCards({ stats, status, className }: FinancingStatsCardsProps) {
-  // For declined/cancelled/expired, zero out financial values
-  const isNegativeTerminal = status ? ['DECLINED', 'CANCELLED', 'EXPIRED', 'REJECTED'].includes(status.toUpperCase()) : false;
+  const isNeg = status ? ['DECLINED', 'CANCELLED', 'EXPIRED', 'REJECTED'].includes(status.toUpperCase()) : false;
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ar-SA', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+  const fmt = (n: number) =>
+    new Intl.NumberFormat('ar-SA', { maximumFractionDigits: 0 }).format(n);
+
+  const fmtDate = (d: string | null) => {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('ar-SA', { month: 'short', day: 'numeric' });
   };
-
-  const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('ar-SA', {
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
-  const displayApproved = isNegativeTerminal ? 0 : stats.totalApproved;
-  const displayUsed = isNegativeTerminal ? 0 : stats.totalUsed;
-  const displayAvailable = isNegativeTerminal ? 0 : stats.availableBalance;
-  const displayNextInstallment = isNegativeTerminal ? 0 : stats.nextInstallmentAmount;
 
   const cards = [
     {
       id: 'approved',
       label: 'المبلغ المعتمد',
-      value: isNegativeTerminal ? '—' : formatCurrency(displayApproved),
-      suffix: isNegativeTerminal ? '' : 'ر.س',
+      value: isNeg ? '—' : fmt(stats.totalApproved),
+      suffix: isNeg ? '' : 'ر.س',
       icon: TrendingUp,
-      color: isNegativeTerminal ? 'text-muted-foreground' : 'text-success',
-      bgColor: isNegativeTerminal ? 'bg-muted' : 'bg-success/10',
+      accent: isNeg ? 'text-muted-foreground bg-muted' : 'text-emerald-500 bg-emerald-500/10',
     },
     {
       id: 'used',
       label: 'المستخدم',
-      value: isNegativeTerminal ? '—' : formatCurrency(displayUsed),
-      suffix: isNegativeTerminal ? '' : 'ر.س',
+      value: isNeg ? '—' : fmt(stats.totalUsed),
+      suffix: isNeg ? '' : 'ر.س',
       icon: TrendingDown,
-      color: 'text-muted-foreground',
-      bgColor: 'bg-muted',
+      accent: 'text-muted-foreground bg-muted',
     },
     {
       id: 'available',
       label: 'المتاح',
-      value: isNegativeTerminal ? '—' : formatCurrency(displayAvailable),
-      suffix: isNegativeTerminal ? '' : 'ر.س',
+      value: isNeg ? '—' : fmt(stats.availableBalance),
+      suffix: isNeg ? '' : 'ر.س',
       icon: Wallet,
-      color: isNegativeTerminal ? 'text-muted-foreground' : 'text-primary',
-      bgColor: isNegativeTerminal ? 'bg-muted' : 'bg-primary/10',
-      highlight: !isNegativeTerminal && displayAvailable > 0,
+      accent: isNeg ? 'text-muted-foreground bg-muted' : 'text-primary bg-primary/10',
+      highlight: !isNeg && stats.availableBalance > 0,
     },
     {
       id: 'next',
       label: 'القسط القادم',
-      value: isNegativeTerminal ? '—' : (displayNextInstallment > 0 ? formatCurrency(displayNextInstallment) : '—'),
-      suffix: (!isNegativeTerminal && displayNextInstallment > 0) ? 'ر.س' : '',
-      subtext: isNegativeTerminal ? undefined : formatDate(stats.nextInstallmentDate),
+      value: isNeg ? '—' : (stats.nextInstallmentAmount > 0 ? fmt(stats.nextInstallmentAmount) : '—'),
+      suffix: (!isNeg && stats.nextInstallmentAmount > 0) ? 'ر.س' : '',
+      subtext: isNeg ? undefined : fmtDate(stats.nextInstallmentDate),
       icon: Calendar,
-      color: 'text-warning',
-      bgColor: isNegativeTerminal ? 'bg-muted' : 'bg-warning/10',
+      accent: isNeg ? 'text-muted-foreground bg-muted' : 'text-amber-500 bg-amber-500/10',
     },
   ];
 
   return (
-    <div className={cn('grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4', className)}>
-      {cards.map((card, index) => (
+    <div className={cn('grid grid-cols-2 lg:grid-cols-4 gap-2.5', className)}>
+      {cards.map((card, i) => (
         <motion.div
           key={card.id}
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
+          transition={{ delay: i * 0.06 }}
           className={cn(
-            'relative p-4 lg:p-5 rounded-2xl bg-card border transition-all duration-300',
-            card.highlight 
-              ? 'border-primary/30 shadow-lg shadow-primary/10' 
-              : 'border-border hover:border-primary/20'
+            'relative p-4 rounded-2xl bg-card border transition-all duration-200',
+            card.highlight
+              ? 'border-primary/25 shadow-sm shadow-primary/5'
+              : 'border-border'
           )}
         >
-          {/* Icon */}
-          <div className={cn(
-            'w-10 h-10 rounded-xl flex items-center justify-center mb-3',
-            card.bgColor
-          )}>
-            <card.icon className={cn('w-5 h-5', card.color)} />
+          <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center mb-2.5', card.accent)}>
+            <card.icon className="w-4.5 h-4.5" />
           </div>
-
-          {/* Label */}
-          <p className="text-xs text-muted-foreground mb-1">{card.label}</p>
-
-          {/* Value */}
+          <p className="text-[11px] text-muted-foreground mb-1">{card.label}</p>
           <div className="flex items-baseline gap-1">
-            <span className={cn('text-xl lg:text-2xl font-bold tabular-nums', card.color)}>
-              {card.value}
-            </span>
-            {card.suffix && (
-              <span className="text-xs text-muted-foreground">{card.suffix}</span>
-            )}
+            <span className="text-xl font-extrabold tabular-nums">{card.value}</span>
+            {card.suffix && <span className="text-[10px] text-muted-foreground">{card.suffix}</span>}
           </div>
-
-          {/* Subtext */}
           {card.subtext && (
-            <p className="text-xs text-muted-foreground mt-1">{card.subtext}</p>
-          )}
-
-          {/* Highlight Indicator */}
-          {card.highlight && (
-            <motion.div
-              className="absolute top-3 left-3"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <ArrowUpRight className="w-4 h-4 text-primary" />
-            </motion.div>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{card.subtext}</p>
           )}
         </motion.div>
       ))}
@@ -156,56 +113,50 @@ interface InstallmentsProgressProps {
 
 export function InstallmentsProgress({ total, paid, overdue, className }: InstallmentsProgressProps) {
   const remaining = total - paid - overdue;
-  const paidPercent = (paid / total) * 100;
-  const overduePercent = (overdue / total) * 100;
+  const paidPct = (paid / total) * 100;
+  const overduePct = (overdue / total) * 100;
 
   return (
     <div className={cn('p-4 rounded-2xl bg-card border border-border', className)}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Receipt className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm font-medium">تقدم الأقساط</span>
+          <span className="text-sm font-bold">تقدم الأقساط</span>
         </div>
-        <span className="text-xs text-muted-foreground">
-          {paid} من {total}
-        </span>
+        <span className="text-xs text-muted-foreground tabular-nums">{paid} من {total}</span>
       </div>
 
-      {/* Progress Bar */}
       <div className="h-2 bg-muted rounded-full overflow-hidden flex">
         <motion.div
-          className="h-full bg-success"
+          className="h-full bg-emerald-500 rounded-r-full"
           initial={{ width: 0 }}
-          animate={{ width: `${paidPercent}%` }}
+          animate={{ width: `${paidPct}%` }}
           transition={{ duration: 0.5 }}
         />
         {overdue > 0 && (
           <motion.div
             className="h-full bg-destructive"
             initial={{ width: 0 }}
-            animate={{ width: `${overduePercent}%` }}
+            animate={{ width: `${overduePct}%` }}
             transition={{ duration: 0.5, delay: 0.2 }}
           />
         )}
       </div>
 
-      {/* Legend */}
-      <div className="flex items-center gap-4 mt-3 text-xs">
-        <div className="flex items-center gap-1">
-          <div className="w-2 h-2 rounded-full bg-success" />
-          <span className="text-muted-foreground">مدفوع ({paid})</span>
-        </div>
-        {overdue > 0 && (
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-destructive" />
-            <span className="text-muted-foreground">متأخر ({overdue})</span>
-          </div>
-        )}
-        <div className="flex items-center gap-1">
-          <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />
-          <span className="text-muted-foreground">متبقي ({remaining})</span>
-        </div>
+      <div className="flex items-center gap-4 mt-2.5 text-[11px]">
+        <LegendDot color="bg-emerald-500" label={`مدفوع (${paid})`} />
+        {overdue > 0 && <LegendDot color="bg-destructive" label={`متأخر (${overdue})`} />}
+        <LegendDot color="bg-muted-foreground/30" label={`متبقي (${remaining})`} />
       </div>
+    </div>
+  );
+}
+
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <div className="flex items-center gap-1">
+      <div className={cn('w-1.5 h-1.5 rounded-full', color)} />
+      <span className="text-muted-foreground">{label}</span>
     </div>
   );
 }

@@ -1,17 +1,20 @@
 /**
- * ASH HOLDING Financing System v3 - Hero Card Component
- * البطاقة الرئيسية بأسلوب FinTech/Neobank
+ * ASH HOLDING Financing System v3 - Hero Card
+ * بطاقة البطل - تصميم بنكي فاخر iOS-first
  */
 
 import { motion } from 'framer-motion';
 import { 
   Wallet, 
-  ArrowLeft, 
-  Clock, 
+  ArrowLeft,
   CheckCircle2,
   Sparkles,
-  TrendingUp,
+  Ban,
+  XCircle,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -35,164 +38,164 @@ export function FinancingHeroCard({
   onUseCredit,
   onPrimaryAction,
 }: FinancingHeroCardProps) {
+  const [balanceHidden, setBalanceHidden] = useState(false);
+
   if (isLoading) {
-    return <HeroCardSkeleton />;
+    return <HeroSkeleton />;
   }
 
-  if (!application) {
-    return null;
-  }
+  if (!application) return null;
 
   const status = application.status as FinancingStatus;
   const statusConfig = getStatusConfig(status);
-  const colors = STATUS_COLORS[statusConfig.color];
-  
-  // For declined/cancelled/expired statuses, don't show balance or amounts
-  const isNegativeTerminal = ['DECLINED', 'CANCELLED', 'EXPIRED', 'REJECTED'].includes(status.toUpperCase());
+  const isNegativeTerminal = ['DECLINED', 'CANCELLED'].includes(status);
+  const isActiveCredit = status === 'CREDIT_ACTIVE' || status === 'COMPLETED';
   const availableBalance = isNegativeTerminal ? 0 : (serviceCredit?.available_balance ?? 0);
+  const hasBalance = availableBalance > 0;
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ar-SA', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
-
-  const isActiveCredit = !isNegativeTerminal && (status === 'CREDIT_ACTIVE' || status === 'COMPLETED');
-  const hasAvailableBalance = availableBalance > 0;
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
-      className="relative overflow-hidden"
+      transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
-      {/* Main Card */}
       <div className={cn(
-        "relative rounded-3xl p-6 lg:p-8 text-primary-foreground shadow-2xl",
+        'relative overflow-hidden rounded-[28px] shadow-2xl',
         isNegativeTerminal 
-          ? "bg-gradient-to-br from-destructive/90 via-destructive/80 to-destructive/60 shadow-destructive/20"
-          : "bg-gradient-to-br from-primary via-primary/95 to-primary/80 shadow-primary/20"
+          ? 'bg-gradient-to-bl from-destructive via-destructive/90 to-destructive/70 shadow-destructive/25'
+          : 'bg-gradient-to-bl from-primary via-primary/95 to-primary/80 shadow-primary/25'
       )}>
-        {/* Decorative Elements */}
-        <div className="absolute inset-0 overflow-hidden rounded-3xl">
-          <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-black/10 rounded-full blur-3xl transform translate-x-1/4 translate-y-1/4" />
-          <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
+        {/* Decorative Orbs */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-20 -left-20 w-60 h-60 bg-white/[0.07] rounded-full blur-3xl" />
+          <div className="absolute -bottom-16 -right-16 w-80 h-80 bg-black/[0.08] rounded-full blur-3xl" />
+          <div className="absolute top-1/3 right-1/4 w-24 h-24 bg-white/[0.04] rounded-full blur-2xl" />
         </div>
 
-        {/* Card Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <defs>
-              <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor" strokeWidth="0.5" />
-              </pattern>
-            </defs>
-            <rect width="100" height="100" fill="url(#grid)" />
-          </svg>
-        </div>
+        {/* Noise texture overlay */}
+        <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E")`,
+          }}
+        />
 
-        <div className="relative z-10">
-          {/* Header Row */}
-          <div className="flex items-start justify-between mb-6">
+        <div className="relative z-10 p-6 lg:p-8 text-primary-foreground">
+          {/* Top Row: Logo + Status */}
+          <div className="flex items-start justify-between mb-8">
             <div className="flex items-center gap-3">
               <motion.div
-                className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center"
+                className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/10"
                 whileHover={{ rotate: 5, scale: 1.05 }}
               >
-                <Wallet className="w-6 h-6" />
+                {isNegativeTerminal ? (
+                  status === 'CANCELLED' ? <Ban className="w-6 h-6" /> : <XCircle className="w-6 h-6" />
+                ) : (
+                  <Wallet className="w-6 h-6" />
+                )}
               </motion.div>
               <div>
-                <h3 className="font-bold text-lg">تمويل الخدمات</h3>
-                <p className="text-sm opacity-80">{application.application_number}</p>
+                <p className="text-sm font-medium opacity-80">تمويل الخدمات</p>
+                <p className="text-xs opacity-60 font-mono tracking-wide">{application.application_number}</p>
               </div>
             </div>
 
-            {/* Status Badge */}
+            {/* Status Pill */}
             <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2 }}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium',
-                'bg-white/20 backdrop-blur-sm'
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold tracking-wide',
+                'bg-white/15 backdrop-blur-md border border-white/10'
               )}
             >
-              {statusConfig.isTerminal ? (
-                <CheckCircle2 className="w-3.5 h-3.5" />
+              {isNegativeTerminal ? (
+                <XCircle className="w-3 h-3" />
+              ) : statusConfig.isTerminal ? (
+                <CheckCircle2 className="w-3 h-3" />
               ) : (
-                <Clock className="w-3.5 h-3.5 animate-pulse" />
+                <motion.div
+                  className="w-2 h-2 rounded-full bg-white"
+                  animate={{ opacity: [1, 0.4, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                />
               )}
               {statusConfig.nameAr}
             </motion.div>
           </div>
 
-          {/* Balance Display */}
-          <div className="mb-6">
-            <p className="text-sm opacity-80 mb-1">
-              {isNegativeTerminal ? 'حالة الطلب' : 'رصيد الخدمات المتاح'}
-            </p>
+          {/* Balance Section */}
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-2">
+              <p className="text-sm opacity-70">
+                {isNegativeTerminal ? 'حالة الطلب' : 'الرصيد المتاح'}
+              </p>
+              {!isNegativeTerminal && (
+                <button
+                  onClick={() => setBalanceHidden(!balanceHidden)}
+                  className="opacity-50 hover:opacity-80 transition-opacity"
+                >
+                  {balanceHidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
+              )}
+            </div>
+
             {isNegativeTerminal ? (
-              <div className="flex items-baseline gap-2">
-                <motion.span
-                  className="text-2xl lg:text-3xl font-bold"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  {statusConfig.nameAr}
-                </motion.span>
-              </div>
+              <motion.p
+                className="text-2xl font-bold"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+              >
+                {statusConfig.nameAr}
+              </motion.p>
             ) : (
-              <div className="flex items-baseline gap-2">
+              <div className="flex items-baseline gap-3">
                 <motion.span
-                  className="text-4xl lg:text-5xl font-bold tracking-tight tabular-nums"
-                  initial={{ opacity: 0, y: 10 }}
+                  className="text-[42px] lg:text-5xl font-extrabold tracking-tight tabular-nums leading-none"
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
+                  transition={{ delay: 0.15 }}
                 >
-                  {formatCurrency(availableBalance)}
+                  {balanceHidden ? '••••••' : formatCurrency(availableBalance)}
                 </motion.span>
-                <span className="text-xl opacity-80">ر.س</span>
+                <span className="text-xl opacity-60 font-medium">ر.س</span>
               </div>
             )}
           </div>
 
-          {/* Sparkle Effect for Active Credit */}
-          {hasAvailableBalance && (
+          {/* Sparkle */}
+          {hasBalance && !balanceHidden && (
             <motion.div
-              className="absolute top-4 left-4"
-              animate={{ 
-                rotate: [0, 15, -15, 0],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
+              className="absolute top-6 left-6"
+              animate={{ rotate: [0, 20, -20, 0], scale: [1, 1.2, 1] }}
+              transition={{ duration: 4, repeat: Infinity }}
             >
-              <Sparkles className="w-5 h-5 opacity-60" />
+              <Sparkles className="w-5 h-5 opacity-40" />
             </motion.div>
           )}
 
-          {/* Action Buttons */}
+          {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-3">
             {statusConfig.requiredActionActor === 'customer' && onPrimaryAction && (
               <Button
                 onClick={onPrimaryAction}
-                variant="secondary"
                 size="lg"
-                className="flex-1 bg-white text-primary hover:bg-white/90 font-semibold gap-2"
+                className="flex-1 bg-white text-primary hover:bg-white/90 font-bold gap-2 rounded-xl h-12 shadow-lg shadow-black/10"
               >
                 {statusConfig.requiredAction}
                 <ArrowLeft className="w-4 h-4" />
               </Button>
             )}
-            
-            {isActiveCredit && hasAvailableBalance && onUseCredit && (
+
+            {isActiveCredit && hasBalance && onUseCredit && (
               <Button
                 onClick={onUseCredit}
-                variant="secondary"
                 size="lg"
-                className="flex-1 bg-white text-primary hover:bg-white/90 font-semibold gap-2"
+                className="flex-1 bg-white text-primary hover:bg-white/90 font-bold gap-2 rounded-xl h-12 shadow-lg shadow-black/10"
               >
                 استخدم الرصيد
                 <ArrowLeft className="w-4 h-4" />
@@ -204,24 +207,24 @@ export function FinancingHeroCard({
                 onClick={onViewDetails}
                 variant="ghost"
                 size="lg"
-                className="text-primary-foreground hover:bg-white/20 gap-2"
+                className="text-primary-foreground hover:bg-white/15 gap-2 rounded-xl h-12 border border-white/10"
               >
-                عرض التفاصيل
-                <TrendingUp className="w-4 h-4" />
+                التفاصيل
               </Button>
             )}
           </div>
 
           {/* Customer Message */}
           {!statusConfig.isTerminal && (
-            <motion.p
-              className="mt-4 text-sm opacity-80 bg-white/10 rounded-xl px-4 py-3"
+            <motion.div
+              className="mt-5 flex items-center gap-2.5 text-[13px] opacity-70 bg-white/8 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/5"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
             >
+              <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse shrink-0" />
               {statusConfig.customerMessageAr}
-            </motion.p>
+            </motion.div>
           )}
         </div>
       </div>
@@ -229,25 +232,21 @@ export function FinancingHeroCard({
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// Skeleton
-// ═══════════════════════════════════════════════════════════════════
-
-function HeroCardSkeleton() {
+function HeroSkeleton() {
   return (
-    <div className="rounded-3xl bg-muted p-6 lg:p-8 animate-pulse">
-      <div className="flex items-center gap-3 mb-6">
+    <div className="rounded-[28px] bg-muted p-6 lg:p-8 animate-pulse">
+      <div className="flex items-center gap-3 mb-8">
         <Skeleton className="w-12 h-12 rounded-2xl" />
         <div>
-          <Skeleton className="h-5 w-24 mb-1" />
-          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-4 w-24 mb-1" />
+          <Skeleton className="h-3 w-32" />
         </div>
       </div>
-      <Skeleton className="h-4 w-32 mb-2" />
-      <Skeleton className="h-12 w-48 mb-6" />
+      <Skeleton className="h-3 w-24 mb-2" />
+      <Skeleton className="h-12 w-48 mb-8" />
       <div className="flex gap-3">
-        <Skeleton className="h-11 flex-1" />
-        <Skeleton className="h-11 flex-1" />
+        <Skeleton className="h-12 flex-1 rounded-xl" />
+        <Skeleton className="h-12 flex-1 rounded-xl" />
       </div>
     </div>
   );
