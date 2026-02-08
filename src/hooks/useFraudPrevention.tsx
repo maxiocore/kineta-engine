@@ -1,5 +1,5 @@
 // ============================================
-// Fraud Prevention Hook - MaxioCore
+// Fraud Prevention Hook - ASH HOLDING
 // Client-side fraud detection integration
 // ============================================
 

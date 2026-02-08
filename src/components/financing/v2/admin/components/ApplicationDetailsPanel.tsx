@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing Admin V2 - Application Details Panel
+ * ASH HOLDING Financing Admin V2 - Application Details Panel
  * لوحة تفاصيل الطلب
  */
 

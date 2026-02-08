@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v3 - Page Transitions
+ * ASH HOLDING Financing System v3 - Page Transitions
  * انتقالات الصفحات بأسلوب Fade + Slide من اليمين (RTL)
  */
 

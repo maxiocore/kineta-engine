@@ -141,7 +141,7 @@ export function CompletionScreen({
         <Alert className="bg-blue-500/10 border-blue-500/30 mb-6">
           <Info className="h-4 w-4 text-blue-400" />
           <AlertDescription className="text-blue-200 text-sm">
-            رصيد الخدمات مخصص لشراء الخدمات داخل منصة MaxioCore 
+            رصيد الخدمات مخصص لشراء الخدمات داخل منصة ASH HOLDING 
             وخدمات شركة علي صالح الشهري القابضة والجهات التابعة لها.
           </AlertDescription>
         </Alert>

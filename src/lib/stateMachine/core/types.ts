@@ -1,5 +1,5 @@
 /**
- * MaxioCore State Machine - Core Types
+ * ASH HOLDING State Machine - Core Types
  * نظام إدارة الحالات الموحد
  * 
  * ⚠️ أمان: لا يتم كشف تفاصيل حساسة للمستخدم

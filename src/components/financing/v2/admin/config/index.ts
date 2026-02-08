@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing Admin V2 - Config Barrel Export
+ * ASH HOLDING Financing Admin V2 - Config Barrel Export
  */
 
 export { ADMIN_ACTIONS, getActionsForStatus, getPrimaryAction, getSecondaryActions } from './actionsConfig';

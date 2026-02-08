@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v3 - Hero Card Component
+ * ASH HOLDING Financing System v3 - Hero Card Component
  * البطاقة الرئيسية بأسلوب FinTech/Neobank
  */
 

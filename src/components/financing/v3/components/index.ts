@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v3 - Components Index
+ * ASH HOLDING Financing System v3 - Components Index
  * تصدير المكونات
  */
 

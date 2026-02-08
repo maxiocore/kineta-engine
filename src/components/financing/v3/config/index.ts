@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v3 - Configuration
+ * ASH HOLDING Financing System v3 - Configuration
  * تكوين النظام الجديد
  */
 

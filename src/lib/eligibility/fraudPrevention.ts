@@ -1,5 +1,5 @@
 // ============================================
-// Fraud Prevention Engine - MaxioCore
+// Fraud Prevention Engine - ASH HOLDING
 // Device Fingerprinting, Rate Limiting, IP/Geo Checks
 // ============================================
 

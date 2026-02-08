@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing Admin V2 - Filters Bar
+ * ASH HOLDING Financing Admin V2 - Filters Bar
  * شريط الفلترة للوحة الأدمن
  */
 

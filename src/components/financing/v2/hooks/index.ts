@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v2 - Hooks Barrel Export
+ * ASH HOLDING Financing System v2 - Hooks Barrel Export
  */
 
 export { useUserRole, useCanPerformAction } from './useUserRole';

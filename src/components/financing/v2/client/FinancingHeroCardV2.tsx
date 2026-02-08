@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v2 - Hero Card Component
+ * ASH HOLDING Financing System v2 - Hero Card Component
  * البطاقة الرئيسية لعرض حالة التمويل
  */
 

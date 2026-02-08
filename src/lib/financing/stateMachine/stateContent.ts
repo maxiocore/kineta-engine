@@ -2,6 +2,7 @@
  * نصوص حالات طلب تمويل الخدمات
  * محتوى عربي رسمي بصياغة بنكية عالية الثقة
  * 
+ * ASH HOLDING - Ali Saleh Al-Shehri Holding Company
  * ملاحظة: التمويل غير نقدي - رصيد خدمات داخل المنصة فقط
  */
 
@@ -32,7 +33,7 @@ export const STATE_CONTENT: Record<FinancingApplicationStatus, StateContent> = {
     additionalNote: 'تأكد من صحة جميع البيانات قبل الإرسال لتسريع عملية المراجعة.',
     financingNote: 'تمويل الخدمات يُضاف كرصيد خدمات داخل المنصة ولا يُصرف نقدًا.',
     notificationMessage: 'طلب تمويل الخدمات الخاص بكم قيد الإعداد. أكملوا البيانات للمتابعة.',
-    smsMessage: 'MaxioCore: طلبكم قيد الإعداد. أكملوا البيانات للمتابعة.'
+    smsMessage: 'ASH HOLDING: طلبكم قيد الإعداد. أكملوا البيانات للمتابعة.'
   },
 
   SUBMITTED: {
@@ -41,7 +42,7 @@ export const STATE_CONTENT: Record<FinancingApplicationStatus, StateContent> = {
     nextAction: 'انتظار المراجعة الأولية',
     additionalNote: 'سيتم إشعاركم فور وجود أي تحديث على حالة طلبكم.',
     notificationMessage: 'تم استلام طلب تمويل الخدمات الخاص بكم بنجاح. سنتواصل معكم قريبًا.',
-    smsMessage: 'MaxioCore: تم استلام طلب التمويل بنجاح. رقم الطلب: {application_number}'
+    smsMessage: 'ASH HOLDING: تم استلام طلب التمويل بنجاح. رقم الطلب: {application_number}'
   },
 
   UNDER_REVIEW: {
@@ -50,7 +51,7 @@ export const STATE_CONTENT: Record<FinancingApplicationStatus, StateContent> = {
     nextAction: 'انتظار نتيجة المراجعة',
     additionalNote: 'قد نتواصل معكم في حال الحاجة لأي استفسارات إضافية.',
     notificationMessage: 'طلب تمويل الخدمات الخاص بكم قيد المراجعة من الفريق المختص.',
-    smsMessage: 'MaxioCore: طلبكم قيد المراجعة. سنوافيكم بالنتيجة قريبًا.'
+    smsMessage: 'ASH HOLDING: طلبكم قيد المراجعة. سنوافيكم بالنتيجة قريبًا.'
   },
 
   ADDITIONAL_INFO_REQUIRED: {
@@ -59,7 +60,7 @@ export const STATE_CONTENT: Record<FinancingApplicationStatus, StateContent> = {
     nextAction: 'تحميل المستندات المطلوبة',
     additionalNote: 'المهلة المتاحة: 14 يومًا من تاريخ هذا الإشعار. عدم الاستجابة قد يؤدي لانتهاء صلاحية الطلب.',
     notificationMessage: 'يُرجى تزويدنا بالمستندات الإضافية المطلوبة لاستكمال طلبكم.',
-    smsMessage: 'MaxioCore: مطلوب مستندات إضافية لطلبكم. يرجى الدخول للمنصة.'
+    smsMessage: 'ASH HOLDING: مطلوب مستندات إضافية لطلبكم. يرجى الدخول للمنصة.'
   },
 
   RISK_CHECK: {
@@ -68,7 +69,7 @@ export const STATE_CONTENT: Record<FinancingApplicationStatus, StateContent> = {
     nextAction: 'انتظار اكتمال التحقق',
     additionalNote: 'لا يتطلب هذا أي إجراء من طرفكم. سيتم إشعاركم فور الانتهاء.',
     notificationMessage: 'جارٍ إجراء التحققات اللازمة لطلب تمويل الخدمات الخاص بكم.',
-    smsMessage: 'MaxioCore: جارٍ التحقق من طلبكم. سنوافيكم بالنتيجة قريبًا.'
+    smsMessage: 'ASH HOLDING: جارٍ التحقق من طلبكم. سنوافيكم بالنتيجة قريبًا.'
   },
 
   APPROVED: {
@@ -77,7 +78,7 @@ export const STATE_CONTENT: Record<FinancingApplicationStatus, StateContent> = {
     nextAction: 'مراجعة العقد والتوقيع',
     financingNote: 'سيتم إضافة قيمة التمويل كرصيد خدمات في حسابكم داخل المنصة فور اعتماد العقد. هذا الرصيد مخصص حصريًا لشراء الخدمات ولا يُصرف نقدًا.',
     notificationMessage: 'تهانينا! تمت الموافقة على طلب تمويل الخدمات. راجعوا العقد للمتابعة.',
-    smsMessage: 'MaxioCore: تهانينا! تمت الموافقة على طلب التمويل. راجعوا العقد في المنصة.'
+    smsMessage: 'ASH HOLDING: تهانينا! تمت الموافقة على طلب التمويل. راجعوا العقد في المنصة.'
   },
 
   APPROVED_WITH_LIMITS: {
@@ -87,7 +88,7 @@ export const STATE_CONTENT: Record<FinancingApplicationStatus, StateContent> = {
     financingNote: 'المبلغ المعتمد سيُضاف كرصيد خدمات داخل المنصة ولا يُصرف نقدًا. يمكن استخدامه لشراء خدمات شركة علي صالح الشهري القابضة والجهات التابعة لها.',
     additionalNote: 'في حال عدم الموافقة على القيمة المعدّلة، يمكنكم رفض العقد وتقديم طلب جديد لاحقًا.',
     notificationMessage: 'تمت الموافقة على طلبكم بقيمة معدّلة. راجعوا التفاصيل في العقد.',
-    smsMessage: 'MaxioCore: تمت الموافقة بقيمة معدّلة. راجعوا العقد في المنصة.'
+    smsMessage: 'ASH HOLDING: تمت الموافقة بقيمة معدّلة. راجعوا العقد في المنصة.'
   },
 
   DECLINED: {
@@ -96,7 +97,7 @@ export const STATE_CONTENT: Record<FinancingApplicationStatus, StateContent> = {
     nextAction: 'يمكنكم تقديم طلب جديد بعد مراجعة متطلبات الأهلية',
     additionalNote: 'قرار الرفض لا يعكس تقييمًا شخصيًا. يمكنكم التقدم بطلب جديد في أي وقت بعد استيفاء المتطلبات.',
     notificationMessage: 'نأسف، لم تتم الموافقة على طلبكم الحالي. يمكنكم تقديم طلب جديد لاحقًا.',
-    smsMessage: 'MaxioCore: نأسف، لم تتم الموافقة على طلبكم. يمكنكم التقدم بطلب جديد.'
+    smsMessage: 'ASH HOLDING: نأسف، لم تتم الموافقة على طلبكم. يمكنكم التقدم بطلب جديد.'
   },
 
   CONTRACT_PRESENTED: {
@@ -104,9 +105,9 @@ export const STATE_CONTENT: Record<FinancingApplicationStatus, StateContent> = {
     description: 'تم إعداد عقد تمويل الخدمات الخاص بكم. يُرجى مراجعة جميع البنود والشروط بعناية قبل التوقيع الإلكتروني.',
     nextAction: 'مراجعة العقد والتوقيع إلكترونيًا',
     additionalNote: 'المهلة المتاحة للتوقيع: 7 أيام. عدم التوقيع خلال هذه المدة سيؤدي لانتهاء صلاحية العرض.',
-    financingNote: 'يُرجى ملاحظة أن هذا تمويل خدمات غير نقدي. القيمة المعتمدة ستُضاف كرصيد خدمات يُستخدم حصريًا داخل منصة MaxioCore.',
+    financingNote: 'يُرجى ملاحظة أن هذا تمويل خدمات غير نقدي. القيمة المعتمدة ستُضاف كرصيد خدمات يُستخدم حصريًا داخل منصة ASH HOLDING.',
     notificationMessage: 'عقد تمويل الخدمات جاهز للتوقيع. راجعوه ووقّعوا إلكترونيًا.',
-    smsMessage: 'MaxioCore: العقد جاهز للتوقيع. ادخلوا المنصة للمراجعة والتوقيع خلال 7 أيام.'
+    smsMessage: 'ASH HOLDING: العقد جاهز للتوقيع. ادخلوا المنصة للمراجعة والتوقيع خلال 7 أيام.'
   },
 
   CONTRACT_ACCEPTED: {
@@ -115,7 +116,7 @@ export const STATE_CONTENT: Record<FinancingApplicationStatus, StateContent> = {
     nextAction: 'انتظار الاعتماد النهائي',
     additionalNote: 'سيتم إشعاركم فور اعتماد العقد وإضافة رصيد الخدمات لحسابكم.',
     notificationMessage: 'تم قبول العقد بنجاح. بانتظار الاعتماد النهائي.',
-    smsMessage: 'MaxioCore: تم قبول العقد. بانتظار الاعتماد النهائي.'
+    smsMessage: 'ASH HOLDING: تم قبول العقد. بانتظار الاعتماد النهائي.'
   },
 
   CONTRACT_FINALIZED: {
@@ -124,16 +125,16 @@ export const STATE_CONTENT: Record<FinancingApplicationStatus, StateContent> = {
     nextAction: 'انتظار تفعيل رصيد الخدمات',
     financingNote: 'سيتم إضافة الرصيد خلال لحظات. هذا الرصيد مخصص حصريًا لشراء الخدمات داخل المنصة ولا يمكن سحبه أو تحويله نقدًا.',
     notificationMessage: 'تم اعتماد العقد! جارٍ إضافة رصيد الخدمات لحسابكم.',
-    smsMessage: 'MaxioCore: تم اعتماد العقد! جارٍ تفعيل رصيد الخدمات.'
+    smsMessage: 'ASH HOLDING: تم اعتماد العقد! جارٍ تفعيل رصيد الخدمات.'
   },
 
   CREDIT_DEPOSIT_PENDING: {
     title: 'جارٍ إضافة رصيد الخدمات',
     description: 'يتم حاليًا إضافة رصيد الخدمات إلى حسابكم. ستكتمل العملية خلال لحظات قليلة.',
     nextAction: 'انتظار اكتمال العملية',
-    financingNote: 'رصيد الخدمات مخصص للاستخدام داخل منصة MaxioCore وخدمات شركة علي صالح الشهري القابضة والجهات التابعة لها فقط.',
+    financingNote: 'رصيد الخدمات مخصص للاستخدام داخل منصة ASH HOLDING وخدمات شركة علي صالح الشهري القابضة والجهات التابعة لها فقط.',
     notificationMessage: 'جارٍ إضافة رصيد الخدمات إلى حسابكم...',
-    smsMessage: 'MaxioCore: جارٍ تفعيل رصيد الخدمات في حسابكم.'
+    smsMessage: 'ASH HOLDING: جارٍ تفعيل رصيد الخدمات في حسابكم.'
   },
 
   CREDIT_DEPOSITED: {
@@ -143,7 +144,7 @@ export const STATE_CONTENT: Record<FinancingApplicationStatus, StateContent> = {
     financingNote: 'تذكير: رصيد الخدمات مخصص حصريًا لشراء الخدمات داخل المنصة. لا يمكن سحبه نقدًا أو تحويله. صلاحية الرصيد: 12 شهرًا.',
     additionalNote: 'استكشفوا مجموعة الخدمات المتاحة واستفيدوا من رصيدكم الآن.',
     notificationMessage: 'رصيد الخدمات جاهز! ابدأوا باستخدامه لشراء الخدمات.',
-    smsMessage: 'MaxioCore: رصيدكم جاهز! استخدموه الآن لشراء الخدمات. صلاحيته 12 شهرًا.'
+    smsMessage: 'ASH HOLDING: رصيدكم جاهز! استخدموه الآن لشراء الخدمات. صلاحيته 12 شهرًا.'
   },
 
   ORDER_PAYMENT_IN_PROGRESS: {
@@ -151,16 +152,16 @@ export const STATE_CONTENT: Record<FinancingApplicationStatus, StateContent> = {
     description: 'يتم حاليًا تطبيق رصيد الخدمات على طلبكم. يُرجى عدم إغلاق الصفحة حتى اكتمال العملية.',
     nextAction: 'انتظار اكتمال العملية',
     notificationMessage: 'جارٍ استخدام رصيد الخدمات لإتمام طلبكم...',
-    smsMessage: 'MaxioCore: جارٍ تنفيذ طلبكم باستخدام رصيد الخدمات.'
+    smsMessage: 'ASH HOLDING: جارٍ تنفيذ طلبكم باستخدام رصيد الخدمات.'
   },
 
   COMPLETED: {
     title: 'اكتمل استخدام رصيد الخدمات',
-    description: 'تم استخدام رصيد الخدمات بالكامل بنجاح. شكرًا لثقتكم في خدمات منصة MaxioCore.',
+    description: 'تم استخدام رصيد الخدمات بالكامل بنجاح. شكرًا لثقتكم في خدمات منصة ASH HOLDING.',
     nextAction: 'استكشاف المزيد من الخدمات أو تقديم طلب تمويل جديد',
     additionalNote: 'يمكنكم التقدم بطلب تمويل خدمات جديد في أي وقت.',
     notificationMessage: 'تم استخدام رصيد الخدمات بالكامل. شكرًا لثقتكم.',
-    smsMessage: 'MaxioCore: اكتمل استخدام رصيدكم. شكرًا لثقتكم!'
+    smsMessage: 'ASH HOLDING: اكتمل استخدام رصيدكم. شكرًا لثقتكم!'
   },
 
   EXPIRED: {
@@ -169,7 +170,7 @@ export const STATE_CONTENT: Record<FinancingApplicationStatus, StateContent> = {
     nextAction: 'تقديم طلب جديد',
     additionalNote: 'يمكنكم التقدم بطلب تمويل خدمات جديد في أي وقت.',
     notificationMessage: 'انتهت صلاحية طلبكم. يمكنكم تقديم طلب جديد.',
-    smsMessage: 'MaxioCore: انتهت صلاحية طلبكم. يمكنكم تقديم طلب جديد.'
+    smsMessage: 'ASH HOLDING: انتهت صلاحية طلبكم. يمكنكم تقديم طلب جديد.'
   },
 
   CANCELLED: {
@@ -178,7 +179,7 @@ export const STATE_CONTENT: Record<FinancingApplicationStatus, StateContent> = {
     nextAction: 'تقديم طلب جديد عند الرغبة',
     additionalNote: 'يمكنكم التقدم بطلب تمويل خدمات جديد في أي وقت تشاؤون.',
     notificationMessage: 'تم إلغاء طلبكم بنجاح. يمكنكم تقديم طلب جديد.',
-    smsMessage: 'MaxioCore: تم إلغاء طلبكم. يمكنكم تقديم طلب جديد.'
+    smsMessage: 'ASH HOLDING: تم إلغاء طلبكم. يمكنكم تقديم طلب جديد.'
   }
 };
 

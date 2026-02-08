@@ -1,6 +1,8 @@
 /**
  * Wallet Email & WhatsApp Templates
  * Arabic Banking-Grade Templates for Wallet Events
+ * 
+ * ASH HOLDING - Ali Saleh Al-Shehri Holding Company
  */
 
 // ═══════════════════════════════════════════════════════════════
@@ -58,7 +60,7 @@ export function getWalletCreditedEmailHtml(data: WalletCreditedData): string {
     <body style="font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0a0a0a; color: #ffffff; padding: 40px 20px; margin: 0;">
       <div style="max-width: 500px; margin: 0 auto; background: linear-gradient(145deg, #1a1a2e, #16213e); border-radius: 16px; padding: 40px; border: 1px solid #2a2a4a;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">MaxioCore</h1>
+          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">ASH HOLDING</h1>
           <p style="color: #94a3b8; margin-top: 8px;">إشعار المحفظة</p>
         </div>
         
@@ -98,7 +100,7 @@ export function getWalletCreditedEmailHtml(data: WalletCreditedData): string {
         </div>
         
         <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
-          ماكسيو كور - شريكك التقني
+          ASH HOLDING - شريكك التقني
         </p>
       </div>
     </body>
@@ -121,7 +123,7 @@ export function getWalletDebitedEmailHtml(data: WalletDebitedData): string {
     <body style="font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0a0a0a; color: #ffffff; padding: 40px 20px; margin: 0;">
       <div style="max-width: 500px; margin: 0 auto; background: linear-gradient(145deg, #1a1a2e, #16213e); border-radius: 16px; padding: 40px; border: 1px solid #2a2a4a;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">MaxioCore</h1>
+          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">ASH HOLDING</h1>
           <p style="color: #94a3b8; margin-top: 8px;">إشعار المحفظة</p>
         </div>
         
@@ -151,7 +153,7 @@ export function getWalletDebitedEmailHtml(data: WalletDebitedData): string {
         </div>
         
         <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
-          ماكسيو كور - شريكك التقني
+          ASH HOLDING - شريكك التقني
         </p>
       </div>
     </body>
@@ -174,7 +176,7 @@ export function getWalletSuspendedEmailHtml(data: WalletSuspendedData): string {
     <body style="font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0a0a0a; color: #ffffff; padding: 40px 20px; margin: 0;">
       <div style="max-width: 500px; margin: 0 auto; background: linear-gradient(145deg, #1a1a2e, #16213e); border-radius: 16px; padding: 40px; border: 1px solid #2a2a4a;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">MaxioCore</h1>
+          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">ASH HOLDING</h1>
           <p style="color: #94a3b8; margin-top: 8px;">تنبيه هام</p>
         </div>
         
@@ -192,7 +194,7 @@ export function getWalletSuspendedEmailHtml(data: WalletSuspendedData): string {
         </div>
         
         <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
-          ماكسيو كور - شريكك التقني
+          ASH HOLDING - شريكك التقني
         </p>
       </div>
     </body>
@@ -205,7 +207,7 @@ export function getWalletSuspendedEmailHtml(data: WalletSuspendedData): string {
 // ═══════════════════════════════════════════════════════════════
 
 export function getWalletCreditedWhatsApp(name: string, amount: number, source: string): string {
-  return `💰 ماكسيو كور - إشعار المحفظة
+  return `💰 ASH HOLDING - إشعار المحفظة
 
 مرحباً ${name}،
 
@@ -214,11 +216,11 @@ export function getWalletCreditedWhatsApp(name: string, amount: number, source: 
 
 سجّل دخولك للاطلاع على رصيدك الحالي.
 
-ماكسيو كور`;
+ASH HOLDING`;
 }
 
 export function getWalletDebitedWhatsApp(name: string, amount: number, description: string): string {
-  return `📤 ماكسيو كور - إشعار المحفظة
+  return `📤 ASH HOLDING - إشعار المحفظة
 
 مرحباً ${name}،
 
@@ -227,11 +229,11 @@ export function getWalletDebitedWhatsApp(name: string, amount: number, descripti
 
 سجّل دخولك لمتابعة معاملاتك.
 
-ماكسيو كور`;
+ASH HOLDING`;
 }
 
 export function getWalletInsufficientWhatsApp(name: string): string {
-  return `⚠️ ماكسيو كور - رصيد غير كافٍ
+  return `⚠️ ASH HOLDING - رصيد غير كافٍ
 
 مرحباً ${name}،
 
@@ -239,11 +241,11 @@ export function getWalletInsufficientWhatsApp(name: string): string {
 
 💳 قم بشحن محفظتك لإتمام العملية.
 
-ماكسيو كور`;
+ASH HOLDING`;
 }
 
 export function getWalletSuspendedWhatsApp(name: string): string {
-  return `⚠️ تنبيه هام - ماكسيو كور
+  return `⚠️ تنبيه هام - ASH HOLDING
 
 مرحباً ${name}،
 
@@ -251,7 +253,7 @@ export function getWalletSuspendedWhatsApp(name: string): string {
 
 📧 يُرجى مراجعة بريدك الإلكتروني للتفاصيل والتواصل مع الدعم.
 
-ماكسيو كور`;
+ASH HOLDING`;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -276,7 +278,7 @@ export function getWalletInsufficientEmailHtml(data: WalletInsufficientData): st
     <body style="font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0a0a0a; color: #ffffff; padding: 40px 20px; margin: 0;">
       <div style="max-width: 500px; margin: 0 auto; background: linear-gradient(145deg, #1a1a2e, #16213e); border-radius: 16px; padding: 40px; border: 1px solid #2a2a4a;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">MaxioCore</h1>
+          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">ASH HOLDING</h1>
           <p style="color: #94a3b8; margin-top: 8px;">إشعار المحفظة</p>
         </div>
         
@@ -313,7 +315,7 @@ export function getWalletInsufficientEmailHtml(data: WalletInsufficientData): st
         </div>
         
         <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
-          ماكسيو كور - شريكك التقني
+          ASH HOLDING - شريكك التقني
         </p>
       </div>
     </body>
