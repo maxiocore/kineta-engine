@@ -204,10 +204,11 @@ export function AcknowledgmentViewer({
         if (updateError) throw updateError;
       }
       
-      // Update application workflow status
+      // Update application status + workflow status
       const { error: appError } = await supabase
         .from('financing_applications')
         .update({
+          status: 'ACK_SIGNED',
           workflow_status: 'ACK_SIGNED',
           phase_updated_at: now,
           updated_at: now
