@@ -67,6 +67,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
+import { CreateUserDialog } from "@/components/admin/CreateUserDialog";
 
 interface User {
   id: string;
@@ -126,6 +127,7 @@ const AdminUsers = () => {
     phone: ""
   });
   const [savingPhone, setSavingPhone] = useState(false);
+  const [createUserDialogOpen, setCreateUserDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -478,6 +480,14 @@ const AdminUsers = () => {
             <p className="text-muted-foreground text-xs sm:text-sm">عرض وإدارة جميع المستخدمين</p>
           </div>
           <div className="flex gap-2">
+            <Button
+              size="sm"
+              onClick={() => setCreateUserDialogOpen(true)}
+              className="gap-1.5 h-8 text-xs"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">إنشاء حساب</span>
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -1112,6 +1122,13 @@ const AdminUsers = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Create User Dialog */}
+        <CreateUserDialog
+          open={createUserDialogOpen}
+          onOpenChange={setCreateUserDialogOpen}
+          onUserCreated={() => fetchUsers()}
+        />
       </div>
     </AdminDashboardLayout>
   );
