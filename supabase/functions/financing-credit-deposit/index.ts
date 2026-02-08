@@ -19,8 +19,10 @@ const corsHeaders = {
 };
 
 interface DepositRequest {
-  applicationId: string;
+  applicationId?: string;
+  application_id?: string;
   actorId?: string;
+  actor_id?: string;
   forceDeposit?: boolean;
 }
 
@@ -57,9 +59,10 @@ serve(async (req) => {
     );
 
     const body: DepositRequest = await req.json();
-    const { applicationId, actorId } = body;
+    const applicationId = body.applicationId || body.application_id;
+    const actorId = body.actorId || body.actor_id;
 
-    console.log(`[Credit-Deposit-V2] Processing application: ${applicationId}`);
+    console.log(`[Credit-Deposit-V2] Processing application: ${applicationId}, raw keys: applicationId=${body.applicationId}, application_id=${body.application_id}`);
 
     if (!applicationId) {
       return new Response(JSON.stringify({
