@@ -17,10 +17,14 @@ import type { FinancingStats } from '../types';
 
 interface FinancingStatsCardsProps {
   stats: FinancingStats;
+  status?: string;
   className?: string;
 }
 
-export function FinancingStatsCards({ stats, className }: FinancingStatsCardsProps) {
+export function FinancingStatsCards({ stats, status, className }: FinancingStatsCardsProps) {
+  // For declined/cancelled/expired, zero out financial values
+  const isNegativeTerminal = status ? ['DECLINED', 'CANCELLED', 'EXPIRED', 'REJECTED'].includes(status.toUpperCase()) : false;
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ar-SA', {
       minimumFractionDigits: 0,
@@ -36,21 +40,26 @@ export function FinancingStatsCards({ stats, className }: FinancingStatsCardsPro
     });
   };
 
+  const displayApproved = isNegativeTerminal ? 0 : stats.totalApproved;
+  const displayUsed = isNegativeTerminal ? 0 : stats.totalUsed;
+  const displayAvailable = isNegativeTerminal ? 0 : stats.availableBalance;
+  const displayNextInstallment = isNegativeTerminal ? 0 : stats.nextInstallmentAmount;
+
   const cards = [
     {
       id: 'approved',
       label: 'المبلغ المعتمد',
-      value: formatCurrency(stats.totalApproved),
-      suffix: 'ر.س',
+      value: isNegativeTerminal ? '—' : formatCurrency(displayApproved),
+      suffix: isNegativeTerminal ? '' : 'ر.س',
       icon: TrendingUp,
-      color: 'text-success',
-      bgColor: 'bg-success/10',
+      color: isNegativeTerminal ? 'text-muted-foreground' : 'text-success',
+      bgColor: isNegativeTerminal ? 'bg-muted' : 'bg-success/10',
     },
     {
       id: 'used',
       label: 'المستخدم',
-      value: formatCurrency(stats.totalUsed),
-      suffix: 'ر.س',
+      value: isNegativeTerminal ? '—' : formatCurrency(displayUsed),
+      suffix: isNegativeTerminal ? '' : 'ر.س',
       icon: TrendingDown,
       color: 'text-muted-foreground',
       bgColor: 'bg-muted',
@@ -58,22 +67,22 @@ export function FinancingStatsCards({ stats, className }: FinancingStatsCardsPro
     {
       id: 'available',
       label: 'المتاح',
-      value: formatCurrency(stats.availableBalance),
-      suffix: 'ر.س',
+      value: isNegativeTerminal ? '—' : formatCurrency(displayAvailable),
+      suffix: isNegativeTerminal ? '' : 'ر.س',
       icon: Wallet,
-      color: 'text-primary',
-      bgColor: 'bg-primary/10',
-      highlight: stats.availableBalance > 0,
+      color: isNegativeTerminal ? 'text-muted-foreground' : 'text-primary',
+      bgColor: isNegativeTerminal ? 'bg-muted' : 'bg-primary/10',
+      highlight: !isNegativeTerminal && displayAvailable > 0,
     },
     {
       id: 'next',
       label: 'القسط القادم',
-      value: stats.nextInstallmentAmount > 0 ? formatCurrency(stats.nextInstallmentAmount) : '—',
-      suffix: stats.nextInstallmentAmount > 0 ? 'ر.س' : '',
-      subtext: formatDate(stats.nextInstallmentDate),
+      value: isNegativeTerminal ? '—' : (displayNextInstallment > 0 ? formatCurrency(displayNextInstallment) : '—'),
+      suffix: (!isNegativeTerminal && displayNextInstallment > 0) ? 'ر.س' : '',
+      subtext: isNegativeTerminal ? undefined : formatDate(stats.nextInstallmentDate),
       icon: Calendar,
       color: 'text-warning',
-      bgColor: 'bg-warning/10',
+      bgColor: isNegativeTerminal ? 'bg-muted' : 'bg-warning/10',
     },
   ];
 

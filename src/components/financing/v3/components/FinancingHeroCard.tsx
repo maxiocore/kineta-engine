@@ -46,7 +46,10 @@ export function FinancingHeroCard({
   const status = application.status as FinancingStatus;
   const statusConfig = getStatusConfig(status);
   const colors = STATUS_COLORS[statusConfig.color];
-  const availableBalance = serviceCredit?.available_balance ?? 0;
+  
+  // For declined/cancelled/expired statuses, don't show balance or amounts
+  const isNegativeTerminal = ['DECLINED', 'CANCELLED', 'EXPIRED', 'REJECTED'].includes(status.toUpperCase());
+  const availableBalance = isNegativeTerminal ? 0 : (serviceCredit?.available_balance ?? 0);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ar-SA', {
@@ -55,7 +58,7 @@ export function FinancingHeroCard({
     }).format(amount);
   };
 
-  const isActiveCredit = status === 'CREDIT_ACTIVE' || status === 'COMPLETED';
+  const isActiveCredit = !isNegativeTerminal && (status === 'CREDIT_ACTIVE' || status === 'COMPLETED');
   const hasAvailableBalance = availableBalance > 0;
 
   return (
@@ -66,7 +69,12 @@ export function FinancingHeroCard({
       className="relative overflow-hidden"
     >
       {/* Main Card */}
-      <div className="relative rounded-3xl bg-gradient-to-br from-primary via-primary/95 to-primary/80 p-6 lg:p-8 text-primary-foreground shadow-2xl shadow-primary/20">
+      <div className={cn(
+        "relative rounded-3xl p-6 lg:p-8 text-primary-foreground shadow-2xl",
+        isNegativeTerminal 
+          ? "bg-gradient-to-br from-destructive/90 via-destructive/80 to-destructive/60 shadow-destructive/20"
+          : "bg-gradient-to-br from-primary via-primary/95 to-primary/80 shadow-primary/20"
+      )}>
         {/* Decorative Elements */}
         <div className="absolute inset-0 overflow-hidden rounded-3xl">
           <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" />
@@ -122,18 +130,33 @@ export function FinancingHeroCard({
 
           {/* Balance Display */}
           <div className="mb-6">
-            <p className="text-sm opacity-80 mb-1">رصيد الخدمات المتاح</p>
-            <div className="flex items-baseline gap-2">
-              <motion.span
-                className="text-4xl lg:text-5xl font-bold tracking-tight tabular-nums"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                {formatCurrency(availableBalance)}
-              </motion.span>
-              <span className="text-xl opacity-80">ر.س</span>
-            </div>
+            <p className="text-sm opacity-80 mb-1">
+              {isNegativeTerminal ? 'حالة الطلب' : 'رصيد الخدمات المتاح'}
+            </p>
+            {isNegativeTerminal ? (
+              <div className="flex items-baseline gap-2">
+                <motion.span
+                  className="text-2xl lg:text-3xl font-bold"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  {statusConfig.nameAr}
+                </motion.span>
+              </div>
+            ) : (
+              <div className="flex items-baseline gap-2">
+                <motion.span
+                  className="text-4xl lg:text-5xl font-bold tracking-tight tabular-nums"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  {formatCurrency(availableBalance)}
+                </motion.span>
+                <span className="text-xl opacity-80">ر.س</span>
+              </div>
+            )}
           </div>
 
           {/* Sparkle Effect for Active Credit */}

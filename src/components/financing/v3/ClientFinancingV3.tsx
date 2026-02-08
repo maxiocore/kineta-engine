@@ -260,7 +260,7 @@ export default function ClientFinancingV3() {
               />
 
               {/* Stats Cards */}
-              <FinancingStatsCards stats={stats} />
+              <FinancingStatsCards stats={stats} status={currentStatus} />
 
               {/* RTL Segmented Control Navigation */}
               <div className="flex justify-center">
