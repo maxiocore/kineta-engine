@@ -1,8 +1,8 @@
 /**
  * =====================================================
- * ASH HOLDING - Loan Application Wizard
- * Complete Financing Application Flow
- * With Eligibility Integration & Professional Animation
+ * ASH HOLDING - Loan Application Wizard (Redesigned)
+ * Premium Fintech UX · RTL-First · iOS-Inspired
+ * Business Logic: UNCHANGED
  * =====================================================
  */
 
@@ -14,6 +14,7 @@ import { useEligibilityGate } from "@/hooks/useEligibilityGate";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { notifySubmitted } from "@/lib/financing/notifications/unifiedEmailService";
+import { Loader2, ShieldCheck } from "lucide-react";
 
 // Step Components
 import { IntroStep } from "./steps/IntroStep";
@@ -24,17 +25,12 @@ import { AdditionalInfoStep } from "./steps/AdditionalInfoStep";
 import { ReviewConfirmStep } from "./steps/ReviewConfirmStep";
 import { SubmitTrackingStep } from "./steps/SubmitTrackingStep";
 import { ResultStep } from "./steps/ResultStep";
-import { ApplicationProgress } from "./ApplicationProgress";
 
 // Eligibility Gate
 import { EligibilityGateScreen } from "../eligibility/EligibilityGateScreen";
 
-// Animation System
-import { 
-  WizardSkeleton, 
-  ProcessingOverlay,
-  useStepTransition,
-} from "./animations";
+// New Stepper
+import { WizardStepper } from "./WizardStepper";
 
 // Types
 export interface LoanApplicationData {
@@ -101,7 +97,7 @@ const initialData: LoanApplicationData = {
 };
 
 // Updated steps to include eligibility gate
-const STEPS = [
+export const STEPS = [
   { id: 0, title: "فحص الأهلية", icon: "🛡️" },
   { id: 1, title: "البداية", icon: "🚀" },
   { id: 2, title: "نوع التمويل", icon: "📦" },
@@ -115,6 +111,25 @@ const STEPS = [
 
 const STORAGE_KEY = "ashholding_loan_application";
 
+// Step transition animation variants
+const stepVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 60 : -60,
+    opacity: 0,
+    filter: "blur(4px)",
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+    filter: "blur(0px)",
+  },
+  exit: (direction: number) => ({
+    x: direction < 0 ? 60 : -60,
+    opacity: 0,
+    filter: "blur(4px)",
+  }),
+};
+
 export function LoanApplicationWizard() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -124,21 +139,18 @@ export function LoanApplicationWizard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  const [transitionDirection, setTransitionDirection] = useState<"forward" | "backward">("forward");
+  const [direction, setDirection] = useState(0);
   
   const prevStepRef = useRef(data.currentStep);
 
-  // Get animation variants based on direction
-  const { stepVariants } = useStepTransition({ 
-    direction: transitionDirection,
-    enableBlur: true,
-  });
+  // ═══════════════════════════════════════════════════
+  // BUSINESS LOGIC (UNCHANGED)
+  // ═══════════════════════════════════════════════════
 
   // Load saved progress on mount AND check for existing active applications
   useEffect(() => {
     const loadSavedProgress = async () => {
       try {
-        // First check if user has an ACTIVE application (pending, active, under_review, approved)
         if (user?.id) {
           const { data: activeApp } = await supabase
             .from("financing_applications")
@@ -150,7 +162,6 @@ export function LoanApplicationWizard() {
             .maybeSingle();
           
           if (activeApp) {
-            // User has an active application - show result step
             let appStatus: LoanApplicationData["status"] = "submitted";
             
             if (activeApp.status === "approved" || activeApp.status === "completed") {
@@ -166,24 +177,22 @@ export function LoanApplicationWizard() {
               applicationId: activeApp.id,
               applicationNumber: activeApp.application_number || null,
               amount: activeApp.requested_amount || 0,
-              tenorMonths: 12, // Default value
+              tenorMonths: 12,
               monthlyInstallment: (activeApp.requested_amount || 0) / 12,
               status: appStatus,
-              currentStep: 7, // Go directly to result step
+              currentStep: 7,
             });
             setIsLoading(false);
             return;
           }
         }
         
-        // No active application - check localStorage for drafts
         const savedLocal = localStorage.getItem(STORAGE_KEY);
         if (savedLocal) {
           const parsed = JSON.parse(savedLocal);
           setData(parsed);
         }
         
-        // Then check Supabase for server-saved drafts
         if (user?.id) {
           const { data: draft } = await supabase
             .from("financing_applications")
@@ -195,7 +204,6 @@ export function LoanApplicationWizard() {
             .maybeSingle();
           
           if (draft) {
-            // Merge with local data if server draft is newer
             const serverDate = new Date(draft.updated_at).getTime();
             const localDate = savedLocal ? new Date(JSON.parse(savedLocal).lastSavedAt || 0).getTime() : 0;
             
@@ -212,7 +220,6 @@ export function LoanApplicationWizard() {
       } catch (error) {
         console.error("Error loading saved progress:", error);
       } finally {
-        // Simulate minimum loading for smooth UX
         setTimeout(() => setIsLoading(false), 500);
       }
     };
@@ -220,7 +227,7 @@ export function LoanApplicationWizard() {
     loadSavedProgress();
   }, [user?.id]);
 
-  // Auto-save to localStorage on data change
+  // Auto-save to localStorage
   useEffect(() => {
     if (!isLoading && data.currentStep > 0) {
       const saveData = { ...data, lastSavedAt: new Date().toISOString() };
@@ -231,9 +238,9 @@ export function LoanApplicationWizard() {
   // Track step direction for animations
   useEffect(() => {
     if (data.currentStep > prevStepRef.current) {
-      setTransitionDirection("forward");
+      setDirection(1);
     } else if (data.currentStep < prevStepRef.current) {
-      setTransitionDirection("backward");
+      setDirection(-1);
     }
     prevStepRef.current = data.currentStep;
   }, [data.currentStep]);
@@ -243,27 +250,26 @@ export function LoanApplicationWizard() {
     const errors: string[] = [];
     
     switch (step) {
-      case 0: // Intro
+      case 0:
         if (!data.acceptedTerms) errors.push("يجب الموافقة على الشروط والأحكام");
         if (!data.acceptedConditions) errors.push("يجب قراءة وقبول شروط التمويل");
         break;
-      case 1: // Product
+      case 1:
         if (!data.productType) errors.push("يرجى اختيار نوع التمويل");
         break;
-      case 2: // Amount & Tenor
+      case 2:
         if (data.amount < 1000) errors.push("الحد الأدنى للتمويل 1,000 ر.س");
         if (data.amount > 100000) errors.push("الحد الأقصى للتمويل 100,000 ر.س");
         if (data.tenorMonths < 1 || data.tenorMonths > 24) errors.push("مدة التمويل يجب أن تكون بين 1-24 شهر");
         break;
-      case 3: // Simulator - auto validated
+      case 3:
         break;
-      case 4: // Additional Info - optional but validate if filled
+      case 4:
         if (data.monthlyIncome > 0 && data.monthlyIncome < 3000) {
           errors.push("الحد الأدنى للدخل الشهري 3,000 ر.س");
         }
         break;
-      case 5: // Review
-        // All previous validations should pass
+      case 5:
         break;
     }
     
@@ -280,14 +286,14 @@ export function LoanApplicationWizard() {
     }
     
     setValidationErrors([]);
-    setTransitionDirection("forward");
+    setDirection(1);
     setData(prev => ({ ...prev, currentStep: Math.min(prev.currentStep + 1, STEPS.length - 1) }));
   }, [data.currentStep, validateStep]);
 
-  // Navigate to previous step (always allowed)
+  // Navigate to previous step
   const goBack = useCallback(() => {
     setValidationErrors([]);
-    setTransitionDirection("backward");
+    setDirection(-1);
     setData(prev => ({ ...prev, currentStep: Math.max(prev.currentStep - 1, 0) }));
   }, []);
 
@@ -325,7 +331,6 @@ export function LoanApplicationWizard() {
 
       if (error) throw error;
 
-      // Send instant WhatsApp + Email notification
       try {
         await notifySubmitted(
           newApp.id,
@@ -338,16 +343,14 @@ export function LoanApplicationWizard() {
         console.error("Failed to send submission notification:", notifyError);
       }
 
-      // Clear local storage
       localStorage.removeItem(STORAGE_KEY);
       
-      // Update state
       setData(prev => ({
         ...prev,
         applicationId: newApp.id,
         applicationNumber: newApp.application_number,
         status: "submitted",
-        currentStep: 7, // Go to result step
+        currentStep: 7,
       }));
 
       toast.success("تم إرسال طلبك بنجاح!");
@@ -365,7 +368,10 @@ export function LoanApplicationWizard() {
     setData(initialData);
   }, []);
 
-  // Render current step
+  // ═══════════════════════════════════════════════════
+  // RENDER (REDESIGNED UI)
+  // ═══════════════════════════════════════════════════
+
   const renderStep = () => {
     const stepProps = {
       data,
@@ -400,8 +406,24 @@ export function LoanApplicationWizard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen pb-20" dir="rtl">
-        <WizardSkeleton />
+      <div className="min-h-screen flex items-center justify-center" dir="rtl">
+        <motion.div 
+          className="flex flex-col items-center gap-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <motion.div 
+            className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center"
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          >
+            <ShieldCheck className="w-8 h-8 text-primary" />
+          </motion.div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-sm">جاري تحميل طلبك...</span>
+          </div>
+        </motion.div>
       </div>
     );
   }
@@ -409,14 +431,36 @@ export function LoanApplicationWizard() {
   return (
     <div className="min-h-screen pb-20" dir="rtl">
       {/* Processing Overlay */}
-      <ProcessingOverlay 
-        isVisible={isSaving} 
-        message="جاري إرسال طلبك..." 
-      />
+      <AnimatePresence>
+        {isSaving && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-md flex items-center justify-center"
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="flex flex-col items-center gap-4 p-8"
+            >
+              <motion.div
+                className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              >
+                <Loader2 className="w-10 h-10 text-primary" />
+              </motion.div>
+              <p className="text-lg font-semibold">جاري إرسال طلبك...</p>
+              <p className="text-sm text-muted-foreground">يرجى عدم إغلاق الصفحة</p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Progress Bar */}
+      {/* Stepper */}
       {data.currentStep < 7 && (
-        <ApplicationProgress 
+        <WizardStepper 
           steps={STEPS}
           currentStep={data.currentStep}
           lastSavedAt={data.lastSavedAt}
@@ -425,13 +469,19 @@ export function LoanApplicationWizard() {
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 py-6">
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence mode="wait" custom={direction} initial={false}>
           <motion.div
             key={data.currentStep}
+            custom={direction}
             variants={stepVariants}
-            initial="initial"
-            animate="animate"
+            initial="enter"
+            animate="center"
             exit="exit"
+            transition={{
+              x: { type: "spring", stiffness: 300, damping: 30 },
+              opacity: { duration: 0.2 },
+              filter: { duration: 0.2 },
+            }}
             className="will-change-transform"
           >
             {renderStep()}

@@ -1,23 +1,24 @@
 /**
  * Step 1: Introduction & Terms
- * With Professional Micro-interactions
- * Updated: Service Financing Policy (Non-Cash)
+ * Premium Fintech · RTL · iOS-first
+ * Business Logic: UNCHANGED
  */
 
 import { motion } from "framer-motion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Shield, 
-  Clock, 
-  CheckCircle2, 
-  FileText,
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Shield,
+  Clock,
+  CheckCircle2,
   AlertTriangle,
   ArrowLeft,
   Building2,
-  Wrench
+  Wrench,
+  Sparkles,
 } from "lucide-react";
-import { AnimatedButton, AnimatedCard } from "../animations";
 import { ServiceFinancingNotice } from "../../common/ServiceFinancingNotice";
 import { INTRO_MICROCOPY, COMPANY_INFO } from "@/lib/financing/serviceFinancingPolicy";
 import type { LoanApplicationData } from "../LoanApplicationWizard";
@@ -55,112 +56,78 @@ const FEATURES = [
 
 const CONDITIONS = INTRO_MICROCOPY.conditions;
 
-// Stagger animation for children
-const containerVariants = {
-  animate: {
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
+const stagger = {
+  animate: { transition: { staggerChildren: 0.08 } },
 };
 
-const itemVariants = {
-  initial: { opacity: 0, y: 20 },
-  animate: { 
-    opacity: 1, 
-    y: 0,
-    transition: {
-      duration: 0.4,
-      ease: "easeOut" as const,
-    },
-  },
+const fadeUp = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
 };
 
 export function IntroStep({ data, updateData, goNext, validationErrors }: IntroStepProps) {
   const canProceed = data.acceptedTerms && data.acceptedConditions;
 
   return (
-    <motion.div 
-      className="space-y-6"
-      variants={containerVariants}
-      initial="initial"
-      animate="animate"
-    >
-      {/* Service Financing Notice - تنويه ثابت */}
-      <motion.div variants={itemVariants}>
+    <motion.div className="space-y-6" variants={stagger} initial="initial" animate="animate">
+      {/* Service Financing Notice */}
+      <motion.div variants={fadeUp}>
         <ServiceFinancingNotice variant="full" />
       </motion.div>
 
-      {/* Hero Section */}
-      <motion.div variants={itemVariants} className="text-center space-y-4">
-        <motion.div 
-          className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-primary text-sm"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Building2 className="w-4 h-4" />
-          <span>{INTRO_MICROCOPY.badge}</span>
-        </motion.div>
-        
-        <h1 className="text-3xl font-bold">
+      {/* Hero */}
+      <motion.div variants={fadeUp} className="text-center space-y-3">
+        <Badge variant="secondary" className="gap-1.5 px-3 py-1">
+          <Building2 className="w-3.5 h-3.5" />
+          {INTRO_MICROCOPY.badge}
+        </Badge>
+
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
           {INTRO_MICROCOPY.title}
         </h1>
-        <p className="text-muted-foreground max-w-md mx-auto">
+        <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
           {INTRO_MICROCOPY.subtitle}
         </p>
       </motion.div>
 
-      {/* Features */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Features Grid */}
+      <motion.div variants={fadeUp} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {FEATURES.map((feature, index) => (
-          <AnimatedCard
+          <motion.div
             key={feature.title}
-            index={index}
-            hoverEffect="lift"
-            showCheckmark={false}
-            className="h-full"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 + index * 0.08 }}
           >
-            <div className="p-4 text-center space-y-3">
-              <motion.div 
-                className={`inline-flex p-3 rounded-xl ${feature.bgColor} ${feature.color}`}
-                whileHover={{ rotate: [0, -10, 10, 0], transition: { duration: 0.5 } }}
-              >
-                <feature.icon className="w-6 h-6" />
-              </motion.div>
-              <h3 className="font-semibold">{feature.title}</h3>
-              <p className="text-xs text-muted-foreground">{feature.description}</p>
-            </div>
-          </AnimatedCard>
+            <Card className="bg-card/60 border-border/40 hover:border-primary/20 transition-colors h-full">
+              <CardContent className="p-4 text-center space-y-2.5">
+                <div className={`inline-flex p-2.5 rounded-xl ${feature.bgColor}`}>
+                  <feature.icon className={`w-5 h-5 ${feature.color}`} />
+                </div>
+                <h3 className="font-semibold text-sm">{feature.title}</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">{feature.description}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Conditions */}
-      <motion.div variants={itemVariants}>
-        <Card className="bg-amber-500/5 border-amber-500/20 overflow-hidden">
-          <CardContent className="p-5">
+      <motion.div variants={fadeUp}>
+        <Card className="bg-amber-500/5 border-amber-500/20">
+          <CardContent className="p-4">
             <div className="flex items-start gap-3">
-              <motion.div
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-              >
-                <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-              </motion.div>
+              <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-semibold text-amber-500 mb-3">
+                <h3 className="font-semibold text-amber-600 dark:text-amber-400 text-sm mb-2">
                   شروط التقديم الأساسية
                 </h3>
-                <ul className="space-y-2">
+                <ul className="space-y-1.5">
                   {CONDITIONS.map((condition, index) => (
-                    <motion.li 
-                      key={index} 
-                      className="flex items-center gap-2 text-sm text-muted-foreground"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.3 + index * 0.1 }}
-                    >
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                    <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
                       <span>{condition}</span>
-                    </motion.li>
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -170,80 +137,73 @@ export function IntroStep({ data, updateData, goNext, validationErrors }: IntroS
       </motion.div>
 
       {/* Agreements */}
-      <motion.div variants={itemVariants} className="space-y-4">
-        <Card className="bg-card/50 border-border/50 overflow-hidden">
-          <CardContent className="p-4 space-y-4">
-            <motion.div 
-              className="flex items-start gap-3"
-              whileTap={{ scale: 0.99 }}
-            >
+      <motion.div variants={fadeUp}>
+        <Card className={`transition-all duration-300 ${
+          canProceed 
+            ? "border-primary/30 bg-primary/5" 
+            : "border-border/40 bg-card/60"
+        }`}>
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-start gap-3" role="button" tabIndex={0}>
               <Checkbox
                 id="terms"
                 checked={data.acceptedTerms}
-                onCheckedChange={(checked) => 
-                  updateData({ acceptedTerms: checked as boolean })
-                }
-                className="mt-1 transition-all data-[state=checked]:scale-110"
+                onCheckedChange={(checked) => updateData({ acceptedTerms: checked as boolean })}
+                className="mt-0.5"
               />
-              <label 
-                htmlFor="terms" 
-                className="text-sm cursor-pointer leading-relaxed select-none"
-              >
+              <label htmlFor="terms" className="text-sm cursor-pointer leading-relaxed select-none">
                 {INTRO_MICROCOPY.termsLabel.split("الشروط والأحكام")[0]}
                 <a href="/terms-of-service" target="_blank" className="text-primary underline hover:no-underline">
                   الشروط والأحكام
                 </a>
-                {" "}وسياسة الخصوصية{INTRO_MICROCOPY.termsLabel.split("سياسة الخصوصية")[1] || "."}
+                {" "}وسياسة الخصوصية.
               </label>
-            </motion.div>
+            </div>
 
-            <motion.div 
-              className="flex items-start gap-3"
-              whileTap={{ scale: 0.99 }}
-            >
+            <div className="flex items-start gap-3" role="button" tabIndex={0}>
               <Checkbox
                 id="conditions"
                 checked={data.acceptedConditions}
-                onCheckedChange={(checked) => 
-                  updateData({ acceptedConditions: checked as boolean })
-                }
-                className="mt-1 transition-all data-[state=checked]:scale-110"
+                onCheckedChange={(checked) => updateData({ acceptedConditions: checked as boolean })}
+                className="mt-0.5"
               />
-              <label 
-                htmlFor="conditions" 
-                className="text-sm cursor-pointer leading-relaxed select-none"
-              >
+              <label htmlFor="conditions" className="text-sm cursor-pointer leading-relaxed select-none">
                 {INTRO_MICROCOPY.conditionsLabel}
               </label>
-            </motion.div>
+            </div>
           </CardContent>
         </Card>
-
-        {validationErrors.length > 0 && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            className="text-sm text-destructive space-y-1"
-          >
-            {validationErrors.map((error, index) => (
-              <p key={index}>• {error}</p>
-            ))}
-          </motion.div>
-        )}
       </motion.div>
 
-      {/* CTA Button */}
-      <motion.div variants={itemVariants}>
-        <AnimatedButton
+      {/* Errors */}
+      {validationErrors.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          className="text-sm text-destructive space-y-1 bg-destructive/5 p-3 rounded-lg border border-destructive/20"
+        >
+          {validationErrors.map((error, index) => (
+            <p key={index} className="flex items-center gap-1.5">
+              <AlertTriangle className="w-3 h-3 flex-shrink-0" />
+              {error}
+            </p>
+          ))}
+        </motion.div>
+      )}
+
+      {/* CTA */}
+      <motion.div variants={fadeUp}>
+        <Button
           onClick={goNext}
           disabled={!canProceed}
-          pulseOnHover
-          className="w-full h-14 text-lg font-semibold gap-2 bg-gradient-to-l from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
+          className="w-full h-13 text-base font-semibold gap-2 bg-gradient-to-l from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/20 disabled:shadow-none"
+          size="lg"
         >
+          <Sparkles className="w-4 h-4" />
           <span>{INTRO_MICROCOPY.ctaButton}</span>
-          <ArrowLeft className="w-5 h-5" />
-        </AnimatedButton>
-        
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+
         <p className="text-center text-xs text-muted-foreground mt-3">
           {INTRO_MICROCOPY.footerNote}
         </p>
