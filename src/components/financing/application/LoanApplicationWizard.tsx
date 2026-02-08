@@ -324,6 +324,7 @@ export function LoanApplicationWizard() {
           requested_amount: data.amount,
           service_description: `${data.productType}: ${data.purpose}`,
           application_number: applicationNumber,
+          contract_override_installments: data.tenorMonths || 6,
           status: "pending"
         }])
         .select()
