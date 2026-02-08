@@ -76,6 +76,7 @@ const SignAcknowledgment = lazy(() => import("./pages/dashboard/SignAcknowledgme
 // SignPromissoryNote removed - الكمبيالة محذوفة نهائياً
 const FinancingPayment = lazy(() => import("./pages/dashboard/FinancingPayment"));
 const ClientFinancingPayments = lazy(() => import("./pages/dashboard/ClientFinancingPayments"));
+const ConfirmBond = lazy(() => import("./pages/dashboard/ConfirmBond"));
 
 // Lazy load pages - Dev Services
 const DevServicesPage = lazy(() => import("./pages/dashboard/DevServicesPage"));
@@ -362,6 +363,11 @@ const App = () => (
                       </ProtectedRoute>
                     } />
                     {/* Promissory note route removed - الكمبيالة محذوفة نهائياً */}
+                    <Route path="/dashboard/financing/confirm-bond/:applicationId" element={
+                      <ProtectedRoute>
+                        <ConfirmBond />
+                      </ProtectedRoute>
+                    } />
                     <Route path="/dashboard/financing/payment" element={
                       <ProtectedRoute>
                         <FinancingPayment />
