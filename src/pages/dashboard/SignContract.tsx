@@ -36,7 +36,10 @@ import { type ExecutiveBondState } from "@/lib/financing/stateMachine/contractSt
 import { useServerContractPdf } from "@/hooks/useServerContractPdf";
 
 // الحالات المسموحة لتوقيع العقد
-const SIGNABLE_STATUSES = ["awaiting_contract", "contract_presented", "CONTRACT_PRESENTED"];
+const SIGNABLE_STATUSES = [
+  "awaiting_contract", "contract_presented", "CONTRACT_PRESENTED",
+  "CONTRACT_SENT", "CONTRACT_PENDING", "awaiting_signature",
+];
 // الحالات النشطة للتمويل
 const ACTIVE_STATUSES = ["active", "approved", "completed"];
 
