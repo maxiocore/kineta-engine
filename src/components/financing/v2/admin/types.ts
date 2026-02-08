@@ -15,6 +15,10 @@ export type AdminActionType =
   | 'send_acknowledgment'    // إرسال الإقرار
   | 'send_contract'          // إرسال العقد
   | 'issue_bond'             // إصدار السند
+  | 'bond_issued'            // تم إصدار السند
+  | 'send_bond_to_client'    // إرسال السند للعميل
+  | 'confirm_bond_signed'    // تأكيد توقيع السند
+  | 'verify_bond'            // اعتماد السند
   | 'activate_credit'        // تفعيل الرصيد
   | 'update_amount'          // تعديل المبلغ
   | 'update_installments'    // تعديل عدد الأقساط
