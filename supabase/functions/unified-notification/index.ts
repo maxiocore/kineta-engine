@@ -1,6 +1,6 @@
 /**
  * Unified Notification Edge Function
- * نظام الإشعارات الموحد - MaxioCore
+ * نظام الإشعارات الموحد - ASH HOLDING
  * 
  * Handles all notification events across Auth, Financing, and Wallet modules
  * with rate limiting, idempotency, and multi-channel support.
@@ -81,7 +81,7 @@ serve(async (req) => {
     }
 
     // Build notification context
-    const baseUrl = Deno.env.get("SITE_URL") || "https://maxiocore.com";
+    const baseUrl = Deno.env.get("SITE_URL") || "https://ashholding.com";
     const notificationContext = {
       name,
       email,
@@ -197,7 +197,7 @@ async function sendEmail(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "MaxioCore <noreply@maxiocore.com>",
+      from: "ASH HOLDING <noreply@ashholding.com>",
       to: [recipientEmail],
       subject: template.subject,
       html: template.html,
@@ -254,7 +254,7 @@ function getEmailTemplate(
   switch (eventType) {
     case "WALLET_INSUFFICIENT":
       return {
-        subject: "رصيد غير كافٍ - MaxioCore",
+        subject: "رصيد غير كافٍ - ASH HOLDING",
         html: `
           <!DOCTYPE html>
           <html dir="rtl" lang="ar">
@@ -265,7 +265,7 @@ function getEmailTemplate(
           <body style="${baseStyle}">
             <div style="${cardStyle}">
               <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">MaxioCore</h1>
+                <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">ASH HOLDING</h1>
                 <p style="color: #94a3b8; margin-top: 8px;">إشعار المحفظة</p>
               </div>
               
@@ -289,7 +289,7 @@ function getEmailTemplate(
               </div>
               
               <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
-                ماكسيو كور - شريكك التقني
+                ASH HOLDING - شريكك التقني
               </p>
             </div>
           </body>
@@ -299,7 +299,7 @@ function getEmailTemplate(
 
     case "FIN_CANCELLED":
       return {
-        subject: "تم إلغاء طلب التمويل - MaxioCore",
+        subject: "تم إلغاء طلب التمويل - ASH HOLDING",
         html: `
           <!DOCTYPE html>
           <html dir="rtl" lang="ar">
@@ -310,7 +310,7 @@ function getEmailTemplate(
           <body style="${baseStyle}">
             <div style="${cardStyle}">
               <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">MaxioCore</h1>
+                <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">ASH HOLDING</h1>
                 <p style="color: #94a3b8; margin-top: 8px;">إشعار التمويل</p>
               </div>
               
@@ -332,7 +332,7 @@ function getEmailTemplate(
               </div>
               
               <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
-                ماكسيو كور - شريكك التقني
+                ASH HOLDING - شريكك التقني
               </p>
             </div>
           </body>
@@ -342,7 +342,7 @@ function getEmailTemplate(
 
     case "FIN_EXPIRED":
       return {
-        subject: "انتهت صلاحية طلب التمويل - MaxioCore",
+        subject: "انتهت صلاحية طلب التمويل - ASH HOLDING",
         html: `
           <!DOCTYPE html>
           <html dir="rtl" lang="ar">
@@ -353,7 +353,7 @@ function getEmailTemplate(
           <body style="${baseStyle}">
             <div style="${cardStyle}">
               <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">MaxioCore</h1>
+                <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">ASH HOLDING</h1>
                 <p style="color: #94a3b8; margin-top: 8px;">إشعار التمويل</p>
               </div>
               
@@ -377,7 +377,7 @@ function getEmailTemplate(
               </div>
               
               <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
-                ماكسيو كور - شريكك التقني
+                ASH HOLDING - شريكك التقني
               </p>
             </div>
           </body>

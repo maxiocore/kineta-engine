@@ -43,7 +43,7 @@ const EMAIL_TEMPLATES = {
     <body style="font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0a0a0a; color: #ffffff; padding: 40px 20px; margin: 0;">
       <div style="max-width: 500px; margin: 0 auto; background: linear-gradient(145deg, #1a1a2e, #16213e); border-radius: 16px; padding: 40px; border: 1px solid #2a2a4a;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">MaxioCore</h1>
+          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">ASH HOLDING</h1>
           <p style="color: #94a3b8; margin-top: 8px;">نظام التمويل الآمن</p>
         </div>
         
@@ -65,7 +65,7 @@ const EMAIL_TEMPLATES = {
         </div>
         
         <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
-          ماكسيو كور - شريكك التقني
+          ASH HOLDING - شريكك التقني
         </p>
       </div>
     </body>
@@ -83,7 +83,7 @@ const EMAIL_TEMPLATES = {
     <body style="font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0a0a0a; color: #ffffff; padding: 40px 20px; margin: 0;">
       <div style="max-width: 500px; margin: 0 auto; background: linear-gradient(145deg, #1a1a2e, #16213e); border-radius: 16px; padding: 40px; border: 1px solid #2a2a4a;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">MaxioCore</h1>
+          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">ASH HOLDING</h1>
           <p style="color: #94a3b8; margin-top: 8px;">تنبيه أمني</p>
         </div>
         
@@ -109,7 +109,7 @@ const EMAIL_TEMPLATES = {
         </div>
         
         <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
-          ماكسيو كور - شريكك التقني
+          ASH HOLDING - شريكك التقني
         </p>
       </div>
     </body>
@@ -127,7 +127,7 @@ const EMAIL_TEMPLATES = {
     <body style="font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0a0a0a; color: #ffffff; padding: 40px 20px; margin: 0;">
       <div style="max-width: 500px; margin: 0 auto; background: linear-gradient(145deg, #1a1a2e, #16213e); border-radius: 16px; padding: 40px; border: 1px solid #2a2a4a;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">MaxioCore</h1>
+          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">ASH HOLDING</h1>
           <p style="color: #94a3b8; margin-top: 8px;">تأكيد أمني</p>
         </div>
         
@@ -145,7 +145,7 @@ const EMAIL_TEMPLATES = {
         </div>
         
         <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
-          ماكسيو كور - شريكك التقني
+          ASH HOLDING - شريكك التقني
         </p>
       </div>
     </body>
@@ -163,7 +163,7 @@ const EMAIL_TEMPLATES = {
     <body style="font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0a0a0a; color: #ffffff; padding: 40px 20px; margin: 0;">
       <div style="max-width: 500px; margin: 0 auto; background: linear-gradient(145deg, #1a1a2e, #16213e); border-radius: 16px; padding: 40px; border: 1px solid #2a2a4a;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">MaxioCore</h1>
+          <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">ASH HOLDING</h1>
           <p style="color: #94a3b8; margin-top: 8px;">استعادة كلمة المرور</p>
         </div>
         
@@ -185,7 +185,7 @@ const EMAIL_TEMPLATES = {
         </div>
         
         <p style="color: #64748b; font-size: 12px; text-align: center; margin: 0;">
-          ماكسيو كور - شريكك التقني
+          ASH HOLDING - شريكك التقني
         </p>
       </div>
     </body>
@@ -198,14 +198,14 @@ const WHATSAPP_TEMPLATES = {
   // إشعار تأكيد إنشاء الحساب (بدون رابط أو بيانات حساسة)
   ACCOUNT_CREATED: (name: string) => `مرحباً ${name} 👋
 
-✅ تم إنشاء حسابك في ماكسيو كور بنجاح!
+✅ تم إنشاء حسابك في ASH HOLDING بنجاح!
 
 📧 يُرجى تفقد بريدك الإلكتروني لتأكيد الحساب وتفعيله.
 
-ماكسيو كور - شريكك التقني`,
+ASH HOLDING - شريكك التقني`,
 
   // إشعار قفل الحساب (بدون تفاصيل أمنية حساسة)
-  ACCOUNT_LOCKED: (name: string, durationMinutes: number) => `⚠️ تنبيه أمني - ماكسيو كور
+  ACCOUNT_LOCKED: (name: string, durationMinutes: number) => `⚠️ تنبيه أمني - ASH HOLDING
 
 مرحباً ${name}،
 
@@ -215,10 +215,10 @@ const WHATSAPP_TEMPLATES = {
 
 📧 لمزيد من التفاصيل، راجع بريدك الإلكتروني.
 
-ماكسيو كور`,
+ASH HOLDING`,
 
   // إشعار تغيير كلمة المرور
-  PASSWORD_CHANGED: (name: string) => `🔐 تأكيد أمني - ماكسيو كور
+  PASSWORD_CHANGED: (name: string) => `🔐 تأكيد أمني - ASH HOLDING
 
 مرحباً ${name}،
 
@@ -226,7 +226,7 @@ const WHATSAPP_TEMPLATES = {
 
 ⚠️ إذا لم تكن أنت، تواصل مع الدعم الفني فوراً.
 
-ماكسيو كور`,
+ASH HOLDING`,
 };
 
 interface AuthNotifyRequest {
@@ -268,12 +268,12 @@ serve(async (req) => {
     switch (action) {
       case 'account_created': {
         // Send verification email (PRIMARY - required)
-        const verificationLink = data?.verificationLink || `https://maxiocore.com/auth/verify`;
+        const verificationLink = data?.verificationLink || `https://ashholding.com/auth/verify`;
         
         const { error: emailError } = await resend.emails.send({
-          from: "MaxioCore <noreply@maxiocore.com>",
+          from: "ASH HOLDING <noreply@ashholding.com>",
           to: [email],
-          subject: "تأكيد حسابك - MaxioCore",
+          subject: "تأكيد حسابك - ASH HOLDING",
           html: EMAIL_TEMPLATES.ACCOUNT_CREATED(name, verificationLink),
         });
 
@@ -300,9 +300,9 @@ serve(async (req) => {
         const reason = data?.reason || 'تجاوز عدد محاولات تسجيل الدخول المسموحة';
         
         const { error: emailError } = await resend.emails.send({
-          from: "MaxioCore Security <security@maxiocore.com>",
+          from: "ASH HOLDING Security <security@ashholding.com>",
           to: [email],
-          subject: "⚠️ تنبيه أمني: تم قفل حسابك مؤقتاً - MaxioCore",
+          subject: "⚠️ تنبيه أمني: تم قفل حسابك مؤقتاً - ASH HOLDING",
           html: EMAIL_TEMPLATES.ACCOUNT_LOCKED(name, unlockTime, reason),
         });
 
@@ -324,9 +324,9 @@ serve(async (req) => {
       case 'password_changed': {
         // Send confirmation email (PRIMARY)
         const { error: emailError } = await resend.emails.send({
-          from: "MaxioCore Security <security@maxiocore.com>",
+          from: "ASH HOLDING Security <security@ashholding.com>",
           to: [email],
-          subject: "✅ تم تغيير كلمة المرور - MaxioCore",
+          subject: "✅ تم تغيير كلمة المرور - ASH HOLDING",
           html: EMAIL_TEMPLATES.PASSWORD_CHANGED(name),
         });
 
@@ -355,9 +355,9 @@ serve(async (req) => {
         }
 
         const { error: emailError } = await resend.emails.send({
-          from: "MaxioCore <noreply@maxiocore.com>",
+          from: "ASH HOLDING <noreply@ashholding.com>",
           to: [email],
-          subject: "🔑 استعادة كلمة المرور - MaxioCore",
+          subject: "🔑 استعادة كلمة المرور - ASH HOLDING",
           html: EMAIL_TEMPLATES.PASSWORD_RESET(name, resetLink),
         });
 

@@ -728,13 +728,13 @@ const ClientOrderDetails = () => {
             <tr>
               <td style="vertical-align: middle;">
                 <p style="color: #6B7280; font-size: 10px; margin: 0; line-height: 1.6;">
-                  فاتورة إلكترونية صادرة من منصة MAXIOCORE
+                  فاتورة إلكترونية صادرة من منصة ASH HOLDING
                 </p>
                 <p style="color: #9CA3AF; font-size: 9px; margin: 5px 0 0;">
                   تاريخ الطباعة: ${format(new Date(), 'dd/MM/yyyy HH:mm')}
                 </p>
                 <p style="color: #9CA3AF; font-size: 9px; margin: 5px 0 0;">
-                  info@maxiocore.com | www.maxiocore.com
+                  info@ashholding.com | www.ashholding.com
                 </p>
               </td>
               <td style="text-align: left; vertical-align: middle;">

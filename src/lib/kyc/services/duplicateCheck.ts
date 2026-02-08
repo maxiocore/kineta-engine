@@ -1,5 +1,5 @@
 // ============================================
-// Duplicate Check Service - MaxioCore KYC
+// Duplicate Check Service - ASH HOLDING KYC
 // Prevents same ID from being used multiple times
 // ============================================
 

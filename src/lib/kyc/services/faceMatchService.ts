@@ -1,5 +1,5 @@
 // ============================================
-// Face Matching Service - MaxioCore KYC
+// Face Matching Service - ASH HOLDING KYC
 // Compares face in document with selfie
 // ============================================
 

@@ -1,5 +1,5 @@
 // ============================================
-// Eligibility Contract - MaxioCore FinTech
+// Eligibility Contract - ASH HOLDING FinTech
 // Data Contract between Eligibility Engine & Loan Application
 // ============================================
 

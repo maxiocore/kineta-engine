@@ -152,10 +152,10 @@ const PrivacyPolicy = () => {
               إذا كانت لديك أي أسئلة حول سياسة الخصوصية، يرجى التواصل معنا.
             </p>
             <a 
-              href="mailto:privacy@maxiocore.com" 
+              href="mailto:privacy@ashholding.com" 
               className="text-blue-400 hover:text-blue-300 font-medium"
             >
-              privacy@maxiocore.com
+              privacy@ashholding.com
             </a>
           </motion.div>
         </div>

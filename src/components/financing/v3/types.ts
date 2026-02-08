@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v3 - Type Definitions
+ * ASH HOLDING Financing System v3 - Type Definitions
  * نظام التمويل الجديد - تعريفات الأنواع (FinTech Style)
  */
 

@@ -113,7 +113,7 @@ const STEPS = [
   { id: 8, title: "النتيجة", icon: "🎯" },
 ];
 
-const STORAGE_KEY = "maxiocore_loan_application";
+const STORAGE_KEY = "ashholding_loan_application";
 
 export function LoanApplicationWizard() {
   const { user, profile } = useAuth();

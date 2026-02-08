@@ -90,7 +90,7 @@ serve(async (req: Request): Promise<Response> => {
     switch (type) {
       case "new_reply":
         subject = `💬 رد جديد على تذكرة الدعم #${ticket.ticket_number}`;
-        smsMessage = `ماكسيو كور: رد جديد على تذكرتك رقم ${ticket.ticket_number}. راجع الرد من حسابك: maxiocore.com/dashboard/support`;
+        smsMessage = `ASH HOLDING: رد جديد على تذكرتك رقم ${ticket.ticket_number}. راجع الرد من حسابك: ashholding.com/dashboard/support`;
         emailContent = `
           <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 30px; border-radius: 16px; text-align: center; color: white;">
             <h1 style="margin: 0; font-size: 28px;">💬 رد جديد</h1>
@@ -106,7 +106,7 @@ serve(async (req: Request): Promise<Response> => {
             </div>
             
             <div style="text-align: center; margin-top: 25px;">
-              <a href="https://maxiocore.com/dashboard/support" style="background: #6366f1; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold;">عرض التذكرة</a>
+              <a href="https://ashholding.com/dashboard/support" style="background: #6366f1; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold;">عرض التذكرة</a>
             </div>
           </div>
         `;
@@ -114,7 +114,7 @@ serve(async (req: Request): Promise<Response> => {
         
       case "status_changed":
         subject = `${statusInfo.emoji} تحديث حالة تذكرتك #${ticket.ticket_number}`;
-        smsMessage = `ماكسيو كور: تم تحديث حالة تذكرتك رقم ${ticket.ticket_number} إلى "${statusInfo.ar}". maxiocore.com/dashboard/support`;
+        smsMessage = `ASH HOLDING: تم تحديث حالة تذكرتك رقم ${ticket.ticket_number} إلى "${statusInfo.ar}". ashholding.com/dashboard/support`;
         emailContent = `
           <div style="background: ${statusInfo.color}; padding: 30px; border-radius: 16px; text-align: center; color: white;">
             <h1 style="margin: 0; font-size: 28px;">${statusInfo.emoji} تحديث الحالة</h1>
@@ -132,7 +132,7 @@ serve(async (req: Request): Promise<Response> => {
             </div>
             
             <div style="text-align: center; margin-top: 25px;">
-              <a href="https://maxiocore.com/dashboard/support" style="background: #6366f1; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold;">عرض التذكرة</a>
+              <a href="https://ashholding.com/dashboard/support" style="background: #6366f1; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold;">عرض التذكرة</a>
             </div>
           </div>
         `;
@@ -140,7 +140,7 @@ serve(async (req: Request): Promise<Response> => {
         
       case "ticket_resolved":
         subject = `✅ تم حل تذكرتك #${ticket.ticket_number}`;
-        smsMessage = `ماكسيو كور: تم حل تذكرتك رقم ${ticket.ticket_number}. نتمنى أن نكون قد ساعدناك! maxiocore.com/dashboard/support`;
+        smsMessage = `ASH HOLDING: تم حل تذكرتك رقم ${ticket.ticket_number}. نتمنى أن نكون قد ساعدناك! ashholding.com/dashboard/support`;
         emailContent = `
           <div style="background: linear-gradient(135deg, #10b981, #14b8a6); padding: 30px; border-radius: 16px; text-align: center; color: white;">
             <h1 style="margin: 0; font-size: 28px;">✅ تم الحل!</h1>
@@ -155,7 +155,7 @@ serve(async (req: Request): Promise<Response> => {
             </div>
             
             <div style="text-align: center; margin-top: 25px;">
-              <a href="https://maxiocore.com/dashboard/support" style="background: #10b981; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold;">فتح تذكرة جديدة</a>
+              <a href="https://ashholding.com/dashboard/support" style="background: #10b981; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold;">فتح تذكرة جديدة</a>
             </div>
           </div>
         `;
@@ -163,7 +163,7 @@ serve(async (req: Request): Promise<Response> => {
         
       case "ticket_closed":
         subject = `🔒 تم إغلاق تذكرتك #${ticket.ticket_number}`;
-        smsMessage = `ماكسيو كور: تم إغلاق تذكرتك رقم ${ticket.ticket_number}. يمكنك فتح تذكرة جديدة إذا احتجت مساعدة.`;
+        smsMessage = `ASH HOLDING: تم إغلاق تذكرتك رقم ${ticket.ticket_number}. يمكنك فتح تذكرة جديدة إذا احتجت مساعدة.`;
         emailContent = `
           <div style="background: #6b7280; padding: 30px; border-radius: 16px; text-align: center; color: white;">
             <h1 style="margin: 0; font-size: 28px;">🔒 تم الإغلاق</h1>
@@ -174,7 +174,7 @@ serve(async (req: Request): Promise<Response> => {
             <p style="color: #64748b; line-height: 1.8;">تم إغلاق تذكرتك. إذا كنت بحاجة لمزيد من المساعدة، يمكنك فتح تذكرة جديدة.</p>
             
             <div style="text-align: center; margin-top: 25px;">
-              <a href="https://maxiocore.com/dashboard/support" style="background: #6366f1; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold;">فتح تذكرة جديدة</a>
+              <a href="https://ashholding.com/dashboard/support" style="background: #6366f1; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold;">فتح تذكرة جديدة</a>
             </div>
           </div>
         `;
@@ -206,7 +206,7 @@ serve(async (req: Request): Promise<Response> => {
                 </tr>
                 <tr>
                   <td style="background: #1e293b; padding: 25px; text-align: center;">
-                    <p style="color: #94a3b8; margin: 0; font-size: 14px;">© ${new Date().getFullYear()} MaxioCore. جميع الحقوق محفوظة.</p>
+                    <p style="color: #94a3b8; margin: 0; font-size: 14px;">© ${new Date().getFullYear()} ASH HOLDING. جميع الحقوق محفوظة.</p>
                   </td>
                 </tr>
               </table>
@@ -225,7 +225,7 @@ serve(async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "MaxioCore <noreply@maxiocore.com>",
+        from: "ASH HOLDING <noreply@ashholding.com>",
         to: [profile.email],
         subject,
         html: emailHtml,

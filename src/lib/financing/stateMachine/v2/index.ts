@@ -2,7 +2,7 @@
  * نظام حالات طلب تمويل الخدمات - الإصدار الثاني
  * Service Financing Application State Machine V2
  * 
- * MaxioCore - Ali Saleh Al-Shehri Holding Company
+ * ASH HOLDING - Ali Saleh Al-Shehri Holding Company
  * 
  * ⚠️ تنبيه: التمويل غير نقدي - رصيد خدمات داخل المنصة فقط
  */

@@ -1,5 +1,5 @@
 // ============================================
-// Eligibility System Types - MaxioCore FinTech
+// Eligibility System Types - ASH HOLDING FinTech
 // ============================================
 
 export type VerificationStatus = 'pending' | 'in_progress' | 'verified' | 'failed' | 'skipped';

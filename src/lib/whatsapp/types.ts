@@ -1,5 +1,5 @@
 /**
- * WhatsApp Integration Types for MaxioCore
+ * WhatsApp Integration Types for ASH HOLDING
  * Frontend type definitions matching backend provider
  */
 

@@ -22,7 +22,7 @@ const CodeExamples = () => {
       title: "الحصول على الخدمات",
       description: "جلب قائمة بجميع الخدمات المتاحة",
       languages: {
-        javascript: `const response = await fetch('https://api.maxiocore.com/api/v1/services', {
+        javascript: `const response = await fetch('https://api.ashholding.com/api/v1/services', {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer YOUR_API_KEY',
@@ -35,7 +35,7 @@ console.log(services.data);`,
         python: `import requests
 
 response = requests.get(
-    'https://api.maxiocore.com/api/v1/services',
+    'https://api.ashholding.com/api/v1/services',
     headers={
         'Authorization': 'Bearer YOUR_API_KEY',
         'Content-Type': 'application/json'
@@ -48,7 +48,7 @@ print(services['data'])`,
 $ch = curl_init();
 
 curl_setopt_array($ch, [
-    CURLOPT_URL => 'https://api.maxiocore.com/api/v1/services',
+    CURLOPT_URL => 'https://api.ashholding.com/api/v1/services',
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_HTTPHEADER => [
         'Authorization: Bearer YOUR_API_KEY',
@@ -60,7 +60,7 @@ $response = curl_exec($ch);
 $services = json_decode($response, true);
 print_r($services['data']);
 ?>`,
-        curl: `curl -X GET "https://api.maxiocore.com/api/v1/services" \\
+        curl: `curl -X GET "https://api.ashholding.com/api/v1/services" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json"`,
       },
@@ -69,7 +69,7 @@ print_r($services['data']);
       title: "إنشاء طلب جديد",
       description: "إنشاء طلب لخدمة محددة",
       languages: {
-        javascript: `const response = await fetch('https://api.maxiocore.com/api/v1/orders', {
+        javascript: `const response = await fetch('https://api.ashholding.com/api/v1/orders', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer YOUR_API_KEY',
@@ -87,7 +87,7 @@ console.log('Order ID:', order.data.order_id);`,
         python: `import requests
 
 response = requests.post(
-    'https://api.maxiocore.com/api/v1/orders',
+    'https://api.ashholding.com/api/v1/orders',
     headers={
         'Authorization': 'Bearer YOUR_API_KEY',
         'Content-Type': 'application/json'
@@ -111,7 +111,7 @@ $data = json_encode([
 ]);
 
 curl_setopt_array($ch, [
-    CURLOPT_URL => 'https://api.maxiocore.com/api/v1/orders',
+    CURLOPT_URL => 'https://api.ashholding.com/api/v1/orders',
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_POST => true,
     CURLOPT_POSTFIELDS => $data,
@@ -125,7 +125,7 @@ $response = curl_exec($ch);
 $order = json_decode($response, true);
 echo "Order ID: " . $order['data']['order_id'];
 ?>`,
-        curl: `curl -X POST "https://api.maxiocore.com/api/v1/orders" \\
+        curl: `curl -X POST "https://api.ashholding.com/api/v1/orders" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -141,7 +141,7 @@ echo "Order ID: " . $order['data']['order_id'];
       languages: {
         javascript: `const orderId = 'ord_456';
 
-const response = await fetch(\`https://api.maxiocore.com/api/v1/orders/\${orderId}\`, {
+const response = await fetch(\`https://api.ashholding.com/api/v1/orders/\${orderId}\`, {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer YOUR_API_KEY',
@@ -157,7 +157,7 @@ console.log('Remaining:', status.data.remains);`,
 order_id = 'ord_456'
 
 response = requests.get(
-    f'https://api.maxiocore.com/api/v1/orders/{order_id}',
+    f'https://api.ashholding.com/api/v1/orders/{order_id}',
     headers={
         'Authorization': 'Bearer YOUR_API_KEY',
         'Content-Type': 'application/json'
@@ -172,7 +172,7 @@ $orderId = 'ord_456';
 $ch = curl_init();
 
 curl_setopt_array($ch, [
-    CURLOPT_URL => "https://api.maxiocore.com/api/v1/orders/{$orderId}",
+    CURLOPT_URL => "https://api.ashholding.com/api/v1/orders/{$orderId}",
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_HTTPHEADER => [
         'Authorization: Bearer YOUR_API_KEY',
@@ -185,7 +185,7 @@ $status = json_decode($response, true);
 echo "Status: " . $status['data']['status'];
 echo "Remaining: " . $status['data']['remains'];
 ?>`,
-        curl: `curl -X GET "https://api.maxiocore.com/api/v1/orders/ord_456" \\
+        curl: `curl -X GET "https://api.ashholding.com/api/v1/orders/ord_456" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json"`,
       },
@@ -194,7 +194,7 @@ echo "Remaining: " . $status['data']['remains'];
       title: "إعداد Webhook",
       description: "إنشاء webhook لتلقي إشعارات تلقائية",
       languages: {
-        javascript: `const response = await fetch('https://api.maxiocore.com/api/v1/webhooks', {
+        javascript: `const response = await fetch('https://api.ashholding.com/api/v1/webhooks', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer YOUR_API_KEY',
@@ -212,7 +212,7 @@ console.log('Webhook Secret:', webhook.data.secret);
         python: `import requests
 
 response = requests.post(
-    'https://api.maxiocore.com/api/v1/webhooks',
+    'https://api.ashholding.com/api/v1/webhooks',
     headers={
         'Authorization': 'Bearer YOUR_API_KEY',
         'Content-Type': 'application/json'
@@ -235,7 +235,7 @@ $data = json_encode([
 ]);
 
 curl_setopt_array($ch, [
-    CURLOPT_URL => 'https://api.maxiocore.com/api/v1/webhooks',
+    CURLOPT_URL => 'https://api.ashholding.com/api/v1/webhooks',
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_POST => true,
     CURLOPT_POSTFIELDS => $data,
@@ -250,7 +250,7 @@ $webhook = json_decode($response, true);
 echo "Webhook Secret: " . $webhook['data']['secret'];
 // احفظ هذا السر للتحقق من الطلبات
 ?>`,
-        curl: `curl -X POST "https://api.maxiocore.com/api/v1/webhooks" \\
+        curl: `curl -X POST "https://api.ashholding.com/api/v1/webhooks" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{

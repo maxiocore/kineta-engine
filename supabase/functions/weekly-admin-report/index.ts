@@ -312,7 +312,7 @@ const handler = async (req: Request): Promise<Response> => {
       
       <!-- CTA Button -->
       <div style="text-align: center; margin: 30px 0;">
-        <a href="https://maxiocore.com/admin" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; text-decoration: none; padding: 14px 40px; border-radius: 12px; font-size: 16px; font-weight: bold; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);">
+        <a href="https://ashholding.com/admin" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; text-decoration: none; padding: 14px 40px; border-radius: 12px; font-size: 16px; font-weight: bold; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);">
           🚀 فتح لوحة التحكم
         </a>
       </div>
@@ -322,7 +322,7 @@ const handler = async (req: Request): Promise<Response> => {
     <!-- Footer -->
     <div style="text-align: center; padding: 25px 20px;">
       <p style="margin: 0 0 8px; font-size: 13px; color: #a0a0b0;">
-        تقرير آلي من MaxioCore • ${reportDate}
+        تقرير آلي من ASH HOLDING • ${reportDate}
       </p>
       <p style="margin: 0; font-size: 11px; color: #606070;">
         يُرسل هذا التقرير أسبوعياً كل يوم أحد
@@ -340,7 +340,7 @@ const handler = async (req: Request): Promise<Response> => {
       if (admin.email) {
         try {
           await resend.emails.send({
-            from: "MaxioCore <onboarding@resend.dev>",
+            from: "ASH HOLDING <onboarding@resend.dev>",
             to: [admin.email],
             subject: `📊 التقرير الأسبوعي - ${weekStartDate} إلى ${weekEndDate}`,
             html: emailHtml,

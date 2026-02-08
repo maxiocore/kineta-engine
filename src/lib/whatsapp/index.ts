@@ -1,5 +1,5 @@
 /**
- * WhatsApp Integration Module for MaxioCore
+ * WhatsApp Integration Module for ASH HOLDING
  * Frontend utilities for WhatsApp notifications
  */
 

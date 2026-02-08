@@ -51,10 +51,10 @@ const contactMethods = [
   {
     icon: Mail,
     title: "راسلنا",
-    value: "info@maxiocore.com",
+    value: "info@ashholding.com",
     description: "نرد خلال 24 ساعة",
     gradient: "from-pink-500 to-rose-600",
-    action: "mailto:info@maxiocore.com",
+    action: "mailto:info@ashholding.com",
     hoverColor: "group-hover:shadow-pink-500/30"
   },
   {
