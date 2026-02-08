@@ -29,6 +29,8 @@ import {
   Calendar,
   Loader2,
   Zap,
+  CheckCircle,
+  ShieldCheck,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { AdminApplicationView, AdminActionType } from '../types';
@@ -43,7 +45,7 @@ interface AdminQuickActionsProps {
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Search, FileCheck, Send, FileText, Stamp, Wallet,
-  XCircle, Ban, RefreshCw, DollarSign, Calendar,
+  XCircle, Ban, RefreshCw, DollarSign, Calendar, CheckCircle, ShieldCheck,
 };
 
 export function AdminQuickActions({ application, onActionComplete }: AdminQuickActionsProps) {
