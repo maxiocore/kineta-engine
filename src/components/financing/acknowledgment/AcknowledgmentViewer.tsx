@@ -228,6 +228,31 @@ export function AcknowledgmentViewer({
         throw new Error('تم إنشاء الإقرار لكن لم يتم حفظه بشكل صحيح');
       }
       
+      // Send SMS notification for acknowledgment signing
+      try {
+        const { data: appData } = await supabase
+          .from('financing_applications')
+          .select('phone, full_name, application_number, user_id')
+          .eq('id', applicationId)
+          .single();
+
+        if (appData?.phone) {
+          await supabase.functions.invoke('financing-sms-notify', {
+            body: {
+              event: 'acknowledgment_signed',
+              phone: appData.phone,
+              customerName: appData.full_name,
+              applicationId,
+              applicationNumber: appData.application_number,
+              userId: appData.user_id,
+            }
+          });
+          console.log('[AcknowledgmentViewer] SMS notification sent for acknowledgment signing');
+        }
+      } catch (smsErr) {
+        console.error('[AcknowledgmentViewer] SMS notification failed (non-blocking):', smsErr);
+      }
+
       toast.success('تم توقيع الإقرار بنجاح');
       onSigned?.();
     } catch (err) {

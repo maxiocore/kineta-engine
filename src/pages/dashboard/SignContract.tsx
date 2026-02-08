@@ -202,6 +202,25 @@ export default function SignContract() {
           });
         }
       }
+
+      // Send SMS notification for contract signing
+      try {
+        if (application?.phone) {
+          await supabase.functions.invoke('financing-sms-notify', {
+            body: {
+              event: 'contract_signed',
+              phone: application.phone,
+              customerName: application.full_name,
+              applicationId,
+              applicationNumber: application.application_number,
+              userId: user?.id,
+            }
+          });
+          console.log('[SignContract] SMS notification sent for contract signing');
+        }
+      } catch (smsErr) {
+        console.error('[SignContract] SMS notification failed (non-blocking):', smsErr);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["financing-application"] });
