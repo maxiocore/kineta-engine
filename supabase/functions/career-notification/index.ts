@@ -111,7 +111,7 @@ const handler = async (req: Request): Promise<Response> => {
               </table>
               
               <div style="margin-top: 24px;">
-                <a href="https://ashholding.com/admin/careers" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+                <a href="https://ash-holding.sa/admin/careers" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
                   عرض الطلب في لوحة التحكم
                 </a>
               </div>

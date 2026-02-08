@@ -361,7 +361,7 @@ serve(async (req: Request): Promise<Response> => {
                   <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
                       <td align="center" style="padding: 0 40px 40px 40px;">
-                        <a href="https://ashholding.com/dashboard/financial" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%); color: #ffffff; text-decoration: none; padding: 18px 48px; border-radius: 14px; font-weight: 700; font-size: 16px; box-shadow: 0 10px 30px -5px rgba(99, 102, 241, 0.5); transition: all 0.3s ease;">
+                        <a href="https://ash-holding.sa/dashboard/financial" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%); color: #ffffff; text-decoration: none; padding: 18px 48px; border-radius: 14px; font-weight: 700; font-size: 16px; box-shadow: 0 10px 30px -5px rgba(99, 102, 241, 0.5); transition: all 0.3s ease;">
                           📊 عرض تفاصيل حسابي
                         </a>
                       </td>
@@ -417,8 +417,8 @@ serve(async (req: Request): Promise<Response> => {
                               </a>
                             </td>
                             <td style="padding: 0 12px;">
-                              <a href="https://ashholding.com" style="display: inline-block; background: #ffffff; padding: 10px 16px; border-radius: 8px; text-decoration: none; color: #475569; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                                🌐 ashholding.com
+                              <a href="https://ash-holding.sa" style="display: inline-block; background: #ffffff; padding: 10px 16px; border-radius: 8px; text-decoration: none; color: #475569; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                🌐 ash-holding.sa
                               </a>
                             </td>
                           </tr>

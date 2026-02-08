@@ -229,14 +229,14 @@ function getEmailTemplate(
               <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                 <tr>
                   <td style="padding: 5px;">
-                    <a href="https://ashholding.com/dashboard" style="display: block; width: 100%; padding: 16px 30px; background: linear-gradient(to right, #00805A, #004d36); color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; text-align: center; box-sizing: border-box;">
+                    <a href="https://ash-holding.sa/dashboard" style="display: block; width: 100%; padding: 16px 30px; background: linear-gradient(to right, #00805A, #004d36); color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; text-align: center; box-sizing: border-box;">
                       🏦 الذهاب للوحة التحكم
                     </a>
                   </td>
                 </tr>
                 <tr>
                   <td style="padding: 10px 5px 5px;">
-                    <a href="https://ashholding.com/dashboard/services" style="display: block; width: 100%; padding: 14px 30px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 15px; text-align: center; box-sizing: border-box;">
+                    <a href="https://ash-holding.sa/dashboard/services" style="display: block; width: 100%; padding: 14px 30px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 15px; text-align: center; box-sizing: border-box;">
                       🛒 تصفح الخدمات
                     </a>
                   </td>

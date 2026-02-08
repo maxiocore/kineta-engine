@@ -226,7 +226,7 @@ function getEmailTemplate(
           <!-- CTA Button -->
           <tr>
             <td style="padding: 0 40px 45px; text-align: center;">
-              <a href="https://ashholding.com/dashboard/orders" class="animate-pulse" style="display: inline-block; padding: 20px 55px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; border-radius: 16px; font-weight: 700; font-size: 20px; box-shadow: 0 15px 40px rgba(99, 102, 241, 0.4);">
+              <a href="https://ash-holding.sa/dashboard/orders" class="animate-pulse" style="display: inline-block; padding: 20px 55px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; border-radius: 16px; font-weight: 700; font-size: 20px; box-shadow: 0 15px 40px rgba(99, 102, 241, 0.4);">
                 📋 تتبع طلبك الآن
               </a>
             </td>
@@ -389,16 +389,16 @@ serve(async (req: Request): Promise<Response> => {
     if (profile.phone) {
       const customerFirstName = (profile.full_name || '').split(' ')[0] || 'عميلنا';
       const orderSmsTemplates: Record<string, string> = {
-        pending: `📦 ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nتم استلام طلبك رقم #${order.order_number} بنجاح ✅\n\n⏳ الحالة: قيد الانتظار\n💰 المبلغ: ${order.total_price} ر.س\n\nسيتم معالجة طلبك قريباً.\nashholding.com`,
-        confirmed: `✅ ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nتم تأكيد طلبك رقم #${order.order_number} 🎉\n\n📋 الحالة: مؤكد\n🔄 سنبدأ التنفيذ قريباً\n\nashholding.com`,
-        processing: `⚙️ ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nطلبك رقم #${order.order_number} قيد المعالجة الآن 🔄\n\n📋 الحالة: قيد المعالجة\n⏱️ يتم العمل على طلبك\n\nashholding.com`,
-        in_progress: `🚀 ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nطلبك رقم #${order.order_number} قيد التنفيذ! 💪\n\n📋 الحالة: قيد التنفيذ\n⚡ فريقنا يعمل على إنجاز طلبك\n\nashholding.com`,
-        completed: `🎉 ASH HOLDING\n\nتهانينا ${customerFirstName}! 🥳\nتم إكمال طلبك رقم #${order.order_number} بنجاح ✅\n\n📋 الحالة: مكتمل\n⭐ نتمنى أن تكون تجربتك ممتازة!\n\nashholding.com`,
-        partial: `⚠️ ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nطلبك رقم #${order.order_number} مكتمل جزئياً 📊\n\n📋 الحالة: مكتمل جزئي\nℹ️ يمكنك مراجعة التفاصيل من حسابك\n\nashholding.com`,
-        cancelled: `❌ ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nتم إلغاء طلبك رقم #${order.order_number}\n\n📋 الحالة: ملغي\n💰 تم إرجاع المبلغ لرصيدك\n\n📞 للاستفسار تواصل معنا\nashholding.com`,
-        refunded: `💰 ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nتم استرداد مبلغ طلبك رقم #${order.order_number} 🔄\n\n📋 الحالة: مسترد\n✅ المبلغ سيظهر في رصيدك\n\nashholding.com`,
+        pending: `📦 ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nتم استلام طلبك رقم #${order.order_number} بنجاح ✅\n\n⏳ الحالة: قيد الانتظار\n💰 المبلغ: ${order.total_price} ر.س\n\nسيتم معالجة طلبك قريباً.\nash-holding.sa`,
+        confirmed: `✅ ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nتم تأكيد طلبك رقم #${order.order_number} 🎉\n\n📋 الحالة: مؤكد\n🔄 سنبدأ التنفيذ قريباً\n\nash-holding.sa`,
+        processing: `⚙️ ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nطلبك رقم #${order.order_number} قيد المعالجة الآن 🔄\n\n📋 الحالة: قيد المعالجة\n⏱️ يتم العمل على طلبك\n\nash-holding.sa`,
+        in_progress: `🚀 ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nطلبك رقم #${order.order_number} قيد التنفيذ! 💪\n\n📋 الحالة: قيد التنفيذ\n⚡ فريقنا يعمل على إنجاز طلبك\n\nash-holding.sa`,
+        completed: `🎉 ASH HOLDING\n\nتهانينا ${customerFirstName}! 🥳\nتم إكمال طلبك رقم #${order.order_number} بنجاح ✅\n\n📋 الحالة: مكتمل\n⭐ نتمنى أن تكون تجربتك ممتازة!\n\nash-holding.sa`,
+        partial: `⚠️ ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nطلبك رقم #${order.order_number} مكتمل جزئياً 📊\n\n📋 الحالة: مكتمل جزئي\nℹ️ يمكنك مراجعة التفاصيل من حسابك\n\nash-holding.sa`,
+        cancelled: `❌ ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nتم إلغاء طلبك رقم #${order.order_number}\n\n📋 الحالة: ملغي\n💰 تم إرجاع المبلغ لرصيدك\n\n📞 للاستفسار تواصل معنا\nash-holding.sa`,
+        refunded: `💰 ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nتم استرداد مبلغ طلبك رقم #${order.order_number} 🔄\n\n📋 الحالة: مسترد\n✅ المبلغ سيظهر في رصيدك\n\nash-holding.sa`,
       };
-      const smsMessage = orderSmsTemplates[newStatus] || `📦 ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nتم تحديث طلبك رقم #${order.order_number}\n\n📋 الحالة: ${statusInfo.ar} ${statusInfo.emoji}\n\nashholding.com`;
+      const smsMessage = orderSmsTemplates[newStatus] || `📦 ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nتم تحديث طلبك رقم #${order.order_number}\n\n📋 الحالة: ${statusInfo.ar} ${statusInfo.emoji}\n\nash-holding.sa`;
       const smsResult = await sendSMS(profile.phone, smsMessage);
       console.log("SMS result:", smsResult);
       

@@ -46,7 +46,7 @@ const handler = async (req: Request): Promise<Response> => {
       minute: '2-digit'
     });
 
-    const dashboardUrl = 'https://ashholding.com/dashboard';
+    const dashboardUrl = 'https://ash-holding.sa/dashboard';
 
     const emailHtml = `
 <!DOCTYPE html>
@@ -289,7 +289,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send welcome SMS if phone is provided
     if (phone) {
-      const smsMessage = `مرحباً بك ${name} في ASH HOLDING! 🎉 حسابك جاهز الآن. ابدأ رحلتك: ashholding.com/dashboard`;
+      const smsMessage = `مرحباً بك ${name} في ASH HOLDING! 🎉 حسابك جاهز الآن. ابدأ رحلتك: ash-holding.sa/dashboard`;
       const smsResult = await sendSMS(phone, smsMessage);
       console.log("Welcome SMS result:", smsResult);
       

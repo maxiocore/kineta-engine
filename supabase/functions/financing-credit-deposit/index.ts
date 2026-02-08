@@ -149,7 +149,7 @@ serve(async (req) => {
     if (application) {
       // إرسال Email
       try {
-        const baseUrl = 'https://ashholding.com';
+        const baseUrl = 'https://ash-holding.sa';
         
         const { error: emailError } = await supabase.functions.invoke('financing-status-email', {
           body: {
