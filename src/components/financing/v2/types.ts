@@ -13,15 +13,27 @@ export type FinancingStatus =
   | 'UNDER_REVIEW'
   | 'OFFER_READY'
   | 'ACK_PENDING'
+  | 'ACK_SENT'
   | 'ACK_SIGNED'
   | 'CONTRACT_PENDING'
+  | 'CONTRACT_SENT'
   | 'CONTRACT_SIGNED'
+  | 'CONTRACT_FINALIZED'
+  | 'SIGNING_OTP_SENT'
   | 'BOND_PENDING'
+  | 'BOND_ISSUING'
+  | 'BOND_ISSUED'
+  | 'BOND_SENT_TO_CLIENT'
   | 'BOND_SIGNED'
+  | 'BOND_SIGNED_BY_CLIENT'
+  | 'BOND_VERIFIED_BY_ADMIN'
   | 'CREDIT_ACTIVE'
+  | 'CREDIT_DEPOSITED'
+  | 'FIN_CREDIT_DEPOSITED'
   | 'COMPLETED'
   | 'CANCELLED'
-  | 'DECLINED';
+  | 'DECLINED'
+  | 'REJECTED';
 
 export type FinancingPhase = 
   | 'application'
