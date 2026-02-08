@@ -1,6 +1,6 @@
 /**
  * ASH HOLDING Financing System v3 - Main Client Dashboard
- * لوحة تمويل العميل الجديدة - FinTech Style مع RTL كامل
+ * لوحة تمويل العميل - FinTech iOS-First RTL
  */
 
 import { useState, useEffect } from 'react';
@@ -9,11 +9,9 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Plus,
   ChevronLeft,
-  History,
   FileText,
   HelpCircle,
   ShoppingCart,
-  Wallet,
 } from 'lucide-react';
 import ClientDashboardLayout from '@/components/dashboard/ClientDashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -47,15 +45,11 @@ import { toast } from 'sonner';
 
 type TabValue = 'overview' | 'status' | 'wallet' | 'documents';
 
-// ═══════════════════════════════════════════════════════════════════
-// Tab Configuration - RTL order (right to left)
-// ═══════════════════════════════════════════════════════════════════
-
 const TABS: SegmentItem[] = [
-  { id: 'overview', label: 'نظرة عامة', icon: History },
-  { id: 'status', label: 'حالة الطلب', icon: FileText },
-  { id: 'wallet', label: 'رصيد الخدمات', icon: Wallet },
-  { id: 'documents', label: 'المستندات', icon: FileText },
+  { id: 'overview', label: 'نظرة عامة', icon: undefined },
+  { id: 'status', label: 'حالة الطلب', icon: undefined },
+  { id: 'wallet', label: 'رصيد الخدمات', icon: undefined },
+  { id: 'documents', label: 'المستندات', icon: undefined },
 ];
 
 export default function ClientFinancingV3() {
@@ -78,7 +72,6 @@ export default function ClientFinancingV3() {
     refetch,
   } = useFinancingData();
 
-  // Check for first visit (onboarding)
   useEffect(() => {
     const hasSeenOnboarding = localStorage.getItem('financing_onboarding_seen');
     if (!hasSeenOnboarding && !application && !isLoading) {
@@ -86,7 +79,7 @@ export default function ClientFinancingV3() {
     }
   }, [application, isLoading]);
 
-  // Calculate stats
+  // Stats calculation
   const stats: FinancingStats = {
     totalApproved: application?.approved_amount ?? application?.requested_amount ?? 0,
     totalUsed: serviceCredit?.total_used ?? 0,
@@ -98,11 +91,10 @@ export default function ClientFinancingV3() {
     overdueInstallments: installments.filter(i => i.status === 'overdue').length,
   };
 
-  // Handle customer action
+  // Action handler
   const handleAction = async (action: CustomerAction) => {
     setIsProcessing(true);
     setProcessingActionId(action.id);
-
     try {
       switch (action.type) {
         case 'sign_acknowledgment':
@@ -123,8 +115,7 @@ export default function ClientFinancingV3() {
         default:
           toast.info('هذا الإجراء قيد التطوير');
       }
-    } catch (err) {
-      console.error('Action error:', err);
+    } catch {
       toast.error('حدث خطأ، يرجى المحاولة مرة أخرى');
     } finally {
       setIsProcessing(false);
@@ -132,15 +123,11 @@ export default function ClientFinancingV3() {
     }
   };
 
-  // Handle primary action
   const handlePrimaryAction = () => {
     const primaryAction = customerActions.find(a => a.isPrimary);
-    if (primaryAction) {
-      handleAction(primaryAction);
-    }
+    if (primaryAction) handleAction(primaryAction);
   };
 
-  // Handle onboarding completion
   const handleOnboardingStart = () => {
     localStorage.setItem('financing_onboarding_seen', 'true');
     setShowOnboarding(false);
@@ -152,7 +139,7 @@ export default function ClientFinancingV3() {
   const canTransfer = isActiveCredit && (serviceCredit?.available_balance ?? 0) > 0;
   const primaryAction = customerActions.find(a => a.isPrimary);
 
-  // Loading state
+  // Loading
   if (isLoading) {
     return (
       <ClientDashboardLayout>
@@ -171,18 +158,18 @@ export default function ClientFinancingV3() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        {/* Page Header */}
-        <div className="mb-6 lg:mb-8">
+        {/* Header */}
+        <div className="mb-6">
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
           >
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+              <h1 className="text-2xl lg:text-[28px] font-extrabold text-foreground tracking-tight">
                 تمويل الخدمات
               </h1>
-              <p className="text-muted-foreground mt-1 text-sm lg:text-base">
+              <p className="text-muted-foreground mt-0.5 text-sm">
                 إدارة تمويلك ومتابعة حالة الطلبات
               </p>
             </div>
@@ -191,42 +178,28 @@ export default function ClientFinancingV3() {
               <Button
                 size="lg"
                 onClick={() => navigate('/dashboard/financing/apply')}
-                className="gap-2 shadow-lg shadow-primary/20"
+                className="gap-2 shadow-lg shadow-primary/15 rounded-xl h-11"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-4 h-4" />
                 طلب تمويل خدمات
               </Button>
             )}
           </motion.div>
         </div>
 
-        {/* Main Content */}
+        {/* Content */}
         <AnimatePresence mode="wait">
-          {/* Onboarding State */}
+          {/* Onboarding */}
           {showOnboarding && !application && (
-            <motion.div
-              key="onboarding"
-              variants={rtlPageVariants}
-              initial="initial"
-              animate="enter"
-              exit="exit"
-            >
+            <motion.div key="onboarding" variants={rtlPageVariants} initial="initial" animate="enter" exit="exit">
               <OnboardingCard onStart={handleOnboardingStart} />
             </motion.div>
           )}
 
-          {/* Empty State */}
+          {/* Empty */}
           {!showOnboarding && !application && (
-            <motion.div
-              key="empty"
-              variants={rtlPageVariants}
-              initial="initial"
-              animate="enter"
-              exit="exit"
-            >
-              <FinancingEmptyState 
-                onApply={() => navigate('/dashboard/financing/apply')} 
-              />
+            <motion.div key="empty" variants={rtlPageVariants} initial="initial" animate="enter" exit="exit">
+              <FinancingEmptyState onApply={() => navigate('/dashboard/financing/apply')} />
             </motion.div>
           )}
 
@@ -234,13 +207,13 @@ export default function ClientFinancingV3() {
           {application && (
             <motion.div
               key="content"
-              className="space-y-6"
+              className="space-y-5"
               variants={rtlPageVariants}
               initial="initial"
               animate="enter"
               exit="exit"
             >
-              {/* Next Action Card - Always visible if there's an action */}
+              {/* Next Action */}
               {primaryAction && (
                 <NextActionCard
                   action={primaryAction}
@@ -249,7 +222,7 @@ export default function ClientFinancingV3() {
                 />
               )}
 
-              {/* Hero Card */}
+              {/* Hero */}
               <FinancingHeroCard
                 application={application}
                 serviceCredit={serviceCredit}
@@ -259,10 +232,10 @@ export default function ClientFinancingV3() {
                 onPrimaryAction={handlePrimaryAction}
               />
 
-              {/* Stats Cards */}
+              {/* Stats */}
               <FinancingStatsCards stats={stats} status={currentStatus} />
 
-              {/* RTL Segmented Control Navigation */}
+              {/* Tab Navigation */}
               <div className="flex justify-center">
                 <RTLSegmentedControl
                   items={TABS}
@@ -272,206 +245,38 @@ export default function ClientFinancingV3() {
                 />
               </div>
 
-              {/* Tab Content with RTL Transitions */}
+              {/* Tab Content */}
               <AnimatePresence mode="wait">
                 {activeTab === 'overview' && (
-                  <motion.div
-                    key="overview"
-                    variants={rtlPageVariants}
-                    initial="initial"
-                    animate="enter"
-                    exit="exit"
-                  >
-                    <StaggerContainer className="grid gap-6 lg:grid-cols-3">
-                      {/* Main Column */}
-                      <div className="lg:col-span-2 space-y-6">
-                        {/* Quick Actions */}
-                        {customerActions.length > 0 && (
-                          <StaggerItem>
-                            <Card className="border-none shadow-sm">
-                              <CardHeader className="pb-4">
-                                <CardTitle className="text-lg">الإجراءات المطلوبة</CardTitle>
-                              </CardHeader>
-                              <CardContent>
-                                <QuickActions
-                                  actions={customerActions}
-                                  onAction={handleAction}
-                                  isProcessing={isProcessing}
-                                  processingActionId={processingActionId}
-                                />
-                              </CardContent>
-                            </Card>
-                          </StaggerItem>
-                        )}
-
-                        {/* Compact Timeline */}
-                        <StaggerItem>
-                          <Card className="border-none shadow-sm">
-                            <CardHeader className="flex-row items-center justify-between pb-4">
-                              <CardTitle className="text-lg">تقدم الطلب</CardTitle>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setActiveTab('status')}
-                                className="gap-1 text-xs"
-                              >
-                                عرض التفاصيل
-                                <ChevronLeft className="w-4 h-4" />
-                              </Button>
-                            </CardHeader>
-                            <CardContent>
-                              <CompactTimeline currentStatus={currentStatus} />
-                            </CardContent>
-                          </Card>
-                        </StaggerItem>
-
-                        {/* Installments Progress */}
-                        {installments.length > 0 && (
-                          <StaggerItem>
-                            <InstallmentsProgress
-                              total={stats.totalInstallments}
-                              paid={stats.paidInstallments}
-                              overdue={stats.overdueInstallments}
-                            />
-                          </StaggerItem>
-                        )}
-                      </div>
-
-                      {/* Sidebar */}
-                      <div className="space-y-6">
-                        {/* Next Installment */}
-                        {nextInstallment && (
-                          <StaggerItem>
-                            <Card className="border-none shadow-sm">
-                              <CardHeader className="pb-3">
-                                <CardTitle className="text-base">القسط القادم</CardTitle>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="space-y-3">
-                                  <div className="flex justify-between items-baseline">
-                                    <span className="text-muted-foreground text-sm">المبلغ</span>
-                                    <span className="text-2xl font-bold text-foreground tabular-nums">
-                                      {Number(nextInstallment.amount).toLocaleString('ar-SA')} <span className="text-sm text-muted-foreground">ر.س</span>
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between items-baseline">
-                                    <span className="text-muted-foreground text-sm">تاريخ الاستحقاق</span>
-                                    <span className="font-medium text-sm">
-                                      {new Date(nextInstallment.due_date).toLocaleDateString('ar-SA', {
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric',
-                                      })}
-                                    </span>
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </StaggerItem>
-                        )}
-
-                        {/* Quick Links */}
-                        <StaggerItem>
-                          <Card className="border-none shadow-sm">
-                            <CardHeader className="pb-3">
-                              <CardTitle className="text-base">روابط سريعة</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-1">
-                              <QuickLink
-                                icon={ShoppingCart}
-                                label="استخدم رصيد الخدمات"
-                                onClick={() => navigate('/dashboard/services')}
-                              />
-                              <QuickLink
-                                icon={FileText}
-                                label="المستندات والعقود"
-                                onClick={() => setActiveTab('documents')}
-                              />
-                              <QuickLink
-                                icon={HelpCircle}
-                                label="الدعم والمساعدة"
-                                onClick={() => navigate('/dashboard/support')}
-                              />
-                            </CardContent>
-                          </Card>
-                        </StaggerItem>
-                      </div>
-                    </StaggerContainer>
-                  </motion.div>
+                  <OverviewTab
+                    customerActions={customerActions}
+                    handleAction={handleAction}
+                    isProcessing={isProcessing}
+                    processingActionId={processingActionId}
+                    currentStatus={currentStatus}
+                    stats={stats}
+                    installments={installments}
+                    nextInstallment={nextInstallment}
+                    navigate={navigate}
+                    setActiveTab={setActiveTab}
+                  />
                 )}
 
                 {activeTab === 'status' && (
-                  <motion.div
-                    key="status"
-                    variants={rtlPageVariants}
-                    initial="initial"
-                    animate="enter"
-                    exit="exit"
-                    className="space-y-6"
-                  >
-                    <Card className="border-none shadow-sm">
-                      <CardHeader>
-                        <CardTitle>مراحل طلب التمويل</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <FinancingTimeline
-                          currentStatus={currentStatus}
-                          steps={timelineSteps}
-                        />
-                      </CardContent>
-                    </Card>
-
-                    <ActivityLog steps={timelineSteps} />
-                  </motion.div>
+                  <StatusTab currentStatus={currentStatus} timelineSteps={timelineSteps} />
                 )}
 
                 {activeTab === 'wallet' && (
-                  <motion.div
-                    key="wallet"
-                    variants={rtlPageVariants}
-                    initial="initial"
-                    animate="enter"
-                    exit="exit"
-                  >
-                    <div className="grid gap-6 lg:grid-cols-2">
-                      <WalletCard
-                        serviceCredit={serviceCredit}
-                        onTransfer={() => navigate('/dashboard/financing/transfer')}
-                        onUseCredit={() => navigate('/dashboard/services')}
-                        canTransfer={canTransfer}
-                      />
-
-                      {installments.length > 0 && (
-                        <Card className="border-none shadow-sm">
-                          <CardHeader>
-                            <CardTitle>جدول الأقساط</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <InstallmentsTableV2 installments={installments} />
-                          </CardContent>
-                        </Card>
-                      )}
-                    </div>
-                  </motion.div>
+                  <WalletTab
+                    serviceCredit={serviceCredit}
+                    canTransfer={canTransfer}
+                    installments={installments}
+                    navigate={navigate}
+                  />
                 )}
 
-                {activeTab === 'documents' && (
-                  <motion.div
-                    key="documents"
-                    variants={rtlPageVariants}
-                    initial="initial"
-                    animate="enter"
-                    exit="exit"
-                  >
-                    <Card className="border-none shadow-sm">
-                      <CardHeader>
-                        <CardTitle>المستندات والعقود</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <DocumentsViewer applicationId={application.id} />
-                      </CardContent>
-                    </Card>
-                  </motion.div>
+                {activeTab === 'documents' && application && (
+                  <DocumentsTab applicationId={application.id} />
                 )}
               </AnimatePresence>
             </motion.div>
@@ -483,28 +288,245 @@ export default function ClientFinancingV3() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// Quick Link Component
+// Tab Components
 // ═══════════════════════════════════════════════════════════════════
 
-interface QuickLinkProps {
-  icon: React.ElementType;
-  label: string;
-  onClick: () => void;
+function OverviewTab({
+  customerActions,
+  handleAction,
+  isProcessing,
+  processingActionId,
+  currentStatus,
+  stats,
+  installments,
+  nextInstallment,
+  navigate,
+  setActiveTab,
+}: {
+  customerActions: CustomerAction[];
+  handleAction: (action: CustomerAction) => void;
+  isProcessing: boolean;
+  processingActionId?: string;
+  currentStatus: FinancingStatus;
+  stats: FinancingStats;
+  installments: any[];
+  nextInstallment: any;
+  navigate: (path: string) => void;
+  setActiveTab: (tab: TabValue) => void;
+}) {
+  return (
+    <motion.div
+      key="overview"
+      variants={rtlPageVariants}
+      initial="initial"
+      animate="enter"
+      exit="exit"
+    >
+      <StaggerContainer className="grid gap-5 lg:grid-cols-3">
+        {/* Main Column */}
+        <div className="lg:col-span-2 space-y-5">
+          {/* Quick Actions */}
+          {customerActions.length > 0 && (
+            <StaggerItem>
+              <Card className="border-none shadow-none bg-transparent">
+                <CardHeader className="pb-3 px-0">
+                  <CardTitle className="text-base font-bold">الإجراءات المطلوبة</CardTitle>
+                </CardHeader>
+                <CardContent className="px-0">
+                  <QuickActions
+                    actions={customerActions}
+                    onAction={handleAction}
+                    isProcessing={isProcessing}
+                    processingActionId={processingActionId}
+                  />
+                </CardContent>
+              </Card>
+            </StaggerItem>
+          )}
+
+          {/* Compact Timeline */}
+          <StaggerItem>
+            <Card className="border shadow-sm rounded-2xl">
+              <CardHeader className="flex-row items-center justify-between pb-3">
+                <CardTitle className="text-base font-bold">تقدم الطلب</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setActiveTab('status')}
+                  className="gap-1 text-xs text-muted-foreground h-8"
+                >
+                  التفاصيل
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <CompactTimeline currentStatus={currentStatus} />
+              </CardContent>
+            </Card>
+          </StaggerItem>
+
+          {/* Installments Progress */}
+          {installments.length > 0 && (
+            <StaggerItem>
+              <InstallmentsProgress
+                total={stats.totalInstallments}
+                paid={stats.paidInstallments}
+                overdue={stats.overdueInstallments}
+              />
+            </StaggerItem>
+          )}
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-5">
+          {/* Next Installment */}
+          {nextInstallment && (
+            <StaggerItem>
+              <Card className="border shadow-sm rounded-2xl">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-bold">القسط القادم</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2.5">
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-muted-foreground text-xs">المبلغ</span>
+                      <span className="text-2xl font-extrabold text-foreground tabular-nums">
+                        {Number(nextInstallment.amount).toLocaleString('ar-SA')}
+                        <span className="text-xs text-muted-foreground mr-1">ر.س</span>
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-muted-foreground text-xs">تاريخ الاستحقاق</span>
+                      <span className="font-medium text-xs">
+                        {new Date(nextInstallment.due_date).toLocaleDateString('ar-SA', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </StaggerItem>
+          )}
+
+          {/* Quick Links */}
+          <StaggerItem>
+            <Card className="border shadow-sm rounded-2xl">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-bold">روابط سريعة</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-0.5">
+                <QuickLinkItem icon={ShoppingCart} label="استخدم رصيد الخدمات" onClick={() => navigate('/dashboard/services')} />
+                <QuickLinkItem icon={FileText} label="المستندات والعقود" onClick={() => setActiveTab('documents')} />
+                <QuickLinkItem icon={HelpCircle} label="الدعم والمساعدة" onClick={() => navigate('/dashboard/support')} />
+              </CardContent>
+            </Card>
+          </StaggerItem>
+        </div>
+      </StaggerContainer>
+    </motion.div>
+  );
 }
 
-function QuickLink({ icon: Icon, label, onClick }: QuickLinkProps) {
+function StatusTab({ currentStatus, timelineSteps }: { currentStatus: FinancingStatus; timelineSteps: any[] }) {
+  return (
+    <motion.div
+      key="status"
+      variants={rtlPageVariants}
+      initial="initial"
+      animate="enter"
+      exit="exit"
+      className="space-y-5"
+    >
+      <Card className="border shadow-sm rounded-2xl">
+        <CardHeader>
+          <CardTitle className="text-base font-bold">مراحل طلب التمويل</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <FinancingTimeline currentStatus={currentStatus} steps={timelineSteps} />
+        </CardContent>
+      </Card>
+      <ActivityLog steps={timelineSteps} />
+    </motion.div>
+  );
+}
+
+function WalletTab({ serviceCredit, canTransfer, installments, navigate }: {
+  serviceCredit: any;
+  canTransfer: boolean;
+  installments: any[];
+  navigate: (path: string) => void;
+}) {
+  return (
+    <motion.div
+      key="wallet"
+      variants={rtlPageVariants}
+      initial="initial"
+      animate="enter"
+      exit="exit"
+    >
+      <div className="grid gap-5 lg:grid-cols-2">
+        <WalletCard
+          serviceCredit={serviceCredit}
+          onTransfer={() => navigate('/dashboard/financing/transfer')}
+          onUseCredit={() => navigate('/dashboard/services')}
+          canTransfer={canTransfer}
+        />
+        {installments.length > 0 && (
+          <Card className="border shadow-sm rounded-2xl">
+            <CardHeader>
+              <CardTitle className="text-base font-bold">جدول الأقساط</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <InstallmentsTableV2 installments={installments} />
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+function DocumentsTab({ applicationId }: { applicationId: string }) {
+  return (
+    <motion.div
+      key="documents"
+      variants={rtlPageVariants}
+      initial="initial"
+      animate="enter"
+      exit="exit"
+    >
+      <Card className="border shadow-sm rounded-2xl">
+        <CardHeader>
+          <CardTitle className="text-base font-bold">المستندات والعقود</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DocumentsViewer applicationId={applicationId} />
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Quick Link Item
+// ═══════════════════════════════════════════════════════════════════
+
+function QuickLinkItem({ icon: Icon, label, onClick }: { icon: React.ElementType; label: string; onClick: () => void }) {
   return (
     <motion.button
       onClick={onClick}
-      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-right group"
-      whileHover={{ x: -4 }}
+      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted/80 transition-colors text-right group"
+      whileHover={{ x: -3 }}
       whileTap={{ scale: 0.98 }}
     >
-      <div className="w-9 h-9 rounded-lg bg-muted group-hover:bg-primary/10 flex items-center justify-center transition-colors">
-        <Icon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+      <div className="w-8 h-8 rounded-lg bg-muted group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+        <Icon className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
       </div>
-      <span className="flex-1 text-sm font-medium">{label}</span>
-      <ChevronLeft className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      <span className="flex-1 text-xs font-medium">{label}</span>
+      <ChevronLeft className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
     </motion.button>
   );
 }
