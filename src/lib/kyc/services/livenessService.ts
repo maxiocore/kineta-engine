@@ -1,5 +1,5 @@
 // ============================================
-// Liveness Detection Service - MaxioCore KYC
+// Liveness Detection Service - ASH HOLDING KYC
 // Verifies user is a real person
 // ============================================
 

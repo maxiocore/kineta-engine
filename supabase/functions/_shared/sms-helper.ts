@@ -5,9 +5,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const TWILIO_ACCOUNT_SID = Deno.env.get('TWILIO_ACCOUNT_SID');
 const TWILIO_AUTH_TOKEN = Deno.env.get('TWILIO_AUTH_TOKEN');
-// Use Alphanumeric Sender ID for Saudi Arabia (e.g., "MaxioCore")
+// Use Alphanumeric Sender ID for Saudi Arabia (e.g., "ASH HOLDING")
 // Or a Saudi number if available
-const TWILIO_SENDER_ID = Deno.env.get('TWILIO_SENDER_ID') || Deno.env.get('TWILIO_PHONE_NUMBER') || 'MaxioCore';
+const TWILIO_SENDER_ID = Deno.env.get('TWILIO_SENDER_ID') || Deno.env.get('TWILIO_PHONE_NUMBER') || 'ASH HOLDING';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 

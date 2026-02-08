@@ -94,12 +94,12 @@ serve(async (req) => {
     let messageBody: string;
 
     if (type === "test") {
-      messageBody = "🔔 *رسالة اختبار*\n\nتم تفعيل إشعارات واتساب بنجاح!\n\n_MaxioCore_";
+      messageBody = "🔔 *رسالة اختبار*\n\nتم تفعيل إشعارات واتساب بنجاح!\n\n_ASH HOLDING_";
     } else if (type === "order_status") {
       const statusEmoji = statusMessages[status || ""] || "📦";
-      messageBody = `${statusEmoji}\n\n*تحديث حالة الطلب*\n\nرقم الطلب: ${orderNumber}\nالحالة: ${statusAr || status}\n${serviceName ? `الخدمة: ${serviceName}` : ""}\n\n_MaxioCore_`;
+      messageBody = `${statusEmoji}\n\n*تحديث حالة الطلب*\n\nرقم الطلب: ${orderNumber}\nالحالة: ${statusAr || status}\n${serviceName ? `الخدمة: ${serviceName}` : ""}\n\n_ASH HOLDING_`;
     } else {
-      messageBody = "📦 إشعار من MaxioCore";
+      messageBody = "📦 إشعار من ASH HOLDING";
     }
 
     // Send via WhatsApp Business API

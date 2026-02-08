@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing Admin V2 - Main Admin Dashboard
+ * ASH HOLDING Financing Admin V2 - Main Admin Dashboard
  * لوحة تحكم الأدمن الرئيسية - الإصدار الثاني
  */
 

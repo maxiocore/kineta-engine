@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing Admin V2 - Type Definitions
+ * ASH HOLDING Financing Admin V2 - Type Definitions
  * أنواع لوحة تحكم الأدمن الجديدة
  */
 

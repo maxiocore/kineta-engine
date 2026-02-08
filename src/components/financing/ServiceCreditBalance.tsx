@@ -192,7 +192,7 @@ export function ServiceCreditBalance({
         <Alert className="bg-blue-50 border-blue-200">
           <ShoppingBag className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-800 text-xs">
-            هذا الرصيد مخصص لشراء الخدمات داخل منصة MaxioCore فقط.
+            هذا الرصيد مخصص لشراء الخدمات داخل منصة ASH HOLDING فقط.
             <br />
             لا يمكن سحبه أو تحويله خارج المنصة.
           </AlertDescription>

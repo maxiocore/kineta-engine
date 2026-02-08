@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v3 - Client Dashboard Page
+ * ASH HOLDING Financing System v3 - Client Dashboard Page
  * صفحة التمويل للعميل - النسخة الجديدة (FinTech Style)
  */
 

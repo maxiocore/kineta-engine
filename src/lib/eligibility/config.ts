@@ -1,5 +1,5 @@
 // ============================================
-// Eligibility System Configuration - MaxioCore
+// Eligibility System Configuration - ASH HOLDING
 // ============================================
 
 import { EligibilityConfig, EligibilityRule } from './types';

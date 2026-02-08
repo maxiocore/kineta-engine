@@ -1,5 +1,5 @@
 // ============================================
-// Financing Eligibility Hook - MaxioCore
+// Financing Eligibility Hook - ASH HOLDING
 // Wrapper for backward compatibility
 // ============================================
 

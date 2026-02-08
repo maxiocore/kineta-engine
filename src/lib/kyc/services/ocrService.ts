@@ -1,5 +1,5 @@
 // ============================================
-// OCR Service - MaxioCore KYC
+// OCR Service - ASH HOLDING KYC
 // Extracts data from ID documents
 // ============================================
 

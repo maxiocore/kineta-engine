@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing Admin V2 - Applications Table
+ * ASH HOLDING Financing Admin V2 - Applications Table
  * جدول طلبات التمويل للأدمن
  */
 

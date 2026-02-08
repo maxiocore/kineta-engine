@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing Admin V2 - Barrel Export
+ * ASH HOLDING Financing Admin V2 - Barrel Export
  */
 
 // Types

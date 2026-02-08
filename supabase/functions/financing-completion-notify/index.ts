@@ -430,7 +430,7 @@ function buildCompletionMessage(params: MessageParams): string {
 • رصيد الخدمات: ${formatAmount(approvedAmount)} ر.س
 
 ⚠️ *ملاحظة مهمة:*
-هذا رصيد خدمات داخل منصة ماكسيو كور ولا يُصرف نقداً.
+هذا رصيد خدمات داخل منصة ASH HOLDING ولا يُصرف نقداً.
 
 ━━━━━━━━━━━━━━━━━━━━━
 
@@ -459,7 +459,7 @@ ${acknowledgmentUrl}
 ${dashboardUrl}
 
 ━━━━━━━━━━━━━━━━━━━━━
-_ماكسيو كور - شريكك التقني_`;
+_ASH HOLDING - شريكك التقني_`;
 
   return message;
 }
@@ -521,7 +521,7 @@ function buildCompletionEmailHtml(params: MessageParams): string {
         <!-- Warning -->
         <div style="background-color: #fff3e0; border-radius: 8px; padding: 15px; margin-bottom: 20px; border-right: 4px solid #ff9800;">
           <p style="color: #e65100; margin: 0; font-size: 14px;">
-            ⚠️ <strong>ملاحظة مهمة:</strong> هذا رصيد خدمات داخل منصة ماكسيو كور ولا يُصرف نقداً.
+            ⚠️ <strong>ملاحظة مهمة:</strong> هذا رصيد خدمات داخل منصة ASH HOLDING ولا يُصرف نقداً.
           </p>
         </div>
         
@@ -555,7 +555,7 @@ function buildCompletionEmailHtml(params: MessageParams): string {
     <tr>
       <td style="background-color: #f5f5f5; padding: 20px; text-align: center;">
         <p style="color: #999; font-size: 12px; margin: 0;">
-          ماكسيو كور - شريكك التقني
+          ASH HOLDING - شريكك التقني
         </p>
         <p style="color: #999; font-size: 11px; margin: 10px 0 0 0;">
           هذا البريد مُرسل تلقائياً، يرجى عدم الرد عليه.

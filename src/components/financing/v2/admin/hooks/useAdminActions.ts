@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing Admin V2 - Actions Hook
+ * ASH HOLDING Financing Admin V2 - Actions Hook
  * هوك إجراءات الأدمن مع دعم الإشعارات
  */
 

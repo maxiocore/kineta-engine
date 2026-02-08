@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing Admin V2 - Hooks Barrel Export
+ * ASH HOLDING Financing Admin V2 - Hooks Barrel Export
  */
 
 export { useAdminFinancing } from './useAdminFinancing';

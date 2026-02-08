@@ -204,7 +204,7 @@ const NotificationItem = ({ notification, onDismiss, index }: NotificationItemPr
               <div className="flex items-center justify-between gap-2 mb-1">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-wider">
-                    MaxioCore
+                    ASH HOLDING
                   </span>
                   <span className="text-[10px] text-muted-foreground/50">•</span>
                   <span className="text-[10px] text-muted-foreground/60">

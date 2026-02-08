@@ -250,7 +250,7 @@ const Auth = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            MaxioCore
+            ASH HOLDING
           </motion.span>
         </Link>
       </motion.div>
@@ -272,7 +272,7 @@ const Auth = () => {
               transition={{ type: "spring", stiffness: 400, damping: 20 }}
               style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
             >
-              MaxioCore
+              ASH HOLDING
             </motion.span>
           </Link>
 
@@ -756,7 +756,7 @@ const Auth = () => {
                 </motion.span> مسوّق
               </h2>
               <p className="text-muted-foreground mb-6 xl:mb-8 text-sm xl:text-base 2xl:text-lg">
-                "MaxioCore غيّرت استراتيجيتنا الرقمية بالكامل. النتائج تتحدث عن نفسها."
+                "ASH HOLDING غيّرت استراتيجيتنا الرقمية بالكامل. النتائج تتحدث عن نفسها."
               </p>
               
               {/* Features with Hover Effects */}

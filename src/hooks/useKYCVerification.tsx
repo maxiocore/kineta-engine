@@ -1,5 +1,5 @@
 // ============================================
-// KYC Verification Hook - MaxioCore
+// KYC Verification Hook - ASH HOLDING
 // Manages the complete KYC verification flow
 // ============================================
 

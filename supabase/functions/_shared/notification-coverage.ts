@@ -334,7 +334,7 @@ export function generateCoverageReport(): string {
   
   return `
 ╔══════════════════════════════════════════════════════════════╗
-║        MAXIOCORE NOTIFICATION COVERAGE REPORT                 ║
+║        ASH HOLDING NOTIFICATION COVERAGE REPORT                 ║
 ╠══════════════════════════════════════════════════════════════╣
 ║ Total Events Covered: ${report.total}                                     ║
 ╠══════════════════════════════════════════════════════════════╣

@@ -1,6 +1,6 @@
 /**
  * =====================================================
- * MaxioCore Financing Journey Wizard
+ * ASH HOLDING Financing Journey Wizard
  * Bank-Grade Financing Application Experience
  * =====================================================
  */

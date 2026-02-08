@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing Admin V2 - Actions Configuration
+ * ASH HOLDING Financing Admin V2 - Actions Configuration
  * تكوين إجراءات الأدمن
  */
 

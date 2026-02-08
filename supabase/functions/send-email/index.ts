@@ -20,17 +20,17 @@ async function sendSMS(phone: string, message: string): Promise<{ success: boole
 function getFinancingSMSMessage(type: string, data: Record<string, any>): string | null {
   switch (type) {
     case 'financing_payment_client':
-      return `ماكسيو كور: تم تأكيد سداد القسط رقم ${data.installmentNumber} بمبلغ ${data.amount} ر.س. المتبقي: ${data.remainingAmount} ر.س`;
+      return `ASH HOLDING: تم تأكيد سداد القسط رقم ${data.installmentNumber} بمبلغ ${data.amount} ر.س. المتبقي: ${data.remainingAmount} ر.س`;
     case 'financing_payment_reminder':
-      return `ماكسيو كور: تذكير - القسط رقم ${data.installmentNumber} بمبلغ ${data.amount} ر.س مستحق في ${data.dueDate}. لتجنب الغرامات، يرجى السداد قبل الموعد.`;
+      return `ASH HOLDING: تذكير - القسط رقم ${data.installmentNumber} بمبلغ ${data.amount} ر.س مستحق في ${data.dueDate}. لتجنب الغرامات، يرجى السداد قبل الموعد.`;
     case 'financing_payment_overdue':
-      return `ماكسيو كور: القسط رقم ${data.installmentNumber} متأخر! يرجى السداد فوراً لتجنب الغرامات الإضافية.`;
+      return `ASH HOLDING: القسط رقم ${data.installmentNumber} متأخر! يرجى السداد فوراً لتجنب الغرامات الإضافية.`;
     case 'financing_clearance':
-      return `ماكسيو كور: 🎉 تهانينا! تم إخلاء ذمتك من طلب التمويل #${data.applicationNumber}. شكراً لالتزامك!`;
+      return `ASH HOLDING: 🎉 تهانينا! تم إخلاء ذمتك من طلب التمويل #${data.applicationNumber}. شكراً لالتزامك!`;
     case 'financing_approved':
-      return `ماكسيو كور: تمت الموافقة على تمويلك #${data.applicationNumber} بمبلغ ${data.amount} ر.س!`;
+      return `ASH HOLDING: تمت الموافقة على تمويلك #${data.applicationNumber} بمبلغ ${data.amount} ر.س!`;
     case 'financing_rejected':
-      return `ماكسيو كور: نأسف، لم تتم الموافقة على طلب التمويل #${data.applicationNumber}.`;
+      return `ASH HOLDING: نأسف، لم تتم الموافقة على طلب التمويل #${data.applicationNumber}.`;
     default:
       return null;
   }
@@ -425,7 +425,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'deposit_completed':
       return {
-        subject: `تم إيداع ${formatAmountArabic(data.amount)} ر.س في رصيدك - MaxioCore`,
+        subject: `تم إيداع ${formatAmountArabic(data.amount)} ر.س في رصيدك - ASH HOLDING`,
         content: `
           ${createIconCircle('💰', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           ${createGreeting('تم شحن رصيدك بنجاح! 🎉')}
@@ -447,7 +447,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'deposit_pending':
       return {
-        subject: `طلب إيداع قيد المراجعة - MaxioCore`,
+        subject: `طلب إيداع قيد المراجعة - ASH HOLDING`,
         content: `
           ${createIconCircle('⏳', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
           ${createGreeting('تم استلام طلب الإيداع')}
@@ -466,7 +466,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'points_earned':
       return {
-        subject: `🎯 حصلت على ${data.points} نقطة! - MaxioCore`,
+        subject: `🎯 حصلت على ${data.points} نقطة! - ASH HOLDING`,
         content: `
           ${createIconCircle('⭐', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
           ${createGreeting('تهانينا! لقد كسبت نقاطاً 🎯')}
@@ -487,7 +487,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'points_redeemed':
       return {
-        subject: `تم استخدام ${data.points} نقطة - MaxioCore`,
+        subject: `تم استخدام ${data.points} نقطة - ASH HOLDING`,
         content: `
           ${createIconCircle('🎁', 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)')}
           ${createGreeting('تم استخدام نقاطك!')}
@@ -504,7 +504,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'cashback_earned':
       return {
-        subject: `🎉 حصلت على كاش باك ${formatAmountArabic(data.amount)} ر.س! - MaxioCore`,
+        subject: `🎉 حصلت على كاش باك ${formatAmountArabic(data.amount)} ر.س! - ASH HOLDING`,
         content: `
           ${createIconCircle('💵', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           ${createGreeting('مبروك! كسبت كاش باك 🎉')}
@@ -524,7 +524,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'cashback_withdrawn':
       return {
-        subject: `تم سحب الكاش باك ${formatAmountArabic(data.amount)} ر.س - MaxioCore`,
+        subject: `تم سحب الكاش باك ${formatAmountArabic(data.amount)} ر.س - ASH HOLDING`,
         content: `
           ${createIconCircle('✅', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           ${createGreeting('تم سحب الكاش باك بنجاح!')}
@@ -541,7 +541,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'bank_withdrawal_pending':
       return {
-        subject: `طلب سحب بنكي قيد المراجعة - MaxioCore`,
+        subject: `طلب سحب بنكي قيد المراجعة - ASH HOLDING`,
         content: `
           ${createIconCircle('🏦', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
           ${createGreeting('تم استلام طلب السحب البنكي')}
@@ -562,7 +562,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'bank_withdrawal_completed':
       return {
-        subject: `✅ تم تحويل ${formatAmountArabic(data.amount)} ر.س إلى حسابك البنكي - MaxioCore`,
+        subject: `✅ تم تحويل ${formatAmountArabic(data.amount)} ر.س إلى حسابك البنكي - ASH HOLDING`,
         content: `
           ${createIconCircle('🎉', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           ${createGreeting('تم التحويل بنجاح!')}
@@ -582,7 +582,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'bank_withdrawal_rejected':
       return {
-        subject: `❌ تم رفض طلب السحب البنكي - MaxioCore`,
+        subject: `❌ تم رفض طلب السحب البنكي - ASH HOLDING`,
         content: `
           ${createIconCircle('❌', 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)')}
           ${createGreeting('تم رفض طلب السحب')}
@@ -603,7 +603,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'tier_upgrade':
       return {
-        subject: `🎉 مبروك! لقد ترقيت إلى ${data.tierName} - MaxioCore`,
+        subject: `🎉 مبروك! لقد ترقيت إلى ${data.tierName} - ASH HOLDING`,
         content: `
           ${createIconCircle('🏆', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
           ${createGreeting('مبروك الترقية! 🎉')}
@@ -627,7 +627,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'challenge_completed':
       return {
-        subject: `🏆 أكملت تحدي "${data.challengeTitle}"! - MaxioCore`,
+        subject: `🏆 أكملت تحدي "${data.challengeTitle}"! - ASH HOLDING`,
         content: `
           ${createIconCircle('🎯', 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)')}
           ${createGreeting('تحدي مكتمل! 🏆')}
@@ -646,7 +646,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'refund_processed':
       return {
-        subject: `تم استرداد ${formatAmountArabic(data.amount)} ر.س إلى رصيدك - MaxioCore`,
+        subject: `تم استرداد ${formatAmountArabic(data.amount)} ر.س إلى رصيدك - ASH HOLDING`,
         content: `
           ${createIconCircle('↩️', 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)')}
           ${createGreeting('تم استرداد الرصيد')}
@@ -664,7 +664,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'offer_notification':
       return {
-        subject: `🔥 عرض خاص: ${data.offerTitle} - MaxioCore`,
+        subject: `🔥 عرض خاص: ${data.offerTitle} - ASH HOLDING`,
         content: `
           ${createIconCircle('🎁', 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)')}
           ${createGreeting('عرض حصري لك! 🔥')}
@@ -804,7 +804,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'financing_application_received':
       return {
-        subject: `✅ تم استلام طلب التمويل #${data.applicationNumber} - MaxioCore`,
+        subject: `✅ تم استلام طلب التمويل #${data.applicationNumber} - ASH HOLDING`,
         content: `
           ${createIconCircle('✅', 'linear-gradient(135deg, #10b981 0%, #059669 100%)')}
           ${createGreeting(`مرحباً ${data.name}! 🎉`)}
@@ -822,7 +822,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           
           ${createNoticeBox('⏳ عادةً ما يتم مراجعة الطلبات خلال 24-48 ساعة عمل. سنتواصل معك في حال احتجنا لأي معلومات إضافية.', '#f0f9ff', '#0369a1', '#0ea5e9')}
           
-          ${createMessage('شكراً لثقتك بـ MaxioCore. نتطلع لخدمتك!')}
+          ${createMessage('شكراً لثقتك بـ ASH HOLDING. نتطلع لخدمتك!')}
           
           ${createCTAButton('متابعة طلبك')}
         `
@@ -925,7 +925,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
                   <p style="margin: 0 0 10px; color: #fff;"><strong>الاسم:</strong> ${data.name}</p>
                   <p style="margin: 0 0 10px; color: #fff;"><strong>رقم الهوية:</strong> ${data.nationalId}</p>
                   <p style="margin: 0 0 15px; color: #e2e8f0; font-size: 15px; line-height: 1.8; text-align: right;">
-                    بأن أدفع لأمر شركة ماكسيو كور للخدمات الرقمية مبلغاً وقدره:
+                    بأن أدفع لأمر شركة علي صالح الشهري القابضة مبلغاً وقدره:
                   </p>
                   <p style="margin: 0; text-align: center; font-size: 28px; font-weight: bold; color: #f59e0b;">${formatAmountArabic(data.amount)} ريال سعودي</p>
                 </div>
@@ -959,7 +959,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           
           ${createNoticeBox('⚠️ تنبيه مهم: يرجى طباعة هذا السند والتوقيع عليه وإرساله عبر البريد الإلكتروني أو الواتساب لإتمام عملية التمويل. لن يتم إضافة الرصيد لحسابك إلا بعد استلام السند الموقع.', '#fef3c7', '#92400e', '#f59e0b')}
           
-          ${createMessage('للتواصل والإرسال: info@maxiocore.com')}
+          ${createMessage('للتواصل والإرسال: info@ashholding.com')}
         `
       };
 
@@ -1070,7 +1070,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           
           ${createNoticeBox('📝 الخطوة التالية: يرجى طباعة هذا العقد والتوقيع عليه وإرساله عبر البريد الإلكتروني أو الواتساب. بعد استلام العقد الموقع، سنرسل لك السند التنفيذي للتوقيع عليه.', '#dbeafe', '#1d4ed8', '#3b82f6')}
           
-          ${createMessage('للتواصل والإرسال: info@maxiocore.com')}
+          ${createMessage('للتواصل والإرسال: info@ashholding.com')}
         `
       };
 
@@ -1325,7 +1325,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           
           ${createCTAButton('ادفع الآن')}
           
-          ${createMessage('في حال واجهت أي صعوبات في السداد، يرجى التواصل معنا على info@maxiocore.com')}
+          ${createMessage('في حال واجهت أي صعوبات في السداد، يرجى التواصل معنا على info@ashholding.com')}
         `
       };
 
@@ -1428,7 +1428,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
                 <div style="border: 2px solid #22c55e; border-radius: 12px; padding: 20px; background: rgba(34, 197, 94, 0.05);">
                   <p style="margin: 0 0 10px; color: #22c55e; font-size: 16px; font-weight: bold; text-align: center;">✨ إقرار رسمي</p>
                   <p style="margin: 0; color: #e2e8f0; font-size: 14px; line-height: 1.8; text-align: center;">
-                    تقر شركة ماكسيو كور للخدمات الرقمية بأن العميل المذكور أعلاه قد أوفى بكامل التزاماته المالية المترتبة عليه بموجب عقد التمويل، وأنه لا يوجد أي مستحقات مالية متبقية عليه.
+                    تقر شركة علي صالح الشهري القابضة بأن العميل المذكور أعلاه قد أوفى بكامل التزاماته المالية المترتبة عليه بموجب عقد التمويل، وأنه لا يوجد أي مستحقات مالية متبقية عليه.
                   </p>
                 </div>
               </td>
@@ -1441,7 +1441,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           
           ${createCTAButton('تقدم بطلب تمويل جديد')}
           
-          ${createMessage('للاستفسارات: info@maxiocore.com | واتساب: +966XXXXXXXXX')}
+          ${createMessage('للاستفسارات: info@ashholding.com | واتساب: +966XXXXXXXXX')}
         `
       };
 
@@ -1698,7 +1698,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-top: 25px;">
             <tr>
               <td align="center">
-                <p style="margin: 0; color: #94a3b8; font-size: 14px;">للتواصل السريع: <a href="mailto:info@maxiocore.com" style="color: #6366f1; text-decoration: none; font-weight: 600;">info@maxiocore.com</a></p>
+                <p style="margin: 0; color: #94a3b8; font-size: 14px;">للتواصل السريع: <a href="mailto:info@ashholding.com" style="color: #6366f1; text-decoration: none; font-weight: 600;">info@ashholding.com</a></p>
               </td>
             </tr>
           </table>
@@ -1835,7 +1835,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-top: 25px;">
             <tr>
               <td align="center">
-                <p style="margin: 0; color: #94a3b8; font-size: 14px;">للتواصل السريع: <a href="mailto:info@maxiocore.com" style="color: #6366f1; text-decoration: none; font-weight: 600;">info@maxiocore.com</a></p>
+                <p style="margin: 0; color: #94a3b8; font-size: 14px;">للتواصل السريع: <a href="mailto:info@ashholding.com" style="color: #6366f1; text-decoration: none; font-weight: 600;">info@ashholding.com</a></p>
               </td>
             </tr>
           </table>
@@ -2043,7 +2043,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-top: 25px;">
             <tr>
               <td align="center">
-                <p style="margin: 0; color: #94a3b8; font-size: 14px;">للتواصل السريع: <a href="mailto:info@maxiocore.com" style="color: #6366f1; text-decoration: none; font-weight: 600;">info@maxiocore.com</a></p>
+                <p style="margin: 0; color: #94a3b8; font-size: 14px;">للتواصل السريع: <a href="mailto:info@ashholding.com" style="color: #6366f1; text-decoration: none; font-weight: 600;">info@ashholding.com</a></p>
               </td>
             </tr>
           </table>
@@ -2131,7 +2131,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'dev_order_created':
       return {
-        subject: `تم استلام طلب خدمة برمجية #${data.orderNumber} - MaxioCore`,
+        subject: `تم استلام طلب خدمة برمجية #${data.orderNumber} - ASH HOLDING`,
         content: `
           ${createIconCircle('💻', 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)')}
           ${createGreeting(`مرحباً ${data.name || 'عزيزي العميل'}! 🎉`)}
@@ -2273,7 +2273,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'invoice_sent':
       return {
-        subject: `فاتورة جديدة للطلب ${data.order_number} - MaxioCore`,
+        subject: `فاتورة جديدة للطلب ${data.order_number} - ASH HOLDING`,
         content: `
           ${createIconCircle('📄', 'linear-gradient(135deg, #10b981 0%, #059669 100%)')}
           ${createGreeting(`مرحباً ${data.user_name || 'العميل الكريم'}! 💳`)}
@@ -2288,7 +2288,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
             ...(data.description ? [{ label: 'الوصف', value: data.description }] : [])
           ])}
           
-          ${createNoticeBox('💡 يمكنك الدفع مباشرة من حسابك في MaxioCore باستخدام رصيدك المتاح', '#f0fdf4', '#166534', '#22c55e')}
+          ${createNoticeBox('💡 يمكنك الدفع مباشرة من حسابك في ASH HOLDING باستخدام رصيدك المتاح', '#f0fdf4', '#166534', '#22c55e')}
           
           ${createCTAButton('ادفع الآن')}
         `
@@ -2296,11 +2296,11 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'verification_request':
       return {
-        subject: `🔐 مطلوب توثيق حسابك في MaxioCore`,
+        subject: `🔐 مطلوب توثيق حسابك في ASH HOLDING`,
         content: `
           ${createIconCircle('🔒', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
           ${createGreeting(`مرحباً ${data.name || 'العميل الكريم'}! 👋`)}
-          ${createMessage('نحتاج منك <strong>توثيق حسابك</strong> في منصة MaxioCore للاستمتاع بجميع المميزات والخدمات الحصرية.')}
+          ${createMessage('نحتاج منك <strong>توثيق حسابك</strong> في منصة ASH HOLDING للاستمتاع بجميع المميزات والخدمات الحصرية.')}
           
           ${createHighlightBox('⏳ في انتظار التوثيق', 'حالة حسابك', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
           
@@ -2337,7 +2337,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
             </tr>
           </table>
           
-          ${createNoticeBox('⚡ وثّق حسابك الآن واستمتع بتجربة استثنائية مع MaxioCore!', '#f0f9ff', '#0369a1', '#0ea5e9')}
+          ${createNoticeBox('⚡ وثّق حسابك الآن واستمتع بتجربة استثنائية مع ASH HOLDING!', '#f0f9ff', '#0369a1', '#0ea5e9')}
           
           ${createCTAButton('توثيق حسابي الآن')}
         `
@@ -2349,7 +2349,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
     
     case 'hosting_order_created':
       return {
-        subject: `تم استلام طلب الاستضافة #${data.order_number} - MaxioCore`,
+        subject: `تم استلام طلب الاستضافة #${data.order_number} - ASH HOLDING`,
         content: `
           ${createIconCircle('☁️', 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)')}
           ${createGreeting(`مرحباً ${data.user_name || 'العميل الكريم'}! 🎉`)}
@@ -2395,7 +2395,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'hosting_order_provisioning':
       return {
-        subject: `جاري تجهيز خدمتك #${data.order_number} - MaxioCore`,
+        subject: `جاري تجهيز خدمتك #${data.order_number} - ASH HOLDING`,
         content: `
           ${createIconCircle('⚙️', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
           ${createGreeting(`مرحباً ${data.user_name || 'العميل الكريم'}! 🚀`)}
@@ -2415,7 +2415,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'hosting_order_active':
       return {
-        subject: `🎉 تم تفعيل خدمتك #${data.order_number} - MaxioCore`,
+        subject: `🎉 تم تفعيل خدمتك #${data.order_number} - ASH HOLDING`,
         content: `
           ${createIconCircle('✅', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           ${createGreeting(`تهانينا ${data.user_name || 'العميل الكريم'}! 🎊`)}
@@ -2451,7 +2451,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'hosting_order_suspended':
       return {
-        subject: `⚠️ تم إيقاف خدمتك مؤقتاً #${data.order_number} - MaxioCore`,
+        subject: `⚠️ تم إيقاف خدمتك مؤقتاً #${data.order_number} - ASH HOLDING`,
         content: `
           ${createIconCircle('⚠️', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
           ${createGreeting('تنبيه هام ' + (data.user_name || 'العميل الكريم'))}
@@ -2473,7 +2473,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'hosting_order_terminated':
       return {
-        subject: `إلغاء خدمة الاستضافة #${data.order_number} - MaxioCore`,
+        subject: `إلغاء خدمة الاستضافة #${data.order_number} - ASH HOLDING`,
         content: `
           ${createIconCircle('❌', 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)')}
           ${createGreeting(data.user_name || 'العميل الكريم')}
@@ -2518,7 +2518,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'hosting_order_renewal_reminder':
       return {
-        subject: '⏰ تذكير: خدمتك تحتاج للتجديد #' + data.order_number + ' - MaxioCore',
+        subject: '⏰ تذكير: خدمتك تحتاج للتجديد #' + data.order_number + ' - ASH HOLDING',
         content: `
           ${createIconCircle('⏰', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
           ${createGreeting('مرحباً ' + (data.user_name || 'العميل الكريم'))}
@@ -2541,7 +2541,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'hosting_order_expiring_soon':
       return {
-        subject: '🔴 تنبيه عاجل: خدمتك تنتهي خلال ' + (data.days_remaining || 3) + ' أيام - MaxioCore',
+        subject: '🔴 تنبيه عاجل: خدمتك تنتهي خلال ' + (data.days_remaining || 3) + ' أيام - ASH HOLDING',
         content: `
           ${createIconCircle('🔴', 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)')}
           ${createGreeting('تنبيه عاجل ' + (data.user_name || 'العميل الكريم') + '!')}
@@ -2567,7 +2567,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
     
     case 'domain_order_created':
       return {
-        subject: 'تم استلام طلب تسجيل الدومين ' + data.domain_name + ' - MaxioCore',
+        subject: 'تم استلام طلب تسجيل الدومين ' + data.domain_name + ' - ASH HOLDING',
         content: `
           ${createIconCircle('🌐', 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)')}
           ${createGreeting('مرحباً ' + (data.user_name || 'العميل الكريم') + '! 🎉')}
@@ -2591,7 +2591,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'domain_registered':
       return {
-        subject: '✅ تم تسجيل النطاق ' + data.domain_name + ' بنجاح - MaxioCore',
+        subject: '✅ تم تسجيل النطاق ' + data.domain_name + ' بنجاح - ASH HOLDING',
         content: `
           ${createIconCircle('✅', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           ${createGreeting('تهانينا ' + (data.user_name || 'العميل الكريم') + '! 🎊')}
@@ -2625,7 +2625,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'domain_transfer_started':
       return {
-        subject: '🔄 بدء نقل النطاق ' + data.domain_name + ' - MaxioCore',
+        subject: '🔄 بدء نقل النطاق ' + data.domain_name + ' - ASH HOLDING',
         content: `
           ${createIconCircle('🔄', 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)')}
           ${createGreeting('مرحباً ' + (data.user_name || 'العميل الكريم'))}
@@ -2646,7 +2646,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'domain_transfer_completed':
       return {
-        subject: '✅ اكتمل نقل النطاق ' + data.domain_name + ' - MaxioCore',
+        subject: '✅ اكتمل نقل النطاق ' + data.domain_name + ' - ASH HOLDING',
         content: `
           ${createIconCircle('✅', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           ${createGreeting('تهانينا ' + (data.user_name || 'العميل الكريم') + '! 🎉')}
@@ -2668,7 +2668,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'domain_expiring_soon':
       return {
-        subject: '⚠️ تنبيه: النطاق ' + data.domain_name + ' ينتهي قريباً - MaxioCore',
+        subject: '⚠️ تنبيه: النطاق ' + data.domain_name + ' ينتهي قريباً - ASH HOLDING',
         content: `
           ${createIconCircle('⚠️', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)')}
           ${createGreeting('تنبيه هام ' + (data.user_name || 'العميل الكريم'))}
@@ -2690,7 +2690,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'domain_renewed':
       return {
-        subject: '✅ تم تجديد النطاق ' + data.domain_name + ' - MaxioCore',
+        subject: '✅ تم تجديد النطاق ' + data.domain_name + ' - ASH HOLDING',
         content: `
           ${createIconCircle('🔄', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           ${createGreeting('شكراً ' + (data.user_name || 'العميل الكريم') + '! 🎉')}
@@ -2712,7 +2712,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'custom':
       return {
-        subject: data.subject || 'رسالة من MaxioCore',
+        subject: data.subject || 'رسالة من ASH HOLDING',
         content: `
           ${createGreeting(data.title || 'مرحباً')}
           ${createMessage(data.message || '')}
@@ -2722,10 +2722,10 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     default:
       return {
-        subject: 'إشعار من MaxioCore',
+        subject: 'إشعار من ASH HOLDING',
         content: `
           ${createGreeting('مرحباً')}
-          ${createMessage('لديك إشعار جديد من MaxioCore.')}
+          ${createMessage('لديك إشعار جديد من ASH HOLDING.')}
         `
       };
   }
@@ -2798,7 +2798,7 @@ const handler = async (req: Request): Promise<Response> => {
           const html = getEmailWrapper(finalContent, finalSubject);
           
           const emailResponse = await resend.emails.send({
-            from: "MaxioCore <info@maxiocore.com>",
+            from: "ASH HOLDING <info@ashholding.com>",
             to: [email],
             subject: finalSubject,
             html: html,
@@ -2825,7 +2825,7 @@ const handler = async (req: Request): Promise<Response> => {
           // Log failed email
           await supabase.from('emails').insert({
             recipient_email: email,
-            subject: customSubject || 'إشعار من MaxioCore',
+            subject: customSubject || 'إشعار من ASH HOLDING',
             content: customContent || '',
             status: 'failed',
             error_message: emailError.message,

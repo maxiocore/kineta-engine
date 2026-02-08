@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v3 - Quick Actions Component
+ * ASH HOLDING Financing System v3 - Quick Actions Component
  * بطاقات الإجراءات السريعة بأسلوب FinTech
  */
 
