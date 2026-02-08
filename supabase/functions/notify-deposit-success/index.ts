@@ -408,9 +408,24 @@ serve(async (req: Request): Promise<Response> => {
       sent_at: new Date().toISOString(),
     });
     
-    // Send SMS notification if phone is available
+    // Send SMS notification if phone is available - Banking Style
     if (profile.phone) {
-      const smsMessage = `ASH HOLDING: تم إيداع ${formatAmountArabic(deposit.total_credited)} ر.س في حسابك. رصيدك الجديد: ${formatAmountArabic(balance?.balance || 0)} ر.س`;
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('ar-SA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Riyadh' });
+      const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Riyadh' });
+      const txnRef = deposit.transaction_id || deposit.id?.substring(0, 8).toUpperCase();
+      
+      let smsMessage = `🏦 ASH HOLDING\n━━━━━━━━━━━━━━\n✅ تم إيداع مبلغ في حسابكم\n\n💰 المبلغ: +${formatAmountArabic(deposit.total_credited)} ر.س`;
+      if (deposit.bonus_amount && deposit.bonus_amount > 0) {
+        smsMessage += `\n🎁 مكافأة: +${formatAmountArabic(deposit.bonus_amount)} ر.س`;
+      }
+      smsMessage += `\n💳 الرصيد المتاح: ${formatAmountArabic(balance?.balance || 0)} ر.س`;
+      smsMessage += `\n📋 المرجع: ${txnRef}`;
+      smsMessage += `\n📅 ${dateStr} | ${timeStr}`;
+      smsMessage += `\n━━━━━━━━━━━━━━`;
+      smsMessage += `\n🔒 إذا لم تقم بهذه العملية تواصل معنا فوراً`;
+      smsMessage += `\nash-holding.sa`;
+      
       const smsResult = await sendSMS(profile.phone, smsMessage);
       console.log("SMS result:", smsResult);
       
