@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v2 - Timeline Component
+ * ASH HOLDING Financing System v2 - Timeline Component
  * الخط الزمني لمراحل التمويل
  */
 

@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v3 - Wallet Card Component
+ * ASH HOLDING Financing System v3 - Wallet Card Component
  * بطاقة رصيد الخدمات بأسلوب Neobank
  */
 

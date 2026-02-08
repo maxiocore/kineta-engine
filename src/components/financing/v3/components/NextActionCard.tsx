@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v3 - Next Action Card
+ * ASH HOLDING Financing System v3 - Next Action Card
  * بطاقة الإجراء التالي - توجيه بنكي واضح
  */
 

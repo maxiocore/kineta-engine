@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v2 - Main Barrel Export
+ * ASH HOLDING Financing System v2 - Main Barrel Export
  * نظام التمويل الجديد - تصدير المكونات الرئيسية
  */
 

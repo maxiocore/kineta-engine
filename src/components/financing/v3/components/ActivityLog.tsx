@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v3 - Activity Log Component
+ * ASH HOLDING Financing System v3 - Activity Log Component
  * سجل النشاط بأسلوب بنكي احترافي
  */
 

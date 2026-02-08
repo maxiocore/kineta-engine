@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v2 - Installments Table Component
+ * ASH HOLDING Financing System v2 - Installments Table Component
  * جدول الأقساط
  */
 

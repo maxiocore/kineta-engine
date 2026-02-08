@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v3 - Loading Skeletons
+ * ASH HOLDING Financing System v3 - Loading Skeletons
  * هياكل تحميل للبيانات المالية
  */
 

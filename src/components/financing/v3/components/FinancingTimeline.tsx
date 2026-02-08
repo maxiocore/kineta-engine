@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v3 - Timeline Component
+ * ASH HOLDING Financing System v3 - Timeline Component
  * الخط الزمني RTL بأسلوب بنكي احترافي
  */
 

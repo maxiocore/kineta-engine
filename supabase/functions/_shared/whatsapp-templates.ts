@@ -1,6 +1,6 @@
 /**
  * WhatsApp Templates for Financing Status Updates
- * Arabic Banking-Grade Messages - MaxioCore Platform
+ * Arabic Banking-Grade Messages - ASH HOLDING Platform
  * 
  * All templates follow:
  * - Formal Arabic banking language
@@ -52,7 +52,7 @@ export const TEMPLATE_APPLICATION_SUBMITTED: WhatsAppTemplate = {
 📋 عرض حالة الطلب:
 {{deep_link}}
 
-ماكسيو كور - شريكك التقني`,
+ASH HOLDING - شريكك التقني`,
   variables: ['customer_name', 'application_number', 'deep_link']
 };
 
@@ -75,7 +75,7 @@ export const TEMPLATE_DOCUMENTS_REQUIRED: WhatsAppTemplate = {
 📎 رفع المستندات:
 {{deep_link}}
 
-ماكسيو كور`,
+ASH HOLDING`,
   variables: ['customer_name', 'application_number', 'required_documents_list', 'deep_link']
 };
 
@@ -101,7 +101,7 @@ export const TEMPLATE_CONTRACT_READY: WhatsAppTemplate = {
 ✍️ توقيع العقد الآن:
 {{deep_link}}
 
-ماكسيو كور`,
+ASH HOLDING`,
   variables: ['customer_name', 'application_number', 'approved_amount', 'contract_expiry', 'deep_link']
 };
 
@@ -124,12 +124,12 @@ export const TEMPLATE_APPROVED: WhatsAppTemplate = {
 • قيمة القسط: {{installment_amount}} ر.س
 • موعد القسط الأول: {{next_payment_date}}
 
-⚠️ ملاحظة: هذا رصيد خدمات يُستخدم حصرياً داخل منصة ماكسيو كور ولا يُصرف نقداً.
+⚠️ ملاحظة: هذا رصيد خدمات يُستخدم حصرياً داخل منصة ASH HOLDING ولا يُصرف نقداً.
 
 📋 عرض التفاصيل:
 {{deep_link}}
 
-ماكسيو كور`,
+ASH HOLDING`,
   variables: ['customer_name', 'application_number', 'approved_amount', 'installments_count', 'installment_amount', 'next_payment_date', 'deep_link']
 };
 
@@ -156,7 +156,7 @@ export const TEMPLATE_APPROVED_CONDITIONAL: WhatsAppTemplate = {
 📎 استكمال الشروط:
 {{deep_link}}
 
-ماكسيو كور`,
+ASH HOLDING`,
   variables: ['customer_name', 'application_number', 'approved_amount', 'conditions_list', 'deep_link']
 };
 
@@ -179,7 +179,7 @@ export const TEMPLATE_REJECTED: WhatsAppTemplate = {
 📞 التواصل مع الدعم:
 {{deep_link}}
 
-ماكسيو كور`,
+ASH HOLDING`,
   variables: ['customer_name', 'application_number', 'rejection_reason', 'deep_link']
 };
 
@@ -204,7 +204,7 @@ export const TEMPLATE_CREDIT_DEPOSITED: WhatsAppTemplate = {
 🛒 تصفح الخدمات:
 {{deep_link}}
 
-ماكسيو كور - شريكك التقني`,
+ASH HOLDING - شريكك التقني`,
   variables: ['customer_name', 'approved_amount', 'deep_link']
 };
 
@@ -222,14 +222,14 @@ export const TEMPLATE_COMPLETED: WhatsAppTemplate = {
 
 رقم الطلب: {{application_number}}
 
-نشكرك على التزامك وثقتك بمنصة ماكسيو كور.
+نشكرك على التزامك وثقتك بمنصة ASH HOLDING.
 
 يسعدنا خدمتك مجدداً في أي وقت! 💙
 
 📋 عرض السجل الكامل:
 {{deep_link}}
 
-ماكسيو كور`,
+ASH HOLDING`,
   variables: ['customer_name', 'application_number', 'deep_link']
 };
 
@@ -253,7 +253,7 @@ export const TEMPLATE_FINANCING_FULLY_COMPLETED: WhatsAppTemplate = {
 • رصيد الخدمات: {{approved_amount}} ر.س
 
 ⚠️ *ملاحظة مهمة:*
-هذا رصيد خدمات داخل منصة ماكسيو كور ولا يُصرف نقداً.
+هذا رصيد خدمات داخل منصة ASH HOLDING ولا يُصرف نقداً.
 
 ━━━━━━━━━━━━━━━━━━━━━
 
@@ -272,7 +272,7 @@ _(صالحة لمدة 24 ساعة)_
 {{deep_link}}
 
 ━━━━━━━━━━━━━━━━━━━━━
-_ماكسيو كور - شريكك التقني_`,
+_ASH HOLDING - شريكك التقني_`,
   variables: ['customer_name', 'application_number', 'approved_amount', 'contract_url', 'acknowledgment_url', 'deep_link']
 };
 
@@ -296,7 +296,7 @@ export const TEMPLATE_PAYMENT_REMINDER: WhatsAppTemplate = {
 💳 سداد الآن:
 {{deep_link}}
 
-ماكسيو كور`,
+ASH HOLDING`,
   variables: ['customer_name', 'installment_amount', 'next_payment_date', 'deep_link']
 };
 
@@ -322,7 +322,7 @@ export const TEMPLATE_PAYMENT_OVERDUE: WhatsAppTemplate = {
 
 للاستفسار أو طلب جدولة: تواصل مع فريق الدعم
 
-ماكسيو كور`,
+ASH HOLDING`,
   variables: ['customer_name', 'installment_amount', 'next_payment_date', 'deep_link']
 };
 
@@ -345,7 +345,7 @@ export const TEMPLATE_PROMISSORY_SIGNED: WhatsAppTemplate = {
 📋 متابعة الحالة:
 {{deep_link}}
 
-ماكسيو كور`,
+ASH HOLDING`,
   variables: ['customer_name', 'application_number', 'deep_link']
 };
 
@@ -366,7 +366,7 @@ export const TEMPLATE_ACKNOWLEDGMENT_SENT: WhatsAppTemplate = {
 📋 قراءة وتوقيع الإقرار:
 {{deep_link}}
 
-ماكسيو كور`,
+ASH HOLDING`,
   variables: ['customer_name', 'application_number', 'deep_link']
 };
 
@@ -387,7 +387,7 @@ export const TEMPLATE_ACKNOWLEDGMENT_SIGNED: WhatsAppTemplate = {
 📋 متابعة حالة الطلب:
 {{deep_link}}
 
-ماكسيو كور`,
+ASH HOLDING`,
   variables: ['customer_name', 'application_number', 'deep_link']
 };
 
@@ -411,7 +411,7 @@ export const TEMPLATE_CONTRACT_SENT: WhatsAppTemplate = {
 ✍️ مراجعة وتوقيع العقد:
 {{deep_link}}
 
-ماكسيو كور`,
+ASH HOLDING`,
   variables: ['customer_name', 'application_number', 'approved_amount', 'deep_link']
 };
 
@@ -432,7 +432,7 @@ export const TEMPLATE_CONTRACT_SIGNED: WhatsAppTemplate = {
 📋 متابعة حالة الطلب:
 {{deep_link}}
 
-ماكسيو كور`,
+ASH HOLDING`,
   variables: ['customer_name', 'application_number', 'deep_link']
 };
 
@@ -453,7 +453,7 @@ export const TEMPLATE_BOND_ISSUING: WhatsAppTemplate = {
 📋 متابعة الحالة:
 {{deep_link}}
 
-ماكسيو كور`,
+ASH HOLDING`,
   variables: ['customer_name', 'application_number', 'deep_link']
 };
 
@@ -474,7 +474,7 @@ export const TEMPLATE_BOND_SENT: WhatsAppTemplate = {
 ✅ تأكيد التوقيع:
 {{deep_link}}
 
-ماكسيو كور`,
+ASH HOLDING`,
   variables: ['customer_name', 'application_number', 'deep_link']
 };
 
@@ -497,7 +497,7 @@ export const TEMPLATE_INTERNAL_TRANSFER: WhatsAppTemplate = {
 🛒 تصفح الخدمات:
 {{deep_link}}
 
-ماكسيو كور`,
+ASH HOLDING`,
   variables: ['customer_name', 'amount', 'deep_link']
 };
 
@@ -549,7 +549,7 @@ export const TEMPLATES_REGISTRY: Record<string, WhatsAppTemplate> = {
 📱 تقديم طلب جديد:
 {{deep_link}}
 
-ماكسيو كور`,
+ASH HOLDING`,
     variables: ['customer_name', 'application_number', 'deep_link']
   },
 };

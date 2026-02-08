@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing Admin V2 - Stats Cards
+ * ASH HOLDING Financing Admin V2 - Stats Cards
  * بطاقات الإحصائيات للوحة الأدمن
  */
 

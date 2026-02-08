@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing Admin V2 - Components Barrel Export
+ * ASH HOLDING Financing Admin V2 - Components Barrel Export
  */
 
 export { AdminStatsCards } from './AdminStatsCards';

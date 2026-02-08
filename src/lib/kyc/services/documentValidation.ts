@@ -1,5 +1,5 @@
 // ============================================
-// Document Validation Service - MaxioCore KYC
+// Document Validation Service - ASH HOLDING KYC
 // Validates extracted document data
 // ============================================
 

@@ -1,5 +1,5 @@
 // ============================================
-// Eligibility Gate Screen - MaxioCore FinTech
+// Eligibility Gate Screen - ASH HOLDING FinTech
 // Displays eligibility status before application
 // ============================================
 

@@ -1,5 +1,5 @@
 // ============================================
-// KYC System Types - MaxioCore FinTech
+// KYC System Types - ASH HOLDING FinTech
 // ID Verification, OCR, Liveness Detection
 // ============================================
 

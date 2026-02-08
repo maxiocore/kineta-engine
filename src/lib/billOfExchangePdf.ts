@@ -284,7 +284,7 @@ const generateBillOfExchangeHtml = (data: BillOfExchangeData): string => {
         text-align: center;
       ">
         <p style="font-size: 10px; color: #94a3b8; margin: 0;">
-          هذه الوثيقة صادرة إلكترونياً من نظام MaxioCore للتمويل المرن
+          هذه الوثيقة صادرة إلكترونياً من نظام ASH HOLDING للتمويل المرن
         </p>
         <p style="font-size: 9px; color: #cbd5e1; margin: 5px 0 0 0;">
           طلب رقم: ${data.applicationNumber} | تاريخ الإصدار: ${data.signedDate}

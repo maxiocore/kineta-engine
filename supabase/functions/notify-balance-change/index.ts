@@ -450,7 +450,7 @@ serve(async (req: Request): Promise<Response> => {
               <tr>
                 <td align="center">
                   <p style="color: #94a3b8; margin: 0; font-size: 11px;">
-                    🏦 خدمات مالية موثوقة من ماكسيو كور
+                    🏦 خدمات مالية موثوقة من ASH HOLDING
                   </p>
                 </td>
               </tr>
@@ -469,7 +469,7 @@ serve(async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "MAXIOCORE <noreply@maxiocore.com>",
+        from: "ASH HOLDING <noreply@ashholding.com>",
         to: [profile.email],
         subject: isAdd 
           ? `🏦 إيصال إيداع | تم إضافة ${amount.toLocaleString('ar-SA')} ر.س لحسابك` 
@@ -485,8 +485,8 @@ serve(async (req: Request): Promise<Response> => {
     // Send SMS notification if phone is available
     if (profile.phone) {
       const smsMessage = isAdd 
-        ? `ماكسيو كور: تم إضافة ${amount.toLocaleString('ar-SA')} ر.س لحسابك. رصيدك الجديد: ${newBalance.toLocaleString('ar-SA')} ر.س`
-        : `ماكسيو كور: تم خصم ${amount.toLocaleString('ar-SA')} ر.س من حسابك. رصيدك الجديد: ${newBalance.toLocaleString('ar-SA')} ر.س`;
+        ? `ASH HOLDING: تم إضافة ${amount.toLocaleString('ar-SA')} ر.س لحسابك. رصيدك الجديد: ${newBalance.toLocaleString('ar-SA')} ر.س`
+        : `ASH HOLDING: تم خصم ${amount.toLocaleString('ar-SA')} ر.س من حسابك. رصيدك الجديد: ${newBalance.toLocaleString('ar-SA')} ر.س`;
       
       const smsResult = await sendSMS(profile.phone, smsMessage, 'balance', userId, transactionRef);
       console.log("SMS result:", smsResult);

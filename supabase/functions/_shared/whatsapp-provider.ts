@@ -1,5 +1,5 @@
 /**
- * WhatsApp Provider Module for MaxioCore
+ * WhatsApp Provider Module for ASH HOLDING
  * Using SmartWats API v1.3
  * 
  * Features:
@@ -39,7 +39,7 @@ const SMARTWATS_BASE_URL = 'https://app.smartwats.com/api';
 const SMARTWATS_INSTANCE_ID = Deno.env.get('SMARTWATS_INSTANCE_ID');
 const SMARTWATS_ACCESS_TOKEN = Deno.env.get('SMARTWATS_ACCESS_TOKEN');
 // استخدام الرابط الرسمي للموقع - لا نكشف روابط Supabase الداخلية
-const BASE_URL = 'https://maxiocore.com';
+const BASE_URL = 'https://ashholding.com';
 
 // Retry configuration
 const MAX_RETRIES = 3;
@@ -477,7 +477,7 @@ export const WhatsAppProvider = {
 💡 يرجى التحقق من صندوق الوارد (وربما مجلد الرسائل غير المرغوبة).
 
 ━━━━━━━━━━━━━━━━━━━━━
-_ماكسيو كور_`;
+_ASH HOLDING_`;
     
     return sendWithRetry(to, message, { type: 'auth' });
   },
@@ -486,7 +486,7 @@ _ماكسيو كور_`;
    * Send welcome message for new users
    */
   async sendWelcome(to: string, customerName?: string): Promise<WhatsAppSendResult> {
-    const message = `مرحباً بك في ماكسيو كور 🎉
+    const message = `مرحباً بك في ASH HOLDING 🎉
 ━━━━━━━━━━━━━━━━━━━━━
 
 ${customerName ? `أهلاً *${customerName}*!\n` : ''}نحن سعداء بانضمامك إلينا.
@@ -501,7 +501,7 @@ ${BASE_URL}/dashboard
 
 ━━━━━━━━━━━━━━━━━━━━━
 _شركة علي صالح الشهري القابضة_
-_ماكسيو كور - شريكك التقني_`;
+_ASH HOLDING - شريكك التقني_`;
     
     return sendWithRetry(to, message, { type: 'general' });
   },
@@ -616,11 +616,11 @@ ${amount ? `💰 *المبلغ:* ${amount.toLocaleString('ar-SA')} ريال\n` :
 
 ━━━━━━━━━━━━━━━━━━━━━
 🔗 *متابعة الطلب:*
-maxiocore.com${deepLinkPath}
+ashholding.com${deepLinkPath}
 
 📞 الدعم: متاح على مدار الساعة
 
-_شركة علي صالح الشهري القابضة - MaxioCore_`;
+_شركة علي صالح الشهري القابضة - ASH HOLDING_`;
 }
 
 function buildOrderStatusMessage(
@@ -649,9 +649,9 @@ function buildOrderStatusMessage(
 
 ━━━━━━━━━━━━━━━━━━━━━
 🔗 *تتبع الطلب:*
-maxiocore.com${deepLinkPath}
+ashholding.com${deepLinkPath}
 
-_MaxioCore_`;
+_ASH HOLDING_`;
 }
 
 function buildGenericStatusMessage(
@@ -665,9 +665,9 @@ function buildGenericStatusMessage(
 
 ━━━━━━━━━━━━━━━━━━━━━
 🔗 *التفاصيل:*
-maxiocore.com${deepLinkPath}
+ashholding.com${deepLinkPath}
 
-_MaxioCore_`;
+_ASH HOLDING_`;
 }
 
 // ============================================================================

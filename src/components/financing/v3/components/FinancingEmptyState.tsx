@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v3 - Empty State Component
+ * ASH HOLDING Financing System v3 - Empty State Component
  * حالة عدم وجود طلب تمويل - بأسلوب بنكي احترافي
  */
 

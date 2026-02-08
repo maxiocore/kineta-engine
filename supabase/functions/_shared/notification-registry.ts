@@ -1,6 +1,6 @@
 /**
  * Unified Notification Registry - سجل الإشعارات الموحد
- * MaxioCore Banking-Grade Notification System
+ * ASH HOLDING Banking-Grade Notification System
  * 
  * Coverage Matrix:
  * - Auth Events: 8 notifications

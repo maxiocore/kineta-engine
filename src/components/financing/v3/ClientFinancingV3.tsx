@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v3 - Main Client Dashboard
+ * ASH HOLDING Financing System v3 - Main Client Dashboard
  * لوحة تمويل العميل الجديدة - FinTech Style مع RTL كامل
  */
 

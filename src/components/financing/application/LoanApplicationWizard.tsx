@@ -1,6 +1,6 @@
 /**
  * =====================================================
- * MaxioCore - Loan Application Wizard
+ * ASH HOLDING - Loan Application Wizard
  * Complete Financing Application Flow
  * With Eligibility Integration & Professional Animation
  * =====================================================

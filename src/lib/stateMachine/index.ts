@@ -1,5 +1,5 @@
 /**
- * MaxioCore - Unified State Machine
+ * ASH HOLDING - Unified State Machine
  * نظام إدارة الحالات الموحد
  * 
  * يغطي: Auth + Wallet + Financing

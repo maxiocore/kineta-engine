@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v2 - Client Components Barrel Export
+ * ASH HOLDING Financing System v2 - Client Components Barrel Export
  */
 
 export { default as ClientFinancingV2 } from './ClientFinancingV2';

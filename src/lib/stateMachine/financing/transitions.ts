@@ -1,5 +1,5 @@
 /**
- * MaxioCore - Financing State Machine Transitions (Unified Prefix)
+ * ASH HOLDING - Financing State Machine Transitions (Unified Prefix)
  * انتقالات حالات التمويل
  * 
  * ⚠️ تنبيه: التمويل غير نقدي - رصيد خدمات داخل المنصة فقط

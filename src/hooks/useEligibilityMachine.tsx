@@ -1,5 +1,5 @@
 // ============================================
-// Eligibility Machine Hook - MaxioCore
+// Eligibility Machine Hook - ASH HOLDING
 // React hook for managing eligibility state
 // ============================================
 

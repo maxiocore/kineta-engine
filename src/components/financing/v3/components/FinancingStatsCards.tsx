@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v3 - Stats Cards Component
+ * ASH HOLDING Financing System v3 - Stats Cards Component
  * بطاقات الإحصائيات السريعة
  */
 

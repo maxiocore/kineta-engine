@@ -1,5 +1,5 @@
 // ============================================
-// Eligibility System - MaxioCore
+// Eligibility System - ASH HOLDING
 // Main entry point and exports
 // ============================================
 

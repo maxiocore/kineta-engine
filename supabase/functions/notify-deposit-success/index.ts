@@ -69,13 +69,13 @@ function getEmailTemplate(
                   <td align="center">
                     <!-- Logo -->
                     <div style="width: 70px; height: 70px; background: #ffffff; border-radius: 15px; margin: 0 auto 15px; line-height: 70px;">
-                      <span style="font-size: 32px; font-weight: 800; color: #00805A;">M</span>
+                      <span style="font-size: 32px; font-weight: 800; color: #00805A;">A</span>
                     </div>
                     <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">
-                      ماكسيو كور
+                      ASH HOLDING
                     </h1>
                     <p style="margin: 5px 0 0; color: rgba(255,255,255,0.9); font-size: 12px;">
-                      MAXIOCORE Digital Services
+                      ASH HOLDING Digital Services
                     </p>
                   </td>
                 </tr>
@@ -229,14 +229,14 @@ function getEmailTemplate(
               <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                 <tr>
                   <td style="padding: 5px;">
-                    <a href="https://maxiocore.com/dashboard" style="display: block; width: 100%; padding: 16px 30px; background: linear-gradient(to right, #00805A, #004d36); color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; text-align: center; box-sizing: border-box;">
+                    <a href="https://ashholding.com/dashboard" style="display: block; width: 100%; padding: 16px 30px; background: linear-gradient(to right, #00805A, #004d36); color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; text-align: center; box-sizing: border-box;">
                       🏦 الذهاب للوحة التحكم
                     </a>
                   </td>
                 </tr>
                 <tr>
                   <td style="padding: 10px 5px 5px;">
-                    <a href="https://maxiocore.com/dashboard/services" style="display: block; width: 100%; padding: 14px 30px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 15px; text-align: center; box-sizing: border-box;">
+                    <a href="https://ashholding.com/dashboard/services" style="display: block; width: 100%; padding: 14px 30px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 15px; text-align: center; box-sizing: border-box;">
                       🛒 تصفح الخدمات
                     </a>
                   </td>
@@ -251,7 +251,7 @@ function getEmailTemplate(
               <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                 <tr>
                   <td align="center">
-                    <p style="margin: 0 0 8px; font-size: 16px; font-weight: 700; color: #ffffff;">ماكسيو كور</p>
+                    <p style="margin: 0 0 8px; font-size: 16px; font-weight: 700; color: #ffffff;">ASH HOLDING</p>
                     <p style="margin: 0 0 10px; font-size: 13px; color: rgba(255,255,255,0.9);">
                       شكراً لثقتك بنا، ${customerName || 'عميلنا العزيز'}
                     </p>
@@ -260,10 +260,10 @@ function getEmailTemplate(
                     </p>
                     <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 12px; margin-top: 5px;">
                       <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.6);">
-                        © ${new Date().getFullYear()} MaxioCore. جميع الحقوق محفوظة.
+                        © ${new Date().getFullYear()} ASH HOLDING. جميع الحقوق محفوظة.
                       </p>
                       <p style="margin: 5px 0 0; font-size: 10px; color: rgba(255,255,255,0.5);">
-                        رقم المرجع: ${receiptNumber} | للاستفسارات: support@maxiocore.com
+                        رقم المرجع: ${receiptNumber} | للاستفسارات: support@ashholding.com
                       </p>
                     </div>
                   </td>
@@ -379,7 +379,7 @@ serve(async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "MaxioCore <noreply@maxiocore.com>",
+        from: "ASH HOLDING <noreply@ashholding.com>",
         to: [profile.email],
         subject: `✅ تم إيداع ${formatAmountArabic(deposit.total_credited)} ر.س في حسابك بنجاح`,
         html: emailHtml,
@@ -410,7 +410,7 @@ serve(async (req: Request): Promise<Response> => {
     
     // Send SMS notification if phone is available
     if (profile.phone) {
-      const smsMessage = `ماكسيو كور: تم إيداع ${formatAmountArabic(deposit.total_credited)} ر.س في حسابك. رصيدك الجديد: ${formatAmountArabic(balance?.balance || 0)} ر.س`;
+      const smsMessage = `ASH HOLDING: تم إيداع ${formatAmountArabic(deposit.total_credited)} ر.س في حسابك. رصيدك الجديد: ${formatAmountArabic(balance?.balance || 0)} ر.س`;
       const smsResult = await sendSMS(profile.phone, smsMessage);
       console.log("SMS result:", smsResult);
       

@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v2 - Action Buttons Component
+ * ASH HOLDING Financing System v2 - Action Buttons Component
  * أزرار الإجراءات الذكية للعميل
  */
 
