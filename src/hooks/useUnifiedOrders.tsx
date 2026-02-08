@@ -410,7 +410,7 @@ export function useUnifiedOrderDetails(orderId: string | undefined) {
         .from('orders')
         .select(`
           *,
-          service:services(name, name_ar)
+          service:services(name)
         `)
         .eq('id', orderId)
         .maybeSingle();
