@@ -1,10 +1,8 @@
 /**
  * ASH HOLDING Financing System v2 - Client Components Barrel Export
+ * Legacy V2 UI components removed (ClientFinancingV2, HeroCardV2, TimelineV2, ActionButtonsV2)
+ * Retained: InstallmentsTableV2 & DocumentsViewer (used by V3 dashboard)
  */
 
-export { default as ClientFinancingV2 } from './ClientFinancingV2';
-export { FinancingHeroCardV2 } from './FinancingHeroCardV2';
-export { FinancingTimelineV2, CompactTimeline } from './FinancingTimelineV2';
-export { ActionButtonsV2, QuickActionCards } from './ActionButtonsV2';
 export { InstallmentsTableV2, InstallmentsCards } from './InstallmentsTableV2';
 export { DocumentsViewer } from './DocumentsViewer';
