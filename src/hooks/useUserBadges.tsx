@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { sendBadgeAwardedSms } from '@/utils/sendRewardSms';
 
 export interface Badge {
   id: string;
@@ -123,6 +124,9 @@ export const useUserBadges = (userId?: string) => {
               message: `لقد حصلت على شارة "${badge.name_ar}"! ${badge.description_ar || badge.description || 'استمر في التقدم للحصول على المزيد من الشارات.'}`,
               type: 'success'
             });
+
+          // Send SMS notification
+          sendBadgeAwardedSms(userId, badge.name_ar, badge.icon, badge.tier);
 
           // Show toast notification
           toast.success(`🏆 تهانينا! حصلت على شارة "${badge.name_ar}"`, {

@@ -41,6 +41,7 @@ import { motion } from 'framer-motion';
 import UserAnalyticsCharts from '@/components/admin/UserAnalyticsCharts';
 import { useUserBadges } from '@/hooks/useUserBadges';
 import { UserBadgesGrid, BadgeProgressCard } from '@/components/badges/UserBadgeDisplay';
+import { sendBadgeAwardedSms, sendBadgeRevokedSms } from '@/utils/sendRewardSms';
 
 interface UserProfile {
   id: string;
@@ -611,6 +612,8 @@ const AdminUserProfile = () => {
                                       });
                                     
                                     toast.success(`تم إزالة شارة "${badge.name_ar}"`);
+                                    // Send SMS notification
+                                    sendBadgeRevokedSms(userId!, badge.name_ar);
                                     refetchBadges();
                                   }
                                 }}
@@ -660,6 +663,8 @@ const AdminUserProfile = () => {
                                       });
                                     
                                     toast.success(`تم منح شارة "${badge.name_ar}"`);
+                                    // Send SMS notification
+                                    sendBadgeAwardedSms(userId!, badge.name_ar, badge.icon, badge.tier);
                                     refetchBadges();
                                   }
                                 }}
