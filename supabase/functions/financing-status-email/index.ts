@@ -3,6 +3,205 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendWhatsAppMessage, getFinancingStatusMessage } from "../_shared/whatsapp-helper.ts";
 
+// ============= Msegat SMS Configuration =============
+const MSEGAT_USERNAME = Deno.env.get('MSEGAT_USERNAME');
+const MSEGAT_API_KEY = Deno.env.get('MSEGAT_API_KEY');
+const MSEGAT_SENDER_NAME = Deno.env.get('MSEGAT_SENDER_NAME') || 'ASH HOLDING';
+
+// Format phone for Msegat (966xxxxxxxxx, no +)
+function formatPhoneForSMS(phone: string): string {
+  let cleaned = phone.replace(/\D/g, '');
+  if (cleaned.startsWith('00966')) cleaned = cleaned.substring(2);
+  else if (cleaned.startsWith('0')) cleaned = '966' + cleaned.substring(1);
+  if (!cleaned.startsWith('966')) cleaned = '966' + cleaned;
+  return cleaned;
+}
+
+// Send SMS via Msegat API
+async function sendFinancingSMS(phone: string, message: string): Promise<{ success: boolean; error?: string; messageId?: string }> {
+  if (!MSEGAT_USERNAME || !MSEGAT_API_KEY) {
+    console.error('[SMS-Financing] Msegat credentials not configured');
+    return { success: false, error: 'Msegat credentials not configured' };
+  }
+
+  const formattedPhone = formatPhoneForSMS(phone);
+
+  try {
+    console.log(`[SMS-Financing] Sending SMS to ${formattedPhone}`);
+    
+    const response = await fetch('https://www.msegat.com/gw/sendsms.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userName: MSEGAT_USERNAME,
+        apiKey: MSEGAT_API_KEY,
+        numbers: formattedPhone,
+        userSender: MSEGAT_SENDER_NAME,
+        msg: message,
+        msgEncoding: 'UTF8',
+        reqBulkId: 'true',
+        By: 'ASH HOLDING',
+      }),
+    });
+
+    const responseText = await response.text();
+    console.log('[SMS-Financing] Msegat response:', responseText);
+
+    let data: any;
+    try { data = JSON.parse(responseText); } catch { data = responseText.trim(); }
+
+    const isSuccess = data === '1' || data === 1 || data?.code === '1' || data?.code === 'M0000' || data?.message === 'Success';
+
+    if (isSuccess) {
+      const messageId = data?.id || data?.bulkId || String(Date.now());
+      return { success: true, messageId: String(messageId) };
+    } else {
+      const errorCode = data?.code || data?.toString() || 'unknown';
+      return { success: false, error: `Msegat error: ${errorCode}` };
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[SMS-Financing] Error:', error);
+    return { success: false, error: errorMessage };
+  }
+}
+
+// SMS message templates for financing statuses (concise for SMS)
+const SMS_MESSAGES: Record<string, {
+  text: string;
+}> = {
+  SUBMITTED: {
+    text: 'ASH HOLDING: تم استلام طلب التمويل رقم {{APP_NO}} بنجاح. سيتم مراجعته خلال 1-3 أيام عمل. تابع عبر المنصة.'
+  },
+  UNDER_REVIEW: {
+    text: 'ASH HOLDING: طلب التمويل رقم {{APP_NO}} قيد المراجعة الآن من الفريق المختص. سنوافيكم بالنتيجة قريباً.'
+  },
+  ADDITIONAL_INFO_REQUIRED: {
+    text: 'ASH HOLDING: مطلوب مستندات إضافية لطلب التمويل رقم {{APP_NO}}. يرجى رفعها عبر المنصة خلال 14 يوماً.'
+  },
+  APPROVED: {
+    text: 'ASH HOLDING: تهانينا! تمت الموافقة على طلب التمويل رقم {{APP_NO}}{{AMOUNT}}. يرجى مراجعة العقد والتوقيع عبر المنصة.'
+  },
+  APPROVED_WITH_LIMITS: {
+    text: 'ASH HOLDING: تمت الموافقة على طلب التمويل رقم {{APP_NO}} بقيمة معدّلة{{AMOUNT}}. راجع التفاصيل عبر المنصة.'
+  },
+  OFFER_READY: {
+    text: 'ASH HOLDING: العرض جاهز لطلب التمويل رقم {{APP_NO}}{{AMOUNT}}. يرجى مراجعة العرض عبر المنصة.'
+  },
+  ACK_SENT: {
+    text: 'ASH HOLDING: تم إرسال إقرار التمويل لطلب رقم {{APP_NO}}. يرجى مراجعته والتوقيع عبر المنصة.'
+  },
+  ACK_SIGNED: {
+    text: 'ASH HOLDING: تم توقيع الإقرار بنجاح لطلب التمويل رقم {{APP_NO}}. جارٍ إعداد العقد.'
+  },
+  CONTRACT_PRESENTED: {
+    text: 'ASH HOLDING: عقد التمويل رقم {{APP_NO}} جاهز للتوقيع. يرجى مراجعة البنود والتوقيع خلال 7 أيام عبر المنصة.'
+  },
+  CONTRACT_SENT: {
+    text: 'ASH HOLDING: تم إرسال عقد التمويل لطلب رقم {{APP_NO}}. يرجى مراجعته والتوقيع عبر المنصة.'
+  },
+  CONTRACT_ACCEPTED: {
+    text: 'ASH HOLDING: تم توقيع عقد التمويل رقم {{APP_NO}} بنجاح. الخطوة التالية: توقيع السند لأمر.'
+  },
+  CONTRACT_FINALIZED: {
+    text: 'ASH HOLDING: تم اعتماد عقد التمويل رقم {{APP_NO}} رسمياً. جارٍ إضافة رصيد الخدمات لحسابكم.'
+  },
+  SIGNING_OTP_SENT: {
+    text: 'ASH HOLDING: تم إرسال رمز التحقق لتوقيع عقد التمويل رقم {{APP_NO}}. يرجى إدخاله عبر المنصة.'
+  },
+  PROMISSORY_SIGNED: {
+    text: 'ASH HOLDING: تم توقيع السند لأمر بنجاح لطلب {{APP_NO}}. جارٍ اعتماد العقد وإضافة الرصيد.'
+  },
+  BOND_ISSUING: {
+    text: 'ASH HOLDING: جارٍ إصدار السند التنفيذي لطلب التمويل رقم {{APP_NO}} عبر نافذ. سنشعركم فور الانتهاء.'
+  },
+  BOND_ISSUED: {
+    text: 'ASH HOLDING: تم إصدار السند التنفيذي لطلب {{APP_NO}} عبر نافذ. يرجى تأكيد التوقيع عبر المنصة خلال 7 أيام.'
+  },
+  BOND_SENT_TO_CLIENT: {
+    text: 'ASH HOLDING: تم إرسال السند التنفيذي لطلب {{APP_NO}} عبر نافذ. يرجى توقيعه ثم تأكيد التوقيع عبر المنصة.'
+  },
+  BOND_SIGNED_BY_CLIENT: {
+    text: 'ASH HOLDING: تم تأكيد توقيعكم على السند التنفيذي لطلب {{APP_NO}} بنجاح. جارٍ المراجعة النهائية.'
+  },
+  BOND_VERIFIED_BY_ADMIN: {
+    text: 'ASH HOLDING: تم التحقق من السند التنفيذي لطلب {{APP_NO}}. جارٍ إضافة رصيد الخدمات لحسابكم.'
+  },
+  FIN_CREDIT_DEPOSITED: {
+    text: 'ASH HOLDING: تهانينا! تم إيداع رصيد الخدمات لطلب {{APP_NO}}{{AMOUNT}} بنجاح. استمتعوا بخدماتنا عبر المنصة.'
+  },
+  CREDIT_DEPOSITED: {
+    text: 'ASH HOLDING: تهانينا! تم إيداع رصيد الخدمات لطلب {{APP_NO}}{{AMOUNT}} بنجاح. استمتعوا بخدماتنا عبر المنصة.'
+  },
+  DECLINED: {
+    text: 'ASH HOLDING: نأسف، لم تتم الموافقة على طلب التمويل رقم {{APP_NO}} حالياً. يمكنكم المحاولة مجدداً لاحقاً.'
+  },
+  CANCELLED: {
+    text: 'ASH HOLDING: تم إلغاء طلب التمويل رقم {{APP_NO}}. يمكنكم تقديم طلب جديد في أي وقت عبر المنصة.'
+  },
+  EXPIRED: {
+    text: 'ASH HOLDING: انتهت صلاحية طلب التمويل رقم {{APP_NO}}. يمكنكم تقديم طلب جديد عبر المنصة.'
+  },
+};
+
+// Build SMS text from template
+function buildFinancingSMSText(status: string, applicationNumber: string, approvedAmount?: number): string | null {
+  const template = SMS_MESSAGES[status.toUpperCase()];
+  if (!template) return null;
+  
+  let text = template.text.replace('{{APP_NO}}', applicationNumber);
+  
+  if (approvedAmount) {
+    text = text.replace('{{AMOUNT}}', ` بقيمة ${approvedAmount.toLocaleString('ar-SA')} ر.س`);
+  } else {
+    text = text.replace('{{AMOUNT}}', '');
+  }
+  
+  return text;
+}
+
+// Send SMS and log result for financing
+async function sendAndLogFinancingSMS(
+  supabase: any,
+  phone: string,
+  status: string,
+  applicationNumber: string,
+  applicationId: string,
+  userId: string,
+  recipientName: string,
+  approvedAmount?: number,
+): Promise<void> {
+  try {
+    const smsText = buildFinancingSMSText(status, applicationNumber, approvedAmount);
+    if (!smsText) {
+      console.log(`[SMS-Financing] No SMS template for status: ${status}`);
+      return;
+    }
+
+    const result = await sendFinancingSMS(phone, smsText);
+    console.log(`[SMS-Financing] Result for ${status}:`, result);
+
+    // Log to sms_logs table
+    try {
+      await supabase.from('sms_logs').insert({
+        phone,
+        message: smsText,
+        type: 'sms_financing',
+        status: result.success ? 'sent' : 'failed',
+        user_id: userId,
+        reference_id: applicationId,
+        error_message: result.error || null,
+        provider: 'msegat',
+        external_id: result.messageId || null,
+      });
+    } catch (logErr) {
+      console.error('[SMS-Financing] Error logging SMS:', logErr);
+    }
+  } catch (err) {
+    console.error('[SMS-Financing] Error sending SMS:', err);
+  }
+}
+
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
@@ -843,6 +1042,30 @@ async function processEmailRequest(request: EmailRequest): Promise<QueueResult> 
     } catch (waError) {
       console.error("WhatsApp (rate-limited) notification error:", waError);
     }
+
+    // Also send SMS even if email is rate-limited
+    try {
+      const { data: appForSMS } = await supabase
+        .from('financing_applications')
+        .select('user_id, phone')
+        .eq('id', request.applicationId)
+        .single();
+
+      if (appForSMS?.phone) {
+        await sendAndLogFinancingSMS(
+          supabase,
+          appForSMS.phone,
+          request.status,
+          request.applicationNumber,
+          request.applicationId,
+          appForSMS.user_id,
+          request.recipientName,
+          request.approvedAmount,
+        );
+      }
+    } catch (smsError) {
+      console.error("SMS (rate-limited) notification error:", smsError);
+    }
     
     return {
       success: true,
@@ -969,6 +1192,30 @@ async function processEmailRequest(request: EmailRequest): Promise<QueueResult> 
       }
     } catch (waError) {
       console.error("WhatsApp notification error:", waError);
+    }
+
+    // 11. Send SMS notification via Msegat
+    try {
+      const { data: appForSMS } = await supabase
+        .from('financing_applications')
+        .select('user_id, phone')
+        .eq('id', request.applicationId)
+        .single();
+
+      if (appForSMS?.phone) {
+        await sendAndLogFinancingSMS(
+          supabase,
+          appForSMS.phone,
+          request.status,
+          request.applicationNumber,
+          request.applicationId,
+          appForSMS.user_id,
+          request.recipientName,
+          request.approvedAmount,
+        );
+      }
+    } catch (smsError) {
+      console.error("SMS financing notification error:", smsError);
     }
     
     return {
