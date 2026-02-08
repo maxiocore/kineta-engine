@@ -339,12 +339,31 @@ export default function AdminOrderDetails() {
         });
 
       } else if (order.source_table === 'orders') {
+        // Get old status before update
+        const { data: currentOrder } = await supabase
+          .from('orders')
+          .select('status')
+          .eq('id', order.source_id)
+          .single();
+        const oldStatus = currentOrder?.status;
+
         const { error } = await supabase
           .from('orders')
           .update({ status: selectedStatus as any, updated_at: new Date().toISOString() })
           .eq('id', order.source_id);
         
         if (error) throw error;
+
+        // Send SMS, Email & WhatsApp notifications
+        if (oldStatus !== selectedStatus) {
+          try {
+            await supabase.functions.invoke('notify-order-status', {
+              body: { orderId: order.source_id, oldStatus, newStatus: selectedStatus }
+            });
+          } catch (e) {
+            console.error("Failed to send status notification:", e);
+          }
+        }
       }
 
       toast({ title: "تم تحديث الحالة بنجاح" });
