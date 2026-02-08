@@ -173,6 +173,8 @@ export const STATUS_CONFIG: Record<FinancingStatus, StatusConfig> = {
     color: 'purple',
     icon: 'Stamp',
     isTerminal: false,
+    requiredAction: 'تأكيد إصدار السند',
+    requiredActionActor: 'admin',
   },
   BOND_ISSUED: {
     status: 'BOND_ISSUED',
