@@ -320,6 +320,106 @@ function generateAcknowledgmentHTML(data: AcknowledgmentData, signature?: Signat
     }
     
     .signature-details p { margin: 0; }
+
+    /* Company Digital Seal */
+    .company-seal-section {
+      margin-top: 30px;
+      padding-top: 25px;
+      border-top: 2px dashed var(--border-color);
+    }
+
+    .company-seal-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 30px;
+      flex-direction: row-reverse;
+    }
+
+    .company-seal {
+      width: 140px;
+      height: 140px;
+      border: 4px solid var(--primary-color);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background: radial-gradient(circle, rgba(30, 58, 95, 0.03) 0%, rgba(30, 58, 95, 0.08) 100%);
+      flex-shrink: 0;
+    }
+
+    .company-seal::before {
+      content: '';
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      right: 6px;
+      bottom: 6px;
+      border: 2px solid var(--primary-color);
+      border-radius: 50%;
+      opacity: 0.6;
+    }
+
+    .company-seal::after {
+      content: '';
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      border: 1px dashed var(--primary-color);
+      border-radius: 50%;
+      opacity: 0.4;
+    }
+
+    .seal-company-name {
+      font-size: 7pt;
+      font-weight: 700;
+      color: var(--primary-color);
+      text-align: center;
+      line-height: 1.4;
+      z-index: 1;
+      max-width: 90px;
+    }
+
+    .seal-icon {
+      font-size: 22pt;
+      z-index: 1;
+      margin-bottom: 4px;
+    }
+
+    .seal-cr {
+      font-size: 6pt;
+      color: var(--text-muted);
+      z-index: 1;
+      margin-top: 2px;
+    }
+
+    .company-seal-info {
+      text-align: center;
+    }
+
+    .company-seal-info .seal-title {
+      font-size: 11pt;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+    }
+
+    .company-seal-info .seal-subtitle {
+      font-size: 9pt;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .company-seal-info .seal-date {
+      font-size: 9pt;
+      color: var(--text-primary);
+      font-weight: 600;
+      margin-top: 6px;
+    }
     
     .legal-note {
       background: linear-gradient(135deg, #fef3c7, #fde68a);
@@ -457,6 +557,25 @@ function generateAcknowledgmentHTML(data: AcknowledgmentData, signature?: Signat
         في انتظار توقيع العميل...
       </div>
       `}
+
+      <!-- Company Digital Seal -->
+      <div class="company-seal-section">
+        <div class="company-seal-container">
+          <div class="company-seal">
+            <span class="seal-icon">🏛️</span>
+            <span class="seal-company-name">${COMPANY_INFO.name}</span>
+            <span class="seal-cr">س.ت: ${COMPANY_INFO.commercialRegister}</span>
+          </div>
+          <div class="company-seal-info">
+            <div class="seal-title">التوقيع الرقمي للشركة</div>
+            <div class="seal-subtitle">
+              تم اعتماد هذا الإقرار رقمياً من قبل<br/>
+              ${COMPANY_INFO.name}
+            </div>
+            <div class="seal-date">تاريخ الاعتماد: ${issueDateFormatted}</div>
+          </div>
+        </div>
+      </div>
     </div>
     
     <div class="footer">

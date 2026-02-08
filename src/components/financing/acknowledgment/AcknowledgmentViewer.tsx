@@ -145,48 +145,93 @@ export function AcknowledgmentViewer({
 
   // Handle signature
   const handleSign = async () => {
-    if (!canSign || !acknowledgmentData?.acknowledgment_id) return;
+    if (!canSign) return;
     
     setIsSigning(true);
     
     try {
-      // Update acknowledgment in database
-      const { error: updateError } = await supabase
-        .from('financing_acknowledgments')
-        .update({
-          status: 'SIGNED',
-          signed_at: new Date().toISOString(),
-          reading_time_seconds: readingTimeSeconds,
-          signature_user_agent: navigator.userAgent,
-          signature_device_info: {
-            platform: navigator.platform,
-            language: navigator.language,
-            screen: {
-              width: window.screen.width,
-              height: window.screen.height
-            }
-          },
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', acknowledgmentData.acknowledgment_id);
-      
-      if (updateError) throw updateError;
+      const now = new Date().toISOString();
+      const deviceInfo = {
+        platform: navigator.platform,
+        language: navigator.language,
+        screen: {
+          width: window.screen.width,
+          height: window.screen.height
+        }
+      };
+
+      let ackId = acknowledgmentData?.acknowledgment_id;
+
+      // If no acknowledgment record exists, create one
+      if (!ackId) {
+        const ackNumber = acknowledgmentData?.acknowledgment_data?.acknowledgment_number 
+          || `ACK-${applicationId.substring(0, 8).toUpperCase()}`;
+        
+        const { data: newAck, error: insertError } = await supabase
+          .from('financing_acknowledgments')
+          .insert({
+            application_id: applicationId,
+            acknowledgment_number: ackNumber,
+            acknowledgment_type: 'terms_and_conditions',
+            status: 'SIGNED' as any,
+            signed_at: now,
+            reading_time_seconds: readingTimeSeconds,
+            signature_user_agent: navigator.userAgent,
+            signature_device_info: deviceInfo,
+            sent_at: now,
+            viewed_at: now,
+            viewed_count: 1,
+          })
+          .select('id')
+          .single();
+        
+        if (insertError) throw insertError;
+        ackId = newAck.id;
+      } else {
+        // Update existing acknowledgment record
+        const { error: updateError } = await supabase
+          .from('financing_acknowledgments')
+          .update({
+            status: 'SIGNED' as any,
+            signed_at: now,
+            reading_time_seconds: readingTimeSeconds,
+            signature_user_agent: navigator.userAgent,
+            signature_device_info: deviceInfo,
+            updated_at: now
+          })
+          .eq('id', ackId);
+        
+        if (updateError) throw updateError;
+      }
       
       // Update application workflow status
-      await supabase
+      const { error: appError } = await supabase
         .from('financing_applications')
         .update({
           workflow_status: 'ACK_SIGNED',
-          phase_updated_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          phase_updated_at: now,
+          updated_at: now
         })
         .eq('id', applicationId);
+
+      if (appError) throw appError;
+
+      // Verify the acknowledgment is readable
+      const { data: verified } = await supabase
+        .from('financing_acknowledgments')
+        .select('id')
+        .eq('id', ackId)
+        .single();
+
+      if (!verified) {
+        throw new Error('تم إنشاء الإقرار لكن لم يتم حفظه بشكل صحيح');
+      }
       
       toast.success('تم توقيع الإقرار بنجاح');
       onSigned?.();
     } catch (err) {
       console.error('Error signing acknowledgment:', err);
-      toast.error('فشل توقيع الإقرار');
+      toast.error(err instanceof Error ? err.message : 'فشل توقيع الإقرار');
     } finally {
       setIsSigning(false);
     }
