@@ -12,6 +12,7 @@ export { ActivityLog, ActivityItem } from './ActivityLog';
 export { WalletCard, MiniWalletCard } from './WalletCard';
 export { RTLSegmentedControl, type SegmentItem } from './RTLSegmentedControl';
 export { NextActionCard, OnboardingCard } from './NextActionCard';
+export { EligibilitySection } from './EligibilitySection';
 export { 
   HeroCardSkeleton, 
   StatsCardsSkeleton, 
