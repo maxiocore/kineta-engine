@@ -385,7 +385,18 @@ serve(async (req: Request): Promise<Response> => {
     
     // Send SMS notification if phone is available
     if (profile.phone) {
-      const smsMessage = `ASH HOLDING: تم تحديث طلبك رقم ${order.order_number} إلى "${statusInfo.ar}". تتبع الطلب: ashholding.com/dashboard/orders`;
+      const customerFirstName = (profile.full_name || '').split(' ')[0] || 'عميلنا';
+      const orderSmsTemplates: Record<string, string> = {
+        pending: `📦 ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nتم استلام طلبك رقم #${order.order_number} بنجاح ✅\n\n⏳ الحالة: قيد الانتظار\n💰 المبلغ: ${order.total_price} ر.س\n\nسيتم معالجة طلبك قريباً.\nashholding.com`,
+        confirmed: `✅ ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nتم تأكيد طلبك رقم #${order.order_number} 🎉\n\n📋 الحالة: مؤكد\n🔄 سنبدأ التنفيذ قريباً\n\nashholding.com`,
+        processing: `⚙️ ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nطلبك رقم #${order.order_number} قيد المعالجة الآن 🔄\n\n📋 الحالة: قيد المعالجة\n⏱️ يتم العمل على طلبك\n\nashholding.com`,
+        in_progress: `🚀 ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nطلبك رقم #${order.order_number} قيد التنفيذ! 💪\n\n📋 الحالة: قيد التنفيذ\n⚡ فريقنا يعمل على إنجاز طلبك\n\nashholding.com`,
+        completed: `🎉 ASH HOLDING\n\nتهانينا ${customerFirstName}! 🥳\nتم إكمال طلبك رقم #${order.order_number} بنجاح ✅\n\n📋 الحالة: مكتمل\n⭐ نتمنى أن تكون تجربتك ممتازة!\n\nashholding.com`,
+        partial: `⚠️ ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nطلبك رقم #${order.order_number} مكتمل جزئياً 📊\n\n📋 الحالة: مكتمل جزئي\nℹ️ يمكنك مراجعة التفاصيل من حسابك\n\nashholding.com`,
+        cancelled: `❌ ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nتم إلغاء طلبك رقم #${order.order_number}\n\n📋 الحالة: ملغي\n💰 تم إرجاع المبلغ لرصيدك\n\n📞 للاستفسار تواصل معنا\nashholding.com`,
+        refunded: `💰 ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nتم استرداد مبلغ طلبك رقم #${order.order_number} 🔄\n\n📋 الحالة: مسترد\n✅ المبلغ سيظهر في رصيدك\n\nashholding.com`,
+      };
+      const smsMessage = orderSmsTemplates[newStatus] || `📦 ASH HOLDING\n\nمرحباً ${customerFirstName} 👋\nتم تحديث طلبك رقم #${order.order_number}\n\n📋 الحالة: ${statusInfo.ar} ${statusInfo.emoji}\n\nashholding.com`;
       const smsResult = await sendSMS(profile.phone, smsMessage);
       console.log("SMS result:", smsResult);
       

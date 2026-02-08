@@ -29,9 +29,20 @@ type FinancingSMSEvent =
   | 'eligibility_failed'
   | 'application_submitted'
   | 'application_approved'
+  | 'application_approved_limited'
   | 'application_rejected'
+  | 'offer_ready'
+  | 'acknowledgment_sent'
   | 'acknowledgment_signed'
+  | 'contract_sent'
   | 'contract_signed'
+  | 'contract_finalized'
+  | 'bond_issuing'
+  | 'bond_issued'
+  | 'bond_sent'
+  | 'bond_signed'
+  | 'bond_verified'
+  | 'credit_deposited'
   | 'financing_completed';
 
 interface FinancingSMSRequest {
@@ -43,14 +54,16 @@ interface FinancingSMSRequest {
   approvedAmount?: number;
   rejectionReason?: string;
   userId?: string;
+  installmentCount?: number;
+  monthlyPayment?: number;
 }
 
 // ============================================
-// SMS Templates - Professional Arabic
+// SMS Templates - Banking-Grade Arabic 🏦
 // ============================================
 
 function buildSMSMessage(event: FinancingSMSEvent, data: FinancingSMSRequest): string {
-  const name = data.customerName || 'عميلنا الكريم';
+  const name = (data.customerName || '').split(' ')[0] || 'عميلنا الكريم';
   const appNum = data.applicationNumber || '';
   const amount = data.approvedAmount
     ? data.approvedAmount.toLocaleString('ar-SA')
@@ -59,74 +72,281 @@ function buildSMSMessage(event: FinancingSMSEvent, data: FinancingSMSRequest): s
   switch (event) {
     case 'eligibility_passed':
       return [
-        `عزيزي ${name}،`,
-        `يسعدنا إبلاغك بأنك مؤهل للحصول على تمويل خدمات ASH HOLDING.`,
-        `يمكنك الآن إكمال طلب التمويل من خلال حسابك.`,
-        `فريق ASH HOLDING`,
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
+        `مرحباً ${name} 👋`,
+        `✅ تهانينا! أنت مؤهل للحصول على تمويل خدمات.`,
+        ``,
+        `📋 يمكنك الآن إكمال طلبك من حسابك`,
+        `⏱️ الإجراء سريع ومبسّط`,
+        ``,
+        `🔒 ASH HOLDING | تمويل آمن ومرن`,
       ].join('\n');
 
     case 'eligibility_failed':
       return [
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
         `عزيزي ${name}،`,
-        `نأسف لإبلاغك بأنك غير مؤهل حالياً للحصول على التمويل.`,
-        `يمكنك إعادة المحاولة لاحقاً أو التواصل مع فريق الدعم.`,
-        `فريق ASH HOLDING`,
+        `📋 بعد مراجعة بياناتك، لم تستوفِ شروط الأهلية حالياً.`,
+        ``,
+        `🔄 يمكنك إعادة المحاولة لاحقاً`,
+        `📞 أو التواصل مع فريق الدعم`,
+        ``,
+        `ASH HOLDING`,
       ].join('\n');
 
     case 'application_submitted':
       return [
-        `عزيزي ${name}،`,
-        `تم استلام طلب التمويل رقم ${appNum} بنجاح.`,
-        `سيتم مراجعة طلبك من قبل فريقنا المختص وإبلاغك بالنتيجة.`,
-        `فريق ASH HOLDING`,
-      ].join('\n');
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
+        `مرحباً ${name} 👋`,
+        `📩 تم استلام طلب التمويل بنجاح`,
+        ``,
+        `📄 رقم الطلب: #${appNum}`,
+        amount ? `💰 المبلغ المطلوب: ${amount} ر.س` : '',
+        ``,
+        `⏳ جاري المراجعة من الفريق المختص`,
+        `📱 سيصلك إشعار بالنتيجة`,
+        ``,
+        `🔒 ASH HOLDING | خدماتك المالية بأمان`,
+      ].filter(Boolean).join('\n');
 
     case 'application_approved':
       return [
-        `عزيزي ${name}،`,
-        `يسعدنا إبلاغك بالموافقة على طلب التمويل رقم ${appNum}.`,
-        amount ? `المبلغ المعتمد: ${amount} ر.س` : '',
-        `يرجى الدخول لحسابك لإتمام الإجراءات المطلوبة.`,
-        `فريق ASH HOLDING`,
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
+        `تهانينا ${name}! 🎉`,
+        `✅ تمت الموافقة على طلب التمويل`,
+        ``,
+        `📄 رقم الطلب: #${appNum}`,
+        amount ? `💰 المبلغ المعتمد: ${amount} ر.س` : '',
+        ``,
+        `📋 الخطوة التالية: مراجعة العرض والإقرار`,
+        `📱 يرجى الدخول لحسابك لإتمام الإجراءات`,
+        ``,
+        `🔒 ASH HOLDING | شريكك المالي الموثوق`,
+      ].filter(Boolean).join('\n');
+
+    case 'application_approved_limited':
+      return [
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
+        `مرحباً ${name} 👋`,
+        `✅ تمت الموافقة المشروطة على طلب التمويل`,
+        ``,
+        `📄 رقم الطلب: #${appNum}`,
+        amount ? `💰 المبلغ المعتمد: ${amount} ر.س` : '',
+        ``,
+        `ℹ️ يرجى مراجعة الشروط في حسابك`,
+        ``,
+        `🔒 ASH HOLDING`,
       ].filter(Boolean).join('\n');
 
     case 'application_rejected':
       return [
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
         `عزيزي ${name}،`,
-        `نأسف لإبلاغك بأنه لم تتم الموافقة على طلب التمويل رقم ${appNum}.`,
-        data.rejectionReason ? `السبب: ${data.rejectionReason}` : '',
-        `يمكنك التواصل مع فريق الدعم لمزيد من التفاصيل.`,
-        `فريق ASH HOLDING`,
+        `📋 بعد الدراسة الائتمانية لطلبك رقم #${appNum}`,
+        `❌ لم تتم الموافقة على الطلب`,
+        data.rejectionReason ? `📝 الملاحظة: ${data.rejectionReason}` : '',
+        ``,
+        `📞 يمكنك التواصل مع فريقنا للمزيد`,
+        ``,
+        `ASH HOLDING`,
       ].filter(Boolean).join('\n');
+
+    case 'offer_ready':
+      return [
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
+        `مرحباً ${name} 👋`,
+        `📋 عرض التمويل جاهز لمراجعتك!`,
+        ``,
+        `📄 رقم الطلب: #${appNum}`,
+        amount ? `💰 المبلغ: ${amount} ر.س` : '',
+        ``,
+        `📱 يرجى الدخول لحسابك لمراجعة العرض`,
+        `⏱️ العرض صالح لمدة محدودة`,
+        ``,
+        `🔒 ASH HOLDING | تمويل شفاف ومرن`,
+      ].filter(Boolean).join('\n');
+
+    case 'acknowledgment_sent':
+      return [
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
+        `مرحباً ${name} 👋`,
+        `📄 تم إرسال إقرار الشروط والأحكام لطلب #${appNum}`,
+        ``,
+        `📱 يرجى مراجعة الإقرار والتوقيع عليه`,
+        `⏱️ من حسابك في المنصة`,
+        ``,
+        `🔒 ASH HOLDING`,
+      ].join('\n');
 
     case 'acknowledgment_signed':
       return [
-        `عزيزي ${name}،`,
-        `تم توقيع إقرار الشروط والأحكام لطلب التمويل رقم ${appNum} بنجاح.`,
-        `سيتم إرسال العقد الرسمي لك قريباً لإتمام التوقيع.`,
-        `فريق ASH HOLDING`,
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
+        `مرحباً ${name} 👋`,
+        `✅ تم توقيع إقرار الشروط بنجاح`,
+        ``,
+        `📄 رقم الطلب: #${appNum}`,
+        `📋 الخطوة التالية: إرسال العقد الرسمي`,
+        `⏳ سيتم إرسال العقد قريباً`,
+        ``,
+        `🔒 ASH HOLDING | إجراءاتك محفوظة بأمان`,
       ].join('\n');
+
+    case 'contract_sent':
+      return [
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
+        `مرحباً ${name} 👋`,
+        `📑 تم إرسال عقد التمويل الرسمي`,
+        ``,
+        `📄 رقم الطلب: #${appNum}`,
+        amount ? `💰 المبلغ: ${amount} ر.س` : '',
+        ``,
+        `📱 يرجى مراجعة العقد والتوقيع عليه`,
+        `🔐 التوقيع يتطلب رمز تحقق OTP`,
+        ``,
+        `🔒 ASH HOLDING | عقد رسمي وملزم`,
+      ].filter(Boolean).join('\n');
 
     case 'contract_signed':
       return [
-        `عزيزي ${name}،`,
-        `تم توقيع عقد التمويل رقم ${appNum} بنجاح.`,
-        `سيتم استكمال الإجراءات اللازمة وإبلاغك عند تفعيل رصيد الخدمات.`,
-        `فريق ASH HOLDING`,
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
+        `تهانينا ${name}! 🎉`,
+        `✅ تم توقيع عقد التمويل بنجاح`,
+        ``,
+        `📄 رقم الطلب: #${appNum}`,
+        `📋 الخطوة التالية: إصدار السند التنفيذي`,
+        `⏳ جاري استكمال الإجراءات`,
+        ``,
+        `🔒 ASH HOLDING | التزامك ثقة`,
       ].join('\n');
+
+    case 'contract_finalized':
+      return [
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
+        `مرحباً ${name} 👋`,
+        `✅ تم اعتماد العقد رسمياً`,
+        ``,
+        `📄 رقم الطلب: #${appNum}`,
+        `📋 جاري استكمال الإجراءات النهائية`,
+        ``,
+        `🔒 ASH HOLDING`,
+      ].join('\n');
+
+    case 'bond_issuing':
+      return [
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
+        `مرحباً ${name} 👋`,
+        `📋 جاري إصدار السند التنفيذي لطلب #${appNum}`,
+        ``,
+        `⏳ يتم إعداد السند عبر نظام نافذ`,
+        `📱 سيصلك إشعار عند الجاهزية`,
+        ``,
+        `🔒 ASH HOLDING | إجراءات رسمية وموثقة`,
+      ].join('\n');
+
+    case 'bond_issued':
+      return [
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
+        `مرحباً ${name} 👋`,
+        `✅ تم إصدار السند التنفيذي`,
+        ``,
+        `📄 رقم الطلب: #${appNum}`,
+        `📋 الخطوة التالية: التوقيع على السند`,
+        ``,
+        `🔒 ASH HOLDING`,
+      ].join('\n');
+
+    case 'bond_sent':
+      return [
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
+        `مرحباً ${name} 👋`,
+        `📩 تم إرسال السند التنفيذي لطلب #${appNum}`,
+        ``,
+        `📱 يرجى مراجعة السند والتوقيع عليه`,
+        `⚡ التوقيع مطلوب لاستكمال الإجراءات`,
+        ``,
+        `🔒 ASH HOLDING | سند رسمي وموثق`,
+      ].join('\n');
+
+    case 'bond_signed':
+      return [
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
+        `مرحباً ${name} 👋`,
+        `✅ تم توقيع السند التنفيذي بنجاح`,
+        ``,
+        `📄 رقم الطلب: #${appNum}`,
+        `⏳ جاري التحقق من الإدارة`,
+        ``,
+        `🔒 ASH HOLDING | إجراءاتك محفوظة`,
+      ].join('\n');
+
+    case 'bond_verified':
+      return [
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
+        `مرحباً ${name} 👋`,
+        `✅ تم التحقق من السند التنفيذي واعتماده`,
+        ``,
+        `📄 رقم الطلب: #${appNum}`,
+        `💰 جاري إيداع رصيد الخدمات`,
+        `📱 سيصلك إشعار عند الإيداع`,
+        ``,
+        `🔒 ASH HOLDING | ثقتك أولويتنا`,
+      ].join('\n');
+
+    case 'credit_deposited':
+      return [
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
+        `تهانينا ${name}! 🎊`,
+        `💰 تم إيداع رصيد الخدمات في حسابك`,
+        ``,
+        `📄 رقم الطلب: #${appNum}`,
+        amount ? `💳 الرصيد المودع: ${amount} ر.س` : '',
+        ``,
+        `✅ يمكنك الآن استخدام رصيدك لطلب الخدمات`,
+        `📱 من خلال منصة ASH HOLDING`,
+        ``,
+        `⚠️ ملاحظة: الرصيد غير قابل للسحب النقدي`,
+        `🔒 ASH HOLDING | رصيدك جاهز للاستخدام`,
+      ].filter(Boolean).join('\n');
 
     case 'financing_completed':
       return [
-        `عزيزي ${name}،`,
-        `تهانينا! تم تفعيل رصيد خدماتك بنجاح.`,
-        amount ? `الرصيد المتاح: ${amount} ر.س` : '',
-        `يمكنك الآن استخدام رصيدك من خلال منصة ASH HOLDING.`,
-        `شكراً لثقتك بنا.`,
-        `فريق ASH HOLDING`,
+        `🏦 ASH HOLDING | التمويل`,
+        ``,
+        `تهانينا ${name}! 🎉🥳`,
+        `✅ تم تفعيل رصيد خدماتك بالكامل`,
+        ``,
+        `📄 رقم الطلب: #${appNum}`,
+        amount ? `💳 الرصيد المتاح: ${amount} ر.س` : '',
+        ``,
+        `🛒 ابدأ طلب خدماتك الآن من المنصة`,
+        ``,
+        `⚠️ الرصيد لاستخدام الخدمات فقط`,
+        `📞 للدعم: فريق ASH HOLDING`,
+        ``,
+        `شكراً لثقتك بنا 🤝`,
+        `🔒 ASH HOLDING | شريكك المالي الموثوق`,
       ].filter(Boolean).join('\n');
 
     default:
-      return `عزيزي ${name}، لديك تحديث جديد على طلب التمويل الخاص بك. يرجى الدخول لحسابك. فريق ASH HOLDING`;
+      return `🏦 ASH HOLDING | التمويل\n\nمرحباً ${name} 👋\n📋 لديك تحديث جديد على طلب التمويل #${appNum}\n\n📱 يرجى مراجعة حسابك\n\n🔒 ASH HOLDING`;
   }
 }
 
@@ -229,9 +449,12 @@ serve(async (req) => {
     const validEvents: FinancingSMSEvent[] = [
       'eligibility_passed', 'eligibility_failed',
       'application_submitted',
-      'application_approved', 'application_rejected',
-      'acknowledgment_signed',
-      'contract_signed',
+      'application_approved', 'application_approved_limited', 'application_rejected',
+      'offer_ready',
+      'acknowledgment_sent', 'acknowledgment_signed',
+      'contract_sent', 'contract_signed', 'contract_finalized',
+      'bond_issuing', 'bond_issued', 'bond_sent', 'bond_signed', 'bond_verified',
+      'credit_deposited',
       'financing_completed',
     ];
 
