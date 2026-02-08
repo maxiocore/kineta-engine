@@ -166,7 +166,7 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                 className="text-sm font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
                 style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
               >
-                MaxioCore
+                ASH HOLDING
               </span>
             </div>
           </Link>
@@ -293,7 +293,7 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                 className="text-xs font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
                 style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
               >
-                MaxioCore
+                ASH HOLDING
               </span>
             </div>
           </div>
@@ -346,7 +346,7 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
                       className="text-xs font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
                       style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
                     >
-                      MaxioCore
+                      ASH HOLDING
                     </span>
                   </div>
                 </div>

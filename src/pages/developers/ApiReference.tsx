@@ -190,12 +190,12 @@ const ApiReference = () => {
               <p className="text-sm text-muted-foreground mb-2">Base URL</p>
               <div className="flex items-center gap-2">
                 <code className="flex-1 text-primary font-mono" dir="ltr">
-                  https://api.maxiocore.com
+                  https://api.ashholding.com
                 </code>
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => copyToClipboard("https://api.maxiocore.com", "base-url")}
+                  onClick={() => copyToClipboard("https://api.ashholding.com", "base-url")}
                 >
                   {copiedCode === "base-url" ? (
                     <CheckCircle2 className="w-4 h-4 text-success" />

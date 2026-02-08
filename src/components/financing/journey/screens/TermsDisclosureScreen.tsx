@@ -142,7 +142,7 @@ export function TermsDisclosureScreen({
             <div className="space-y-4 text-sm text-muted-foreground">
               <h4 className="font-semibold text-foreground">1. التعريفات</h4>
               <p>
-                "التمويل" يشير إلى المبلغ المقدم من MaxioCore للعميل لتمويل الخدمات الرقمية.
+                "التمويل" يشير إلى المبلغ المقدم من ASH HOLDING للعميل لتمويل الخدمات الرقمية.
                 "العميل" هو الشخص الطبيعي أو الاعتباري المستفيد من التمويل.
                 "الأقساط" هي المبالغ الدورية الواجب سدادها.
               </p>
@@ -158,7 +158,7 @@ export function TermsDisclosureScreen({
               <h4 className="font-semibold text-foreground">3. التزامات العميل</h4>
               <p>
                 - سداد الأقساط في مواعيدها المحددة.
-                - إخطار MaxioCore بأي تغيير في بيانات التواصل.
+                - إخطار ASH HOLDING بأي تغيير في بيانات التواصل.
                 - عدم استخدام التمويل لأغراض غير مشروعة.
                 - الحفاظ على سرية بيانات الحساب.
               </p>
@@ -166,7 +166,7 @@ export function TermsDisclosureScreen({
               <h4 className="font-semibold text-foreground">4. حالات التأخر والتعثر</h4>
               <p>
                 - في حال التأخر عن السداد، تُفرض رسوم تأخير بقيمة 50 ريال عن كل يوم تأخير.
-                - في حال التعثر المتكرر، يحق لـ MaxioCore اتخاذ الإجراءات القانونية.
+                - في حال التعثر المتكرر، يحق لـ ASH HOLDING اتخاذ الإجراءات القانونية.
                 - يتم الإبلاغ للجهات الائتمانية المختصة (سمة).
               </p>
 
@@ -178,7 +178,7 @@ export function TermsDisclosureScreen({
               <h4 className="font-semibold text-foreground">6. إنهاء العقد</h4>
               <p>
                 - ينتهي العقد تلقائياً بسداد كامل المبلغ.
-                - يحق لـ MaxioCore إنهاء العقد في حال مخالفة الشروط.
+                - يحق لـ ASH HOLDING إنهاء العقد في حال مخالفة الشروط.
                 - في حال الإنهاء، يصبح كامل المبلغ المتبقي مستحقاً فوراً.
               </p>
 

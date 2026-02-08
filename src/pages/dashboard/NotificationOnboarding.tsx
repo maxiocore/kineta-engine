@@ -79,7 +79,7 @@ const NotificationOnboarding = () => {
     
     // Always show in-app notification
     showInAppNotification({
-      title: 'اختبار إشعار MaxioCore',
+      title: 'اختبار إشعار ASH HOLDING',
       message: 'هذا إشعار تجريبي! إذا رأيت هذا، فالإشعارات تعمل بشكل صحيح 🎉',
       type: 'announcement',
       actionUrl: '/dashboard',
@@ -130,14 +130,14 @@ const NotificationOnboarding = () => {
     {
       icon: Smartphone,
       title: 'افتح التطبيق من الأيقونة',
-      description: 'بعد الإضافة، اضغط على أيقونة MaxioCore من شاشتك الرئيسية لفتح التطبيق',
+      description: 'بعد الإضافة، اضغط على أيقونة ASH HOLDING من شاشتك الرئيسية لفتح التطبيق',
       visual: (
         <div className="mt-4 flex justify-center">
           <div className="text-center">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg mx-auto">
-              <span className="text-2xl font-bold text-white">M</span>
+              <span className="text-2xl font-bold text-white">A</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">MaxioCore</p>
+            <p className="text-xs text-muted-foreground mt-2">ASH HOLDING</p>
           </div>
         </div>
       ),
@@ -476,7 +476,7 @@ const NotificationOnboarding = () => {
                 {isIOS ? (
                   <div className="space-y-3 text-sm text-muted-foreground">
                     <p>1. اذهب إلى <strong>الإعدادات</strong> على جهازك</p>
-                    <p>2. ابحث عن <strong>MaxioCore</strong></p>
+                    <p>2. ابحث عن <strong>ASH HOLDING</strong></p>
                     <p>3. اضغط على <strong>الإشعارات</strong></p>
                     <p>4. فعّل <strong>السماح بالإشعارات</strong></p>
                   </div>

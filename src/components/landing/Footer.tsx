@@ -70,7 +70,7 @@ const socialLinks = [
 ];
 
 const contactInfo = [
-  { icon: Mail, text: "info@maxiocore.com", href: "mailto:info@maxiocore.com", label: "البريد الإلكتروني" },
+  { icon: Mail, text: "info@ashholding.com", href: "mailto:info@ashholding.com", label: "البريد الإلكتروني" },
   { icon: Phone, text: "+966 55 123 4567", href: "tel:+966551234567", dir: "ltr" as const, label: "الهاتف" },
   { icon: MapPin, text: "المملكة العربية السعودية", label: "الموقع" },
 ];
@@ -297,7 +297,7 @@ const Footer = () => {
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}
               >
-                MaxioCore
+                ASH HOLDING
               </motion.span>
             </Link>
             <p className="text-muted-foreground max-w-md leading-relaxed text-sm sm:text-base mb-8">
@@ -428,7 +428,7 @@ const Footer = () => {
                 className="text-lg font-bold bg-gradient-to-l from-[#14b8a6] via-[#5eead4] to-[#94a3b8] bg-clip-text text-transparent"
                 whileHover={{ scale: 1.05 }}
               >
-                MaxioCore
+                ASH HOLDING
               </motion.span>
             </Link>
             
@@ -436,7 +436,7 @@ const Footer = () => {
               className="text-muted-foreground flex items-center gap-2 text-xs sm:text-sm order-3 sm:order-2"
               whileHover={{ scale: 1.02 }}
             >
-              © {new Date().getFullYear()} MaxioCore. صنع بـ 
+              © {new Date().getFullYear()} ASH HOLDING. صنع بـ 
               <motion.span
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 1, repeat: Infinity }}

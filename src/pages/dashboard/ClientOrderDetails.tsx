@@ -578,7 +578,7 @@ const ClientOrderDetails = () => {
           <table style="width: 100%;">
             <tr>
               <td style="width: 50%;">
-                <p style="color: #FFFFFF; font-size: 28px; font-weight: 800; margin: 0; letter-spacing: 2px;">MAXIOCORE</p>
+                <p style="color: #FFFFFF; font-size: 28px; font-weight: 800; margin: 0; letter-spacing: 2px;">ASH HOLDING</p>
                 <p style="color: #9CA3AF; font-size: 12px; margin: 8px 0 0; font-weight: 400;">منصة الخدمات الرقمية</p>
               </td>
               <td style="width: 50%; text-align: left;">
