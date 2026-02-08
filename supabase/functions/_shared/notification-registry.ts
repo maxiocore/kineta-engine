@@ -7,10 +7,15 @@
  * - Financing Events: 13 notifications
  * - Wallet Events: 4 notifications
  * 
+ * Channels:
+ * - Email (primary)
+ * - SMS via Msegat (real-time alerts)
+ * - WhatsApp (non-sensitive alerts)
+ * 
  * Features:
  * - Rate limiting per event type
  * - Idempotency with event hashing
- * - Multi-channel support (Email + WhatsApp)
+ * - Multi-channel support (Email + SMS + WhatsApp)
  * - Arabic RTL templates
  * - Audit logging
  */
@@ -57,6 +62,7 @@ export type NotificationEventType = AuthEventType | FinancingEventType | WalletE
 
 export interface NotificationChannel {
   email: boolean;
+  sms: boolean;
   whatsapp: boolean;
   push?: boolean;
 }
@@ -65,6 +71,7 @@ export interface NotificationConfig {
   eventType: NotificationEventType;
   channels: NotificationChannel;
   emailTemplateId: string;
+  smsTemplateId?: string;
   whatsappTemplateId?: string;
   rateLimitMinutes: number;
   priority: 'high' | 'normal' | 'low';
@@ -72,7 +79,44 @@ export interface NotificationConfig {
   requiresEmailOnly: boolean; // For sensitive events like OTP
   description: string;
   description_ar: string;
+  smsMessage_ar?: string; // Short SMS message template
 }
+
+// ═══════════════════════════════════════════════════════════════
+// SMS MESSAGE TEMPLATES (Arabic, concise for SMS)
+// ═══════════════════════════════════════════════════════════════
+
+export const SMS_TEMPLATES: Record<NotificationEventType, string> = {
+  // Auth Events
+  'EMAIL_VERIFICATION_SENT': 'ASH HOLDING: تم إرسال رمز تأكيد البريد الإلكتروني. يرجى التحقق من بريدك.',
+  'EMAIL_VERIFIED': 'ASH HOLDING: تم تأكيد بريدك الإلكتروني بنجاح. مرحباً بك!',
+  'LOGIN_SUCCESS': 'ASH HOLDING: تم تسجيل دخول جديد لحسابك. إذا لم يكن أنت، يرجى تغيير كلمة المرور فوراً.',
+  'LOGIN_FAILED_REPEATED': 'ASH HOLDING: تحذير أمني - محاولات دخول فاشلة متكررة على حسابك.',
+  'ACCOUNT_LOCKED': 'ASH HOLDING: تم قفل حسابك مؤقتاً بسبب محاولات دخول فاشلة متكررة.',
+  'PASSWORD_RESET_REQUESTED': 'ASH HOLDING: تم طلب استعادة كلمة المرور. تحقق من بريدك الإلكتروني.',
+  'PASSWORD_RESET_COMPLETED': 'ASH HOLDING: تم إعادة تعيين كلمة المرور بنجاح.',
+  'PASSWORD_CHANGED': 'ASH HOLDING: تم تغيير كلمة المرور بنجاح. إذا لم يكن أنت، تواصل معنا فوراً.',
+  
+  // Financing Events
+  'FIN_SUBMITTED': 'ASH HOLDING: تم استلام طلب التمويل بنجاح وسيتم مراجعته قريباً.',
+  'FIN_UNDER_REVIEW': 'ASH HOLDING: طلب التمويل الخاص بك قيد المراجعة حالياً.',
+  'FIN_ADDITIONAL_INFO_REQUIRED': 'ASH HOLDING: مطلوب مستندات إضافية لطلب التمويل. يرجى الدخول للمنصة.',
+  'FIN_CONTRACT_PRESENTED': 'ASH HOLDING: العقد جاهز للمراجعة والتوقيع. يرجى الدخول للمنصة.',
+  'FIN_CONTRACT_ACCEPTED': 'ASH HOLDING: تم قبول العقد بنجاح. شكراً لثقتكم.',
+  'FIN_CONTRACT_FINALIZED': 'ASH HOLDING: تم اعتماد العقد نهائياً. سيتم إيداع المبلغ قريباً.',
+  'FIN_APPROVED': 'ASH HOLDING: تمت الموافقة على طلب التمويل! يرجى مراجعة التفاصيل في المنصة.',
+  'FIN_APPROVED_WITH_LIMITS': 'ASH HOLDING: تمت الموافقة المشروطة على التمويل. راجع التفاصيل في المنصة.',
+  'FIN_DECLINED': 'ASH HOLDING: نأسف، لم تتم الموافقة على طلب التمويل. يمكنك التقديم مجدداً لاحقاً.',
+  'FIN_CREDIT_DEPOSITED': 'ASH HOLDING: تم إيداع رصيد الخدمات في حسابك بنجاح!',
+  'FIN_CANCELLED': 'ASH HOLDING: تم إلغاء طلب التمويل.',
+  'FIN_EXPIRED': 'ASH HOLDING: انتهت صلاحية طلب التمويل. يمكنك التقديم مجدداً.',
+  
+  // Wallet Events
+  'WALLET_CREDITED': 'ASH HOLDING: تم إضافة رصيد لمحفظتك بنجاح.',
+  'WALLET_DEBITED': 'ASH HOLDING: تم خصم مبلغ من محفظتك.',
+  'WALLET_INSUFFICIENT': 'ASH HOLDING: رصيد المحفظة غير كافي لإتمام العملية.',
+  'WALLET_SUSPENDED': 'ASH HOLDING: تم تعليق محفظتك. يرجى التواصل مع الدعم.',
+};
 
 // ═══════════════════════════════════════════════════════════════
 // NOTIFICATION REGISTRY
@@ -84,10 +128,11 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
   // ─────────────────────────────────────────────────────────────
   'EMAIL_VERIFICATION_SENT': {
     eventType: 'EMAIL_VERIFICATION_SENT',
-    channels: { email: true, whatsapp: true },
+    channels: { email: true, sms: true, whatsapp: true },
     emailTemplateId: 'auth_email_verification',
+    smsTemplateId: 'auth_verification',
     whatsappTemplateId: 'auth_verification_reminder',
-    rateLimitMinutes: 5, // Prevent spam
+    rateLimitMinutes: 5,
     priority: 'high',
     isSecurityEvent: false,
     requiresEmailOnly: false,
@@ -97,8 +142,9 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'EMAIL_VERIFIED': {
     eventType: 'EMAIL_VERIFIED',
-    channels: { email: true, whatsapp: true },
+    channels: { email: true, sms: true, whatsapp: true },
     emailTemplateId: 'auth_email_verified',
+    smsTemplateId: 'auth_welcome',
     whatsappTemplateId: 'auth_welcome',
     rateLimitMinutes: 60,
     priority: 'normal',
@@ -110,10 +156,11 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'LOGIN_SUCCESS': {
     eventType: 'LOGIN_SUCCESS',
-    channels: { email: true, whatsapp: true },
+    channels: { email: true, sms: true, whatsapp: true },
     emailTemplateId: 'auth_login_success',
+    smsTemplateId: 'auth_login_alert',
     whatsappTemplateId: 'auth_login_alert',
-    rateLimitMinutes: 30, // Don't spam on frequent logins
+    rateLimitMinutes: 30,
     priority: 'normal',
     isSecurityEvent: true,
     requiresEmailOnly: false,
@@ -123,20 +170,22 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'LOGIN_FAILED_REPEATED': {
     eventType: 'LOGIN_FAILED_REPEATED',
-    channels: { email: true, whatsapp: false },
+    channels: { email: true, sms: true, whatsapp: false },
     emailTemplateId: 'auth_login_failed',
+    smsTemplateId: 'auth_login_failed',
     rateLimitMinutes: 15,
     priority: 'high',
     isSecurityEvent: true,
-    requiresEmailOnly: true, // Security - email only
+    requiresEmailOnly: false,
     description: 'Multiple failed login attempts',
     description_ar: 'محاولات دخول فاشلة متكررة'
   },
 
   'ACCOUNT_LOCKED': {
     eventType: 'ACCOUNT_LOCKED',
-    channels: { email: true, whatsapp: true },
+    channels: { email: true, sms: true, whatsapp: true },
     emailTemplateId: 'auth_account_locked',
+    smsTemplateId: 'auth_locked',
     whatsappTemplateId: 'auth_locked_alert',
     rateLimitMinutes: 30,
     priority: 'high',
@@ -148,22 +197,24 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'PASSWORD_RESET_REQUESTED': {
     eventType: 'PASSWORD_RESET_REQUESTED',
-    channels: { email: true, whatsapp: false },
+    channels: { email: true, sms: true, whatsapp: false },
     emailTemplateId: 'auth_password_reset',
+    smsTemplateId: 'auth_password_reset',
     rateLimitMinutes: 5,
     priority: 'high',
     isSecurityEvent: true,
-    requiresEmailOnly: true, // NEVER send reset links via WhatsApp
+    requiresEmailOnly: true, // NEVER send reset links via SMS/WhatsApp
     description: 'Password reset link sent',
     description_ar: 'تم إرسال رابط استعادة كلمة المرور'
   },
 
   'PASSWORD_RESET_COMPLETED': {
     eventType: 'PASSWORD_RESET_COMPLETED',
-    channels: { email: true, whatsapp: true },
+    channels: { email: true, sms: true, whatsapp: true },
     emailTemplateId: 'auth_password_reset_complete',
+    smsTemplateId: 'auth_password_changed',
     whatsappTemplateId: 'auth_password_changed',
-    rateLimitMinutes: 0, // Always send
+    rateLimitMinutes: 0,
     priority: 'high',
     isSecurityEvent: true,
     requiresEmailOnly: false,
@@ -173,10 +224,11 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'PASSWORD_CHANGED': {
     eventType: 'PASSWORD_CHANGED',
-    channels: { email: true, whatsapp: true },
+    channels: { email: true, sms: true, whatsapp: true },
     emailTemplateId: 'auth_password_changed',
+    smsTemplateId: 'auth_password_changed',
     whatsappTemplateId: 'auth_password_changed',
-    rateLimitMinutes: 0, // Always send
+    rateLimitMinutes: 0,
     priority: 'high',
     isSecurityEvent: true,
     requiresEmailOnly: false,
@@ -189,8 +241,9 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
   // ─────────────────────────────────────────────────────────────
   'FIN_SUBMITTED': {
     eventType: 'FIN_SUBMITTED',
-    channels: { email: true, whatsapp: true },
+    channels: { email: true, sms: true, whatsapp: true },
     emailTemplateId: 'financing_submitted',
+    smsTemplateId: 'financing_submitted',
     whatsappTemplateId: 'financing_submitted',
     rateLimitMinutes: 60,
     priority: 'normal',
@@ -202,8 +255,9 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'FIN_UNDER_REVIEW': {
     eventType: 'FIN_UNDER_REVIEW',
-    channels: { email: true, whatsapp: false },
+    channels: { email: true, sms: true, whatsapp: false },
     emailTemplateId: 'financing_under_review',
+    smsTemplateId: 'financing_under_review',
     rateLimitMinutes: 60,
     priority: 'low',
     isSecurityEvent: false,
@@ -214,8 +268,9 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'FIN_ADDITIONAL_INFO_REQUIRED': {
     eventType: 'FIN_ADDITIONAL_INFO_REQUIRED',
-    channels: { email: true, whatsapp: true },
+    channels: { email: true, sms: true, whatsapp: true },
     emailTemplateId: 'financing_docs_required',
+    smsTemplateId: 'financing_docs_required',
     whatsappTemplateId: 'financing_docs_required',
     rateLimitMinutes: 30,
     priority: 'high',
@@ -227,8 +282,9 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'FIN_CONTRACT_PRESENTED': {
     eventType: 'FIN_CONTRACT_PRESENTED',
-    channels: { email: true, whatsapp: true },
+    channels: { email: true, sms: true, whatsapp: true },
     emailTemplateId: 'financing_contract_ready',
+    smsTemplateId: 'financing_contract_ready',
     whatsappTemplateId: 'financing_contract_ready',
     rateLimitMinutes: 60,
     priority: 'high',
@@ -240,8 +296,9 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'FIN_CONTRACT_ACCEPTED': {
     eventType: 'FIN_CONTRACT_ACCEPTED',
-    channels: { email: true, whatsapp: true },
+    channels: { email: true, sms: true, whatsapp: true },
     emailTemplateId: 'financing_contract_accepted',
+    smsTemplateId: 'financing_contract_accepted',
     whatsappTemplateId: 'financing_contract_accepted',
     rateLimitMinutes: 60,
     priority: 'normal',
@@ -253,8 +310,9 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'FIN_CONTRACT_FINALIZED': {
     eventType: 'FIN_CONTRACT_FINALIZED',
-    channels: { email: true, whatsapp: true },
+    channels: { email: true, sms: true, whatsapp: true },
     emailTemplateId: 'financing_contract_finalized',
+    smsTemplateId: 'financing_contract_finalized',
     whatsappTemplateId: 'financing_contract_finalized',
     rateLimitMinutes: 60,
     priority: 'high',
@@ -266,8 +324,9 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'FIN_APPROVED': {
     eventType: 'FIN_APPROVED',
-    channels: { email: true, whatsapp: true },
+    channels: { email: true, sms: true, whatsapp: true },
     emailTemplateId: 'financing_approved',
+    smsTemplateId: 'financing_approved',
     whatsappTemplateId: 'financing_approved',
     rateLimitMinutes: 60,
     priority: 'high',
@@ -279,8 +338,9 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'FIN_APPROVED_WITH_LIMITS': {
     eventType: 'FIN_APPROVED_WITH_LIMITS',
-    channels: { email: true, whatsapp: true },
+    channels: { email: true, sms: true, whatsapp: true },
     emailTemplateId: 'financing_approved_conditional',
+    smsTemplateId: 'financing_approved_conditional',
     whatsappTemplateId: 'financing_approved_conditional',
     rateLimitMinutes: 60,
     priority: 'high',
@@ -292,8 +352,9 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'FIN_DECLINED': {
     eventType: 'FIN_DECLINED',
-    channels: { email: true, whatsapp: true },
+    channels: { email: true, sms: true, whatsapp: true },
     emailTemplateId: 'financing_rejected',
+    smsTemplateId: 'financing_rejected',
     whatsappTemplateId: 'financing_rejected',
     rateLimitMinutes: 60,
     priority: 'high',
@@ -305,10 +366,11 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'FIN_CREDIT_DEPOSITED': {
     eventType: 'FIN_CREDIT_DEPOSITED',
-    channels: { email: true, whatsapp: true },
+    channels: { email: true, sms: true, whatsapp: true },
     emailTemplateId: 'financing_credit_deposited',
+    smsTemplateId: 'financing_credit_deposited',
     whatsappTemplateId: 'financing_credit_deposited',
-    rateLimitMinutes: 0, // Always send
+    rateLimitMinutes: 0,
     priority: 'high',
     isSecurityEvent: false,
     requiresEmailOnly: false,
@@ -318,8 +380,9 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'FIN_CANCELLED': {
     eventType: 'FIN_CANCELLED',
-    channels: { email: true, whatsapp: false },
+    channels: { email: true, sms: true, whatsapp: false },
     emailTemplateId: 'financing_cancelled',
+    smsTemplateId: 'financing_cancelled',
     rateLimitMinutes: 60,
     priority: 'normal',
     isSecurityEvent: false,
@@ -330,8 +393,9 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'FIN_EXPIRED': {
     eventType: 'FIN_EXPIRED',
-    channels: { email: true, whatsapp: false },
+    channels: { email: true, sms: true, whatsapp: false },
     emailTemplateId: 'financing_expired',
+    smsTemplateId: 'financing_expired',
     rateLimitMinutes: 60,
     priority: 'normal',
     isSecurityEvent: false,
@@ -345,10 +409,11 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
   // ─────────────────────────────────────────────────────────────
   'WALLET_CREDITED': {
     eventType: 'WALLET_CREDITED',
-    channels: { email: true, whatsapp: true },
+    channels: { email: true, sms: true, whatsapp: true },
     emailTemplateId: 'wallet_credited',
+    smsTemplateId: 'wallet_credited',
     whatsappTemplateId: 'wallet_credited',
-    rateLimitMinutes: 0, // Always send
+    rateLimitMinutes: 0,
     priority: 'high',
     isSecurityEvent: false,
     requiresEmailOnly: false,
@@ -358,8 +423,9 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'WALLET_DEBITED': {
     eventType: 'WALLET_DEBITED',
-    channels: { email: true, whatsapp: false },
+    channels: { email: true, sms: true, whatsapp: false },
     emailTemplateId: 'wallet_debited',
+    smsTemplateId: 'wallet_debited',
     rateLimitMinutes: 5,
     priority: 'normal',
     isSecurityEvent: false,
@@ -370,7 +436,7 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'WALLET_INSUFFICIENT': {
     eventType: 'WALLET_INSUFFICIENT',
-    channels: { email: true, whatsapp: false },
+    channels: { email: true, sms: false, whatsapp: false },
     emailTemplateId: 'wallet_insufficient',
     rateLimitMinutes: 60,
     priority: 'low',
@@ -382,8 +448,9 @@ export const NOTIFICATION_REGISTRY: Record<NotificationEventType, NotificationCo
 
   'WALLET_SUSPENDED': {
     eventType: 'WALLET_SUSPENDED',
-    channels: { email: true, whatsapp: true },
+    channels: { email: true, sms: true, whatsapp: true },
     emailTemplateId: 'wallet_suspended',
+    smsTemplateId: 'wallet_suspended',
     whatsappTemplateId: 'wallet_suspended',
     rateLimitMinutes: 0,
     priority: 'high',
@@ -406,6 +473,13 @@ export function getNotificationConfig(eventType: NotificationEventType): Notific
 }
 
 /**
+ * Get SMS message for an event type
+ */
+export function getSMSMessage(eventType: NotificationEventType): string {
+  return SMS_TEMPLATES[eventType] || '';
+}
+
+/**
  * Generate idempotency key for notification
  */
 export function generateIdempotencyKey(
@@ -417,7 +491,7 @@ export function generateIdempotencyKey(
   const parts = [eventType, userId];
   if (deviceFingerprint) parts.push(deviceFingerprint);
   if (referenceId) parts.push(referenceId);
-  parts.push(Math.floor(Date.now() / 60000).toString()); // Minute-level granularity
+  parts.push(Math.floor(Date.now() / 60000).toString());
   return parts.join('_');
 }
 
@@ -474,6 +548,7 @@ export function getCoverageReport(): {
     },
     byChannel: {
       email: all.filter(c => c.channels.email).length,
+      sms: all.filter(c => c.channels.sms).length,
       whatsapp: all.filter(c => c.channels.whatsapp).length
     },
     securityEvents: all.filter(c => c.isSecurityEvent).length

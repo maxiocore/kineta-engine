@@ -20,6 +20,7 @@ export const COVERAGE_MATRIX: Record<NotificationEventType, {
   event: string;
   event_ar: string;
   email_template: string;
+  sms_template: string | null;
   whatsapp_template: string | null;
   channels: string[];
   priority: string;
@@ -34,20 +35,22 @@ export const COVERAGE_MATRIX: Record<NotificationEventType, {
     event: 'Email Verification Sent',
     event_ar: 'تم إرسال رابط تأكيد البريد',
     email_template: 'auth_email_verification',
+    sms_template: 'auth_verification',
     whatsapp_template: 'auth_verification_reminder',
-    channels: ['Email', 'WhatsApp'],
+    channels: ['Email', 'SMS', 'WhatsApp'],
     priority: 'High',
     security: false,
     rate_limit_min: 5,
-    notes: 'Verification link in email only, WhatsApp just reminds to check email'
+    notes: 'Verification link in email only, SMS/WhatsApp remind to check email'
   },
   
   'EMAIL_VERIFIED': {
     event: 'Email Verified',
     event_ar: 'تم تأكيد البريد الإلكتروني',
     email_template: 'auth_email_verified',
+    sms_template: 'auth_welcome',
     whatsapp_template: 'auth_welcome',
-    channels: ['Email', 'WhatsApp'],
+    channels: ['Email', 'SMS', 'WhatsApp'],
     priority: 'Normal',
     security: false,
     rate_limit_min: 60,
@@ -58,56 +61,61 @@ export const COVERAGE_MATRIX: Record<NotificationEventType, {
     event: 'Login Success',
     event_ar: 'تسجيل دخول ناجح',
     email_template: 'auth_login_success',
+    sms_template: 'auth_login_alert',
     whatsapp_template: 'auth_login_alert',
-    channels: ['Email', 'WhatsApp'],
+    channels: ['Email', 'SMS', 'WhatsApp'],
     priority: 'Normal',
     security: true,
     rate_limit_min: 30,
-    notes: 'Security alert with device/location info, security link in email only'
+    notes: 'Security alert with device/location info via all channels'
   },
   
   'LOGIN_FAILED_REPEATED': {
     event: 'Repeated Login Failures',
     event_ar: 'محاولات دخول فاشلة متكررة',
     email_template: 'auth_login_failed',
+    sms_template: 'auth_login_failed',
     whatsapp_template: null,
-    channels: ['Email'],
+    channels: ['Email', 'SMS'],
     priority: 'High',
     security: true,
     rate_limit_min: 15,
-    notes: 'Email only - security sensitive'
+    notes: 'Email + SMS - security sensitive'
   },
   
   'ACCOUNT_LOCKED': {
     event: 'Account Locked',
     event_ar: 'تم قفل الحساب',
     email_template: 'auth_account_locked',
+    sms_template: 'auth_locked',
     whatsapp_template: 'auth_locked_alert',
-    channels: ['Email', 'WhatsApp'],
+    channels: ['Email', 'SMS', 'WhatsApp'],
     priority: 'High',
     security: true,
     rate_limit_min: 30,
-    notes: 'WhatsApp notification without sensitive details'
+    notes: 'All channels - critical security event'
   },
   
   'PASSWORD_RESET_REQUESTED': {
     event: 'Password Reset Requested',
     event_ar: 'طلب استعادة كلمة المرور',
     email_template: 'auth_password_reset',
+    sms_template: 'auth_password_reset',
     whatsapp_template: null,
-    channels: ['Email'],
+    channels: ['Email', 'SMS'],
     priority: 'High',
     security: true,
     rate_limit_min: 5,
-    notes: 'Email ONLY - NEVER send reset links via WhatsApp'
+    notes: 'Email + SMS only - NEVER send reset links via WhatsApp'
   },
   
   'PASSWORD_RESET_COMPLETED': {
     event: 'Password Reset Completed',
     event_ar: 'تم إعادة تعيين كلمة المرور',
     email_template: 'auth_password_reset_complete',
+    sms_template: 'auth_password_changed',
     whatsapp_template: 'auth_password_changed',
-    channels: ['Email', 'WhatsApp'],
+    channels: ['Email', 'SMS', 'WhatsApp'],
     priority: 'High',
     security: true,
     rate_limit_min: 0,
@@ -118,8 +126,9 @@ export const COVERAGE_MATRIX: Record<NotificationEventType, {
     event: 'Password Changed',
     event_ar: 'تم تغيير كلمة المرور',
     email_template: 'auth_password_changed',
+    sms_template: 'auth_password_changed',
     whatsapp_template: 'auth_password_changed',
-    channels: ['Email', 'WhatsApp'],
+    channels: ['Email', 'SMS', 'WhatsApp'],
     priority: 'High',
     security: true,
     rate_limit_min: 0,
@@ -334,7 +343,7 @@ export function generateCoverageReport(): string {
   
   return `
 ╔══════════════════════════════════════════════════════════════╗
-║        ASH HOLDING NOTIFICATION COVERAGE REPORT                 ║
+║        ASH HOLDING NOTIFICATION COVERAGE REPORT             ║
 ╠══════════════════════════════════════════════════════════════╣
 ║ Total Events Covered: ${report.total}                                     ║
 ╠══════════════════════════════════════════════════════════════╣
@@ -345,6 +354,7 @@ export function generateCoverageReport(): string {
 ╠══════════════════════════════════════════════════════════════╣
 ║ BY CHANNEL:                                                   ║
 ║   • Email:    ${report.byChannel.email} events (100% coverage)                     ║
+║   • SMS:      ${report.byChannel.sms} events (Msegat - real-time)               ║
 ║   • WhatsApp: ${report.byChannel.whatsapp} events (selective - no sensitive data)    ║
 ╠══════════════════════════════════════════════════════════════╣
 ║ SECURITY EVENTS: ${report.securityEvents} (always sent, no rate limit)              ║
