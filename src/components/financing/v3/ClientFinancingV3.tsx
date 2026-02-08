@@ -1,6 +1,6 @@
 /**
  * ASH HOLDING Financing System v3 - Main Client Dashboard
- * لوحة تمويل العميل - FinTech iOS-First RTL
+ * لوحة تمويل العميل - FinTech iOS-First RTL (Redesigned)
  */
 
 import { useState, useEffect } from 'react';
@@ -12,6 +12,7 @@ import {
   FileText,
   HelpCircle,
   ShoppingCart,
+  RefreshCw,
 } from 'lucide-react';
 import ClientDashboardLayout from '@/components/dashboard/ClientDashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFinancingData } from '../v2/hooks/useFinancingData';
 import {
   FinancingHeroCard,
-  FinancingEmptyState,
   FinancingStatsCards,
   FinancingTimeline,
   CompactTimeline,
@@ -29,10 +29,10 @@ import {
   InstallmentsProgress,
   RTLSegmentedControl,
   NextActionCard,
-  OnboardingCard,
   FinancingPageSkeleton,
   type SegmentItem,
 } from './components';
+import { EligibilitySection } from './components/EligibilitySection';
 import { 
   rtlPageVariants,
   StaggerContainer,
@@ -42,6 +42,7 @@ import { InstallmentsTableV2 } from '../v2/client/InstallmentsTableV2';
 import { DocumentsViewer } from '../v2/client/DocumentsViewer';
 import type { CustomerAction, FinancingStatus, FinancingStats } from './types';
 import { toast } from 'sonner';
+import { useEligibilityMachine } from '@/hooks/useEligibilityMachine';
 
 type TabValue = 'overview' | 'status' | 'wallet' | 'documents';
 
@@ -57,7 +58,6 @@ export default function ClientFinancingV3() {
   const [activeTab, setActiveTab] = useState<TabValue>('overview');
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingActionId, setProcessingActionId] = useState<string>();
-  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const {
     application,
@@ -72,12 +72,7 @@ export default function ClientFinancingV3() {
     refetch,
   } = useFinancingData();
 
-  useEffect(() => {
-    const hasSeenOnboarding = localStorage.getItem('financing_onboarding_seen');
-    if (!hasSeenOnboarding && !application && !isLoading) {
-      setShowOnboarding(true);
-    }
-  }, [application, isLoading]);
+  const { canApply } = useEligibilityMachine();
 
   // Stats calculation
   const stats: FinancingStats = {
@@ -128,16 +123,11 @@ export default function ClientFinancingV3() {
     if (primaryAction) handleAction(primaryAction);
   };
 
-  const handleOnboardingStart = () => {
-    localStorage.setItem('financing_onboarding_seen', 'true');
-    setShowOnboarding(false);
-    navigate('/dashboard/financing/apply');
-  };
-
   const currentStatus = (application?.status as FinancingStatus) || 'DRAFT';
   const isActiveCredit = currentStatus === 'CREDIT_ACTIVE' || currentStatus === 'COMPLETED';
   const canTransfer = isActiveCredit && (serviceCredit?.available_balance ?? 0) > 0;
   const primaryAction = customerActions.find(a => a.isPrimary);
+  const isTerminalNegative = ['DECLINED', 'CANCELLED'].includes(currentStatus);
 
   // Loading
   if (isLoading) {
@@ -174,14 +164,27 @@ export default function ClientFinancingV3() {
               </p>
             </div>
 
-            {!application && !showOnboarding && (
+            {/* New Application Button - shown when has terminated/declined app or eligible */}
+            {application && isTerminalNegative && canApply() && (
               <Button
                 size="lg"
                 onClick={() => navigate('/dashboard/financing/apply')}
                 className="gap-2 shadow-lg shadow-primary/15 rounded-xl h-11"
               >
                 <Plus className="w-4 h-4" />
-                طلب تمويل خدمات
+                طلب تمويل جديد
+              </Button>
+            )}
+
+            {/* Refresh */}
+            {application && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => refetch()}
+                className="shrink-0 sm:hidden"
+              >
+                <RefreshCw className="w-4 h-4" />
               </Button>
             )}
           </motion.div>
@@ -189,17 +192,12 @@ export default function ClientFinancingV3() {
 
         {/* Content */}
         <AnimatePresence mode="wait">
-          {/* Onboarding */}
-          {showOnboarding && !application && (
-            <motion.div key="onboarding" variants={rtlPageVariants} initial="initial" animate="enter" exit="exit">
-              <OnboardingCard onStart={handleOnboardingStart} />
-            </motion.div>
-          )}
-
-          {/* Empty */}
-          {!showOnboarding && !application && (
-            <motion.div key="empty" variants={rtlPageVariants} initial="initial" animate="enter" exit="exit">
-              <FinancingEmptyState onApply={() => navigate('/dashboard/financing/apply')} />
+          {/* No Application - Show Eligibility */}
+          {!application && (
+            <motion.div key="eligibility" variants={rtlPageVariants} initial="initial" animate="enter" exit="exit">
+              <EligibilitySection
+                onEligible={() => navigate('/dashboard/financing/apply')}
+              />
             </motion.div>
           )}
 
@@ -279,6 +277,34 @@ export default function ClientFinancingV3() {
                   <DocumentsTab applicationId={application.id} />
                 )}
               </AnimatePresence>
+
+              {/* New Application CTA for terminated apps */}
+              {isTerminalNegative && canApply() && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-6"
+                >
+                  <Card className="border-dashed border-2 border-primary/20 bg-primary/[0.02] rounded-2xl">
+                    <CardContent className="p-5 flex flex-col sm:flex-row items-center gap-4">
+                      <div className="flex-1 text-center sm:text-right">
+                        <h3 className="font-bold text-foreground mb-0.5">هل تريد تقديم طلب جديد؟</h3>
+                        <p className="text-sm text-muted-foreground">
+                          يمكنك تقديم طلب تمويل خدمات جديد بناءً على أهليتك الحالية
+                        </p>
+                      </div>
+                      <Button
+                        size="lg"
+                        onClick={() => navigate('/dashboard/financing/apply')}
+                        className="gap-2 rounded-xl h-12 px-6 shadow-lg shadow-primary/15 whitespace-nowrap"
+                      >
+                        <Plus className="w-4 h-4" />
+                        طلب تمويل جديد
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

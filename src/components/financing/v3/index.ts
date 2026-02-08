@@ -23,6 +23,7 @@ export {
   RTLSegmentedControl,
   NextActionCard,
   OnboardingCard,
+  EligibilitySection,
   HeroCardSkeleton,
   StatsCardsSkeleton,
   TimelineSkeleton,
