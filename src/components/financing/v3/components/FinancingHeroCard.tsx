@@ -182,9 +182,9 @@ export function FinancingHeroCard({
           <div className="flex flex-col sm:flex-row gap-3">
             {statusConfig.requiredActionActor === 'customer' && onPrimaryAction && (
               <Button
-                onClick={onPrimaryAction}
+                onClick={(e) => { e.stopPropagation(); onPrimaryAction(); }}
                 size="lg"
-                className="flex-1 bg-white text-primary hover:bg-white/90 font-bold gap-2 rounded-xl h-12 shadow-lg shadow-black/10"
+                className="relative z-20 flex-1 bg-white text-primary hover:bg-white/90 font-bold gap-2 rounded-xl h-12 shadow-lg shadow-black/10"
               >
                 {statusConfig.requiredAction}
                 <ArrowLeft className="w-4 h-4" />
@@ -193,9 +193,9 @@ export function FinancingHeroCard({
 
             {isActiveCredit && hasBalance && onUseCredit && (
               <Button
-                onClick={onUseCredit}
+                onClick={(e) => { e.stopPropagation(); onUseCredit(); }}
                 size="lg"
-                className="flex-1 bg-white text-primary hover:bg-white/90 font-bold gap-2 rounded-xl h-12 shadow-lg shadow-black/10"
+                className="relative z-20 flex-1 bg-white text-primary hover:bg-white/90 font-bold gap-2 rounded-xl h-12 shadow-lg shadow-black/10"
               >
                 استخدم الرصيد
                 <ArrowLeft className="w-4 h-4" />
@@ -204,10 +204,10 @@ export function FinancingHeroCard({
 
             {onViewDetails && (
               <Button
-                onClick={onViewDetails}
+                onClick={(e) => { e.stopPropagation(); onViewDetails(); }}
                 variant="ghost"
                 size="lg"
-                className="text-primary-foreground hover:bg-white/15 gap-2 rounded-xl h-12 border border-white/10"
+                className="relative z-20 text-primary-foreground hover:bg-white/15 gap-2 rounded-xl h-12 border border-white/10"
               >
                 التفاصيل
               </Button>

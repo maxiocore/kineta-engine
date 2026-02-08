@@ -237,6 +237,7 @@ function getCustomerActions(status: FinancingStatus): CustomerAction[] {
 
   switch (status) {
     case 'ACK_PENDING':
+    case 'ACK_SENT':
       actions.push({
         id: 'sign-ack',
         type: 'sign_acknowledgment',
@@ -249,6 +250,7 @@ function getCustomerActions(status: FinancingStatus): CustomerAction[] {
       break;
     
     case 'CONTRACT_PENDING':
+    case 'CONTRACT_SENT':
       actions.push({
         id: 'sign-contract',
         type: 'sign_contract',
@@ -261,6 +263,7 @@ function getCustomerActions(status: FinancingStatus): CustomerAction[] {
       break;
     
     case 'BOND_PENDING':
+    case 'BOND_SENT_TO_CLIENT':
       actions.push({
         id: 'confirm-bond',
         type: 'confirm_bond',
@@ -273,21 +276,14 @@ function getCustomerActions(status: FinancingStatus): CustomerAction[] {
       break;
     
     case 'CREDIT_ACTIVE':
-      actions.push({
-        id: 'transfer-credit',
-        type: 'transfer_credit',
-        label: 'تحويل إلى رصيد الخدمات',
-        description: 'تحويل الرصيد لاستخدامه في شراء الخدمات',
-        isPrimary: true,
-        isEnabled: true,
-        icon: 'ArrowLeftRight',
-      });
+    case 'CREDIT_DEPOSITED':
+    case 'FIN_CREDIT_DEPOSITED':
       actions.push({
         id: 'use-credit',
         type: 'use_credit',
         label: 'استخدم الرصيد',
         description: 'تصفح الخدمات واستخدم رصيدك',
-        isPrimary: false,
+        isPrimary: true,
         isEnabled: true,
         icon: 'ShoppingCart',
       });
