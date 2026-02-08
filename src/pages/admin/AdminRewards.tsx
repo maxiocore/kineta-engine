@@ -39,6 +39,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import PointsTransactionsLog from "@/components/admin/PointsTransactionsLog";
+import { sendPointsEarnedSms, sendPointsDeductedSms } from "@/utils/sendRewardSms";
 
 interface TierBenefits {
   discount_percentage?: number;
@@ -281,8 +282,10 @@ const AdminRewards = () => {
         if (insertError) throw insertError;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["rewards-stats"] });
+      // Send SMS notification
+      sendPointsEarnedSms(variables.userId, variables.points, variables.reason);
       toast({
         title: "تم منح النقاط",
         description: `تم منح ${pointsToGrant} نقطة بنجاح`,
@@ -381,8 +384,10 @@ const AdminRewards = () => {
 
       if (updateError) throw updateError;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["rewards-stats"] });
+      // Send SMS notification
+      sendPointsDeductedSms(variables.userId, variables.points, variables.reason);
       toast({
         title: "تم خصم النقاط",
         description: `تم خصم ${pointsToDeduct} نقطة بنجاح`,

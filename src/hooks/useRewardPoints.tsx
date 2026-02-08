@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { sendPointsRedeemedSms } from "@/utils/sendRewardSms";
 
 interface TierBenefits {
   discount_percentage?: number;
@@ -167,6 +168,14 @@ export const useRewardPoints = () => {
     // Refresh data
     await fetchUserPoints();
     await fetchTransactions();
+
+    // Send SMS notification
+    sendPointsRedeemedSms(
+      user.id,
+      pointsToRedeem,
+      balanceToAdd,
+      userPoints.available_points - pointsToRedeem
+    );
 
     toast.success(`تم استبدال ${pointsToRedeem} نقطة بنجاح!`);
     return { success: true, balanceAdded: balanceToAdd };
