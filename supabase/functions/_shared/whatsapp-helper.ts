@@ -119,9 +119,9 @@ ${serviceName ? `🎯 الخدمة: ${serviceName}\n` : ''}
 📊 الحالة: *${statusInfo.ar}*
 ${statusInfo.extra ? `\n💡 ${statusInfo.extra}` : ''}
 
-🔗 تتبع طلبك: maxiocore.com/dashboard/orders
+🔗 تتبع طلبك: ashholding.com/dashboard/orders
 
-_MaxioCore_`;
+_ASH HOLDING_`;
 }
 
 // Financing status message templates - Professional & Official Messages
@@ -143,7 +143,7 @@ export function getFinancingStatusMessage(
     SUBMITTED: { 
       emoji: '📋', 
       ar: 'تم استلام الطلب',
-      greeting: 'شكرًا لثقتكم بـ MaxioCore',
+      greeting: 'شكرًا لثقتكم بـ ASH HOLDING',
       mainMessage: 'تم استلام طلب تمويل الخدمات الخاص بكم بنجاح. سيقوم فريقنا المختص بمراجعة الطلب والتواصل معكم خلال 1-3 أيام عمل.',
       nextStep: 'يرجى انتظار إشعار تحديث حالة الطلب'
     },
@@ -279,9 +279,9 @@ export function getFinancingStatusMessage(
   }
   
   message += `\n━━━━━━━━━━━━━━━━━━━━━\n`;
-  message += `🔗 *متابعة الطلب:*\nmaxiocore.com/dashboard/financing\n\n`;
+  message += `🔗 *متابعة الطلب:*\nashholding.com/dashboard/financing\n\n`;
   message += `📞 للاستفسار: الدعم الفني متاح على مدار الساعة\n\n`;
-  message += `_شركة علي صالح الشهري القابضة - MaxioCore_`;
+  message += `_شركة علي صالح الشهري القابضة - ASH HOLDING_`;
   
   return message;
 }
@@ -336,11 +336,11 @@ export function getInstallmentPaymentMessage(details: InstallmentPaymentDetails)
 
 ━━━━━━━━━━━━━━━━━━━━━
 🔗 *متابعة حسابكم:*
-maxiocore.com/dashboard/financing
+ashholding.com/dashboard/financing
 
 📞 للاستفسار: الدعم الفني متاح على مدار الساعة
 
-_شركة علي صالح الشهري القابضة - MaxioCore_`;
+_شركة علي صالح الشهري القابضة - ASH HOLDING_`;
   }
 
   // Regular installment payment
@@ -363,11 +363,11 @@ ${nextDueDate ? `📅 *موعد القسط القادم:* ${nextDueDate}\n` : ''
 
 ━━━━━━━━━━━━━━━━━━━━━
 🔗 *متابعة الأقساط:*
-maxiocore.com/dashboard/financing
+ashholding.com/dashboard/financing
 
 📞 للاستفسار: الدعم الفني متاح على مدار الساعة
 
-_شركة علي صالح الشهري القابضة - MaxioCore_`;
+_شركة علي صالح الشهري القابضة - ASH HOLDING_`;
 }
 
 // Deposit status message templates
@@ -393,9 +393,9 @@ ${transactionId ? `🔢 رقم العملية: ${transactionId}\n` : ''}
 
 ✨ تم إضافة الرصيد لحسابك بنجاح!
 
-🔗 عرض الرصيد: maxiocore.com/dashboard
+🔗 عرض الرصيد: ashholding.com/dashboard
 
-_MaxioCore_`;
+_ASH HOLDING_`;
   }
 
   return `${statusInfo.emoji} *تحديث الإيداع*
@@ -403,9 +403,9 @@ _MaxioCore_`;
 💰 المبلغ: ${amount.toLocaleString('ar-SA')} ر.س
 📊 الحالة: *${statusInfo.ar}*
 
-🔗 عرض التفاصيل: maxiocore.com/dashboard
+🔗 عرض التفاصيل: ashholding.com/dashboard
 
-_MaxioCore_`;
+_ASH HOLDING_`;
 }
 
 // Support ticket message templates
@@ -433,9 +433,9 @@ ${subject ? `📋 الموضوع: ${subject}\n` : ''}
 
 📩 تم الرد على تذكرتك، يرجى المراجعة.
 
-🔗 عرض التذكرة: maxiocore.com/dashboard/support
+🔗 عرض التذكرة: ashholding.com/dashboard/support
 
-_MaxioCore_`;
+_ASH HOLDING_`;
   }
 
   return `${statusInfo.emoji} *تحديث التذكرة*
@@ -444,9 +444,9 @@ _MaxioCore_`;
 ${subject ? `📋 الموضوع: ${subject}\n` : ''}
 📊 الحالة: *${statusInfo.ar}*
 
-🔗 عرض التذكرة: maxiocore.com/dashboard/support
+🔗 عرض التذكرة: ashholding.com/dashboard/support
 
-_MaxioCore_`;
+_ASH HOLDING_`;
 }
 
 // Balance change message templates
@@ -466,14 +466,14 @@ export function getBalanceChangeMessage(
 ${reason ? `📋 السبب: ${reason}\n` : ''}
 ${newBalance !== undefined ? `💳 الرصيد الحالي: ${newBalance.toLocaleString('ar-SA')} ر.س\n` : ''}
 
-🔗 عرض الرصيد: maxiocore.com/dashboard
+🔗 عرض الرصيد: ashholding.com/dashboard
 
-_MaxioCore_`;
+_ASH HOLDING_`;
 }
 
 // Welcome message for new users
 export function getWelcomeMessage(name?: string): string {
-  return `🎉 *مرحباً بك في MaxioCore*
+  return `🎉 *مرحباً بك في ASH HOLDING*
 
 ${name ? `أهلاً ${name}!\n` : ''}
 نحن سعداء بانضمامك إلينا.
@@ -483,7 +483,7 @@ ${name ? `أهلاً ${name}!\n` : ''}
 • تمويل الخدمات
 • دعم فني على مدار الساعة
 
-🔗 maxiocore.com
+🔗 ashholding.com
 
-_MaxioCore_`;
+_ASH HOLDING_`;
 }

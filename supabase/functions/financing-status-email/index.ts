@@ -16,7 +16,7 @@ const CONFIG = {
   MAX_EMAILS_PER_DAY: 20,
   MAX_RETRY_ATTEMPTS: 3,
   RETRY_DELAYS: [60, 300, 900], // seconds: 1min, 5min, 15min
-  FROM_EMAIL: "MaxioCore <notifications@maxiocore.com>",
+  FROM_EMAIL: "ASH HOLDING <notifications@ashholding.com>",
 };
 
 // ملاحظة التمويل غير النقدي
@@ -35,7 +35,7 @@ const EMAIL_CONTENT: Record<string, {
   priority: number;
 }> = {
   SUBMITTED: {
-    subject: 'تم استلام طلب تمويل الخدمات | MaxioCore',
+    subject: 'تم استلام طلب تمويل الخدمات | ASH HOLDING',
     headline: 'تم استلام طلبكم بنجاح',
     description: 'شكرًا لتقديمكم طلب تمويل الخدمات. تم استلام طلبكم وسيتم مراجعته من قِبل الفريق المختص في أقرب وقت ممكن.',
     ctaText: 'عرض حالة الطلب',
@@ -45,7 +45,7 @@ const EMAIL_CONTENT: Record<string, {
     priority: 3
   },
   UNDER_REVIEW: {
-    subject: 'طلبكم قيد المراجعة | MaxioCore',
+    subject: 'طلبكم قيد المراجعة | ASH HOLDING',
     headline: 'طلبكم قيد المراجعة',
     description: 'يقوم فريقنا المختص حاليًا بمراجعة طلب تمويل الخدمات المقدم منكم. تستغرق هذه المرحلة عادةً من يوم إلى ثلاثة أيام عمل.',
     ctaText: 'متابعة حالة الطلب',
@@ -55,7 +55,7 @@ const EMAIL_CONTENT: Record<string, {
     priority: 5
   },
   ADDITIONAL_INFO_REQUIRED: {
-    subject: '⚠️ مطلوب معلومات إضافية لطلب التمويل | MaxioCore',
+    subject: '⚠️ مطلوب معلومات إضافية لطلب التمويل | ASH HOLDING',
     headline: 'مطلوب معلومات إضافية',
     description: 'لاستكمال دراسة طلبكم، نحتاج إلى بعض المعلومات أو المستندات الإضافية. يُرجى تزويدنا بها خلال 14 يومًا.',
     ctaText: 'رفع المستندات المطلوبة',
@@ -66,7 +66,7 @@ const EMAIL_CONTENT: Record<string, {
     priority: 1
   },
   APPROVED: {
-    subject: '✅ تهانينا! تمت الموافقة على طلب التمويل | MaxioCore',
+    subject: '✅ تهانينا! تمت الموافقة على طلب التمويل | ASH HOLDING',
     headline: 'تهانينا! تمت الموافقة على طلبكم',
     description: 'يسرنا إبلاغكم بالموافقة على طلب تمويل الخدمات الخاص بكم بالكامل. الخطوة التالية هي مراجعة العقد والموافقة عليه إلكترونيًا.',
     ctaText: 'مراجعة العقد والتوقيع',
@@ -76,7 +76,7 @@ const EMAIL_CONTENT: Record<string, {
     priority: 1
   },
   APPROVED_WITH_LIMITS: {
-    subject: '✅ تمت الموافقة على طلب التمويل بقيمة معدّلة | MaxioCore',
+    subject: '✅ تمت الموافقة على طلب التمويل بقيمة معدّلة | ASH HOLDING',
     headline: 'تمت الموافقة بقيمة معدّلة',
     description: 'تمت الموافقة على طلب تمويل الخدمات الخاص بكم بقيمة معدّلة. يمكنكم مراجعة التفاصيل في العقد.',
     ctaText: 'مراجعة العقد والقيمة المعتمدة',
@@ -87,7 +87,7 @@ const EMAIL_CONTENT: Record<string, {
     priority: 1
   },
   CONTRACT_PRESENTED: {
-    subject: '📄 العقد جاهز للتوقيع | MaxioCore',
+    subject: '📄 العقد جاهز للتوقيع | ASH HOLDING',
     headline: 'العقد جاهز للمراجعة والتوقيع',
     description: 'تم إعداد عقد تمويل الخدمات الخاص بكم. يُرجى مراجعة البنود والشروط بعناية قبل التوقيع الإلكتروني.',
     ctaText: 'عرض العقد والتوقيع',
@@ -98,7 +98,7 @@ const EMAIL_CONTENT: Record<string, {
     priority: 2
   },
   CONTRACT_ACCEPTED: {
-    subject: '✅ تم قبول العقد بنجاح | MaxioCore',
+    subject: '✅ تم قبول العقد بنجاح | ASH HOLDING',
     headline: 'تم قبول العقد بنجاح',
     description: 'شكرًا لتوقيعكم على عقد تمويل الخدمات. الخطوة التالية هي توقيع السند لأمر (الكمبيالة) لإتمام الإجراءات.',
     ctaText: 'توقيع السند لأمر',
@@ -109,7 +109,7 @@ const EMAIL_CONTENT: Record<string, {
     priority: 1
   },
   PROMISSORY_SIGNED: {
-    subject: '📝 تم توقيع السند لأمر بنجاح | MaxioCore',
+    subject: '📝 تم توقيع السند لأمر بنجاح | ASH HOLDING',
     headline: 'تم توقيع السند لأمر (الكمبيالة) بنجاح',
     description: 'شكرًا لإتمامكم جميع الإجراءات المطلوبة. تم توقيع السند لأمر بنجاح وجميع المستندات مكتملة الآن. جارٍ اعتماد العقد من الإدارة المختصة.',
     ctaText: 'متابعة حالة الطلب',
@@ -120,7 +120,7 @@ const EMAIL_CONTENT: Record<string, {
     priority: 2
   },
   CONTRACT_FINALIZED: {
-    subject: '🏛️ تم اعتماد العقد رسميًا | MaxioCore',
+    subject: '🏛️ تم اعتماد العقد رسميًا | ASH HOLDING',
     headline: 'تم اعتماد العقد رسميًا من الإدارة',
     description: 'يسرنا إبلاغكم بأنه تم اعتماد عقد تمويل الخدمات بشكل رسمي ونهائي. جارٍ الآن إضافة رصيد الخدمات إلى حسابكم.',
     ctaText: 'عرض تفاصيل التمويل',
@@ -131,7 +131,7 @@ const EMAIL_CONTENT: Record<string, {
     priority: 1
   },
   CREDIT_DEPOSITED: {
-    subject: '🎉💎 تم إيداع رصيد الخدمات بنجاح! | MaxioCore',
+    subject: '🎉💎 تم إيداع رصيد الخدمات بنجاح! | ASH HOLDING',
     headline: 'تهانينا! رصيد الخدمات جاهز للاستخدام!',
     description: 'تم بنجاح إضافة رصيد خدمات التمويل إلى حسابكم. يمكنكم الآن استخدامه لشراء جميع الخدمات المتاحة على المنصة. صلاحية الرصيد: 12 شهرًا.',
     ctaText: 'استكشف الخدمات وابدأ الآن',
@@ -142,7 +142,7 @@ const EMAIL_CONTENT: Record<string, {
     priority: 1
   },
   DECLINED: {
-    subject: 'نتيجة طلب تمويل الخدمات | MaxioCore',
+    subject: 'نتيجة طلب تمويل الخدمات | ASH HOLDING',
     headline: 'نتيجة طلب التمويل',
     description: 'نأسف لإبلاغكم بأنه لم يتم الموافقة على طلب تمويل الخدمات في الوقت الحالي، وذلك لعدم استيفاء بعض متطلبات الأهلية.',
     ctaText: 'تقديم طلب جديد',
@@ -153,7 +153,7 @@ const EMAIL_CONTENT: Record<string, {
     priority: 2
   },
   EXPIRED: {
-    subject: 'انتهت صلاحية طلب التمويل | MaxioCore',
+    subject: 'انتهت صلاحية طلب التمويل | ASH HOLDING',
     headline: 'انتهت صلاحية الطلب',
     description: 'انتهت صلاحية طلب تمويل الخدمات بسبب عدم استكمال الإجراءات المطلوبة خلال المهلة المحددة.',
     ctaText: 'تقديم طلب جديد',
@@ -163,7 +163,7 @@ const EMAIL_CONTENT: Record<string, {
     priority: 4
   },
   CANCELLED: {
-    subject: 'تم إلغاء طلب التمويل | MaxioCore',
+    subject: 'تم إلغاء طلب التمويل | ASH HOLDING',
     headline: 'تم إلغاء الطلب',
     description: 'تم إلغاء طلب تمويل الخدمات بناءً على طلبكم. يمكنكم التقدم بطلب جديد في أي وقت.',
     ctaText: 'تقديم طلب جديد',

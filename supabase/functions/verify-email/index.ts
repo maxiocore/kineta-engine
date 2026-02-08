@@ -199,13 +199,13 @@ async function sendEmail(email: string, otp: string): Promise<boolean> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'MaxioCore <noreply@maxiocore.com>',
+        from: 'ASH HOLDING <noreply@ashholding.com>',
         to: email,
         subject: `رمز التحقق الخاص بك: ${otp}`,
         html: `
           <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-              <h1 style="color: white; margin: 0;">MaxioCore</h1>
+              <h1 style="color: white; margin: 0;">ASH HOLDING</h1>
             </div>
             <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
               <h2 style="color: #333;">رمز التحقق الخاص بك</h2>

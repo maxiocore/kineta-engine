@@ -169,9 +169,9 @@ function getEmailWrapper(content: string, title: string): string {
                 <tr>
                   <td align="center">
                     <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.2); border-radius: 18px; margin: 0 auto 15px; line-height: 70px;">
-                      <span style="font-size: 36px; font-weight: 800; color: #ffffff;">M</span>
+                      <span style="font-size: 36px; font-weight: 800; color: #ffffff;">A</span>
                     </div>
-                    <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: 1px;">MaxioCore</h1>
+                    <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: 1px;">ASH HOLDING</h1>
                     <p style="margin: 8px 0 0; font-size: 14px; color: rgba(255, 255, 255, 0.9);">منصة الخدمات الرقمية المتكاملة</p>
                   </td>
                 </tr>
@@ -192,7 +192,7 @@ function getEmailWrapper(content: string, title: string): string {
               <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%;">
                 <tr>
                   <td align="center">
-                    <p style="margin: 0 0 15px; font-size: 20px; font-weight: 700; color: #ffffff;">MaxioCore</p>
+                    <p style="margin: 0 0 15px; font-size: 20px; font-weight: 700; color: #ffffff;">ASH HOLDING</p>
                     <table role="presentation" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
                       <tr>
                         <td style="padding: 0 12px;">
@@ -207,11 +207,11 @@ function getEmailWrapper(content: string, title: string): string {
                       </tr>
                     </table>
                     <p style="margin: 0 0 8px; font-size: 13px; color: #64748b;">
-                      📧 <a href="mailto:info@maxiocore.com" style="color: #8b5cf6; text-decoration: none;">info@maxiocore.com</a>
+                      📧 <a href="mailto:info@ashholding.com" style="color: #8b5cf6; text-decoration: none;">info@ashholding.com</a>
                     </p>
                     <div style="border-top: 1px solid #334155; margin-top: 20px; padding-top: 20px;">
                       <p style="margin: 0; font-size: 12px; color: #475569;">
-                        © ${new Date().getFullYear()} MaxioCore. جميع الحقوق محفوظة.
+                        © ${new Date().getFullYear()} ASH HOLDING. جميع الحقوق محفوظة.
                       </p>
                     </div>
                   </td>
@@ -343,11 +343,11 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
   switch (type) {
     case 'welcome':
       return {
-        subject: `مرحباً بك في MaxioCore - ${data.name}`,
+        subject: `مرحباً بك في ASH HOLDING - ${data.name}`,
         content: `
           ${createIconCircle('👋', 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)')}
           ${createGreeting(`مرحباً ${data.name}! 🎉`)}
-          ${createMessage('نحن سعداء جداً بانضمامك إلى عائلة MaxioCore! منصتنا توفر لك أفضل خدمات التسويق الرقمي والبرمجة والتصميم بأعلى جودة وأفضل الأسعار.')}
+          ${createMessage('نحن سعداء جداً بانضمامك إلى عائلة ASH HOLDING! منصتنا توفر لك أفضل خدمات التسويق الرقمي والبرمجة والتصميم بأعلى جودة وأفضل الأسعار.')}
           
           ${createInfoCard([
             { label: '🚀 ابدأ رحلتك معنا', value: '', valueColor: '#6366f1' }
@@ -366,7 +366,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'order_created':
       return {
-        subject: `تم استلام طلبك #${data.orderNumber} - MaxioCore`,
+        subject: `تم استلام طلبك #${data.orderNumber} - ASH HOLDING`,
         content: `
           ${createIconCircle('📦', 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)')}
           ${createGreeting('شكراً لطلبك! 🎉')}
