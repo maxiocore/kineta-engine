@@ -18,19 +18,20 @@ async function sendSMS(phone: string, message: string): Promise<{ success: boole
 
 // Get SMS message for financing types
 function getFinancingSMSMessage(type: string, data: Record<string, any>): string | null {
+  const name = (data.customerName || data.recipientName || '').split(' ')[0] || 'عميلنا';
   switch (type) {
     case 'financing_payment_client':
-      return `ASH HOLDING: تم تأكيد سداد القسط رقم ${data.installmentNumber} بمبلغ ${data.amount} ر.س. المتبقي: ${data.remainingAmount} ر.س`;
+      return `🏦 ASH HOLDING | سداد قسط\n\nمرحباً ${name} 👋\n✅ تم تأكيد سداد القسط رقم ${data.installmentNumber}\n\n💰 المبلغ: ${data.amount} ر.س\n📊 المتبقي: ${data.remainingAmount} ر.س\n\n🔒 ASH HOLDING | التزامك ثقة`;
     case 'financing_payment_reminder':
-      return `ASH HOLDING: تذكير - القسط رقم ${data.installmentNumber} بمبلغ ${data.amount} ر.س مستحق في ${data.dueDate}. لتجنب الغرامات، يرجى السداد قبل الموعد.`;
+      return `🏦 ASH HOLDING | تذكير بقسط\n\nمرحباً ${name} 👋\n⏰ تذكير: القسط رقم ${data.installmentNumber} مستحق\n\n💰 المبلغ: ${data.amount} ر.س\n📅 الموعد: ${data.dueDate}\n\n⚠️ يرجى السداد قبل الموعد\n🔒 ASH HOLDING`;
     case 'financing_payment_overdue':
-      return `ASH HOLDING: القسط رقم ${data.installmentNumber} متأخر! يرجى السداد فوراً لتجنب الغرامات الإضافية.`;
+      return `🏦 ASH HOLDING | قسط متأخر\n\n⚠️ عزيزي ${name}،\n❗ القسط رقم ${data.installmentNumber} متأخر عن موعده\n\n💰 المبلغ المستحق: ${data.amount} ر.س\n\n⏳ يرجى السداد فوراً لتجنب الغرامات\n📞 للتواصل مع فريقنا\n🔒 ASH HOLDING`;
     case 'financing_clearance':
-      return `ASH HOLDING: 🎉 تهانينا! تم إخلاء ذمتك من طلب التمويل #${data.applicationNumber}. شكراً لالتزامك!`;
+      return `🏦 ASH HOLDING | إخلاء طرف\n\n🎉 تهانينا ${name}!\n✅ تم إخلاء ذمتك بالكامل\n\n📄 طلب التمويل: #${data.applicationNumber}\n\n🤝 شكراً لالتزامك وثقتك بنا\n🔒 ASH HOLDING | شريكك المالي`;
     case 'financing_approved':
-      return `ASH HOLDING: تمت الموافقة على تمويلك #${data.applicationNumber} بمبلغ ${data.amount} ر.س!`;
+      return `🏦 ASH HOLDING | موافقة على التمويل\n\n🎉 تهانينا ${name}!\n✅ تمت الموافقة على تمويلك\n\n📄 رقم الطلب: #${data.applicationNumber}\n💰 المبلغ المعتمد: ${data.amount} ر.س\n\n📱 يرجى إتمام الإجراءات من حسابك\n🔒 ASH HOLDING | تمويل آمن ومرن`;
     case 'financing_rejected':
-      return `ASH HOLDING: نأسف، لم تتم الموافقة على طلب التمويل #${data.applicationNumber}.`;
+      return `🏦 ASH HOLDING | نتيجة التمويل\n\nعزيزي ${name}،\n📋 بعد الدراسة الائتمانية لطلبك #${data.applicationNumber}\n❌ لم تتم الموافقة على الطلب\n\n📞 يمكنك التواصل مع فريق الدعم\n🔒 ASH HOLDING`;
     default:
       return null;
   }
