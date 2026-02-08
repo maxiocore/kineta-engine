@@ -22,8 +22,9 @@ const corsHeaders = {
 // Configuration
 // ============================================
 
-const SMARTWATS_INSTANCE_ID = Deno.env.get('SMARTWATS_INSTANCE_ID');
-const SMARTWATS_ACCESS_TOKEN = Deno.env.get('SMARTWATS_ACCESS_TOKEN');
+const MSEGAT_USERNAME = Deno.env.get('MSEGAT_USERNAME');
+const MSEGAT_API_KEY = Deno.env.get('MSEGAT_API_KEY');
+const MSEGAT_SENDER_NAME = Deno.env.get('MSEGAT_SENDER_NAME') || 'ASH HOLDING';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -99,58 +100,64 @@ function formatPhoneNumber(phone: string): string {
   return cleaned;
 }
 
-async function sendWhatsAppSigningOTP(
+async function sendSigningOTPviaSMS(
   phone: string, 
   otp: string,
   contractNumber: string,
   customerName: string
 ): Promise<boolean> {
-  if (!SMARTWATS_INSTANCE_ID || !SMARTWATS_ACCESS_TOKEN) {
-    console.error('[Contract Signing OTP] SmartWats credentials not configured');
+  if (!MSEGAT_USERNAME || !MSEGAT_API_KEY) {
+    console.error('[Contract Signing OTP] Msegat credentials not configured');
     return false;
   }
 
   const formattedPhone = formatPhoneNumber(phone);
   
-  const message = `🔐 *رمز توقيع العقد*
-━━━━━━━━━━━━━━━━━━━━━
+  const message = `ASH HOLDING - رمز توقيع العقد
 
-مرحباً *${customerName}*،
+مرحباً ${customerName}،
+رمز التحقق لتوقيع العقد رقم: ${contractNumber}
 
-رمز التحقق لتوقيع العقد رقم:
-*${contractNumber}*
+الرمز: ${otp}
 
-🔑 الرمز: *${otp}*
+صالح لمدة ${OTP_EXPIRY_MINUTES} دقائق فقط.
 
-⏱️ صالح لمدة ${OTP_EXPIRY_MINUTES} دقائق فقط.
-
-⚠️ *تحذير أمني:*
-- لا تشارك هذا الرمز مع أي شخص
-- لن يطلب موظفونا هذا الرمز منك أبداً
-
-━━━━━━━━━━━━━━━━━━━━━
-شركة علي صالح الشهري القابضة
-ASH HOLDING`;
+تحذير: لا تشارك هذا الرمز مع أي شخص.
+شركة علي صالح الشهري القابضة`;
 
   try {
-    const response = await fetch('https://app.smartwats.com/api/send', {
+    const response = await fetch('https://www.msegat.com/gw/sendsms.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        number: formattedPhone,
-        type: 'text',
-        message: message,
-        instance_id: SMARTWATS_INSTANCE_ID,
-        access_token: SMARTWATS_ACCESS_TOKEN,
+        userName: MSEGAT_USERNAME,
+        apiKey: MSEGAT_API_KEY,
+        numbers: formattedPhone,
+        userSender: MSEGAT_SENDER_NAME,
+        msg: message,
+        msgEncoding: 'UTF8',
+        By: 'ASH HOLDING',
       }),
     });
 
-    const result = await response.json();
-    console.log('[Contract Signing OTP] SmartWats response:', result);
+    const responseText = await response.text();
+    console.log('[Contract Signing OTP] Msegat response:', responseText);
     
-    return result.status === 'success' || result.status === true;
+    let data: any;
+    try {
+      data = JSON.parse(responseText);
+    } catch {
+      data = responseText.trim();
+    }
+
+    const isSuccess = 
+      data === '1' || data === 1 ||
+      data?.code === '1' || data?.code === 'M0000' ||
+      data?.message === 'Success';
+
+    return isSuccess;
   } catch (error) {
-    console.error('[Contract Signing OTP] Error sending WhatsApp:', error);
+    console.error('[Contract Signing OTP] Error sending SMS:', error);
     return false;
   }
 }
@@ -369,8 +376,8 @@ serve(async (req) => {
         })
         .eq('id', contract_id);
 
-      // Send OTP via WhatsApp
-      const sent = await sendWhatsAppSigningOTP(phone, generatedOTP, contract.contract_number, customerName);
+      // Send OTP via SMS (Msegat)
+      const sent = await sendSigningOTPviaSMS(phone, generatedOTP, contract.contract_number, customerName);
 
       if (!sent) {
         // Mark as failed but don't delete - for audit
@@ -380,7 +387,7 @@ serve(async (req) => {
           .eq('id', newOTP.id);
 
         return new Response(
-          JSON.stringify({ success: false, error: 'فشل إرسال رمز التحقق عبر واتساب' }),
+          JSON.stringify({ success: false, error: 'فشل إرسال رمز التحقق عبر SMS' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }

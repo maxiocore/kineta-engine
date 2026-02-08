@@ -1,109 +1,140 @@
+// ============================================
+// Phone Verification Edge Function - ASH HOLDING
+// Powered by Msegat OTP Service
+// ============================================
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const TWILIO_ACCOUNT_SID = Deno.env.get('TWILIO_ACCOUNT_SID');
-const TWILIO_AUTH_TOKEN = Deno.env.get('TWILIO_AUTH_TOKEN');
-const TWILIO_VERIFY_SERVICE_SID = Deno.env.get('TWILIO_VERIFY_SERVICE_SID');
+const MSEGAT_USERNAME = Deno.env.get('MSEGAT_USERNAME');
+const MSEGAT_API_KEY = Deno.env.get('MSEGAT_API_KEY');
+const MSEGAT_SENDER_NAME = Deno.env.get('MSEGAT_SENDER_NAME') || 'ASH HOLDING';
 
 interface VerifyRequest {
   phone: string;
   action: 'send' | 'verify';
   code?: string;
   userId?: string;
+  otpId?: number; // Required for verify action - returned from send action
 }
 
 function formatPhoneNumber(phone: string): string {
   let cleaned = phone.replace(/\D/g, '');
   
-  if (cleaned.startsWith('0')) {
-    cleaned = cleaned.substring(1);
+  if (cleaned.startsWith('00966')) {
+    cleaned = cleaned.substring(2);
+  } else if (cleaned.startsWith('0')) {
+    cleaned = '966' + cleaned.substring(1);
   }
   
   if (!cleaned.startsWith('966')) {
     cleaned = '966' + cleaned;
   }
   
-  return '+' + cleaned;
+  return cleaned;
 }
 
-async function sendVerificationCode(phone: string): Promise<{ success: boolean; error?: string }> {
-  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_VERIFY_SERVICE_SID) {
-    console.error('[Twilio Verify] Missing credentials');
-    return { success: false, error: 'Missing Twilio credentials' };
+/**
+ * Send OTP via Msegat's sendOTPCode API
+ */
+async function sendVerificationCode(phone: string): Promise<{ success: boolean; error?: string; otpId?: number }> {
+  if (!MSEGAT_USERNAME || !MSEGAT_API_KEY) {
+    console.error('[Msegat Verify] Missing credentials');
+    return { success: false, error: 'بيانات اعتماد Msegat غير مُعدّة' };
   }
 
   const formattedPhone = formatPhoneNumber(phone);
-  console.log(`[Twilio Verify] Sending code to ${formattedPhone}`);
+  console.log(`[Msegat Verify] Sending OTP to ${formattedPhone}`);
 
   try {
-    const url = `https://verify.twilio.com/v2/Services/${TWILIO_VERIFY_SERVICE_SID}/Verifications`;
-    
-    const response = await fetch(url, {
+    const response = await fetch('https://www.msegat.com/gw/sendOTPCode.php', {
       method: 'POST',
       headers: {
-        'Authorization': 'Basic ' + btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`),
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
+        'lang': 'Ar',
       },
-      body: new URLSearchParams({
-        'To': formattedPhone,
-        'Channel': 'sms',
+      body: JSON.stringify({
+        userName: MSEGAT_USERNAME,
+        apiKey: MSEGAT_API_KEY,
+        number: formattedPhone,
+        userSender: MSEGAT_SENDER_NAME,
+        lang: 'Ar',
       }),
     });
 
     const data = await response.json();
-    console.log('[Twilio Verify] Send response:', JSON.stringify(data));
+    console.log('[Msegat Verify] Send response:', JSON.stringify(data));
 
-    if (!response.ok) {
-      return { success: false, error: data.message || 'Failed to send verification code' };
+    if (data.code === '1' || data.code === 'M0000' || data.message === 'Success') {
+      console.log(`[Msegat Verify] OTP sent successfully. ID: ${data.id}`);
+      return { success: true, otpId: data.id };
+    } else {
+      const errorMessages: Record<string, string> = {
+        'M0001': 'متغيرات مفقودة',
+        'M0002': 'بيانات دخول غير صالحة',
+        '1060': 'الرصيد غير كافي',
+        '1120': 'رقم الجوال غير صحيح',
+        'M0008': 'بادئة رقم الجوال غير صحيحة',
+      };
+      const errorMsg = errorMessages[data.code] || data.message || `خطأ Msegat: ${data.code}`;
+      return { success: false, error: errorMsg };
     }
-
-    return { success: true };
   } catch (error: unknown) {
-    console.error('[Twilio Verify] Error:', error);
+    console.error('[Msegat Verify] Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return { success: false, error: errorMessage };
   }
 }
 
-async function checkVerificationCode(phone: string, code: string): Promise<{ success: boolean; valid?: boolean; error?: string }> {
-  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_VERIFY_SERVICE_SID) {
-    console.error('[Twilio Verify] Missing credentials');
-    return { success: false, error: 'Missing Twilio credentials' };
+/**
+ * Verify OTP via Msegat's verifyOTPCode API
+ */
+async function checkVerificationCode(code: string, otpId: number): Promise<{ success: boolean; valid?: boolean; error?: string }> {
+  if (!MSEGAT_USERNAME || !MSEGAT_API_KEY) {
+    console.error('[Msegat Verify] Missing credentials');
+    return { success: false, error: 'بيانات اعتماد Msegat غير مُعدّة' };
   }
 
-  const formattedPhone = formatPhoneNumber(phone);
-  console.log(`[Twilio Verify] Checking code for ${formattedPhone}`);
+  console.log(`[Msegat Verify] Checking code for OTP ID: ${otpId}`);
 
   try {
-    const url = `https://verify.twilio.com/v2/Services/${TWILIO_VERIFY_SERVICE_SID}/VerificationCheck`;
-    
-    const response = await fetch(url, {
+    const response = await fetch('https://www.msegat.com/gw/verifyOTPCode.php', {
       method: 'POST',
       headers: {
-        'Authorization': 'Basic ' + btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`),
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
+        'lang': 'Ar',
       },
-      body: new URLSearchParams({
-        'To': formattedPhone,
-        'Code': code,
+      body: JSON.stringify({
+        userName: MSEGAT_USERNAME,
+        apiKey: MSEGAT_API_KEY,
+        code: code,
+        id: otpId,
+        userSender: MSEGAT_SENDER_NAME,
+        lang: 'Ar',
       }),
     });
 
     const data = await response.json();
-    console.log('[Twilio Verify] Check response:', JSON.stringify(data));
+    console.log('[Msegat Verify] Check response:', JSON.stringify(data));
 
-    if (!response.ok) {
-      return { success: false, error: data.message || 'Failed to verify code' };
+    if (data.code === '1' || data.code === 'M0000' || data.message === 'Success') {
+      return { success: true, valid: true };
+    } else {
+      const errorMessages: Record<string, string> = {
+        '400': 'انتهت صلاحية الرمز',
+        '404': 'الرمز غير موجود أو غير صحيح',
+        'M0001': 'متغيرات مفقودة',
+      };
+      const errorMsg = errorMessages[data.code] || data.message || `خطأ في التحقق: ${data.code}`;
+      return { success: true, valid: false, error: errorMsg };
     }
-
-    return { success: true, valid: data.status === 'approved' };
   } catch (error: unknown) {
-    console.error('[Twilio Verify] Error:', error);
+    console.error('[Msegat Verify] Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return { success: false, error: errorMessage };
   }
@@ -111,15 +142,15 @@ async function checkVerificationCode(phone: string, code: string): Promise<{ suc
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const { phone, action, code, userId }: VerifyRequest = await req.json();
+    const { phone, action, code, userId, otpId }: VerifyRequest = await req.json();
 
     if (!phone) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Phone number is required' }),
+        JSON.stringify({ success: false, error: 'رقم الجوال مطلوب' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -133,12 +164,19 @@ serve(async (req) => {
     } else if (action === 'verify') {
       if (!code) {
         return new Response(
-          JSON.stringify({ success: false, error: 'Verification code is required' }),
+          JSON.stringify({ success: false, error: 'رمز التحقق مطلوب' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      const result = await checkVerificationCode(phone, code);
+      if (!otpId) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'معرف OTP مطلوب (otpId)' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const result = await checkVerificationCode(code, otpId);
       
       // If verification successful and userId provided, update user's phone_verified status
       if (result.success && result.valid && userId) {
@@ -146,10 +184,13 @@ serve(async (req) => {
         const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
         const supabase = createClient(supabaseUrl, supabaseKey);
         
+        const formattedPhone = '+' + formatPhoneNumber(phone);
         await supabase
           .from('profiles')
-          .update({ phone_verified: true, phone: formatPhoneNumber(phone) })
+          .update({ phone_verified: true, phone: formattedPhone })
           .eq('id', userId);
+        
+        console.log(`[Msegat Verify] Phone verified for user: ${userId}`);
       }
 
       return new Response(
@@ -158,12 +199,12 @@ serve(async (req) => {
       );
     } else {
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid action. Use "send" or "verify"' }),
+        JSON.stringify({ success: false, error: 'إجراء غير صالح. استخدم "send" أو "verify"' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
   } catch (error: unknown) {
-    console.error('[Verify Phone] Error:', error);
+    console.error('[Msegat Verify] Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ success: false, error: errorMessage }),
