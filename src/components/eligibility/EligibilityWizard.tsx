@@ -1,5 +1,5 @@
 // ============================================
-// Eligibility Wizard - MaxioCore FinTech
+// Eligibility Wizard - ASH HOLDING FinTech
 // Professional KYC-style verification wizard
 // ============================================
 

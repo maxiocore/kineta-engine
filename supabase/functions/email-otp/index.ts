@@ -73,9 +73,9 @@ async function isEmailUsedByOther(
 async function sendOTPEmail(email: string, otp: string, userName?: string): Promise<boolean> {
   try {
     const { error } = await resend.emails.send({
-      from: "MaxioCore <noreply@maxiocore.com>",
+      from: "ASH HOLDING <noreply@ashholding.com>",
       to: [email],
-      subject: "رمز التحقق - MaxioCore",
+      subject: "رمز التحقق - ASH HOLDING",
       html: `
         <!DOCTYPE html>
         <html dir="rtl" lang="ar">
@@ -86,7 +86,7 @@ async function sendOTPEmail(email: string, otp: string, userName?: string): Prom
         <body style="font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0a0a0a; color: #ffffff; padding: 40px 20px; margin: 0;">
           <div style="max-width: 500px; margin: 0 auto; background: linear-gradient(145deg, #1a1a2e, #16213e); border-radius: 16px; padding: 40px; border: 1px solid #2a2a4a;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">MaxioCore</h1>
+              <h1 style="color: #60a5fa; margin: 0; font-size: 28px;">ASH HOLDING</h1>
               <p style="color: #94a3b8; margin-top: 8px;">نظام التمويل الآمن</p>
             </div>
             
@@ -102,7 +102,7 @@ async function sendOTPEmail(email: string, otp: string, userName?: string): Prom
             
             <div style="background: #7f1d1d20; border: 1px solid #7f1d1d; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
               <p style="color: #fca5a5; margin: 0; font-size: 13px;">
-                ⚠️ لا تشارك هذا الرمز مع أي شخص. فريق MaxioCore لن يطلب منك هذا الرمز أبداً.
+                ⚠️ لا تشارك هذا الرمز مع أي شخص. فريق ASH HOLDING لن يطلب منك هذا الرمز أبداً.
               </p>
             </div>
             

@@ -312,7 +312,7 @@ export const WhatsAppAuth = ({ onSuccess, onBack, isSignUp = false }: WhatsAppAu
 
         toast({
           title: "تم إنشاء الحساب!",
-          description: "مرحباً بك في MaxioCore",
+          description: "مرحباً بك في ASH HOLDING",
         });
         
         onSuccess(formattedPhone);

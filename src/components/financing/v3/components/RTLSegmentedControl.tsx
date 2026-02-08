@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v3 - RTL Segmented Control
+ * ASH HOLDING Financing System v3 - RTL Segmented Control
  * تحكم مقسم RTL بديل للتبويبات - أسلوب بنكي
  */
 

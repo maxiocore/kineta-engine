@@ -2495,7 +2495,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
 
     case 'hosting_order_renewed':
       return {
-        subject: `✅ تم تجديد خدمتك #${data.order_number} - MaxioCore`,
+        subject: `✅ تم تجديد خدمتك #${data.order_number} - ASH HOLDING`,
         content: `
           ${createIconCircle('🔄', 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)')}
           ${createGreeting('شكراً ' + (data.user_name || 'العميل الكريم') + '! 🎉')}
@@ -2859,7 +2859,7 @@ const handler = async (req: Request): Promise<Response> => {
       const html = getEmailWrapper(finalContent, finalSubject);
 
       const emailResponse = await resend.emails.send({
-        from: "MaxioCore <info@maxiocore.com>",
+        from: "ASH HOLDING <info@ashholding.com>",
         to: [to],
         subject: finalSubject,
         html: html,

@@ -65,7 +65,7 @@ serve(async (req) => {
           backups: data.backups || false,
           ipv6: data.ipv6 || true,
           monitoring: data.monitoring || true,
-          tags: data.tags || ['maxiocore']
+          tags: data.tags || ['ashholding']
         });
         
         if (result.droplet) {
@@ -78,7 +78,7 @@ serve(async (req) => {
         break;
 
       case 'list_droplets':
-        result = await doRequest(doToken, 'GET', '/droplets?tag_name=maxiocore');
+        result = await doRequest(doToken, 'GET', '/droplets?tag_name=ashholding');
         break;
 
       case 'delete_droplet':
@@ -101,7 +101,7 @@ serve(async (req) => {
           size: data.size,
           region: data.region,
           num_nodes: data.num_nodes || 1,
-          tags: ['maxiocore']
+          tags: ['ashholding']
         });
         
         if (result.database) {
@@ -150,7 +150,7 @@ serve(async (req) => {
             unhealthy_threshold: 3
           },
           droplet_ids: data.droplet_ids || [],
-          tag: 'maxiocore'
+          tag: 'ashholding'
         });
         
         if (result.load_balancer) {
@@ -176,9 +176,9 @@ serve(async (req) => {
             name: `${data.name}-pool`,
             size: data.node_size || 's-2vcpu-4gb',
             count: data.node_count || 1,
-            tags: ['maxiocore']
+            tags: ['ashholding']
           }],
-          tags: ['maxiocore']
+          tags: ['ashholding']
         });
         
         if (result.kubernetes_cluster) {
@@ -208,7 +208,7 @@ serve(async (req) => {
             { protocol: 'udp', ports: 'all', destinations: { addresses: ['0.0.0.0/0'] } }
           ],
           droplet_ids: data.droplet_ids || [],
-          tags: ['maxiocore']
+          tags: ['ashholding']
         });
         break;
 

@@ -1,5 +1,5 @@
 // ============================================
-// Eligibility Gate Hook - MaxioCore FinTech
+// Eligibility Gate Hook - ASH HOLDING FinTech
 // Bridge between Eligibility Engine & Loan Application
 // ============================================
 

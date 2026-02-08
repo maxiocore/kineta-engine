@@ -1,5 +1,5 @@
 // ============================================
-// Eligibility State Machine - MaxioCore
+// Eligibility State Machine - ASH HOLDING
 // ============================================
 
 import { 

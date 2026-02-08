@@ -8,7 +8,7 @@
  * 
  * الاستخدام: يُستدعى عبر Cron Job أو يدويًا من الأدمن
  * 
- * MaxioCore - Ali Saleh Al-Shehri Holding Company
+ * ASH HOLDING - Ali Saleh Al-Shehri Holding Company
  */
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";

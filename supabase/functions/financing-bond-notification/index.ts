@@ -9,7 +9,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const FROM_EMAIL = "MaxioCore <notifications@maxiocore.com>";
+const FROM_EMAIL = "ASH HOLDING <notifications@ashholding.com>";
 
 // ملاحظة التمويل غير النقدي
 const FINANCING_DISCLAIMER = `تنويه مهم: التمويل غير نقدي ويتم إضافة القيمة كرصيد خدمات داخل المنصة ولا يمكن سحبها أو تحويلها. رصيد الخدمات مخصص حصريًا لشراء خدمات شركة علي صالح الشهري القابضة والجهات التابعة لها.`;
@@ -25,7 +25,7 @@ const NOTIFICATION_CONTENT: Record<string, {
   whatsappMessage: string;
 }> = {
   BOND_ISSUING: {
-    subject: '⏳ جاري إصدار السند التنفيذي | MaxioCore',
+    subject: '⏳ جاري إصدار السند التنفيذي | ASH HOLDING',
     headline: 'جاري إصدار السند التنفيذي (سند لأمر)',
     description: 'نُعلمكم بأنه جاري الآن إصدار السند التنفيذي (سند لأمر) لطلب التمويل الخاص بكم عبر منصة نافذ الرسمية.',
     ctaText: 'متابعة حالة الطلب',
@@ -44,10 +44,10 @@ const NOTIFICATION_CONTENT: Record<string, {
 📋 متابعة الطلب:
 {{deep_link}}
 
-ماكسيو كور`
+ASH HOLDING`
   },
   BOND_ISSUED: {
-    subject: '📄 تم إصدار السند التنفيذي - يُرجى تأكيد التوقيع | MaxioCore',
+    subject: '📄 تم إصدار السند التنفيذي - يُرجى تأكيد التوقيع | ASH HOLDING',
     headline: 'تم إصدار السند التنفيذي بنجاح',
     description: 'نُعلمكم بأنه تم إصدار السند التنفيذي (سند لأمر) بنجاح عبر منصة نافذ. يُرجى الدخول إلى المنصة وتأكيد توقيعكم على السند لإتمام إجراءات التمويل.',
     ctaText: 'تأكيد توقيع السند',
@@ -67,10 +67,10 @@ const NOTIFICATION_CONTENT: Record<string, {
 📋 تأكيد التوقيع:
 {{deep_link}}
 
-ماكسيو كور`
+ASH HOLDING`
   },
   BOND_SENT_TO_CLIENT: {
-    subject: '📩 تم إرسال السند التنفيذي للتوقيع | MaxioCore',
+    subject: '📩 تم إرسال السند التنفيذي للتوقيع | ASH HOLDING',
     headline: 'السند التنفيذي بانتظار توقيعكم',
     description: 'تم إرسال السند التنفيذي إليكم عبر منصة نافذ. يُرجى الدخول لمنصة نافذ وتوقيع السند، ثم العودة لمنصتنا لتأكيد التوقيع.',
     ctaText: 'تأكيد التوقيع',
@@ -91,10 +91,10 @@ const NOTIFICATION_CONTENT: Record<string, {
 🔗 تأكيد التوقيع:
 {{deep_link}}
 
-ماكسيو كور`
+ASH HOLDING`
   },
   BOND_SIGNED: {
-    subject: '✅ تم تأكيد توقيع السند التنفيذي | MaxioCore',
+    subject: '✅ تم تأكيد توقيع السند التنفيذي | ASH HOLDING',
     headline: 'تم تأكيد توقيع السند بنجاح!',
     description: 'شكرًا لكم! تم تأكيد توقيعكم على السند التنفيذي بنجاح. جارٍ الآن المراجعة النهائية وإضافة رصيد الخدمات إلى حسابكم.',
     ctaText: 'متابعة حالة الطلب',
@@ -114,7 +114,7 @@ const NOTIFICATION_CONTENT: Record<string, {
 📋 متابعة الطلب:
 {{deep_link}}
 
-ماكسيو كور`
+ASH HOLDING`
   }
 };
 
@@ -206,7 +206,7 @@ function generateEmailHtml(
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%); padding: 32px; text-align: center;">
-              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">MaxioCore</h1>
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700;">ASH HOLDING</h1>
               <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0; font-size: 14px;">منصة الحلول التقنية المتكاملة</p>
             </td>
           </tr>

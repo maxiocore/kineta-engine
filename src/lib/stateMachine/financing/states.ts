@@ -1,5 +1,5 @@
 /**
- * MaxioCore - Financing State Machine States (Unified Prefix)
+ * ASH HOLDING - Financing State Machine States (Unified Prefix)
  * نظام حالات التمويل (تمويل خدمات غير نقدي)
  * 
  * ⚠️ تنبيه: التمويل غير نقدي - رصيد خدمات داخل المنصة فقط

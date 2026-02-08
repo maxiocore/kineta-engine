@@ -168,7 +168,7 @@ serve(async (req: Request) => {
 
         try {
           const { error: emailError } = await resend.emails.send({
-            from: "MaxioCore <notifications@maxiocore.com>",
+            from: "ASH HOLDING <notifications@ashholding.com>",
             to: [user.email],
             subject: appNotification.title_ar || appNotification.title,
             html: getEmailTemplate(appNotification, user),
@@ -266,9 +266,9 @@ function getEmailTemplate(notification: AppNotification, user: UserProfile): str
           <tr>
             <td style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); padding: 35px 30px; text-align: center;">
               <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.2); border-radius: 18px; margin: 0 auto 15px; line-height: 70px;">
-                <span style="font-size: 36px; font-weight: 800; color: #ffffff;">M</span>
+                <span style="font-size: 36px; font-weight: 800; color: #ffffff;">A</span>
               </div>
-              <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #ffffff;">MaxioCore</h1>
+              <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #ffffff;">ASH HOLDING</h1>
             </td>
           </tr>
           
@@ -311,7 +311,7 @@ function getEmailTemplate(notification: AppNotification, user: UserProfile): str
           <tr>
             <td style="background: #1e293b; padding: 25px; text-align: center;">
               <p style="margin: 0; font-size: 14px; color: #94a3b8;">
-                © ${new Date().getFullYear()} MaxioCore. جميع الحقوق محفوظة.
+                © ${new Date().getFullYear()} ASH HOLDING. جميع الحقوق محفوظة.
               </p>
             </td>
           </tr>

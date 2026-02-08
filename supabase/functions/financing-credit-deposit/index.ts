@@ -7,7 +7,7 @@
  * - مصدر حقيقة واحد: Ledger
  * - Rollback تلقائي عند الفشل
  * 
- * MaxioCore - Ali Saleh Al-Shehri Holding Company
+ * ASH HOLDING - Ali Saleh Al-Shehri Holding Company
  */
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
@@ -146,7 +146,7 @@ serve(async (req) => {
     if (application) {
       // إرسال Email
       try {
-        const baseUrl = 'https://maxiocore.com';
+        const baseUrl = 'https://ashholding.com';
         
         const { error: emailError } = await supabase.functions.invoke('financing-status-email', {
           body: {

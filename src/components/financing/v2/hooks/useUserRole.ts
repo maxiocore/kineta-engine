@@ -1,5 +1,5 @@
 /**
- * MaxioCore Financing System v2 - User Role Hook
+ * ASH HOLDING Financing System v2 - User Role Hook
  * Hook للتحقق من صلاحيات المستخدم
  */
 

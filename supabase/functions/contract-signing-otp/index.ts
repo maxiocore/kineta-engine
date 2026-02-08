@@ -130,7 +130,7 @@ async function sendWhatsAppSigningOTP(
 
 ━━━━━━━━━━━━━━━━━━━━━
 شركة علي صالح الشهري القابضة
-MaxioCore`;
+ASH HOLDING`;
 
   try {
     const response = await fetch('https://app.smartwats.com/api/send', {

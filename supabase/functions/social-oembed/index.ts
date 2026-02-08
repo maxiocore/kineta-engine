@@ -63,7 +63,7 @@ async function fetchOEmbed(platform: string, url: string): Promise<any> {
     
     const response = await fetch(oembedUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; MaxioCore/1.0)',
+        'User-Agent': 'Mozilla/5.0 (compatible; ASHHolding/1.0)',
       },
     });
     
