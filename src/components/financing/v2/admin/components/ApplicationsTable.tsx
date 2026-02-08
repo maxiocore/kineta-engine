@@ -1,6 +1,6 @@
 /**
  * ASH HOLDING Financing Admin V2 - Applications Table
- * جدول طلبات التمويل للأدمن
+ * جدول طلبات التمويل للأدمن - مع أزرار انتقال مباشرة
  */
 
 import { useState } from 'react';
@@ -18,12 +18,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Eye, 
   MoreHorizontal,
-  ChevronLeft,
-  User,
   Phone,
-  Mail,
-  Calendar,
-  Wallet
+  Wallet,
+  ArrowLeft,
+  Loader2,
+  Search,
+  FileCheck,
+  Send,
+  FileText,
+  Stamp,
+  Zap,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -37,7 +41,13 @@ import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import type { AdminApplicationView } from '../types';
 import { STATUS_CONFIG, STATUS_COLORS } from '../../config/statusConfig';
+import { getPrimaryAction, type AdminActionConfig } from '../config/actionsConfig';
+import { useAdminActions } from '../hooks/useAdminActions';
 import { cn } from '@/lib/utils';
+
+const INLINE_ICON_MAP: Record<string, React.ElementType> = {
+  Search, FileCheck, Send, FileText, Stamp, Wallet, Zap,
+};
 
 interface ApplicationsTableProps {
   applications: AdminApplicationView[];
@@ -52,6 +62,33 @@ export function ApplicationsTable({
   onSelect,
   selectedId,
 }: ApplicationsTableProps) {
+  const { executeAction, isExecuting } = useAdminActions();
+  const [executingAppId, setExecutingAppId] = useState<string | null>(null);
+
+  const handleInlineAction = async (
+    e: React.MouseEvent,
+    app: AdminApplicationView,
+    action: AdminActionConfig
+  ) => {
+    e.stopPropagation();
+    
+    // Actions requiring confirmation should open the details panel
+    if (action.requiresConfirmation || action.requiresReason) {
+      onSelect(app);
+      return;
+    }
+
+    setExecutingAppId(app.id);
+    try {
+      await executeAction({
+        applicationId: app.id,
+        actionType: action.id,
+      });
+    } finally {
+      setExecutingAppId(null);
+    }
+  };
+
   if (isLoading) {
     return <TableSkeleton />;
   }
@@ -88,7 +125,7 @@ export function ApplicationsTable({
                 <TableHead className="text-right">المبلغ</TableHead>
                 <TableHead className="text-right">الحالة</TableHead>
                 <TableHead className="text-right">تاريخ التقديم</TableHead>
-                <TableHead className="text-center w-[100px]">إجراءات</TableHead>
+                <TableHead className="text-center w-[200px]">الخطوة التالية</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -97,6 +134,8 @@ export function ApplicationsTable({
                   const statusConfig = STATUS_CONFIG[app.status];
                   const colors = STATUS_COLORS[statusConfig?.color || 'gray'];
                   const isSelected = selectedId === app.id;
+                  const primaryAction = getPrimaryAction(app.status);
+                  const isThisExecuting = executingAppId === app.id;
 
                   return (
                     <motion.tr
@@ -158,19 +197,33 @@ export function ApplicationsTable({
                         {format(new Date(app.submitted_at), 'dd MMM yyyy', { locale: ar })}
                       </TableCell>
                       
+                      {/* Next Step Action Column */}
                       <TableCell>
-                        <div className="flex items-center justify-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onSelect(app);
-                            }}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                        <div className="flex items-center justify-center gap-2">
+                          {primaryAction ? (
+                            <Button
+                              size="sm"
+                              className="h-8 gap-2 text-xs font-medium shadow-sm min-w-[120px]"
+                              onClick={(e) => handleInlineAction(e, app, primaryAction)}
+                              disabled={isThisExecuting || isExecuting}
+                            >
+                              {isThisExecuting ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                (() => {
+                                  const Icon = INLINE_ICON_MAP[primaryAction.icon] || ArrowLeft;
+                                  return <Icon className="h-3.5 w-3.5" />;
+                                })()
+                              )}
+                              {primaryAction.nameAr}
+                            </Button>
+                          ) : (
+                            <Badge variant="outline" className="text-xs text-muted-foreground">
+                              {statusConfig?.nameAr === 'مكتمل' || statusConfig?.nameAr === 'ملغي' || statusConfig?.nameAr === 'مرفوض'
+                                ? 'مكتمل'
+                                : 'عرض التفاصيل'}
+                            </Badge>
+                          )}
                           
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -226,6 +279,7 @@ function TableSkeleton() {
               <div className="h-10 w-24 bg-muted animate-pulse rounded" />
               <div className="h-10 w-24 bg-muted animate-pulse rounded" />
               <div className="h-10 w-20 bg-muted animate-pulse rounded" />
+              <div className="h-10 w-32 bg-muted animate-pulse rounded" />
             </div>
           ))}
         </div>

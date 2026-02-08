@@ -96,75 +96,84 @@ export function AdminQuickActions({ application, onActionComplete }: AdminQuickA
   return (
     <>
       <div className="space-y-3" dir="rtl">
-        <div className="flex items-center gap-2">
-          <Zap className="h-4 w-4 text-muted-foreground" />
-          <h4 className="text-sm font-semibold text-foreground">إجراءات سريعة</h4>
-        </div>
-
-        <div className="space-y-2">
-          {/* Primary CTA */}
-          {primaryAction && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
+        {/* Primary CTA - Prominent */}
+        {primaryAction && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="p-3 rounded-xl bg-primary/5 border-2 border-primary/20"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="h-4 w-4 text-primary" />
+              <h4 className="text-sm font-bold text-primary">الخطوة التالية</h4>
+            </div>
+            <Button
+              className="w-full justify-center gap-3 h-12 text-sm font-bold shadow-md"
+              size="lg"
+              onClick={() => handleAction(primaryAction)}
+              disabled={isExecuting}
             >
-              <Button
-                className="w-full justify-start gap-3 h-11 text-sm font-medium shadow-sm"
-                size="lg"
-                onClick={() => handleAction(primaryAction)}
-                disabled={isExecuting}
-              >
-                {isExecuting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  (() => {
-                    const Icon = getActionIcon(primaryAction.icon);
-                    return <Icon className="h-4 w-4" />;
-                  })()
-                )}
-                <span className="flex-1 text-right">{primaryAction.nameAr}</span>
-                {primaryAction.permission !== 'basic' && (
-                  <Badge variant="secondary" className="text-[9px] px-1.5">
-                    {primaryAction.permission === 'senior' ? 'مشرف' : 'مدير'}
-                  </Badge>
-                )}
-              </Button>
-            </motion.div>
-          )}
+              {isExecuting ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                (() => {
+                  const Icon = getActionIcon(primaryAction.icon);
+                  return <Icon className="h-5 w-5" />;
+                })()
+              )}
+              <span>{primaryAction.nameAr}</span>
+              {primaryAction.permission !== 'basic' && (
+                <Badge variant="secondary" className="text-[9px] px-1.5">
+                  {primaryAction.permission === 'senior' ? 'مشرف' : 'مدير'}
+                </Badge>
+              )}
+            </Button>
+          </motion.div>
+        )}
 
-          {/* Secondary Actions */}
-          <AnimatePresence>
-            {secondaryActions.map((action, index) => {
-              const Icon = getActionIcon(action.icon);
-              return (
-                <motion.div
-                  key={action.id}
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <Button
-                    variant={getButtonVariant(action.color)}
-                    className={cn(
-                      'w-full justify-start gap-3 h-9 text-xs',
-                      action.color === 'warning' && 'border-warning/30 text-warning hover:bg-warning/5 hover:text-warning',
-                      action.color === 'success' && 'border-success/30 text-success hover:bg-success/5 hover:text-success',
-                    )}
-                    size="sm"
-                    onClick={() => handleAction(action)}
-                    disabled={isExecuting}
+        {/* Secondary Actions */}
+        {secondaryActions.length > 0 && (
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <h4 className="text-xs font-medium text-muted-foreground">إجراءات أخرى</h4>
+            </div>
+            <AnimatePresence>
+              {secondaryActions.map((action, index) => {
+                const Icon = getActionIcon(action.icon);
+                return (
+                  <motion.div
+                    key={action.id}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
                   >
-                    <Icon className="h-3.5 w-3.5" />
-                    <span className="flex-1 text-right">{action.nameAr}</span>
-                    {action.requiresReason && (
-                      <span className="text-[9px] text-muted-foreground">يتطلب سبب</span>
-                    )}
-                  </Button>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </div>
+                    <Button
+                      variant={getButtonVariant(action.color)}
+                      className={cn(
+                        'w-full justify-start gap-3 h-9 text-xs',
+                        action.color === 'warning' && 'border-warning/30 text-warning hover:bg-warning/5 hover:text-warning',
+                        action.color === 'success' && 'border-success/30 text-success hover:bg-success/5 hover:text-success',
+                      )}
+                      size="sm"
+                      onClick={() => handleAction(action)}
+                      disabled={isExecuting}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                      <span className="flex-1 text-right">{action.nameAr}</span>
+                      {action.requiresReason && (
+                        <span className="text-[9px] text-muted-foreground">يتطلب سبب</span>
+                      )}
+                    </Button>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {allActions.length === 0 && (
+          <p className="text-xs text-muted-foreground text-center py-2">لا توجد إجراءات متاحة</p>
+        )}
       </div>
 
       {/* Confirmation Dialog */}
