@@ -22,6 +22,7 @@ import {
   Eye,
   ChevronLeft,
   Megaphone,
+  Globe,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -104,6 +105,18 @@ const serviceSections = [
     bgGlow: 'from-orange-500/20',
     shadowColor: 'shadow-orange-500/20',
     features: ['إعلانات ممولة', 'تحسين SEO', 'إدارة حسابات', 'تحليلات'],
+  },
+  {
+    id: 'ready-websites',
+    title: 'المواقع الجاهزة',
+    subtitle: 'Ready Websites',
+    description: 'مواقع احترافية جاهزة للتسليم الفوري بأسعار تنافسية',
+    icon: Globe,
+    path: '/dashboard/ready-websites',
+    gradient: 'from-sky-500 via-blue-500 to-indigo-500',
+    bgGlow: 'from-sky-500/20',
+    shadowColor: 'shadow-sky-500/20',
+    features: ['متاجر إلكترونية', 'مواقع شركات', 'صفحات هبوط', 'بورتفوليو'],
   },
 ];
 
@@ -254,7 +267,7 @@ const ClientServicesHome = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, amount: 0.1 });
   
-  const [servicesCount, setServicesCount] = useState({ design: 0, dev: 0, marketing: 0, hosting: 4 });
+  const [servicesCount, setServicesCount] = useState({ design: 0, dev: 0, marketing: 0, readyWebsites: 0 });
   const [globalStats, setGlobalStats] = useState({
     totalServices: 0,
     totalOrders: 0,
@@ -264,7 +277,7 @@ const ClientServicesHome = () => {
 
   const fetchCounts = async () => {
     try {
-      const [designResult, devResult, marketingResult, totalServicesResult, ordersResult] = await Promise.all([
+      const [designResult, devResult, marketingResult, readyWebsitesResult, totalServicesResult, ordersResult] = await Promise.all([
         supabase
           .from('services')
           .select('*', { count: 'exact', head: true })
@@ -282,6 +295,11 @@ const ClientServicesHome = () => {
           .select('*', { count: 'exact', head: true })
           .eq('status', 'active')
           .or('category.ilike.%marketing%,category.ilike.%تسويق%,category.ilike.%إعلان%'),
+
+        supabase
+          .from('ready_websites')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_active', true),
         
         supabase
           .from('services')
@@ -300,7 +318,7 @@ const ClientServicesHome = () => {
         design: designResult.count || 0,
         dev: devResult.count || 0,
         marketing: marketingResult.count || 0,
-        hosting: 4 // Static hosting packages count
+        readyWebsites: readyWebsitesResult.count || 0
       });
 
       setGlobalStats({
@@ -470,7 +488,7 @@ const ClientServicesHome = () => {
                         ? servicesCount.dev 
                         : section.id === 'marketing'
                           ? servicesCount.marketing
-                          : servicesCount.hosting
+                          : servicesCount.readyWebsites
                   }
                   isInView={true}
                 />

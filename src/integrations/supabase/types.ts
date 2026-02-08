@@ -3918,6 +3918,78 @@ export type Database = {
         }
         Relationships: []
       }
+      ready_websites: {
+        Row: {
+          category: string
+          created_at: string
+          delivery_days: number | null
+          demo_url: string | null
+          description: string | null
+          description_ar: string | null
+          display_order: number | null
+          features: Json | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          is_featured: boolean
+          original_price: number | null
+          preview_url: string | null
+          price: number
+          rating: number | null
+          sales_count: number | null
+          technologies: Json | null
+          title: string
+          title_ar: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          delivery_days?: number | null
+          demo_url?: string | null
+          description?: string | null
+          description_ar?: string | null
+          display_order?: number | null
+          features?: Json | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_featured?: boolean
+          original_price?: number | null
+          preview_url?: string | null
+          price?: number
+          rating?: number | null
+          sales_count?: number | null
+          technologies?: Json | null
+          title: string
+          title_ar: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          delivery_days?: number | null
+          demo_url?: string | null
+          description?: string | null
+          description_ar?: string | null
+          display_order?: number | null
+          features?: Json | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_featured?: boolean
+          original_price?: number | null
+          preview_url?: string | null
+          price?: number
+          rating?: number | null
+          sales_count?: number | null
+          technologies?: Json | null
+          title?: string
+          title_ar?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       referral_codes: {
         Row: {
           code: string
