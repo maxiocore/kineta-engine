@@ -312,7 +312,7 @@ const handler = async (req: Request): Promise<Response> => {
       
       <!-- CTA Button -->
       <div style="text-align: center; margin: 30px 0;">
-        <a href="https://ashholding.com/admin" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; text-decoration: none; padding: 14px 40px; border-radius: 12px; font-size: 16px; font-weight: bold; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);">
+        <a href="https://ash-holding.sa/admin" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; text-decoration: none; padding: 14px 40px; border-radius: 12px; font-size: 16px; font-weight: bold; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);">
           🚀 فتح لوحة التحكم
         </a>
       </div>

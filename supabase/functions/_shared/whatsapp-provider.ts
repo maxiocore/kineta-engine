@@ -39,7 +39,7 @@ const SMARTWATS_BASE_URL = 'https://app.smartwats.com/api';
 const SMARTWATS_INSTANCE_ID = Deno.env.get('SMARTWATS_INSTANCE_ID');
 const SMARTWATS_ACCESS_TOKEN = Deno.env.get('SMARTWATS_ACCESS_TOKEN');
 // استخدام الرابط الرسمي للموقع - لا نكشف روابط Supabase الداخلية
-const BASE_URL = 'https://ashholding.com';
+const BASE_URL = 'https://ash-holding.sa';
 
 // Retry configuration
 const MAX_RETRIES = 3;
@@ -616,7 +616,7 @@ ${amount ? `💰 *المبلغ:* ${amount.toLocaleString('ar-SA')} ريال\n` :
 
 ━━━━━━━━━━━━━━━━━━━━━
 🔗 *متابعة الطلب:*
-ashholding.com${deepLinkPath}
+ash-holding.sa${deepLinkPath}
 
 📞 الدعم: متاح على مدار الساعة
 
@@ -649,7 +649,7 @@ function buildOrderStatusMessage(
 
 ━━━━━━━━━━━━━━━━━━━━━
 🔗 *تتبع الطلب:*
-ashholding.com${deepLinkPath}
+ash-holding.sa${deepLinkPath}
 
 _ASH HOLDING_`;
 }
@@ -665,7 +665,7 @@ function buildGenericStatusMessage(
 
 ━━━━━━━━━━━━━━━━━━━━━
 🔗 *التفاصيل:*
-ashholding.com${deepLinkPath}
+ash-holding.sa${deepLinkPath}
 
 _ASH HOLDING_`;
 }

@@ -81,7 +81,7 @@ serve(async (req) => {
     }
 
     // Build notification context
-    const baseUrl = Deno.env.get("SITE_URL") || "https://ashholding.com";
+    const baseUrl = Deno.env.get("SITE_URL") || "https://ash-holding.sa";
     const notificationContext = {
       name,
       email,

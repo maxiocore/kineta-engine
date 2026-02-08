@@ -268,7 +268,7 @@ serve(async (req) => {
     switch (action) {
       case 'account_created': {
         // Send verification email (PRIMARY - required)
-        const verificationLink = data?.verificationLink || `https://ashholding.com/auth/verify`;
+        const verificationLink = data?.verificationLink || `https://ash-holding.sa/auth/verify`;
         
         const { error: emailError } = await resend.emails.send({
           from: "ASH HOLDING <noreply@ash-holding.sa>",

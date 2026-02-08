@@ -119,7 +119,7 @@ ${serviceName ? `🎯 الخدمة: ${serviceName}\n` : ''}
 📊 الحالة: *${statusInfo.ar}*
 ${statusInfo.extra ? `\n💡 ${statusInfo.extra}` : ''}
 
-🔗 تتبع طلبك: ashholding.com/dashboard/orders
+🔗 تتبع طلبك: ash-holding.sa/dashboard/orders
 
 _ASH HOLDING_`;
 }
@@ -279,7 +279,7 @@ export function getFinancingStatusMessage(
   }
   
   message += `\n━━━━━━━━━━━━━━━━━━━━━\n`;
-  message += `🔗 *متابعة الطلب:*\nashholding.com/dashboard/financing\n\n`;
+  message += `🔗 *متابعة الطلب:*\nash-holding.sa/dashboard/financing\n\n`;
   message += `📞 للاستفسار: الدعم الفني متاح على مدار الساعة\n\n`;
   message += `_شركة علي صالح الشهري القابضة - ASH HOLDING_`;
   
@@ -336,7 +336,7 @@ export function getInstallmentPaymentMessage(details: InstallmentPaymentDetails)
 
 ━━━━━━━━━━━━━━━━━━━━━
 🔗 *متابعة حسابكم:*
-ashholding.com/dashboard/financing
+ash-holding.sa/dashboard/financing
 
 📞 للاستفسار: الدعم الفني متاح على مدار الساعة
 
@@ -363,7 +363,7 @@ ${nextDueDate ? `📅 *موعد القسط القادم:* ${nextDueDate}\n` : ''
 
 ━━━━━━━━━━━━━━━━━━━━━
 🔗 *متابعة الأقساط:*
-ashholding.com/dashboard/financing
+ash-holding.sa/dashboard/financing
 
 📞 للاستفسار: الدعم الفني متاح على مدار الساعة
 
@@ -393,7 +393,7 @@ ${transactionId ? `🔢 رقم العملية: ${transactionId}\n` : ''}
 
 ✨ تم إضافة الرصيد لحسابك بنجاح!
 
-🔗 عرض الرصيد: ashholding.com/dashboard
+🔗 عرض الرصيد: ash-holding.sa/dashboard
 
 _ASH HOLDING_`;
   }
@@ -403,7 +403,7 @@ _ASH HOLDING_`;
 💰 المبلغ: ${amount.toLocaleString('ar-SA')} ر.س
 📊 الحالة: *${statusInfo.ar}*
 
-🔗 عرض التفاصيل: ashholding.com/dashboard
+🔗 عرض التفاصيل: ash-holding.sa/dashboard
 
 _ASH HOLDING_`;
 }
@@ -433,7 +433,7 @@ ${subject ? `📋 الموضوع: ${subject}\n` : ''}
 
 📩 تم الرد على تذكرتك، يرجى المراجعة.
 
-🔗 عرض التذكرة: ashholding.com/dashboard/support
+🔗 عرض التذكرة: ash-holding.sa/dashboard/support
 
 _ASH HOLDING_`;
   }
@@ -444,7 +444,7 @@ _ASH HOLDING_`;
 ${subject ? `📋 الموضوع: ${subject}\n` : ''}
 📊 الحالة: *${statusInfo.ar}*
 
-🔗 عرض التذكرة: ashholding.com/dashboard/support
+🔗 عرض التذكرة: ash-holding.sa/dashboard/support
 
 _ASH HOLDING_`;
 }
@@ -466,7 +466,7 @@ export function getBalanceChangeMessage(
 ${reason ? `📋 السبب: ${reason}\n` : ''}
 ${newBalance !== undefined ? `💳 الرصيد الحالي: ${newBalance.toLocaleString('ar-SA')} ر.س\n` : ''}
 
-🔗 عرض الرصيد: ashholding.com/dashboard
+🔗 عرض الرصيد: ash-holding.sa/dashboard
 
 _ASH HOLDING_`;
 }
@@ -483,7 +483,7 @@ ${name ? `أهلاً ${name}!\n` : ''}
 • تمويل الخدمات
 • دعم فني على مدار الساعة
 
-🔗 ashholding.com
+🔗 ash-holding.sa
 
 _ASH HOLDING_`;
 }

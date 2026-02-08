@@ -196,7 +196,7 @@ serve(async (req) => {
     // ═══════════════════════════════════════════════════════════════
     // STEP 4: Build WhatsApp Message
     // ═══════════════════════════════════════════════════════════════
-    const baseUrl = 'https://ashholding.com';
+    const baseUrl = 'https://ash-holding.sa';
     
     const whatsappMessage = buildCompletionMessage({
       customerName: application.full_name,
