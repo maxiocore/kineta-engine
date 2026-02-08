@@ -106,30 +106,53 @@ export function useAdminActions(): UseAdminActionsReturn {
           }
           break;
 
-        case 'activate_credit':
-          // Call the credit deposit edge function
-          try {
-            const { data: depositResult, error: depositError } = await supabase.functions.invoke(
-              'financing-credit-deposit',
-              {
-                body: {
-                  application_id: applicationId,
-                  actor_id: user?.id,
-                }
-              }
-            );
-            
-            if (depositError) {
-              console.error('Credit deposit error:', depositError);
-              throw new Error('فشل تفعيل الرصيد');
-            }
-            
-            console.log('Credit deposit result:', depositResult);
-          } catch (err) {
-            console.error('Credit activation failed:', err);
-            // Continue with status update even if deposit fails
+        case 'activate_credit': {
+          // Validate approved_amount exists before attempting deposit
+          const depositAmount = app.approved_amount || app.requested_amount;
+          if (!depositAmount || depositAmount <= 0) {
+            throw new Error('لا يوجد مبلغ معتمد. يرجى تحديد المبلغ المعتمد أولاً');
           }
+          
+          // Ensure approved_amount is set (use requested_amount as fallback)
+          if (!app.approved_amount) {
+            const { error: amountError } = await supabase
+              .from('financing_applications')
+              .update({ approved_amount: app.requested_amount })
+              .eq('id', applicationId);
+            if (amountError) {
+              console.error('Failed to set approved_amount:', amountError);
+              throw new Error('فشل تحديث المبلغ المعتمد');
+            }
+          }
+
+          // Call the credit deposit edge function
+          const { data: depositResult, error: depositError } = await supabase.functions.invoke(
+            'financing-credit-deposit',
+            {
+              body: {
+                application_id: applicationId,
+                actor_id: user?.id,
+              }
+            }
+          );
+          
+          if (depositError) {
+            console.error('Credit deposit error:', depositError);
+            throw new Error(`فشل تفعيل الرصيد: ${depositError.message || 'خطأ غير معروف'}`);
+          }
+          
+          // Check if the deposit was actually successful
+          if (depositResult && !depositResult.success) {
+            console.error('Credit deposit failed:', depositResult);
+            throw new Error(depositResult.messageAr || depositResult.message || 'فشل إيداع الرصيد');
+          }
+          
+          console.log('Credit deposit result:', depositResult);
+          
+          // Set credit_deposit_status on success
+          updateData.credit_deposit_status = 'CREDIT_DEPOSITED';
           break;
+        }
       }
 
       // Update application
