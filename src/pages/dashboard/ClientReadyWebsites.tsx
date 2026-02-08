@@ -266,17 +266,26 @@ const WebsiteCard = ({
           </div>
         )}
 
-        {/* Image Placeholder */}
+        {/* Website Image */}
         <div className="relative h-40 sm:h-44 bg-gradient-to-br from-sky-500/10 via-blue-500/10 to-indigo-500/10 flex items-center justify-center overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent z-[1]" />
-          <div className="relative z-0 flex items-center gap-3">
-            <div className="w-16 h-12 rounded-lg bg-sky-500/20 border border-sky-500/30 flex items-center justify-center">
-              <Monitor className="w-6 h-6 text-sky-400" />
+          <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent z-[2]" />
+          {website.image_url ? (
+            <img
+              src={website.image_url}
+              alt={website.title_ar}
+              className="absolute inset-0 w-full h-full object-cover object-top z-0"
+              loading="lazy"
+            />
+          ) : (
+            <div className="relative z-0 flex items-center gap-3">
+              <div className="w-16 h-12 rounded-lg bg-sky-500/20 border border-sky-500/30 flex items-center justify-center">
+                <Monitor className="w-6 h-6 text-sky-400" />
+              </div>
+              <div className="w-8 h-14 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
+                <Smartphone className="w-4 h-4 text-blue-400" />
+              </div>
             </div>
-            <div className="w-8 h-14 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
-              <Smartphone className="w-4 h-4 text-blue-400" />
-            </div>
-          </div>
+          )}
         </div>
 
         <CardContent className="p-4 sm:p-5 flex-1 flex flex-col">
