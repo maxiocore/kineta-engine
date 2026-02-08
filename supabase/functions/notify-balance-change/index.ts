@@ -488,8 +488,8 @@ serve(async (req: Request): Promise<Response> => {
       const timeStr = transactionDate.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Riyadh' });
       
       const smsMessage = isAdd
-        ? `🏦 ASH HOLDING\n━━━━━━━━━━━━━━\n✅ إيداع في حسابكم\n\n💰 المبلغ: +${amount.toLocaleString('ar-SA')} ر.س\n💳 الرصيد المتاح: ${newBalance.toLocaleString('ar-SA')} ر.س\n📋 المرجع: ${transactionRef}\n${reason ? `📝 البيان: ${reason}\n` : ''}📅 ${dateStr} | ${timeStr}\n━━━━━━━━━━━━━━\n🔒 إذا لم تقم بهذه العملية تواصل معنا فوراً\nash-holding.sa`
-        : `🏦 ASH HOLDING\n━━━━━━━━━━━━━━\n🔴 خصم من حسابكم\n\n💰 المبلغ: -${amount.toLocaleString('ar-SA')} ر.س\n💳 الرصيد المتاح: ${newBalance.toLocaleString('ar-SA')} ر.س\n📋 المرجع: ${transactionRef}\n${reason ? `📝 البيان: ${reason}\n` : ''}📅 ${dateStr} | ${timeStr}\n━━━━━━━━━━━━━━\n🔒 إذا لم تقم بهذه العملية تواصل معنا فوراً\nash-holding.sa`;
+        ? `✅ إيداع في حسابكم\n\n💰 المبلغ: +${amount.toLocaleString('ar-SA')} ر.س\n💳 الرصيد المتاح: ${newBalance.toLocaleString('ar-SA')} ر.س\n📋 المرجع: ${transactionRef}\n${reason ? `📝 البيان: ${reason}\n` : ''}📅 ${dateStr} | ${timeStr}\n\n🔒 إذا لم تقم بهذه العملية تواصل معنا فوراً\n━━━━━━━━━━━━━━\nفريق المالية | ASH HOLDING\nash-holding.sa`
+        : `🔴 خصم من حسابكم\n\n💰 المبلغ: -${amount.toLocaleString('ar-SA')} ر.س\n💳 الرصيد المتاح: ${newBalance.toLocaleString('ar-SA')} ر.س\n📋 المرجع: ${transactionRef}\n${reason ? `📝 البيان: ${reason}\n` : ''}📅 ${dateStr} | ${timeStr}\n\n🔒 إذا لم تقم بهذه العملية تواصل معنا فوراً\n━━━━━━━━━━━━━━\nفريق المالية | ASH HOLDING\nash-holding.sa`;
       
       const smsResult = await sendSMS(profile.phone, smsMessage, 'balance', userId, transactionRef);
       console.log("SMS result:", smsResult);

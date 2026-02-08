@@ -415,15 +415,17 @@ serve(async (req: Request): Promise<Response> => {
       const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Riyadh' });
       const txnRef = deposit.transaction_id || deposit.id?.substring(0, 8).toUpperCase();
       
-      let smsMessage = `🏦 ASH HOLDING\n━━━━━━━━━━━━━━\n✅ تم إيداع مبلغ في حسابكم\n\n💰 المبلغ: +${formatAmountArabic(deposit.total_credited)} ر.س`;
+      let smsMessage = `✅ تم إيداع مبلغ في حسابكم\n\n💰 المبلغ: +${formatAmountArabic(deposit.total_credited)} ر.س`;
       if (deposit.bonus_amount && deposit.bonus_amount > 0) {
         smsMessage += `\n🎁 مكافأة: +${formatAmountArabic(deposit.bonus_amount)} ر.س`;
       }
       smsMessage += `\n💳 الرصيد المتاح: ${formatAmountArabic(balance?.balance || 0)} ر.س`;
+      smsMessage += `\n💳 طريقة الدفع: ${paymentMethod}`;
       smsMessage += `\n📋 المرجع: ${txnRef}`;
       smsMessage += `\n📅 ${dateStr} | ${timeStr}`;
+      smsMessage += `\n\n🔒 إذا لم تقم بهذه العملية تواصل معنا فوراً`;
       smsMessage += `\n━━━━━━━━━━━━━━`;
-      smsMessage += `\n🔒 إذا لم تقم بهذه العملية تواصل معنا فوراً`;
+      smsMessage += `\nفريق المالية | ASH HOLDING`;
       smsMessage += `\nash-holding.sa`;
       
       const smsResult = await sendSMS(profile.phone, smsMessage);
