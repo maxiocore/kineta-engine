@@ -51,10 +51,10 @@ const contactMethods = [
   {
     icon: Mail,
     title: "راسلنا",
-    value: "info@ashholding.com",
+    value: "info@ash-holding.sa",
     description: "نرد خلال 24 ساعة",
     gradient: "from-pink-500 to-rose-600",
-    action: "mailto:info@ashholding.com",
+    action: "mailto:info@ash-holding.sa",
     hoverColor: "group-hover:shadow-pink-500/30"
   },
   {

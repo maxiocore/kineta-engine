@@ -152,10 +152,10 @@ const PrivacyPolicy = () => {
               إذا كانت لديك أي أسئلة حول سياسة الخصوصية، يرجى التواصل معنا.
             </p>
             <a 
-              href="mailto:privacy@ashholding.com" 
+              href="mailto:privacy@ash-holding.sa" 
               className="text-blue-400 hover:text-blue-300 font-medium"
             >
-              privacy@ashholding.com
+              privacy@ash-holding.sa
             </a>
           </motion.div>
         </div>

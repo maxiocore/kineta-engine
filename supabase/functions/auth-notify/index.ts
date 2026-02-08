@@ -271,7 +271,7 @@ serve(async (req) => {
         const verificationLink = data?.verificationLink || `https://ashholding.com/auth/verify`;
         
         const { error: emailError } = await resend.emails.send({
-          from: "ASH HOLDING <noreply@ashholding.com>",
+          from: "ASH HOLDING <noreply@ash-holding.sa>",
           to: [email],
           subject: "تأكيد حسابك - ASH HOLDING",
           html: EMAIL_TEMPLATES.ACCOUNT_CREATED(name, verificationLink),
@@ -300,7 +300,7 @@ serve(async (req) => {
         const reason = data?.reason || 'تجاوز عدد محاولات تسجيل الدخول المسموحة';
         
         const { error: emailError } = await resend.emails.send({
-          from: "ASH HOLDING Security <security@ashholding.com>",
+          from: "ASH HOLDING Security <security@ash-holding.sa>",
           to: [email],
           subject: "⚠️ تنبيه أمني: تم قفل حسابك مؤقتاً - ASH HOLDING",
           html: EMAIL_TEMPLATES.ACCOUNT_LOCKED(name, unlockTime, reason),
@@ -324,7 +324,7 @@ serve(async (req) => {
       case 'password_changed': {
         // Send confirmation email (PRIMARY)
         const { error: emailError } = await resend.emails.send({
-          from: "ASH HOLDING Security <security@ashholding.com>",
+          from: "ASH HOLDING Security <security@ash-holding.sa>",
           to: [email],
           subject: "✅ تم تغيير كلمة المرور - ASH HOLDING",
           html: EMAIL_TEMPLATES.PASSWORD_CHANGED(name),
@@ -355,7 +355,7 @@ serve(async (req) => {
         }
 
         const { error: emailError } = await resend.emails.send({
-          from: "ASH HOLDING <noreply@ashholding.com>",
+          from: "ASH HOLDING <noreply@ash-holding.sa>",
           to: [email],
           subject: "🔑 استعادة كلمة المرور - ASH HOLDING",
           html: EMAIL_TEMPLATES.PASSWORD_RESET(name, resetLink),

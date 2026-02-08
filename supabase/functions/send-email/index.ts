@@ -207,7 +207,7 @@ function getEmailWrapper(content: string, title: string): string {
                       </tr>
                     </table>
                     <p style="margin: 0 0 8px; font-size: 13px; color: #64748b;">
-                      📧 <a href="mailto:info@ashholding.com" style="color: #8b5cf6; text-decoration: none;">info@ashholding.com</a>
+                      📧 <a href="mailto:info@ash-holding.sa" style="color: #8b5cf6; text-decoration: none;">info@ash-holding.sa</a>
                     </p>
                     <div style="border-top: 1px solid #334155; margin-top: 20px; padding-top: 20px;">
                       <p style="margin: 0; font-size: 12px; color: #475569;">
@@ -959,7 +959,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           
           ${createNoticeBox('⚠️ تنبيه مهم: يرجى طباعة هذا السند والتوقيع عليه وإرساله عبر البريد الإلكتروني أو الواتساب لإتمام عملية التمويل. لن يتم إضافة الرصيد لحسابك إلا بعد استلام السند الموقع.', '#fef3c7', '#92400e', '#f59e0b')}
           
-          ${createMessage('للتواصل والإرسال: info@ashholding.com')}
+          ${createMessage('للتواصل والإرسال: info@ash-holding.sa')}
         `
       };
 
@@ -1070,7 +1070,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           
           ${createNoticeBox('📝 الخطوة التالية: يرجى طباعة هذا العقد والتوقيع عليه وإرساله عبر البريد الإلكتروني أو الواتساب. بعد استلام العقد الموقع، سنرسل لك السند التنفيذي للتوقيع عليه.', '#dbeafe', '#1d4ed8', '#3b82f6')}
           
-          ${createMessage('للتواصل والإرسال: info@ashholding.com')}
+          ${createMessage('للتواصل والإرسال: info@ash-holding.sa')}
         `
       };
 
@@ -1325,7 +1325,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           
           ${createCTAButton('ادفع الآن')}
           
-          ${createMessage('في حال واجهت أي صعوبات في السداد، يرجى التواصل معنا على info@ashholding.com')}
+          ${createMessage('في حال واجهت أي صعوبات في السداد، يرجى التواصل معنا على info@ash-holding.sa')}
         `
       };
 
@@ -1441,7 +1441,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           
           ${createCTAButton('تقدم بطلب تمويل جديد')}
           
-          ${createMessage('للاستفسارات: info@ashholding.com | واتساب: +966XXXXXXXXX')}
+          ${createMessage('للاستفسارات: info@ash-holding.sa | واتساب: +966XXXXXXXXX')}
         `
       };
 
@@ -1698,7 +1698,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-top: 25px;">
             <tr>
               <td align="center">
-                <p style="margin: 0; color: #94a3b8; font-size: 14px;">للتواصل السريع: <a href="mailto:info@ashholding.com" style="color: #6366f1; text-decoration: none; font-weight: 600;">info@ashholding.com</a></p>
+                <p style="margin: 0; color: #94a3b8; font-size: 14px;">للتواصل السريع: <a href="mailto:info@ash-holding.sa" style="color: #6366f1; text-decoration: none; font-weight: 600;">info@ash-holding.sa</a></p>
               </td>
             </tr>
           </table>
@@ -1835,7 +1835,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-top: 25px;">
             <tr>
               <td align="center">
-                <p style="margin: 0; color: #94a3b8; font-size: 14px;">للتواصل السريع: <a href="mailto:info@ashholding.com" style="color: #6366f1; text-decoration: none; font-weight: 600;">info@ashholding.com</a></p>
+                <p style="margin: 0; color: #94a3b8; font-size: 14px;">للتواصل السريع: <a href="mailto:info@ash-holding.sa" style="color: #6366f1; text-decoration: none; font-weight: 600;">info@ash-holding.sa</a></p>
               </td>
             </tr>
           </table>
@@ -2043,7 +2043,7 @@ function getEmailContent(type: EmailType, data: Record<string, any>): { subject:
           <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-top: 25px;">
             <tr>
               <td align="center">
-                <p style="margin: 0; color: #94a3b8; font-size: 14px;">للتواصل السريع: <a href="mailto:info@ashholding.com" style="color: #6366f1; text-decoration: none; font-weight: 600;">info@ashholding.com</a></p>
+                <p style="margin: 0; color: #94a3b8; font-size: 14px;">للتواصل السريع: <a href="mailto:info@ash-holding.sa" style="color: #6366f1; text-decoration: none; font-weight: 600;">info@ash-holding.sa</a></p>
               </td>
             </tr>
           </table>
@@ -2798,7 +2798,7 @@ const handler = async (req: Request): Promise<Response> => {
           const html = getEmailWrapper(finalContent, finalSubject);
           
           const emailResponse = await resend.emails.send({
-            from: "ASH HOLDING <info@ashholding.com>",
+            from: "ASH HOLDING <info@ash-holding.sa>",
             to: [email],
             subject: finalSubject,
             html: html,
@@ -2859,7 +2859,7 @@ const handler = async (req: Request): Promise<Response> => {
       const html = getEmailWrapper(finalContent, finalSubject);
 
       const emailResponse = await resend.emails.send({
-        from: "ASH HOLDING <info@ashholding.com>",
+        from: "ASH HOLDING <info@ash-holding.sa>",
         to: [to],
         subject: finalSubject,
         html: html,

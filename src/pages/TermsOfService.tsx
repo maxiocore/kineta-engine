@@ -172,10 +172,10 @@ const TermsOfService = () => {
               إذا كانت لديك أي أسئلة حول شروط الاستخدام، لا تتردد في التواصل معنا.
             </p>
             <a 
-              href="mailto:legal@ashholding.com" 
+              href="mailto:legal@ash-holding.sa" 
               className="text-purple-400 hover:text-purple-300 font-medium"
             >
-              legal@ashholding.com
+              legal@ash-holding.sa
             </a>
           </motion.div>
         </div>

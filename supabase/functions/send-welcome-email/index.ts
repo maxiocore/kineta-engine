@@ -268,7 +268,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: "ASH HOLDING <noreply@ashholding.com>",
+      from: "ASH HOLDING <noreply@ash-holding.sa>",
       to: [email],
       subject: "🎉 مرحباً بك في ASH HOLDING - رحلة نجاحك تبدأ الآن!",
       html: emailHtml,

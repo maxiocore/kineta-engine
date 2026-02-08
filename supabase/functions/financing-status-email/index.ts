@@ -16,7 +16,7 @@ const CONFIG = {
   MAX_EMAILS_PER_DAY: 20,
   MAX_RETRY_ATTEMPTS: 3,
   RETRY_DELAYS: [60, 300, 900], // seconds: 1min, 5min, 15min
-  FROM_EMAIL: "ASH HOLDING <notifications@ashholding.com>",
+  FROM_EMAIL: "ASH HOLDING <notifications@ash-holding.sa>",
 };
 
 // ملاحظة التمويل غير النقدي

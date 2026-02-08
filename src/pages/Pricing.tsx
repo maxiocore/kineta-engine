@@ -355,7 +355,7 @@ const Pricing = () => {
       // Send email to admin
       const { error: emailError } = await supabase.functions.invoke('send-email', {
         body: {
-          to: 'info@ashholding.com',
+          to: 'info@ash-holding.sa',
           type: 'package_inquiry',
           data: {
             clientName: formData.name,

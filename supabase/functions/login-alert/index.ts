@@ -176,7 +176,7 @@ serve(async (req) => {
     // ─────────────────────────────────────────────────────────────
     try {
       const { error: emailError } = await resend.emails.send({
-        from: "ASH HOLDING Security <security@ashholding.com>",
+        from: "ASH HOLDING Security <security@ash-holding.sa>",
         to: [email],
         subject: "🔐 تم تسجيل الدخول إلى حسابك - ASH HOLDING",
         html: getLoginAlertEmailHtml(alertData),

@@ -225,7 +225,7 @@ serve(async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "ASH HOLDING <noreply@ashholding.com>",
+        from: "ASH HOLDING <noreply@ash-holding.sa>",
         to: [profile.email],
         subject,
         html: emailHtml,

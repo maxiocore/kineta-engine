@@ -87,7 +87,7 @@ const handler = async (req: Request): Promise<Response> => {
       // Send notification to admin (you can configure admin email)
       const adminNotification = await resend.emails.send({
         from: "ASH HOLDING System <noreply@resend.dev>",
-        to: ["hr@ashholding.com"], // Configure your admin email
+        to: ["hr@ash-holding.sa"], // Configure your admin email
         subject: `📥 طلب توظيف جديد: ${jobTitle}`,
         html: `
           <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">

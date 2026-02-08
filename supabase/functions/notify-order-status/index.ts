@@ -354,7 +354,7 @@ serve(async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "ASH HOLDING <noreply@ashholding.com>",
+        from: "ASH HOLDING <noreply@ash-holding.sa>",
         to: [profile.email],
         subject: `${statusInfo.emoji} تحديث حالة طلبك ${order.order_number} - ${statusInfo.ar}`,
         html: emailHtml,
