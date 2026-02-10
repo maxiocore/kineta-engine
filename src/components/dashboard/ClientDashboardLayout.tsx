@@ -62,7 +62,7 @@ const clientNavItems: NavItem[] = [
   { label: "الشارات والمكافآت", href: "/dashboard/badges", icon: Award },
   { label: "التحديات", href: "/dashboard/challenges", icon: Target },
   { label: "الإشعارات", href: "/dashboard/notifications", icon: Bell },
-  
+  { label: "مفاتيح API", href: "/dashboard/api", icon: Server },
   { label: "الدعم الفني", href: "/dashboard/support", icon: HeadphonesIcon },
   { label: "الإعدادات", href: "/dashboard/settings", icon: Settings },
 ];
