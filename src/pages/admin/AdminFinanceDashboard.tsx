@@ -49,6 +49,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.E
 const getStatusInfo = (status: string) =>
   statusConfig[status] || { label: status, color: "bg-muted text-muted-foreground border-border", icon: AlertCircle };
 
+// Finance Dashboard - Real-time monitoring
 const AdminFinanceDashboard = () => {
   const [applications, setApplications] = useState<FinanceApplication[]>([]);
   const [loading, setLoading] = useState(true);
