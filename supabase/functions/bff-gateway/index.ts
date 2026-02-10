@@ -1,9 +1,10 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-bff-api-key",
+    "authorization, x-client-info, apikey, content-type, x-bff-api-key, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
 };
 
@@ -329,17 +330,35 @@ async function handleReports(
 }
 
 // ─── Main router ────────────────────────────────────────────
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const url = new URL(req.url);
-  // Remove the function path prefix
-  const fullPath = url.pathname.replace(/^\/bff-gateway/, "");
+  // Support both URL path routing AND body-based path (from supabase.functions.invoke)
+  let routePath = "";
+  let bodyData: Record<string, unknown> | null = null;
+
+  try {
+    const cloned = req.clone();
+    const text = await cloned.text();
+    if (text) {
+      bodyData = JSON.parse(text);
+      if (bodyData?.path && typeof bodyData.path === "string") {
+        routePath = bodyData.path;
+      }
+    }
+  } catch {
+    // Not JSON or no body — fall through to URL path
+  }
+
+  if (!routePath) {
+    const url = new URL(req.url);
+    routePath = url.pathname.replace(/^\/bff-gateway/, "");
+  }
 
   // Extract module and sub-path: /finance/applications/123 → module=finance, subPath=/applications/123
-  const segments = fullPath.split("/").filter(Boolean);
+  const segments = routePath.split("/").filter(Boolean);
   const module = segments[0] || "";
   const subPath = "/" + segments.slice(1).join("/");
 
