@@ -61,31 +61,10 @@ export type WalletStatus =
   | 'WALLET_DEPOSIT_FAILED';   // فشل الإيداع
 
 // ============================================
-// حالات التمويل (Financing States)
-// ============================================
-
-export type FinancingStatus =
-  | 'FIN_DRAFT'                    // مسودة
-  | 'FIN_SUBMITTED'                // تم الإرسال
-  | 'FIN_UNDER_REVIEW'             // قيد المراجعة
-  | 'FIN_ADDITIONAL_INFO_REQUIRED' // مطلوب معلومات إضافية
-  | 'FIN_APPROVED'                 // موافقة
-  | 'FIN_APPROVED_WITH_LIMITS'     // موافقة مع قيود
-  | 'FIN_DECLINED'                 // مرفوض
-  | 'FIN_CONTRACT_PRESENTED'       // تم عرض العقد
-  | 'FIN_CONTRACT_ACCEPTED'        // قبول العقد
-  | 'FIN_CONTRACT_FINALIZED'       // اعتماد العقد
-  | 'FIN_CREDIT_DEPOSIT_PENDING'   // قيد إضافة الرصيد
-  | 'FIN_CREDIT_DEPOSITED'         // تم إضافة الرصيد
-  | 'FIN_COMPLETED'                // مكتمل
-  | 'FIN_CANCELLED'                // ملغي
-  | 'FIN_EXPIRED';                 // منتهي الصلاحية
-
-// ============================================
 // الحالة الموحدة
 // ============================================
 
-export type UnifiedStatus = AuthStatus | WalletStatus | FinancingStatus;
+export type UnifiedStatus = AuthStatus | WalletStatus;
 
 // ============================================
 // تعريف الحالة
