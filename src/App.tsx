@@ -35,11 +35,6 @@ const PaymentPolicy = lazy(() => import("./pages/PaymentPolicy"));
 const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
 
 
-// Lazy load pages - Developers
-const GettingStarted = lazy(() => import("./pages/developers/GettingStarted"));
-const ApiReference = lazy(() => import("./pages/developers/ApiReference"));
-const CodeExamples = lazy(() => import("./pages/developers/CodeExamples"));
-const SdkDownloads = lazy(() => import("./pages/developers/SdkDownloads"));
 
 // Lazy load pages - Client Dashboard
 const NotificationOnboarding = lazy(() => import("@/pages/dashboard/NotificationOnboarding"));
@@ -50,7 +45,7 @@ const ClientRewardsHub = lazy(() => import("./pages/dashboard/ClientRewardsHub")
 const ClientNotifications = lazy(() => import("./pages/dashboard/ClientNotifications"));
 const ClientSupport = lazy(() => import("./pages/dashboard/ClientSupport"));
 const ClientSettings = lazy(() => import("./pages/dashboard/ClientSettings"));
-const ClientAPI = lazy(() => import("./pages/dashboard/ClientAPI"));
+
 const ClientDeposit = lazy(() => import("./pages/dashboard/ClientDeposit"));
 const ClientDeposits = lazy(() => import("./pages/dashboard/ClientDeposits"));
 const ClientFavorites = lazy(() => import("./pages/dashboard/ClientFavorites"));
@@ -159,10 +154,6 @@ const App = () => (
                     <Route path="/payment-policy" element={<PaymentPolicy />} />
                     <Route path="/refund-policy" element={<RefundPolicy />} />
                     
-                    <Route path="/developers/getting-started" element={<GettingStarted />} />
-                    <Route path="/developers/api-reference" element={<ApiReference />} />
-                    <Route path="/developers/examples" element={<CodeExamples />} />
-                    <Route path="/developers/sdk" element={<SdkDownloads />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/auth/reset-password" element={<ResetPassword />} />
                     
@@ -215,11 +206,6 @@ const App = () => (
                     <Route path="/dashboard/settings" element={
                       <ProtectedRoute>
                         <ClientSettings />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/dashboard/api" element={
-                      <ProtectedRoute>
-                        <ClientAPI />
                       </ProtectedRoute>
                     } />
                     <Route path="/dashboard/deposit" element={
