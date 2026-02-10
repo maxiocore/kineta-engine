@@ -1,5 +1,4 @@
 import React, { memo, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Hash, 
@@ -10,8 +9,8 @@ import {
   ShoppingCart,
   Zap,
   Clock,
-  CreditCard
 } from "lucide-react";
+import FinancingCTA from "@/components/FinancingCTA";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -46,7 +45,6 @@ const ServiceCard = memo(({
   onOrder,
   onToggleFavorite,
 }: ServiceCardProps) => {
-  const navigate = useNavigate();
   // Show financing button for services priced above 1000 SAR (approximately 267 USD at 3.75 rate)
   const showFinancingButton = service.price > 267;
 
@@ -204,20 +202,11 @@ const ServiceCard = memo(({
 
             {/* Financing Button */}
             {showFinancingButton && (
-              <motion.div whileTap={{ scale: 0.98 }}>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate('/dashboard/financing/apply', { state: { serviceId: service.id, serviceName: service.name, servicePrice: service.price } });
-                  }}
-                  className="w-full h-9 rounded-xl font-bold text-xs gap-2 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 hover:border-emerald-500/50"
-                >
-                  <CreditCard className="w-4 h-4" />
-                  قسّط خدمتك
-                </Button>
-              </motion.div>
+              <FinancingCTA
+                serviceId={service.id}
+                variant="compact"
+                className="w-full"
+              />
             )}
           </div>
         </div>

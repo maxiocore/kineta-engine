@@ -22,7 +22,7 @@ import {
   Award,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
+import FinancingCTA from "@/components/FinancingCTA";
 
 interface Service {
   id: string;
@@ -53,7 +53,6 @@ const ServiceDetailsDrawer = ({
   gradientTo = "to-accent",
   gradientVia = "via-primary/80",
 }: ServiceDetailsDrawerProps) => {
-  const navigate = useNavigate();
 
   if (!service) return null;
 
@@ -192,24 +191,11 @@ const ServiceDetailsDrawer = ({
             </Button>
             
             {showFinancingButton && (
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => {
-                  onOpenChange(false);
-                  navigate('/dashboard/financing/apply', { 
-                    state: { 
-                      serviceId: service.id, 
-                      serviceName: service.name, 
-                      servicePrice: service.price 
-                    } 
-                  });
-                }}
-                className="w-full h-11 rounded-xl gap-2 border-success/30 bg-success/5 text-success hover:bg-success/10"
-              >
-                <Wallet className="w-4 h-4" />
-                قسّط بدون فوائد
-              </Button>
+              <FinancingCTA
+                serviceId={service.id}
+                variant="compact"
+                className="w-full h-11"
+              />
             )}
           </div>
         </div>
