@@ -91,6 +91,7 @@ async function handleFinance(
   ctx: Awaited<ReturnType<typeof authenticate>>,
   queryParams: URLSearchParams
 ) {
+  console.log("[BFF Finance] path:", JSON.stringify(path), "queryParams:", queryParams.toString());
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = ctx.supabase || createClient(supabaseUrl, supabaseKey);
@@ -359,7 +360,7 @@ serve(async (req) => {
   const module = segments[0] || "";
   const subPath = "/" + segments.slice(1).join("/");
 
-  // Authenticate
+  console.log("[BFF Router] routePath:", routePath, "module:", module, "subPath:", subPath);
   const ctx = await authenticate(req);
   if (!ctx.user && module !== "health") {
     return error("Authentication required", 401);
