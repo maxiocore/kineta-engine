@@ -59,6 +59,7 @@ import { useMonthlyAchievements } from "@/hooks/useMonthlyAchievements";
 import { format, subMonths, startOfMonth, isSameDay, formatDistanceToNow, endOfMonth, isWithinInterval } from "date-fns";
 import { ar } from "date-fns/locale";
 import { Progress } from "@/components/ui/progress";
+import FinancingCTA from "@/components/FinancingCTA";
 
 interface Order {
   id: string;
@@ -859,6 +860,9 @@ const ClientDashboard = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Financing CTA Banner */}
+      <FinancingCTA variant="banner" className="mb-4" />
 
       <motion.div 
         dir="rtl"
