@@ -86,24 +86,24 @@ async function ashRequest(
 
 // ─── Route: Finance ─────────────────────────────────────────
 async function handleFinance(
-  req: Request,
+  _req: Request,
   path: string,
-  ctx: Awaited<ReturnType<typeof authenticate>>
+  ctx: Awaited<ReturnType<typeof authenticate>>,
+  queryParams: URLSearchParams
 ) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = ctx.supabase || createClient(supabaseUrl, supabaseKey);
 
-  // GET /finance/applications - list applications
-  if (req.method === "GET" && (path === "/applications" || path === "")) {
-    const url = new URL(req.url);
-    const status = url.searchParams.get("status");
-    const limit = parseInt(url.searchParams.get("limit") || "50");
-    const offset = parseInt(url.searchParams.get("offset") || "0");
+  // /finance/applications - list applications
+  if (path === "/applications" || path === "/" || path === "") {
+    const status = queryParams.get("status");
+    const limit = parseInt(queryParams.get("limit") || "50");
+    const offset = parseInt(queryParams.get("offset") || "0");
 
     let query = supabase
       .from("financing_applications")
-      .select("id, application_number, full_name, phone, email, status, requested_amount, approved_amount, service_description, created_at, updated_at, workflow_status, current_phase")
+      .select("id, application_number, full_name, phone, email, status, requested_amount, approved_amount, service_description, created_at, updated_at")
       .order("updated_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -116,25 +116,25 @@ async function handleFinance(
     return json(envelope(data, { total: count, limit, offset }));
   }
 
-  // GET /finance/applications/:id
-  if (req.method === "GET" && path.startsWith("/applications/")) {
+  // /finance/applications/:id
+  if (path.startsWith("/applications/")) {
     const id = path.replace("/applications/", "");
     let query = supabase
       .from("financing_applications")
       .select("*")
       .eq("id", id)
-      .single();
+      .maybeSingle();
 
     if (!ctx.isAdmin && ctx.user) query = query.eq("user_id", ctx.user.id);
 
     const { data, error: dbErr } = await query;
-    if (dbErr) return error("Application not found", 404);
+    if (dbErr || !data) return error("Application not found", 404);
 
     return json(envelope(data));
   }
 
-  // POST /finance/sync/:id - sync single application with ASH
-  if (req.method === "POST" && path.startsWith("/sync/")) {
+  // /finance/sync/:id - sync single application with ASH
+  if (path.startsWith("/sync/")) {
     if (!ctx.isAdmin) return error("Admin access required", 403);
     const appId = path.replace("/sync/", "");
 
@@ -142,7 +142,7 @@ async function handleFinance(
       .from("financing_applications")
       .select("application_number")
       .eq("id", appId)
-      .single();
+      .maybeSingle();
 
     if (!app) return error("Application not found", 404);
 
@@ -151,7 +151,6 @@ async function handleFinance(
 
     const ashData = result.data as Record<string, unknown>;
 
-    // Update local record
     await supabase
       .from("financing_applications")
       .update({
@@ -161,7 +160,6 @@ async function handleFinance(
       })
       .eq("id", appId);
 
-    // Log to activity
     await supabase.from("financing_activity_log").insert({
       application_id: appId,
       event_type: "bff_sync",
@@ -174,8 +172,8 @@ async function handleFinance(
     return json(envelope({ synced: true, ash_status: ashData.status }));
   }
 
-  // GET /finance/stats - dashboard stats
-  if (req.method === "GET" && path === "/stats") {
+  // /finance/stats - dashboard stats
+  if (path === "/stats") {
     if (!ctx.isAdmin) return error("Admin access required", 403);
 
     const { data: apps } = await supabase
@@ -199,16 +197,16 @@ async function handleFinance(
 
 // ─── Route: Payments ────────────────────────────────────────
 async function handlePayments(
-  req: Request,
+  _req: Request,
   path: string,
-  ctx: Awaited<ReturnType<typeof authenticate>>
+  ctx: Awaited<ReturnType<typeof authenticate>>,
+  _queryParams: URLSearchParams
 ) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = ctx.supabase || createClient(supabaseUrl, supabaseKey);
 
-  // GET /payments/deposits
-  if (req.method === "GET" && (path === "/deposits" || path === "")) {
+  if (path === "/deposits" || path === "/" || path === "") {
     let query = supabase
       .from("deposits")
       .select("*")
@@ -222,8 +220,7 @@ async function handlePayments(
     return json(envelope(data));
   }
 
-  // GET /payments/methods
-  if (req.method === "GET" && path === "/methods") {
+  if (path === "/methods") {
     const { data } = await supabase
       .from("payment_methods")
       .select("*")
@@ -238,9 +235,10 @@ async function handlePayments(
 
 // ─── Route: Users ───────────────────────────────────────────
 async function handleUsers(
-  req: Request,
+  _req: Request,
   path: string,
-  ctx: Awaited<ReturnType<typeof authenticate>>
+  ctx: Awaited<ReturnType<typeof authenticate>>,
+  queryParams: URLSearchParams
 ) {
   if (!ctx.isAdmin) return error("Admin access required", 403);
 
@@ -248,10 +246,8 @@ async function handleUsers(
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = ctx.supabase || createClient(supabaseUrl, supabaseKey);
 
-  // GET /users - list
-  if (req.method === "GET" && (path === "" || path === "/")) {
-    const url = new URL(req.url);
-    const limit = parseInt(url.searchParams.get("limit") || "50");
+  if (path === "" || path === "/") {
+    const limit = parseInt(queryParams.get("limit") || "50");
 
     const { data } = await supabase
       .from("profiles")
@@ -262,14 +258,13 @@ async function handleUsers(
     return json(envelope(data));
   }
 
-  // GET /users/:id
-  if (req.method === "GET" && path.length > 1) {
+  if (path.length > 1) {
     const id = path.replace("/", "");
     const { data } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", id)
-      .single();
+      .maybeSingle();
 
     if (!data) return error("User not found", 404);
     return json(envelope(data));
@@ -280,9 +275,10 @@ async function handleUsers(
 
 // ─── Route: Reports ─────────────────────────────────────────
 async function handleReports(
-  req: Request,
+  _req: Request,
   path: string,
-  ctx: Awaited<ReturnType<typeof authenticate>>
+  ctx: Awaited<ReturnType<typeof authenticate>>,
+  _queryParams: URLSearchParams
 ) {
   if (!ctx.isAdmin) return error("Admin access required", 403);
 
@@ -290,8 +286,7 @@ async function handleReports(
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = ctx.supabase || createClient(supabaseUrl, supabaseKey);
 
-  // GET /reports/overview
-  if (req.method === "GET" && path === "/overview") {
+  if (path === "/overview") {
     const [ordersRes, depositsRes, usersRes, financeRes] = await Promise.all([
       supabase.from("orders").select("id, status, total_amount, created_at"),
       supabase.from("deposits").select("id, amount, status, created_at"),
@@ -357,8 +352,10 @@ serve(async (req) => {
     routePath = url.pathname.replace(/^\/bff-gateway/, "");
   }
 
-  // Extract module and sub-path: /finance/applications/123 → module=finance, subPath=/applications/123
-  const segments = routePath.split("/").filter(Boolean);
+  // Strip query params from routePath before routing
+  const [cleanPath, queryString] = routePath.split("?");
+  const queryParams = new URLSearchParams(queryString || "");
+  const segments = cleanPath.split("/").filter(Boolean);
   const module = segments[0] || "";
   const subPath = "/" + segments.slice(1).join("/");
 
@@ -374,13 +371,13 @@ serve(async (req) => {
       case "health":
         return json(envelope({ status: "ok", version: "1.0.0" }));
       case "finance":
-        return await handleFinance(req, subPath, ctx);
+        return await handleFinance(req, subPath, ctx, queryParams);
       case "payments":
-        return await handlePayments(req, subPath, ctx);
+        return await handlePayments(req, subPath, ctx, queryParams);
       case "users":
-        return await handleUsers(req, subPath, ctx);
+        return await handleUsers(req, subPath, ctx, queryParams);
       case "reports":
-        return await handleReports(req, subPath, ctx);
+        return await handleReports(req, subPath, ctx, queryParams);
       default:
         return error(`Unknown module: ${module}`, 404);
     }
