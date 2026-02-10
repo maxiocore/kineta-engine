@@ -20,7 +20,9 @@ export default defineConfig(({ mode }) => ({
     },
     dedupe: [
       'react', 
-      'react-dom', 
+      'react-dom',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
       'react-router-dom',
       'input-otp',
       '@radix-ui/react-context',
