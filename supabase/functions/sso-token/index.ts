@@ -55,7 +55,7 @@ serve(async (req) => {
     const { service_id } = await req.json();
 
     // Call external SSO API
-    const ASH_API_URL = Deno.env.get("ASH_HOLDINGS_API_URL") || "https://ash.holdings";
+    const ASH_API_URL = "https://ash.holdings";
     const ssoEndpoint = `${ASH_API_URL}/api/auth/sso-token`;
     
     console.log("Calling SSO endpoint:", ssoEndpoint);
