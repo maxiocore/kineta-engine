@@ -17,7 +17,7 @@ const footerLinks = {
     { label: "تواصل معنا", href: "/contact" },
   ],
   "المدفوعات": [
-    { label: "التمويل", href: "/financing" },
+    { label: "التمويل", href: "/payment-methods" },
     { label: "طرق الدفع", href: "/payment-methods" },
     { label: "سياسة الدفع", href: "/payment-policy" },
     { label: "سياسة الاسترجاع", href: "/refund-policy" },
