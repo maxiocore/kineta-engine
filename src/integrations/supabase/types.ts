@@ -1795,6 +1795,42 @@ export type Database = {
           },
         ]
       }
+      finance_webhook_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          finance_request_id: string
+          id: string
+          ip_address: string | null
+          payload: Json | null
+          processed_at: string | null
+          signature_valid: boolean | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          finance_request_id: string
+          id?: string
+          ip_address?: string | null
+          payload?: Json | null
+          processed_at?: string | null
+          signature_valid?: boolean | null
+          status: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          finance_request_id?: string
+          id?: string
+          ip_address?: string | null
+          payload?: Json | null
+          processed_at?: string | null
+          signature_valid?: boolean | null
+          status?: string
+        }
+        Relationships: []
+      }
       financing_acknowledgments: {
         Row: {
           acknowledgment_number: string
