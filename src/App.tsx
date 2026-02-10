@@ -109,6 +109,7 @@ const AdminDevOrders = lazy(() => import("./pages/admin/AdminDevOrders"));
 const AdminDevOrderDetails = lazy(() => import("./pages/admin/AdminDevOrderDetails"));
 const AdminUnifiedOrders = lazy(() => import("./pages/admin/AdminUnifiedOrders"));
 const AdminOrderDetails = lazy(() => import("./pages/admin/AdminOrderDetails"));
+const AdminAPIKeys = lazy(() => import("./pages/admin/AdminAPIKeys"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -486,6 +487,11 @@ const App = () => (
                     <Route path="/admin/dev-orders/:orderId" element={
                       <ProtectedRoute requireAdmin>
                         <AdminDevOrderDetails />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/admin/api-keys" element={
+                      <ProtectedRoute requireAdmin>
+                        <AdminAPIKeys />
                       </ProtectedRoute>
                     } />
                     
