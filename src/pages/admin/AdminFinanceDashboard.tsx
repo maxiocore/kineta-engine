@@ -101,7 +101,7 @@ const AdminFinanceDashboard = () => {
       // Fetch applications and stats in parallel via BFF
       const [appsRes, statsRes] = await Promise.all([
         callBFF("/finance/applications?limit=200") as Promise<BFFResponse>,
-        callBFF("/finance/dashboard") as Promise<BFFStatsResponse>,
+        callBFF("/finance/stats") as Promise<BFFStatsResponse>,
       ]);
 
       if (appsRes.success && appsRes.data) {
