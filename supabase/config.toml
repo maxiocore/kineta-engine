@@ -150,5 +150,8 @@ verify_jwt = false
 [functions.sms-auth]
 verify_jwt = false
 
+[functions.sso-token]
+verify_jwt = false
+
 [functions.financing-sms-notify]
 verify_jwt = false

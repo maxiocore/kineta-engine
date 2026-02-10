@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import FinancingCTA from "@/components/FinancingCTA";
 import {
   Check,
   Star,
@@ -81,7 +81,6 @@ const ProfessionalServiceCard = ({
   shadowColor = "hover:shadow-primary/10",
   isFeatured = false,
 }: ProfessionalServiceCardProps) => {
-  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   
   const features = Array.isArray(service.features) ? service.features.slice(0, 3) : [];
@@ -259,21 +258,11 @@ const ProfessionalServiceCard = ({
 
             {/* Financing Button */}
             {showFinancingButton && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => navigate('/dashboard/financing/apply', { 
-                  state: { 
-                    serviceId: service.id, 
-                    serviceName: service.name, 
-                    servicePrice: service.price 
-                  } 
-                })}
-                className="w-full h-9 rounded-xl font-bold text-xs gap-2 border-success/30 bg-success/5 text-success hover:bg-success/10 hover:border-success/50"
-              >
-                <Wallet className="w-3.5 h-3.5" />
-                قسّط خدمتك بدون فوائد
-              </Button>
+              <FinancingCTA
+                serviceId={service.id}
+                variant="compact"
+                className="w-full"
+              />
             )}
           </div>
         </CardContent>
