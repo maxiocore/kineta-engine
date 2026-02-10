@@ -33,7 +33,7 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const PaymentMethods = lazy(() => import("./pages/PaymentMethods"));
 const PaymentPolicy = lazy(() => import("./pages/PaymentPolicy"));
 const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
-const FinancingInfo = lazy(() => import("./pages/FinancingInfo"));
+
 
 // Lazy load pages - Developers
 const GettingStarted = lazy(() => import("./pages/developers/GettingStarted"));
@@ -65,19 +65,6 @@ const ClientReadyWebsites = lazy(() => import("./pages/dashboard/ClientReadyWebs
 const ClientChallenges = lazy(() => import("./pages/dashboard/ClientChallenges"));
 const ClientFinancialHub = lazy(() => import("./pages/dashboard/ClientFinancialHub"));
 
-// Lazy load pages - Financing (V2 System)
-const FinancingV2 = lazy(() => import("./pages/dashboard/FinancingV2"));
-const FinancingGuide = lazy(() => import("./pages/dashboard/FinancingGuide"));
-const FinancingCalculator = lazy(() => import("./pages/dashboard/FinancingCalculator"));
-const FinancingEligibility = lazy(() => import("./pages/dashboard/FinancingEligibility"));
-const FinancingApply = lazy(() => import("./pages/dashboard/FinancingApply"));
-const FinancingDocuments = lazy(() => import("./pages/dashboard/FinancingDocuments"));
-const SignContract = lazy(() => import("./pages/dashboard/SignContract"));
-const SignAcknowledgment = lazy(() => import("./pages/dashboard/SignAcknowledgment"));
-// SignPromissoryNote removed - الكمبيالة محذوفة نهائياً
-const FinancingPayment = lazy(() => import("./pages/dashboard/FinancingPayment"));
-const ClientFinancingPayments = lazy(() => import("./pages/dashboard/ClientFinancingPayments"));
-const ConfirmBond = lazy(() => import("./pages/dashboard/ConfirmBond"));
 
 // Lazy load pages - Dev Services
 const DevServicesPage = lazy(() => import("./pages/dashboard/DevServicesPage"));
@@ -122,7 +109,7 @@ const AdminPaymentsHub = lazy(() => import("./pages/admin/AdminPaymentsHub"));
 const AdminChallenges = lazy(() => import("./pages/admin/AdminChallenges"));
 const AdminContactMessages = lazy(() => import("./pages/admin/AdminContactMessages"));
 const AdminCareers = lazy(() => import("./pages/admin/AdminCareers"));
-const AdminFinancing = lazy(() => import("./pages/admin/AdminFinancingV2"));
+
 const AdminDevOrders = lazy(() => import("./pages/admin/AdminDevOrders"));
 const AdminDevOrderDetails = lazy(() => import("./pages/admin/AdminDevOrderDetails"));
 const AdminUnifiedOrders = lazy(() => import("./pages/admin/AdminUnifiedOrders"));
@@ -171,7 +158,7 @@ const App = () => (
                     <Route path="/payment-methods" element={<PaymentMethods />} />
                     <Route path="/payment-policy" element={<PaymentPolicy />} />
                     <Route path="/refund-policy" element={<RefundPolicy />} />
-                    <Route path="/financing" element={<FinancingInfo />} />
+                    
                     <Route path="/developers/getting-started" element={<GettingStarted />} />
                     <Route path="/developers/api-reference" element={<ApiReference />} />
                     <Route path="/developers/examples" element={<CodeExamples />} />
@@ -313,75 +300,6 @@ const App = () => (
                     <Route path="/dashboard/financial" element={
                       <ProtectedRoute>
                         <ClientFinancialHub />
-                      </ProtectedRoute>
-                    } />
-                    {/* Financing V2 - Main Dashboard */}
-                    <Route path="/dashboard/financing" element={
-                      <ProtectedRoute>
-                        <FinancingV2 />
-                      </ProtectedRoute>
-                    } />
-                    {/* Redirect status page to main V2 dashboard */}
-                    <Route path="/dashboard/financing/status/:applicationId" element={
-                      <ProtectedRoute>
-                        <FinancingV2 />
-                      </ProtectedRoute>
-                    } />
-                    {/* Unified Status Page - redirect to V2 */}
-                    <Route path="/financing/status/:applicationId" element={
-                      <ProtectedRoute>
-                        <FinancingV2 />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/dashboard/financing/guide" element={
-                      <ProtectedRoute>
-                        <FinancingGuide />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/dashboard/financing/calculator" element={
-                      <ProtectedRoute>
-                        <FinancingCalculator />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/dashboard/financing/eligibility" element={
-                      <ProtectedRoute>
-                        <FinancingEligibility />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/dashboard/financing/apply" element={
-                      <ProtectedRoute>
-                        <FinancingApply />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/dashboard/financing/documents/:applicationId" element={
-                      <ProtectedRoute>
-                        <FinancingDocuments />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/dashboard/financing/sign-contract/:applicationId" element={
-                      <ProtectedRoute>
-                        <SignContract />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/dashboard/financing/sign-acknowledgment/:applicationId" element={
-                      <ProtectedRoute>
-                        <SignAcknowledgment />
-                      </ProtectedRoute>
-                    } />
-                    {/* Promissory note route removed - الكمبيالة محذوفة نهائياً */}
-                    <Route path="/dashboard/financing/confirm-bond/:applicationId" element={
-                      <ProtectedRoute>
-                        <ConfirmBond />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/dashboard/financing/payment" element={
-                      <ProtectedRoute>
-                        <FinancingPayment />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/dashboard/financing/payments" element={
-                      <ProtectedRoute>
-                        <ClientFinancingPayments />
                       </ProtectedRoute>
                     } />
                     
@@ -567,11 +485,6 @@ const App = () => (
                     <Route path="/admin/careers" element={
                       <ProtectedRoute requireAdmin>
                         <AdminCareers />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/admin/financing" element={
-                      <ProtectedRoute requireAdmin>
-                        <AdminFinancing />
                       </ProtectedRoute>
                     } />
                     <Route path="/admin/dev-orders" element={

@@ -27,15 +27,15 @@ import {
   Gift,
   ChevronDown,
   Lock,
-  Landmark,
+  
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { useServiceCredit } from "@/hooks/useServiceCredit";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
+
 
 interface Service {
   id: string;
@@ -74,17 +74,12 @@ const ProfessionalOrderForm = ({
   const [link, setLink] = useState("");
   const [notes, setNotes] = useState("");
   const [showDetails, setShowDetails] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"balance" | "service_credit">("balance");
-
-  // جلب رصيد الخدمات (التمويل)
-  const { availableBalance: serviceCredit, deductCredit, isFrozen: isServiceCreditFrozen } = useServiceCredit();
 
   if (!service) return null;
 
   const totalPrice = service.price * quantity;
   const hasEnoughBalance = balance >= totalPrice;
-  const hasEnoughServiceCredit = serviceCredit >= totalPrice && !isServiceCreditFrozen;
-  const canPay = paymentMethod === "balance" ? hasEnoughBalance : hasEnoughServiceCredit;
+  const canPay = hasEnoughBalance;
   const features = Array.isArray(service.features) ? service.features : [];
   const requiresLink = service.category?.toLowerCase().includes("social") || 
                        service.name?.toLowerCase().includes("متابع") ||
@@ -94,20 +89,13 @@ const ProfessionalOrderForm = ({
     if (!user || !service) return;
     
     // التحقق من الرصيد حسب طريقة الدفع
-    if (paymentMethod === "balance" && !hasEnoughBalance) {
+    if (!hasEnoughBalance) {
       toast.error("رصيدك غير كافي", {
         description: "قم بشحن رصيدك للمتابعة",
         action: {
           label: "شحن الرصيد",
           onClick: () => navigate("/dashboard/deposit")
         }
-      });
-      return;
-    }
-
-    if (paymentMethod === "service_credit" && !hasEnoughServiceCredit) {
-      toast.error("رصيد الخدمات غير كافي", {
-        description: isServiceCreditFrozen ? "رصيد الخدمات مجمد حالياً" : "رصيد الخدمات أقل من المطلوب",
       });
       return;
     }
@@ -131,7 +119,7 @@ const ProfessionalOrderForm = ({
           order_number: orderNumber,
           quantity,
           link: link || null,
-          notes: notes ? `${notes}\n[طريقة الدفع: ${paymentMethod === "service_credit" ? "رصيد الخدمات" : "الرصيد النقدي"}]` : `[طريقة الدفع: ${paymentMethod === "service_credit" ? "رصيد الخدمات" : "الرصيد النقدي"}]`,
+          notes: notes || null,
           status: "pending",
         })
         .select('id')
@@ -139,41 +127,24 @@ const ProfessionalOrderForm = ({
 
       if (orderError) throw orderError;
 
-      // خصم الرصيد حسب طريقة الدفع
-      if (paymentMethod === "service_credit") {
-        // خصم من رصيد الخدمات (التمويل)
-        const result = await deductCredit({
-          amount: totalPrice,
-          serviceId: service.id,
-          serviceName: service.name,
-          orderId: orderData.id,
+      // خصم من الرصيد النقدي
+      const { data: currentBalance } = await supabase
+        .from("user_balances")
+        .select("balance")
+        .eq("user_id", user.id)
+        .single();
+
+      if (currentBalance) {
+        await supabase.from("balance_logs").insert({
+          user_id: user.id,
+          action_type: "order",
+          amount: -totalPrice,
+          balance_before: currentBalance.balance,
+          balance_after: currentBalance.balance - totalPrice,
+          notes: `طلب خدمة: ${service.name}`,
+          reference_id: service.id,
+          reference_type: "order"
         });
-
-        if (!result.success) {
-          // إلغاء الطلب إذا فشل الخصم
-          await supabase.from("orders").delete().eq("id", orderData.id);
-          throw new Error(result.messageAr || "فشل في خصم رصيد الخدمات");
-        }
-      } else {
-        // خصم من الرصيد النقدي
-        const { data: currentBalance } = await supabase
-          .from("user_balances")
-          .select("balance")
-          .eq("user_id", user.id)
-          .single();
-
-        if (currentBalance) {
-          await supabase.from("balance_logs").insert({
-            user_id: user.id,
-            action_type: "order",
-            amount: -totalPrice,
-            balance_before: currentBalance.balance,
-            balance_after: currentBalance.balance - totalPrice,
-            notes: `طلب خدمة: ${service.name}`,
-            reference_id: service.id,
-            reference_type: "order"
-          });
-        }
       }
 
       // Send email notification
@@ -189,7 +160,7 @@ const ProfessionalOrderForm = ({
               quantity,
               totalPrice,
               link: link || null,
-              paymentMethod: paymentMethod === "service_credit" ? "رصيد الخدمات (التمويل)" : "الرصيد النقدي",
+              paymentMethod: "الرصيد النقدي",
             }
           }
         });
@@ -206,7 +177,7 @@ const ProfessionalOrderForm = ({
       setQuantity(1);
       setLink("");
       setNotes("");
-      setPaymentMethod("balance");
+      
       
       if (onSuccess) {
         onSuccess();
@@ -490,83 +461,7 @@ const ProfessionalOrderForm = ({
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-4"
               >
-                {/* Payment Method Selection */}
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">اختر طريقة الدفع</Label>
-                  <RadioGroup
-                    value={paymentMethod}
-                    onValueChange={(value) => setPaymentMethod(value as "balance" | "service_credit")}
-                    className="space-y-2"
-                  >
-                    {/* الرصيد النقدي */}
-                    <label className={cn(
-                      "flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all",
-                      paymentMethod === "balance" 
-                        ? "border-primary bg-primary/5" 
-                        : "border-border hover:border-primary/50"
-                    )}>
-                      <div className="flex items-center gap-3">
-                        <RadioGroupItem value="balance" id="balance" />
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                          <Wallet className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">الرصيد النقدي</p>
-                          <p className="text-xs text-muted-foreground">
-                            المتاح: {balance.toFixed(2)} ر.س
-                          </p>
-                        </div>
-                      </div>
-                      {hasEnoughBalance ? (
-                        <CheckCircle2 className="w-5 h-5 text-success" />
-                      ) : (
-                        <span className="text-xs text-destructive">غير كافي</span>
-                      )}
-                    </label>
-
-                    {/* رصيد الخدمات (التمويل) */}
-                    {serviceCredit > 0 && (
-                      <label className={cn(
-                        "flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all",
-                        paymentMethod === "service_credit" 
-                          ? "border-emerald-500 bg-emerald-500/5" 
-                          : "border-border hover:border-emerald-500/50",
-                        isServiceCreditFrozen && "opacity-50 cursor-not-allowed"
-                      )}>
-                        <div className="flex items-center gap-3">
-                          <RadioGroupItem 
-                            value="service_credit" 
-                            id="service_credit" 
-                            disabled={isServiceCreditFrozen}
-                          />
-                          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                            <Landmark className="w-5 h-5 text-emerald-500" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm flex items-center gap-2">
-                              رصيد الخدمات
-                              <Badge className="bg-emerald-500/20 text-emerald-600 border-0 text-[10px]">
-                                تمويل
-                              </Badge>
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              المتاح: {serviceCredit.toFixed(2)} ر.س
-                            </p>
-                          </div>
-                        </div>
-                        {isServiceCreditFrozen ? (
-                          <span className="text-xs text-destructive">مجمد</span>
-                        ) : hasEnoughServiceCredit ? (
-                          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                        ) : (
-                          <span className="text-xs text-destructive">غير كافي</span>
-                        )}
-                      </label>
-                    )}
-                  </RadioGroup>
-                </div>
-
-                {/* Selected Balance Summary */}
+                {/* Balance Summary */}
                 <div className={cn(
                   "rounded-2xl p-4 border-2",
                   canPay 
@@ -579,21 +474,11 @@ const ProfessionalOrderForm = ({
                         "w-10 h-10 rounded-xl flex items-center justify-center",
                         canPay ? "bg-success/10" : "bg-destructive/10"
                       )}>
-                        {paymentMethod === "service_credit" ? (
-                          <Landmark className={cn("w-5 h-5", canPay ? "text-success" : "text-destructive")} />
-                        ) : (
-                          <Wallet className={cn("w-5 h-5", canPay ? "text-success" : "text-destructive")} />
-                        )}
+                        <Wallet className={cn("w-5 h-5", canPay ? "text-success" : "text-destructive")} />
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground">
-                          {paymentMethod === "service_credit" ? "رصيد الخدمات" : "رصيدك الحالي"}
-                        </p>
-                        <p className="font-bold">
-                          {paymentMethod === "service_credit" 
-                            ? serviceCredit.toFixed(2) 
-                            : balance.toFixed(2)} ر.س
-                        </p>
+                        <p className="text-xs text-muted-foreground">رصيدك الحالي</p>
+                        <p className="font-bold">{balance.toFixed(2)} ر.س</p>
                       </div>
                     </div>
                     <div className="text-left">
@@ -607,17 +492,15 @@ const ProfessionalOrderForm = ({
                   {!canPay && (
                     <div className="flex items-center justify-between pt-3 border-t border-destructive/20 mt-3">
                       <span className="text-sm text-destructive">رصيد غير كافي!</span>
-                      {paymentMethod === "balance" && (
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          className="h-8 rounded-lg text-xs"
-                          onClick={() => navigate("/dashboard/deposit")}
-                        >
-                          <CreditCard className="w-3 h-3 ml-1" />
-                          شحن الرصيد
-                        </Button>
-                      )}
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="h-8 rounded-lg text-xs"
+                        onClick={() => navigate("/dashboard/deposit")}
+                      >
+                        <CreditCard className="w-3 h-3 ml-1" />
+                        شحن الرصيد
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -626,7 +509,7 @@ const ProfessionalOrderForm = ({
                 <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl text-xs">
                   <Lock className="w-4 h-4 text-primary shrink-0" />
                   <p className="text-muted-foreground">
-                    طلبك محمي ومشفر. سيتم خصم المبلغ من {paymentMethod === "service_credit" ? "رصيد الخدمات" : "رصيدك"} فور تأكيد الطلب.
+                    طلبك محمي ومشفر. سيتم خصم المبلغ من رصيدك فور تأكيد الطلب.
                   </p>
                 </div>
 

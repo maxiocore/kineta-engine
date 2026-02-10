@@ -31,7 +31,7 @@ import {
   Share2,
   Megaphone,
   MonitorSmartphone,
-  Banknote,
+  
   Server,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -59,7 +59,7 @@ const clientNavItems: NavItem[] = [
   { label: "المفضلة", href: "/dashboard/favorites", icon: Heart },
   { label: "الإحالات", href: "/dashboard/referrals", icon: Gift },
   { label: "المركز المالي", href: "/dashboard/financial", icon: Wallet },
-  { label: "التمويل", href: "/dashboard/financing", icon: Banknote },
+  
   { label: "الشارات والمكافآت", href: "/dashboard/badges", icon: Award },
   { label: "التحديات", href: "/dashboard/challenges", icon: Target },
   { label: "الإشعارات", href: "/dashboard/notifications", icon: Bell },

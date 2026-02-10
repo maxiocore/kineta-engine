@@ -27,7 +27,7 @@ import {
   FileText,
   MessageSquareText,
   Landmark,
-  Banknote,
+  
   Server,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -54,7 +54,7 @@ const adminNavItems: NavItem[] = [
   { label: "الإحالات", href: "/admin/referrals", icon: Gift },
   { label: "مركز المدفوعات", href: "/admin/payments-hub", icon: CreditCard },
   { label: "المركز المالي", href: "/admin/financial", icon: Landmark },
-  { label: "التمويل", href: "/admin/financing", icon: Banknote },
+  
   { label: "الكوبونات", href: "/admin/coupons", icon: Ticket },
   { label: "الشارات", href: "/admin/badges", icon: Award },
   { label: "التحديات", href: "/admin/challenges", icon: Target },
