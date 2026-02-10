@@ -55,7 +55,12 @@ serve(async (req) => {
     const { service_id } = await req.json();
 
     // Call external SSO API
-    const ssoResponse = await fetch("https://ash.holdings/api/auth/sso-token", {
+    const ASH_API_URL = Deno.env.get("ASH_HOLDINGS_API_URL") || "https://ash.holdings";
+    const ssoEndpoint = `${ASH_API_URL}/api/auth/sso-token`;
+    
+    console.log("Calling SSO endpoint:", ssoEndpoint);
+    
+    const ssoResponse = await fetch(ssoEndpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -69,11 +74,13 @@ serve(async (req) => {
       }),
     });
 
+    const responseText = await ssoResponse.text();
+    console.log("SSO response status:", ssoResponse.status, "body preview:", responseText.substring(0, 200));
+
     if (!ssoResponse.ok) {
-      const errText = await ssoResponse.text();
-      console.error("SSO API error:", ssoResponse.status, errText);
+      console.error("SSO API error:", ssoResponse.status, responseText.substring(0, 500));
       return new Response(
-        JSON.stringify({ error: "Failed to get SSO token" }),
+        JSON.stringify({ error: "Failed to get SSO token", details: `Status ${ssoResponse.status}` }),
         {
           status: 502,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -81,12 +88,26 @@ serve(async (req) => {
       );
     }
 
-    const ssoData = await ssoResponse.json();
+    let ssoData;
+    try {
+      ssoData = JSON.parse(responseText);
+    } catch {
+      console.error("SSO returned non-JSON:", responseText.substring(0, 500));
+      return new Response(
+        JSON.stringify({ error: "SSO service returned invalid response" }),
+        {
+          status: 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const redirectUrl = ssoData.redirect_url || ssoData.url || `${ASH_API_URL}/auth?token=${ssoData.token}`;
 
     return new Response(
       JSON.stringify({
         token: ssoData.token,
-        redirect_url: `https://ash.holdings/auth?token=${ssoData.token}`,
+        redirect_url: redirectUrl,
       }),
       {
         status: 200,
