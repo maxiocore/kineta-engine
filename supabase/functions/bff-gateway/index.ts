@@ -41,16 +41,16 @@ async function authenticate(req: Request) {
 
   if (error || !user) return { user: null, isAdmin: false, supabase };
 
-  // Check admin role
-  const { data: profile } = await supabase
-    .from("profiles")
+  // Check admin role from user_roles table
+  const { data: roleData } = await supabase
+    .from("user_roles")
     .select("role")
-    .eq("id", user.id)
-    .single();
+    .eq("user_id", user.id)
+    .maybeSingle();
 
   return {
     user,
-    isAdmin: profile?.role === "admin",
+    isAdmin: roleData?.role === "admin",
     supabase,
   };
 }
