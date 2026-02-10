@@ -33,6 +33,31 @@ interface FinanceApplication {
   email: string | null;
 }
 
+interface BFFResponse {
+  success: boolean;
+  data: FinanceApplication[];
+  meta?: {
+    total?: number;
+    page?: number;
+    limit?: number;
+    timestamp?: string;
+  };
+  error?: string;
+}
+
+interface BFFStatsResponse {
+  success: boolean;
+  data: {
+    total: number;
+    pending: number;
+    approved: number;
+    rejected: number;
+    deposited: number;
+    total_requested: number;
+    total_approved: number;
+  };
+}
+
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   pending: { label: "قيد المراجعة", color: "bg-amber-500/15 text-amber-600 border-amber-500/30", icon: Clock },
   PENDING: { label: "قيد المراجعة", color: "bg-amber-500/15 text-amber-600 border-amber-500/30", icon: Clock },
@@ -49,49 +74,76 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.E
 const getStatusInfo = (status: string) =>
   statusConfig[status] || { label: status, color: "bg-muted text-muted-foreground border-border", icon: AlertCircle };
 
-// Finance Dashboard - Real-time monitoring
+// Finance Dashboard - Real-time monitoring via BFF Gateway
 const AdminFinanceDashboard = () => {
   const [applications, setApplications] = useState<FinanceApplication[]>([]);
+  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchApplications = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("financing_applications")
-      .select("id, application_number, full_name, status, requested_amount, approved_amount, service_description, updated_at, created_at, phone, email")
-      .order("updated_at", { ascending: false })
-      .limit(200);
+  const callBFF = useCallback(async (path: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
 
-    if (!error && data) {
-      setApplications(data as FinanceApplication[]);
+    const res = await supabase.functions.invoke("bff-gateway", {
+      body: { path },
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+
+    if (res.error) throw new Error(res.error.message);
+    return res.data;
+  }, []);
+
+  const fetchData = useCallback(async () => {
+    try {
+      // Fetch applications and stats in parallel via BFF
+      const [appsRes, statsRes] = await Promise.all([
+        callBFF("/finance/applications?limit=200") as Promise<BFFResponse>,
+        callBFF("/finance/dashboard") as Promise<BFFStatsResponse>,
+      ]);
+
+      if (appsRes.success && appsRes.data) {
+        setApplications(appsRes.data);
+      }
+
+      if (statsRes.success && statsRes.data) {
+        setStats({
+          total: statsRes.data.total || 0,
+          pending: statsRes.data.pending || 0,
+          approved: statsRes.data.approved || 0,
+          rejected: statsRes.data.rejected || 0,
+        });
+      }
+    } catch (err) {
+      console.error("BFF fetch error:", err);
     }
     setLoading(false);
     setLastRefresh(new Date());
-  }, []);
+  }, [callBFF]);
 
   useEffect(() => {
-    fetchApplications();
+    fetchData();
 
-    // Real-time subscription
+    // Real-time subscription for instant UI updates
     const channel = supabase
       .channel("finance-dashboard-realtime")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "financing_applications" },
-        () => fetchApplications()
+        () => fetchData()
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchApplications]);
+  }, [fetchData]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchApplications();
+    await fetchData();
     setRefreshing(false);
   };
 
@@ -107,12 +159,6 @@ const AdminFinanceDashboard = () => {
     );
   });
 
-  // Stats
-  const totalCount = applications.length;
-  const pendingCount = applications.filter((a) => ["pending", "PENDING"].includes(a.status)).length;
-  const approvedCount = applications.filter((a) => ["approved", "APPROVED", "CREDIT_DEPOSITED", "CONTRACT_FINALIZED", "FIN_CONTRACT_FINALIZED"].includes(a.status)).length;
-  const rejectedCount = applications.filter((a) => ["rejected", "REJECTED", "cancelled"].includes(a.status)).length;
-
   return (
     <AdminDashboardLayout>
       <div className="space-y-6" dir="rtl">
@@ -125,6 +171,7 @@ const AdminFinanceDashboard = () => {
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               آخر تحديث: {format(lastRefresh, "hh:mm:ss a", { locale: ar })}
+              <span className="mr-2 text-xs opacity-60">• عبر BFF Gateway</span>
             </p>
           </div>
           <Button
@@ -141,10 +188,10 @@ const AdminFinanceDashboard = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard label="إجمالي الطلبات" value={totalCount} icon={TrendingUp} color="text-primary" />
-          <StatCard label="قيد المراجعة" value={pendingCount} icon={Clock} color="text-amber-500" />
-          <StatCard label="موافق عليها" value={approvedCount} icon={CheckCircle2} color="text-emerald-500" />
-          <StatCard label="مرفوضة" value={rejectedCount} icon={XCircle} color="text-red-500" />
+          <StatCard label="إجمالي الطلبات" value={stats.total} icon={TrendingUp} color="text-primary" />
+          <StatCard label="قيد المراجعة" value={stats.pending} icon={Clock} color="text-amber-500" />
+          <StatCard label="موافق عليها" value={stats.approved} icon={CheckCircle2} color="text-emerald-500" />
+          <StatCard label="مرفوضة" value={stats.rejected} icon={XCircle} color="text-red-500" />
         </div>
 
         {/* Search */}
