@@ -45,7 +45,7 @@ const ClientRewardsHub = lazy(() => import("./pages/dashboard/ClientRewardsHub")
 const ClientNotifications = lazy(() => import("./pages/dashboard/ClientNotifications"));
 const ClientSupport = lazy(() => import("./pages/dashboard/ClientSupport"));
 const ClientSettings = lazy(() => import("./pages/dashboard/ClientSettings"));
-
+const ClientAPI = lazy(() => import("./pages/dashboard/ClientAPI"));
 const ClientDeposit = lazy(() => import("./pages/dashboard/ClientDeposit"));
 const ClientDeposits = lazy(() => import("./pages/dashboard/ClientDeposits"));
 const ClientFavorites = lazy(() => import("./pages/dashboard/ClientFavorites"));
@@ -206,6 +206,11 @@ const App = () => (
                     <Route path="/dashboard/settings" element={
                       <ProtectedRoute>
                         <ClientSettings />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/dashboard/api" element={
+                      <ProtectedRoute>
+                        <ClientAPI />
                       </ProtectedRoute>
                     } />
                     <Route path="/dashboard/deposit" element={
