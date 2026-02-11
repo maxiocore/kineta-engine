@@ -8,12 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { MessageCircle, Save, TestTube, Loader2, CheckCircle, XCircle, Info } from "lucide-react";
+import { MessageCircle, Save, TestTube, Loader2, CheckCircle, XCircle, ShieldCheck } from "lucide-react";
 
 interface WhatsAppConfig {
   enabled: boolean;
-  access_token: string;
-  instance_id: string;
   notify_on_pending: boolean;
   notify_on_confirmed: boolean;
   notify_on_in_progress: boolean;
@@ -24,8 +22,6 @@ interface WhatsAppConfig {
 
 const defaultConfig: WhatsAppConfig = {
   enabled: false,
-  access_token: "",
-  instance_id: "",
   notify_on_pending: true,
   notify_on_confirmed: true,
   notify_on_in_progress: true,
@@ -96,21 +92,12 @@ export const WhatsAppSettings = () => {
       return;
     }
 
-    if (!config.access_token || !config.instance_id) {
-      toast.error('يرجى إدخال بيانات API أولاً');
-      return;
-    }
-
     setTesting(true);
     try {
       const { data, error } = await supabase.functions.invoke('whatsapp-notify', {
         body: {
           to: testPhone,
           type: 'test',
-          config: {
-            access_token: config.access_token,
-            instance_id: config.instance_id
-          }
         }
       });
 
@@ -164,54 +151,20 @@ export const WhatsAppSettings = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* API Configuration */}
-          <div className="space-y-4">
-            <h3 className="font-medium flex items-center gap-2">
-              إعدادات WhatsApp Business API
-              <Badge variant="outline" className="text-xs">
-                Meta Cloud API
-              </Badge>
-            </h3>
-            
-            <div className="grid gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="access-token">Access Token</Label>
-                <Input
-                  id="access-token"
-                  type="password"
-                  placeholder="أدخل Access Token من Meta Developer"
-                  value={config.access_token}
-                  onChange={(e) => setConfig({ ...config, access_token: e.target.value })}
-                  dir="ltr"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="instance-id">Instance ID - الرقم المميز</Label>
-                <Input
-                  id="instance-id"
-                  placeholder="أدخل الرقم المميز (Instance ID)"
-                  value={config.instance_id}
-                  onChange={(e) => setConfig({ ...config, instance_id: e.target.value })}
-                  dir="ltr"
-                />
-              </div>
+          {/* API Credentials Status */}
+          <div className="flex items-center gap-3 p-4 rounded-lg border bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
+            <ShieldCheck className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-green-800 dark:text-green-300">
+                بيانات API محفوظة بشكل آمن
+              </p>
+              <p className="text-xs text-green-600 dark:text-green-400">
+                Instance ID و Access Token مخزنة كأسرار مشفرة في النظام
+              </p>
             </div>
-
-            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <div className="flex gap-2">
-                <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
-                  <p className="font-medium">كيفية الحصول على البيانات:</p>
-                  <ol className="list-decimal list-inside space-y-1 text-blue-700 dark:text-blue-400">
-                    <li>انتقل إلى Meta for Developers</li>
-                    <li>أنشئ تطبيق WhatsApp Business</li>
-                    <li>احصل على Access Token من قسم API Setup</li>
-                    <li>انسخ Phone Number ID من إعدادات الرقم</li>
-                  </ol>
-                </div>
-              </div>
-            </div>
+            <Badge variant="outline" className="mr-auto text-green-700 dark:text-green-400 border-green-300 dark:border-green-700">
+              مؤمّن
+            </Badge>
           </div>
 
           <Separator />
@@ -230,7 +183,7 @@ export const WhatsAppSettings = () => {
               <Button 
                 variant="outline" 
                 onClick={testConnection}
-                disabled={testing || !config.access_token || !config.instance_id}
+                disabled={testing}
               >
                 {testing ? (
                   <Loader2 className="w-4 h-4 animate-spin ml-2" />
@@ -284,7 +237,7 @@ export const WhatsAppSettings = () => {
           {/* Status */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {config.enabled && config.access_token && config.instance_id ? (
+              {config.enabled ? (
                 <>
                   <CheckCircle className="w-5 h-5 text-green-500" />
                   <span className="text-sm text-green-600 dark:text-green-400">جاهز للعمل</span>
