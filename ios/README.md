@@ -1,6 +1,6 @@
-# MaxioCore iOS App
+# ASH HOLDING iOS App
 
-A native iOS SwiftUI wrapper for https://maxiocore.com
+A native iOS SwiftUI wrapper for https://ash-holding.sa
 
 ## Requirements
 
@@ -27,8 +27,8 @@ A native iOS SwiftUI wrapper for https://maxiocore.com
 ## Project Structure
 
 ```
-MaxioCore/
-├── MaxioCoreApp.swift          # App entry point & configuration
+ASH-HOLDING/
+├── ASHHoldingApp.swift          # App entry point & configuration
 ├── ContentView.swift           # Tab navigation
 ├── Views/
 │   ├── HomeView.swift          # Main WebView screen
@@ -50,13 +50,13 @@ MaxioCore/
 
 ### Change Base URL
 
-Edit `MaxioCoreApp.swift`:
+Edit `ASHHoldingApp.swift`:
 
 ```swift
 struct AppConfig {
-    static let baseURL = "https://your-domain.com"
-    static let hostName = "your-domain.com"
-    static let appName = "YourAppName"
+    static let baseURL = "https://ash-holding.sa"
+    static let hostName = "ash-holding.sa"
+    static let appName = "ASH HOLDING"
 }
 ```
 
@@ -73,7 +73,7 @@ struct AppConfig {
 
 ## Building
 
-1. Open `MaxioCore.xcodeproj` in Xcode
+1. Open `ASH-HOLDING.xcodeproj` in Xcode
 2. Select your team for signing
 3. Choose target device/simulator
 4. Press Cmd+R to build and run
