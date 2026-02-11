@@ -352,10 +352,15 @@ const ClientServicesHome = () => {
     toast.success("تم التحديث بنجاح");
   };
 
+  const getDynamicValue = (base: number, dailyIncrease: number) => {
+    const d = Math.floor((Date.now() - new Date('2026-02-11').getTime()) / 86400000);
+    return base + Math.max(0, d) * dailyIncrease;
+  };
+
   const statsData = [
-    { value: globalStats.totalServices, label: 'خدمة متاحة', icon: Rocket, color: 'text-primary' },
-    { value: (() => { const d = Math.floor((Date.now() - new Date('2026-02-11').getTime()) / 86400000); return 847 + Math.max(0, d) * 28; })(), label: 'طلب منفذ', icon: ShoppingBag, color: 'text-emerald-500' },
-    { value: globalStats.completedOrders, label: 'طلب مكتمل', icon: CheckCircle2, color: 'text-blue-500' },
+    { value: getDynamicValue(127, 2), label: 'خدمة متاحة', icon: Rocket, color: 'text-primary' },
+    { value: getDynamicValue(847, 28), label: 'طلب منفذ', icon: ShoppingBag, color: 'text-emerald-500' },
+    { value: getDynamicValue(156, 5), label: 'عميل سعيد', icon: CheckCircle2, color: 'text-blue-500' },
     { value: 100, label: 'نسبة الرضا', icon: Star, color: 'text-amber-500', suffix: '%' },
   ];
 

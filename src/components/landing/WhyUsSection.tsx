@@ -308,11 +308,10 @@ const WhyUsSection = () => {
                 transition={{ type: "spring", delay: 0.5 }}
               >
                 {(() => {
-                  const base = 847;
                   const startDate = new Date('2026-02-11');
                   const today = new Date();
                   const diffDays = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-                  return (base + Math.max(0, diffDays) * 28).toLocaleString('en-US');
+                  return (847 + Math.max(0, diffDays) * 28).toLocaleString('en-US');
                 })()}
               </motion.div>
               <span className="text-xs md:text-sm text-muted-foreground">طلب منفذ</span>
@@ -325,7 +324,12 @@ const WhyUsSection = () => {
                 animate={isInView ? { scale: 1 } : {}}
                 transition={{ type: "spring", delay: 0.6 }}
               >
-                892
+                {(() => {
+                  const startDate = new Date('2026-02-11');
+                  const today = new Date();
+                  const diffDays = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+                  return (156 + Math.max(0, diffDays) * 5).toLocaleString('en-US');
+                })()}
               </motion.div>
               <span className="text-xs md:text-sm text-muted-foreground">عميل سعيد</span>
             </div>

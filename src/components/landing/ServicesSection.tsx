@@ -241,31 +241,30 @@ const ServicesSection = () => {
   const isInView = useInView(containerRef, { once: true, amount: 0.1 });
   const { data: stats, isLoading } = useRealStats();
 
-  const getExecutedOrders = () => {
-    const base = 847;
+  const getDynamicValue = (base: number, dailyIncrease: number) => {
     const startDate = new Date('2026-02-11');
     const today = new Date();
     const diffDays = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    return base + Math.max(0, diffDays) * 28;
+    return base + Math.max(0, diffDays) * dailyIncrease;
   };
 
   const statsData = [
     { 
-      value: getExecutedOrders(), 
+      value: getDynamicValue(847, 28), 
       suffix: "+", 
       label: "طلب منفذ", 
       icon: Rocket,
       color: "text-primary" 
     },
     { 
-      value: stats?.totalUsers || 0, 
+      value: getDynamicValue(156, 5), 
       suffix: "+", 
       label: "عميل سعيد", 
       icon: Users,
       color: "text-emerald-500" 
     },
     { 
-      value: stats?.totalServices || 0, 
+      value: getDynamicValue(127, 2), 
       suffix: "+", 
       label: "خدمة متاحة", 
       icon: Globe,
