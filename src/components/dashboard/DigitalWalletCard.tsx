@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   CreditCard, Copy, Check, QrCode, Download, Share2, 
-  Wallet, Shield, ExternalLink, Phone 
+  Wallet, Shield, ExternalLink, Phone, ArrowUpLeft, Loader2 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -21,6 +21,7 @@ const DigitalWalletCard = () => {
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [ssoLoading, setSsoLoading] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -73,6 +74,33 @@ const DigitalWalletCard = () => {
       });
     } else {
       handleCopy();
+    }
+  };
+
+  const handleGoToFinance = async () => {
+    if (ssoLoading) return;
+    setSsoLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error("يرجى تسجيل الدخول أولاً");
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke("sso-token", {
+        body: { service_id: null },
+      });
+
+      if (error || !data?.redirect_url) {
+        throw new Error(error?.message || "فشل الحصول على رابط الدخول");
+      }
+
+      window.open(data.redirect_url, "_blank", "noopener,noreferrer");
+    } catch (err: any) {
+      console.error("SSO error:", err);
+      toast.error("تعذر الانتقال لمنصة التمويل، حاول مرة أخرى");
+    } finally {
+      setSsoLoading(false);
     }
   };
 
@@ -207,7 +235,7 @@ const DigitalWalletCard = () => {
       </motion.div>
 
       {/* Actions */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <Button
           variant="outline"
           size="sm"
@@ -234,6 +262,15 @@ const DigitalWalletCard = () => {
         >
           <Share2 className="w-3.5 h-3.5" />
           مشاركة
+        </Button>
+        <Button
+          size="sm"
+          onClick={handleGoToFinance}
+          disabled={ssoLoading}
+          className="flex items-center gap-1.5 text-xs h-10 bg-primary text-primary-foreground hover:bg-primary/90"
+        >
+          {ssoLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArrowUpLeft className="w-3.5 h-3.5" />}
+          منصة التمويل
         </Button>
       </div>
 
