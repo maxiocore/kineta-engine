@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   CreditCard, Copy, Check, QrCode, Download, Share2, 
-  Wallet, Shield, ExternalLink 
+  Wallet, Shield, ExternalLink, Phone 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,6 +16,7 @@ const DigitalWalletCard = () => {
   const { user } = useAuth();
   const [walletNumber, setWalletNumber] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string>("");
+  const [phone, setPhone] = useState<string | null>(null);
   const [balance, setBalance] = useState<number>(0);
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
@@ -34,7 +35,7 @@ const DigitalWalletCard = () => {
           .single(),
         supabase
           .from("profiles")
-          .select("full_name")
+          .select("full_name, phone, phone_verified")
           .eq("id", user.id)
           .single(),
       ]);
@@ -45,6 +46,9 @@ const DigitalWalletCard = () => {
       }
       if (profileRes.data) {
         setFullName(profileRes.data.full_name || "");
+        if (profileRes.data.phone_verified && profileRes.data.phone) {
+          setPhone(profileRes.data.phone);
+        }
       }
       setLoading(false);
     };
@@ -170,6 +174,17 @@ const DigitalWalletCard = () => {
           </div>
         </div>
 
+        {/* Phone number */}
+        {phone && (
+          <div className="mb-3">
+            <p className="text-white/50 text-xs mb-0.5 flex items-center gap-1">
+              <Phone className="w-3 h-3" />
+              رقم الجوال
+            </p>
+            <p className="text-white text-sm font-mono tracking-wider" dir="ltr">{phone}</p>
+          </div>
+        )}
+
         {/* Card holder & balance */}
         <div className="flex justify-between items-end">
           <div>
@@ -269,9 +284,9 @@ const DigitalWalletCard = () => {
           <div className="text-xs space-y-1">
             <p className="font-medium">كيفية الإيداع من ASH Holdings</p>
             <ol className="text-muted-foreground space-y-0.5 list-decimal list-inside">
-              <li>انسخ رقم حسابك أعلاه</li>
+              <li>انسخ رقم حسابك أو رقم جوالك أعلاه</li>
               <li>اذهب إلى موقع ASH Holdings</li>
-              <li>أدخل رقم الحساب واطلب السحب</li>
+              <li>أدخل رقم الحساب أو الجوال أو البريد واطلب السحب</li>
               <li>سيتم إضافة الرصيد فوراً لمحفظتك</li>
             </ol>
           </div>

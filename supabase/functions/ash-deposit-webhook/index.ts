@@ -23,12 +23,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { wallet_account_number, amount, external_transaction_id, metadata } = await req.json();
+    const { wallet_account_number, phone, email, amount, external_transaction_id, metadata } = await req.json();
 
-    // Validate required fields
-    if (!wallet_account_number || !amount) {
+    // Must have at least one identifier
+    if (!wallet_account_number && !phone && !email) {
       return new Response(
-        JSON.stringify({ success: false, error: "missing_fields", message_ar: "رقم الحساب والمبلغ مطلوبان" }),
+        JSON.stringify({ success: false, error: "missing_identifier", message_ar: "يجب توفير رقم الحساب أو رقم الجوال أو البريد الإلكتروني" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate amount
+    if (!amount) {
+      return new Response(
+        JSON.stringify({ success: false, error: "missing_fields", message_ar: "المبلغ مطلوب" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -44,16 +52,64 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Find user by wallet account number
-    const { data: wallet, error: walletError } = await supabase
-      .from("user_balances")
-      .select("user_id, balance, wallet_account_number")
-      .eq("wallet_account_number", wallet_account_number)
-      .single();
+    // Resolve user_id from any identifier
+    let wallet: { user_id: string; balance: number; wallet_account_number: string } | null = null;
 
-    if (walletError || !wallet) {
+    // Priority 1: wallet_account_number
+    if (wallet_account_number) {
+      const { data } = await supabase
+        .from("user_balances")
+        .select("user_id, balance, wallet_account_number")
+        .eq("wallet_account_number", wallet_account_number)
+        .single();
+      wallet = data;
+    }
+
+    // Priority 2: phone number
+    if (!wallet && phone) {
+      // Normalize phone: ensure it starts with +966
+      let normalizedPhone = phone.replace(/\D/g, '');
+      if (normalizedPhone.startsWith('00966')) normalizedPhone = normalizedPhone.substring(2);
+      else if (normalizedPhone.startsWith('0')) normalizedPhone = '966' + normalizedPhone.substring(1);
+      if (!normalizedPhone.startsWith('966')) normalizedPhone = '966' + normalizedPhone;
+      const phoneWithPlus = '+' + normalizedPhone;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("phone", phoneWithPlus)
+        .eq("phone_verified", true)
+        .single();
+
+      if (profile) {
+        const { data } = await supabase
+          .from("user_balances")
+          .select("user_id, balance, wallet_account_number")
+          .eq("user_id", profile.id)
+          .single();
+        wallet = data;
+      }
+    }
+
+    // Priority 3: email
+    if (!wallet && email) {
+      // Look up user by email in auth.users via profiles or directly
+      const { data: authUsers } = await supabase.auth.admin.listUsers();
+      const matchedUser = authUsers?.users?.find(u => u.email?.toLowerCase() === email.toLowerCase());
+      
+      if (matchedUser) {
+        const { data } = await supabase
+          .from("user_balances")
+          .select("user_id, balance, wallet_account_number")
+          .eq("user_id", matchedUser.id)
+          .single();
+        wallet = data;
+      }
+    }
+
+    if (!wallet) {
       return new Response(
-        JSON.stringify({ success: false, error: "account_not_found", message_ar: "رقم الحساب غير موجود" }),
+        JSON.stringify({ success: false, error: "account_not_found", message_ar: "الحساب غير موجود" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
