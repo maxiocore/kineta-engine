@@ -8,7 +8,7 @@ const corsHeaders = {
 
 interface WhatsAppConfig {
   access_token: string;
-  phone_number_id: string;
+  instance_id: string;
 }
 
 interface NotifyRequest {
@@ -43,11 +43,11 @@ serve(async (req) => {
 
     // Get config from request or from database
     let accessToken: string;
-    let phoneNumberId: string;
+    let instanceId: string;
 
     if (directConfig) {
       accessToken = directConfig.access_token;
-      phoneNumberId = directConfig.phone_number_id;
+      instanceId = directConfig.instance_id;
     } else {
       // Get config from database
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -77,10 +77,10 @@ serve(async (req) => {
       }
 
       accessToken = config.access_token;
-      phoneNumberId = config.phone_number_id;
+      instanceId = config.instance_id;
     }
 
-    if (!accessToken || !phoneNumberId) {
+    if (!accessToken || !instanceId) {
       return new Response(
         JSON.stringify({ success: false, error: "Missing API credentials" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -103,7 +103,7 @@ serve(async (req) => {
     }
 
     // Send via WhatsApp Business API
-    const whatsappUrl = `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`;
+    const whatsappUrl = `https://graph.facebook.com/v18.0/${instanceId}/messages`;
 
     const response = await fetch(whatsappUrl, {
       method: "POST",
