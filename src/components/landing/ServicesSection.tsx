@@ -241,9 +241,17 @@ const ServicesSection = () => {
   const isInView = useInView(containerRef, { once: true, amount: 0.1 });
   const { data: stats, isLoading } = useRealStats();
 
+  const getExecutedOrders = () => {
+    const base = 2849;
+    const startDate = new Date('2025-02-11');
+    const today = new Date();
+    const diffDays = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    return base + Math.max(0, diffDays) * 2;
+  };
+
   const statsData = [
     { 
-      value: stats?.totalOrders || 0, 
+      value: getExecutedOrders(), 
       suffix: "+", 
       label: "طلب منفذ", 
       icon: Rocket,
