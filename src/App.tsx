@@ -33,6 +33,7 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const PaymentMethods = lazy(() => import("./pages/PaymentMethods"));
 const PaymentPolicy = lazy(() => import("./pages/PaymentPolicy"));
 const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
+const Projects = lazy(() => import("./pages/Projects"));
 
 
 
@@ -147,6 +148,7 @@ const App = () => (
                     <Route path="/track-order" element={<TrackOrder />} />
                     <Route path="/development-services" element={<DevelopmentServices />} />
                     <Route path="/design-services" element={<DesignServices />} />
+                    <Route path="/projects" element={<Projects />} />
                     
                     <Route path="/careers" element={<Careers />} />
                     <Route path="/privacy-policy" element={<PrivacyPolicy />} />
