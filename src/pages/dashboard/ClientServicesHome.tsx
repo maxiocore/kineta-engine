@@ -354,7 +354,7 @@ const ClientServicesHome = () => {
 
   const statsData = [
     { value: globalStats.totalServices, label: 'خدمة متاحة', icon: Rocket, color: 'text-primary' },
-    { value: (() => { const d = Math.floor((Date.now() - new Date('2025-02-11').getTime()) / 86400000); return 847 + Math.max(0, d) * 28; })(), label: 'طلب منفذ', icon: ShoppingBag, color: 'text-emerald-500' },
+    { value: (() => { const d = Math.floor((Date.now() - new Date('2026-02-11').getTime()) / 86400000); return 847 + Math.max(0, d) * 28; })(), label: 'طلب منفذ', icon: ShoppingBag, color: 'text-emerald-500' },
     { value: globalStats.completedOrders, label: 'طلب مكتمل', icon: CheckCircle2, color: 'text-blue-500' },
     { value: 100, label: 'نسبة الرضا', icon: Star, color: 'text-amber-500', suffix: '%' },
   ];
