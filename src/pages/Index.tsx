@@ -7,6 +7,7 @@ const WhyUsSection = lazy(() => import("@/components/landing/WhyUsSection"));
 const HowItWorksSection = lazy(() => import("@/components/landing/HowItWorksSection"));
 const FinancingSection = lazy(() => import("@/components/landing/FinancingSection"));
 const TestimonialsSection = lazy(() => import("@/components/landing/TestimonialsSection"));
+const CompanyProfileSection = lazy(() => import("@/components/landing/CompanyProfileSection"));
 const FAQSection = lazy(() => import("@/components/landing/FAQSection"));
 const CTASection = lazy(() => import("@/components/landing/CTASection"));
 const Footer = lazy(() => import("@/components/landing/Footer"));
@@ -41,6 +42,9 @@ const Index = () => {
         </Suspense>
         <Suspense fallback={<SectionFallback />}>
           <TestimonialsSection />
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
+          <CompanyProfileSection />
         </Suspense>
         <Suspense fallback={<SectionFallback />}>
           <FAQSection />
