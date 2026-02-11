@@ -156,14 +156,14 @@ const WhyUsSection = () => {
             >
               <Sparkles className="w-4 h-4 text-primary" />
             </motion.div>
-            <span className="text-sm font-semibold text-primary">لماذا تختارنا؟</span>
+            <span className="text-sm font-semibold text-primary">مميزاتنا</span>
           </motion.div>
           
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-            شريك النجاح{" "}
+            لماذا{" "}
             <span className="relative inline-block">
               <span className="bg-gradient-to-l from-primary via-accent to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient_3s_linear_infinite]">
-                الذي تستحقه
+                تختارنا؟
               </span>
               <motion.div
                 className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-l from-primary to-accent rounded-full"
@@ -174,7 +174,7 @@ const WhyUsSection = () => {
             </span>
           </h2>
           <p className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto">
-            معايير عالمية في الجودة والأداء — نلتزم بتقديم تجربة استثنائية لكل عميل
+            نقدم لك تجربة استثنائية تجمع بين الجودة والسرعة والدعم المتواصل
           </p>
         </motion.div>
 

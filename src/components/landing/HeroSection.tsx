@@ -128,7 +128,7 @@ const HeroSection = () => {
                 >
                   <Sparkles className="w-5 h-5 text-primary" />
                 </motion.div>
-                <span className="font-semibold text-sm">المنصة الرقمية الأكثر ثقة في المنطقة</span>
+                <span className="font-semibold text-sm">منصة الخدمات الرقمية الأولى</span>
                 <motion.span
                   className="w-2 h-2 rounded-full bg-success"
                   animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
@@ -152,7 +152,7 @@ const HeroSection = () => {
                 animate={isInView ? { opacity: 1, x: 0 } : {}}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
-                نقود التحول
+                حلول رقمية
               </motion.span>
               <motion.span 
                 className="relative inline-block"
@@ -161,7 +161,7 @@ const HeroSection = () => {
                 transition={{ duration: 0.6, delay: 0.3 }}
               >
                 <span className="relative z-10 bg-gradient-to-l from-primary via-accent to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
-                  الرقمي
+                  متكاملة
                 </span>
                 <motion.svg
                   className="absolute -bottom-4 left-0 w-full"
@@ -200,13 +200,13 @@ const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-center text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed"
           >
-            شريكك الاستراتيجي في{" "}
-            <span className="text-primary font-semibold">التسويق الرقمي</span>
+            نجمع بين قوة{" "}
+            <span className="text-primary font-semibold">التسويق الذكي</span>
             {" "}و{" "}
-            <span className="text-emerald-500 font-semibold">تطوير البرمجيات</span>
+            <span className="text-emerald-500 font-semibold">البرمجة المتقدمة</span>
             {" "}و{" "}
-            <span className="text-violet-500 font-semibold">الهوية البصرية</span>
-            {" "}— نحوّل رؤيتك إلى واقع رقمي مؤثر
+            <span className="text-violet-500 font-semibold">التصميم الإبداعي</span>
+            {" "}لتحقيق نجاحك الرقمي
           </motion.p>
 
           {/* Animated Features Carousel */}

@@ -66,22 +66,22 @@ const serviceCategories = [
     id: "design",
     title: "التصميم الإبداعي",
     subtitle: "Creative Design",
-    description: "نصمم هويات بصرية تترك أثراً دائماً وتعكس احترافية علامتك التجارية على المستوى العالمي",
+    description: "تصاميم احترافية تعكس هويتك وتميز علامتك التجارية",
     icon: Palette,
     gradient: "from-rose-500 via-pink-500 to-violet-500",
     bgGlow: "bg-rose-500/20",
-    features: ["هويات بصرية متكاملة", "تصاميم سوشيال ميديا", "موشن جرافيك احترافي"],
+    features: ["شعارات وهويات", "سوشيال ميديا", "موشن جرافيك"],
     link: "/dashboard/design-services",
   },
   {
     id: "dev",
     title: "البرمجة والتطوير",
     subtitle: "Development",
-    description: "حلول تقنية متقدمة مبنية بأحدث التقنيات العالمية لتحقيق أعلى معايير الأداء والأمان",
+    description: "حلول برمجية متكاملة بأحدث التقنيات العالمية",
     icon: Code,
     gradient: "from-emerald-500 via-teal-500 to-cyan-500",
     bgGlow: "bg-emerald-500/20",
-    features: ["مواقع وتطبيقات ويب", "تطبيقات جوال", "متاجر إلكترونية متكاملة"],
+    features: ["مواقع ويب", "تطبيقات جوال", "متاجر إلكترونية"],
     link: "/dashboard/dev-services",
   },
 ];
@@ -89,41 +89,41 @@ const serviceCategories = [
 const features = [
   {
     icon: Zap,
-    title: "تنفيذ فوري",
-    description: "انطلاق مباشر بعد تأكيد الطلب",
+    title: "تنفيذ سريع",
+    description: "نبدأ فوراً دون تأخير",
     color: "from-amber-500 to-orange-500",
     bgColor: "bg-amber-500/10",
   },
   {
     icon: Shield,
     title: "ضمان الجودة",
-    description: "استرداد كامل مع ضمان شامل",
+    description: "استرداد كامل مضمون",
     color: "from-emerald-500 to-teal-500",
     bgColor: "bg-emerald-500/10",
   },
   {
     icon: HeadphonesIcon,
-    title: "دعم على مدار الساعة",
-    description: "فريق متخصص جاهز دائماً",
+    title: "دعم متواصل",
+    description: "فريق متاح 24/7",
     color: "from-blue-500 to-cyan-500",
     bgColor: "bg-blue-500/10",
   },
   {
     icon: CreditCard,
-    title: "دفع آمن ومتعدد",
-    description: "خيارات دفع مرنة وموثوقة",
+    title: "دفع آمن",
+    description: "طرق دفع متعددة",
     color: "from-violet-500 to-purple-500",
     bgColor: "bg-violet-500/10",
   },
 ];
 
 const benefits = [
-  "أسعار تنافسية شفافة",
-  "ضمان جودة 100%",
-  "استرداد كامل للمبلغ",
-  "تقارير أداء مفصلة",
-  "لوحة تحكم ذكية",
-  "تحديثات ودعم مستمر",
+  "أسعار تنافسية",
+  "ضمان الجودة",
+  "استرداد المبلغ",
+  "تقارير مفصلة",
+  "واجهة سهلة",
+  "تحديثات مستمرة",
 ];
 
 // Animated Service Card
@@ -315,18 +315,18 @@ const ServicesSection = () => {
             whileHover={{ scale: 1.05 }}
           >
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="font-semibold text-primary text-sm">خدماتنا المتميزة</span>
+            <span className="font-semibold text-primary text-sm">لماذا تختارنا؟</span>
           </motion.div>
           
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">
-            حلول رقمية{" "}
+            منصة موثوقة{" "}
             <span className="bg-gradient-to-l from-primary via-accent to-primary bg-clip-text text-transparent">
-              بمعايير عالمية
+              لنجاحك الرقمي
             </span>
           </h2>
           
           <p className="text-muted-foreground max-w-2xl mx-auto text-sm sm:text-base md:text-lg leading-relaxed">
-            نقدم مجموعة شاملة من الخدمات الرقمية المتكاملة لتحقيق أهدافك بأعلى جودة وأفضل الأسعار
+            نوفر لك خدمات التصميم والبرمجة بجودة عالية وأسعار منافسة
           </p>
         </motion.div>
 
