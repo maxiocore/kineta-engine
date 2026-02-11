@@ -13,7 +13,7 @@ import { MessageCircle, Save, TestTube, Loader2, CheckCircle, XCircle, Info } fr
 interface WhatsAppConfig {
   enabled: boolean;
   access_token: string;
-  phone_number_id: string;
+  instance_id: string;
   notify_on_pending: boolean;
   notify_on_confirmed: boolean;
   notify_on_in_progress: boolean;
@@ -25,7 +25,7 @@ interface WhatsAppConfig {
 const defaultConfig: WhatsAppConfig = {
   enabled: false,
   access_token: "",
-  phone_number_id: "",
+  instance_id: "",
   notify_on_pending: true,
   notify_on_confirmed: true,
   notify_on_in_progress: true,
@@ -96,7 +96,7 @@ export const WhatsAppSettings = () => {
       return;
     }
 
-    if (!config.access_token || !config.phone_number_id) {
+    if (!config.access_token || !config.instance_id) {
       toast.error('يرجى إدخال بيانات API أولاً');
       return;
     }
@@ -109,7 +109,7 @@ export const WhatsAppSettings = () => {
           type: 'test',
           config: {
             access_token: config.access_token,
-            phone_number_id: config.phone_number_id
+            instance_id: config.instance_id
           }
         }
       });
@@ -187,12 +187,12 @@ export const WhatsAppSettings = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="phone-number-id">Phone Number ID</Label>
+                <Label htmlFor="instance-id">Instance ID - الرقم المميز</Label>
                 <Input
-                  id="phone-number-id"
-                  placeholder="أدخل معرف رقم الهاتف"
-                  value={config.phone_number_id}
-                  onChange={(e) => setConfig({ ...config, phone_number_id: e.target.value })}
+                  id="instance-id"
+                  placeholder="أدخل الرقم المميز (Instance ID)"
+                  value={config.instance_id}
+                  onChange={(e) => setConfig({ ...config, instance_id: e.target.value })}
                   dir="ltr"
                 />
               </div>
@@ -230,7 +230,7 @@ export const WhatsAppSettings = () => {
               <Button 
                 variant="outline" 
                 onClick={testConnection}
-                disabled={testing || !config.access_token || !config.phone_number_id}
+                disabled={testing || !config.access_token || !config.instance_id}
               >
                 {testing ? (
                   <Loader2 className="w-4 h-4 animate-spin ml-2" />
@@ -284,7 +284,7 @@ export const WhatsAppSettings = () => {
           {/* Status */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {config.enabled && config.access_token && config.phone_number_id ? (
+              {config.enabled && config.access_token && config.instance_id ? (
                 <>
                   <CheckCircle className="w-5 h-5 text-green-500" />
                   <span className="text-sm text-green-600 dark:text-green-400">جاهز للعمل</span>
