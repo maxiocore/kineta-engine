@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import FinancingCTA from "@/components/FinancingCTA";
+
 import {
   Check,
   Star,
@@ -85,7 +85,7 @@ const ProfessionalServiceCard = ({
   
   const features = Array.isArray(service.features) ? service.features.slice(0, 3) : [];
   const deliveryTime = getDeliveryTime(service.features);
-  const showFinancingButton = service.price > 1000;
+  
 
   return (
     <motion.div
@@ -256,14 +256,6 @@ const ProfessionalServiceCard = ({
               </Button>
             </div>
 
-            {/* Financing Button */}
-            {showFinancingButton && (
-              <FinancingCTA
-                serviceId={service.id}
-                variant="compact"
-                className="w-full"
-              />
-            )}
           </div>
         </CardContent>
       </Card>

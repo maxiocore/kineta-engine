@@ -22,7 +22,7 @@ import {
   Award,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import FinancingCTA from "@/components/FinancingCTA";
+
 
 interface Service {
   id: string;
@@ -57,7 +57,7 @@ const ServiceDetailsDrawer = ({
   if (!service) return null;
 
   const features = Array.isArray(service.features) ? service.features : [];
-  const showFinancingButton = service.price > 1000;
+  
 
   const highlights = [
     { icon: Zap, label: "تنفيذ سريع", color: "text-amber-500 bg-amber-500/10" },
@@ -190,13 +190,6 @@ const ServiceDetailsDrawer = ({
               اطلب الآن
             </Button>
             
-            {showFinancingButton && (
-              <FinancingCTA
-                serviceId={service.id}
-                variant="compact"
-                className="w-full h-11"
-              />
-            )}
           </div>
         </div>
       </SheetContent>

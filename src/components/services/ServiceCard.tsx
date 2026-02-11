@@ -10,7 +10,7 @@ import {
   Zap,
   Clock,
 } from "lucide-react";
-import FinancingCTA from "@/components/FinancingCTA";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -45,8 +45,6 @@ const ServiceCard = memo(({
   onOrder,
   onToggleFavorite,
 }: ServiceCardProps) => {
-  // Show financing button for services priced above 1000 SAR (approximately 267 USD at 3.75 rate)
-  const showFinancingButton = service.price > 267;
 
   const features = useMemo(() => {
     try {
@@ -200,14 +198,6 @@ const ServiceCard = memo(({
               </motion.div>
             </div>
 
-            {/* Financing Button */}
-            {showFinancingButton && (
-              <FinancingCTA
-                serviceId={service.id}
-                variant="compact"
-                className="w-full"
-              />
-            )}
           </div>
         </div>
       </div>
