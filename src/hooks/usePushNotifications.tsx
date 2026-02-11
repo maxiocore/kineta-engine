@@ -288,7 +288,7 @@ export const usePushNotifications = () => {
       console.log('[Push] Service worker ready');
       
       // Check if already subscribed
-      const existingSubscription = await registration.pushManager.getSubscription();
+      const existingSubscription = await (registration as any).pushManager?.getSubscription();
       if (existingSubscription) {
         console.log('[Push] Already subscribed');
         setState(prev => ({ ...prev, isSubscribed: true }));
@@ -311,7 +311,7 @@ export const usePushNotifications = () => {
   const unsubscribe = useCallback(async (): Promise<boolean> => {
     try {
       const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
+      const subscription = await (registration as any).pushManager?.getSubscription();
       
       if (subscription) {
         await subscription.unsubscribe();
