@@ -13,6 +13,7 @@ import { Send, Loader2, Users, User, FileText } from "lucide-react";
 const SMSSendTab = () => {
   const [mode, setMode] = useState<"single" | "bulk">("single");
   const [phone, setPhone] = useState("");
+  const [bulkPhones, setBulkPhones] = useState("");
   const [message, setMessage] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const [sending, setSending] = useState(false);
@@ -39,7 +40,11 @@ const SMSSendTab = () => {
   };
 
   const handleSend = async () => {
-    if (!phone.trim()) {
+    const phones = mode === "single"
+      ? [phone.trim()]
+      : bulkPhones.split(/[\n,،]+/).map(p => p.trim()).filter(Boolean);
+
+    if (phones.length === 0 || phones[0] === "") {
       toast.error("يرجى إدخال رقم الهاتف");
       return;
     }
@@ -49,25 +54,30 @@ const SMSSendTab = () => {
     }
 
     setSending(true);
+    let successCount = 0;
+    let failCount = 0;
+
     try {
-      const { data, error } = await supabase.functions.invoke("sms-notify", {
-        body: {
-          phone: phone.trim(),
-          message: message.trim(),
-          type: "manual",
-        },
-      });
-
-      if (error) throw error;
-
-      if (data?.success) {
-        toast.success("تم إرسال الرسالة بنجاح!");
-        setPhone("");
-        setMessage("");
-        setSelectedTemplate("");
-      } else {
-        toast.error(data?.error || "فشل إرسال الرسالة");
+      for (const p of phones) {
+        const { data, error } = await supabase.functions.invoke("sms-notify", {
+          body: { phone: p, message: message.trim(), type: "manual" },
+        });
+        if (error || !data?.success) {
+          failCount++;
+        } else {
+          successCount++;
+        }
       }
+
+      if (failCount === 0) {
+        toast.success(`تم إرسال ${successCount} رسالة بنجاح!`);
+      } else {
+        toast.warning(`نجح ${successCount} | فشل ${failCount}`);
+      }
+      setPhone("");
+      setBulkPhones("");
+      setMessage("");
+      setSelectedTemplate("");
     } catch (error: any) {
       toast.error(error.message || "حدث خطأ أثناء الإرسال");
     } finally {
@@ -102,10 +112,9 @@ const SMSSendTab = () => {
               size="sm"
               className="gap-1"
               onClick={() => setMode("bulk")}
-              disabled
             >
               <Users className="w-4 h-4" />
-              جماعي (قريباً)
+              جماعي
             </Button>
           </div>
 
@@ -128,13 +137,28 @@ const SMSSendTab = () => {
 
           {/* Phone */}
           <div>
-            <Label>رقم الهاتف</Label>
-            <Input
-              placeholder="05XXXXXXXX"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              dir="ltr"
-            />
+            <Label>{mode === "single" ? "رقم الهاتف" : "أرقام الهواتف"}</Label>
+            {mode === "single" ? (
+              <Input
+                placeholder="05XXXXXXXX"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                dir="ltr"
+              />
+            ) : (
+              <Textarea
+                placeholder={"05XXXXXXXX\n05XXXXXXXX\nأو افصل بفاصلة..."}
+                value={bulkPhones}
+                onChange={(e) => setBulkPhones(e.target.value)}
+                rows={4}
+                dir="ltr"
+              />
+            )}
+            {mode === "bulk" && bulkPhones && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {bulkPhones.split(/[\n,،]+/).filter(p => p.trim()).length} رقم
+              </p>
+            )}
           </div>
 
           {/* Message */}
