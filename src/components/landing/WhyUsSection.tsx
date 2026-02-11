@@ -1,4 +1,3 @@
-import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { 
@@ -7,7 +6,6 @@ import {
   Clock, 
   HeadphonesIcon, 
   Sparkles, 
-  Target,
   ArrowLeft,
   CheckCircle2,
   TrendingUp,
@@ -77,287 +75,158 @@ const features = [
   },
 ];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.1
-    }
-  }
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 20, scale: 0.98 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      type: "spring" as const,
-      stiffness: 200,
-      damping: 20
-    }
-  }
-};
-
 const WhyUsSection = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-50px" });
-
   return (
-    <section ref={containerRef} className="py-16 md:py-24 lg:py-32 relative overflow-hidden">
-      {/* Background */}
+    <section className="py-16 md:py-24 lg:py-32 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/5 to-background" />
       
-      {/* Animated Orbs */}
+      {/* Static Background Orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
+        <div
           className="absolute top-20 right-10 w-72 h-72 md:w-96 md:h-96 rounded-full blur-3xl"
           style={{ background: "radial-gradient(circle, hsl(var(--primary) / 0.12) 0%, transparent 70%)" }}
-          animate={{
-            x: [0, 30, 0],
-            y: [0, -20, 0],
-            scale: [1, 1.1, 1],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         />
-        <motion.div
+        <div
           className="absolute bottom-20 left-10 w-64 h-64 md:w-80 md:h-80 rounded-full blur-3xl"
           style={{ background: "radial-gradient(circle, hsl(var(--accent) / 0.1) 0%, transparent 70%)" }}
-          animate={{
-            x: [0, -20, 0],
-            y: [0, 30, 0],
-            scale: [1, 1.15, 1],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
       </div>
 
       <div className="container px-4 relative z-10">
         {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.4 }}
-          className="text-center mb-12 md:mb-16"
-        >
-          <motion.div 
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={isInView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.3 }}
-            whileHover={{ scale: 1.05 }}
-          >
-            <motion.div
-              animate={{ rotate: [0, 15, -15, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <Sparkles className="w-4 h-4 text-primary" />
-            </motion.div>
+        <div className="text-center mb-12 md:mb-16 animate-fade-in">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
+            <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-semibold text-primary">مميزاتنا</span>
-          </motion.div>
+          </div>
           
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
             لماذا{" "}
-            <span className="relative inline-block">
-              <span className="bg-gradient-to-l from-primary via-accent to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient_3s_linear_infinite]">
-                تختارنا؟
-              </span>
-              <motion.div
-                className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-l from-primary to-accent rounded-full"
-                initial={{ scaleX: 0, opacity: 0 }}
-                animate={isInView ? { scaleX: 1, opacity: 1 } : {}}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              />
+            <span className="bg-gradient-to-l from-primary via-accent to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient_3s_linear_infinite]">
+              تختارنا؟
             </span>
           </h2>
           <p className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto">
             نقدم لك تجربة استثنائية تجمع بين الجودة والسرعة والدعم المتواصل
           </p>
-        </motion.div>
+        </div>
 
-        {/* Features Grid - 2 columns on mobile, 3 on desktop */}
-        <motion.div 
-          className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5 lg:gap-6 max-w-6xl mx-auto"
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-        >
+        {/* Features Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5 lg:gap-6 max-w-6xl mx-auto">
           {features.map((feature, index) => (
-            <motion.div
+            <div
               key={feature.title}
-              variants={cardVariants}
-              className="group"
-              whileHover={{ y: -8, transition: { duration: 0.3 } }}
+              className="group animate-fade-in hover:-translate-y-2 transition-transform duration-300"
+              style={{ animationDelay: `${index * 80}ms` }}
             >
-              <div className="relative h-full p-4 md:p-6 rounded-2xl md:rounded-3xl bg-card/70 backdrop-blur-sm border border-border/40 hover:border-primary/40 transition-all duration-500 overflow-hidden">
-                {/* Hover Gradient Background */}
-                <motion.div
-                  className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-[0.06] transition-opacity duration-500`}
-                />
-                
-                {/* Corner Glow */}
+              <div className="relative h-full p-4 md:p-6 rounded-2xl md:rounded-3xl bg-card/70 backdrop-blur-sm border border-border/40 hover:border-primary/40 transition-all duration-300 overflow-hidden">
+                <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-[0.06] transition-opacity duration-500`} />
                 <div className={`absolute -top-12 -right-12 w-24 h-24 bg-gradient-to-br ${feature.gradient} rounded-full blur-2xl opacity-0 group-hover:opacity-30 transition-opacity duration-500`} />
 
                 <div className="relative z-10">
-                  {/* Icon & Stat Row */}
                   <div className="flex items-start justify-between mb-3 md:mb-4">
-                    <motion.div
-                      className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl ${feature.iconBg} p-2 md:p-2.5 shadow-lg`}
-                      whileHover={{ rotate: 10, scale: 1.1 }}
-                      transition={{ type: "spring", stiffness: 400 }}
-                    >
+                    <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl ${feature.iconBg} p-2 md:p-2.5 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                       <feature.icon className="w-full h-full text-white" />
-                    </motion.div>
-                    
-                    {/* Stat Badge */}
-                    <motion.div 
-                      className="text-left"
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={isInView ? { opacity: 1, x: 0 } : {}}
-                    transition={{ delay: 0.2 + index * 0.03 }}
-                  >
+                    </div>
+                    <div className="text-left">
                       <div className={`text-lg md:text-xl font-bold bg-gradient-to-l ${feature.gradient} bg-clip-text text-transparent`}>
                         {feature.stat}
                       </div>
                       <div className="text-[10px] md:text-xs text-muted-foreground">
                         {feature.statLabel}
                       </div>
-                    </motion.div>
+                    </div>
                   </div>
 
-                  {/* Title */}
                   <h3 className="text-sm md:text-lg font-bold mb-1.5 md:mb-2 group-hover:text-primary transition-colors duration-300">
                     {feature.title}
                   </h3>
-                  
-                  {/* Description */}
                   <p className="text-xs md:text-sm text-muted-foreground leading-relaxed mb-3 md:mb-4 line-clamp-2">
                     {feature.description}
                   </p>
 
-                  {/* Highlights */}
                   <div className="flex flex-wrap gap-1.5 md:gap-2">
-                    {feature.highlights.map((highlight, i) => (
-                      <motion.div
+                    {feature.highlights.map((highlight) => (
+                      <div
                         key={highlight}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                        transition={{ duration: 0.2, delay: 0.2 + index * 0.02 + i * 0.05 }}
                         className="flex items-center gap-1 px-2 py-1 rounded-full bg-secondary/60 text-[10px] md:text-xs text-muted-foreground"
                       >
                         <CheckCircle2 className="w-2.5 h-2.5 md:w-3 md:h-3 text-primary" />
                         <span>{highlight}</span>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Bottom Animated Line */}
-                <motion.div
-                  className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r ${feature.gradient}`}
-                  initial={{ scaleX: 0 }}
-                  whileHover={{ scaleX: 1 }}
-                  transition={{ duration: 0.4 }}
-                  style={{ transformOrigin: "right" }}
-                />
+                <div className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r ${feature.gradient} scale-x-0 group-hover:scale-x-100 transition-transform duration-400 origin-right`} />
               </div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
         {/* CTA Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.4, delay: 0.3 }}
-          className="flex justify-center mt-10 md:mt-14"
-        >
+        <div className="flex justify-center mt-10 md:mt-14 animate-fade-in" style={{ animationDelay: '500ms' }}>
           <Link to="/services">
-            <motion.div
-              className="group inline-flex items-center gap-2.5 px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-semibold text-sm md:text-base shadow-xl hover:shadow-2xl hover:shadow-primary/25 transition-all duration-300"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
-            >
+            <div className="group inline-flex items-center gap-2.5 px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl bg-gradient-to-l from-primary to-accent text-primary-foreground font-semibold text-sm md:text-base shadow-xl hover:shadow-2xl hover:shadow-primary/25 hover:scale-[1.03] active:scale-[0.98] transition-all duration-300">
               <span>اكتشف خدماتنا</span>
-              <motion.div
-                animate={{ x: [0, -4, 0] }}
-                transition={{ duration: 1.2, repeat: Infinity }}
-              >
-                <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
-              </motion.div>
-            </motion.div>
+              <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
+            </div>
           </Link>
-        </motion.div>
+        </div>
 
         {/* Stats Row */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.4 }}
-          className="flex justify-center mt-8 md:mt-10"
-        >
+        <div className="flex justify-center mt-8 md:mt-10 animate-fade-in" style={{ animationDelay: '600ms' }}>
           <div className="flex items-center gap-6 md:gap-10">
             <div className="text-center">
-              <motion.div 
-                className="text-2xl md:text-3xl font-bold bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent"
-                initial={{ scale: 0 }}
-                animate={isInView ? { scale: 1 } : {}}
-                transition={{ type: "spring", delay: 0.5 }}
-              >
+              <div className="text-2xl md:text-3xl font-bold bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
                 {(() => {
                   const startDate = new Date('2026-02-11');
                   const today = new Date();
                   const diffDays = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
                   return (847 + Math.max(0, diffDays) * 28).toLocaleString('en-US');
                 })()}
-              </motion.div>
+              </div>
               <span className="text-xs md:text-sm text-muted-foreground">طلب منفذ</span>
             </div>
             <div className="w-px h-10 bg-border" />
             <div className="text-center">
-              <motion.div 
-                className="text-2xl md:text-3xl font-bold bg-gradient-to-l from-emerald-500 to-teal-500 bg-clip-text text-transparent"
-                initial={{ scale: 0 }}
-                animate={isInView ? { scale: 1 } : {}}
-                transition={{ type: "spring", delay: 0.6 }}
-              >
+              <div className="text-2xl md:text-3xl font-bold bg-gradient-to-l from-emerald-500 to-teal-500 bg-clip-text text-transparent">
                 {(() => {
                   const startDate = new Date('2026-02-11');
                   const today = new Date();
                   const diffDays = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
                   return (156 + Math.max(0, diffDays) * 5).toLocaleString('en-US');
                 })()}
-              </motion.div>
+              </div>
               <span className="text-xs md:text-sm text-muted-foreground">عميل سعيد</span>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Bottom Tagline */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.5 }}
-          className="flex justify-center mt-6 md:mt-8"
-        >
+        <div className="flex justify-center mt-6 md:mt-8">
           <div className="flex items-center gap-3 text-muted-foreground">
-            <motion.div 
-              className="w-1.5 h-1.5 rounded-full bg-primary"
-              animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             <span className="text-xs md:text-sm">شريكك الموثوق للنجاح الرقمي</span>
-            <motion.div 
-              className="w-1.5 h-1.5 rounded-full bg-accent"
-              animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-            />
+            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" style={{ animationDelay: '1s' }} />
           </div>
-        </motion.div>
+        </div>
       </div>
+
+      <style>{`
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(15px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out both;
+        }
+      `}</style>
     </section>
   );
 };
