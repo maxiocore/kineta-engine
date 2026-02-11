@@ -1,21 +1,60 @@
 //
 //  SettingsView.swift
-//  MaxioCore
+//  ASH HOLDING
 //
 //  App settings screen with preferences and data management.
 //
 
 import SwiftUI
 import WebKit
+import UserNotifications
 
 struct SettingsView: View {
     @EnvironmentObject var appSettings: AppSettings
     @State private var showClearDataAlert = false
     @State private var showClearedToast = false
+    @State private var notificationStatus: UNAuthorizationStatus = .notDetermined
     
     var body: some View {
         NavigationStack {
             List {
+                // Notifications Section
+                Section {
+                    HStack {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("الإشعارات الفورية")
+                                    .font(.body)
+                                Text(notificationStatusText)
+                                    .font(.caption)
+                                    .foregroundColor(notificationStatusColor)
+                            }
+                        } icon: {
+                            Image(systemName: "bell.badge.fill")
+                                .foregroundColor(.orange)
+                        }
+                        Spacer()
+                        if notificationStatus == .denied {
+                            Button("تفعيل") {
+                                openSettings()
+                            }
+                            .font(.caption.bold())
+                            .foregroundColor(.blue)
+                        } else if notificationStatus == .notDetermined {
+                            Button("تفعيل") {
+                                requestNotificationPermission()
+                            }
+                            .font(.caption.bold())
+                            .foregroundColor(.blue)
+                        } else {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                        }
+                    }
+                } header: {
+                    Text("الإشعارات")
+                }
+                
                 // Preferences Section
                 Section {
                     Toggle(isOn: $appSettings.openExternalLinksInSafari) {
@@ -23,7 +62,7 @@ struct SettingsView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("فتح الروابط الخارجية في Safari")
                                     .font(.body)
-                                Text("الروابط خارج maxiocore.com")
+                                Text("الروابط خارج ash-holding.sa")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -89,6 +128,8 @@ struct SettingsView: View {
                     }
                 } header: {
                     Text("حول التطبيق")
+                } footer: {
+                    Text("ASH HOLDING © 2025")
                 }
             }
             .navigationTitle("الإعدادات")
@@ -109,6 +150,49 @@ struct SettingsView: View {
                     }
                     .animation(.spring(), value: showClearedToast)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .onAppear {
+                checkNotificationStatus()
+            }
+        }
+    }
+    
+    // MARK: - Notification Status
+    private var notificationStatusText: String {
+        switch notificationStatus {
+        case .authorized: return "مفعّلة"
+        case .denied: return "معطّلة - اضغط للتفعيل من الإعدادات"
+        case .notDetermined: return "لم يتم التفعيل بعد"
+        case .provisional: return "مفعّلة (مؤقت)"
+        case .ephemeral: return "مفعّلة"
+        @unknown default: return "غير معروف"
+        }
+    }
+    
+    private var notificationStatusColor: Color {
+        switch notificationStatus {
+        case .authorized, .provisional, .ephemeral: return .green
+        case .denied: return .red
+        case .notDetermined: return .orange
+        @unknown default: return .secondary
+        }
+    }
+    
+    private func checkNotificationStatus() {
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            DispatchQueue.main.async {
+                notificationStatus = settings.authorizationStatus
+            }
+        }
+    }
+    
+    private func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+            DispatchQueue.main.async {
+                checkNotificationStatus()
+                if granted {
+                    UIApplication.shared.registerForRemoteNotifications()
                 }
             }
         }
@@ -136,6 +220,13 @@ struct SettingsView: View {
                     showClearedToast = false
                 }
             }
+        }
+    }
+    
+    // MARK: - Open Settings
+    private func openSettings() {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(url)
         }
     }
 }
