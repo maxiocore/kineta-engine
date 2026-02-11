@@ -7,14 +7,13 @@ import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import FAQSection from "@/components/landing/FAQSection";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
-import FinancingBanner from "@/components/FinancingBanner";
+import FinancingSection from "@/components/landing/FinancingSection";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main>
-        <FinancingBanner variant="landing" />
         <HeroSection />
         <section id="services">
           <ServicesSection />
@@ -23,6 +22,7 @@ const Index = () => {
         <section id="how-it-works">
           <HowItWorksSection />
         </section>
+        <FinancingSection />
         <TestimonialsSection />
         <FAQSection />
         <CTASection />
