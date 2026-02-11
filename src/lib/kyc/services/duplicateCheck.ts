@@ -55,23 +55,6 @@ export async function checkForDuplicates(
       };
     }
     
-    // Check financing applications
-    const { data: existingFinancing } = await supabase
-      .from('financing_applications')
-      .select('user_id, created_at, status')
-      .eq('national_id', nationalId)
-      .neq('user_id', currentUserId)
-      .in('status', ['pending', 'approved', 'active'])
-      .limit(1);
-    
-    if (existingFinancing && existingFinancing.length > 0) {
-      return {
-        isDuplicate: true,
-        existingUserId: existingFinancing[0].user_id,
-        existingApplicationDate: existingFinancing[0].created_at,
-        reason: 'يوجد طلب تمويل نشط بهذا الرقم',
-      };
-    }
     
     // Check if same user has recent rejected verification (fraud prevention)
     const { data: recentRejections } = await supabase

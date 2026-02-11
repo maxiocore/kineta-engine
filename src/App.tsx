@@ -59,8 +59,6 @@ const ClientCashback = lazy(() => import("./pages/dashboard/ClientCashback"));
 const ClientReadyWebsites = lazy(() => import("./pages/dashboard/ClientReadyWebsites"));
 const ClientChallenges = lazy(() => import("./pages/dashboard/ClientChallenges"));
 const ClientFinancialHub = lazy(() => import("./pages/dashboard/ClientFinancialHub"));
-const ClientFinancing = lazy(() => import("./pages/dashboard/ClientFinancing"));
-const ClientFinancingApplications = lazy(() => import("./pages/dashboard/ClientFinancingApplications"));
 
 // Lazy load pages - Dev Services
 const DevServicesPage = lazy(() => import("./pages/dashboard/DevServicesPage"));
@@ -111,7 +109,7 @@ const AdminDevOrderDetails = lazy(() => import("./pages/admin/AdminDevOrderDetai
 const AdminUnifiedOrders = lazy(() => import("./pages/admin/AdminUnifiedOrders"));
 const AdminOrderDetails = lazy(() => import("./pages/admin/AdminOrderDetails"));
 const AdminAPIKeys = lazy(() => import("./pages/admin/AdminAPIKeys"));
-const AdminFinanceDashboard = lazy(() => import("./pages/admin/AdminFinanceDashboard"));
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -294,16 +292,6 @@ const App = () => (
                     <Route path="/dashboard/financial" element={
                       <ProtectedRoute>
                         <ClientFinancialHub />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/dashboard/financing" element={
-                      <ProtectedRoute>
-                        <ClientFinancing />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/dashboard/financing/applications" element={
-                      <ProtectedRoute>
-                        <ClientFinancingApplications />
                       </ProtectedRoute>
                     } />
                     
@@ -504,11 +492,6 @@ const App = () => (
                     <Route path="/admin/api-keys" element={
                       <ProtectedRoute requireAdmin>
                         <AdminAPIKeys />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/admin/finance-dashboard" element={
-                      <ProtectedRoute requireAdmin>
-                        <AdminFinanceDashboard />
                       </ProtectedRoute>
                     } />
                     
