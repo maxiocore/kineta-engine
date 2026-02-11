@@ -71,7 +71,7 @@ const socialLinks = [
 
 const contactInfo = [
   { icon: Mail, text: "info@ash-holding.sa", href: "mailto:info@ash-holding.sa", label: "البريد الإلكتروني" },
-  { icon: Phone, text: "+966 55 123 4567", href: "tel:+966551234567", dir: "ltr" as const, label: "الهاتف" },
+  { icon: Phone, text: "0555812567", href: "tel:+966555812567", dir: "ltr" as const, label: "الهاتف" },
   { icon: MapPin, text: "المملكة العربية السعودية", label: "الموقع" },
 ];
 
