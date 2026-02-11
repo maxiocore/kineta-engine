@@ -1,6 +1,7 @@
 import { Download, Code2, Palette, BarChart3, Cloud, Cpu, Users, Shield, Headphones, Target, Building2, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
+import { generateCompanyProfilePDF } from "@/utils/generateCompanyProfilePDF";
 
 const useInView = (threshold = 0.15) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -41,12 +42,12 @@ const CompanyProfileSection = () => {
   const techView = useInView();
   const whyView = useInView();
 
-  const handleDownload = () => {
-    // Open PDF in new tab or trigger download
-    const link = document.createElement("a");
-    link.href = "/ash-holding-profile.pdf";
-    link.download = "ASH-Holding-Company-Profile.pdf";
-    link.click();
+  const handleDownload = async () => {
+    try {
+      await generateCompanyProfilePDF();
+    } catch (error) {
+      console.error('خطأ في إنشاء الملف التعريفي:', error);
+    }
   };
 
   return (
