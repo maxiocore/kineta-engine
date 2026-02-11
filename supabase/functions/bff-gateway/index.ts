@@ -84,214 +84,6 @@ async function ashRequest(
   }
 }
 
-// ─── Route: Finance ─────────────────────────────────────────
-async function handleFinance(
-  _req: Request,
-  path: string,
-  ctx: Awaited<ReturnType<typeof authenticate>>,
-  queryParams: URLSearchParams
-) {
-  console.log("[BFF Finance] path:", JSON.stringify(path), "queryParams:", queryParams.toString());
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const supabase = ctx.supabase || createClient(supabaseUrl, supabaseKey);
-
-  // /finance/applications - list applications
-  if (path === "/applications" || path === "/" || path === "") {
-    const status = queryParams.get("status");
-    const limit = parseInt(queryParams.get("limit") || "50");
-    const offset = parseInt(queryParams.get("offset") || "0");
-
-    let query = supabase
-      .from("financing_applications")
-      .select("id, application_number, full_name, phone, email, status, requested_amount, approved_amount, service_description, created_at, updated_at")
-      .order("updated_at", { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    if (status) query = query.eq("status", status);
-    if (!ctx.isAdmin && ctx.user) query = query.eq("user_id", ctx.user.id);
-
-    const { data, error: dbErr, count } = await query;
-    if (dbErr) return error(dbErr.message, 500);
-
-    return json(envelope(data, { total: count, limit, offset }));
-  }
-
-  // /finance/applications/:id
-  if (path.startsWith("/applications/")) {
-    const id = path.replace("/applications/", "");
-    let query = supabase
-      .from("financing_applications")
-      .select("*")
-      .eq("id", id)
-      .maybeSingle();
-
-    if (!ctx.isAdmin && ctx.user) query = query.eq("user_id", ctx.user.id);
-
-    const { data, error: dbErr } = await query;
-    if (dbErr || !data) return error("Application not found", 404);
-
-    return json(envelope(data));
-  }
-
-  // /finance/submit - submit new application to ASH Holdings
-  if (path === "/submit" && _req.method === "POST") {
-    if (!ctx.user) return error("Authentication required", 401);
-
-    let body: Record<string, unknown> = {};
-    try {
-      const cloned = _req.clone();
-      const text = await cloned.text();
-      if (text) {
-        const parsed = JSON.parse(text);
-        body = parsed.body || parsed;
-      }
-    } catch { /* no body */ }
-
-    const applicationId = body.application_id as string;
-    if (!applicationId) return error("application_id is required", 400);
-
-    // Fetch local application
-    const { data: app } = await supabase
-      .from("financing_applications")
-      .select("*")
-      .eq("id", applicationId)
-      .eq("user_id", ctx.user.id)
-      .maybeSingle();
-
-    if (!app) return error("Application not found", 404);
-
-    // Fetch user profile for extra data
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("full_name, email, phone")
-      .eq("id", ctx.user.id)
-      .maybeSingle();
-
-    // Send to ASH Holdings
-    const ashPayload = {
-      external_id: app.id,
-      application_number: app.application_number,
-      customer: {
-        id: ctx.user.id,
-        name: app.full_name || profile?.full_name,
-        email: app.email || profile?.email,
-        phone: app.phone || profile?.phone,
-        national_id: app.national_id,
-        company_name: app.company_name,
-      },
-      financing: {
-        requested_amount: app.requested_amount,
-        plan_id: app.plan_id,
-        service_id: app.service_id,
-        service_description: app.service_description,
-        type: app.service_id ? "service" : "custom",
-      },
-    };
-
-    console.log("[BFF] Submitting to ASH Holdings:", JSON.stringify(ashPayload).substring(0, 300));
-    const ashResult = await ashRequest("/api/finance/applications", "POST", ashPayload);
-
-    if (!ashResult.ok) {
-      console.error("[BFF] ASH submission failed:", ashResult.status, ashResult.data);
-      // Update local status
-      await supabase
-        .from("financing_applications")
-        .update({ workflow_status: "submission_failed", updated_at: new Date().toISOString() })
-        .eq("id", applicationId);
-
-      return error("Failed to submit to financing provider", 502);
-    }
-
-    const ashData = ashResult.data as Record<string, unknown>;
-
-    // Update local application with ASH response
-    await supabase
-      .from("financing_applications")
-      .update({
-        status: (ashData.status as string) || "submitted",
-        workflow_status: "submitted_to_provider",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", applicationId);
-
-    // Log activity
-    await supabase.from("financing_activity_log").insert({
-      application_id: applicationId,
-      event_type: "submitted_to_ash",
-      from_status: "pending",
-      to_status: (ashData.status as string) || "submitted",
-      triggered_by: "bff_gateway",
-      actor_id: ctx.user.id,
-      metadata: { ash_response_id: ashData.id, ash_status: ashData.status },
-      is_visible_to_customer: true,
-    });
-
-    return json(envelope({ submitted: true, ash_status: ashData.status, ash_id: ashData.id }));
-  }
-
-  // /finance/sync/:id - sync single application with ASH
-  if (path.startsWith("/sync/")) {
-    if (!ctx.isAdmin) return error("Admin access required", 403);
-    const appId = path.replace("/sync/", "");
-
-    const { data: app } = await supabase
-      .from("financing_applications")
-      .select("application_number")
-      .eq("id", appId)
-      .maybeSingle();
-
-    if (!app) return error("Application not found", 404);
-
-    const result = await ashRequest(`/api/finance/status/${app.application_number}`);
-    if (!result.ok) return error("Failed to sync with ASH Holdings", 502);
-
-    const ashData = result.data as Record<string, unknown>;
-
-    await supabase
-      .from("financing_applications")
-      .update({
-        status: ashData.status || undefined,
-        workflow_status: ashData.workflow_status || undefined,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", appId);
-
-    await supabase.from("financing_activity_log").insert({
-      application_id: appId,
-      event_type: "bff_sync",
-      from_status: "",
-      to_status: String(ashData.status || "unknown"),
-      triggered_by: "bff_gateway",
-      actor_id: ctx.user?.id,
-    });
-
-    return json(envelope({ synced: true, ash_status: ashData.status }));
-  }
-
-  // /finance/stats - dashboard stats
-  if (path === "/stats") {
-    if (!ctx.isAdmin) return error("Admin access required", 403);
-
-    const { data: apps } = await supabase
-      .from("financing_applications")
-      .select("status, requested_amount, approved_amount");
-
-    const stats = {
-      total: apps?.length || 0,
-      pending: apps?.filter((a) => ["pending", "PENDING"].includes(a.status)).length || 0,
-      approved: apps?.filter((a) => ["approved", "APPROVED", "CREDIT_DEPOSITED", "CONTRACT_FINALIZED"].includes(a.status)).length || 0,
-      rejected: apps?.filter((a) => ["rejected", "REJECTED", "DECLINED"].includes(a.status)).length || 0,
-      total_requested: apps?.reduce((s, a) => s + (a.requested_amount || 0), 0) || 0,
-      total_approved: apps?.reduce((s, a) => s + (a.approved_amount || 0), 0) || 0,
-    };
-
-    return json(envelope(stats));
-  }
-
-  return error("Finance endpoint not found", 404);
-}
-
 // ─── Route: Payments ────────────────────────────────────────
 async function handlePayments(
   _req: Request,
@@ -384,17 +176,15 @@ async function handleReports(
   const supabase = ctx.supabase || createClient(supabaseUrl, supabaseKey);
 
   if (path === "/overview") {
-    const [ordersRes, depositsRes, usersRes, financeRes] = await Promise.all([
+    const [ordersRes, depositsRes, usersRes] = await Promise.all([
       supabase.from("orders").select("id, status, total_amount, created_at"),
       supabase.from("deposits").select("id, amount, status, created_at"),
       supabase.from("profiles").select("id, created_at"),
-      supabase.from("financing_applications").select("id, status, requested_amount, approved_amount"),
     ]);
 
     const orders = ordersRes.data || [];
     const deposits = depositsRes.data || [];
     const users = usersRes.data || [];
-    const finance = financeRes.data || [];
 
     return json(
       envelope({
@@ -409,11 +199,6 @@ async function handleReports(
           total_amount: deposits.reduce((s, d) => s + (d.amount || 0), 0),
         },
         users: { total: users.length },
-        finance: {
-          total: finance.length,
-          approved: finance.filter((f) => ["approved", "APPROVED", "CREDIT_DEPOSITED"].includes(f.status)).length,
-          total_requested: finance.reduce((s, f) => s + (f.requested_amount || 0), 0),
-        },
       })
     );
   }
@@ -467,8 +252,6 @@ serve(async (req) => {
     switch (module) {
       case "health":
         return json(envelope({ status: "ok", version: "1.0.0" }));
-      case "finance":
-        return await handleFinance(req, subPath, ctx, queryParams);
       case "payments":
         return await handlePayments(req, subPath, ctx, queryParams);
       case "users":

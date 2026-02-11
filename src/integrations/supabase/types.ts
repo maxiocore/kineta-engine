@@ -687,77 +687,6 @@ export type Database = {
         }
         Relationships: []
       }
-      contract_signing_otps: {
-        Row: {
-          application_id: string
-          attempts_count: number
-          contract_id: string
-          created_at: string
-          expires_at: string
-          id: string
-          idempotency_key: string | null
-          locked_until: string | null
-          otp_hash: string
-          phone: string
-          reading_time_seconds: number | null
-          scroll_percentage: number | null
-          signature_ip: unknown
-          signature_user_agent: string | null
-          status: string
-          updated_at: string
-          user_id: string
-          verified_at: string | null
-        }
-        Insert: {
-          application_id: string
-          attempts_count?: number
-          contract_id: string
-          created_at?: string
-          expires_at: string
-          id?: string
-          idempotency_key?: string | null
-          locked_until?: string | null
-          otp_hash: string
-          phone: string
-          reading_time_seconds?: number | null
-          scroll_percentage?: number | null
-          signature_ip?: unknown
-          signature_user_agent?: string | null
-          status?: string
-          updated_at?: string
-          user_id: string
-          verified_at?: string | null
-        }
-        Update: {
-          application_id?: string
-          attempts_count?: number
-          contract_id?: string
-          created_at?: string
-          expires_at?: string
-          id?: string
-          idempotency_key?: string | null
-          locked_until?: string | null
-          otp_hash?: string
-          phone?: string
-          reading_time_seconds?: number | null
-          scroll_percentage?: number | null
-          signature_ip?: unknown
-          signature_user_agent?: string | null
-          status?: string
-          updated_at?: string
-          user_id?: string
-          verified_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contract_signing_otps_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "financing_applications"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       coupon_usages: {
         Row: {
           coupon_id: string
@@ -1245,83 +1174,6 @@ export type Database = {
         }
         Relationships: []
       }
-      eligibility_audit_logs: {
-        Row: {
-          application_id: string | null
-          completed_at: string | null
-          created_at: string
-          device_fingerprint: string | null
-          duration_ms: number | null
-          error_message: string | null
-          geo_city: string | null
-          geo_country: string | null
-          id: string
-          input_data: Json | null
-          ip_address: string | null
-          output_data: Json | null
-          risk_signals: Json | null
-          session_id: string
-          started_at: string
-          status: string
-          step_name: string
-          step_order: number
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          application_id?: string | null
-          completed_at?: string | null
-          created_at?: string
-          device_fingerprint?: string | null
-          duration_ms?: number | null
-          error_message?: string | null
-          geo_city?: string | null
-          geo_country?: string | null
-          id?: string
-          input_data?: Json | null
-          ip_address?: string | null
-          output_data?: Json | null
-          risk_signals?: Json | null
-          session_id: string
-          started_at?: string
-          status?: string
-          step_name: string
-          step_order: number
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          application_id?: string | null
-          completed_at?: string | null
-          created_at?: string
-          device_fingerprint?: string | null
-          duration_ms?: number | null
-          error_message?: string | null
-          geo_city?: string | null
-          geo_country?: string | null
-          id?: string
-          input_data?: Json | null
-          ip_address?: string | null
-          output_data?: Json | null
-          risk_signals?: Json | null
-          session_id?: string
-          started_at?: string
-          status?: string
-          step_name?: string
-          step_order?: number
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "eligibility_audit_logs_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "financing_applications"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       email_campaigns: {
         Row: {
           completed_at: string | null
@@ -1601,72 +1453,6 @@ export type Database = {
           },
         ]
       }
-      executive_bond_events: {
-        Row: {
-          actor_id: string | null
-          actor_role: string
-          application_id: string
-          bond_id: string
-          created_at: string | null
-          event_type: string
-          from_status: string | null
-          id: string
-          ip_address: unknown
-          metadata: Json | null
-          to_status: string
-          user_agent: string | null
-          whatsapp_message_id: string | null
-          whatsapp_sent: boolean | null
-        }
-        Insert: {
-          actor_id?: string | null
-          actor_role?: string
-          application_id: string
-          bond_id: string
-          created_at?: string | null
-          event_type: string
-          from_status?: string | null
-          id?: string
-          ip_address?: unknown
-          metadata?: Json | null
-          to_status: string
-          user_agent?: string | null
-          whatsapp_message_id?: string | null
-          whatsapp_sent?: boolean | null
-        }
-        Update: {
-          actor_id?: string | null
-          actor_role?: string
-          application_id?: string
-          bond_id?: string
-          created_at?: string | null
-          event_type?: string
-          from_status?: string | null
-          id?: string
-          ip_address?: unknown
-          metadata?: Json | null
-          to_status?: string
-          user_agent?: string | null
-          whatsapp_message_id?: string | null
-          whatsapp_sent?: boolean | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "executive_bond_events_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "financing_applications"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "executive_bond_events_bond_id_fkey"
-            columns: ["bond_id"]
-            isOneToOne: false
-            referencedRelation: "financing_executive_bonds"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       favorite_import_categories: {
         Row: {
           apply_profit_margin: boolean | null
@@ -1795,386 +1581,6 @@ export type Database = {
           },
         ]
       }
-      finance_webhook_events: {
-        Row: {
-          created_at: string
-          event_type: string
-          finance_request_id: string
-          id: string
-          ip_address: string | null
-          payload: Json | null
-          processed_at: string | null
-          signature_valid: boolean | null
-          status: string
-        }
-        Insert: {
-          created_at?: string
-          event_type: string
-          finance_request_id: string
-          id?: string
-          ip_address?: string | null
-          payload?: Json | null
-          processed_at?: string | null
-          signature_valid?: boolean | null
-          status: string
-        }
-        Update: {
-          created_at?: string
-          event_type?: string
-          finance_request_id?: string
-          id?: string
-          ip_address?: string | null
-          payload?: Json | null
-          processed_at?: string | null
-          signature_valid?: boolean | null
-          status?: string
-        }
-        Relationships: []
-      }
-      financing_acknowledgments: {
-        Row: {
-          acknowledgment_number: string
-          acknowledgment_type: string | null
-          application_id: string
-          created_at: string | null
-          id: string
-          pdf_hash: string | null
-          pdf_url: string | null
-          reading_time_seconds: number | null
-          sent_at: string | null
-          sent_by: string | null
-          signature_device_info: Json | null
-          signature_ip: unknown
-          signature_user_agent: string | null
-          signed_at: string | null
-          status: Database["public"]["Enums"]["acknowledgment_status"] | null
-          updated_at: string | null
-          viewed_at: string | null
-          viewed_count: number | null
-        }
-        Insert: {
-          acknowledgment_number: string
-          acknowledgment_type?: string | null
-          application_id: string
-          created_at?: string | null
-          id?: string
-          pdf_hash?: string | null
-          pdf_url?: string | null
-          reading_time_seconds?: number | null
-          sent_at?: string | null
-          sent_by?: string | null
-          signature_device_info?: Json | null
-          signature_ip?: unknown
-          signature_user_agent?: string | null
-          signed_at?: string | null
-          status?: Database["public"]["Enums"]["acknowledgment_status"] | null
-          updated_at?: string | null
-          viewed_at?: string | null
-          viewed_count?: number | null
-        }
-        Update: {
-          acknowledgment_number?: string
-          acknowledgment_type?: string | null
-          application_id?: string
-          created_at?: string | null
-          id?: string
-          pdf_hash?: string | null
-          pdf_url?: string | null
-          reading_time_seconds?: number | null
-          sent_at?: string | null
-          sent_by?: string | null
-          signature_device_info?: Json | null
-          signature_ip?: unknown
-          signature_user_agent?: string | null
-          signed_at?: string | null
-          status?: Database["public"]["Enums"]["acknowledgment_status"] | null
-          updated_at?: string | null
-          viewed_at?: string | null
-          viewed_count?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "financing_acknowledgments_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "financing_applications"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      financing_activity_log: {
-        Row: {
-          actor_id: string | null
-          application_id: string
-          created_at: string
-          event_type: string
-          from_status: string | null
-          id: string
-          is_visible_to_customer: boolean | null
-          metadata: Json | null
-          reason: string | null
-          to_status: string
-          triggered_by: string
-        }
-        Insert: {
-          actor_id?: string | null
-          application_id: string
-          created_at?: string
-          event_type: string
-          from_status?: string | null
-          id?: string
-          is_visible_to_customer?: boolean | null
-          metadata?: Json | null
-          reason?: string | null
-          to_status: string
-          triggered_by: string
-        }
-        Update: {
-          actor_id?: string | null
-          application_id?: string
-          created_at?: string
-          event_type?: string
-          from_status?: string | null
-          id?: string
-          is_visible_to_customer?: boolean | null
-          metadata?: Json | null
-          reason?: string | null
-          to_status?: string
-          triggered_by?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "financing_activity_log_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "financing_applications"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      financing_admin_audit: {
-        Row: {
-          action_type: string
-          admin_id: string
-          application_id: string
-          contract_version: number | null
-          created_at: string | null
-          id: string
-          ip_address: unknown
-          new_value: Json | null
-          old_value: Json | null
-          reason: string
-          user_agent: string | null
-        }
-        Insert: {
-          action_type: string
-          admin_id: string
-          application_id: string
-          contract_version?: number | null
-          created_at?: string | null
-          id?: string
-          ip_address?: unknown
-          new_value?: Json | null
-          old_value?: Json | null
-          reason: string
-          user_agent?: string | null
-        }
-        Update: {
-          action_type?: string
-          admin_id?: string
-          application_id?: string
-          contract_version?: number | null
-          created_at?: string | null
-          id?: string
-          ip_address?: unknown
-          new_value?: Json | null
-          old_value?: Json | null
-          reason?: string
-          user_agent?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "financing_admin_audit_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "financing_applications"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      financing_applications: {
-        Row: {
-          address: string | null
-          admin_notes: string | null
-          application_number: string
-          approved_amount: number | null
-          approved_at: string | null
-          cancellation_reason: string | null
-          cancelled_at: string | null
-          cancelled_by: string | null
-          commercial_register: string | null
-          company_name: string | null
-          contract_document_url: string | null
-          contract_number: string | null
-          contract_override_installments: number | null
-          contract_override_name: string | null
-          contract_signed_at: string | null
-          contract_version: number | null
-          created_at: string
-          credit_deposit_status: string | null
-          current_phase: string | null
-          deposit_ledger_id: string | null
-          email: string
-          executive_bond_id: string | null
-          executive_bond_sent_at: string | null
-          executive_bond_signed_at: string | null
-          executive_bond_state: string | null
-          full_name: string
-          id: string
-          last_deposit_attempt_at: string | null
-          national_id: string
-          phase_updated_at: string | null
-          phone: string
-          plan_id: string | null
-          promissory_note_url: string | null
-          rejection_reason: string | null
-          requested_amount: number
-          reviewed_at: string | null
-          reviewed_by: string | null
-          service_description: string | null
-          service_id: string | null
-          status: string
-          submitted_at: string
-          tax_number: string | null
-          updated_at: string
-          user_id: string
-          workflow_status: string | null
-        }
-        Insert: {
-          address?: string | null
-          admin_notes?: string | null
-          application_number: string
-          approved_amount?: number | null
-          approved_at?: string | null
-          cancellation_reason?: string | null
-          cancelled_at?: string | null
-          cancelled_by?: string | null
-          commercial_register?: string | null
-          company_name?: string | null
-          contract_document_url?: string | null
-          contract_number?: string | null
-          contract_override_installments?: number | null
-          contract_override_name?: string | null
-          contract_signed_at?: string | null
-          contract_version?: number | null
-          created_at?: string
-          credit_deposit_status?: string | null
-          current_phase?: string | null
-          deposit_ledger_id?: string | null
-          email: string
-          executive_bond_id?: string | null
-          executive_bond_sent_at?: string | null
-          executive_bond_signed_at?: string | null
-          executive_bond_state?: string | null
-          full_name: string
-          id?: string
-          last_deposit_attempt_at?: string | null
-          national_id: string
-          phase_updated_at?: string | null
-          phone: string
-          plan_id?: string | null
-          promissory_note_url?: string | null
-          rejection_reason?: string | null
-          requested_amount: number
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          service_description?: string | null
-          service_id?: string | null
-          status?: string
-          submitted_at?: string
-          tax_number?: string | null
-          updated_at?: string
-          user_id: string
-          workflow_status?: string | null
-        }
-        Update: {
-          address?: string | null
-          admin_notes?: string | null
-          application_number?: string
-          approved_amount?: number | null
-          approved_at?: string | null
-          cancellation_reason?: string | null
-          cancelled_at?: string | null
-          cancelled_by?: string | null
-          commercial_register?: string | null
-          company_name?: string | null
-          contract_document_url?: string | null
-          contract_number?: string | null
-          contract_override_installments?: number | null
-          contract_override_name?: string | null
-          contract_signed_at?: string | null
-          contract_version?: number | null
-          created_at?: string
-          credit_deposit_status?: string | null
-          current_phase?: string | null
-          deposit_ledger_id?: string | null
-          email?: string
-          executive_bond_id?: string | null
-          executive_bond_sent_at?: string | null
-          executive_bond_signed_at?: string | null
-          executive_bond_state?: string | null
-          full_name?: string
-          id?: string
-          last_deposit_attempt_at?: string | null
-          national_id?: string
-          phase_updated_at?: string | null
-          phone?: string
-          plan_id?: string | null
-          promissory_note_url?: string | null
-          rejection_reason?: string | null
-          requested_amount?: number
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          service_description?: string | null
-          service_id?: string | null
-          status?: string
-          submitted_at?: string
-          tax_number?: string | null
-          updated_at?: string
-          user_id?: string
-          workflow_status?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "financing_applications_deposit_ledger_id_fkey"
-            columns: ["deposit_ledger_id"]
-            isOneToOne: false
-            referencedRelation: "financing_deposit_ledger"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "financing_applications_executive_bond_id_fkey"
-            columns: ["executive_bond_id"]
-            isOneToOne: false
-            referencedRelation: "financing_executive_bonds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "financing_applications_plan_id_fkey"
-            columns: ["plan_id"]
-            isOneToOne: false
-            referencedRelation: "financing_plans"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "financing_applications_service_id_fkey"
-            columns: ["service_id"]
-            isOneToOne: false
-            referencedRelation: "services"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       financing_contract_documents: {
         Row: {
           acceptance_checkbox: boolean | null
@@ -2258,15 +1664,7 @@ export type Database = {
           viewed_at?: string | null
           viewed_count?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "financing_contract_documents_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: true
-            referencedRelation: "financing_applications"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       financing_contract_events: {
         Row: {
@@ -2402,13 +1800,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "financing_contracts_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "financing_applications"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "financing_contracts_parent_contract_id_fkey"
             columns: ["parent_contract_id"]
             isOneToOne: false
@@ -2504,13 +1895,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "financing_deposit_ledger_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "financing_applications"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "financing_deposit_ledger_contract_id_fkey"
             columns: ["contract_id"]
             isOneToOne: false
@@ -2563,13 +1947,6 @@ export type Database = {
           subject?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "financing_email_logs_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "financing_applications"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "financing_email_logs_queue_id_fkey"
             columns: ["queue_id"]
@@ -2649,173 +2026,7 @@ export type Database = {
           sent_at?: string | null
           status?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "financing_email_queue_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "financing_applications"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "financing_email_queue_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "financing_activity_log"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      financing_executive_bonds: {
-        Row: {
-          admin_verification_notes: string | null
-          application_id: string
-          bond_amount: number | null
-          bond_number: string | null
-          created_at: string | null
-          customer_confirmation_at: string | null
-          customer_confirmation_ip: unknown
-          id: string
-          issued_at: string | null
-          issued_by: string | null
-          nafith_reference: string | null
-          sent_by: string | null
-          sent_notification_at: string | null
-          sent_to_client_at: string | null
-          sent_to_client_by: string | null
-          signed_at: string | null
-          signed_by_client_at: string | null
-          signed_by_client_ip: unknown
-          signed_by_client_user_agent: string | null
-          signed_confirmed_by_customer: boolean | null
-          status: Database["public"]["Enums"]["executive_bond_status"] | null
-          updated_at: string | null
-          verified_by_admin_at: string | null
-          verified_by_admin_id: string | null
-          whatsapp_notification_sent_at: string | null
-          whatsapp_notification_status: string | null
-        }
-        Insert: {
-          admin_verification_notes?: string | null
-          application_id: string
-          bond_amount?: number | null
-          bond_number?: string | null
-          created_at?: string | null
-          customer_confirmation_at?: string | null
-          customer_confirmation_ip?: unknown
-          id?: string
-          issued_at?: string | null
-          issued_by?: string | null
-          nafith_reference?: string | null
-          sent_by?: string | null
-          sent_notification_at?: string | null
-          sent_to_client_at?: string | null
-          sent_to_client_by?: string | null
-          signed_at?: string | null
-          signed_by_client_at?: string | null
-          signed_by_client_ip?: unknown
-          signed_by_client_user_agent?: string | null
-          signed_confirmed_by_customer?: boolean | null
-          status?: Database["public"]["Enums"]["executive_bond_status"] | null
-          updated_at?: string | null
-          verified_by_admin_at?: string | null
-          verified_by_admin_id?: string | null
-          whatsapp_notification_sent_at?: string | null
-          whatsapp_notification_status?: string | null
-        }
-        Update: {
-          admin_verification_notes?: string | null
-          application_id?: string
-          bond_amount?: number | null
-          bond_number?: string | null
-          created_at?: string | null
-          customer_confirmation_at?: string | null
-          customer_confirmation_ip?: unknown
-          id?: string
-          issued_at?: string | null
-          issued_by?: string | null
-          nafith_reference?: string | null
-          sent_by?: string | null
-          sent_notification_at?: string | null
-          sent_to_client_at?: string | null
-          sent_to_client_by?: string | null
-          signed_at?: string | null
-          signed_by_client_at?: string | null
-          signed_by_client_ip?: unknown
-          signed_by_client_user_agent?: string | null
-          signed_confirmed_by_customer?: boolean | null
-          status?: Database["public"]["Enums"]["executive_bond_status"] | null
-          updated_at?: string | null
-          verified_by_admin_at?: string | null
-          verified_by_admin_id?: string | null
-          whatsapp_notification_sent_at?: string | null
-          whatsapp_notification_status?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "financing_executive_bonds_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: true
-            referencedRelation: "financing_applications"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      financing_installments: {
-        Row: {
-          amount: number
-          application_id: string
-          created_at: string
-          due_date: string
-          id: string
-          installment_number: number
-          late_fee: number | null
-          notes: string | null
-          paid_at: string | null
-          payment_method: string | null
-          status: string
-          transaction_id: string | null
-          updated_at: string
-        }
-        Insert: {
-          amount: number
-          application_id: string
-          created_at?: string
-          due_date: string
-          id?: string
-          installment_number: number
-          late_fee?: number | null
-          notes?: string | null
-          paid_at?: string | null
-          payment_method?: string | null
-          status?: string
-          transaction_id?: string | null
-          updated_at?: string
-        }
-        Update: {
-          amount?: number
-          application_id?: string
-          created_at?: string
-          due_date?: string
-          id?: string
-          installment_number?: number
-          late_fee?: number | null
-          notes?: string | null
-          paid_at?: string | null
-          payment_method?: string | null
-          status?: string
-          transaction_id?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "financing_installments_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "financing_applications"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       financing_offer_setup: {
         Row: {
@@ -2863,15 +2074,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "financing_offer_setup_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: true
-            referencedRelation: "financing_applications"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       financing_payment_receipts: {
         Row: {
@@ -2921,69 +2124,6 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "financing_payment_receipts_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "financing_applications"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "financing_payment_receipts_installment_id_fkey"
-            columns: ["installment_id"]
-            isOneToOne: false
-            referencedRelation: "financing_installments"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      financing_plans: {
-        Row: {
-          created_at: string
-          description: string | null
-          description_ar: string | null
-          display_order: number | null
-          duration_months: number
-          id: string
-          installments_count: number
-          is_active: boolean
-          max_amount: number | null
-          min_amount: number
-          name: string
-          name_ar: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          description_ar?: string | null
-          display_order?: number | null
-          duration_months?: number
-          id?: string
-          installments_count?: number
-          is_active?: boolean
-          max_amount?: number | null
-          min_amount?: number
-          name: string
-          name_ar: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          description_ar?: string | null
-          display_order?: number | null
-          duration_months?: number
-          id?: string
-          installments_count?: number
-          is_active?: boolean
-          max_amount?: number | null
-          min_amount?: number
-          name?: string
-          name_ar?: string
-          updated_at?: string
         }
         Relationships: []
       }
@@ -3072,15 +2212,7 @@ export type Database = {
           to_status?: string | null
           user_agent?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "financing_workflow_audit_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "financing_applications"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       fraud_blacklists: {
         Row: {
@@ -3280,15 +2412,7 @@ export type Database = {
           user_agent?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "internal_transfers_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "financing_applications"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       job_applications: {
         Row: {
@@ -4461,13 +3585,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "service_credits_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "financing_applications"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "service_credits_contract_id_fkey"
             columns: ["contract_id"]
