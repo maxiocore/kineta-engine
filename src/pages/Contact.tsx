@@ -41,11 +41,11 @@ const contactMethods = [
   {
     icon: Phone,
     title: "اتصل بنا",
-    value: "+966 55 123 4567",
+    value: "0555812567",
     description: "متاحون من 9 ص - 7 م",
     dir: "ltr" as const,
     gradient: "from-cyan-500 to-blue-600",
-    action: "tel:+966551234567",
+    action: "tel:+966555812567",
     hoverColor: "group-hover:shadow-cyan-500/30"
   },
   {
@@ -72,7 +72,7 @@ const contactMethods = [
     value: "محادثة فورية",
     description: "رد سريع ومباشر",
     gradient: "from-emerald-500 to-green-600",
-    action: "https://wa.me/966551234567",
+    action: "https://wa.me/966555812567",
     hoverColor: "group-hover:shadow-emerald-500/30"
   },
 ];
