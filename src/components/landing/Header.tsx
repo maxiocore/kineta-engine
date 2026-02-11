@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Sparkles, ChevronLeft, Home, Briefcase, Share2, Users, CreditCard, MessageCircle, LucideIcon, Download, Plus, SquareArrowOutUpRight } from "lucide-react";
+import { Menu, X, Sparkles, ChevronLeft, Home, Briefcase, Share2, Users, CreditCard, MessageCircle, LucideIcon, Download, Plus, SquareArrowOutUpRight, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -15,6 +15,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: "الرئيسية", href: "/", icon: Home },
   { label: "خدماتنا", href: "/our-services", icon: Briefcase },
+  { label: "مشاريعنا", href: "/projects", icon: Rocket },
   { label: "من نحن", href: "/about", icon: Users },
   { label: "الأسعار", href: "/pricing", icon: CreditCard },
   { label: "تواصل معنا", href: "/contact", icon: MessageCircle },
