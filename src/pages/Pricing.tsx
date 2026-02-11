@@ -614,12 +614,9 @@ const Pricing = () => {
                       <h3 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">{pkg.name}</h3>
                       
                       <div className="flex items-baseline justify-center gap-1">
-                        <span className={`text-3xl md:text-5xl font-bold bg-gradient-to-l ${currentCategory.color} bg-clip-text text-transparent`}>
-                          {pkg.price}
+                        <span className={`text-lg md:text-xl font-bold bg-gradient-to-l ${currentCategory.color} bg-clip-text text-transparent`}>
+                          تواصل معنا للتسعير
                         </span>
-                        {pkg.period && (
-                          <span className="text-xs md:text-sm text-muted-foreground">ر.س / {pkg.period}</span>
-                        )}
                       </div>
                     </div>
 
@@ -712,9 +709,6 @@ const Pricing = () => {
                         className={`p-5 text-center border-l border-white/20 last:border-l-0 ${pkg.popular ? 'bg-white/10' : ''}`}
                       >
                         <div className="font-bold text-lg">{pkg.name}</div>
-                        <div className="text-sm opacity-90 mt-1">
-                          {pkg.price} {pkg.period && `ر.س / ${pkg.period}`}
-                        </div>
                         {pkg.popular && (
                           <Badge className="mt-2 bg-white/20 text-white border-0 text-xs">
                             الأكثر طلباً
@@ -809,9 +803,7 @@ const Pricing = () => {
                       {/* Card Header */}
                       <div className={`p-4 bg-gradient-to-l ${currentCategory.color} text-white text-center`}>
                         <h3 className="font-bold text-lg">{pkg.name}</h3>
-                        <div className="text-xl font-bold mt-1">
-                          {pkg.price} <span className="text-xs font-normal opacity-90">ر.س / {pkg.period}</span>
-                        </div>
+                        <div className="text-sm font-medium mt-1 opacity-90">تواصل معنا للتسعير</div>
                         {pkg.popular && (
                           <Badge className="mt-2 bg-white/20 text-white border-0 text-xs">الأكثر طلباً</Badge>
                         )}
