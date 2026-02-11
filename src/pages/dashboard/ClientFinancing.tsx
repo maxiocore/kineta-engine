@@ -143,7 +143,8 @@ const ClientFinancing = () => {
       navigate("/dashboard/financing/applications");
     } catch (err: any) {
       console.error("Financing submit error:", err);
-      toast.error("حدث خطأ أثناء تقديم الطلب");
+      const errorMsg = err?.message || err?.details || "خطأ غير معروف";
+      toast.error(`حدث خطأ: ${errorMsg}`);
     } finally {
       setSubmitting(false);
     }
