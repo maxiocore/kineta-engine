@@ -1,7 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Smartphone, X, Share, Plus, SquareArrowOutUpRight } from 'lucide-react';
+import { Download, Smartphone, X, Share, Plus, SquareArrowOutUpRight, Bell, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useState } from 'react';
 
 interface InstallPromptProps {
@@ -11,16 +12,35 @@ interface InstallPromptProps {
 
 export const InstallPrompt = ({ variant = 'button', className = '' }: InstallPromptProps) => {
   const { isInstallable, isInstalled, isIOS, installApp } = usePWAInstall();
+  const { requestPermission, subscribeToPush, permission } = usePushNotifications();
   const [showInstructions, setShowInstructions] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [installState, setInstallState] = useState<'idle' | 'installing' | 'enabling_notifications' | 'done'>('idle');
 
   // Don't show if already installed or dismissed
   if (isInstalled || dismissed) return null;
 
+  const enableNotifications = async () => {
+    if (permission !== 'granted') {
+      const granted = await requestPermission();
+      if (granted) {
+        await subscribeToPush();
+      }
+    }
+  };
+
   const handleInstall = async () => {
     if (isInstallable) {
-      // Direct install for Android/Desktop when available
-      await installApp();
+      setInstallState('installing');
+      const installed = await installApp();
+      if (installed) {
+        setInstallState('enabling_notifications');
+        await enableNotifications();
+        setInstallState('done');
+        setTimeout(() => setDismissed(true), 2000);
+      } else {
+        setInstallState('idle');
+      }
     } else {
       // Show instructions for iOS or when beforeinstallprompt not fired
       setShowInstructions(true);
@@ -153,10 +173,33 @@ export const InstallPrompt = ({ variant = 'button', className = '' }: InstallPro
         >
           <Button
             onClick={handleInstall}
+            disabled={installState !== 'idle'}
             className="gap-2 bg-gradient-to-l from-primary to-accent hover:opacity-90"
           >
-            <Download className="w-4 h-4" />
-            تثبيت التطبيق
+            {installState === 'installing' && (
+              <>
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                جاري التثبيت...
+              </>
+            )}
+            {installState === 'enabling_notifications' && (
+              <>
+                <Bell className="w-4 h-4 animate-pulse" />
+                تفعيل الإشعارات...
+              </>
+            )}
+            {installState === 'done' && (
+              <>
+                <CheckCircle2 className="w-4 h-4" />
+                تم التثبيت ✓
+              </>
+            )}
+            {installState === 'idle' && (
+              <>
+                <Download className="w-4 h-4" />
+                تثبيت التطبيق
+              </>
+            )}
           </Button>
         </motion.div>
         <InstructionsModal />
@@ -185,8 +228,8 @@ export const InstallPrompt = ({ variant = 'button', className = '' }: InstallPro
               <Button variant="ghost" size="icon" onClick={() => setDismissed(true)}>
                 <X className="w-4 h-4" />
               </Button>
-              <Button onClick={handleInstall} size="sm">
-                تثبيت
+              <Button onClick={handleInstall} size="sm" disabled={installState !== 'idle'}>
+                {installState === 'idle' ? 'تثبيت' : installState === 'done' ? 'تم ✓' : 'جاري...'}
               </Button>
             </div>
           </div>
