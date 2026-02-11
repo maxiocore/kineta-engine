@@ -3789,6 +3789,45 @@ export type Database = {
         }
         Relationships: []
       }
+      sms_templates: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          message_template: string
+          name_ar: string
+          template_key: string
+          updated_at: string
+          variables: string[] | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          message_template: string
+          name_ar: string
+          template_key: string
+          updated_at?: string
+          variables?: string[] | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          message_template?: string
+          name_ar?: string
+          template_key?: string
+          updated_at?: string
+          variables?: string[] | null
+        }
+        Relationships: []
+      }
       sms_verifications: {
         Row: {
           attempts_count: number
