@@ -312,7 +312,7 @@ const WhyUsSection = () => {
                   const startDate = new Date('2025-02-11');
                   const today = new Date();
                   const diffDays = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-                  return (base + Math.max(0, diffDays) * 2).toLocaleString('en-US');
+                  return (base + Math.max(0, diffDays) * 28).toLocaleString('en-US');
                 })()}
               </motion.div>
               <span className="text-xs md:text-sm text-muted-foreground">طلب منفذ</span>
