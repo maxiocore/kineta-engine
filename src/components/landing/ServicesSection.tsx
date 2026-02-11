@@ -242,7 +242,7 @@ const ServicesSection = () => {
   const { data: stats, isLoading } = useRealStats();
 
   const getExecutedOrders = () => {
-    const base = 1837;
+    const base = 847;
     const startDate = new Date('2025-02-11');
     const today = new Date();
     const diffDays = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
