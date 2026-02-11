@@ -28,6 +28,10 @@ struct AppConfig {
     
     /// Notifications page path
     static let notificationsPath = "/dashboard/notifications"
+    
+    /// Supabase configuration for push notifications
+    static let supabaseURL = "https://ykhmoelrzqgxrgrsehat.supabase.co"
+    static let supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlraG1vZWxyenFneHJncnNlaGF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzU1NzksImV4cCI6MjA4MTU1MTU3OX0.cwuWLC2sAUpY258r3DwEBVVGsit4Yca6wPCHANh2gUs"
 }
 
 // MARK: - App Delegate for Push Notifications
@@ -55,8 +59,45 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         let token = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
         print("[Push] Device token: \(token)")
-        // TODO: Send token to your backend server
         UserDefaults.standard.set(token, forKey: "apns_device_token")
+        
+        // Send token to backend
+        registerTokenWithBackend(token: token)
+    }
+    
+    func registerTokenWithBackend(token: String) {
+        guard let url = URL(string: "\(AppConfig.supabaseURL)/functions/v1/register-device-token") else { return }
+        
+        // Get auth token from WebView cookies/storage if available
+        let authToken = UserDefaults.standard.string(forKey: "supabase_auth_token") ?? ""
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(AppConfig.supabaseAnonKey)", forHTTPHeaderField: "apikey")
+        if !authToken.isEmpty {
+            request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+        }
+        
+        let body: [String: Any] = [
+            "action": "register",
+            "device_token": token,
+            "device_name": UIDevice.current.name,
+            "os_version": UIDevice.current.systemVersion,
+            "app_version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        ]
+        
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("[Push] Failed to register token: \(error.localizedDescription)")
+                return
+            }
+            if let httpResponse = response as? HTTPURLResponse {
+                print("[Push] Token registration response: \(httpResponse.statusCode)")
+            }
+        }.resume()
     }
     
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {

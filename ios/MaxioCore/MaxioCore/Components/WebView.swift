@@ -20,6 +20,33 @@ struct WebView: UIViewRepresentable {
         // Use default (persistent) data store for session persistence
         configuration.websiteDataStore = .default()
         
+        // Add message handler for auth token bridge
+        let contentController = configuration.userContentController
+        contentController.add(context.coordinator, name: "nativeTokenBridge")
+        
+        // Inject JS to capture Supabase auth token
+        let tokenScript = WKUserScript(source: """
+            (function() {
+                function sendToken() {
+                    try {
+                        var keys = Object.keys(localStorage);
+                        for (var i = 0; i < keys.length; i++) {
+                            if (keys[i].indexOf('supabase') !== -1 && keys[i].indexOf('auth') !== -1) {
+                                var data = JSON.parse(localStorage.getItem(keys[i]));
+                                if (data && data.access_token) {
+                                    window.webkit.messageHandlers.nativeTokenBridge.postMessage(data.access_token);
+                                    return;
+                                }
+                            }
+                        }
+                    } catch(e) {}
+                }
+                sendToken();
+                setInterval(sendToken, 5000);
+            })();
+            """, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+        contentController.addUserScript(tokenScript)
+        
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
@@ -44,13 +71,29 @@ struct WebView: UIViewRepresentable {
     }
     
     // MARK: - Coordinator
-    class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
+    class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
         var viewModel: WebViewModel
         var appSettings: AppSettings
         
         init(viewModel: WebViewModel, appSettings: AppSettings) {
             self.viewModel = viewModel
             self.appSettings = appSettings
+        }
+        
+        // MARK: - Script Message Handler (Auth Token Bridge)
+        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+            if message.name == "nativeTokenBridge", let token = message.body as? String {
+                let oldToken = UserDefaults.standard.string(forKey: "supabase_auth_token")
+                if token != oldToken {
+                    UserDefaults.standard.set(token, forKey: "supabase_auth_token")
+                    print("[Auth] Token captured from web app")
+                    
+                    // Re-register device token with new auth
+                    if let deviceToken = UserDefaults.standard.string(forKey: "apns_device_token") {
+                        (UIApplication.shared.delegate as? AppDelegate)?.registerTokenWithBackend(token: deviceToken)
+                    }
+                }
+            }
         }
         
         // MARK: - Navigation Delegate

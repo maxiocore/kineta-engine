@@ -2453,6 +2453,45 @@ export type Database = {
         }
         Relationships: []
       }
+      ios_device_tokens: {
+        Row: {
+          app_version: string | null
+          created_at: string
+          device_name: string | null
+          device_token: string
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          os_version: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          app_version?: string | null
+          created_at?: string
+          device_name?: string | null
+          device_token: string
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          os_version?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          app_version?: string | null
+          created_at?: string
+          device_name?: string | null
+          device_token?: string
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          os_version?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       job_applications: {
         Row: {
           admin_notes: string | null
