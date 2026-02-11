@@ -869,6 +869,9 @@ const ClientDashboard = () => {
         animate={{ opacity: 1 }}
         className="space-y-4 sm:space-y-5 md:space-y-6 px-1 sm:px-0"
       >
+        {/* ============ بانر التمويل ============ */}
+        <FinancingBanner variant="dashboard" />
+
         {/* Header Section - Compact & Modern */}
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
@@ -1191,8 +1194,8 @@ const ClientDashboard = () => {
           </Card>
         </section>
 
-        {/* ============ بانر التمويل ============ */}
-        <FinancingBanner variant="dashboard" />
+
+
 
         {/* ============ قسم 9: الدعم الفني ============ */}
         <motion.div
