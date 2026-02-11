@@ -2,7 +2,7 @@ import { motion, useInView } from "framer-motion";
 import { 
   Instagram, Facebook, Youtube, Twitter, 
   MessageCircle, Linkedin, Music, Globe, 
-  TrendingUp, Sparkles, ArrowLeft, Play
+  TrendingUp, Sparkles, ArrowLeft, Play, Camera, Headphones
 } from "lucide-react";
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -63,6 +63,13 @@ const platforms = [
     icon: Music, 
     color: "from-green-500 to-green-400",
     services: ["متابعين", "تشغيلات", "حفظ", "قوائم تشغيل"],
+    popular: false
+  },
+  { 
+    name: "سناب شات", 
+    icon: Camera, 
+    color: "from-yellow-400 to-yellow-500",
+    services: ["متابعين", "مشاهدات", "قصص", "تفاعل"],
     popular: false
   },
   { 
@@ -210,9 +217,9 @@ const DigitalServicesSection = () => {
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.2 }}
           >
-            عزّز حضورك على{" "}
+            تواجد قوي على{" "}
             <span className="relative inline-block">
-              <span className="text-gradient">جميع المنصات</span>
+              <span className="text-gradient">كل المنصات</span>
               <motion.div
                 className="absolute -bottom-1 left-0 w-full h-1 bg-gradient-to-l from-primary via-accent to-primary rounded-full"
                 initial={{ scaleX: 0 }}
@@ -228,7 +235,7 @@ const DigitalServicesSection = () => {
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ delay: 0.3 }}
           >
-            نوفر لك خدمات تسويق رقمي لأكثر من 9 منصات اجتماعية بجودة عالية وأسعار منافسة
+            خدمات تسويق رقمي احترافية لأكثر من 9 منصات اجتماعية — نعزّز حضورك الرقمي بنتائج ملموسة وقابلة للقياس
           </motion.p>
         </motion.div>
 
