@@ -1,6 +1,6 @@
 //
 //  OfflineView.swift
-//  MaxioCore
+//  ASH HOLDING
 //
 //  Beautiful offline screen shown when there's no internet connection.
 //
@@ -17,7 +17,6 @@ struct OfflineView: View {
             
             // Animated Icon
             ZStack {
-                // Background circles
                 ForEach(0..<3) { index in
                     Circle()
                         .stroke(
@@ -39,7 +38,6 @@ struct OfflineView: View {
                         )
                 }
                 
-                // Main icon
                 Image(systemName: "wifi.slash")
                     .font(.system(size: 50, weight: .medium))
                     .foregroundStyle(
@@ -52,7 +50,6 @@ struct OfflineView: View {
             }
             .frame(height: 180)
             
-            // Text Content
             VStack(spacing: 12) {
                 Text("لا يوجد اتصال بالإنترنت")
                     .font(.title2.bold())
@@ -65,9 +62,7 @@ struct OfflineView: View {
                     .padding(.horizontal, 32)
             }
             
-            // Action Buttons
             VStack(spacing: 16) {
-                // Retry Button
                 Button(action: onRetry) {
                     HStack(spacing: 10) {
                         Image(systemName: "arrow.clockwise")
@@ -87,7 +82,6 @@ struct OfflineView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
                 
-                // Settings Button
                 Button(action: openSettings) {
                     HStack(spacing: 10) {
                         Image(systemName: "gear")
@@ -107,8 +101,7 @@ struct OfflineView: View {
             
             Spacer()
             
-            // Footer
-            Text("MaxioCore")
+            Text("ASH HOLDING")
                 .font(.footnote)
                 .foregroundColor(.secondary)
                 .padding(.bottom, 20)

@@ -1,14 +1,17 @@
 //
 //  NotificationsHelperView.swift
-//  MaxioCore
+//  ASH HOLDING
 //
-//  Helper screen explaining web push notifications on iOS.
+//  Native push notifications setup + web push guide.
 //
 
 import SwiftUI
+import UserNotifications
 
 struct NotificationsHelperView: View {
     @State private var showWebNotifications = false
+    @State private var notificationStatus: UNAuthorizationStatus = .notDetermined
+    @State private var showTestSent = false
     
     var body: some View {
         NavigationStack {
@@ -26,7 +29,7 @@ struct NotificationsHelperView: View {
                             )
                             .frame(width: 100, height: 100)
                         
-                        Image(systemName: "bell.badge.fill")
+                        Image(systemName: notificationStatus == .authorized ? "bell.badge.fill" : "bell.slash.fill")
                             .font(.system(size: 44))
                             .foregroundStyle(
                                 LinearGradient(
@@ -39,36 +42,57 @@ struct NotificationsHelperView: View {
                     .padding(.top, 20)
                     
                     // Title
-                    Text("إشعارات الويب على iPhone")
+                    Text("إشعارات ASH HOLDING")
                         .font(.title2.bold())
                         .multilineTextAlignment(.center)
                     
-                    // Explanation Card
-                    VStack(alignment: .leading, spacing: 16) {
-                        InfoRow(
-                            icon: "iphone",
-                            iconColor: .blue,
-                            title: "متطلبات iOS",
-                            description: "تعمل إشعارات الويب على iOS 16.4 والإصدارات الأحدث فقط."
-                        )
+                    // Status Card
+                    VStack(spacing: 16) {
+                        HStack {
+                            Image(systemName: statusIcon)
+                                .foregroundColor(statusColor)
+                                .font(.title3)
+                            Text(statusText)
+                                .font(.headline)
+                            Spacer()
+                        }
                         
-                        Divider()
-                        
-                        InfoRow(
-                            icon: "square.and.arrow.up",
-                            iconColor: .green,
-                            title: "إضافة للشاشة الرئيسية",
-                            description: "يجب تثبيت الموقع كتطبيق على الشاشة الرئيسية لتلقي الإشعارات."
-                        )
-                        
-                        Divider()
-                        
-                        InfoRow(
-                            icon: "safari",
-                            iconColor: .orange,
-                            title: "استخدم Safari",
-                            description: "افتح الموقع في Safari، ثم اضغط على زر المشاركة واختر \"إضافة إلى الشاشة الرئيسية\"."
-                        )
+                        if notificationStatus != .authorized {
+                            Button(action: enableNotifications) {
+                                HStack {
+                                    Image(systemName: "bell.fill")
+                                    Text("تفعيل الإشعارات الآن")
+                                }
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(
+                                    LinearGradient(
+                                        colors: [.blue, .purple],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                        } else {
+                            // Test notification button
+                            Button(action: sendTestNotification) {
+                                HStack {
+                                    Image(systemName: "paperplane.fill")
+                                    Text("إرسال إشعار تجريبي")
+                                }
+                                .font(.subheadline.bold())
+                                .foregroundColor(.blue)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.blue.opacity(0.1))
+                                )
+                            }
+                        }
                     }
                     .padding(20)
                     .background(
@@ -78,16 +102,44 @@ struct NotificationsHelperView: View {
                     )
                     .padding(.horizontal)
                     
-                    // Steps Card
+                    // Features Card
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("خطوات التفعيل")
+                        Text("ستتلقى إشعارات عن")
                             .font(.headline)
                         
-                        StepRow(number: 1, text: "افتح Safari وانتقل إلى maxiocore.com")
-                        StepRow(number: 2, text: "اضغط على أيقونة المشاركة ⬆️")
-                        StepRow(number: 3, text: "اختر \"إضافة إلى الشاشة الرئيسية\"")
-                        StepRow(number: 4, text: "افتح التطبيق من الأيقونة الجديدة")
-                        StepRow(number: 5, text: "فعّل الإشعارات من داخل التطبيق")
+                        InfoRow(
+                            icon: "bag.fill",
+                            iconColor: .blue,
+                            title: "تحديثات الطلبات",
+                            description: "حالة طلباتك وتقدم العمل"
+                        )
+                        
+                        Divider()
+                        
+                        InfoRow(
+                            icon: "wallet.pass.fill",
+                            iconColor: .green,
+                            title: "المعاملات المالية",
+                            description: "الإيداعات والمدفوعات والكاشباك"
+                        )
+                        
+                        Divider()
+                        
+                        InfoRow(
+                            icon: "tag.fill",
+                            iconColor: .orange,
+                            title: "العروض والتخفيضات",
+                            description: "عروض حصرية وكوبونات خصم"
+                        )
+                        
+                        Divider()
+                        
+                        InfoRow(
+                            icon: "message.fill",
+                            iconColor: .purple,
+                            title: "الدعم الفني",
+                            description: "ردود فريق الدعم على تذاكرك"
+                        )
                     }
                     .padding(20)
                     .background(
@@ -97,25 +149,10 @@ struct NotificationsHelperView: View {
                     )
                     .padding(.horizontal)
                     
-                    // Note
-                    HStack(spacing: 12) {
-                        Image(systemName: "lightbulb.fill")
-                            .foregroundColor(.yellow)
-                        Text("هذا التطبيق يعرض الموقع داخل WebView. للحصول على إشعارات Push الكاملة، استخدم تطبيق الويب المثبت.")
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.yellow.opacity(0.1))
-                    )
-                    .padding(.horizontal)
-                    
-                    // Action Button
+                    // Web notifications button
                     Button(action: { showWebNotifications = true }) {
                         HStack {
-                            Image(systemName: "bell.fill")
+                            Image(systemName: "globe")
                             Text("فتح صفحة الإشعارات")
                         }
                         .font(.headline)
@@ -139,6 +176,94 @@ struct NotificationsHelperView: View {
             .navigationTitle("الإشعارات")
             .sheet(isPresented: $showWebNotifications) {
                 NotificationsWebSheet()
+            }
+            .onAppear {
+                checkNotificationStatus()
+            }
+            .overlay {
+                if showTestSent {
+                    VStack {
+                        Spacer()
+                        Text("تم إرسال إشعار تجريبي ✓")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                            .background(Capsule().fill(Color.green))
+                            .padding(.bottom, 100)
+                    }
+                    .animation(.spring(), value: showTestSent)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Status
+    private var statusIcon: String {
+        switch notificationStatus {
+        case .authorized: return "checkmark.circle.fill"
+        case .denied: return "xmark.circle.fill"
+        default: return "questionmark.circle.fill"
+        }
+    }
+    
+    private var statusColor: Color {
+        switch notificationStatus {
+        case .authorized: return .green
+        case .denied: return .red
+        default: return .orange
+        }
+    }
+    
+    private var statusText: String {
+        switch notificationStatus {
+        case .authorized: return "الإشعارات مفعّلة ✓"
+        case .denied: return "الإشعارات معطّلة"
+        default: return "الإشعارات غير مفعّلة"
+        }
+    }
+    
+    private func checkNotificationStatus() {
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            DispatchQueue.main.async {
+                notificationStatus = settings.authorizationStatus
+            }
+        }
+    }
+    
+    private func enableNotifications() {
+        if notificationStatus == .denied {
+            // Open system settings
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(url)
+            }
+        } else {
+            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+                DispatchQueue.main.async {
+                    checkNotificationStatus()
+                    if granted {
+                        UIApplication.shared.registerForRemoteNotifications()
+                    }
+                }
+            }
+        }
+    }
+    
+    private func sendTestNotification() {
+        let content = UNMutableNotificationContent()
+        content.title = "ASH HOLDING"
+        content.body = "تم تفعيل الإشعارات بنجاح! 🎉"
+        content.sound = .default
+        
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
+        let request = UNNotificationRequest(identifier: "test", content: content, trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request) { _ in
+            DispatchQueue.main.async {
+                showTestSent = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    showTestSent = false
+                }
             }
         }
     }

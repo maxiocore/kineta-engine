@@ -4,17 +4,15 @@
 <dict>
 	<!-- 
 	===========================================
-	MaxioCore iOS App Configuration
+	ASH HOLDING iOS App Configuration
 	===========================================
-	To change the app name: Edit CFBundleDisplayName
-	Bundle ID is set in Xcode project settings
 	-->
 	
 	<key>CFBundleDisplayName</key>
-	<string>MaxioCore</string>
+	<string>ASH HOLDING</string>
 	
 	<key>CFBundleName</key>
-	<string>MaxioCore</string>
+	<string>ASH HOLDING</string>
 	
 	<key>CFBundleShortVersionString</key>
 	<string>1.0.0</string>
@@ -59,6 +57,12 @@
 	
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	
+	<!-- Background Modes for Push Notifications -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	
 	<!-- Allow loading web content -->
 	<key>NSAppTransportSecurity</key>
