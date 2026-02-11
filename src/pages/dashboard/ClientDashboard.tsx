@@ -53,6 +53,7 @@ import MonthlyGoalCard from "@/components/dashboard/MonthlyGoalCard";
 import AchievementsHistory from "@/components/dashboard/AchievementsHistory";
 import { supabase } from "@/integrations/supabase/client";
 import OrderStatusChart from "@/components/dashboard/OrderStatusChart";
+import FinancingBanner from "@/components/FinancingBanner";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserBadges } from "@/hooks/useUserBadges";
 import { useMonthlyAchievements } from "@/hooks/useMonthlyAchievements";
@@ -1189,6 +1190,9 @@ const ClientDashboard = () => {
             </CardContent>
           </Card>
         </section>
+
+        {/* ============ بانر التمويل ============ */}
+        <FinancingBanner variant="dashboard" />
 
         {/* ============ قسم 9: الدعم الفني ============ */}
         <motion.div
