@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Send, Loader2, Users, User, FileText } from "lucide-react";
+import { Send, Loader2, Users, User, FileText, UsersRound } from "lucide-react";
 
 const SMSSendTab = () => {
   const [mode, setMode] = useState<"single" | "bulk">("single");
@@ -28,6 +28,18 @@ const SMSSendTab = () => {
         .order("name_ar");
       if (error) throw error;
       return data;
+    },
+  });
+
+  const { data: allUsers, isLoading: loadingUsers } = useQuery({
+    queryKey: ["all-users-phones"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("phone")
+        .not("phone", "is", null);
+      if (error) throw error;
+      return data?.filter(u => u.phone?.trim()) || [];
     },
   });
 
@@ -116,6 +128,25 @@ const SMSSendTab = () => {
               <Users className="w-4 h-4" />
               جماعي
             </Button>
+            {mode === "bulk" && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1"
+                disabled={loadingUsers}
+                onClick={() => {
+                  if (allUsers && allUsers.length > 0) {
+                    setBulkPhones(allUsers.map(u => u.phone).join("\n"));
+                    toast.success(`تم تحديد ${allUsers.length} عميل`);
+                  } else {
+                    toast.error("لا يوجد عملاء بأرقام هواتف");
+                  }
+                }}
+              >
+                <UsersRound className="w-4 h-4" />
+                الكل ({allUsers?.length ?? 0})
+              </Button>
+            )}
           </div>
 
           {/* Template Selector */}
