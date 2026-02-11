@@ -6,15 +6,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface WhatsAppConfig {
-  access_token: string;
-  instance_id: string;
-}
-
 interface NotifyRequest {
   to: string;
   type: 'test' | 'order_status';
-  config?: WhatsAppConfig;
   orderNumber?: string;
   status?: string;
   statusAr?: string;
@@ -39,52 +33,38 @@ serve(async (req) => {
 
   try {
     const body: NotifyRequest = await req.json();
-    const { to, type, config: directConfig, orderNumber, status, statusAr, serviceName } = body;
+    const { to, type, orderNumber, status, statusAr, serviceName } = body;
 
-    // Get config from request or from database
-    let accessToken: string;
-    let instanceId: string;
+    // Read credentials from secrets
+    const accessToken = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
+    const instanceId = Deno.env.get("WHATSAPP_INSTANCE_ID");
 
-    if (directConfig) {
-      accessToken = directConfig.access_token;
-      instanceId = directConfig.instance_id;
-    } else {
-      // Get config from database
-      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-      const supabase = createClient(supabaseUrl, supabaseKey);
+    if (!accessToken || !instanceId) {
+      return new Response(
+        JSON.stringify({ success: false, error: "WhatsApp credentials not configured in secrets" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-      const { data: settings, error } = await supabase
-        .from("system_settings")
-        .select("value")
-        .eq("key", "whatsapp_config")
-        .single();
+    // Check if enabled from database settings
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-      if (error || !settings?.value) {
-        return new Response(
-          JSON.stringify({ success: false, error: "WhatsApp not configured" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+    const { data: settings } = await supabase
+      .from("system_settings")
+      .select("value")
+      .eq("key", "whatsapp_config")
+      .single();
 
-      const config = settings.value as WhatsAppConfig & { enabled: boolean };
-      
+    if (settings?.value) {
+      const config = settings.value as { enabled: boolean };
       if (!config.enabled) {
         return new Response(
           JSON.stringify({ success: false, error: "WhatsApp notifications disabled" }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-
-      accessToken = config.access_token;
-      instanceId = config.instance_id;
-    }
-
-    if (!accessToken || !instanceId) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Missing API credentials" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
     }
 
     // Clean phone number
