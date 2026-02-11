@@ -59,7 +59,8 @@ const ClientCashback = lazy(() => import("./pages/dashboard/ClientCashback"));
 const ClientReadyWebsites = lazy(() => import("./pages/dashboard/ClientReadyWebsites"));
 const ClientChallenges = lazy(() => import("./pages/dashboard/ClientChallenges"));
 const ClientFinancialHub = lazy(() => import("./pages/dashboard/ClientFinancialHub"));
-
+const ClientFinancing = lazy(() => import("./pages/dashboard/ClientFinancing"));
+const ClientFinancingApplications = lazy(() => import("./pages/dashboard/ClientFinancingApplications"));
 
 // Lazy load pages - Dev Services
 const DevServicesPage = lazy(() => import("./pages/dashboard/DevServicesPage"));
@@ -293,6 +294,16 @@ const App = () => (
                     <Route path="/dashboard/financial" element={
                       <ProtectedRoute>
                         <ClientFinancialHub />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/dashboard/financing" element={
+                      <ProtectedRoute>
+                        <ClientFinancing />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/dashboard/financing/applications" element={
+                      <ProtectedRoute>
+                        <ClientFinancingApplications />
                       </ProtectedRoute>
                     } />
                     
