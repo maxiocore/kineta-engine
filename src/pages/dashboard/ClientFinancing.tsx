@@ -106,7 +106,7 @@ const ClientFinancing = () => {
     setSubmitting(true);
     try {
       const appNumber = `FIN-${Date.now().toString(36).toUpperCase()}`;
-      const { error } = await supabase.from("financing_applications").insert({
+      const { data: insertedApp, error: insertError } = await supabase.from("financing_applications").insert({
         application_number: appNumber,
         user_id: user.id,
         plan_id: selectedPlan.id,
@@ -119,11 +119,27 @@ const ClientFinancing = () => {
         service_id: selectedService?.id || null,
         service_description: serviceDescription || selectedService?.title_ar || null,
         status: "pending",
-      });
+      }).select("id").single();
 
-      if (error) throw error;
+      if (insertError) throw insertError;
 
-      toast.success("تم تقديم طلب التمويل بنجاح! سنراجعه في أقرب وقت");
+      // Submit to external financing provider via BFF Gateway
+      try {
+        const { data: bffResponse, error: bffError } = await supabase.functions.invoke("bff-gateway", {
+          body: { path: "finance/submit", body: { application_id: insertedApp.id } },
+        });
+
+        if (bffError) {
+          console.warn("BFF submission warning:", bffError);
+          // Still show success - application saved locally, provider sync will retry
+        } else {
+          console.log("BFF submission success:", bffResponse);
+        }
+      } catch (bffErr) {
+        console.warn("Failed to sync with financing provider:", bffErr);
+      }
+
+      toast.success("تم تقديم طلب التمويل بنجاح! سيتم مراجعته من جهة التمويل");
       navigate("/dashboard/financing/applications");
     } catch (err: any) {
       console.error("Financing submit error:", err);

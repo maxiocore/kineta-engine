@@ -134,6 +134,102 @@ async function handleFinance(
     return json(envelope(data));
   }
 
+  // /finance/submit - submit new application to ASH Holdings
+  if (path === "/submit" && _req.method === "POST") {
+    if (!ctx.user) return error("Authentication required", 401);
+
+    let body: Record<string, unknown> = {};
+    try {
+      const cloned = _req.clone();
+      const text = await cloned.text();
+      if (text) {
+        const parsed = JSON.parse(text);
+        body = parsed.body || parsed;
+      }
+    } catch { /* no body */ }
+
+    const applicationId = body.application_id as string;
+    if (!applicationId) return error("application_id is required", 400);
+
+    // Fetch local application
+    const { data: app } = await supabase
+      .from("financing_applications")
+      .select("*")
+      .eq("id", applicationId)
+      .eq("user_id", ctx.user.id)
+      .maybeSingle();
+
+    if (!app) return error("Application not found", 404);
+
+    // Fetch user profile for extra data
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name, email, phone")
+      .eq("id", ctx.user.id)
+      .maybeSingle();
+
+    // Send to ASH Holdings
+    const ashPayload = {
+      external_id: app.id,
+      application_number: app.application_number,
+      customer: {
+        id: ctx.user.id,
+        name: app.full_name || profile?.full_name,
+        email: app.email || profile?.email,
+        phone: app.phone || profile?.phone,
+        national_id: app.national_id,
+        company_name: app.company_name,
+      },
+      financing: {
+        requested_amount: app.requested_amount,
+        plan_id: app.plan_id,
+        service_id: app.service_id,
+        service_description: app.service_description,
+        type: app.service_id ? "service" : "custom",
+      },
+    };
+
+    console.log("[BFF] Submitting to ASH Holdings:", JSON.stringify(ashPayload).substring(0, 300));
+    const ashResult = await ashRequest("/api/finance/applications", "POST", ashPayload);
+
+    if (!ashResult.ok) {
+      console.error("[BFF] ASH submission failed:", ashResult.status, ashResult.data);
+      // Update local status
+      await supabase
+        .from("financing_applications")
+        .update({ workflow_status: "submission_failed", updated_at: new Date().toISOString() })
+        .eq("id", applicationId);
+
+      return error("Failed to submit to financing provider", 502);
+    }
+
+    const ashData = ashResult.data as Record<string, unknown>;
+
+    // Update local application with ASH response
+    await supabase
+      .from("financing_applications")
+      .update({
+        status: (ashData.status as string) || "submitted",
+        workflow_status: "submitted_to_provider",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", applicationId);
+
+    // Log activity
+    await supabase.from("financing_activity_log").insert({
+      application_id: applicationId,
+      event_type: "submitted_to_ash",
+      from_status: "pending",
+      to_status: (ashData.status as string) || "submitted",
+      triggered_by: "bff_gateway",
+      actor_id: ctx.user.id,
+      metadata: { ash_response_id: ashData.id, ash_status: ashData.status },
+      is_visible_to_customer: true,
+    });
+
+    return json(envelope({ submitted: true, ash_status: ashData.status, ash_id: ashData.id }));
+  }
+
   // /finance/sync/:id - sync single application with ASH
   if (path.startsWith("/sync/")) {
     if (!ctx.isAdmin) return error("Admin access required", 403);
