@@ -431,65 +431,7 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
         }
       }
 
-      // Send order to provider IMMEDIATELY after order creation
-      console.log('=== SENDING ORDER TO PROVIDER IMMEDIATELY ===');
-      console.log('Order details:', {
-        orderId: createdOrder.id,
-        serviceId: service.id,
-        link,
-        quantity,
-        hasExternalServiceId: !!service.external_service_id
-      });
-
-      // Show immediate feedback
-      toast.loading("جاري إرسال الطلب للمزود...", { id: 'provider-order' });
-
-      try {
-        const { data: providerData, error: providerError } = await supabase.functions.invoke('provider-order', {
-          body: {
-            orderId: createdOrder.id,
-            serviceId: service.id,
-            link,
-            quantity
-          }
-        });
-
-        console.log('Provider response:', providerData, 'Error:', providerError);
-
-        if (providerError) {
-          console.error('Provider error:', providerError);
-          toast.error("فشل إرسال الطلب للمزود - سيتم إعادة المحاولة", { id: 'provider-order' });
-          
-          // Retry once after 2 seconds
-          setTimeout(async () => {
-            try {
-              const { data: retryData, error: retryError } = await supabase.functions.invoke('provider-order', {
-                body: {
-                  orderId: createdOrder.id,
-                  serviceId: service.id,
-                  link,
-                  quantity
-                }
-              });
-              
-              if (!retryError && retryData?.success) {
-                toast.success("تم إرسال الطلب للمزود بنجاح!", { id: 'provider-retry' });
-              }
-            } catch (e) {
-              console.error('Retry failed:', e);
-            }
-          }, 2000);
-        } else if (providerData?.success) {
-          toast.success(`تم إرسال الطلب للمزود بنجاح! رقم الطلب الخارجي: ${providerData.external_order_id || '---'}`, { id: 'provider-order' });
-        } else if (providerData?.error) {
-          toast.error(`خطأ من المزود: ${providerData.error}`, { id: 'provider-order' });
-        } else if (providerData?.message?.includes('Local order')) {
-          toast.info("تم إنشاء الطلب - خدمة محلية", { id: 'provider-order' });
-        }
-      } catch (providerErr) {
-        console.error('Error calling provider-order:', providerErr);
-        toast.error("حدث خطأ في الاتصال بالمزود", { id: 'provider-order' });
-      }
+      
 
       // Notify admins about new order
       notifyNewOrder({

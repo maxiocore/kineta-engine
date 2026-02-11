@@ -141,12 +141,7 @@ const OrdersHeader = ({
             </DropdownMenuContent>
           </DropdownMenu>
           
-          <Link to="/admin/orders/sync">
-            <Button size="sm" className="gap-2 h-9 bg-gradient-to-l from-primary to-primary/80 flex-row-reverse">
-              <ArrowUpDown className="w-4 h-4" />
-              <span className="hidden sm:inline">مزامنة</span>
-            </Button>
-          </Link>
+          
         </div>
       </div>
     </motion.div>

@@ -87,36 +87,7 @@ const OrderDetailsDialog = ({
   const [newStatus, setNewStatus] = useState(order?.status || "");
   const [adminNotes, setAdminNotes] = useState(order?.admin_notes || "");
   const [showHistory, setShowHistory] = useState(false);
-  const [resending, setResending] = useState(false);
-
-  const handleResendToProvider = async () => {
-    if (!order) return;
-    
-    setResending(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('provider-order', {
-        body: {
-          orderId: order.id,
-          serviceId: order.service?.id,
-          link: order.link,
-          quantity: order.quantity
-        }
-      });
-
-      if (error) {
-        toast.error("فشل إرسال الطلب للمزود");
-        console.error('Resend error:', error);
-      } else {
-        toast.success("تم إرسال الطلب للمزود بنجاح");
-        console.log('Resend response:', data);
-      }
-    } catch (err) {
-      toast.error("حدث خطأ أثناء الإرسال");
-      console.error('Resend exception:', err);
-    } finally {
-      setResending(false);
-    }
-  };
+  
 
   // Update state when order changes
   if (order && newStatus !== order.status && !saving) {
@@ -242,46 +213,7 @@ const OrderDetailsDialog = ({
                 </div>
               )}
 
-              {/* Provider Status Section */}
-              <div className="p-3 rounded-lg bg-secondary/40 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Send className="w-3.5 h-3.5" />
-                    <span className="text-xs">حالة المزود</span>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleResendToProvider}
-                    disabled={resending}
-                    className="h-7 text-xs gap-1.5"
-                  >
-                    <RefreshCw className={cn("w-3 h-3", resending && "animate-spin")} />
-                    {resending ? "جاري الإرسال..." : "إعادة إرسال للمزود"}
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">رقم الطلب الخارجي:</span>
-                  <span className="font-mono font-medium">{order.external_order_id || "—"}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">الحالة الخارجية:</span>
-                  <Badge 
-                    variant="outline" 
-                    className={cn(
-                      "text-xs",
-                      order.external_status === 'Completed' && "bg-green-500/10 text-green-600 border-green-500/30",
-                      order.external_status === 'In progress' && "bg-blue-500/10 text-blue-600 border-blue-500/30",
-                      order.external_status === 'Pending' && "bg-yellow-500/10 text-yellow-600 border-yellow-500/30",
-                      order.external_status === 'Partial' && "bg-orange-500/10 text-orange-600 border-orange-500/30",
-                      order.external_status === 'Canceled' && "bg-red-500/10 text-red-600 border-red-500/30",
-                      !order.external_status && "bg-muted text-muted-foreground"
-                    )}
-                  >
-                    {order.external_status || "غير مرسل"}
-                  </Badge>
-                </div>
-              </div>
+              
 
               {order.notes && (
                 <div className="p-3 rounded-lg bg-secondary/40">
