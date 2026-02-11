@@ -243,7 +243,7 @@ const ServicesSection = () => {
 
   const getExecutedOrders = () => {
     const base = 847;
-    const startDate = new Date('2025-02-11');
+    const startDate = new Date('2026-02-11');
     const today = new Date();
     const diffDays = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     return base + Math.max(0, diffDays) * 28;
