@@ -89,7 +89,7 @@ const AdminOrders = () => {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancellingOrder, setCancellingOrder] = useState<Order | null>(null);
   const [cancelling, setCancelling] = useState(false);
-  const [syncing, setSyncing] = useState(false);
+  
   const [newOrdersCount, setNewOrdersCount] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [orderHistory, setOrderHistory] = useState<OrderHistory[]>([]);
@@ -242,16 +242,7 @@ const AdminOrders = () => {
   const toggleSelectAll = () => { setSelectedIds(selectedIds.length === filteredOrders.length ? [] : filteredOrders.map(o => o.id)); };
   const toggleSelect = (id: string) => { setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]); };
 
-  const handleSyncOrdersStatus = async () => {
-    setSyncing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('sync-orders-status');
-      if (error) throw error;
-      if (data.synced > 0) { toast.success(`تم تحديث ${data.synced} طلب`); fetchOrders(); }
-      else toast.info("لا توجد طلبات تحتاج للتحديث");
-    } catch { toast.error("فشل في المزامنة"); }
-    finally { setSyncing(false); }
-  };
+  
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -327,8 +318,6 @@ const AdminOrders = () => {
                   newOrdersCount={newOrdersCount}
                   soundEnabled={soundEnabled}
                   onToggleSound={() => setSoundEnabled(!soundEnabled)}
-                  syncing={syncing}
-                  onSync={handleSyncOrdersStatus}
                   onExport={exportOrders}
                 />
                 

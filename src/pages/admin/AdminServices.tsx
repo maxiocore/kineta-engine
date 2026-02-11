@@ -93,7 +93,7 @@ const AdminServices = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [syncing, setSyncing] = useState(false);
+  
   
   // View states
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
@@ -107,8 +107,7 @@ const AdminServices = () => {
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [viewingService, setViewingService] = useState<Service | null>(null);
-  const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false);
-  const [syncResults, setSyncResults] = useState<any>(null);
+  
 
   // Bulk delete
   const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
@@ -183,31 +182,7 @@ const AdminServices = () => {
     fetchOrderStats();
   };
 
-  // Sync services from providers
-  const handleSyncServices = async () => {
-    setSyncing(true);
-    setSyncResults(null);
-    try {
-      const { data, error } = await supabase.functions.invoke('sync-services', {
-        body: { update_prices: true, update_descriptions: true }
-      });
-      
-      if (error) throw error;
-      
-      setSyncResults(data);
-      setIsSyncDialogOpen(true);
-      
-      if (data?.success) {
-        toast.success(data.message || 'تم تحديث الخدمات بنجاح');
-        fetchServices();
-      }
-    } catch (error: any) {
-      console.error('Sync error:', error);
-      toast.error('خطأ في مزامنة الخدمات');
-    } finally {
-      setSyncing(false);
-    }
-  };
+  
 
   // Enrich services with order stats
   const enrichedServices = useMemo(() => {
@@ -615,16 +590,7 @@ const AdminServices = () => {
                       <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
                       تحديث
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleSyncServices}
-                      disabled={syncing}
-                      className="gap-2 border-primary/50 hover:bg-primary/10"
-                    >
-                      <Activity className={`w-4 h-4 ${syncing ? 'animate-pulse' : ''}`} />
-                      {syncing ? 'جاري المزامنة...' : 'مزامنة من المزود'}
-                    </Button>
+                    
                     <Button
                       variant="destructive"
                       size="sm"
@@ -1339,68 +1305,8 @@ const AdminServices = () => {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Sync Results Dialog */}
-        <AlertDialog open={isSyncDialogOpen} onOpenChange={setIsSyncDialogOpen}>
-          <AlertDialogContent dir="rtl" className="max-w-lg">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-2 text-primary">
-                <Activity className="w-5 h-5" />
-                نتائج مزامنة الخدمات
-              </AlertDialogTitle>
-              <AlertDialogDescription asChild>
-                <div className="space-y-4 pt-4">
-                  {syncResults?.results?.map((result: any, index: number) => (
-                    <div 
-                      key={index}
-                      className={`p-4 rounded-xl border ${
-                        result.success 
-                          ? 'bg-success/10 border-success/30' 
-                          : 'bg-destructive/10 border-destructive/30'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge variant={result.success ? 'default' : 'destructive'}>
-                          {result.success ? 'نجاح' : 'فشل'}
-                        </Badge>
-                        <span className="font-medium">{result.provider_name}</span>
-                      </div>
-                      {result.success ? (
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">تم التحديث:</span>
-                            <span className="font-medium text-success">{result.updated}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">تحديث السعر:</span>
-                            <span className="font-medium">{result.price_updates}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">تحديث الوصف:</span>
-                            <span className="font-medium">{result.description_updates}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">خدمات المزود:</span>
-                            <span className="font-medium">{result.total_provider_services}</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-destructive">{result.error}</p>
-                      )}
-                    </div>
-                  ))}
-                  {syncResults?.sync_time && (
-                    <p className="text-xs text-muted-foreground text-center">
-                      آخر مزامنة: {new Date(syncResults.sync_time).toLocaleString('ar-SA')}
-                    </p>
-                  )}
-                </div>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogAction>حسناً</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+
+
       </div>
     </AdminDashboardLayout>
   );

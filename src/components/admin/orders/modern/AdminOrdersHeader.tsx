@@ -1,8 +1,8 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { 
-  ShoppingBag, Bell, BellOff, RefreshCw, Download, 
-  FileJson, FileSpreadsheet, BarChart3
+  ShoppingBag, Bell, BellOff, Download, 
+  FileJson, FileSpreadsheet
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,8 +18,6 @@ interface AdminOrdersHeaderProps {
   newOrdersCount: number;
   soundEnabled: boolean;
   onToggleSound: () => void;
-  syncing: boolean;
-  onSync: () => void;
   onExport: (type: 'csv' | 'json') => void;
 }
 
@@ -27,8 +25,6 @@ export const AdminOrdersHeader = ({
   newOrdersCount,
   soundEnabled,
   onToggleSound,
-  syncing,
-  onSync,
   onExport,
 }: AdminOrdersHeaderProps) => {
   return (
@@ -92,18 +88,8 @@ export const AdminOrdersHeader = ({
             </Button>
           </motion.div>
 
-          {/* Sync Button */}
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              variant="outline"
-              onClick={onSync}
-              disabled={syncing}
-              className="h-10 px-4 rounded-xl border-border/50 gap-2 flex flex-row-reverse"
-            >
-              <RefreshCw className={cn("w-4 h-4", syncing && "animate-spin")} />
-              <span className="hidden sm:inline">مزامنة</span>
-            </Button>
-          </motion.div>
+
+
 
           {/* Export Dropdown */}
           <DropdownMenu>
