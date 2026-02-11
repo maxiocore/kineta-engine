@@ -5,7 +5,8 @@ import {
   Landmark, 
   History, 
   Coins,
-  CreditCard
+  CreditCard,
+  Fingerprint
 } from "lucide-react";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import ClientDepositsContent from "@/components/financial/ClientDepositsContent";
 import ClientBalanceLogsContent from "@/components/financial/ClientBalanceLogsContent";
 import ClientCashbackContent from "@/components/financial/ClientCashbackContent";
+import DigitalWalletCard from "@/components/dashboard/DigitalWalletCard";
 
 const ClientFinancialHub = () => {
   const { user } = useAuth();
@@ -22,7 +24,7 @@ const ClientFinancialHub = () => {
   
   // Get initial tab from URL or default to "deposits"
   const urlTab = searchParams.get("tab");
-  const validTabs = ["deposits", "balance-logs", "cashback"];
+  const validTabs = ["deposits", "balance-logs", "cashback", "digital-id"];
   const initialTab = urlTab && validTabs.includes(urlTab) ? urlTab : "deposits";
   
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -42,6 +44,7 @@ const ClientFinancialHub = () => {
   }, [searchParams]);
 
   const tabs = [
+    { id: "digital-id", label: "الهوية الرقمية", icon: Fingerprint },
     { id: "deposits", label: "الإيداعات", icon: CreditCard },
     { id: "balance-logs", label: "السجل", icon: History },
     { id: "cashback", label: "كاش باك", icon: Coins },
@@ -79,7 +82,7 @@ const ClientFinancialHub = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-auto p-1 md:p-1.5 bg-muted/50 rounded-lg md:rounded-xl">
+          <TabsList className="grid w-full grid-cols-4 h-auto p-1 md:p-1.5 bg-muted/50 rounded-lg md:rounded-xl">
             {tabs.map((tab) => (
               <TabsTrigger
                 key={tab.id}
@@ -93,6 +96,10 @@ const ClientFinancialHub = () => {
           </TabsList>
 
           <div className="mt-4 md:mt-6">
+            <TabsContent value="digital-id" className="m-0">
+              <DigitalWalletCard />
+            </TabsContent>
+
             <TabsContent value="deposits" className="m-0">
               <ClientDepositsContent />
             </TabsContent>
