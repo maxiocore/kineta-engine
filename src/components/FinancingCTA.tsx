@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Banknote, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 interface FinancingCTAProps {
   serviceId?: string;
@@ -9,12 +10,11 @@ interface FinancingCTAProps {
   className?: string;
 }
 
-const FINANCING_URL = "https://ash.holdings";
-
 const FinancingCTA = ({ serviceId, variant = "default", className }: FinancingCTAProps) => {
+  const navigate = useNavigate();
+
   const handleClick = () => {
-    const url = serviceId ? `${FINANCING_URL}?service=${serviceId}` : FINANCING_URL;
-    window.open(url, "_blank", "noopener,noreferrer");
+    navigate("/dashboard/financing");
   };
 
   if (variant === "banner") {
