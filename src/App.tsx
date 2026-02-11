@@ -109,7 +109,7 @@ const AdminDevOrderDetails = lazy(() => import("./pages/admin/AdminDevOrderDetai
 const AdminUnifiedOrders = lazy(() => import("./pages/admin/AdminUnifiedOrders"));
 const AdminOrderDetails = lazy(() => import("./pages/admin/AdminOrderDetails"));
 const AdminAPIKeys = lazy(() => import("./pages/admin/AdminAPIKeys"));
-
+const AdminSMSHub = lazy(() => import("./pages/admin/AdminSMSHub"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -492,6 +492,11 @@ const App = () => (
                     <Route path="/admin/api-keys" element={
                       <ProtectedRoute requireAdmin>
                         <AdminAPIKeys />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/admin/sms" element={
+                      <ProtectedRoute requireAdmin>
+                        <AdminSMSHub />
                       </ProtectedRoute>
                     } />
                     

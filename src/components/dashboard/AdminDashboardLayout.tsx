@@ -26,6 +26,7 @@ import {
   Mail,
   FileText,
   MessageSquareText,
+  MessageSquare,
   Landmark,
   
   Server,
@@ -64,6 +65,7 @@ const adminNavItems: NavItem[] = [
   { label: "الإشعارات", href: "/admin/notifications", icon: Bell },
   { label: "إشعارات التطبيق", href: "/admin/app-notifications", icon: Bell },
   { label: "البريد", href: "/admin/emails", icon: Mail },
+  { label: "الرسائل النصية", href: "/admin/sms", icon: MessageSquare },
   { label: "سجل العمليات", href: "/admin/logs", icon: FileText },
   { label: "التقارير", href: "/admin/reports", icon: BarChart3 },
   
