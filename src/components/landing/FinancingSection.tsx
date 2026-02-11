@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import {
   Banknote,
   ArrowLeft,
@@ -46,30 +45,10 @@ const features = [
   },
 ];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: "easeOut" as const },
-  },
-};
-
 const FinancingSection = () => {
   return (
     <section className="relative py-20 md:py-28 overflow-hidden" dir="rtl">
-      {/* Subtle background decoration */}
+      {/* Static background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-20 left-0 w-[400px] h-[400px] bg-accent/5 rounded-full blur-3xl" />
@@ -77,23 +56,11 @@ const FinancingSection = () => {
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-14 md:mb-20"
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6"
-          >
+        <div className="text-center mb-14 md:mb-20 animate-fade-in">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
             <Sparkles className="w-4 h-4" />
             <span>خدمات التمويل</span>
-          </motion.div>
+          </div>
 
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
             حلول تمويلية
@@ -104,30 +71,19 @@ const FinancingSection = () => {
             نقدّم لك مجموعة شاملة من الحلول التمويلية المصممة خصيصاً لدعم
             مشاريعك وتحقيق طموحاتك التجارية
           </p>
-        </motion.div>
+        </div>
 
         {/* Features Grid */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 mb-14"
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 mb-14">
           {features.map((feature, i) => (
-            <motion.div
+            <div
               key={i}
-              variants={itemVariants}
-              whileHover={{ y: -6, transition: { duration: 0.25 } }}
-              className="group relative rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm p-6 md:p-7 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300"
+              className="group relative rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm p-6 md:p-7 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1.5 transition-all duration-300 animate-fade-in"
+              style={{ animationDelay: `${i * 100}ms` }}
             >
-              {/* Icon */}
-              <motion.div
-                whileHover={{ rotate: [0, -8, 8, 0], transition: { duration: 0.5 } }}
-                className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-primary/10 group-hover:bg-primary/15 flex items-center justify-center mb-4 transition-colors duration-300"
-              >
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-primary/10 group-hover:bg-primary/15 flex items-center justify-center mb-4 transition-colors duration-300 group-hover:scale-110 group-hover:rotate-3 transition-transform">
                 <feature.icon className="w-6 h-6 md:w-7 md:h-7 text-primary" />
-              </motion.div>
+              </div>
 
               <h3 className="text-base md:text-lg font-bold text-foreground mb-2">
                 {feature.title}
@@ -136,20 +92,13 @@ const FinancingSection = () => {
                 {feature.description}
               </p>
 
-              {/* Hover accent line */}
               <div className="absolute bottom-0 right-0 left-0 h-0.5 bg-gradient-to-l from-primary/60 to-accent/40 rounded-b-2xl scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-right" />
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
         {/* CTA Area */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-          className="text-center"
-        >
+        <div className="text-center animate-fade-in" style={{ animationDelay: '600ms' }}>
           <div className="inline-flex flex-col sm:flex-row items-center gap-4 p-6 md:p-8 rounded-2xl bg-gradient-to-l from-primary/5 via-transparent to-accent/5 border border-border/30">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -174,8 +123,18 @@ const FinancingSection = () => {
               </Button>
             </a>
           </div>
-        </motion.div>
+        </div>
       </div>
+
+      <style>{`
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(15px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out both;
+        }
+      `}</style>
     </section>
   );
 };
