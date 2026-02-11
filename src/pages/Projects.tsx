@@ -159,7 +159,7 @@ const Projects = () => {
         </div>
       </section>
 
-      {/* Projects Grid */}
+      {/* Projects Grid - Compact Icon Cards */}
       <section className="py-12 sm:py-20">
         <div className="container px-4 sm:px-6">
           <motion.div
@@ -167,153 +167,49 @@ const Projects = () => {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="space-y-8"
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5 max-w-5xl mx-auto"
           >
             {projects.map((project) => (
-              <motion.div
+              <motion.a
                 key={project.id}
+                href={project.url}
+                target="_blank"
+                rel="noopener noreferrer"
                 variants={itemVariants}
-                className="group relative"
+                whileHover={{ y: -8, scale: 1.04 }}
+                whileTap={{ scale: 0.97 }}
+                className="group relative flex flex-col items-center text-center"
               >
-                <div className={`absolute inset-0 bg-gradient-to-l ${project.gradient} rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-                
-                <div className="relative bg-card border border-border/50 rounded-3xl overflow-hidden hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5">
-                  <div className="p-6 sm:p-8 md:p-10">
-                    <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
-                      {/* Project Icon & Info */}
-                      <div className="flex-1 space-y-5">
-                        <div className="flex items-start gap-4">
-                          <motion.div
-                            whileHover={{ scale: 1.1, rotate: 5 }}
-                            className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${project.iconBg} flex items-center justify-center shadow-lg flex-shrink-0`}
-                          >
-                            <Globe className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
-                          </motion.div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                                {project.categoryIcon}
-                                {project.category}
-                              </span>
-                            </div>
-                            <h3 className="text-2xl sm:text-3xl font-bold text-foreground mt-2">
-                              {project.title}
-                            </h3>
-                          </div>
-                        </div>
+                {/* Glow effect */}
+                <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-accent/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500" />
 
-                        <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
-                          {project.description}
-                        </p>
+                <div className="relative w-full bg-card border border-border/50 rounded-2xl p-5 sm:p-6 hover:border-primary/40 transition-all duration-300 hover:shadow-xl hover:shadow-primary/10">
+                  {/* Icon */}
+                  <motion.div
+                    whileHover={{ rotate: 10 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                    className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/25"
+                  >
+                    <Globe className="w-7 h-7 sm:w-8 sm:h-8 text-primary-foreground" />
+                  </motion.div>
 
-                        {/* Tags */}
-                        <div className="flex flex-wrap gap-2">
-                          {project.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="px-3 py-1.5 rounded-lg bg-secondary/80 text-secondary-foreground text-xs sm:text-sm font-medium"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
+                  {/* Title */}
+                  <h3 className="text-sm sm:text-base font-bold text-foreground mb-1 group-hover:text-primary transition-colors">
+                    {project.title}
+                  </h3>
 
-                        {/* Features */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {project.features.map((feature, i) => (
-                            <motion.div
-                              key={feature}
-                              initial={{ opacity: 0, x: 20 }}
-                              whileInView={{ opacity: 1, x: 0 }}
-                              viewport={{ once: true }}
-                              transition={{ delay: i * 0.1 }}
-                              className="flex items-center gap-2.5"
-                            >
-                              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                <Zap className="w-3 h-3 text-primary" />
-                              </div>
-                              <span className="text-sm text-foreground">{feature}</span>
-                            </motion.div>
-                          ))}
-                        </div>
+                  {/* Category badge */}
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] sm:text-xs font-medium">
+                    {project.categoryIcon}
+                    {project.category}
+                  </span>
 
-                        {/* CTA */}
-                        <div className="flex flex-wrap gap-3 pt-2">
-                          <motion.a
-                            href={project.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            whileHover={{ scale: 1.03 }}
-                            whileTap={{ scale: 0.97 }}
-                          >
-                            <Button className="bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-lg shadow-primary/20 gap-2 px-6">
-                              <ExternalLink className="w-4 h-4" />
-                              زيارة المشروع
-                            </Button>
-                          </motion.a>
-                          <motion.a
-                            href={project.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            whileHover={{ scale: 1.03 }}
-                            whileTap={{ scale: 0.97 }}
-                          >
-                            <Button variant="outline" className="gap-2 border-border/50 hover:border-primary/30">
-                              <ArrowLeft className="w-4 h-4" />
-                              تفاصيل المشروع
-                            </Button>
-                          </motion.a>
-                        </div>
-                      </div>
-
-                      {/* Project Preview */}
-                      <div className="lg:w-[400px] xl:w-[480px] flex-shrink-0">
-                        <motion.div
-                          whileHover={{ y: -5 }}
-                          className="relative rounded-2xl overflow-hidden border border-border/30 bg-secondary/30 aspect-[16/10] group/preview"
-                        >
-                          {/* Browser mockup header */}
-                          <div className="absolute top-0 inset-x-0 h-8 bg-secondary/80 backdrop-blur-sm border-b border-border/30 flex items-center px-3 gap-1.5 z-10">
-                            <div className="w-2.5 h-2.5 rounded-full bg-destructive/60" />
-                            <div className="w-2.5 h-2.5 rounded-full bg-accent/60" />
-                            <div className="w-2.5 h-2.5 rounded-full bg-primary/60" />
-                            <div className="flex-1 mx-3">
-                              <div className="bg-background/50 rounded-md px-3 py-0.5 text-[10px] text-muted-foreground text-center truncate" dir="ltr">
-                                {project.url}
-                              </div>
-                            </div>
-                          </div>
-                          <iframe
-                            src={project.url}
-                            title={project.title}
-                            className="w-full h-full pt-8 pointer-events-none"
-                            loading="lazy"
-                            sandbox="allow-scripts allow-same-origin"
-                          />
-                          {/* Overlay for click */}
-                          <a
-                            href={project.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="absolute inset-0 z-20 flex items-center justify-center bg-background/0 group-hover/preview:bg-background/40 transition-all duration-300"
-                          >
-                            <motion.div
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              whileHover={{ opacity: 1, scale: 1 }}
-                              className="opacity-0 group-hover/preview:opacity-100 transition-opacity duration-300"
-                            >
-                              <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground font-medium shadow-xl">
-                                <ExternalLink className="w-4 h-4" />
-                                فتح الموقع
-                              </div>
-                            </motion.div>
-                          </a>
-                        </motion.div>
-                      </div>
-                    </div>
+                  {/* External link indicator */}
+                  <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ExternalLink className="w-3.5 h-3.5 text-primary" />
                   </div>
                 </div>
-              </motion.div>
+              </motion.a>
             ))}
           </motion.div>
         </div>
