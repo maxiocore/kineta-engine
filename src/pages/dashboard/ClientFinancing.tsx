@@ -116,7 +116,7 @@ const ClientFinancing = () => {
         email,
         company_name: companyName || null,
         requested_amount: amount,
-        service_id: selectedService?.id || null,
+        service_id: null,
         service_description: serviceDescription || selectedService?.title_ar || null,
         status: "pending",
       }).select("id").single();
