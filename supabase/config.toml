@@ -161,3 +161,6 @@ verify_jwt = false
 
 [functions.bff-gateway]
 verify_jwt = false
+
+[functions.ash-deposit-webhook]
+verify_jwt = false

@@ -1453,6 +1453,45 @@ export type Database = {
           },
         ]
       }
+      external_deposits: {
+        Row: {
+          amount: number
+          created_at: string
+          external_transaction_id: string | null
+          id: string
+          metadata: Json | null
+          processed_at: string | null
+          source: string
+          status: string
+          user_id: string
+          wallet_account_number: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          external_transaction_id?: string | null
+          id?: string
+          metadata?: Json | null
+          processed_at?: string | null
+          source?: string
+          status?: string
+          user_id: string
+          wallet_account_number: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          external_transaction_id?: string | null
+          id?: string
+          metadata?: Json | null
+          processed_at?: string | null
+          source?: string
+          status?: string
+          user_id?: string
+          wallet_account_number?: string
+        }
+        Relationships: []
+      }
       favorite_import_categories: {
         Row: {
           apply_profit_margin: boolean | null
@@ -3903,6 +3942,7 @@ export type Database = {
           total_spent: number
           updated_at: string
           user_id: string
+          wallet_account_number: string | null
         }
         Insert: {
           balance?: number
@@ -3912,6 +3952,7 @@ export type Database = {
           total_spent?: number
           updated_at?: string
           user_id: string
+          wallet_account_number?: string | null
         }
         Update: {
           balance?: number
@@ -3921,6 +3962,7 @@ export type Database = {
           total_spent?: number
           updated_at?: string
           user_id?: string
+          wallet_account_number?: string | null
         }
         Relationships: []
       }
