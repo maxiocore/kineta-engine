@@ -1,17 +1,14 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ExternalLink,
   Globe,
   Rocket,
-  Palette,
   Zap,
   Shield,
   Star,
-  ArrowUpLeft,
   Sparkles,
   Eye,
-  CheckCircle2,
   TrendingUp,
   Building2,
   Code,
@@ -22,17 +19,16 @@ import {
   Cpu,
   Handshake,
   Gem,
+  Palette,
+  Layers,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
-import numaxioImg from "@/assets/project-numaxio.jpg";
-import ashHoldingsImg from "@/assets/project-ash-holdings.jpg";
 
 interface ProjectFeature {
   icon: React.ReactNode;
   title: string;
-  desc: string;
 }
 
 interface Project {
@@ -42,7 +38,8 @@ interface Project {
   description: string;
   url: string;
   category: string;
-  image: string;
+  icon: React.ReactNode;
+  iconBg: string;
   tags: string[];
   highlights: ProjectFeature[];
   color: string;
@@ -53,19 +50,19 @@ const projects: Project[] = [
     id: "numaxio",
     title: "Numaxio",
     subtitle: "منصة رقمية متكاملة",
-    description:
-      "منصة رقمية متكاملة من إنتاج الشركة تقدم حلولاً مبتكرة وخدمات تقنية متقدمة لتمكين الشركات من تحقيق أهدافها الرقمية بكفاءة واحترافية عالية.",
+    description: "منصة رقمية متكاملة تقدم حلولاً مبتكرة وخدمات تقنية متقدمة لتمكين الشركات من تحقيق أهدافها الرقمية.",
     url: "https://numaxio.com",
     category: "منتج رقمي",
-    image: numaxioImg,
-    tags: ["تطوير ويب", "تصميم UI/UX", "حلول سحابية", "SaaS"],
+    icon: <Layers className="w-8 h-8" />,
+    iconBg: "from-cyan-500 to-blue-600",
+    tags: ["تطوير ويب", "UI/UX", "سحابية", "SaaS"],
     highlights: [
-      { icon: <Code className="w-5 h-5" />, title: "تطوير متقدم", desc: "بأحدث تقنيات الويب" },
-      { icon: <Smartphone className="w-5 h-5" />, title: "تصميم متجاوب", desc: "يعمل على جميع الأجهزة" },
-      { icon: <Zap className="w-5 h-5" />, title: "أداء فائق", desc: "سرعة تحميل عالية جداً" },
-      { icon: <Lock className="w-5 h-5" />, title: "حماية متقدمة", desc: "تشفير وأمان شامل" },
-      { icon: <Cpu className="w-5 h-5" />, title: "ذكاء اصطناعي", desc: "أتمتة ذكية للعمليات" },
-      { icon: <Users className="w-5 h-5" />, title: "تجربة مستخدم", desc: "واجهات بديهية وسلسة" },
+      { icon: <Code className="w-4 h-4" />, title: "تطوير متقدم" },
+      { icon: <Smartphone className="w-4 h-4" />, title: "تصميم متجاوب" },
+      { icon: <Zap className="w-4 h-4" />, title: "أداء فائق" },
+      { icon: <Lock className="w-4 h-4" />, title: "حماية متقدمة" },
+      { icon: <Cpu className="w-4 h-4" />, title: "ذكاء اصطناعي" },
+      { icon: <Users className="w-4 h-4" />, title: "تجربة مستخدم" },
     ],
     color: "from-cyan-500 to-blue-600",
   },
@@ -73,19 +70,19 @@ const projects: Project[] = [
     id: "ash-holdings",
     title: "ASH Holdings",
     subtitle: "الموقع الرسمي للشركة الأم",
-    description:
-      "الموقع الرسمي لشركة ASH Holdings الاستثمارية، يعرض رؤية الشركة وخدماتها ومحفظتها الاستثمارية بتصميم احترافي يعكس هوية الشركة وقيمها.",
+    description: "الموقع الرسمي لشركة ASH Holdings الاستثمارية، يعرض رؤية الشركة ومحفظتها الاستثمارية بتصميم احترافي.",
     url: "https://ash.holdings",
     category: "موقع مؤسسي",
-    image: ashHoldingsImg,
-    tags: ["استثمار", "هوية مؤسسية", "موقع رسمي", "أعمال"],
+    icon: <Building2 className="w-8 h-8" />,
+    iconBg: "from-amber-500 to-orange-600",
+    tags: ["استثمار", "هوية مؤسسية", "أعمال"],
     highlights: [
-      { icon: <Building2 className="w-5 h-5" />, title: "هوية مؤسسية", desc: "تصميم يعكس قوة العلامة" },
-      { icon: <BarChart3 className="w-5 h-5" />, title: "عرض المحفظة", desc: "استعراض المشاريع الاستثمارية" },
-      { icon: <Globe className="w-5 h-5" />, title: "متعدد اللغات", desc: "عربي وإنجليزي" },
-      { icon: <Handshake className="w-5 h-5" />, title: "شراكات فعالة", desc: "بناء علاقات استراتيجية" },
-      { icon: <TrendingUp className="w-5 h-5" />, title: "نمو مستدام", desc: "رؤية طويلة المدى" },
-      { icon: <Gem className="w-5 h-5" />, title: "تصميم فاخر", desc: "واجهة أنيقة واحترافية" },
+      { icon: <Building2 className="w-4 h-4" />, title: "هوية مؤسسية" },
+      { icon: <BarChart3 className="w-4 h-4" />, title: "عرض المحفظة" },
+      { icon: <Globe className="w-4 h-4" />, title: "متعدد اللغات" },
+      { icon: <Handshake className="w-4 h-4" />, title: "شراكات فعالة" },
+      { icon: <TrendingUp className="w-4 h-4" />, title: "نمو مستدام" },
+      { icon: <Gem className="w-4 h-4" />, title: "تصميم فاخر" },
     ],
     color: "from-amber-500 to-orange-600",
   },
@@ -99,10 +96,10 @@ const stats = [
 ];
 
 const processSteps = [
-  { step: "01", title: "الاستكشاف", desc: "نفهم رؤيتك وأهدافك بعمق", icon: <Eye className="w-6 h-6" /> },
-  { step: "02", title: "التصميم", desc: "نصمم تجربة مستخدم فريدة", icon: <Palette className="w-6 h-6" /> },
+  { step: "01", title: "الاستكشاف", desc: "نفهم رؤيتك وأهدافك", icon: <Eye className="w-6 h-6" /> },
+  { step: "02", title: "التصميم", desc: "نصمم تجربة فريدة", icon: <Palette className="w-6 h-6" /> },
   { step: "03", title: "التطوير", desc: "نبني بأحدث التقنيات", icon: <Sparkles className="w-6 h-6" /> },
-  { step: "04", title: "الإطلاق", desc: "نضمن إطلاقاً ناجحاً ومتابعة مستمرة", icon: <TrendingUp className="w-6 h-6" /> },
+  { step: "04", title: "الإطلاق", desc: "نضمن إطلاقاً ناجحاً", icon: <TrendingUp className="w-6 h-6" /> },
 ];
 
 const Projects = () => {
@@ -112,64 +109,55 @@ const Projects = () => {
     <div className="min-h-screen bg-background" dir="rtl">
       <Header />
 
-      {/* Hero Section */}
-      <section className="relative pt-28 sm:pt-40 pb-20 sm:pb-32 overflow-hidden">
+      {/* Hero */}
+      <section className="relative pt-28 sm:pt-36 pb-14 sm:pb-20 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <motion.div
             animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="absolute top-20 right-[10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px]"
+            className="absolute top-20 right-[10%] w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px]"
           />
           <motion.div
             animate={{ x: [0, -40, 0], y: [0, 30, 0] }}
             transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-            className="absolute bottom-0 left-[10%] w-[600px] h-[600px] bg-accent/5 rounded-full blur-[120px]"
-          />
-          <div
-            className="absolute inset-0 opacity-[0.015]"
-            style={{
-              backgroundImage:
-                "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
-              backgroundSize: "60px 60px",
-            }}
+            className="absolute bottom-0 left-[10%] w-[500px] h-[500px] bg-accent/5 rounded-full blur-[120px]"
           />
         </div>
 
         <div className="container relative px-4 sm:px-6">
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            className="text-center max-w-4xl mx-auto"
+            transition={{ duration: 0.8 }}
+            className="text-center max-w-3xl mx-auto"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-8"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6"
             >
               <Sparkles className="w-4 h-4" />
               منتجات ومشاريع الشركة
             </motion.div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-              مشاريع صُنعت
-              <br />
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 leading-tight">
+              مشاريع صُنعت{" "}
               <span className="bg-gradient-to-l from-primary via-accent to-primary bg-clip-text text-transparent">
                 بإتقان وشغف
               </span>
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-              منتجات رقمية من إنتاج الشركة تعكس خبرتنا وابتكارنا في بناء حلول تقنية متقدمة
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-xl mx-auto">
+              منتجات رقمية من إنتاج الشركة تعكس خبرتنا في بناء حلول تقنية متقدمة
             </p>
           </motion.div>
 
           {/* Stats */}
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
-            className="flex flex-wrap justify-center gap-6 sm:gap-10 mt-14 sm:mt-20"
+            transition={{ delay: 0.4 }}
+            className="flex flex-wrap justify-center gap-6 sm:gap-10 mt-10"
           >
             {stats.map((stat, index) => (
               <motion.div
@@ -183,166 +171,107 @@ const Projects = () => {
                   <span className="text-primary opacity-60 group-hover:opacity-100 transition-opacity">
                     {stat.icon}
                   </span>
-                  <span className="text-3xl sm:text-4xl font-bold text-foreground">
-                    {stat.number}
-                  </span>
+                  <span className="text-2xl sm:text-3xl font-bold text-foreground">{stat.number}</span>
                 </div>
-                <span className="text-xs sm:text-sm text-muted-foreground">{stat.label}</span>
+                <span className="text-xs text-muted-foreground">{stat.label}</span>
               </motion.div>
             ))}
           </motion.div>
         </div>
       </section>
 
-      {/* Projects Section */}
-      <section className="py-16 sm:py-28">
+      {/* Projects Grid - Side by Side */}
+      <section className="py-12 sm:py-20">
         <div className="container px-4 sm:px-6">
-          <div className="space-y-20 sm:space-y-32 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 max-w-5xl mx-auto">
             {projects.map((project, index) => (
               <motion.div
                 key={project.id}
-                initial={{ opacity: 0, y: 60 }}
+                initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.6, delay: index * 0.15 }}
                 onMouseEnter={() => setHoveredProject(project.id)}
                 onMouseLeave={() => setHoveredProject(null)}
                 className="group relative"
               >
-                {/* Project number watermark */}
-                <div className="absolute -top-8 left-4 sm:left-8 z-0">
-                  <span className="text-8xl sm:text-9xl font-black text-foreground/[0.03] select-none">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                </div>
-
-                <div className="relative rounded-3xl border border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5">
+                <div className="relative rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm overflow-hidden hover:border-primary/30 transition-all duration-500 hover:shadow-xl hover:shadow-primary/5 h-full">
                   {/* Top gradient bar */}
-                  <div className={`h-1.5 w-full bg-gradient-to-l ${project.color}`} />
+                  <div className={`h-1 w-full bg-gradient-to-l ${project.color}`} />
 
-                  <div className="p-6 sm:p-8 md:p-10">
-                    {/* Layout: Image on top for mobile, side by side for desktop */}
-                    <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
-                      
-                      {/* Image Section */}
-                      <motion.a
-                        href={project.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        whileHover={{ y: -4 }}
-                        transition={{ type: "spring", stiffness: 200 }}
-                        className="block w-full lg:w-[48%] flex-shrink-0 relative rounded-2xl overflow-hidden border border-border/30 group/img cursor-pointer"
+                  <div className="p-5 sm:p-6 flex flex-col h-full">
+                    {/* Animated Icon */}
+                    <div className="flex items-start justify-between mb-4">
+                      <motion.div
+                        animate={
+                          hoveredProject === project.id
+                            ? { rotate: [0, -10, 10, -5, 0], scale: [1, 1.1, 1] }
+                            : {}
+                        }
+                        transition={{ duration: 0.6 }}
+                        className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${project.iconBg} flex items-center justify-center text-white shadow-lg`}
                       >
-                        <div className="aspect-[16/10] overflow-hidden">
-                          <img
-                            src={project.image}
-                            alt={`${project.title} - معاينة المشروع`}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105"
-                            loading="lazy"
-                          />
-                        </div>
+                        {project.icon}
+                      </motion.div>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full bg-gradient-to-l ${project.color} text-white text-[10px] font-bold`}>
+                        {project.category}
+                      </span>
+                    </div>
 
-                        {/* Hover overlay */}
-                        <AnimatePresence>
-                          {hoveredProject === project.id && (
-                            <motion.div
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              exit={{ opacity: 0 }}
-                              className="absolute inset-0 bg-foreground/20 backdrop-blur-[2px] flex items-center justify-center"
-                            >
-                              <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow-xl">
-                                <ExternalLink className="w-4 h-4" />
-                                زيارة الموقع
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+                    {/* Title */}
+                    <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-1">
+                      {project.title}
+                    </h2>
+                    <p className="text-xs text-primary font-medium mb-2">{project.subtitle}</p>
 
-                        {/* Category badge on image */}
-                        <div className="absolute top-3 right-3">
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-l ${project.color} text-white text-xs font-bold shadow-lg`}>
-                            {project.category}
-                          </span>
-                        </div>
-                      </motion.a>
+                    {/* Description */}
+                    <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed mb-4 flex-grow">
+                      {project.description}
+                    </p>
 
-                      {/* Info Section */}
-                      <div className="flex-1 space-y-5">
-                        {/* Title & subtitle */}
-                        <div>
-                          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
-                            {project.title}
-                          </h2>
-                          <p className="text-sm sm:text-base text-primary font-medium mt-1">
-                            {project.subtitle}
-                          </p>
-                        </div>
-
-                        {/* Description */}
-                        <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
-                          {project.description}
-                        </p>
-
-                        {/* Tags */}
-                        <div className="flex flex-wrap gap-2">
-                          {project.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="px-3 py-1.5 rounded-lg bg-muted/50 text-muted-foreground text-xs sm:text-sm font-medium border border-border/30 hover:border-primary/30 transition-colors"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-
-                        {/* Visit button */}
-                        <motion.a
-                          href={project.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          whileHover={{ x: -5 }}
-                          className="inline-flex items-center gap-3 text-primary font-semibold text-sm sm:text-base group/link"
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      {project.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2.5 py-1 rounded-md bg-muted/50 text-muted-foreground text-[10px] sm:text-xs font-medium border border-border/30"
                         >
-                          <span className="relative">
-                            زيارة المشروع
-                            <span className="absolute bottom-0 right-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover/link:w-full" />
-                          </span>
-                          <ArrowUpLeft className="w-4 h-4 transition-transform group-hover/link:-translate-x-1 group-hover/link:-translate-y-1" />
-                        </motion.a>
-                      </div>
+                          {tag}
+                        </span>
+                      ))}
                     </div>
 
-                    {/* Features Grid - Below the main content */}
-                    <div className="mt-8 pt-8 border-t border-border/30">
-                      <h3 className="text-sm font-bold text-muted-foreground mb-4 flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-primary" />
-                        مميزات المشروع
-                      </h3>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-                        {project.highlights.map((feature, i) => (
-                          <motion.div
-                            key={feature.title}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: i * 0.08 }}
-                            whileHover={{ y: -3 }}
-                            className="group/feat text-center p-3 sm:p-4 rounded-xl bg-muted/30 border border-border/20 hover:border-primary/30 hover:bg-primary/5 transition-all duration-300"
-                          >
-                            <div className="w-10 h-10 mx-auto mb-2 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover/feat:bg-primary group-hover/feat:text-primary-foreground transition-all duration-300">
-                              {feature.icon}
-                            </div>
-                            <h4 className="text-xs sm:text-sm font-bold text-foreground">
-                              {feature.title}
-                            </h4>
-                            <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
-                              {feature.desc}
-                            </p>
-                          </motion.div>
-                        ))}
-                      </div>
+                    {/* Features */}
+                    <div className="grid grid-cols-3 gap-2 mb-5">
+                      {project.highlights.map((feature, i) => (
+                        <motion.div
+                          key={feature.title}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          whileInView={{ opacity: 1, scale: 1 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.3 + i * 0.05 }}
+                          className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/30 border border-border/20 hover:border-primary/20 hover:bg-primary/5 transition-all"
+                        >
+                          <span className="text-primary">{feature.icon}</span>
+                          <span className="text-[9px] sm:text-[10px] font-medium text-foreground text-center leading-tight">
+                            {feature.title}
+                          </span>
+                        </motion.div>
+                      ))}
                     </div>
+
+                    {/* Visit button */}
+                    <motion.a
+                      href={project.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-gradient-to-l ${project.color} text-white text-sm font-semibold shadow-md hover:shadow-lg transition-shadow`}
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      زيارة المشروع
+                    </motion.a>
                   </div>
                 </div>
               </motion.div>
@@ -352,88 +281,75 @@ const Projects = () => {
       </section>
 
       {/* Process Section */}
-      <section className="py-16 sm:py-24 border-t border-border/30">
+      <section className="py-14 sm:py-20 border-t border-border/30">
         <div className="container px-4 sm:px-6">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12 sm:mb-16"
+            className="text-center mb-10"
           >
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">
-              كيف نعمل
-            </h2>
-            <p className="text-muted-foreground text-sm sm:text-base max-w-lg mx-auto">
-              منهجية عمل مدروسة تضمن نتائج استثنائية في كل مشروع
+            <h2 className="text-2xl sm:text-3xl font-bold mb-2">كيف نعمل</h2>
+            <p className="text-muted-foreground text-sm max-w-lg mx-auto">
+              منهجية عمل مدروسة تضمن نتائج استثنائية
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
             {processSteps.map((item, index) => (
               <motion.div
                 key={item.step}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.15 }}
-                whileHover={{ y: -5 }}
-                className="group relative text-center p-5 sm:p-6 rounded-2xl bg-card/50 border border-border/40 hover:border-primary/30 transition-all duration-300"
+                transition={{ delay: index * 0.12 }}
+                whileHover={{ y: -4 }}
+                className="group text-center p-4 rounded-xl bg-card/50 border border-border/40 hover:border-primary/30 transition-all duration-300"
               >
-                <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                <div className="w-10 h-10 mx-auto mb-2 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
                   {item.icon}
                 </div>
-                <span className="text-[10px] font-bold text-primary/40 tracking-widest">
-                  {item.step}
-                </span>
-                <h3 className="text-sm sm:text-base font-bold text-foreground mt-1">
-                  {item.title}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                  {item.desc}
-                </p>
+                <span className="text-[10px] font-bold text-primary/40 tracking-widest">{item.step}</span>
+                <h3 className="text-sm font-bold text-foreground mt-1">{item.title}</h3>
+                <p className="text-[11px] text-muted-foreground mt-1">{item.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 sm:py-24">
+      {/* CTA */}
+      <section className="py-14 sm:py-20">
         <div className="container px-4 sm:px-6">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="relative max-w-3xl mx-auto"
+            className="relative max-w-2xl mx-auto"
           >
-            <div className="absolute inset-0 bg-gradient-to-l from-primary/8 via-accent/8 to-primary/8 rounded-[2rem] blur-2xl" />
-            <div className="relative bg-card/60 border border-border/40 rounded-[2rem] p-8 sm:p-14 backdrop-blur-md text-center overflow-hidden">
-              <div className="absolute top-0 left-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -translate-x-1/2 -translate-y-1/2" />
-              <div className="absolute bottom-0 right-0 w-40 h-40 bg-accent/5 rounded-full blur-2xl translate-x-1/3 translate-y-1/3" />
-
+            <div className="absolute inset-0 bg-gradient-to-l from-primary/8 via-accent/8 to-primary/8 rounded-2xl blur-2xl" />
+            <div className="relative bg-card/60 border border-border/40 rounded-2xl p-8 sm:p-12 backdrop-blur-md text-center">
               <motion.div
                 initial={{ scale: 0 }}
                 whileInView={{ scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ type: "spring", stiffness: 200 }}
-                className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20"
+                className="w-14 h-14 mx-auto mb-5 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20"
               >
-                <Rocket className="w-8 h-8 text-primary-foreground" />
+                <Rocket className="w-7 h-7 text-primary-foreground" />
               </motion.div>
 
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-                هل لديك مشروع في ذهنك؟
-              </h2>
-              <p className="text-muted-foreground mb-8 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
-                فريقنا جاهز لتحويل فكرتك إلى واقع رقمي مبهر. تواصل معنا اليوم وابدأ رحلة التميز!
+              <h2 className="text-xl sm:text-2xl font-bold mb-3">هل لديك مشروع في ذهنك؟</h2>
+              <p className="text-muted-foreground mb-6 text-sm max-w-md mx-auto">
+                فريقنا جاهز لتحويل فكرتك إلى واقع رقمي مبهر
               </p>
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                 <a href="/contact">
                   <Button
                     size="lg"
-                    className="bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-lg shadow-primary/20 gap-2 px-10 py-6 text-base rounded-xl"
+                    className="bg-gradient-to-l from-primary to-accent text-primary-foreground shadow-lg shadow-primary/20 gap-2 px-8 py-5 text-sm rounded-xl"
                   >
-                    <Rocket className="w-5 h-5" />
+                    <Rocket className="w-4 h-4" />
                     ابدأ مشروعك الآن
                   </Button>
                 </a>
