@@ -201,6 +201,20 @@ const AdminKYC = () => {
       } as any).eq('id', selectedKYC.id);
 
       if (error) throw error;
+
+      // Update user profile with verified name and mark as verified
+      const verifiedName = selectedKYC.extracted_data?.full_name;
+      if (verifiedName) {
+        await supabase.from('profiles').update({
+          full_name: verifiedName,
+          is_verified: true,
+        }).eq('id', selectedKYC.user_id);
+      } else {
+        await supabase.from('profiles').update({
+          is_verified: true,
+        }).eq('id', selectedKYC.user_id);
+      }
+
       // Audit is handled automatically by DB trigger (audit_kyc_all_actions)
 
       // Send SMS notification to user - Approval
