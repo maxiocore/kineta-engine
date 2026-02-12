@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import AdminDashboardLayout from '@/components/dashboard/AdminDashboardLayout';
 
 interface KYCVerification {
   id: string;
@@ -363,7 +364,8 @@ const AdminKYC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8" dir="rtl">
+    <AdminDashboardLayout>
+    <div className="space-y-6" dir="rtl">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -693,6 +695,7 @@ const AdminKYC = () => {
         </Dialog>
       </div>
     </div>
+    </AdminDashboardLayout>
   );
 };
 
