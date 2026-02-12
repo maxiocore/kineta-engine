@@ -70,7 +70,12 @@ const values = [
 ];
 
 const milestones = [
-  { year: "2025", title: "الإطلاق", description: "إطلاق الموقع رسمياً في 23 ديسمبر 2025", icon: Rocket, color: "from-primary to-accent" },
+  { year: "2020", title: "التأسيس", description: "تأسيس الشركة وبداية رحلة الحلول الرقمية", icon: Building2, color: "from-blue-500 to-cyan-600" },
+  { year: "2021", title: "النمو", description: "توسيع الفريق وإطلاق خدمات التسويق الرقمي", icon: TrendingUp, color: "from-emerald-500 to-teal-600" },
+  { year: "2022", title: "التوسع", description: "افتتاح فروع جديدة وتوسيع قاعدة العملاء", icon: Globe, color: "from-violet-500 to-purple-600" },
+  { year: "2023", title: "الابتكار", description: "إطلاق حلول تقنية مبتكرة ومتقدمة", icon: Lightbulb, color: "from-amber-500 to-orange-600" },
+  { year: "2024", title: "الريادة", description: "تحقيق الريادة في السوق السعودي والعربي", icon: Trophy, color: "from-pink-500 to-rose-600" },
+  { year: "2025", title: "المنصة", description: "إطلاق المنصة الرقمية المتكاملة رسمياً", icon: Rocket, color: "from-primary to-accent" },
 ];
 
 const services = [
@@ -191,9 +196,9 @@ const About = () => {
                   </span>
                 </h1>
                 <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                  شركة رائدة في مجال التسويق الرقمي والحلول الإبداعية، نساعد الشركات على 
+                  شركة رائدة في مجال التسويق الرقمي والحلول الإبداعية منذ عام 2020، نساعد الشركات على 
                   <span className="text-primary font-semibold"> النمو </span>
-                  والتميز في العالم الرقمي - تم إطلاقنا في ديسمبر 2025
+                  والتميز في العالم الرقمي
                 </p>
               </motion.div>
 
@@ -319,13 +324,13 @@ const About = () => {
                 
                 <div className="space-y-5 text-muted-foreground text-base md:text-lg leading-relaxed">
                   <p>
-                    انطلقت رحلتنا في ديسمبر 2025 برؤية واضحة: تقديم حلول تسويقية رقمية متميزة للشركات في المملكة العربية السعودية والعالم العربي.
+                    انطلقت رحلتنا في عام 2020 برؤية واضحة: تقديم حلول تسويقية رقمية متميزة للشركات في المملكة العربية السعودية والعالم العربي.
                   </p>
                   <p>
-                    من فريق صغير مكون من 3 أشخاص، نمونا لنصبح فريقاً من أكثر من 25 متخصصاً في مختلف مجالات التسويق الرقمي والتصميم والبرمجة.
+                    من فريق صغير مكون من 3 أشخاص، نمونا خلال 5 سنوات لنصبح فريقاً من أكثر من 25 متخصصاً في مختلف مجالات التسويق الرقمي والتصميم والبرمجة.
                   </p>
                   <p>
-                    اليوم، نفخر بخدمة أكثر من 500 عميل وتنفيذ أكثر من 1000 مشروع ناجح، محققين نتائج استثنائية تتجاوز التوقعات.
+                    اليوم، وبعد أكثر من 5 سنوات من العمل الدؤوب، نفخر بخدمة أكثر من 500 عميل وتنفيذ أكثر من 1000 مشروع ناجح، محققين نتائج استثنائية تتجاوز التوقعات.
                   </p>
                 </div>
                 
@@ -370,9 +375,9 @@ const About = () => {
                   <div className="absolute inset-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 backdrop-blur-sm flex items-center justify-center border border-primary/20">
                     <div className="text-center">
                       <span className="text-5xl md:text-6xl font-bold bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
-                        2025
+                        2020
                       </span>
-                      <p className="text-sm text-muted-foreground mt-2">سنة الإطلاق</p>
+                      <p className="text-sm text-muted-foreground mt-2">سنة التأسيس</p>
                     </div>
                   </div>
 
@@ -568,7 +573,7 @@ const About = () => {
                 
                 <div className="space-y-4">
                   {[
-                    "خبرة أكثر من 5 سنوات في السوق السعودي والعربي",
+                    "خبرة تمتد منذ عام 2020 في السوق السعودي والعربي",
                     "فريق متخصص من أكثر من 25 خبيراً في مختلف المجالات",
                     "أكثر من 1000 مشروع ناجح ومتنوع",
                     "دعم فني متواصل على مدار الساعة",
