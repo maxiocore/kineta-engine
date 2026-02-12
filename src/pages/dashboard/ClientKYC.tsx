@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { KYCStatusBanner } from '@/components/kyc/KYCStatusBanner';
+import ClientDashboardLayout from '@/components/dashboard/ClientDashboardLayout';
 
 type KYCStep = 'status' | 'form' | 'submitting';
 type DocumentType = 'national_id' | 'iqama' | 'cr';
@@ -400,6 +401,45 @@ const ClientKYC = () => {
         metadata: { session_id: sessionId, document_type: formData.documentType, attempt_number: attemptNumber },
       });
 
+      // Send SMS confirmation to user
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('phone, full_name')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profileData?.phone) {
+        const smsMessage = [
+          '📋 تم استلام طلب التحقق من الهوية',
+          '━━━━━━━━━━━━━',
+          '',
+          `عزيزي ${profileData.full_name || formData.fullName}،`,
+          '',
+          attemptNumber > 1
+            ? `تم استلام إعادة تقديم طلب التحقق (محاولة #${attemptNumber}).`
+            : 'تم استلام طلب التحقق من هويتك بنجاح.',
+          'سيتم مراجعته من قبل فريقنا خلال 24 ساعة.',
+          '',
+          '⏳ الحالة: قيد المراجعة',
+          '',
+          '━━━━━━━━━━━━━',
+          'فريق التحقق | ASH HOLDING',
+        ].join('\n');
+
+        try {
+          await supabase.functions.invoke('sms-notify', {
+            body: {
+              phone: profileData.phone,
+              message: smsMessage,
+              type: 'kyc',
+              userId: user.id,
+            },
+          });
+        } catch (smsErr) {
+          console.error('SMS notification failed (non-blocking):', smsErr);
+        }
+      }
+
       // Refresh all records
       const { data } = await supabase
         .from('kyc_verifications' as any)
@@ -545,7 +585,8 @@ const ClientKYC = () => {
   const historyRecords = allRecords.length > 1 ? allRecords : [];
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8" dir="rtl">
+    <ClientDashboardLayout>
+    <div className="pb-8" dir="rtl">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
@@ -937,6 +978,7 @@ const ClientKYC = () => {
         </AnimatePresence>
       </div>
     </div>
+    </ClientDashboardLayout>
   );
 };
 

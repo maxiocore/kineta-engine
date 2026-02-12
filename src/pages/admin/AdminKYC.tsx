@@ -203,6 +203,42 @@ const AdminKYC = () => {
       if (error) throw error;
       // Audit is handled automatically by DB trigger (audit_kyc_all_actions)
 
+      // Send SMS notification to user - Approval
+      const profile = userProfiles[selectedKYC.user_id];
+      if (profile?.phone) {
+        const smsMessage = [
+          '✅ تم التحقق من هويتك بنجاح',
+          '━━━━━━━━━━━━━',
+          '',
+          `عزيزي ${profile.full_name || 'العميل'}،`,
+          '',
+          'يسعدنا إبلاغك أنه تم التحقق من هويتك بنجاح.',
+          'حسابك الآن مفعّل بالكامل ويمكنك الاستفادة من جميع خدمات المنصة.',
+          '',
+          '🔓 الخدمات المتاحة الآن:',
+          '• التحويلات المالية',
+          '• إنشاء الطلبات',
+          '• السحب البنكي',
+          '',
+          '━━━━━━━━━━━━━',
+          'فريق التحقق | ASH HOLDING',
+        ].join('\n');
+
+        try {
+          await supabase.functions.invoke('sms-notify', {
+            body: {
+              phone: profile.phone,
+              message: smsMessage,
+              type: 'kyc',
+              userId: selectedKYC.user_id,
+              referenceId: selectedKYC.id,
+            },
+          });
+        } catch (smsErr) {
+          console.error('SMS notification failed (non-blocking):', smsErr);
+        }
+      }
+
       // Admin notification
       await supabase.from('admin_notifications').insert({
         title: `تمت الموافقة على KYC - ${userProfiles[selectedKYC.user_id]?.full_name || 'مستخدم'}`,
