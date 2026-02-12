@@ -423,27 +423,26 @@ const Footer = () => {
           transition={{ delay: 0.7 }}
         >
           <p className="text-center text-sm text-muted-foreground mb-6">معتمدون رسمياً من</p>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-4 sm:gap-6 max-w-3xl mx-auto">
+          <div className="flex items-center justify-center gap-6 sm:gap-10 flex-wrap max-w-2xl mx-auto">
             {[
               { icon: Building2, label: "المركز السعودي للأعمال", color: "from-blue-500/20 to-blue-600/10" },
               { icon: Radio, label: "هيئة الاتصالات", color: "from-cyan-500/20 to-cyan-600/10" },
               { icon: ShoppingBag, label: "وزارة التجارة", color: "from-emerald-500/20 to-emerald-600/10" },
-              { icon: Landmark, label: "وزارة المالية", color: "from-amber-500/20 to-amber-600/10" },
               { icon: Shield, label: "الأمن السيبراني", color: "from-red-500/20 to-red-600/10" },
               { icon: FileCheck, label: "هيئة الزكاة والضريبة", color: "from-violet-500/20 to-violet-600/10" },
             ].map((item, i) => (
               <motion.div
                 key={item.label}
-                className="flex flex-col items-center gap-2 group cursor-default"
+                className="flex flex-col items-center gap-2.5 group cursor-default w-16 sm:w-20"
                 initial={{ opacity: 0, y: 15 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 0.8 + i * 0.08, type: "spring", stiffness: 120 }}
                 whileHover={{ scale: 1.1, y: -4 }}
               >
-                <div className={`w-11 h-11 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-xl bg-gradient-to-br ${item.color} border border-border/30 flex items-center justify-center group-hover:border-primary/40 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/10`}>
-                  <item.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary/80 group-hover:text-primary transition-colors" />
+                <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br ${item.color} border border-border/30 flex items-center justify-center group-hover:border-primary/40 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/10`}>
+                  <item.icon className="w-6 h-6 sm:w-7 sm:h-7 text-primary/80 group-hover:text-primary transition-colors" />
                 </div>
-                <span className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground group-hover:text-foreground transition-colors font-medium text-center leading-tight">{item.label}</span>
+                <span className="text-[9px] sm:text-[11px] text-muted-foreground group-hover:text-foreground transition-colors font-medium text-center leading-tight">{item.label}</span>
               </motion.div>
             ))}
           </div>
