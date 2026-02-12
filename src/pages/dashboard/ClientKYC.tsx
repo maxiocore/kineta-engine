@@ -22,7 +22,7 @@ type KYCDisplayStatus = 'not_started' | 'pending_review' | 'approved' | 'rejecte
 
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
 const ALLOWED_EXTENSIONS = '.jpg, .jpeg, .png, .pdf';
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 interface KYCRecord {
   id: string;
@@ -66,12 +66,28 @@ function getDisplayStatus(record: KYCRecord | null): KYCDisplayStatus {
   }
 }
 
-function validateFile(file: File): string | null {
-  if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-    return `نوع الملف غير مدعوم. الأنواع المسموحة: ${ALLOWED_EXTENSIONS}`;
+function validateFile(file: File): { error: string; detail: string } | null {
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  const validExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
+
+  if (!ALLOWED_FILE_TYPES.includes(file.type) || !ext || !validExtensions.includes(ext)) {
+    return {
+      error: 'نوع الملف غير مدعوم',
+      detail: `الملف "${file.name}" من نوع غير مقبول. الأنواع المسموحة فقط: JPG, PNG, PDF`,
+    };
   }
   if (file.size > MAX_FILE_SIZE) {
-    return 'حجم الملف كبير جداً (الحد الأقصى 10 ميجابايت)';
+    const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+    return {
+      error: 'حجم الملف كبير جداً',
+      detail: `حجم الملف ${sizeMB} ميجابايت — الحد الأقصى المسموح هو 5 ميجابايت. يرجى ضغط الملف أو اختيار ملف أصغر.`,
+    };
+  }
+  if (file.size < 10 * 1024) {
+    return {
+      error: 'الملف صغير جداً',
+      detail: 'حجم الملف أقل من 10 كيلوبايت — قد يكون تالفاً أو فارغاً. يرجى رفع ملف صالح.',
+    };
   }
   return null;
 }
@@ -123,26 +139,35 @@ const ClientKYC = () => {
   const displayStatus = getDisplayStatus(existingKYC);
   const isLocked = displayStatus === 'pending_review' || displayStatus === 'approved';
 
+  const [fileErrors, setFileErrors] = useState<Record<string, string>>({});
+
   const handleFileSelect = (
     e: React.ChangeEvent<HTMLInputElement>,
-    setter: (s: FileState) => void
+    setter: (s: FileState) => void,
+    fieldKey: string
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const error = validateFile(file);
-    if (error) {
-      toast.error(error);
+    const validation = validateFile(file);
+    if (validation) {
+      toast.error(validation.error, { description: validation.detail, duration: 6000 });
+      setFileErrors(prev => ({ ...prev, [fieldKey]: validation.detail }));
       e.target.value = '';
       return;
     }
+    setFileErrors(prev => { const n = { ...prev }; delete n[fieldKey]; return n; });
     const preview = file.type.startsWith('image/') ? URL.createObjectURL(file) : null;
     setter({ file, preview });
   };
 
   const uploadFile = async (file: File, path: string): Promise<string> => {
+    // Re-validate server-side before upload
+    const validation = validateFile(file);
+    if (validation) throw new Error(validation.detail);
+
     const { data, error } = await supabase.storage
       .from('kyc-documents')
-      .upload(path, file, { upsert: true });
+      .upload(path, file, { upsert: true, contentType: file.type });
     if (error) throw error;
     return data.path;
   };
@@ -176,12 +201,31 @@ const ClientKYC = () => {
     try {
       const sessionId = `kyc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-      // Upload all 3 files
+      // Upload all 3 files (stored privately, never exposed publicly)
       const [frontPath, backPath, selfiePath] = await Promise.all([
         uploadFile(idFront.file!, `${user.id}/${sessionId}/front.${idFront.file!.name.split('.').pop()}`),
         uploadFile(idBack.file!, `${user.id}/${sessionId}/back.${idBack.file!.name.split('.').pop()}`),
         uploadFile(selfie.file!, `${user.id}/${sessionId}/selfie.${selfie.file!.name.split('.').pop()}`),
       ]);
+
+      // AI quality check on uploaded images (for image files only)
+      if (idFront.file!.type.startsWith('image/')) {
+        const qualityResult = await supabase.functions.invoke('kyc-quality-check', {
+          body: { file_paths: [frontPath, backPath, selfiePath], user_id: user.id, session_id: sessionId },
+        });
+
+        if (qualityResult.data && !qualityResult.data.passed) {
+          // Delete uploaded files on quality failure
+          await supabase.storage.from('kyc-documents').remove([frontPath, backPath, selfiePath]);
+          const issues = (qualityResult.data.issues || []) as Array<{ file: string; reason_ar: string }>;
+          issues.forEach((issue: { file: string; reason_ar: string }) => {
+            toast.error(`⚠️ ${issue.file}`, { description: issue.reason_ar, duration: 8000 });
+          });
+          setStep('form');
+          setSubmitting(false);
+          return;
+        }
+      }
 
       // Create KYC record with PENDING status
       const { error: insertErr } = await supabase.from('kyc_verifications' as any).insert({
@@ -286,6 +330,7 @@ const ClientKYC = () => {
     inputRef,
     onSelect,
     onClear,
+    errorMessage,
   }: {
     label: string;
     required: boolean;
@@ -293,6 +338,7 @@ const ClientKYC = () => {
     inputRef: React.RefObject<HTMLInputElement>;
     onSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onClear: () => void;
+    errorMessage?: string;
   }) => (
     <div>
       <Label className="mb-2 block">
@@ -333,12 +379,17 @@ const ClientKYC = () => {
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="w-full h-40 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 hover:border-primary/50 hover:bg-primary/5 transition-all"
+          className={`w-full h-40 border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-2 hover:border-primary/50 hover:bg-primary/5 transition-all ${errorMessage ? 'border-red-500/50 bg-red-500/5' : 'border-border'}`}
         >
           <Upload className="w-8 h-8 text-muted-foreground" />
           <span className="text-sm text-muted-foreground">اضغط لرفع الملف</span>
-          <span className="text-xs text-muted-foreground">{ALLOWED_EXTENSIONS}</span>
+          <span className="text-xs text-muted-foreground">JPG, PNG, PDF — الحد الأقصى 5 ميجابايت</span>
         </button>
+      )}
+      {errorMessage && (
+        <p className="text-xs text-red-400 mt-1 flex items-center gap-1">
+          <AlertTriangle className="w-3 h-3 shrink-0" /> {errorMessage}
+        </p>
       )}
     </div>
   );
@@ -567,24 +618,27 @@ const ClientKYC = () => {
                     required
                     fileState={idFront}
                     inputRef={frontRef as any}
-                    onSelect={(e) => handleFileSelect(e, setIdFront)}
-                    onClear={() => { setIdFront({ file: null, preview: null }); if (frontRef.current) frontRef.current.value = ''; }}
+                    onSelect={(e) => handleFileSelect(e, setIdFront, 'front')}
+                    onClear={() => { setIdFront({ file: null, preview: null }); setFileErrors(p => { const n = {...p}; delete n.front; return n; }); if (frontRef.current) frontRef.current.value = ''; }}
+                    errorMessage={fileErrors['front']}
                   />
                   <FileUploadBox
                     label="الوجه الخلفي للوثيقة"
                     required
                     fileState={idBack}
                     inputRef={backRef as any}
-                    onSelect={(e) => handleFileSelect(e, setIdBack)}
-                    onClear={() => { setIdBack({ file: null, preview: null }); if (backRef.current) backRef.current.value = ''; }}
+                    onSelect={(e) => handleFileSelect(e, setIdBack, 'back')}
+                    onClear={() => { setIdBack({ file: null, preview: null }); setFileErrors(p => { const n = {...p}; delete n.back; return n; }); if (backRef.current) backRef.current.value = ''; }}
+                    errorMessage={fileErrors['back']}
                   />
                   <FileUploadBox
                     label="صورة شخصية مع الهوية (سيلفي)"
                     required
                     fileState={selfie}
                     inputRef={selfieRef as any}
-                    onSelect={(e) => handleFileSelect(e, setSelfie)}
-                    onClear={() => { setSelfie({ file: null, preview: null }); if (selfieRef.current) selfieRef.current.value = ''; }}
+                    onSelect={(e) => handleFileSelect(e, setSelfie, 'selfie')}
+                    onClear={() => { setSelfie({ file: null, preview: null }); setFileErrors(p => { const n = {...p}; delete n.selfie; return n; }); if (selfieRef.current) selfieRef.current.value = ''; }}
+                    errorMessage={fileErrors['selfie']}
                   />
                 </CardContent>
               </Card>
