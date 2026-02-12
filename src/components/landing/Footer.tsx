@@ -466,17 +466,10 @@ const Footer = () => {
             </Link>
             
             <motion.p 
-              className="text-muted-foreground flex items-center gap-2 text-xs sm:text-sm order-3 sm:order-2"
+              className="text-muted-foreground text-xs sm:text-sm order-3 sm:order-2"
               whileHover={{ scale: 1.02 }}
             >
-              © {new Date().getFullYear()} ASH HOLDING. صنع بـ 
-              <motion.span
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
-              >
-                <Heart className="w-4 h-4 text-red-500 fill-red-500" />
-              </motion.span>
-              في السعودية
+              © جميع الحقوق محفوظة لدى شركة علي صالح الشهري القابضة 2026
             </motion.p>
             
             <motion.a
