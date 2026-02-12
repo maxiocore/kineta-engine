@@ -197,7 +197,7 @@ const KYCTimeline = ({ records }: { records: KYCRecord[] }) => {
 };
 
 const ClientKYC = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [step, setStep] = useState<KYCStep>('status');
   const [existingKYC, setExistingKYC] = useState<KYCRecord | null>(null);
   const [allRecords, setAllRecords] = useState<KYCRecord[]>([]);
@@ -212,6 +212,13 @@ const ClientKYC = () => {
     dateOfBirth: '',
     nationality: '',
   });
+
+  // Pre-fill name from profile
+  useEffect(() => {
+    if (profile?.full_name && !formData.fullName) {
+      setFormData(prev => ({ ...prev, fullName: profile.full_name || '' }));
+    }
+  }, [profile]);
 
   // File state
   const [idFront, setIdFront] = useState<FileState>({ file: null, preview: null });
