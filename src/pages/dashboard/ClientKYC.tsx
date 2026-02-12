@@ -5,7 +5,8 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, Upload, Camera, CheckCircle, XCircle, Clock, FileUp,
-  Loader2, AlertTriangle, User, CreditCard, Lock
+  Loader2, AlertTriangle, User, CreditCard, Lock, History,
+  RotateCcw, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -15,6 +16,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
+import { format } from 'date-fns';
+import { ar } from 'date-fns/locale';
 
 type KYCStep = 'status' | 'form' | 'submitting';
 type DocumentType = 'national_id' | 'iqama' | 'cr';
@@ -34,6 +37,7 @@ interface KYCRecord {
   admin_notes: string | null;
   admin_reviewed_at: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 interface FormData {
@@ -92,10 +96,109 @@ function validateFile(file: File): { error: string; detail: string } | null {
   return null;
 }
 
+const docTypeLabel = (type: string | null) => {
+  if (type === 'national_id') return 'هوية وطنية';
+  if (type === 'iqama') return 'إقامة';
+  if (type === 'cr') return 'سجل تجاري';
+  return type || '-';
+};
+
+// ====== Timeline Component ======
+const KYCTimeline = ({ records }: { records: KYCRecord[] }) => {
+  const [expanded, setExpanded] = useState(false);
+  const visibleRecords = expanded ? records : records.slice(0, 3);
+
+  if (records.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <History className="w-5 h-5 text-primary" /> سجل الطلبات السابقة
+          <Badge variant="secondary" className="mr-auto">{records.length}</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <div className="relative pr-6">
+          {/* Timeline line */}
+          <div className="absolute right-2 top-0 bottom-0 w-0.5 bg-border" />
+          
+          <div className="space-y-4">
+            {visibleRecords.map((record, index) => {
+              const isLatest = index === 0;
+              const isPassed = record.status === 'PASSED';
+              const isFailed = record.status === 'FAILED';
+              const isPending = record.status === 'PENDING';
+              
+              return (
+                <div key={record.id} className="relative">
+                  {/* Timeline dot */}
+                  <div className={`absolute -right-[1.15rem] top-1.5 w-3 h-3 rounded-full border-2 z-10 ${
+                    isPassed ? 'bg-emerald-500 border-emerald-400' :
+                    isFailed ? 'bg-red-500 border-red-400' :
+                    isPending ? 'bg-amber-500 border-amber-400' :
+                    'bg-muted border-border'
+                  }`} />
+                  
+                  <div className={`p-3 rounded-lg border transition-colors ${
+                    isLatest ? 'bg-muted/40 border-primary/20' : 'bg-muted/20 border-border/50'
+                  }`}>
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-2">
+                        {isPassed && <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-xs">✅ مقبول</Badge>}
+                        {isFailed && <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-xs">❌ مرفوض</Badge>}
+                        {isPending && <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs">⏳ قيد المراجعة</Badge>}
+                        {isLatest && <Badge variant="outline" className="text-xs">الأخير</Badge>}
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(record.created_at), 'yyyy/MM/dd HH:mm', { locale: ar })}
+                      </span>
+                    </div>
+                    
+                    <div className="text-xs text-muted-foreground space-y-0.5 mt-1">
+                      <p>نوع الوثيقة: <span className="text-foreground">{docTypeLabel(record.document_type)}</span></p>
+                      {record.admin_reviewed_at && (
+                        <p>تاريخ المراجعة: <span className="text-foreground">{format(new Date(record.admin_reviewed_at), 'yyyy/MM/dd HH:mm', { locale: ar })}</span></p>
+                      )}
+                    </div>
+
+                    {isFailed && record.rejection_reason && (
+                      <div className="mt-2 p-2 bg-red-500/10 rounded border border-red-500/20">
+                        <p className="text-xs font-medium text-red-400">سبب الرفض:</p>
+                        <p className="text-xs text-foreground">{record.rejection_reason}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {records.length > 3 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full mt-3"
+            onClick={() => setExpanded(!expanded)}
+          >
+            {expanded ? (
+              <><ChevronUp className="w-4 h-4 ml-1" /> إخفاء</>
+            ) : (
+              <><ChevronDown className="w-4 h-4 ml-1" /> عرض الكل ({records.length})</>
+            )}
+          </Button>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 const ClientKYC = () => {
   const { user } = useAuth();
   const [step, setStep] = useState<KYCStep>('status');
   const [existingKYC, setExistingKYC] = useState<KYCRecord | null>(null);
+  const [allRecords, setAllRecords] = useState<KYCRecord[]>([]);
   const [loadingExisting, setLoadingExisting] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -117,27 +220,43 @@ const ClientKYC = () => {
   const backRef = useRef<HTMLInputElement>(null);
   const selfieRef = useRef<HTMLInputElement>(null);
 
-  // Fetch existing KYC on mount
+  // Fetch ALL KYC records for history + latest
   useEffect(() => {
     if (!user) return;
-    const fetch = async () => {
+    const fetchAll = async () => {
       const { data } = await supabase
         .from('kyc_verifications' as any)
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1);
+        .order('created_at', { ascending: false });
 
-      if (data && data.length > 0) {
-        setExistingKYC(data[0] as any);
+      const records = (data || []) as unknown as KYCRecord[];
+      setAllRecords(records);
+      
+      if (records.length > 0) {
+        setExistingKYC(records[0]);
       }
       setLoadingExisting(false);
     };
-    fetch();
+    fetchAll();
+
+    // Listen for realtime changes (admin approval/rejection)
+    const channel = supabase
+      .channel('kyc-user-updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'kyc_verifications', filter: `user_id=eq.${user.id}` }, () => {
+        fetchAll();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   const displayStatus = getDisplayStatus(existingKYC);
   const isLocked = displayStatus === 'pending_review' || displayStatus === 'approved';
+
+  // For resubmission: pre-fill approved (locked) data from the most recent approved record
+  const approvedRecord = allRecords.find(r => r.status === 'PASSED');
+  const hasApprovedData = !!approvedRecord;
 
   const [fileErrors, setFileErrors] = useState<Record<string, string>>({});
 
@@ -161,7 +280,6 @@ const ClientKYC = () => {
   };
 
   const uploadFile = async (file: File, path: string): Promise<string> => {
-    // Re-validate server-side before upload
     const validation = validateFile(file);
     if (validation) throw new Error(validation.detail);
 
@@ -199,23 +317,24 @@ const ClientKYC = () => {
     setStep('submitting');
 
     try {
+      // New session for each submission (new review cycle)
       const sessionId = `kyc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      const attemptNumber = allRecords.length + 1;
 
-      // Upload all 3 files (stored privately, never exposed publicly)
+      // Upload all 3 files
       const [frontPath, backPath, selfiePath] = await Promise.all([
         uploadFile(idFront.file!, `${user.id}/${sessionId}/front.${idFront.file!.name.split('.').pop()}`),
         uploadFile(idBack.file!, `${user.id}/${sessionId}/back.${idBack.file!.name.split('.').pop()}`),
         uploadFile(selfie.file!, `${user.id}/${sessionId}/selfie.${selfie.file!.name.split('.').pop()}`),
       ]);
 
-      // AI quality check on uploaded images (for image files only)
+      // AI quality check
       if (idFront.file!.type.startsWith('image/')) {
         const qualityResult = await supabase.functions.invoke('kyc-quality-check', {
           body: { file_paths: [frontPath, backPath, selfiePath], user_id: user.id, session_id: sessionId },
         });
 
         if (qualityResult.data && !qualityResult.data.passed) {
-          // Delete uploaded files on quality failure
           await supabase.storage.from('kyc-documents').remove([frontPath, backPath, selfiePath]);
           const issues = (qualityResult.data.issues || []) as Array<{ file: string; reason_ar: string }>;
           issues.forEach((issue: { file: string; reason_ar: string }) => {
@@ -227,7 +346,7 @@ const ClientKYC = () => {
         }
       }
 
-      // Create KYC record with PENDING status
+      // Create NEW KYC record (new review cycle, preserving history)
       const { error: insertErr } = await supabase.from('kyc_verifications' as any).insert({
         user_id: user.id,
         session_id: sessionId,
@@ -253,36 +372,45 @@ const ClientKYC = () => {
         user_id: user.id,
         session_id: sessionId,
         verification_type: 'KYC_SUBMISSION',
-        attempt_number: 1,
+        attempt_number: attemptNumber,
         status: 'success',
-        result_code: 'SUBMITTED_FOR_REVIEW',
-        result_message: 'KYC submitted for admin review - no auto-approval',
+        result_code: attemptNumber > 1 ? 'RESUBMISSION' : 'SUBMITTED_FOR_REVIEW',
+        result_message: attemptNumber > 1
+          ? `KYC resubmission #${attemptNumber} after previous rejection`
+          : 'KYC submitted for admin review - no auto-approval',
         metadata: {
           document_type: formData.documentType,
           has_front: true,
           has_back: true,
           has_selfie: true,
+          is_resubmission: attemptNumber > 1,
+          previous_submission_id: attemptNumber > 1 ? allRecords[0]?.id : null,
         },
       } as any);
 
       // Notify admin
       await supabase.from('admin_notifications').insert({
-        title: 'طلب تحقق هوية جديد',
-        message: `تم استلام طلب تحقق جديد من ${formData.fullName} - رقم الوثيقة: ${formData.documentNumber.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2')}`,
+        title: attemptNumber > 1
+          ? `إعادة تقديم تحقق هوية (#${attemptNumber})`
+          : 'طلب تحقق هوية جديد',
+        message: `تم استلام طلب تحقق ${attemptNumber > 1 ? '(إعادة تقديم) ' : ''}من ${formData.fullName} - رقم الوثيقة: ${formData.documentNumber.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2')}`,
         type: 'kyc_review',
         related_user_id: user.id,
-        metadata: { session_id: sessionId, document_type: formData.documentType },
+        metadata: { session_id: sessionId, document_type: formData.documentType, attempt_number: attemptNumber },
       });
 
-      // Refresh record
+      // Refresh all records
       const { data } = await supabase
         .from('kyc_verifications' as any)
         .select('*')
-        .eq('session_id', sessionId)
-        .single();
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-      if (data) setExistingKYC(data as any);
-      toast.success('تم إرسال طلب التحقق للمراجعة بنجاح');
+      const records = (data || []) as unknown as KYCRecord[];
+      setAllRecords(records);
+      if (records.length > 0) setExistingKYC(records[0]);
+
+      toast.success(attemptNumber > 1 ? 'تم إعادة تقديم الطلب للمراجعة بنجاح' : 'تم إرسال طلب التحقق للمراجعة بنجاح');
       setStep('status');
     } catch (err: any) {
       console.error('KYC submit error:', err);
@@ -293,8 +421,26 @@ const ClientKYC = () => {
     }
   };
 
+  const handleStartResubmission = () => {
+    // If there's approved data, pre-fill the locked fields
+    if (approvedRecord?.extracted_data) {
+      setFormData({
+        fullName: approvedRecord.extracted_data.full_name || '',
+        documentType: (approvedRecord.extracted_data.document_type as DocumentType) || 'national_id',
+        documentNumber: approvedRecord.extracted_data.document_number || '',
+        dateOfBirth: approvedRecord.extracted_data.date_of_birth || '',
+        nationality: approvedRecord.extracted_data.nationality || '',
+      });
+    } else {
+      setFormData({ fullName: '', documentType: 'national_id', documentNumber: '', dateOfBirth: '', nationality: '' });
+    }
+    setIdFront({ file: null, preview: null });
+    setIdBack({ file: null, preview: null });
+    setSelfie({ file: null, preview: null });
+    setStep('form');
+  };
+
   const handleStartNew = () => {
-    setExistingKYC(null);
     setFormData({ fullName: '', documentType: 'national_id', documentNumber: '', dateOfBirth: '', nationality: '' });
     setIdFront({ file: null, preview: null });
     setIdBack({ file: null, preview: null });
@@ -394,6 +540,9 @@ const ClientKYC = () => {
     </div>
   );
 
+  // Previous records excluding the latest one (for timeline)
+  const historyRecords = allRecords.length > 1 ? allRecords : [];
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-8" dir="rtl">
       <div className="max-w-2xl mx-auto space-y-6">
@@ -410,7 +559,7 @@ const ClientKYC = () => {
         <AnimatePresence mode="wait">
           {/* ====== STATUS VIEW ====== */}
           {step === 'status' && (
-            <motion.div key="status" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+            <motion.div key="status" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-4">
               {/* Not Started */}
               {displayStatus === 'not_started' && (
                 <Card>
@@ -434,10 +583,10 @@ const ClientKYC = () => {
                         </div>
                       ))}
                       <p className="text-xs text-muted-foreground">
-                        الملفات المقبولة: JPG, PNG, PDF — الحد الأقصى: 10 ميجابايت
+                        الملفات المقبولة: JPG, PNG, PDF — الحد الأقصى: 5 ميجابايت
                       </p>
                     </div>
-                    <Button onClick={() => setStep('form')} className="w-full" size="lg">
+                    <Button onClick={handleStartNew} className="w-full" size="lg">
                       ابدأ التحقق
                     </Button>
                   </CardContent>
@@ -453,8 +602,11 @@ const ClientKYC = () => {
                     <p className="text-muted-foreground">تم إرسال بياناتك بنجاح وهي الآن تحت مراجعة الفريق المختص</p>
                     <p className="text-sm text-muted-foreground">لا يمكن تعديل البيانات بعد الإرسال</p>
                     <div className="p-4 bg-muted/30 rounded-lg text-right space-y-1 text-sm">
-                      <p><span className="text-muted-foreground">تاريخ الإرسال:</span> {existingKYC?.created_at ? new Date(existingKYC.created_at).toLocaleDateString('ar-SA') : '-'}</p>
-                      <p><span className="text-muted-foreground">نوع الوثيقة:</span> {existingKYC?.document_type === 'national_id' ? 'هوية وطنية' : existingKYC?.document_type === 'iqama' ? 'إقامة' : 'سجل تجاري'}</p>
+                      <p><span className="text-muted-foreground">تاريخ الإرسال:</span> {existingKYC?.created_at ? format(new Date(existingKYC.created_at), 'yyyy/MM/dd HH:mm', { locale: ar }) : '-'}</p>
+                      <p><span className="text-muted-foreground">نوع الوثيقة:</span> {docTypeLabel(existingKYC?.document_type)}</p>
+                      {allRecords.length > 1 && (
+                        <p><span className="text-muted-foreground">رقم المحاولة:</span> {allRecords.length}</p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -499,26 +651,62 @@ const ClientKYC = () => {
                 </Card>
               )}
 
-              {/* Rejected */}
+              {/* ====== REJECTED - Dedicated Resubmission View ====== */}
               {displayStatus === 'rejected' && (
-                <Card>
-                  <CardContent className="p-8 space-y-4">
-                    <div className="text-center">
-                      <XCircle className="w-16 h-16 text-red-400 mx-auto mb-3" />
-                      <h3 className="text-xl font-bold text-red-400">تم رفض التحقق</h3>
-                    </div>
-                    <div className="p-4 bg-red-500/10 rounded-lg border border-red-500/20 space-y-2">
-                      <p className="font-medium text-red-400">سبب الرفض:</p>
-                      <p className="text-sm">{existingKYC?.rejection_reason || 'لم يتم تحديد السبب'}</p>
-                      {existingKYC?.admin_notes && (
-                        <p className="text-xs text-muted-foreground">ملاحظات الإدارة: {existingKYC.admin_notes}</p>
-                      )}
-                    </div>
-                    <Button onClick={handleStartNew} className="w-full" size="lg">
-                      إعادة المحاولة
-                    </Button>
-                  </CardContent>
-                </Card>
+                <div className="space-y-4">
+                  {/* Rejection Notice */}
+                  <Card className="border-red-500/30">
+                    <CardContent className="p-6 space-y-4">
+                      <div className="text-center">
+                        <XCircle className="w-16 h-16 text-red-400 mx-auto mb-3" />
+                        <h3 className="text-xl font-bold text-red-400">تم رفض طلب التحقق</h3>
+                        <p className="text-sm text-muted-foreground mt-1">يمكنك إعادة تقديم الطلب بعد تصحيح الملاحظات</p>
+                      </div>
+
+                      {/* Rejection Reason - Prominent */}
+                      <div className="p-4 bg-red-500/10 rounded-xl border border-red-500/20 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
+                          <p className="font-semibold text-red-400">سبب الرفض:</p>
+                        </div>
+                        <p className="text-sm leading-relaxed">{existingKYC?.rejection_reason || 'لم يتم تحديد السبب'}</p>
+                      </div>
+
+                      {/* Submission details */}
+                      <div className="p-3 bg-muted/30 rounded-lg text-right space-y-1 text-sm">
+                        <p><span className="text-muted-foreground">تاريخ الإرسال:</span> {existingKYC?.created_at ? format(new Date(existingKYC.created_at), 'yyyy/MM/dd HH:mm', { locale: ar }) : '-'}</p>
+                        {existingKYC?.admin_reviewed_at && (
+                          <p><span className="text-muted-foreground">تاريخ المراجعة:</span> {format(new Date(existingKYC.admin_reviewed_at), 'yyyy/MM/dd HH:mm', { locale: ar })}</p>
+                        )}
+                        <p><span className="text-muted-foreground">نوع الوثيقة:</span> {docTypeLabel(existingKYC?.document_type)}</p>
+                        <p><span className="text-muted-foreground">عدد المحاولات:</span> {allRecords.length}</p>
+                      </div>
+
+                      {/* What to fix */}
+                      <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 space-y-2">
+                        <p className="font-medium text-sm flex items-center gap-2">
+                          <RotateCcw className="w-4 h-4 text-primary" /> لإعادة التقديم بنجاح:
+                        </p>
+                        <ul className="text-sm text-muted-foreground space-y-1 pr-6">
+                          <li className="list-disc">تأكد من وضوح صور الوثيقة وعدم وجود انعكاسات</li>
+                          <li className="list-disc">تأكد أن الوثيقة سارية المفعول وغير منتهية</li>
+                          <li className="list-disc">تأكد من تطابق البيانات المدخلة مع الوثيقة</li>
+                          <li className="list-disc">التقط صورة شخصية واضحة تظهر وجهك مع الهوية</li>
+                        </ul>
+                      </div>
+
+                      <Button onClick={handleStartResubmission} className="w-full" size="lg">
+                        <RotateCcw className="w-4 h-4 ml-2" />
+                        إعادة تقديم الطلب
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* Timeline History - show for any status if there's history */}
+              {historyRecords.length > 0 && (
+                <KYCTimeline records={allRecords} />
               )}
             </motion.div>
           )}
@@ -526,6 +714,14 @@ const ClientKYC = () => {
           {/* ====== FORM VIEW ====== */}
           {step === 'form' && (
             <motion.div key="form" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-4">
+              {/* Resubmission notice */}
+              {allRecords.length > 0 && (
+                <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg flex items-center gap-2">
+                  <RotateCcw className="w-4 h-4 text-primary shrink-0" />
+                  <p className="text-sm">هذا طلب إعادة تقديم — محاولة #{allRecords.length + 1}</p>
+                </div>
+              )}
+
               {/* Progress */}
               <div className="space-y-2">
                 <Progress value={isFormValid ? 100 : 50} className="h-2" />
@@ -551,12 +747,22 @@ const ClientKYC = () => {
                       value={formData.fullName}
                       onChange={(e) => setFormData(p => ({ ...p, fullName: e.target.value }))}
                       dir="rtl"
+                      disabled={hasApprovedData}
                     />
+                    {hasApprovedData && (
+                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                        <Lock className="w-3 h-3" /> هذا الحقل محمي ولا يمكن تعديله
+                      </p>
+                    )}
                   </div>
 
                   <div>
                     <Label>نوع الوثيقة <span className="text-red-400">*</span></Label>
-                    <Select value={formData.documentType} onValueChange={(v) => setFormData(p => ({ ...p, documentType: v as DocumentType }))}>
+                    <Select
+                      value={formData.documentType}
+                      onValueChange={(v) => setFormData(p => ({ ...p, documentType: v as DocumentType }))}
+                      disabled={hasApprovedData}
+                    >
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="national_id">🪪 الهوية الوطنية</SelectItem>
@@ -564,6 +770,11 @@ const ClientKYC = () => {
                         <SelectItem value="cr">🏢 السجل التجاري (CR)</SelectItem>
                       </SelectContent>
                     </Select>
+                    {hasApprovedData && (
+                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                        <Lock className="w-3 h-3" /> هذا الحقل محمي ولا يمكن تعديله
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -575,7 +786,13 @@ const ClientKYC = () => {
                       onChange={(e) => setFormData(p => ({ ...p, documentNumber: e.target.value }))}
                       dir="ltr"
                       className="text-left"
+                      disabled={hasApprovedData}
                     />
+                    {hasApprovedData && (
+                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                        <Lock className="w-3 h-3" /> هذا الحقل محمي ولا يمكن تعديله
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -587,12 +804,17 @@ const ClientKYC = () => {
                       onChange={(e) => setFormData(p => ({ ...p, dateOfBirth: e.target.value }))}
                       dir="ltr"
                       className="text-left"
+                      disabled={hasApprovedData}
                     />
                   </div>
 
                   <div>
                     <Label>الجنسية <span className="text-red-400">*</span></Label>
-                    <Select value={formData.nationality} onValueChange={(v) => setFormData(p => ({ ...p, nationality: v }))}>
+                    <Select
+                      value={formData.nationality}
+                      onValueChange={(v) => setFormData(p => ({ ...p, nationality: v }))}
+                      disabled={hasApprovedData}
+                    >
                       <SelectTrigger><SelectValue placeholder="اختر الجنسية" /></SelectTrigger>
                       <SelectContent>
                         {NATIONALITIES.map(n => (
@@ -604,13 +826,20 @@ const ClientKYC = () => {
                 </CardContent>
               </Card>
 
-              {/* Document Upload */}
+              {/* Document Upload - always editable (re-upload) */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-base">
                     <FileUp className="w-5 h-5" /> رفع المستندات
+                    {allRecords.length > 0 && (
+                      <Badge variant="outline" className="text-xs mr-auto">إعادة رفع</Badge>
+                    )}
                   </CardTitle>
-                  <CardDescription>ارفع جميع المستندات المطلوبة — JPG, PNG, أو PDF</CardDescription>
+                  <CardDescription>
+                    {allRecords.length > 0
+                      ? 'يرجى رفع مستندات جديدة وواضحة'
+                      : 'ارفع جميع المستندات المطلوبة — JPG, PNG, أو PDF'}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <FileUploadBox
@@ -656,15 +885,24 @@ const ClientKYC = () => {
               )}
 
               {/* Submit */}
-              <Button
-                onClick={handleSubmit}
-                className="w-full"
-                size="lg"
-                disabled={!isFormValid || submitting}
-              >
-                {submitting ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : <CheckCircle className="w-4 h-4 ml-2" />}
-                إرسال للمراجعة
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setStep('status')}
+                  className="shrink-0"
+                >
+                  رجوع
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  className="flex-1"
+                  size="lg"
+                  disabled={!isFormValid || submitting}
+                >
+                  {submitting ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : <CheckCircle className="w-4 h-4 ml-2" />}
+                  {allRecords.length > 0 ? 'إعادة الإرسال للمراجعة' : 'إرسال للمراجعة'}
+                </Button>
+              </div>
 
               <p className="text-xs text-muted-foreground text-center">
                 ⚠️ بعد الإرسال لن تتمكن من تعديل البيانات — تأكد من صحة جميع المعلومات
