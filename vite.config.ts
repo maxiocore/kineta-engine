@@ -13,53 +13,11 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "react": path.resolve(__dirname, "./node_modules/react"),
-      "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
-      "react/jsx-runtime": path.resolve(__dirname, "./node_modules/react/jsx-runtime"),
-      "react/jsx-dev-runtime": path.resolve(__dirname, "./node_modules/react/jsx-dev-runtime"),
-      "react-router-dom": path.resolve(__dirname, "./node_modules/react-router-dom"),
     },
     dedupe: [
       'react', 
       'react-dom',
-      'react/jsx-runtime',
-      'react/jsx-dev-runtime',
       'react-router-dom',
-      'input-otp',
-      '@radix-ui/react-context',
-      '@radix-ui/react-direction',
-      '@radix-ui/react-tabs',
-      '@radix-ui/react-primitive',
-      '@radix-ui/react-roving-focus',
-      '@tanstack/react-query',
-      'framer-motion',
     ],
-  },
-  optimizeDeps: {
-    include: [
-      'react', 
-      'react-dom', 
-      'react-router-dom',
-      'input-otp',
-      '@tanstack/react-query',
-      '@radix-ui/react-tabs',
-      '@radix-ui/react-direction',
-      'framer-motion',
-      'sonner',
-      'lucide-react',
-    ],
-    force: true,
-    exclude: [],
-    esbuildOptions: {
-      define: {
-        global: 'globalThis',
-      },
-    },
-  },
-  build: {
-    commonjsOptions: {
-      include: [/node_modules/],
-      transformMixedEsModules: true,
-    },
   },
 }));
