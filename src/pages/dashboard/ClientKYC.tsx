@@ -18,6 +18,7 @@ import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import { KYCStatusBanner } from '@/components/kyc/KYCStatusBanner';
 
 type KYCStep = 'status' | 'form' | 'submitting';
 type DocumentType = 'national_id' | 'iqama' | 'cr';
@@ -559,7 +560,14 @@ const ClientKYC = () => {
         <AnimatePresence mode="wait">
           {/* ====== STATUS VIEW ====== */}
           {step === 'status' && (
-            <motion.div key="status" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-4">
+            <motion.div key="status" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6">
+              {/* Status Banner - Always at Top */}
+              <KYCStatusBanner
+                status={displayStatus === 'not_started' ? 'not_started' : displayStatus === 'pending_review' ? 'pending' : displayStatus === 'approved' ? 'approved' : 'rejected'}
+                rejectionReason={displayStatus === 'rejected' ? existingKYC?.rejection_reason : undefined}
+                reviewedAt={displayStatus === 'approved' ? existingKYC?.admin_reviewed_at : undefined}
+              />
+
               {/* Not Started */}
               {displayStatus === 'not_started' && (
                 <Card>
