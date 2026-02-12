@@ -1,8 +1,5 @@
 import { motion, useInView } from "framer-motion";
-import { Mail, MapPin, Phone, ArrowLeft, Sparkles, Send, Heart, ExternalLink } from "lucide-react";
-import ministryOfCommerceLogo from "@/assets/ministry-of-commerce.webp";
-import citcLogo from "@/assets/citc-logo.webp";
-import saudiBusinessCenterLogo from "@/assets/saudi-business-center.webp";
+import { Mail, MapPin, Phone, ArrowLeft, Sparkles, Send, Heart, ExternalLink, Building2, Radio, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
@@ -425,25 +422,25 @@ const Footer = () => {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.7 }}
         >
-          <p className="text-center text-sm text-muted-foreground mb-6">مسجلة رسمياً لدى</p>
-          <div className="flex items-center justify-center gap-6 sm:gap-10 flex-wrap">
+          <p className="text-center text-sm text-muted-foreground mb-6">معتمدون رسمياً من</p>
+          <div className="flex items-center justify-center gap-8 sm:gap-12 flex-wrap">
             {[
-              { src: saudiBusinessCenterLogo, alt: "المركز السعودي للأعمال", label: "المركز السعودي للأعمال" },
-              { src: citcLogo, alt: "هيئة الاتصالات وتقنية المعلومات", label: "هيئة الاتصالات" },
-              { src: ministryOfCommerceLogo, alt: "وزارة التجارة", label: "وزارة التجارة" },
+              { icon: Building2, label: "المركز السعودي للأعمال" },
+              { icon: Radio, label: "هيئة الاتصالات" },
+              { icon: ShoppingBag, label: "وزارة التجارة" },
             ].map((item, i) => (
               <motion.div
                 key={item.label}
-                className="flex flex-col items-center gap-2 group"
+                className="flex flex-col items-center gap-2.5 group"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={isInView ? { opacity: 1, scale: 1 } : {}}
                 transition={{ delay: 0.8 + i * 0.1 }}
-                whileHover={{ scale: 1.05, y: -3 }}
+                whileHover={{ scale: 1.08, y: -3 }}
               >
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-white/90 dark:bg-white/10 border border-border/30 p-2 flex items-center justify-center group-hover:border-primary/30 transition-colors">
-                  <img src={item.src} alt={item.alt} className="w-full h-full object-contain" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/20 group-hover:border-primary/40 transition-all">
+                  <item.icon className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
                 </div>
-                <span className="text-[10px] sm:text-xs text-muted-foreground group-hover:text-foreground transition-colors">{item.label}</span>
+                <span className="text-[10px] sm:text-xs text-muted-foreground group-hover:text-foreground transition-colors font-medium">{item.label}</span>
               </motion.div>
             ))}
           </div>
