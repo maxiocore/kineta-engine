@@ -226,38 +226,6 @@ const About = () => {
           </div>
         </section>
 
-        {/* Real Stats Section */}
-        <section ref={statsRef} className="py-16 md:py-20 bg-secondary/30">
-          <div className="container px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 max-w-4xl mx-auto">
-              {[
-                { value: stats.completedOrders, label: "طلب مكتمل", icon: CheckCircle, color: "text-primary" },
-                { value: stats.totalUsers, label: "عميل سعيد", icon: Users, color: "text-emerald-500" },
-                { value: stats.totalServices, label: "خدمة متاحة", icon: ShoppingBag, color: "text-violet-500" },
-                { value: stats.totalOrders, label: "إجمالي الطلبات", icon: Globe, color: "text-amber-500" },
-              ].map((item, index) => (
-                <motion.div
-                  key={item.label}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={statsInView ? { opacity: 1, scale: 1 } : {}}
-                  transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
-                  whileHover={{ y: -5, scale: 1.02 }}
-                  className="relative p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 text-center group hover:border-primary/30 transition-all duration-300"
-                >
-                  <item.icon className={`w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-3 ${item.color}`} />
-                  <div className={`text-xl sm:text-2xl md:text-3xl font-bold mb-1 ${item.color}`}>
-                    {isLoadingStats ? (
-                      <span className="inline-block w-12 h-6 bg-muted animate-pulse rounded" />
-                    ) : (
-                      <>{item.value.toLocaleString()}+</>
-                    )}
-                  </div>
-                  <p className="text-muted-foreground text-xs sm:text-sm">{item.label}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* Services Overview */}
         <section className="py-16 md:py-20">
