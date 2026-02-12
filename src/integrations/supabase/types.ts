@@ -2640,13 +2640,23 @@ export type Database = {
       }
       kyc_verifications: {
         Row: {
+          admin_notes: string | null
+          admin_reviewed_at: string | null
+          admin_reviewed_by: string | null
+          ai_analysis: Json | null
           created_at: string
+          document_back_url: string | null
+          document_front_url: string | null
+          document_type: string | null
+          extracted_data: Json | null
           face_match_score: number | null
           failure_reasons: string[] | null
           id: string
           liveness_score: number | null
           national_id: string
           ocr_confidence: number | null
+          rejection_reason: string | null
+          selfie_url: string | null
           session_id: string
           status: string
           updated_at: string
@@ -2655,13 +2665,23 @@ export type Database = {
           verified_data: Json | null
         }
         Insert: {
+          admin_notes?: string | null
+          admin_reviewed_at?: string | null
+          admin_reviewed_by?: string | null
+          ai_analysis?: Json | null
           created_at?: string
+          document_back_url?: string | null
+          document_front_url?: string | null
+          document_type?: string | null
+          extracted_data?: Json | null
           face_match_score?: number | null
           failure_reasons?: string[] | null
           id?: string
           liveness_score?: number | null
           national_id: string
           ocr_confidence?: number | null
+          rejection_reason?: string | null
+          selfie_url?: string | null
           session_id: string
           status?: string
           updated_at?: string
@@ -2670,13 +2690,23 @@ export type Database = {
           verified_data?: Json | null
         }
         Update: {
+          admin_notes?: string | null
+          admin_reviewed_at?: string | null
+          admin_reviewed_by?: string | null
+          ai_analysis?: Json | null
           created_at?: string
+          document_back_url?: string | null
+          document_front_url?: string | null
+          document_type?: string | null
+          extracted_data?: Json | null
           face_match_score?: number | null
           failure_reasons?: string[] | null
           id?: string
           liveness_score?: number | null
           national_id?: string
           ocr_confidence?: number | null
+          rejection_reason?: string | null
+          selfie_url?: string | null
           session_id?: string
           status?: string
           updated_at?: string

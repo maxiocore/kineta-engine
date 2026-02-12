@@ -1,73 +1,25 @@
 /**
- * KYC Document Verification API
- * 
- * Endpoint: /kyc/document
- * Method: POST
- * 
- * Purpose: Validates and extracts data from identity documents (National ID, Iqama, Passport)
- * 
- * Input:
- *   - document_type: 'national_id' | 'iqama' | 'passport'
- *   - document_front: string (base64 encoded image)
- *   - document_back?: string (base64 encoded image, required for national_id)
- *   - user_id?: string (optional, for linking to existing user)
- * 
- * Output (Success):
- *   - success: true
- *   - data: {
- *       document_number: string
- *       full_name_ar: string
- *       full_name_en: string
- *       date_of_birth: string (YYYY-MM-DD)
- *       expiry_date: string (YYYY-MM-DD)
- *       gender: 'male' | 'female'
- *       nationality: string
- *       document_type: string
- *       is_expired: boolean
- *       confidence_score: number (0-100)
- *       extracted_face: string (base64)
- *     }
- *   - verification_id: string
- * 
- * Output (Failure):
- *   - success: false
- *   - error: {
- *       code: string
- *       message: string
- *       details?: object
- *     }
- * 
- * Error Codes:
- *   - INVALID_DOCUMENT_TYPE: Unsupported document type
- *   - MISSING_DOCUMENT_IMAGE: Required image not provided
- *   - POOR_IMAGE_QUALITY: Image too blurry or dark
- *   - DOCUMENT_EXPIRED: Document has expired
- *   - OCR_FAILED: Could not extract text from document
- *   - FACE_NOT_DETECTED: No face found in document
- *   - DOCUMENT_TAMPERED: Signs of document manipulation detected
- *   - RATE_LIMITED: Too many requests
- *   - INTERNAL_ERROR: Server error
+ * KYC Document Verification API — Powered by Lovable AI (Gemini Vision)
+ * Extracts & validates identity documents using AI instead of mock data
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-// Document types
 type DocumentType = 'national_id' | 'iqama' | 'passport';
 
-// Request interface
 interface DocumentRequest {
   document_type: DocumentType;
   document_front: string;
   document_back?: string;
   user_id?: string;
+  session_id?: string;
 }
 
-// Response interfaces
 interface DocumentData {
   document_number: string;
   full_name_ar: string;
@@ -80,345 +32,298 @@ interface DocumentData {
   is_expired: boolean;
   confidence_score: number;
   extracted_face?: string;
+  issue_date?: string;
+  ai_raw_analysis?: string;
 }
 
-interface SuccessResponse {
-  success: true;
-  data: DocumentData;
-  verification_id: string;
-}
-
-interface ErrorResponse {
-  success: false;
-  error: {
-    code: string;
-    message: string;
-    message_ar: string;
-    details?: Record<string, unknown>;
-  };
-}
-
-// Error codes and messages
 const ERRORS = {
-  INVALID_DOCUMENT_TYPE: {
-    code: 'INVALID_DOCUMENT_TYPE',
-    message: 'Unsupported document type. Valid types: national_id, iqama, passport',
-    message_ar: 'نوع المستند غير مدعوم. الأنواع الصالحة: هوية وطنية، إقامة، جواز سفر'
-  },
-  MISSING_DOCUMENT_IMAGE: {
-    code: 'MISSING_DOCUMENT_IMAGE',
-    message: 'Document image is required',
-    message_ar: 'صورة المستند مطلوبة'
-  },
-  MISSING_BACK_IMAGE: {
-    code: 'MISSING_BACK_IMAGE',
-    message: 'Back side of document is required for national ID',
-    message_ar: 'الجهة الخلفية من الهوية مطلوبة'
-  },
-  POOR_IMAGE_QUALITY: {
-    code: 'POOR_IMAGE_QUALITY',
-    message: 'Image quality is too low. Please provide a clearer image',
-    message_ar: 'جودة الصورة منخفضة. يرجى تقديم صورة أوضح'
-  },
-  DOCUMENT_EXPIRED: {
-    code: 'DOCUMENT_EXPIRED',
-    message: 'Document has expired',
-    message_ar: 'المستند منتهي الصلاحية'
-  },
-  OCR_FAILED: {
-    code: 'OCR_FAILED',
-    message: 'Could not extract text from document',
-    message_ar: 'تعذر استخراج النص من المستند'
-  },
-  FACE_NOT_DETECTED: {
-    code: 'FACE_NOT_DETECTED',
-    message: 'No face detected in document image',
-    message_ar: 'لم يتم اكتشاف وجه في صورة المستند'
-  },
-  DOCUMENT_TAMPERED: {
-    code: 'DOCUMENT_TAMPERED',
-    message: 'Document appears to be modified or tampered',
-    message_ar: 'يبدو أن المستند تم تعديله أو التلاعب به'
-  },
-  RATE_LIMITED: {
-    code: 'RATE_LIMITED',
-    message: 'Too many requests. Please try again later',
-    message_ar: 'عدد الطلبات كثير جداً. يرجى المحاولة لاحقاً'
-  },
-  UNAUTHORIZED: {
-    code: 'UNAUTHORIZED',
-    message: 'Authentication required',
-    message_ar: 'المصادقة مطلوبة'
-  },
-  INTERNAL_ERROR: {
-    code: 'INTERNAL_ERROR',
-    message: 'An internal error occurred',
-    message_ar: 'حدث خطأ داخلي'
-  }
+  INVALID_DOCUMENT_TYPE: { code: 'INVALID_DOCUMENT_TYPE', message: 'Unsupported document type', message_ar: 'نوع المستند غير مدعوم' },
+  MISSING_DOCUMENT_IMAGE: { code: 'MISSING_DOCUMENT_IMAGE', message: 'Document image is required', message_ar: 'صورة المستند مطلوبة' },
+  MISSING_BACK_IMAGE: { code: 'MISSING_BACK_IMAGE', message: 'Back side is required for national ID', message_ar: 'الجهة الخلفية من الهوية مطلوبة' },
+  POOR_IMAGE_QUALITY: { code: 'POOR_IMAGE_QUALITY', message: 'Image quality is too low', message_ar: 'جودة الصورة منخفضة' },
+  OCR_FAILED: { code: 'OCR_FAILED', message: 'Could not extract text from document', message_ar: 'تعذر استخراج النص من المستند' },
+  DOCUMENT_EXPIRED: { code: 'DOCUMENT_EXPIRED', message: 'Document has expired', message_ar: 'المستند منتهي الصلاحية' },
+  RATE_LIMITED: { code: 'RATE_LIMITED', message: 'Too many requests', message_ar: 'عدد الطلبات كثير جداً' },
+  UNAUTHORIZED: { code: 'UNAUTHORIZED', message: 'Authentication required', message_ar: 'المصادقة مطلوبة' },
+  AI_ERROR: { code: 'AI_ERROR', message: 'AI analysis failed', message_ar: 'فشل التحليل بالذكاء الاصطناعي' },
+  INTERNAL_ERROR: { code: 'INTERNAL_ERROR', message: 'An internal error occurred', message_ar: 'حدث خطأ داخلي' },
 };
 
-// Validate base64 image
 function isValidBase64Image(str: string): boolean {
   if (!str) return false;
-  const base64Regex = /^data:image\/(png|jpeg|jpg|webp);base64,/;
-  return base64Regex.test(str) || str.length > 100;
+  return str.startsWith('data:image/') || str.length > 500;
 }
 
-// Check image quality (mock implementation)
-function checkImageQuality(base64: string): { valid: boolean; score: number } {
-  // In production, this would analyze the image
-  const minSize = 10000; // Minimum base64 length
-  const isLargeEnough = base64.length >= minSize;
-  return {
-    valid: isLargeEnough,
-    score: isLargeEnough ? 85 : 40
-  };
-}
-
-// Mock OCR extraction (in production, use actual OCR service)
-async function extractDocumentData(
+async function analyzeDocumentWithAI(
   documentType: DocumentType,
   frontImage: string,
   backImage?: string
 ): Promise<DocumentData | null> {
-  // Simulate processing time
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  // Mock extracted data - in production, this would call an OCR API
-  const mockData: DocumentData = {
-    document_number: '1' + Math.random().toString().substring(2, 11),
-    full_name_ar: 'محمد أحمد العبدالله',
-    full_name_en: 'MOHAMMED AHMED ALABDULLAH',
-    date_of_birth: '1990-05-15',
-    expiry_date: '2028-06-20',
-    gender: 'male',
-    nationality: 'SA',
-    document_type: documentType,
-    is_expired: false,
-    confidence_score: 92,
-    extracted_face: 'mock_face_base64'
+  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+  if (!LOVABLE_API_KEY) {
+    console.error('[KYC] LOVABLE_API_KEY not configured');
+    throw new Error('AI service not configured');
+  }
+
+  const documentTypeLabels: Record<DocumentType, string> = {
+    national_id: 'Saudi National ID (بطاقة الهوية الوطنية)',
+    iqama: 'Saudi Iqama / Residence Permit (إقامة)',
+    passport: 'Passport (جواز سفر)',
   };
+
+  const systemPrompt = `You are an expert KYC document analyzer for ASH HOLDING FinTech platform.
+You MUST analyze the provided identity document image(s) and extract ALL data accurately.
+
+Document Type: ${documentTypeLabels[documentType]}
+
+IMPORTANT RULES:
+- Extract EXACTLY what is written on the document
+- For Saudi IDs: The number starts with 1 (citizens) or 2 (residents/iqama), is 10 digits
+- Dates should be in YYYY-MM-DD format (convert from Hijri if needed)
+- If a field is not readable, set it to empty string
+- Confidence score: 0-100 based on image clarity and data completeness
+- Check expiry date against today's date
+
+You MUST respond with ONLY a valid JSON object (no markdown, no explanation) with these exact keys:
+{
+  "document_number": "string",
+  "full_name_ar": "string (Arabic name)",
+  "full_name_en": "string (English name)",
+  "date_of_birth": "YYYY-MM-DD",
+  "expiry_date": "YYYY-MM-DD",
+  "issue_date": "YYYY-MM-DD",
+  "gender": "male or female",
+  "nationality": "string",
+  "confidence_score": number (0-100),
+  "is_expired": boolean,
+  "notes": "any concerns about document authenticity"
+}`;
+
+  const content: any[] = [
+    { type: 'text', text: `Analyze this ${documentTypeLabels[documentType]} and extract all identity information. Return ONLY JSON.` },
+    { type: 'image_url', image_url: { url: frontImage.startsWith('data:') ? frontImage : `data:image/jpeg;base64,${frontImage}` } },
+  ];
+
+  if (backImage) {
+    content.push(
+      { type: 'text', text: 'This is the back side of the same document:' },
+      { type: 'image_url', image_url: { url: backImage.startsWith('data:') ? backImage : `data:image/jpeg;base64,${backImage}` } }
+    );
+  }
+
+  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error('[KYC-AI] Gateway error:', response.status, errText);
+    if (response.status === 429) throw new Error('RATE_LIMITED');
+    if (response.status === 402) throw new Error('PAYMENT_REQUIRED');
+    throw new Error('AI_ERROR');
+  }
+
+  const data = await response.json();
+  const rawContent = data.choices?.[0]?.message?.content || '';
   
-  return mockData;
+  // Parse JSON from AI response (may be wrapped in markdown code blocks)
+  let jsonStr = rawContent;
+  const jsonMatch = rawContent.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (jsonMatch) {
+    jsonStr = jsonMatch[1].trim();
+  }
+
+  try {
+    const parsed = JSON.parse(jsonStr);
+    return {
+      document_number: parsed.document_number || '',
+      full_name_ar: parsed.full_name_ar || '',
+      full_name_en: parsed.full_name_en || '',
+      date_of_birth: parsed.date_of_birth || '',
+      expiry_date: parsed.expiry_date || '',
+      issue_date: parsed.issue_date || '',
+      gender: parsed.gender === 'female' ? 'female' : 'male',
+      nationality: parsed.nationality || '',
+      document_type: documentType,
+      is_expired: parsed.is_expired === true,
+      confidence_score: Math.min(100, Math.max(0, parsed.confidence_score || 0)),
+      ai_raw_analysis: rawContent,
+    };
+  } catch (e) {
+    console.error('[KYC-AI] Failed to parse AI response:', rawContent);
+    return null;
+  }
 }
 
-// Rate limiting check
-async function checkRateLimit(
-  supabase: any,
-  userId: string,
-  ipAddress: string
-): Promise<boolean> {
+async function checkRateLimit(supabase: any, userId: string, ipAddress: string): Promise<boolean> {
   const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-  
   const { count } = await supabase
     .from('verification_audit_logs')
     .select('*', { count: 'exact', head: true })
     .eq('verification_type', 'DOCUMENT_OCR')
     .or(`user_id.eq.${userId},ip_address.eq.${ipAddress}`)
     .gte('created_at', fiveMinutesAgo);
-  
-  return (count || 0) < 5; // Max 5 attempts per 5 minutes
+  return (count || 0) < 5;
 }
 
-// Main handler
+async function hashString(str: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 Deno.serve(async (req) => {
-  // Handle CORS
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   const startTime = Date.now();
-  
+
   try {
-    // Only accept POST
     if (req.method !== 'POST') {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: { code: 'METHOD_NOT_ALLOWED', message: 'Only POST method is allowed', message_ar: 'طريقة POST فقط مسموحة' }
-        }),
-        { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ success: false, error: { code: 'METHOD_NOT_ALLOWED', message: 'POST only', message_ar: 'POST فقط' } }),
+        { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Initialize Supabase
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get auth token
     const authHeader = req.headers.get('Authorization');
     let userId: string | null = null;
-    
     if (authHeader) {
       const token = authHeader.replace('Bearer ', '');
       const { data: { user } } = await supabase.auth.getUser(token);
       userId = user?.id || null;
     }
 
-    // Get IP address
-    const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0] || 
-                      req.headers.get('x-real-ip') || 
-                      'unknown';
-
-    // Parse request body
+    const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
     const body: DocumentRequest = await req.json();
 
-    // Validate document type
+    // Validations
     const validTypes: DocumentType[] = ['national_id', 'iqama', 'passport'];
     if (!validTypes.includes(body.document_type)) {
-      return new Response(
-        JSON.stringify({ success: false, error: ERRORS.INVALID_DOCUMENT_TYPE } as ErrorResponse),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ success: false, error: ERRORS.INVALID_DOCUMENT_TYPE }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Validate front image
     if (!body.document_front || !isValidBase64Image(body.document_front)) {
-      return new Response(
-        JSON.stringify({ success: false, error: ERRORS.MISSING_DOCUMENT_IMAGE } as ErrorResponse),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ success: false, error: ERRORS.MISSING_DOCUMENT_IMAGE }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Validate back image for national ID
     if (body.document_type === 'national_id' && (!body.document_back || !isValidBase64Image(body.document_back))) {
-      return new Response(
-        JSON.stringify({ success: false, error: ERRORS.MISSING_BACK_IMAGE } as ErrorResponse),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ success: false, error: ERRORS.MISSING_BACK_IMAGE }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Check rate limit
+    // Rate limit
     const withinLimit = await checkRateLimit(supabase, userId || 'anonymous', ipAddress);
     if (!withinLimit) {
-      return new Response(
-        JSON.stringify({ success: false, error: ERRORS.RATE_LIMITED } as ErrorResponse),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ success: false, error: ERRORS.RATE_LIMITED }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Check image quality
-    const qualityCheck = checkImageQuality(body.document_front);
-    if (!qualityCheck.valid) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: { 
-            ...ERRORS.POOR_IMAGE_QUALITY, 
-            details: { quality_score: qualityCheck.score } 
-          } 
-        } as ErrorResponse),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // AI-powered document analysis
+    const documentData = await analyzeDocumentWithAI(body.document_type, body.document_front, body.document_back);
+
+    if (!documentData || !documentData.document_number) {
+      return new Response(JSON.stringify({ success: false, error: ERRORS.OCR_FAILED }),
+        { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Extract document data
-    const documentData = await extractDocumentData(
-      body.document_type,
-      body.document_front,
-      body.document_back
-    );
-
-    if (!documentData) {
-      return new Response(
-        JSON.stringify({ success: false, error: ERRORS.OCR_FAILED } as ErrorResponse),
-        { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // Check expiry
+    if (documentData.expiry_date) {
+      const expiry = new Date(documentData.expiry_date);
+      if (expiry < new Date()) documentData.is_expired = true;
     }
 
-    // Check if document is expired
-    const expiryDate = new Date(documentData.expiry_date);
-    if (expiryDate < new Date()) {
-      documentData.is_expired = true;
-    }
-
-    // Generate verification ID
     const verificationId = crypto.randomUUID();
+    const sessionId = body.session_id || verificationId;
 
-    // Log the verification attempt
-    await supabase
-      .from('verification_audit_logs' as any)
-      .insert({
-        user_id: userId || body.user_id,
-        session_id: req.headers.get('x-session-id') || 'unknown',
-        verification_type: 'DOCUMENT_OCR',
-        verification_target: body.document_type,
-        attempt_number: 1,
-        status: 'success',
-        completed_at: new Date().toISOString(),
-        duration_ms: Date.now() - startTime,
-        result_code: 'SUCCESS',
-        result_message: 'Document verified successfully',
-        ip_address: ipAddress,
-        device_fingerprint: req.headers.get('x-device-fingerprint'),
-        user_agent: req.headers.get('user-agent'),
-        metadata: {
-          document_type: body.document_type,
-          confidence_score: documentData.confidence_score,
-          is_expired: documentData.is_expired
-        }
-      } as any);
-
-    // Store identity verification record
-    await supabase
-      .from('identity_verification_records' as any)
-      .insert({
-        user_id: userId || body.user_id,
-        verification_type: 'document',
+    // Log audit
+    await supabase.from('verification_audit_logs').insert({
+      user_id: userId || body.user_id,
+      session_id: sessionId,
+      verification_type: 'DOCUMENT_OCR',
+      verification_target: body.document_type,
+      attempt_number: 1,
+      status: 'success',
+      completed_at: new Date().toISOString(),
+      duration_ms: Date.now() - startTime,
+      result_code: 'SUCCESS',
+      result_message: 'Document analyzed by AI',
+      ip_address: ipAddress,
+      device_fingerprint: req.headers.get('x-device-fingerprint'),
+      user_agent: req.headers.get('user-agent'),
+      metadata: {
         document_type: body.document_type,
-        document_number_hash: await hashString(documentData.document_number),
-        verification_status: 'verified',
         confidence_score: documentData.confidence_score,
-        extracted_data: {
+        is_expired: documentData.is_expired,
+        ai_powered: true,
+      },
+    } as any);
+
+    // Update KYC verification record if session exists
+    if (userId) {
+      await supabase.from('kyc_verifications').upsert({
+        user_id: userId,
+        session_id: sessionId,
+        national_id: documentData.document_number,
+        status: 'PENDING',
+        document_type: body.document_type,
+        ocr_confidence: documentData.confidence_score / 100,
+        ai_analysis: {
           full_name_ar: documentData.full_name_ar,
           full_name_en: documentData.full_name_en,
           date_of_birth: documentData.date_of_birth,
+          expiry_date: documentData.expiry_date,
           nationality: documentData.nationality,
-          gender: documentData.gender
+          gender: documentData.gender,
+          is_expired: documentData.is_expired,
         },
-        expiry_date: documentData.expiry_date,
-        ip_address: ipAddress,
-        device_fingerprint: req.headers.get('x-device-fingerprint'),
-        user_agent: req.headers.get('user-agent')
-      } as any);
+        extracted_data: {
+          document_number: documentData.document_number,
+          full_name_ar: documentData.full_name_ar,
+          full_name_en: documentData.full_name_en,
+          date_of_birth: documentData.date_of_birth,
+          expiry_date: documentData.expiry_date,
+          issue_date: documentData.issue_date,
+          nationality: documentData.nationality,
+          gender: documentData.gender,
+        },
+      } as any, { onConflict: 'session_id' });
+    }
 
-    console.log(`[KYC-DOCUMENT] Success for ${body.document_type}, verification_id: ${verificationId}`);
+    console.log(`[KYC-DOCUMENT] AI analysis success for ${body.document_type}, confidence: ${documentData.confidence_score}%`);
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        data: documentData,
-        verification_id: verificationId
-      } as SuccessResponse),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
+    return new Response(JSON.stringify({
+      success: true,
+      data: documentData,
+      verification_id: verificationId,
+      session_id: sessionId,
+    }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error: unknown) {
     console.error('[KYC-DOCUMENT] Error:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errMsg = error instanceof Error ? error.message : String(error);
     
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: { 
-          ...ERRORS.INTERNAL_ERROR, 
-          details: { message: errorMessage } 
-        } 
-      } as ErrorResponse),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    let errorResponse = ERRORS.INTERNAL_ERROR;
+    let statusCode = 500;
+    if (errMsg === 'RATE_LIMITED') { errorResponse = ERRORS.RATE_LIMITED; statusCode = 429; }
+    if (errMsg === 'AI_ERROR') { errorResponse = ERRORS.AI_ERROR; statusCode = 502; }
+
+    return new Response(JSON.stringify({ success: false, error: { ...errorResponse, details: { message: errMsg } } }),
+      { status: statusCode, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 });
-
-// Hash helper
-async function hashString(str: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(str);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
