@@ -111,6 +111,8 @@ const AdminUnifiedOrders = lazy(() => import("./pages/admin/AdminUnifiedOrders")
 const AdminOrderDetails = lazy(() => import("./pages/admin/AdminOrderDetails"));
 const AdminAPIKeys = lazy(() => import("./pages/admin/AdminAPIKeys"));
 const AdminSMSHub = lazy(() => import("./pages/admin/AdminSMSHub"));
+const AdminKYC = lazy(() => import("./pages/admin/AdminKYC"));
+const ClientKYC = lazy(() => import("./pages/dashboard/ClientKYC"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -323,6 +325,11 @@ const App = () => (
                         <VerifyEmailPage />
                       </ProtectedRoute>
                     } />
+                    <Route path="/dashboard/kyc" element={
+                      <ProtectedRoute>
+                        <ClientKYC />
+                      </ProtectedRoute>
+                    } />
                     
                     {/* Admin Dashboard Routes */}
                     <Route path="/admin/auth" element={<AdminAuth />} />
@@ -499,6 +506,11 @@ const App = () => (
                     <Route path="/admin/sms" element={
                       <ProtectedRoute requireAdmin>
                         <AdminSMSHub />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/admin/kyc" element={
+                      <ProtectedRoute requireAdmin>
+                        <AdminKYC />
                       </ProtectedRoute>
                     } />
                     
