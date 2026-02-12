@@ -422,27 +422,27 @@ const Footer = () => {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.7 }}
         >
-          <p className="text-center text-sm text-muted-foreground mb-6">معتمدون رسمياً من</p>
-          <div className="flex items-center justify-center gap-6 sm:gap-10 flex-wrap max-w-2xl mx-auto">
+          <p className="text-center text-sm text-muted-foreground mb-8">معتمدون رسمياً من</p>
+          <div className="grid grid-cols-5 gap-y-6 max-w-xl mx-auto">
             {[
-              { icon: Building2, label: "المركز السعودي للأعمال", color: "from-blue-500/20 to-blue-600/10" },
-              { icon: Radio, label: "هيئة الاتصالات", color: "from-cyan-500/20 to-cyan-600/10" },
-              { icon: ShoppingBag, label: "وزارة التجارة", color: "from-emerald-500/20 to-emerald-600/10" },
-              { icon: Shield, label: "الأمن السيبراني", color: "from-red-500/20 to-red-600/10" },
-              { icon: FileCheck, label: "هيئة الزكاة والضريبة", color: "from-violet-500/20 to-violet-600/10" },
+              { icon: Building2, label: "المركز السعودي\nللأعمال" },
+              { icon: Radio, label: "هيئة الاتصالات\nوتقنية المعلومات" },
+              { icon: ShoppingBag, label: "وزارة التجارة" },
+              { icon: Shield, label: "الهيئة الوطنية\nللأمن السيبراني" },
+              { icon: FileCheck, label: "هيئة الزكاة\nوالضريبة والجمارك" },
             ].map((item, i) => (
               <motion.div
                 key={item.label}
-                className="flex flex-col items-center gap-2.5 group cursor-default w-16 sm:w-20"
-                initial={{ opacity: 0, y: 15 }}
+                className="flex flex-col items-center gap-3 group cursor-default"
+                initial={{ opacity: 0, y: 12 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 0.8 + i * 0.08, type: "spring", stiffness: 120 }}
-                whileHover={{ scale: 1.1, y: -4 }}
+                whileHover={{ scale: 1.08, y: -3 }}
               >
-                <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br ${item.color} border border-border/30 flex items-center justify-center group-hover:border-primary/40 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/10`}>
-                  <item.icon className="w-6 h-6 sm:w-7 sm:h-7 text-primary/80 group-hover:text-primary transition-colors" />
+                <div className="w-14 h-14 rounded-2xl bg-muted/50 border border-border/40 flex items-center justify-center group-hover:border-primary/30 group-hover:bg-primary/5 transition-all duration-300">
+                  <item.icon className="w-7 h-7 text-foreground/60 group-hover:text-primary transition-colors duration-300" />
                 </div>
-                <span className="text-[9px] sm:text-[11px] text-muted-foreground group-hover:text-foreground transition-colors font-medium text-center leading-tight">{item.label}</span>
+                <span className="text-[10px] sm:text-xs text-muted-foreground group-hover:text-foreground transition-colors font-medium text-center leading-tight whitespace-pre-line">{item.label}</span>
               </motion.div>
             ))}
           </div>
