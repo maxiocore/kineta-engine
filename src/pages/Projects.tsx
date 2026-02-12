@@ -30,6 +30,18 @@ const projects: Project[] = [
     gradient: "from-cyan-500/20 via-blue-500/10 to-purple-500/20",
     iconBg: "from-cyan-500 to-blue-600",
   },
+  {
+    id: "ash-holdings",
+    title: "ASH Holdings",
+    description: "شركة استثمارية رائدة تقدم حلولاً متكاملة في مجال الأعمال والاستثمار",
+    url: "https://ash.holdings",
+    category: "شركة استثمارية",
+    categoryIcon: <Rocket className="w-5 h-5" />,
+    tags: ["استثمار", "أعمال", "حلول رقمية"],
+    features: ["رؤية استراتيجية", "حلول مبتكرة", "نمو مستدام", "شراكات فعالة"],
+    gradient: "from-amber-500/20 via-orange-500/10 to-red-500/20",
+    iconBg: "from-amber-500 to-orange-600",
+  },
 ];
 
 const categories = [
