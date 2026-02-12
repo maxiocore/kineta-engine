@@ -502,6 +502,19 @@ const Footer = () => {
             </motion.a>
           </div>
         </motion.div>
+
+        {/* Copyright Section */}
+        <motion.div
+          className="border-t border-border/40 py-6 mt-8"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.9 }}
+        >
+          <p className="text-center text-sm text-muted-foreground">
+            © جميع الحقوق محفوظة لدى شركة علي صالح الشهري القابضة 2026
+          </p>
+        </motion.div>
       </div>
     </footer>
   );
