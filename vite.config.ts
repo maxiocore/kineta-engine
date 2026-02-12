@@ -24,9 +24,12 @@ export default defineConfig(({ mode }) => ({
       'react/jsx-runtime',
       'react/jsx-dev-runtime',
       'react-router-dom',
+      'framer-motion',
+      '@tanstack/react-query',
     ],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom'],
+    include: ['react', 'react-dom', 'react-router-dom', 'framer-motion'],
+    force: true,
   },
 }));
