@@ -229,34 +229,30 @@ const About = () => {
         {/* Real Stats Section */}
         <section ref={statsRef} className="py-16 md:py-20 bg-secondary/30">
           <div className="container px-4">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 max-w-4xl mx-auto">
               {[
-                { value: stats.completedOrders, label: "طلب مكتمل", icon: CheckCircle, color: "from-emerald-500 to-teal-600" },
-                { value: stats.totalUsers, label: "عميل سعيد", icon: Users, color: "from-blue-500 to-cyan-600" },
-                { value: stats.totalServices, label: "خدمة متاحة", icon: ShoppingBag, color: "from-violet-500 to-purple-600" },
-                { value: stats.totalOrders, label: "إجمالي الطلبات", icon: Globe, color: "from-amber-500 to-orange-600" },
+                { value: stats.completedOrders, label: "طلب مكتمل", icon: CheckCircle, color: "text-primary" },
+                { value: stats.totalUsers, label: "عميل سعيد", icon: Users, color: "text-emerald-500" },
+                { value: stats.totalServices, label: "خدمة متاحة", icon: ShoppingBag, color: "text-violet-500" },
+                { value: stats.totalOrders, label: "إجمالي الطلبات", icon: Globe, color: "text-amber-500" },
               ].map((item, index) => (
                 <motion.div
                   key={item.label}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={statsInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="relative p-6 md:p-8 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-all duration-300 text-center group overflow-hidden"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={statsInView ? { opacity: 1, scale: 1 } : {}}
+                  transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
+                  whileHover={{ y: -5, scale: 1.02 }}
+                  className="relative p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 text-center group hover:border-primary/30 transition-all duration-300"
                 >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-                  
-                  <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center mx-auto mb-4 shadow-lg`}>
-                    <item.icon className="w-7 h-7 md:w-8 md:h-8 text-white" />
-                  </div>
-                  
-                  <div className={`text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-l ${item.color} bg-clip-text text-transparent mb-2`}>
+                  <item.icon className={`w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-3 ${item.color}`} />
+                  <div className={`text-xl sm:text-2xl md:text-3xl font-bold mb-1 ${item.color}`}>
                     {isLoadingStats ? (
-                      <span className="animate-pulse">...</span>
+                      <span className="inline-block w-12 h-6 bg-muted animate-pulse rounded" />
                     ) : (
                       <>{item.value.toLocaleString()}+</>
                     )}
                   </div>
-                  <p className="text-sm md:text-base text-muted-foreground font-medium">{item.label}</p>
+                  <p className="text-muted-foreground text-xs sm:text-sm">{item.label}</p>
                 </motion.div>
               ))}
             </div>
