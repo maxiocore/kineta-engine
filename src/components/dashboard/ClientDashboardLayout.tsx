@@ -30,8 +30,8 @@ import {
   Share2,
   Megaphone,
   MonitorSmartphone,
-  
   Server,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -58,7 +58,7 @@ const clientNavItems: NavItem[] = [
   { label: "المفضلة", href: "/dashboard/favorites", icon: Heart },
   { label: "الإحالات", href: "/dashboard/referrals", icon: Gift },
   { label: "المركز المالي", href: "/dashboard/financial", icon: Wallet },
-  
+  { label: "التحقق من الهوية", href: "/dashboard/kyc", icon: ShieldCheck },
   
   { label: "الشارات والمكافآت", href: "/dashboard/badges", icon: Award },
   { label: "التحديات", href: "/dashboard/challenges", icon: Target },
