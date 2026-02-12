@@ -2638,6 +2638,39 @@ export type Database = {
         }
         Relationships: []
       }
+      kyc_access_logs: {
+        Row: {
+          access_type: string
+          accessed_by: string
+          created_at: string
+          document_path: string | null
+          id: string
+          ip_address: string | null
+          kyc_verification_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          access_type: string
+          accessed_by: string
+          created_at?: string
+          document_path?: string | null
+          id?: string
+          ip_address?: string | null
+          kyc_verification_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          access_type?: string
+          accessed_by?: string
+          created_at?: string
+          document_path?: string | null
+          id?: string
+          ip_address?: string | null
+          kyc_verification_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       kyc_verifications: {
         Row: {
           admin_notes: string | null
