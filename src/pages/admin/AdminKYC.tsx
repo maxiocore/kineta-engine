@@ -166,6 +166,17 @@ const AdminKYC = () => {
       .createSignedUrl(path, 300);
     if (error || !data?.signedUrl) return null;
     setSignedUrls(prev => ({ ...prev, [path]: data.signedUrl }));
+
+    // Log document access
+    if (selectedKYC && user) {
+      supabase.from('kyc_access_logs' as any).insert({
+        kyc_verification_id: selectedKYC.id,
+        accessed_by: user.id,
+        access_type: 'view_document',
+        document_path: path,
+      } as any).then(() => {});
+    }
+
     return data.signedUrl;
   };
 
@@ -189,16 +200,7 @@ const AdminKYC = () => {
       } as any).eq('id', selectedKYC.id);
 
       if (error) throw error;
-
-      // Audit log
-      await supabase.from('audit_logs').insert({
-        user_id: user.id,
-        action: 'KYC_APPROVED',
-        table_name: 'kyc_verifications',
-        record_id: selectedKYC.id,
-        new_value: { status: 'PASSED', admin_notes: adminNotes },
-        metadata: { kyc_user_id: selectedKYC.user_id },
-      });
+      // Audit is handled automatically by DB trigger (audit_kyc_all_actions)
 
       // Admin notification
       await supabase.from('admin_notifications').insert({
@@ -239,15 +241,7 @@ const AdminKYC = () => {
 
       if (error) throw error;
 
-      // Audit log
-      await supabase.from('audit_logs').insert({
-        user_id: user.id,
-        action: 'KYC_REJECTED',
-        table_name: 'kyc_verifications',
-        record_id: selectedKYC.id,
-        new_value: { status: 'FAILED', rejection_reason: finalReason },
-        metadata: { kyc_user_id: selectedKYC.user_id },
-      });
+      // Audit is handled automatically by DB trigger (audit_kyc_all_actions)
 
       // Send SMS notification to user
       const profile = userProfiles[selectedKYC.user_id];
@@ -304,6 +298,15 @@ const AdminKYC = () => {
     setCustomRejectionReason('');
     setSignedUrls({});
     setReviewDialogOpen(true);
+
+    // Log that admin viewed this KYC record
+    if (user) {
+      supabase.from('kyc_access_logs' as any).insert({
+        kyc_verification_id: kyc.id,
+        accessed_by: user.id,
+        access_type: 'view_details',
+      } as any).then(() => {});
+    }
   };
 
   const getStatusBadge = (status: string) => {
