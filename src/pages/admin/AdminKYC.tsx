@@ -121,11 +121,25 @@ const AdminKYC = () => {
     setLoading(false);
   };
 
-  const getDocumentUrl = (path: string | null) => {
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
+
+  const getSignedUrl = async (path: string): Promise<string | null> => {
     if (!path) return null;
-    const { data } = supabase.storage.from('kyc-documents').getPublicUrl(path);
-    return data?.publicUrl;
+    if (signedUrls[path]) return signedUrls[path];
+    const { data, error } = await supabase.storage
+      .from('kyc-documents')
+      .createSignedUrl(path, 300); // 5 min expiry
+    if (error || !data?.signedUrl) return null;
+    setSignedUrls(prev => ({ ...prev, [path]: data.signedUrl }));
+    return data.signedUrl;
   };
+
+  // Load signed URLs when review dialog opens
+  useEffect(() => {
+    if (!selectedKYC || !reviewDialogOpen) return;
+    const paths = [selectedKYC.document_front_url, selectedKYC.document_back_url, selectedKYC.selfie_url].filter(Boolean) as string[];
+    paths.forEach(p => getSignedUrl(p));
+  }, [selectedKYC, reviewDialogOpen]);
 
   const handleApprove = async () => {
     if (!selectedKYC || !user) return;
@@ -373,33 +387,33 @@ const AdminKYC = () => {
                 <div>
                   <h4 className="font-medium mb-2">صور الوثائق</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {selectedKYC.document_front_url && (
+                    {selectedKYC.document_front_url && signedUrls[selectedKYC.document_front_url] && (
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">الجهة الأمامية</p>
                         <img 
-                          src={getDocumentUrl(selectedKYC.document_front_url) || ''} 
+                          src={signedUrls[selectedKYC.document_front_url]} 
                           alt="Front" 
                           className="w-full h-40 object-cover rounded-lg border border-border"
                           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         />
                       </div>
                     )}
-                    {selectedKYC.document_back_url && (
+                    {selectedKYC.document_back_url && signedUrls[selectedKYC.document_back_url] && (
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">الجهة الخلفية</p>
                         <img 
-                          src={getDocumentUrl(selectedKYC.document_back_url) || ''} 
+                          src={signedUrls[selectedKYC.document_back_url]} 
                           alt="Back" 
                           className="w-full h-40 object-cover rounded-lg border border-border"
                           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         />
                       </div>
                     )}
-                    {selectedKYC.selfie_url && (
+                    {selectedKYC.selfie_url && signedUrls[selectedKYC.selfie_url] && (
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">الصورة الشخصية</p>
                         <img 
-                          src={getDocumentUrl(selectedKYC.selfie_url) || ''} 
+                          src={signedUrls[selectedKYC.selfie_url]} 
                           alt="Selfie" 
                           className="w-full h-40 object-cover rounded-lg border border-border"
                           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
