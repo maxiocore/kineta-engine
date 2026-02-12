@@ -249,6 +249,41 @@ const AdminKYC = () => {
         metadata: { kyc_user_id: selectedKYC.user_id },
       });
 
+      // Send SMS notification to user
+      const profile = userProfiles[selectedKYC.user_id];
+      if (profile?.phone) {
+        const smsMessage = [
+          '⚠️ إشعار التحقق من الهوية',
+          '━━━━━━━━━━━━━',
+          '',
+          `عزيزي ${profile.full_name || 'العميل'}،`,
+          '',
+          'نأسف لإبلاغك أنه تم رفض طلب التحقق من هويتك.',
+          '',
+          `📋 سبب الرفض:`,
+          finalReason,
+          '',
+          '✅ يمكنك إعادة تقديم الطلب مع تصحيح الملاحظات المذكورة.',
+          '',
+          '━━━━━━━━━━━━━',
+          'فريق التحقق | ASH HOLDING',
+        ].join('\n');
+
+        try {
+          await supabase.functions.invoke('sms-notify', {
+            body: {
+              phone: profile.phone,
+              message: smsMessage,
+              type: 'kyc',
+              userId: selectedKYC.user_id,
+              referenceId: selectedKYC.id,
+            },
+          });
+        } catch (smsErr) {
+          console.error('SMS notification failed (non-blocking):', smsErr);
+        }
+      }
+
       toast.success('تم رفض التحقق وإخطار المستخدم');
       setReviewDialogOpen(false);
       setSelectedKYC(null);
