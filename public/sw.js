@@ -1,143 +1,136 @@
-// ASH HOLDING Professional Service Worker v3.0
-// Supports: Push Notifications, Offline Caching, Background Sync
-// Features: iOS 16.4+ Push, Unified Payload, Action Handling
+// ================================================================
+// ASH HOLDING — Production-Grade Service Worker v5
+// Strategy: Cache-First (hashed assets), SWR (images/fonts),
+//           Network-First (navigation), Skip dev files entirely.
+// ================================================================
 
-const CACHE_VERSION = 'v4';
-const STATIC_CACHE = `ashholding-static-${CACHE_VERSION}`;
-const DYNAMIC_CACHE = `ashholding-dynamic-${CACHE_VERSION}`;
+const CACHE_VERSION = 'v5-production-safe';
+const ASSETS_CACHE  = `assets-${CACHE_VERSION}`;
+const MEDIA_CACHE   = `media-${CACHE_VERSION}`;
 const NOTIFICATION_TAG_PREFIX = 'ashholding-';
 
-// Static assets to cache on install
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/pwa-192x192.png',
-  '/pwa-512x512.png',
-  '/pwa-maskable-192x192.png',
-  '/pwa-maskable-512x512.png',
-];
+// ======================== HELPERS ========================
 
-// ========== INSTALL EVENT ==========
+const isDevFile = (pathname) =>
+  pathname.startsWith('/src/') ||
+  pathname.includes('/@vite/') ||
+  pathname.includes('/.vite/') ||
+  pathname.includes('/node_modules/');
+
+const isApiCall = (url) =>
+  url.hostname.includes('supabase') ||
+  url.hostname.includes('api.') ||
+  url.pathname.startsWith('/functions/');
+
+const isHashedAsset = (pathname) =>
+  pathname.startsWith('/assets/') &&
+  /\.[a-f0-9]{8,}\.(js|mjs|css)$/.test(pathname);
+
+const isImageOrFont = (pathname) =>
+  /\.(png|jpe?g|gif|webp|avif|svg|ico|woff2?|ttf|otf|eot)$/i.test(pathname);
+
+const isNavigation = (request) =>
+  request.mode === 'navigate';
+
+// ======================== INSTALL ========================
+
 self.addEventListener('install', (event) => {
-  console.log('[SW v3] Installing ASH HOLDING Service Worker...');
-  
-  event.waitUntil(
-    caches.open(STATIC_CACHE)
-      .then((cache) => {
-        console.log('[SW v3] Caching static assets');
-        return cache.addAll(STATIC_ASSETS).catch(err => {
-          console.warn('[SW v3] Some assets failed to cache:', err);
-        });
-      })
-      .then(() => {
-        console.log('[SW v3] Installation complete');
-        return self.skipWaiting();
-      })
-      .catch((error) => {
-        console.error('[SW v3] Installation failed:', error);
-      })
-  );
+  console.log(`[SW ${CACHE_VERSION}] Installing…`);
+  event.waitUntil(self.skipWaiting());
 });
 
-// ========== ACTIVATE EVENT ==========
+// ======================== ACTIVATE ========================
+
 self.addEventListener('activate', (event) => {
-  console.log('[SW v3] Activating...');
-  
+  console.log(`[SW ${CACHE_VERSION}] Activating…`);
+
   event.waitUntil(
-    Promise.all([
-      // Clean old caches
-      caches.keys().then((keys) => {
-        return Promise.all(
-          keys
-            .filter((key) => key !== STATIC_CACHE && key !== DYNAMIC_CACHE)
-            .map((key) => {
-              console.log('[SW v3] Deleting old cache:', key);
-              return caches.delete(key);
-            })
-        );
-      }),
-      // Take control immediately
-      self.clients.claim()
-    ]).then(() => {
-      console.log('[SW v3] Activation complete');
-    })
+    caches.keys().then((keys) => {
+      const validCaches = [ASSETS_CACHE, MEDIA_CACHE];
+      return Promise.all(
+        keys
+          .filter((k) => !validCaches.includes(k))
+          .map((k) => {
+            console.log(`[SW ${CACHE_VERSION}] Purging old cache: ${k}`);
+            return caches.delete(k);
+          })
+      );
+    }).then(() => self.clients.claim())
   );
 });
 
-// ========== FETCH EVENT ==========
+// ======================== FETCH ========================
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  const url = new URL(request.url);
-  
-  // Skip non-GET requests
   if (request.method !== 'GET') return;
-  
-  // Skip API calls, external resources, and Vite module files
+
+  const url = new URL(request.url);
+
+  // 1. Skip dev files & API calls — let the browser handle them directly
   if (
-    url.hostname.includes('supabase') ||
-    url.hostname.includes('api.') ||
     url.protocol === 'chrome-extension:' ||
-    url.pathname.startsWith('/functions/') ||
-    url.pathname.includes('/node_modules/') ||
-    url.pathname.includes('.vite/') ||
-    url.pathname.startsWith('/src/') ||
-    url.pathname.endsWith('.js') ||
-    url.pathname.endsWith('.mjs') ||
-    url.pathname.endsWith('.ts') ||
-    url.pathname.endsWith('.tsx') ||
-    url.pathname.endsWith('.css')
+    isDevFile(url.pathname) ||
+    isApiCall(url)
   ) {
     return;
   }
 
-  // Only cache static assets (images, fonts, manifest, HTML)
-  event.respondWith(
-    caches.match(request)
-      .then((cachedResponse) => {
-        if (cachedResponse) {
-          // Stale-while-revalidate for static assets only
-          fetch(request)
-            .then((networkResponse) => {
-              if (networkResponse && networkResponse.ok) {
-                caches.open(DYNAMIC_CACHE).then((cache) => {
-                  cache.put(request, networkResponse);
-                });
-              }
-            })
-            .catch(() => {});
-          
-          return cachedResponse;
-        }
+  // 2. Navigation → Network-First (always get fresh HTML)
+  if (isNavigation(request)) {
+    event.respondWith(
+      fetch(request)
+        .catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
 
-        return fetch(request)
-          .then((networkResponse) => {
-            if (networkResponse && networkResponse.ok && networkResponse.type === 'basic') {
-              const responseToCache = networkResponse.clone();
-              caches.open(DYNAMIC_CACHE).then((cache) => {
-                cache.put(request, responseToCache);
-              });
-            }
-            return networkResponse;
-          })
-          .catch((error) => {
-            console.error('[SW v3] Fetch failed:', error);
-            
-            if (request.mode === 'navigate') {
-              return caches.match('/');
-            }
-            
-            return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
-          });
+  // 3. Hashed Vite assets → Cache-First (immutable, never changes)
+  if (isHashedAsset(url.pathname)) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((res) => {
+          if (res.ok) {
+            const clone = res.clone();
+            caches.open(ASSETS_CACHE).then((c) => c.put(request, clone));
+          }
+          return res;
+        });
       })
-  );
+    );
+    return;
+  }
+
+  // 4. Images & fonts → Stale-While-Revalidate
+  if (isImageOrFont(url.pathname)) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        const networkFetch = fetch(request)
+          .then((res) => {
+            if (res.ok) {
+              const clone = res.clone();
+              caches.open(MEDIA_CACHE).then((c) => c.put(request, clone));
+            }
+            return res;
+          })
+          .catch(() => cached);
+
+        return cached || networkFetch;
+      })
+    );
+    return;
+  }
+
+  // 5. Everything else (manifest.json, robots.txt, etc.) → Network only
+  // No caching — avoids stale JS outside /assets/
 });
 
-// ========== PUSH EVENT ==========
+// ======================== PUSH ========================
+
 self.addEventListener('push', (event) => {
-  console.log('[SW v3] Push notification received');
-  
-  // Default notification data
+  console.log(`[SW ${CACHE_VERSION}] Push received`);
+
   const defaults = {
     title: 'ASH HOLDING',
     body: 'لديك إشعار جديد',
@@ -145,216 +138,93 @@ self.addEventListener('push', (event) => {
     badge: '/pwa-192x192.png',
     url: '/dashboard/notifications',
     tag: `${NOTIFICATION_TAG_PREFIX}${Date.now()}`,
-    requireInteraction: false,
-    silent: false,
-    renotify: false,
-    actions: [],
-    image: null,
   };
 
-  let notificationData = { ...defaults };
+  let data = { ...defaults };
 
   if (event.data) {
     try {
-      const payload = event.data.json();
-      console.log('[SW v3] Push payload:', payload);
-      
-      // Merge with payload (unified payload structure)
-      notificationData = {
-        title: payload.title || payload.title_ar || defaults.title,
-        body: payload.body || payload.message || payload.message_ar || defaults.body,
-        icon: payload.icon || defaults.icon,
-        badge: payload.badge || defaults.badge,
-        url: payload.url || payload.action_url || defaults.url,
-        tag: payload.tag || `${NOTIFICATION_TAG_PREFIX}${payload.id || Date.now()}`,
-        requireInteraction: payload.requireInteraction === true,
-        silent: payload.silent === true,
-        renotify: payload.renotify === true,
-        actions: payload.actions || [
+      const p = event.data.json();
+      data = {
+        title: p.title || p.title_ar || defaults.title,
+        body: p.body || p.message || p.message_ar || defaults.body,
+        icon: p.icon || defaults.icon,
+        badge: p.badge || defaults.badge,
+        url: p.url || p.action_url || defaults.url,
+        tag: p.tag || `${NOTIFICATION_TAG_PREFIX}${p.id || Date.now()}`,
+        requireInteraction: p.requireInteraction === true,
+        silent: p.silent === true,
+        renotify: p.renotify === true,
+        actions: p.actions || [
           { action: 'open', title: 'فتح' },
-          { action: 'dismiss', title: 'إغلاق' }
+          { action: 'dismiss', title: 'إغلاق' },
         ],
-        image: payload.image || null,
-        id: payload.id,
-        type: payload.type,
+        image: p.image || null,
+        id: p.id,
+        type: p.type,
       };
-    } catch (e) {
-      // Handle text payload
-      console.log('[SW v3] Parsing as text');
-      try {
-        notificationData.body = event.data.text() || defaults.body;
-      } catch (textError) {
-        console.error('[SW v3] Error parsing push data:', textError);
-      }
+    } catch {
+      try { data.body = event.data.text(); } catch {}
     }
   }
 
-  // Build notification options
   const options = {
-    body: notificationData.body,
-    icon: notificationData.icon,
-    badge: notificationData.badge,
+    body: data.body,
+    icon: data.icon,
+    badge: data.badge,
     dir: 'rtl',
     lang: 'ar',
-    tag: notificationData.tag,
-    renotify: notificationData.renotify,
-    requireInteraction: notificationData.requireInteraction,
-    silent: notificationData.silent,
-    vibrate: notificationData.silent ? undefined : [100, 50, 100, 50, 200],
-    data: {
-      url: notificationData.url,
-      id: notificationData.id,
-      type: notificationData.type,
-      timestamp: Date.now(),
-    },
-    actions: notificationData.actions,
+    tag: data.tag,
+    renotify: data.renotify,
+    requireInteraction: data.requireInteraction,
+    silent: data.silent,
+    vibrate: data.silent ? undefined : [100, 50, 100, 50, 200],
+    data: { url: data.url, id: data.id, type: data.type, timestamp: Date.now() },
+    actions: data.actions,
     timestamp: Date.now(),
   };
 
-  // Add image if present
-  if (notificationData.image) {
-    options.image = notificationData.image;
-  }
+  if (data.image) options.image = data.image;
 
-  event.waitUntil(
-    self.registration.showNotification(notificationData.title, options)
-      .then(() => {
-        console.log('[SW v3] Notification shown successfully:', notificationData.title);
-      })
-      .catch((error) => {
-        console.error('[SW v3] Error showing notification:', error);
-      })
-  );
+  event.waitUntil(self.registration.showNotification(data.title, options));
 });
 
-// ========== NOTIFICATION CLICK EVENT ==========
-self.addEventListener('notificationclick', (event) => {
-  const action = event.action;
-  const notification = event.notification;
-  
-  console.log('[SW v3] Notification clicked:', { action, tag: notification.tag });
-  
-  // Always close the notification
-  notification.close();
-  
-  // Handle dismiss action
-  if (action === 'dismiss' || action === 'close') {
-    console.log('[SW v3] Notification dismissed');
-    return;
-  }
+// ======================== NOTIFICATION CLICK ========================
 
-  // Get URL from notification data
-  const urlToOpen = notification.data?.url || '/dashboard/notifications';
-  
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  if (event.action === 'dismiss' || event.action === 'close') return;
+
+  const target = event.notification.data?.url || '/dashboard/notifications';
+
   event.waitUntil(
-    (async () => {
-      try {
-        // Get all window clients
-        const windowClients = await clients.matchAll({
-          type: 'window',
-          includeUncontrolled: true
-        });
-        
-        console.log('[SW v3] Found', windowClients.length, 'window clients');
-        
-        // Try to find and focus an existing window
-        for (const client of windowClients) {
-          const clientUrl = new URL(client.url);
-          
-          if (clientUrl.origin === self.location.origin) {
-            console.log('[SW v3] Found matching client, navigating to:', urlToOpen);
-            
-            // Navigate and focus
-            if ('navigate' in client) {
-              await client.navigate(urlToOpen);
-            }
-            
-            if ('focus' in client) {
-              await client.focus();
-            }
-            
-            return;
-          }
-        }
-        
-        // No existing window, open a new one
-        const fullUrl = new URL(urlToOpen, self.location.origin).href;
-        console.log('[SW v3] Opening new window:', fullUrl);
-        
-        if (clients.openWindow) {
-          await clients.openWindow(fullUrl);
-        }
-      } catch (error) {
-        console.error('[SW v3] Error handling notification click:', error);
-        
-        // Fallback: try to open window anyway
-        try {
-          const fullUrl = new URL(urlToOpen, self.location.origin).href;
-          if (clients.openWindow) {
-            await clients.openWindow(fullUrl);
-          }
-        } catch (fallbackError) {
-          console.error('[SW v3] Fallback also failed:', fallbackError);
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      for (const client of list) {
+        if (new URL(client.url).origin === self.location.origin) {
+          client.navigate?.(target);
+          return client.focus?.();
         }
       }
-    })()
+      return clients.openWindow?.(new URL(target, self.location.origin).href);
+    })
   );
 });
 
-// ========== NOTIFICATION CLOSE EVENT ==========
-self.addEventListener('notificationclose', (event) => {
-  console.log('[SW v3] Notification closed:', event.notification.tag);
-});
+self.addEventListener('notificationclose', () => {});
 
-// ========== BACKGROUND SYNC ==========
-self.addEventListener('sync', (event) => {
-  console.log('[SW v3] Background sync:', event.tag);
-  
-  if (event.tag === 'sync-notifications') {
-    event.waitUntil(syncNotifications());
-  }
-  
-  if (event.tag === 'sync-pending-actions') {
-    event.waitUntil(syncPendingActions());
-  }
-});
+// ======================== MESSAGE ========================
 
-async function syncNotifications() {
-  console.log('[SW v3] Syncing notifications...');
-  try {
-    console.log('[SW v3] Notification sync complete');
-  } catch (error) {
-    console.error('[SW v3] Notification sync failed:', error);
-  }
-}
-
-async function syncPendingActions() {
-  console.log('[SW v3] Syncing pending actions...');
-  try {
-    console.log('[SW v3] Pending actions sync complete');
-  } catch (error) {
-    console.error('[SW v3] Pending actions sync failed:', error);
-  }
-}
-
-// ========== MESSAGE HANDLER ==========
 self.addEventListener('message', (event) => {
-  console.log('[SW v3] Message received:', event.data?.type);
-  
   if (!event.data) return;
-  
+
   switch (event.data.type) {
     case 'SKIP_WAITING':
       self.skipWaiting();
       break;
-      
     case 'GET_VERSION':
-      if (event.ports && event.ports[0]) {
-        event.ports[0].postMessage({ version: CACHE_VERSION });
-      }
+      event.ports?.[0]?.postMessage({ version: CACHE_VERSION });
       break;
-      
-    case 'SHOW_NOTIFICATION':
+    case 'SHOW_NOTIFICATION': {
       const { title, options } = event.data;
       if (title) {
         self.registration.showNotification(title, {
@@ -366,26 +236,21 @@ self.addEventListener('message', (event) => {
         });
       }
       break;
-      
+    }
     case 'CLEAR_CACHE':
-      caches.keys().then(keys => {
-        keys.forEach(key => caches.delete(key));
-      });
+      caches.keys().then((ks) => ks.forEach((k) => caches.delete(k)));
       break;
   }
 });
 
-// ========== PERIODIC SYNC (if supported) ==========
-self.addEventListener('periodicsync', (event) => {
-  console.log('[SW v3] Periodic sync:', event.tag);
-  
-  if (event.tag === 'check-notifications') {
-    event.waitUntil(checkForNewNotifications());
-  }
+// ======================== BACKGROUND / PERIODIC SYNC ========================
+
+self.addEventListener('sync', (event) => {
+  console.log(`[SW ${CACHE_VERSION}] Sync: ${event.tag}`);
 });
 
-async function checkForNewNotifications() {
-  console.log('[SW v3] Checking for new notifications...');
-}
+self.addEventListener('periodicsync', (event) => {
+  console.log(`[SW ${CACHE_VERSION}] Periodic sync: ${event.tag}`);
+});
 
-console.log('[SW v3] ASH HOLDING Service Worker v3 loaded');
+console.log(`[SW ${CACHE_VERSION}] Loaded`);
