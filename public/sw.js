@@ -2,7 +2,7 @@
 // Supports: Push Notifications, Offline Caching, Background Sync
 // Features: iOS 16.4+ Push, Unified Payload, Action Handling
 
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const STATIC_CACHE = `ashholding-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `ashholding-dynamic-${CACHE_VERSION}`;
 const NOTIFICATION_TAG_PREFIX = 'ashholding-';
@@ -73,22 +73,30 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (request.method !== 'GET') return;
   
-  // Skip API calls and external resources
+  // Skip API calls, external resources, and Vite module files
   if (
     url.hostname.includes('supabase') ||
     url.hostname.includes('api.') ||
     url.protocol === 'chrome-extension:' ||
-    url.pathname.startsWith('/functions/')
+    url.pathname.startsWith('/functions/') ||
+    url.pathname.includes('/node_modules/') ||
+    url.pathname.includes('.vite/') ||
+    url.pathname.startsWith('/src/') ||
+    url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.mjs') ||
+    url.pathname.endsWith('.ts') ||
+    url.pathname.endsWith('.tsx') ||
+    url.pathname.endsWith('.css')
   ) {
     return;
   }
 
+  // Only cache static assets (images, fonts, manifest, HTML)
   event.respondWith(
     caches.match(request)
       .then((cachedResponse) => {
-        // Return cached response if available
         if (cachedResponse) {
-          // Fetch in background to update cache (stale-while-revalidate)
+          // Stale-while-revalidate for static assets only
           fetch(request)
             .then((networkResponse) => {
               if (networkResponse && networkResponse.ok) {
@@ -102,10 +110,8 @@ self.addEventListener('fetch', (event) => {
           return cachedResponse;
         }
 
-        // Fetch from network
         return fetch(request)
           .then((networkResponse) => {
-            // Cache successful responses
             if (networkResponse && networkResponse.ok && networkResponse.type === 'basic') {
               const responseToCache = networkResponse.clone();
               caches.open(DYNAMIC_CACHE).then((cache) => {
@@ -117,7 +123,6 @@ self.addEventListener('fetch', (event) => {
           .catch((error) => {
             console.error('[SW v3] Fetch failed:', error);
             
-            // Offline fallback for navigation
             if (request.mode === 'navigate') {
               return caches.match('/');
             }
