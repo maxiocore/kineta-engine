@@ -1,5 +1,5 @@
 import { Component, type ReactNode } from "react";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw, AlertTriangle } from "lucide-react";
 
 interface Props {
   children: ReactNode;
@@ -7,21 +7,17 @@ interface Props {
 
 interface State {
   hasError: boolean;
+  isChunkError: boolean;
   isRetrying: boolean;
 }
 
-/**
- * Error Boundary that catches chunk/module load failures
- * and auto-reloads the page to fetch fresh assets.
- */
 class ChunkErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, isRetrying: false };
+    this.state = { hasError: false, isChunkError: false, isRetrying: false };
   }
 
-  static getDerivedStateFromError(error: Error): State | null {
-    // Check if it's a chunk load error
+  static getDerivedStateFromError(error: Error): State {
     const isChunkError =
       error.message?.includes("Failed to fetch dynamically imported module") ||
       error.message?.includes("Importing a module script failed") ||
@@ -30,24 +26,11 @@ class ChunkErrorBoundary extends Component<Props, State> {
       error.message?.includes("Loading CSS chunk") ||
       error.name === "ChunkLoadError";
 
-    if (isChunkError) {
-      return { hasError: true, isRetrying: false };
-    }
-    // Not a chunk error — let it propagate to React's default error handling
-    return null;
+    return { hasError: true, isChunkError, isRetrying: false };
   }
 
   componentDidCatch(error: Error) {
-    const isChunkError =
-      error.message?.includes("Failed to fetch dynamically imported module") ||
-      error.message?.includes("Importing a module script failed") ||
-      error.message?.includes("error loading dynamically imported module") ||
-      error.message?.includes("Loading chunk") ||
-      error.message?.includes("Loading CSS chunk") ||
-      error.name === "ChunkLoadError";
-
-    if (isChunkError) {
-      // Check if we already tried reloading to avoid infinite loop
+    if (this.state.isChunkError) {
       const lastReload = sessionStorage.getItem("chunk_reload_time");
       const now = Date.now();
       if (!lastReload || now - Number(lastReload) > 10000) {
@@ -56,7 +39,6 @@ class ChunkErrorBoundary extends Component<Props, State> {
         return;
       }
     }
-
     console.error("ChunkErrorBoundary caught:", error);
   }
 
@@ -68,21 +50,24 @@ class ChunkErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      const { isChunkError } = this.state;
       return (
-        <div
-          className="min-h-screen flex items-center justify-center bg-background"
-          dir="rtl"
-        >
+        <div className="min-h-screen flex items-center justify-center bg-background" dir="rtl">
           <div className="text-center space-y-4 p-8 max-w-md">
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-              <RefreshCw className="w-8 h-8 text-primary" />
+              {isChunkError ? (
+                <RefreshCw className="w-8 h-8 text-primary" />
+              ) : (
+                <AlertTriangle className="w-8 h-8 text-destructive" />
+              )}
             </div>
             <h2 className="text-xl font-bold text-foreground">
-              تم تحديث التطبيق
+              {isChunkError ? "تم تحديث التطبيق" : "حدث خطأ غير متوقع"}
             </h2>
             <p className="text-muted-foreground text-sm">
-              يتوفر إصدار جديد من التطبيق. اضغط على الزر أدناه لتحميل النسخة
-              الأحدث.
+              {isChunkError
+                ? "يتوفر إصدار جديد من التطبيق. اضغط على الزر أدناه لتحميل النسخة الأحدث."
+                : "حدث خطأ أثناء تحميل الصفحة. اضغط على الزر أدناه لإعادة المحاولة."}
             </p>
             <button
               onClick={this.handleRetry}
