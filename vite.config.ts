@@ -26,10 +26,11 @@ export default defineConfig(({ mode }) => ({
       'react-router-dom',
       'framer-motion',
       '@tanstack/react-query',
+      'next-themes',
     ],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'framer-motion'],
+    include: ['react', 'react-dom', 'react-router-dom', 'framer-motion', 'next-themes'],
     force: true,
   },
 }));
