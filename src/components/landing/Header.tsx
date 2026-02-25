@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Sparkles, ChevronLeft, Home, Briefcase, Share2, Users, CreditCard, MessageCircle, LucideIcon, Download, Plus, SquareArrowOutUpRight, Rocket } from "lucide-react";
+import { Menu, X, Sparkles, ChevronLeft, Home, Briefcase, Share2, Users, CreditCard, MessageCircle, LucideIcon, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import ThemeToggle from "@/components/ThemeToggle";
-import { usePWAInstall } from "@/hooks/usePWAInstall";
 
 interface NavItem {
   label: string;
@@ -25,8 +24,6 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { isInstallable, isInstalled, isIOS, installApp } = usePWAInstall();
-  const [showIOSInstructions, setShowIOSInstructions] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -115,20 +112,6 @@ const Header = () => {
             <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
               <ThemeToggle />
               
-              {/* Install Button - Desktop */}
-              {!isInstalled && (
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={isIOS ? () => setShowIOSInstructions(true) : (isInstallable ? installApp : () => setShowIOSInstructions(true))}
-                    className="gap-1.5 border-primary/30 text-primary hover:bg-primary/5"
-                  >
-                    <Download className="w-4 h-4" />
-                    تثبيت التطبيق
-                  </Button>
-                </motion.div>
-              )}
               
               <Link to="/auth">
                 <Button 
@@ -279,24 +262,6 @@ const Header = () => {
                     </Button>
                   </Link>
                   
-                  {/* Mobile Install Button */}
-                  {!isInstalled && (
-                    <Button 
-                      variant="outline" 
-                      className="w-full py-4 xs:py-5 rounded-lg xs:rounded-xl border-primary/30 text-primary text-sm xs:text-base"
-                      onClick={() => {
-                        if (isIOS || !isInstallable) {
-                          setShowIOSInstructions(true);
-                        } else {
-                          installApp();
-                        }
-                        setIsMobileMenuOpen(false);
-                      }}
-                    >
-                      <Download className="w-3.5 h-3.5 xs:w-4 xs:h-4 ml-1.5 xs:ml-2" />
-                      تثبيت التطبيق
-                    </Button>
-                  )}
                 </motion.div>
               </div>
             </motion.div>
@@ -304,118 +269,6 @@ const Header = () => {
         )}
       </AnimatePresence>
 
-      {/* iOS/Install Instructions Modal */}
-      <AnimatePresence>
-        {showIOSInstructions && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
-            onClick={() => setShowIOSInstructions(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-card border border-border rounded-2xl p-6 max-w-sm w-full shadow-xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold">
-                  {isIOS ? 'تثبيت التطبيق على iPhone' : 'تثبيت التطبيق'}
-                </h3>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowIOSInstructions(false)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-              
-              <div className="space-y-4">
-                {isIOS ? (
-                  <>
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-bold text-primary">1</span>
-                      </div>
-                      <div>
-                        <p className="font-medium">اضغط على زر المشاركة</p>
-                        <p className="text-sm text-muted-foreground flex items-center gap-1">
-                          <SquareArrowOutUpRight className="w-4 h-4" /> في أسفل المتصفح
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-bold text-primary">2</span>
-                      </div>
-                      <div>
-                        <p className="font-medium">اختر "إضافة إلى الشاشة الرئيسية"</p>
-                        <p className="text-sm text-muted-foreground flex items-center gap-1">
-                          <Plus className="w-4 h-4" /> Add to Home Screen
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-bold text-primary">3</span>
-                      </div>
-                      <div>
-                        <p className="font-medium">اضغط "إضافة"</p>
-                        <p className="text-sm text-muted-foreground">سيظهر التطبيق على شاشتك الرئيسية</p>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-bold text-primary">1</span>
-                      </div>
-                      <div>
-                        <p className="font-medium">افتح قائمة المتصفح</p>
-                        <p className="text-sm text-muted-foreground">⋮ (ثلاث نقاط) في أعلى المتصفح</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-bold text-primary">2</span>
-                      </div>
-                      <div>
-                        <p className="font-medium">اختر "تثبيت التطبيق"</p>
-                        <p className="text-sm text-muted-foreground">Install app أو Add to Home Screen</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-bold text-primary">3</span>
-                      </div>
-                      <div>
-                        <p className="font-medium">اضغط "تثبيت"</p>
-                        <p className="text-sm text-muted-foreground">سيظهر التطبيق على شاشتك الرئيسية</p>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <Button
-                className="w-full mt-6"
-                onClick={() => setShowIOSInstructions(false)}
-              >
-                فهمت
-              </Button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   );
 };
