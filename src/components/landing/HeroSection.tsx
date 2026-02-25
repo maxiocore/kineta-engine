@@ -1,9 +1,7 @@
-import { ArrowLeft, Sparkles, Code2, Palette, Share2, Rocket, Globe, Zap, Shield, Star, Play, CheckCircle2, Download, Smartphone } from "lucide-react";
+import { ArrowLeft, Sparkles, Code2, Palette, Share2, Rocket, Globe, Zap, Shield, Star, Play, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { useRef, useState, useEffect, useMemo } from "react";
-import { usePWAInstall } from "@/hooks/usePWAInstall";
-import InstallPrompt from "@/components/pwa/InstallPrompt";
+import { useState, useEffect, useMemo } from "react";
 
 const HeroSection = () => {
   const [activeFeature, setActiveFeature] = useState(0);
@@ -158,7 +156,7 @@ const HeroSection = () => {
               </Button>
             </Link>
             
-            <InstallPrompt variant="button" />
+            
             
             <Link to="/our-services">
               <Button 
