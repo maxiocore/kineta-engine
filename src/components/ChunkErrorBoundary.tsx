@@ -33,7 +33,8 @@ class ChunkErrorBoundary extends Component<Props, State> {
     if (isChunkError) {
       return { hasError: true, isRetrying: false };
     }
-    return { hasError: true, isRetrying: false };
+    // Not a chunk error — let it propagate to React's default error handling
+    return null;
   }
 
   componentDidCatch(error: Error) {
