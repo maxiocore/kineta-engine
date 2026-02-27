@@ -22,7 +22,7 @@ const ReferralCard = ({ code, totalReferrals, totalEarnings }: ReferralCardProps
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const referralLink = `${window.location.origin}?ref=${code}`;
+  const referralLink = `https://ash-holding.sa?ref=${code}`;
 
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink);
