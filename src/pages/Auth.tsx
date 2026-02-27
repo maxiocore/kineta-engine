@@ -65,6 +65,9 @@ const Auth = () => {
   const { lang, setLang, t, isRtl } = useLanguage();
   const features = lang === 'ar' ? features_ar : features_en;
 
+  // Capture referral code from URL
+  const refCode = searchParams.get("ref");
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -74,7 +77,51 @@ const Auth = () => {
 
   useEffect(() => {
     setIsSignUp(searchParams.get("mode") === "signup");
+    // If ref param exists, auto-switch to signup mode
+    if (searchParams.get("ref") && searchParams.get("mode") !== "signup") {
+      setIsSignUp(true);
+    }
   }, [searchParams]);
+
+  // Apply referral code after successful signup
+  const applyRefCodeAfterSignup = async (userId: string) => {
+    if (!refCode) return;
+    try {
+      const { data: codeData } = await supabase
+        .from('referral_codes')
+        .select('*')
+        .eq('code', refCode.toUpperCase())
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (!codeData || codeData.user_id === userId) return;
+
+      const { data: existingReferral } = await supabase
+        .from('referrals')
+        .select('id')
+        .eq('referred_id', userId)
+        .maybeSingle();
+
+      if (existingReferral) return;
+
+      await supabase.from('referrals').insert({
+        referrer_id: codeData.user_id,
+        referred_id: userId,
+        referral_code: refCode.toUpperCase(),
+        status: 'converted',
+        converted_at: new Date().toISOString(),
+      });
+
+      await supabase
+        .from('referral_codes')
+        .update({ total_referrals: codeData.total_referrals + 1 })
+        .eq('id', codeData.id);
+
+      console.log('[Referral] Applied referral code:', refCode);
+    } catch (err) {
+      console.error('[Referral] Error applying code:', err);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -150,6 +197,9 @@ const Auth = () => {
           try {
             const { data: { user: newUser } } = await supabase.auth.getUser();
             if (newUser) {
+              // Apply referral code if present
+              await applyRefCodeAfterSignup(newUser.id);
+              
               await supabase.functions.invoke('send-welcome-email', {
                 body: {
                   userId: newUser.id,
