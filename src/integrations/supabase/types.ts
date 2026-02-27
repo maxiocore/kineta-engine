@@ -2882,6 +2882,7 @@ export type Database = {
           link: string | null
           notes: string | null
           order_number: string
+          payment_method: string | null
           quantity: number | null
           remains: number | null
           service_id: string
@@ -2902,6 +2903,7 @@ export type Database = {
           link?: string | null
           notes?: string | null
           order_number: string
+          payment_method?: string | null
           quantity?: number | null
           remains?: number | null
           service_id: string
@@ -2922,6 +2924,7 @@ export type Database = {
           link?: string | null
           notes?: string | null
           order_number?: string
+          payment_method?: string | null
           quantity?: number | null
           remains?: number | null
           service_id?: string
