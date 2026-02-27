@@ -4,8 +4,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const rawAshApiUrl = (Deno.env.get("ASH_HOLDINGS_API_URL") || "").trim();
+const ASH_API_URL = (/^https?:\/\//i.test(rawAshApiUrl) ? rawAshApiUrl : "https://ash.holdings").replace(/\/+$/, "");
+const ASH_API_KEY = Deno.env.get("ASH_HOLDINGS_API_KEY") || "";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -38,7 +42,6 @@ serve(async (req) => {
 
     const userId = claimsData.claims.sub;
 
-    // Fetch user profile
     const { data: profile } = await supabase
       .from("profiles")
       .select("full_name, email, phone")
@@ -52,19 +55,32 @@ serve(async (req) => {
       });
     }
 
-    const { service_id } = await req.json();
+    let service_id: string | null = null;
+    try {
+      const body = await req.json();
+      service_id = body?.service_id ?? null;
+    } catch {
+      service_id = null;
+    }
 
-    // Call external SSO API
-    const ASH_API_URL = "https://ash.holdings";
     const ssoEndpoint = `${ASH_API_URL}/api/auth/sso-token`;
-    
     console.log("Calling SSO endpoint:", ssoEndpoint);
-    
+
+    const externalHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+
+    if (ASH_API_KEY) {
+      externalHeaders.Authorization = `Bearer ${ASH_API_KEY}`;
+      externalHeaders["x-api-key"] = ASH_API_KEY;
+    }
+
     const ssoResponse = await fetch(ssoEndpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: externalHeaders,
       body: JSON.stringify({
-        service_id: service_id || null,
+        service_id,
         customer: {
           id: userId,
           name: profile.full_name,
@@ -88,25 +104,50 @@ serve(async (req) => {
       );
     }
 
-    let ssoData;
+    const fallbackRedirectUrl = `${ASH_API_URL}/dashboard/new-application`;
+
+    let parsed: any;
     try {
-      ssoData = JSON.parse(responseText);
+      parsed = JSON.parse(responseText);
     } catch {
       console.error("SSO returned non-JSON:", responseText.substring(0, 500));
       return new Response(
-        JSON.stringify({ error: "SSO service returned invalid response" }),
+        JSON.stringify({
+          token: null,
+          redirect_url: fallbackRedirectUrl,
+          fallback: true,
+          reason: "invalid_upstream_response",
+        }),
         {
-          status: 502,
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
 
-    const redirectUrl = ssoData.redirect_url || ssoData.url || `${ASH_API_URL}/auth?token=${ssoData.token}`;
+    const payload = parsed?.data ?? parsed;
+    const ssoToken = payload?.token;
+    const redirectUrl = payload?.redirect_url || payload?.url || (ssoToken ? `${ASH_API_URL}/auth?token=${ssoToken}` : null);
+
+    if (!ssoToken && !redirectUrl) {
+      console.error("SSO payload missing token and redirect_url", parsed);
+      return new Response(
+        JSON.stringify({
+          token: null,
+          redirect_url: fallbackRedirectUrl,
+          fallback: true,
+          reason: "invalid_upstream_payload",
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
     return new Response(
       JSON.stringify({
-        token: ssoData.token,
+        token: ssoToken ?? null,
         redirect_url: redirectUrl,
       }),
       {
