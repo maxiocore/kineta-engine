@@ -143,7 +143,7 @@ export function useReferral() {
 
   const getReferralLink = () => {
     if (!referralCode) return '';
-    return `${window.location.origin}/auth?ref=${referralCode.code}`;
+    return `https://ash-holding.sa/auth?ref=${referralCode.code}`;
   };
 
   const applyReferralCode = async (code: string) => {
