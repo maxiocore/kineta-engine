@@ -80,7 +80,8 @@ export const SmsAuth = ({ onSuccess, onBack, isSignUp = false }: SmsAuthProps) =
         body: { action: 'send', phone },
       });
 
-      if (error) throw error;
+      // For send action, data should be available on success (2xx)
+      if (error && !data) throw error;
 
       if (data.success) {
         setStep('otp');
@@ -131,9 +132,22 @@ export const SmsAuth = ({ onSuccess, onBack, isSignUp = false }: SmsAuthProps) =
         body: { action: 'verify', phone, otp },
       });
 
-      if (error) throw error;
+      // Handle edge function errors - extract response body from error if available
+      const responseData = data || (error ? await (async () => {
+        try {
+          if (error instanceof Error && 'context' in error) {
+            const ctx = (error as any).context;
+            if (ctx?.json) return await ctx.json();
+            if (ctx?.body) return JSON.parse(await ctx.text());
+          }
+          return null;
+        } catch { return null; }
+      })() : null);
 
-      if (data.success) {
+      if (!responseData && error) throw error;
+
+      if (responseData?.success) {
+        const data = responseData;
         if (data.is_existing_user && data.user_email) {
           try {
             if (data.token_hash) {
@@ -193,12 +207,13 @@ export const SmsAuth = ({ onSuccess, onBack, isSignUp = false }: SmsAuthProps) =
           onSuccess(data.phone || phone);
         }
       } else {
+        const errData = responseData || {};
         toast({
           title: "خطأ",
-          description: data.error || "رمز التحقق غير صحيح",
+          description: errData.error || "رمز التحقق غير صحيح",
           variant: "destructive",
         });
-        if (data.remaining_attempts !== undefined && data.remaining_attempts <= 0) {
+        if (errData.remaining_attempts !== undefined && errData.remaining_attempts <= 0) {
           setStep('phone');
           setOtp('');
         }
