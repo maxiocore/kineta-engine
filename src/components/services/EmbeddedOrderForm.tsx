@@ -374,7 +374,8 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
         total_price: finalPrice,
         coupon_id: appliedCoupon?.id || null,
         discount_amount: discountAmount,
-        status: "pending"
+        status: "pending",
+        payment_method: "balance"
       }).select('id').single();
 
       if (error) throw error;

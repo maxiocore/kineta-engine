@@ -180,6 +180,7 @@ const CustomServiceOrderForm = ({ serviceId, serviceName, onSuccess, onClose }: 
           status: 'pending',
           notes: `اسم العميل: ${formData.customerName}\nواتساب: ${formData.whatsappNumber}\n\nتفاصيل الطلب:\n${formData.orderDetails}\n\nطريقة الدفع: Paylink`,
           order_number: `ORD-${Date.now()}`,
+          payment_method: 'paylink',
         }).select('id').single();
 
         // Send instant SMS notification
@@ -221,6 +222,7 @@ const CustomServiceOrderForm = ({ serviceId, serviceName, onSuccess, onClose }: 
           status: 'pending',
           notes: `اسم العميل: ${formData.customerName}\nواتساب: ${formData.whatsappNumber}\n\nتفاصيل الطلب:\n${formData.orderDetails}\n\nطريقة الدفع: تمارا (تقسيط)`,
           order_number: `ORD-${Date.now()}`,
+          payment_method: 'tamara',
         }).select('id').single();
 
         // Send instant SMS notification
