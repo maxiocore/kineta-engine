@@ -350,7 +350,7 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
     // Check balance
     const { data: balanceData } = await supabase
       .from("user_balances")
-      .select("balance")
+      .select("balance, total_spent")
       .eq("user_id", user.id)
       .single();
 
@@ -385,7 +385,7 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
       await supabase.from("user_balances")
         .update({ 
           balance: balanceData.balance - finalPrice,
-          total_spent: (balanceData as any).total_spent + finalPrice,
+          total_spent: (balanceData.total_spent || 0) + finalPrice,
           updated_at: new Date().toISOString()
         })
         .eq("user_id", user.id);
