@@ -227,7 +227,6 @@ const ClientCashback = () => {
       if (!user) throw new Error("Not authenticated");
       
       const { data, error } = await supabase.rpc("withdraw_cashback", {
-        p_user_id: user.id,
         p_amount: amount,
       });
       
@@ -260,7 +259,6 @@ const ClientCashback = () => {
       
       // First deduct from cashback balance
       const { data: rpcResult, error: rpcError } = await supabase.rpc("withdraw_cashback", {
-        p_user_id: user.id,
         p_amount: data.amount,
       });
       

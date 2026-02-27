@@ -4653,10 +4653,9 @@ export type Database = {
         }[]
       }
       update_overdue_installments: { Args: never; Returns: undefined }
-      withdraw_cashback: {
-        Args: { p_amount: number; p_user_id: string }
-        Returns: Json
-      }
+      withdraw_cashback:
+        | { Args: { p_amount: number }; Returns: Json }
+        | { Args: { p_amount: number; p_user_id: string }; Returns: Json }
     }
     Enums: {
       acknowledgment_status: "NOT_SENT" | "SENT" | "VIEWED" | "SIGNED"

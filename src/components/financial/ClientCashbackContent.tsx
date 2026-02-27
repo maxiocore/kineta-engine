@@ -169,7 +169,7 @@ const ClientCashbackContent = () => {
   const withdrawMutation = useMutation({
     mutationFn: async (amount: number) => {
       if (!user) throw new Error("Not authenticated");
-      const { data, error } = await supabase.rpc("withdraw_cashback", { p_user_id: user.id, p_amount: amount });
+      const { data, error } = await supabase.rpc("withdraw_cashback", { p_amount: amount });
       if (error) throw error;
       const result = data as { success: boolean; error?: string };
       if (!result.success) throw new Error(result.error || "فشل السحب");
@@ -188,7 +188,7 @@ const ClientCashbackContent = () => {
   const bankWithdrawMutation = useMutation({
     mutationFn: async (data: { amount: number; bank_name: string; account_holder_name: string; iban: string }) => {
       if (!user) throw new Error("Not authenticated");
-      const { data: rpcResult, error: rpcError } = await supabase.rpc("withdraw_cashback", { p_user_id: user.id, p_amount: data.amount });
+      const { data: rpcResult, error: rpcError } = await supabase.rpc("withdraw_cashback", { p_amount: data.amount });
       if (rpcError) throw rpcError;
       const result = rpcResult as { success: boolean; error?: string };
       if (!result.success) throw new Error(result.error || "فشل السحب");

@@ -94,13 +94,15 @@ export const FileAttachment = ({
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from('ticket-attachments')
-        .getPublicUrl(filePath);
+        .createSignedUrl(filePath, 86400); // 24 hour expiry
+
+      if (signedUrlError) throw signedUrlError;
 
       const newAttachment: Attachment = {
         name: file.name,
-        url: publicUrl,
+        url: signedUrlData.signedUrl,
         type: file.type,
         size: file.size
       };
