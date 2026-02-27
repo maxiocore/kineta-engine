@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, User, ArrowRight, ArrowLeft, Eye, EyeOff, Sparkles, Phone, Shield, Zap, CheckCircle2, Star, MessageCircle, Smartphone } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, ArrowLeft, Eye, EyeOff, Sparkles, Phone, Shield, Zap, CheckCircle2, Star, MessageCircle, Smartphone, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,15 +14,22 @@ import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
 import { WhatsAppAuth } from "@/components/auth/WhatsAppAuth";
 import { SmsAuth } from "@/components/auth/SmsAuth";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const emailSchema = z.string().email("البريد الإلكتروني غير صالح");
 const passwordSchema = z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل");
 const phoneSchema = z.string().regex(/^(05|5)\d{8}$/, "رقم الجوال غير صالح (مثال: 0512345678)").optional().or(z.literal(''));
 
-const features = [
+const features_ar = [
   { icon: Shield, text: "حماية متقدمة للبيانات", color: "from-emerald-500 to-teal-500" },
   { icon: Zap, text: "سرعة فائقة في التنفيذ", color: "from-amber-500 to-orange-500" },
   { icon: CheckCircle2, text: "دعم فني على مدار الساعة", color: "from-blue-500 to-cyan-500" },
+];
+
+const features_en = [
+  { icon: Shield, text: "Advanced Data Protection", color: "from-emerald-500 to-teal-500" },
+  { icon: Zap, text: "Ultra-fast Execution", color: "from-amber-500 to-orange-500" },
+  { icon: CheckCircle2, text: "24/7 Technical Support", color: "from-blue-500 to-cyan-500" },
 ];
 
 const FloatingParticle = ({ delay, duration, x, y, size }: { delay: number; duration: number; x: string; y: string; size: number }) => (
@@ -55,6 +62,8 @@ const Auth = () => {
   const [authMethod, setAuthMethod] = useState<'email' | 'whatsapp' | 'sms'>('email');
   const { toast } = useToast();
   const { user, signUp, signIn } = useAuth();
+  const { lang, setLang, t, isRtl } = useLanguage();
+  const features = lang === 'ar' ? features_ar : features_en;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -80,7 +89,7 @@ const Auth = () => {
       emailSchema.parse(formData.email);
     } catch (e) {
       if (e instanceof z.ZodError) {
-        newErrors.email = e.errors[0].message;
+        newErrors.email = t("البريد الإلكتروني غير صالح", "Invalid email address");
       }
     }
 
@@ -88,12 +97,12 @@ const Auth = () => {
       passwordSchema.parse(formData.password);
     } catch (e) {
       if (e instanceof z.ZodError) {
-        newErrors.password = e.errors[0].message;
+        newErrors.password = t("كلمة المرور يجب أن تكون 6 أحرف على الأقل", "Password must be at least 6 characters");
       }
     }
 
     if (isSignUp && !formData.name.trim()) {
-      newErrors.name = "الاسم مطلوب";
+      newErrors.name = t("الاسم مطلوب", "Name is required");
     }
 
     if (isSignUp && formData.phone) {
@@ -101,7 +110,7 @@ const Auth = () => {
         phoneSchema.parse(formData.phone);
       } catch (e) {
         if (e instanceof z.ZodError) {
-          newErrors.phone = e.errors[0].message;
+          newErrors.phone = t("رقم الجوال غير صالح", "Invalid phone number");
         }
       }
     }
@@ -126,13 +135,13 @@ const Auth = () => {
         if (error) {
           if (error.message.includes("User already registered")) {
             toast({
-              title: "خطأ",
-              description: "هذا البريد الإلكتروني مسجل بالفعل. حاول تسجيل الدخول.",
+              title: t("خطأ", "Error"),
+              description: t("هذا البريد الإلكتروني مسجل بالفعل. حاول تسجيل الدخول.", "This email is already registered. Try logging in."),
               variant: "destructive",
             });
           } else {
             toast({
-              title: "خطأ",
+              title: t("خطأ", "Error"),
               description: error.message,
               variant: "destructive",
             });
@@ -154,8 +163,8 @@ const Auth = () => {
           }
           
           toast({
-            title: "تم إنشاء الحساب!",
-            description: "تم تسجيل حسابك بنجاح. سيتم توجيهك للوحة التحكم.",
+            title: t("تم إنشاء الحساب!", "Account Created!"),
+            description: t("تم تسجيل حسابك بنجاح. سيتم توجيهك للوحة التحكم.", "Your account has been created successfully."),
           });
           navigate("/dashboard");
         }
@@ -165,29 +174,29 @@ const Auth = () => {
         if (error) {
           if (error.message.includes("Invalid login credentials")) {
             toast({
-              title: "خطأ",
-              description: "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+              title: t("خطأ", "Error"),
+              description: t("البريد الإلكتروني أو كلمة المرور غير صحيحة.", "Invalid email or password."),
               variant: "destructive",
             });
           } else {
             toast({
-              title: "خطأ",
+              title: t("خطأ", "Error"),
               description: error.message,
               variant: "destructive",
             });
           }
         } else {
           toast({
-            title: "مرحباً بعودتك!",
-            description: "تم تسجيل دخولك بنجاح.",
+            title: t("مرحباً بعودتك!", "Welcome back!"),
+            description: t("تم تسجيل دخولك بنجاح.", "You have logged in successfully."),
           });
           navigate("/dashboard");
         }
       }
     } catch (error) {
       toast({
-        title: "خطأ",
-        description: "حدث خطأ غير متوقع. حاول مرة أخرى.",
+        title: t("خطأ", "Error"),
+        description: t("حدث خطأ غير متوقع. حاول مرة أخرى.", "An unexpected error occurred. Please try again."),
         variant: "destructive",
       });
     } finally {
@@ -301,7 +310,21 @@ const Auth = () => {
             
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
             
-            <div className="relative z-10">
+            <div className="relative z-10" dir={isRtl ? 'rtl' : 'ltr'}>
+              {/* Language Toggle */}
+              <div className={`flex justify-end mb-3 ${isRtl ? 'flex-row' : 'flex-row-reverse'}`}>
+                <motion.button
+                  type="button"
+                  onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/50 hover:bg-secondary/80 text-xs font-medium text-muted-foreground hover:text-foreground transition-all border border-border/50"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Globe className="w-3.5 h-3.5" />
+                  {lang === 'ar' ? 'English' : 'العربية'}
+                </motion.button>
+              </div>
+
               {/* Header with Animation */}
               <div className="text-center mb-6 sm:mb-8">
                 <motion.div
@@ -318,13 +341,13 @@ const Auth = () => {
                     <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
                   </motion.div>
                   <span className="text-xs sm:text-sm font-medium text-primary">
-                    {isSignUp ? "انضم إلينا اليوم" : "أهلاً بعودتك"}
+                    {isSignUp ? t("انضم إلينا اليوم", "Join us today") : t("أهلاً بعودتك", "Welcome back")}
                   </span>
                 </motion.div>
                 
                 <AnimatePresence mode="wait">
                   <motion.h1 
-                    key={isSignUp ? "signup" : "signin"}
+                    key={`${isSignUp}-${lang}`}
                     className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -332,9 +355,9 @@ const Auth = () => {
                     transition={{ duration: 0.3 }}
                   >
                     {isSignUp ? (
-                      <>إنشاء <span className="text-transparent bg-clip-text bg-gradient-to-l from-primary to-accent">حساب جديد</span></>
+                      <>{t("إنشاء ", "Create ")} <span className="text-transparent bg-clip-text bg-gradient-to-l from-primary to-accent">{t("حساب جديد", "New Account")}</span></>
                     ) : (
-                      <>تسجيل <span className="text-transparent bg-clip-text bg-gradient-to-l from-primary to-accent">الدخول</span></>
+                      <>{t("تسجيل ", "Sign ")} <span className="text-transparent bg-clip-text bg-gradient-to-l from-primary to-accent">{t("الدخول", "In")}</span></>
                     )}
                   </motion.h1>
                 </AnimatePresence>
@@ -346,8 +369,8 @@ const Auth = () => {
                   transition={{ delay: 0.3 }}
                 >
                   {isSignUp 
-                    ? "ابدأ رحلتك نحو النجاح التسويقي" 
-                    : "سجل دخولك للوصول إلى لوحة التحكم"}
+                    ? t("ابدأ رحلتك نحو النجاح الرقمي", "Start your journey to digital success") 
+                    : t("سجل دخولك للوصول إلى لوحة التحكم", "Sign in to access your dashboard")}
                 </motion.p>
               </div>
 
@@ -364,7 +387,7 @@ const Auth = () => {
                   whileTap={{ scale: 0.98 }}
                 >
                   <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  البريد
+                  {t("البريد", "Email")}
                 </motion.button>
                 <motion.button
                   type="button"
@@ -377,7 +400,7 @@ const Auth = () => {
                   whileTap={{ scale: 0.98 }}
                 >
                   <Smartphone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  رسالة نصية
+                  SMS
                 </motion.button>
                 <motion.button
                   type="button"
@@ -390,7 +413,7 @@ const Auth = () => {
                   whileTap={{ scale: 0.98 }}
                 >
                   <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  واتساب
+                  {t("واتساب", "WhatsApp")}
                 </motion.button>
               </div>
 
@@ -457,24 +480,24 @@ const Auth = () => {
                         animate={focusedField === 'name' ? 'focused' : 'unfocused'}
                         className="rounded-xl"
                       >
-                        <Label htmlFor="name" className="text-xs sm:text-sm font-medium">الاسم الكامل</Label>
+                        <Label htmlFor="name" className="text-xs sm:text-sm font-medium">{t("الاسم الكامل", "Full Name")}</Label>
                         <div className="relative mt-1.5 sm:mt-2">
                           <motion.div
                             animate={{ 
                               color: focusedField === 'name' ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'
                             }}
                           >
-                            <User className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5" />
+                            <User className={`absolute ${isRtl ? 'right-3 sm:right-4' : 'left-3 sm:left-4'} top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5`} />
                           </motion.div>
                           <Input
                             id="name"
                             type="text"
-                            placeholder="محمد أحمد"
+                            placeholder={t("محمد أحمد", "John Doe")}
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             onFocus={() => setFocusedField('name')}
                             onBlur={() => setFocusedField(null)}
-                            className="pr-10 sm:pr-12 bg-background dark:bg-secondary/30 border-border h-11 sm:h-12 text-sm sm:text-base text-right rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 placeholder:text-muted-foreground/60"
+                            className={`${isRtl ? 'pr-10 sm:pr-12' : 'pl-10 sm:pl-12'} bg-background dark:bg-secondary/30 border-border h-11 sm:h-12 text-sm sm:text-base rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 placeholder:text-muted-foreground/60`}
                             required={isSignUp}
                           />
                         </div>
@@ -495,7 +518,7 @@ const Auth = () => {
                         className="rounded-xl"
                       >
                         <Label htmlFor="phone" className="text-xs sm:text-sm font-medium">
-                          رقم الجوال <span className="text-muted-foreground text-xs">(اختياري)</span>
+                          {t("رقم الجوال", "Phone Number")} <span className="text-muted-foreground text-xs">({t("اختياري", "optional")})</span>
                         </Label>
                         <div className="relative mt-1.5 sm:mt-2">
                           <motion.div
@@ -503,7 +526,7 @@ const Auth = () => {
                               color: focusedField === 'phone' ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'
                             }}
                           >
-                            <Phone className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5" />
+                            <Phone className={`absolute ${isRtl ? 'right-3 sm:right-4' : 'left-3 sm:left-4'} top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5`} />
                           </motion.div>
                           <Input
                             id="phone"
@@ -536,14 +559,14 @@ const Auth = () => {
                   animate={focusedField === 'email' ? 'focused' : 'unfocused'}
                   className="rounded-xl"
                 >
-                  <Label htmlFor="email" className="text-xs sm:text-sm font-medium">البريد الإلكتروني</Label>
+                  <Label htmlFor="email" className="text-xs sm:text-sm font-medium">{t("البريد الإلكتروني", "Email")}</Label>
                   <div className="relative mt-1.5 sm:mt-2">
                     <motion.div
                       animate={{ 
                         color: focusedField === 'email' ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'
                       }}
                     >
-                      <Mail className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5" />
+                      <Mail className={`absolute ${isRtl ? 'right-3 sm:right-4' : 'left-3 sm:left-4'} top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5`} />
                     </motion.div>
                     <Input
                       id="email"
@@ -553,7 +576,7 @@ const Auth = () => {
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       onFocus={() => setFocusedField('email')}
                       onBlur={() => setFocusedField(null)}
-                      className="pr-10 sm:pr-12 bg-background dark:bg-secondary/30 border-border h-11 sm:h-12 text-sm sm:text-base rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 placeholder:text-muted-foreground/60"
+                      className={`${isRtl ? 'pr-10 sm:pr-12' : 'pl-10 sm:pl-12'} bg-background dark:bg-secondary/30 border-border h-11 sm:h-12 text-sm sm:text-base rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 placeholder:text-muted-foreground/60`}
                       dir="ltr"
                       required
                     />
@@ -575,7 +598,7 @@ const Auth = () => {
                   className="rounded-xl"
                 >
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="text-xs sm:text-sm font-medium">كلمة المرور</Label>
+                    <Label htmlFor="password" className="text-xs sm:text-sm font-medium">{t("كلمة المرور", "Password")}</Label>
                     {!isSignUp && (
                       <motion.a 
                         href="#" 
@@ -583,7 +606,7 @@ const Auth = () => {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
-                        نسيت كلمة المرور؟
+                        {t("نسيت كلمة المرور؟", "Forgot password?")}
                       </motion.a>
                     )}
                   </div>
@@ -593,7 +616,7 @@ const Auth = () => {
                         color: focusedField === 'password' ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'
                       }}
                     >
-                      <Lock className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5" />
+                      <Lock className={`absolute ${isRtl ? 'right-3 sm:right-4' : 'left-3 sm:left-4'} top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5`} />
                     </motion.div>
                     <Input
                       id="password"
@@ -603,14 +626,14 @@ const Auth = () => {
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       onFocus={() => setFocusedField('password')}
                       onBlur={() => setFocusedField(null)}
-                      className="pr-10 sm:pr-12 pl-10 sm:pl-12 bg-background dark:bg-secondary/30 border-border h-11 sm:h-12 text-sm sm:text-base rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 placeholder:text-muted-foreground/60"
+                      className={`${isRtl ? 'pr-10 sm:pr-12 pl-10 sm:pl-12' : 'pl-10 sm:pl-12 pr-10 sm:pr-12'} bg-background dark:bg-secondary/30 border-border h-11 sm:h-12 text-sm sm:text-base rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 placeholder:text-muted-foreground/60`}
                       dir="ltr"
                       required
                     />
                     <motion.button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      className={`absolute ${isRtl ? 'left-3 sm:left-4' : 'right-3 sm:right-4'} top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors`}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -660,7 +683,7 @@ const Auth = () => {
                         >
                           <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                         </motion.div>
-                        {isSignUp ? "إنشاء الحساب" : "تسجيل الدخول"}
+                        {isSignUp ? t("إنشاء الحساب", "Create Account") : t("تسجيل الدخول", "Sign In")}
                       </span>
                     )}
                   </Button>
@@ -677,14 +700,14 @@ const Auth = () => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
               >
-                {isSignUp ? "لديك حساب بالفعل؟" : "ليس لديك حساب؟"}{" "}
+                {isSignUp ? t("لديك حساب بالفعل؟", "Already have an account?") : t("ليس لديك حساب؟", "Don't have an account?")}{" "}
                 <motion.button
                   onClick={() => setIsSignUp(!isSignUp)}
                   className="text-primary hover:text-primary/80 font-semibold transition-colors relative"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  {isSignUp ? "سجل دخولك" : "أنشئ حساباً"}
+                  {isSignUp ? t("سجل دخولك", "Sign In") : t("أنشئ حساباً", "Create Account")}
                   <motion.span 
                     className="absolute -bottom-0.5 left-0 right-0 h-0.5 bg-primary"
                     initial={{ scaleX: 0 }}
@@ -708,7 +731,7 @@ const Auth = () => {
                 className="inline-flex items-center justify-center gap-2 text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors group"
                 whileHover={{ x: 5 }}
               >
-                <span>العودة للصفحة الرئيسية</span>
+                <span>{t("العودة للصفحة الرئيسية", "Back to Home")}</span>
                 <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:translate-x-1" />
               </motion.span>
             </Link>
