@@ -108,7 +108,8 @@ const CustomServiceOrderForm = ({ serviceId, serviceName, onSuccess, onClose }: 
           .eq('user_id', user.id);
 
         // Create order
-        const { error: orderError } = await supabase
+        const orderNumber = `ORD-${Date.now()}`;
+        const { data: createdOrder, error: orderError } = await supabase
           .from('orders')
           .insert({
             user_id: user.id,
@@ -116,10 +117,21 @@ const CustomServiceOrderForm = ({ serviceId, serviceName, onSuccess, onClose }: 
             total_price: amount,
             status: 'pending',
             notes: `اسم العميل: ${formData.customerName}\nواتساب: ${formData.whatsappNumber}\n\nتفاصيل الطلب:\n${formData.orderDetails}`,
-            order_number: `ORD-${Date.now()}`,
-          });
+            order_number: orderNumber,
+          })
+          .select('id')
+          .single();
 
         if (orderError) throw orderError;
+
+        // Send instant SMS/WhatsApp/Email notification for new order
+        try {
+          await supabase.functions.invoke('notify-order-status', {
+            body: { orderId: createdOrder.id, oldStatus: null, newStatus: 'pending' }
+          });
+        } catch (e) {
+          console.error("Failed to send order creation notification:", e);
+        }
 
         // Log balance change
         await supabase.from('balance_logs').insert({
@@ -161,14 +173,21 @@ const CustomServiceOrderForm = ({ serviceId, serviceName, onSuccess, onClose }: 
         }
 
         // Create pending order
-        await supabase.from('orders').insert({
+        const { data: paylinkOrder } = await supabase.from('orders').insert({
           user_id: user.id,
           service_id: serviceId,
           total_price: amount,
           status: 'pending',
           notes: `اسم العميل: ${formData.customerName}\nواتساب: ${formData.whatsappNumber}\n\nتفاصيل الطلب:\n${formData.orderDetails}\n\nطريقة الدفع: Paylink`,
           order_number: `ORD-${Date.now()}`,
-        });
+        }).select('id').single();
+
+        // Send instant SMS notification
+        if (paylinkOrder?.id) {
+          supabase.functions.invoke('notify-order-status', {
+            body: { orderId: paylinkOrder.id, oldStatus: null, newStatus: 'pending' }
+          }).catch(e => console.error("Failed to send order notification:", e));
+        }
 
         window.location.href = data.url;
 
@@ -195,14 +214,21 @@ const CustomServiceOrderForm = ({ serviceId, serviceName, onSuccess, onClose }: 
         }
 
         // Create pending order
-        await supabase.from('orders').insert({
+        const { data: tamaraOrder } = await supabase.from('orders').insert({
           user_id: user.id,
           service_id: serviceId,
           total_price: amount,
           status: 'pending',
           notes: `اسم العميل: ${formData.customerName}\nواتساب: ${formData.whatsappNumber}\n\nتفاصيل الطلب:\n${formData.orderDetails}\n\nطريقة الدفع: تمارا (تقسيط)`,
           order_number: `ORD-${Date.now()}`,
-        });
+        }).select('id').single();
+
+        // Send instant SMS notification
+        if (tamaraOrder?.id) {
+          supabase.functions.invoke('notify-order-status', {
+            body: { orderId: tamaraOrder.id, oldStatus: null, newStatus: 'pending' }
+          }).catch(e => console.error("Failed to send order notification:", e));
+        }
 
         window.location.href = data.checkout_url;
       }

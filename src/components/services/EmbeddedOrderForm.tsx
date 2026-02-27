@@ -443,6 +443,15 @@ export default function EmbeddedOrderForm({ service, onClose, onSuccess }: Embed
         totalPrice: finalPrice,
       });
 
+      // Send instant SMS/WhatsApp/Email notification for new order
+      try {
+        await supabase.functions.invoke('notify-order-status', {
+          body: { orderId, oldStatus: null, newStatus: 'pending' }
+        });
+      } catch (e) {
+        console.error("Failed to send order creation notification:", e);
+      }
+
       // Show progress indicator
       setCreatedOrderNumber(orderNumber);
       setShowProgress(true);

@@ -230,6 +230,15 @@ ${formData.additionalNotes || "لا توجد"}
         notes: `خصم للطلب رقم ${orderData.order_number}`
       });
 
+      // Send instant SMS/WhatsApp/Email notification for new order
+      try {
+        await supabase.functions.invoke('notify-order-status', {
+          body: { orderId: orderData.id, oldStatus: null, newStatus: 'pending' }
+        });
+      } catch (e) {
+        console.error("Failed to send order creation notification:", e);
+      }
+
       toast.success("تم إرسال الطلب بنجاح! 🎉", {
         description: "سيتم التواصل معك قريباً لمناقشة التفاصيل"
       });
