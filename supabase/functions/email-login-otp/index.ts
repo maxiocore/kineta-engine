@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
         ASH HOLDING — شريكك التقني الموثوق
       </p>
       <p style="color:#475569;font-size:11px;margin:0;">
-        📞 <a href="tel:0555812567" style="color:#64748b;text-decoration:none;">0555812567</a> &nbsp;•&nbsp; ash-holding.sa &nbsp;•&nbsp; ${year}
+        <a href="tel:0555812567" style="color:#64748b;text-decoration:none;">0555812567</a> &nbsp;•&nbsp; ash-holding.sa &nbsp;•&nbsp; ${year}
       </p>
     </div>
 
