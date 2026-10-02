@@ -7,7 +7,7 @@
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { emailGatewayHeaders } from "../_shared/email-gateway.ts";
+import { brandedEmailPayload, emailGatewayHeaders } from "../_shared/email-gateway.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
   NOTIFICATION_REGISTRY,
@@ -197,7 +197,7 @@ async function sendEmail(
       ...emailGatewayHeaders(),
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
+    body: JSON.stringify(brandedEmailPayload({
       from: (() => {
         const t = String(eventType);
         if (/order|refund/i.test(t)) return "ASH HOLDING Orders <orders@ash-holding.sa>";
@@ -211,7 +211,7 @@ async function sendEmail(
       to: [recipientEmail],
       subject: template.subject,
       html: template.html,
-    }),
+    })), 
   });
 
   if (!response.ok) {
