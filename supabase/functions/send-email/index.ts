@@ -2741,6 +2741,14 @@ interface BulkEmailRequest {
   customContent?: string;
 }
 
+// Each department sends from its own ash-holding.sa address (verified on Resend)
+function getSenderForType(type: string): string {
+  if (/^order_|^refund_/.test(type)) return "ASH HOLDING Orders <orders@ash-holding.sa>";
+  if (/^deposit_|^cashback_|^bank_withdrawal_|^financing_payment|^invoice_/.test(type)) return "ASH HOLDING Billing <billing@ash-holding.sa>";
+  if (/^financing_/.test(type)) return "ASH HOLDING Billing <billing@ash-holding.sa>";
+  return "ASH HOLDING <noreply@ash-holding.sa>";
+}
+
 const handler = async (req: Request): Promise<Response> => {
   console.log("Send email function called");
   
@@ -2799,7 +2807,7 @@ const handler = async (req: Request): Promise<Response> => {
           const html = getEmailWrapper(finalContent, finalSubject);
           
           const emailResponse = await resend.emails.send({
-            from: getSenderForType(typeof emailType!=="undefined"?emailType:type),
+            from: getSenderForType(emailType || "custom"),
             reply_to: "info@ash-holding.sa",
             to: [email],
             subject: finalSubject,
@@ -2861,7 +2869,7 @@ const handler = async (req: Request): Promise<Response> => {
       const html = getEmailWrapper(finalContent, finalSubject);
 
       const emailResponse = await resend.emails.send({
-        from: getSenderForType(typeof emailType!=="undefined"?emailType:type),
+        from: getSenderForType(type),
         reply_to: "info@ash-holding.sa",
         to: [to],
         subject: finalSubject,
