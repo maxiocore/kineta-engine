@@ -29,6 +29,18 @@ export interface EmailSendResult {
   error: EmailGatewayError | null;
 }
 
+export function brandedEmailPayload(payload: EmailPayload): EmailPayload {
+  const sender = payload.from.toLowerCase();
+  const department = sender.includes("billing") ? "الشؤون المالية"
+    : sender.includes("orders") ? "إدارة الطلبات"
+    : sender.includes("support") ? "خدمة العملاء"
+    : sender.includes("security") ? "الأمن الرقمي"
+    : sender.includes("hr") ? "الموارد البشرية"
+    : sender.includes("kyc") ? "التحقق من الهوية"
+    : "الإشعارات الرسمية";
+  return { ...payload, html: ensureBrandedEmail(payload.html, payload.subject, department) };
+}
+
 export function emailGatewayHeaders(): Record<string, string> {
   const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
   const connectionKey = Deno.env.get("RESEND_API_KEY");
@@ -43,10 +55,7 @@ export function emailGatewayHeaders(): Record<string, string> {
 
 export async function sendEmail(payload: EmailPayload): Promise<EmailSendResult> {
   try {
-    const normalizedPayload = {
-      ...payload,
-      html: ensureBrandedEmail(payload.html, payload.subject),
-    };
+    const normalizedPayload = brandedEmailPayload(payload);
     const response = await fetch(RESEND_GATEWAY_URL, {
       method: "POST",
       headers: {
