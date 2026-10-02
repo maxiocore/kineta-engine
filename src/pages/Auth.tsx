@@ -60,7 +60,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ email?: string; password?: string; name?: string; phone?: string }>({});
-  const [authMethod, setAuthMethod] = useState<'email' | 'whatsapp' | 'sms' | 'email-otp'>('email');
+  const [authMethod, setAuthMethod] = useState<'email' | 'whatsapp' | 'sms' | 'email-otp'>('email-otp');
   const { toast } = useToast();
   const { user, signUp, signIn } = useAuth();
   const { lang, setLang, t, isRtl } = useLanguage();
@@ -429,19 +429,6 @@ const Auth = () => {
               <div className="flex gap-1.5 p-1 bg-secondary/50 rounded-xl mb-6">
                 <motion.button
                   type="button"
-                  onClick={() => setAuthMethod('email')}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                    authMethod === 'email'
-                      ? 'bg-background shadow-sm text-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  {t("البريد", "Email")}
-                </motion.button>
-                <motion.button
-                  type="button"
                   onClick={() => setAuthMethod('sms')}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
                     authMethod === 'sms'
@@ -477,7 +464,7 @@ const Auth = () => {
                   whileTap={{ scale: 0.98 }}
                 >
                   <KeyRound className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  {t("رمز البريد", "Email Code")}
+                  {t("البريد", "Email")}
                 </motion.button>
               </div>
 
@@ -492,7 +479,7 @@ const Auth = () => {
                   >
                     <WhatsAppAuth
                       isSignUp={isSignUp}
-                      onBack={() => setAuthMethod('email')}
+                      onBack={() => setAuthMethod('email-otp')}
                       onSuccess={(phone) => {
                         toast({
                           title: "تم التحقق بنجاح",
@@ -511,7 +498,7 @@ const Auth = () => {
                   >
                     <SmsAuth
                       isSignUp={isSignUp}
-                      onBack={() => setAuthMethod('email')}
+                      onBack={() => setAuthMethod('email-otp')}
                       onSuccess={(phone) => {
                         toast({
                           title: "تم التحقق بنجاح",
@@ -530,7 +517,7 @@ const Auth = () => {
                   >
                     <EmailOtpAuth
                       isSignUp={isSignUp}
-                      onBack={() => setAuthMethod('email')}
+                      onBack={() => setAuthMethod('email-otp')}
                       onSuccess={() => {
                         toast({
                           title: t("تم التحقق بنجاح", "Verified successfully"),
