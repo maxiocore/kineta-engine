@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { emailGatewayHeaders } from "../_shared/email-gateway.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendSMS, formatPhoneNumber } from "../_shared/sms-helper.ts";
 import { sendWhatsAppMessage, getBalanceChangeMessage } from "../_shared/whatsapp-helper.ts";
@@ -462,11 +463,11 @@ serve(async (req: Request): Promise<Response> => {
     </html>
     `;
 
-    const emailResponse = await fetch("https://api.resend.com/emails", {
+    const emailResponse = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
+        ...emailGatewayHeaders(),
       },
       body: JSON.stringify({
         from: "ASH HOLDING Billing <billing@ash-holding.sa>",

@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Resend } from "https://esm.sh/resend@2.0.0";
+import { sendEmail } from "../_shared/email-gateway.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -52,8 +52,7 @@ serve(async (req: Request) => {
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
     const supabase = createClient(supabaseUrl, supabaseKey);
-    const resend = resendApiKey ? new Resend(resendApiKey) : null;
-
+    
     const { notification_id, send_push = true, send_email = false }: SendNotificationRequest = await req.json();
 
     console.log("[send-app-notification] Processing notification:", notification_id);
@@ -167,7 +166,7 @@ serve(async (req: Request) => {
         }
 
         try {
-          const { error: emailError } = await resend.emails.send({
+          const { error: emailError } = await sendEmail({
             from: "ASH HOLDING <notifications@ash-holding.sa>",
             reply_to: "info@ash-holding.sa",
             to: [user.email],

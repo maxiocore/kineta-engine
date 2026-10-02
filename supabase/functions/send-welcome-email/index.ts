@@ -1,9 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@2.0.0";
+import { sendEmail } from "../_shared/email-gateway.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendSMS, formatPhoneNumber } from "../_shared/sms-helper.ts";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -267,7 +266,7 @@ const handler = async (req: Request): Promise<Response> => {
 </html>
     `;
 
-    const emailResponse = await resend.emails.send({
+    const emailResponse = await sendEmail({
       from: "ASH HOLDING <noreply@ash-holding.sa>",
       reply_to: "info@ash-holding.sa",
       to: [email],

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { emailGatewayHeaders } from "../_shared/email-gateway.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendSMS as sendSMSHelper, formatPhoneNumber } from "../_shared/sms-helper.ts";
 import { sendWhatsAppMessage, getOrderStatusMessage } from "../_shared/whatsapp-helper.ts";
@@ -349,10 +350,10 @@ serve(async (req: Request): Promise<Response> => {
     // Send email using Resend API (non-blocking - won't prevent SMS/WhatsApp)
     let emailSent = false;
     try {
-      const emailResponse = await fetch("https://api.resend.com/emails", {
+      const emailResponse = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${RESEND_API_KEY}`,
+          ...emailGatewayHeaders(),
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@2.0.0";
+import { sendEmail } from "../_shared/email-gateway.ts";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -57,7 +56,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // ---- Auto-reply on new application ----
     if (type === 'new_application') {
-      await resend.emails.send({
+      await sendEmail({
         from: FROM,
         reply_to: REPLY,
         to: [applicantEmail],
@@ -130,7 +129,7 @@ const handler = async (req: Request): Promise<Response> => {
         });
       }
 
-      await resend.emails.send({
+      await sendEmail({
         from: FROM,
         reply_to: REPLY,
         to: [applicantEmail],

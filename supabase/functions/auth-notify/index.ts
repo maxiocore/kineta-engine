@@ -16,13 +16,12 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Resend } from "https://esm.sh/resend@2.0.0";
+import { sendEmail } from "../_shared/email-gateway.ts";
 import {
   WhatsAppProvider,
   formatPhoneNumber,
 } from '../_shared/whatsapp-provider.ts';
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -270,7 +269,7 @@ serve(async (req) => {
         // Send verification email (PRIMARY - required)
         const verificationLink = data?.verificationLink || `https://ash-holding.sa/auth/verify`;
         
-        const { error: emailError } = await resend.emails.send({
+        const { error: emailError } = await sendEmail({
           from: "ASH HOLDING <noreply@ash-holding.sa>",
           reply_to: "info@ash-holding.sa",
           to: [email],
@@ -300,7 +299,7 @@ serve(async (req) => {
         const unlockTime = data?.unlockTime || 'خلال 30 دقيقة';
         const reason = data?.reason || 'تجاوز عدد محاولات تسجيل الدخول المسموحة';
         
-        const { error: emailError } = await resend.emails.send({
+        const { error: emailError } = await sendEmail({
           from: "ASH HOLDING Security <security@ash-holding.sa>",
           reply_to: "info@ash-holding.sa",
           to: [email],
@@ -325,7 +324,7 @@ serve(async (req) => {
 
       case 'password_changed': {
         // Send confirmation email (PRIMARY)
-        const { error: emailError } = await resend.emails.send({
+        const { error: emailError } = await sendEmail({
           from: "ASH HOLDING Security <security@ash-holding.sa>",
           reply_to: "info@ash-holding.sa",
           to: [email],
@@ -357,7 +356,7 @@ serve(async (req) => {
           );
         }
 
-        const { error: emailError } = await resend.emails.send({
+        const { error: emailError } = await sendEmail({
           from: "ASH HOLDING <noreply@ash-holding.sa>",
           reply_to: "info@ash-holding.sa",
           to: [email],
