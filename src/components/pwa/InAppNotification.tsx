@@ -25,7 +25,7 @@ const NotificationItem = ({ notification, onDismiss, index }: NotificationItemPr
   const navigate = useNavigate();
   const [progress, setProgress] = useState(100);
   const [isPaused, setIsPaused] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const duration = notification.duration || 6000;
 
   useEffect(() => {

@@ -51,8 +51,8 @@ export function useEmailVerification(options: UseEmailVerificationOptions = {}) 
   const [countdown, setCountdown] = useState(0);
   const [resendCooldown, setResendCooldown] = useState(0);
 
-  const countdownRef = useRef<NodeJS.Timeout>();
-  const resendCooldownRef = useRef<NodeJS.Timeout>();
+  const countdownRef = useRef<ReturnType<typeof setTimeout>>();
+  const resendCooldownRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Clear intervals on unmount
   useEffect(() => {

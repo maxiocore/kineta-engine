@@ -92,10 +92,10 @@ export const useUserSettings = () => {
     try {
       const { error } = await supabase
         .from('user_settings')
-        .update({ 
+        .update({
           [key]: value,
-          updated_at: new Date().toISOString()
-        })
+          updated_at: new Date().toISOString(),
+        } as any)
         .eq('user_id', user.id);
 
       if (error) throw error;
