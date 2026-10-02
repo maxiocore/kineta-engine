@@ -105,7 +105,7 @@ const TrackOrder = () => {
 
   // Auto-refresh every 30 seconds when order is in progress
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setTimeout>;
     if (orderData && (orderData.status === 'pending' || orderData.status === 'in_progress' || orderData.status === 'confirmed')) {
       setIsPolling(true);
       interval = setInterval(async () => {
