@@ -52,12 +52,11 @@ export const EmailOtpAuth = ({ onSuccess, onBack }: EmailOtpAuthProps) => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email.trim().toLowerCase(),
-        options: { shouldCreateUser: true },
+      const { data: res, error } = await supabase.functions.invoke('email-login-otp', {
+        body: { action: 'send', email: email.trim().toLowerCase() },
       });
 
-      if (error) throw error;
+      if (error || !res?.ok) throw new Error(res?.error === 'rate_limited' ? 'rate' : (error?.message || 'failed'));
 
       setStep('otp');
       setOtp('');
@@ -90,10 +89,13 @@ export const EmailOtpAuth = ({ onSuccess, onBack }: EmailOtpAuthProps) => {
     setIsLoading(true);
 
     try {
+      const { data: res, error: fnError } = await supabase.functions.invoke('email-login-otp', {
+        body: { action: 'verify', email: email.trim().toLowerCase(), code: otpToVerify },
+      });
+      if (fnError || !res?.token_hash) throw fnError || new Error('invalid');
       const { data, error } = await supabase.auth.verifyOtp({
-        email: email.trim().toLowerCase(),
-        token: otpToVerify,
-        type: 'email',
+        token_hash: res.token_hash,
+        type: 'magiclink',
       });
 
       if (error) throw error;
