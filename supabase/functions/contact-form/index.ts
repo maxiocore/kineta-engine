@@ -25,13 +25,13 @@ async function sendEmail(to: string[], subject: string, html: string) {
       ...emailGatewayHeaders(),
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
+    body: JSON.stringify(brandedEmailPayload({
       from: "ASH HOLDING Support <support@ash-holding.sa>",
       reply_to: "info@ash-holding.sa",
       to,
       subject,
       html,
-    }),
+    })),
   });
 
   if (!response.ok) {

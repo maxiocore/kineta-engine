@@ -1,6 +1,7 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { sendEmail } from "../_shared/email-gateway.ts";
+import { escapeEmailHtml, renderBrandedEmail } from "../_shared/email-template.ts";
 
 const FROM = "ASH HOLDING - التحقق من الهوية <kyc@ash-holding.sa>";
 const REPLY_TO = "kyc@ash-holding.sa";
@@ -9,27 +10,11 @@ const SITE = "https://ash-holding.sa";
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+const esc = (s: string) => escapeEmailHtml(s);
 
 function layout(title: string, accent: string, badge: string, name: string, body: string, cta?: { label: string; url: string }) {
-  return `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
-<body style="margin:0;padding:0;background:#ffffff;font-family:'IBM Plex Sans Arabic',Tahoma,Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;padding:32px 12px;"><tr><td align="center">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#0b1424;border-radius:20px;overflow:hidden;">
-<tr><td style="background:linear-gradient(135deg,#0ea5e9,#06b6d4);padding:28px;text-align:center;">
-<div style="color:#ffffff;font-size:22px;font-weight:800;letter-spacing:1px;">ASH HOLDING</div>
-<div style="color:#e0f7ff;font-size:13px;margin-top:4px;">قسم التحقق من الهوية</div></td></tr>
-<tr><td style="padding:32px 28px;color:#e2e8f0;text-align:right;">
-<span style="display:inline-block;background:${accent}22;color:${accent};border:1px solid ${accent};border-radius:999px;padding:6px 14px;font-size:12px;font-weight:700;">${badge}</span>
-<h1 style="color:#ffffff;font-size:22px;margin:18px 0 8px;">${title}</h1>
-<p style="font-size:15px;line-height:1.9;margin:0 0 12px;">مرحباً ${esc(name)}،</p>
-${body}
-${cta ? `<div style="text-align:center;margin:28px 0 8px;"><a href="${cta.url}" style="background:linear-gradient(135deg,#0ea5e9,#06b6d4);color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:12px;font-weight:700;font-size:15px;display:inline-block;">${cta.label}</a></div>` : ""}
-<div style="margin-top:24px;padding:14px;background:#111c30;border-radius:12px;font-size:12px;color:#94a3b8;line-height:1.8;">
-لأي استفسار يمكنك الرد مباشرة على هذه الرسالة وسيتواصل معك فريق التحقق.<br>بياناتك محمية ومشفرة ولن نطلب منك كلمة المرور أبداً.</div>
-</td></tr>
-<tr><td style="padding:18px;text-align:center;color:#64748b;font-size:11px;border-top:1px solid #1e293b;">© ASH HOLDING · ash-holding.sa · 0555812567</td></tr>
-</table></td></tr></table></body></html>`;
+  const tone = accent === "#22c55e" ? "success" : accent === "#f59e0b" ? "warning" : "info";
+  return renderBrandedEmail({ title, department: "التحقق من الهوية", recipientName: name, tone, status: badge, content: body, action: cta, noticeTitle: "الخصوصية والأمان", notice: "يمكنك الرد مباشرة على الرسالة. لن نطلب كلمة المرور أو رمز الدخول، وتستخدم الوثائق حصراً للتحقق من الهوية.", replyEmail: REPLY_TO, legal: "privacy" });
 }
 
 Deno.serve(async (req) => {
