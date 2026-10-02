@@ -14,6 +14,7 @@ import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
 import { WhatsAppAuth } from "@/components/auth/WhatsAppAuth";
 import { SmsAuth } from "@/components/auth/SmsAuth";
+import { EmailOtpAuth } from "@/components/auth/EmailOtpAuth";
 import { useLanguage } from "@/hooks/useLanguage";
 
 const emailSchema = z.string().email("البريد الإلكتروني غير صالح");
@@ -59,7 +60,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ email?: string; password?: string; name?: string; phone?: string }>({});
-  const [authMethod, setAuthMethod] = useState<'email' | 'whatsapp' | 'sms'>('email');
+  const [authMethod, setAuthMethod] = useState<'email' | 'whatsapp' | 'sms' | 'email-otp'>('email');
   const { toast } = useToast();
   const { user, signUp, signIn } = useAuth();
   const { lang, setLang, t, isRtl } = useLanguage();
