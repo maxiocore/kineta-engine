@@ -7,14 +7,13 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Code, Clock, CheckCircle, AlertCircle, FileText, ChevronLeft,
   Mail, Settings, XCircle, MessageCircle, Upload, Send, Download,
-  User, Building, Building2, Calendar, DollarSign, Loader2
+  User, Building, Building2, Calendar, DollarSign, Loader2, Sparkles,
+  Activity, ArrowUpLeft, Paperclip, ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow, format } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -280,16 +279,27 @@ export default function DevOrderDetails() {
   const StatusIcon = status.icon;
   const clientType = clientTypeConfig[order.client_type] || clientTypeConfig.individual;
   const ClientIcon = clientType.icon;
-  const requirements = typeof order.requirements_json === 'string' 
-    ? JSON.parse(order.requirements_json) 
-    : order.requirements_json || {};
+  let requirements: { platforms?: string[]; technologies?: string[] } = {};
+  try {
+    requirements = typeof order.requirements_json === "string"
+      ? JSON.parse(order.requirements_json)
+      : order.requirements_json || {};
+  } catch {
+    requirements = {};
+  }
+
+  const activeStatuses = ["draft", "pending_email_verification", "under_review", "accepted", "in_progress", "completed"];
+  const statusIndex = activeStatuses.indexOf(order.status);
+  const progress = order.status === "rejected" ? 100 : Math.max(12, ((statusIndex + 1) / activeStatuses.length) * 100);
+  const canMessage = ["under_review", "need_info", "accepted", "in_progress"].includes(order.status);
+
+  const triggerFileUpload = () => document.getElementById("file-upload")?.click();
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
-      {/* Breadcrumb */}
-      <div className="border-b border-border/50 bg-card/50">
-        <div className="container mx-auto max-w-5xl px-4 py-4">
-          <nav className="flex items-center gap-2 text-sm text-muted-foreground">
+    <div className="min-h-screen bg-background pb-12" dir="rtl">
+      <div className="border-b border-border/60 bg-card/80 backdrop-blur-xl">
+        <div className="container mx-auto max-w-6xl px-4 py-4">
+          <nav className="flex min-w-0 items-center gap-2 overflow-hidden text-sm text-muted-foreground">
             <Link to="/dashboard" className="hover:text-primary transition-colors">
               لوحة التحكم
             </Link>
@@ -298,71 +308,67 @@ export default function DevOrderDetails() {
               طلباتي
             </Link>
             <ChevronLeft className="h-4 w-4" />
-            <span className="text-foreground font-medium">{order.order_no}</span>
+            <span className="truncate font-mono font-semibold text-primary" dir="ltr">{order.order_no}</span>
           </nav>
         </div>
       </div>
 
-      <div className="container mx-auto max-w-5xl px-4 py-8">
-        {/* Order Header */}
+      <div className="container mx-auto max-w-6xl px-4 py-6 md:py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card rounded-2xl border border-border/50 p-6 mb-6"
+          className="relative mb-6 overflow-hidden rounded-lg border border-border bg-card shadow-elevated"
         >
-          <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
-                <Badge className={`${status.color} text-white border-0 py-1 px-3`}>
+          <div className="absolute inset-x-0 top-0 h-1 bg-muted">
+            <motion.div
+              className="h-full bg-gradient-to-l from-primary to-accent"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 1.1, ease: "easeOut" }}
+            />
+          </div>
+          <div className="relative p-5 md:p-8">
+            <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-center">
+              <div className="min-w-0 flex-1">
+                <div className="mb-4 flex flex-wrap items-center gap-3">
+                  <Badge className={`${status.color} border-0 px-3 py-1 text-primary-foreground shadow-sm`}>
                   <StatusIcon className="h-4 w-4 ml-1" />
                   {status.label}
-                </Badge>
-                <span className="text-sm text-muted-foreground font-mono">{order.order_no}</span>
-              </div>
-              <h1 className="text-2xl font-bold text-foreground mb-2">
-                {order.project_title || "بدون عنوان"}
-              </h1>
-              <p className="text-muted-foreground">{order.project_goal}</p>
-            </div>
-            <div className="flex flex-col items-end gap-2 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                <span>{format(new Date(order.created_at), "dd MMMM yyyy", { locale: ar })}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <ClientIcon className="h-4 w-4" />
-                <span>{clientType.label}</span>
-              </div>
-              {order.budget_range && (
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  <span>{order.budget_range}</span>
+                  </Badge>
+                  <span className="font-mono text-xs text-muted-foreground" dir="ltr">ID: {order.order_no}</span>
                 </div>
-              )}
+                <h1 className="mb-2 text-2xl font-bold text-foreground md:text-4xl">
+                  {order.project_title || "بدون عنوان"}
+                </h1>
+                <p className="max-w-2xl text-sm leading-7 text-muted-foreground md:text-base">{order.project_goal || "طلب تطوير برمجي مخصص"}</p>
+              </div>
+              <div className="grid w-full grid-cols-2 gap-3 border-t border-border pt-5 lg:w-auto lg:min-w-[430px] lg:grid-cols-3 lg:border-r lg:border-t-0 lg:pr-7 lg:pt-0">
+                <HeaderMetric icon={Calendar} label="تاريخ الطلب" value={format(new Date(order.created_at), "dd MMMM yyyy", { locale: ar })} />
+                <HeaderMetric icon={ClientIcon} label="نوع العميل" value={clientType.label} />
+                <HeaderMetric icon={DollarSign} label="الميزانية" value={order.budget_range || "تحدد لاحقاً"} className="col-span-2 lg:col-span-1" />
+              </div>
             </div>
-          </div>
 
-          {/* Status Messages */}
-          {order.status === "need_info" && (
-            <div className="mt-4 p-4 rounded-xl bg-orange-500/10 border border-orange-500/20">
+            {order.status === "need_info" && (
+            <div className="mt-6 rounded-lg border border-warning/30 bg-warning/10 p-4">
               <div className="flex items-start gap-3">
                 <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-semibold text-orange-600">نحتاج معلومات إضافية</h4>
+                   <h4 className="font-semibold text-warning">نحتاج معلومات إضافية</h4>
                   <p className="text-sm text-muted-foreground mt-1">
                     {order.admin_notes || "يرجى تقديم معلومات إضافية لإكمال طلبك"}
                   </p>
                 </div>
               </div>
             </div>
-          )}
+            )}
 
           {order.status === "rejected" && order.rejection_reason && (
-            <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+            <div className="mt-6 rounded-lg border border-destructive/30 bg-destructive/10 p-4">
               <div className="flex items-start gap-3">
                 <XCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-semibold text-red-600">سبب الرفض</h4>
+                  <h4 className="font-semibold text-destructive">سبب الرفض</h4>
                   <p className="text-sm text-muted-foreground mt-1">{order.rejection_reason}</p>
                 </div>
               </div>
@@ -370,151 +376,135 @@ export default function DevOrderDetails() {
           )}
 
           {order.status === "completed" && (
-            <div className="mt-4 p-4 rounded-xl bg-green-500/10 border border-green-500/20">
+            <div className="mt-6 rounded-lg border border-success/30 bg-success/10 p-4">
               <div className="flex items-start gap-3">
                 <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-semibold text-green-600">تم إكمال طلبك بنجاح!</h4>
+                  <h4 className="font-semibold text-success">تم إكمال طلبك بنجاح!</h4>
                   <p className="text-sm text-muted-foreground mt-1">
                     شكراً لثقتك بنا. نتمنى أن تكون راضياً عن الخدمة.
                   </p>
                 </div>
               </div>
             </div>
-          )}
+            )}
+          </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Project Details */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
+              className="rounded-lg border border-border bg-card p-5 shadow-card md:p-7"
             >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-primary" />
-                    تفاصيل المشروع
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+              <SectionTitle icon={FileText} title="تفاصيل المشروع" subtitle="نطاق العمل والمتطلبات المسجلة" />
+              <div className="space-y-7">
                   {order.project_summary && (
-                    <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-1">وصف المشروع</h4>
-                      <p>{order.project_summary}</p>
+                    <div className="rounded-lg bg-muted/45 p-4 md:p-5">
+                      <h4 className="mb-2 text-xs font-semibold text-muted-foreground">وصف المشروع</h4>
+                      <p className="leading-8 text-foreground">{order.project_summary}</p>
                     </div>
                   )}
-                  {order.timeline_expectation && (
+                  <div className="grid gap-6 md:grid-cols-2">
+                    {requirements.platforms && requirements.platforms.length > 0 && (
                     <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-1">المدة المتوقعة</h4>
-                      <p>{order.timeline_expectation}</p>
-                    </div>
-                  )}
-                  {requirements.platforms?.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-2">المنصات</h4>
+                      <h4 className="mb-3 text-xs font-semibold text-muted-foreground">المنصات المستهدفة</h4>
                       <div className="flex flex-wrap gap-2">
                         {requirements.platforms.map((p: string) => (
-                          <Badge key={p} variant="secondary">{p}</Badge>
+                          <Badge key={p} variant="secondary" className="rounded-md border border-border px-3 py-1.5">{p}</Badge>
                         ))}
                       </div>
                     </div>
                   )}
-                  {requirements.technologies?.length > 0 && (
+                    {requirements.technologies && requirements.technologies.length > 0 && (
                     <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-2">التقنيات</h4>
+                      <h4 className="mb-3 text-xs font-semibold text-muted-foreground">التقنيات المطلوبة</h4>
                       <div className="flex flex-wrap gap-2">
                         {requirements.technologies.map((t: string) => (
-                          <Badge key={t} variant="outline">{t}</Badge>
+                          <Badge key={t} variant="outline" className="rounded-md border-primary/20 bg-primary/5 px-3 py-1.5 text-primary">{t}</Badge>
                         ))}
                       </div>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                  </div>
+                  {order.timeline_expectation && (
+                    <div className="flex items-center justify-between border-t border-border pt-5">
+                      <div>
+                        <h4 className="text-xs font-semibold text-muted-foreground">المدة المتوقعة</h4>
+                        <p className="mt-1 font-bold text-foreground">{order.timeline_expectation}</p>
+                      </div>
+                      <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary"><Clock className="h-5 w-5" /></div>
+                    </div>
+                  )}
+              </div>
             </motion.div>
 
-            {/* Timeline */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
+              className="rounded-lg border border-border bg-card p-5 shadow-card md:p-7"
             >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-primary" />
-                    سجل الأحداث
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+              <SectionTitle icon={Activity} title="سجل الأحداث" subtitle="آخر تحديثات الطلب بترتيب زمني" />
                   {events.length === 0 ? (
-                    <p className="text-muted-foreground text-center py-8">لا توجد أحداث بعد</p>
+                    <p className="py-8 text-center text-muted-foreground">لا توجد أحداث بعد</p>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-1">
                       {events.map((event, index) => {
                         const eventConfig = eventTypeLabels[event.event_type] || { label: event.event_type, icon: FileText };
                         const EventIcon = eventConfig.icon;
                         return (
-                          <div key={event.id} className="flex gap-4">
-                            <div className="relative">
-                              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                <EventIcon className="h-5 w-5 text-primary" />
+                          <motion.div key={event.id} initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: Math.min(index * 0.05, 0.35) }} className="flex gap-4">
+                            <div className="relative flex-shrink-0">
+                              <div className="relative z-10 flex h-9 w-9 items-center justify-center rounded-full border-4 border-card bg-primary/10 ring-1 ring-primary/20">
+                                <EventIcon className="h-4 w-4 text-primary" />
                               </div>
                               {index < events.length - 1 && (
-                                <div className="absolute top-10 left-1/2 -translate-x-1/2 w-0.5 h-full bg-border" />
+                                <div className="absolute right-1/2 top-9 h-full w-px translate-x-1/2 bg-border" />
                               )}
                             </div>
-                            <div className="flex-1 pb-4">
-                              <div className="flex items-center justify-between">
+                            <div className="min-w-0 flex-1 pb-6">
+                              <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-center">
                                 <h4 className="font-medium">{eventConfig.label}</h4>
                                 <span className="text-xs text-muted-foreground">
                                   {formatDistanceToNow(new Date(event.created_at), { addSuffix: true, locale: ar })}
                                 </span>
                               </div>
                               {event.message_text && (
-                                <p className="text-sm text-muted-foreground mt-1 p-3 rounded-lg bg-muted/50">
+                                <p className="mt-2 rounded-md bg-muted/55 p-3 text-sm leading-6 text-muted-foreground">
                                   {event.message_text}
                                 </p>
                               )}
                               {event.actor_role !== "system" && (
-                                <Badge variant="outline" className="mt-2">
+                                <Badge variant="outline" className="mt-2 rounded-md">
                                   {event.actor_role === "admin" ? "الإدارة" : "أنت"}
                                 </Badge>
                               )}
                             </div>
-                          </div>
+                          </motion.div>
                         );
                       })}
                     </div>
                   )}
-                </CardContent>
-              </Card>
             </motion.div>
 
-            {/* Message Form */}
-            {["under_review", "need_info", "accepted", "in_progress"].includes(order.status) && (
+            {canMessage && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
+              className="rounded-lg border border-border bg-card p-5 shadow-card md:p-7"
               >
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MessageCircle className="h-5 w-5 text-primary" />
-                      إرسال رسالة
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
+                <SectionTitle icon={MessageCircle} title="تواصل مع فريق المشروع" subtitle="أرسل تحديثاً أو استفساراً مرتبطاً بهذا الطلب" />
+                  <div className="space-y-4">
                     <Textarea
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder="اكتب رسالتك هنا..."
                       rows={4}
+                      className="min-h-28 resize-none rounded-lg border-border bg-muted/25 p-4 focus-visible:ring-primary"
                     />
                     <div className="flex items-center justify-between">
                       <div>
@@ -529,8 +519,9 @@ export default function DevOrderDetails() {
                         />
                         <Button
                           variant="outline"
-                          onClick={() => document.getElementById("file-upload")?.click()}
+                          onClick={triggerFileUpload}
                           disabled={uploadingFile}
+                          className="rounded-md"
                         >
                           {uploadingFile ? (
                             <Loader2 className="h-4 w-4 animate-spin ml-2" />
@@ -540,7 +531,7 @@ export default function DevOrderDetails() {
                           رفع ملف
                         </Button>
                       </div>
-                      <Button onClick={sendMessage} disabled={sendingMessage || !message.trim()}>
+                      <Button onClick={sendMessage} disabled={sendingMessage || !message.trim()} className="rounded-md shadow-brand">
                         {sendingMessage ? (
                           <Loader2 className="h-4 w-4 animate-spin ml-2" />
                         ) : (
@@ -549,36 +540,42 @@ export default function DevOrderDetails() {
                         إرسال
                       </Button>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
               </motion.div>
             )}
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Files */}
+          <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
+            {order.service && (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="relative overflow-hidden rounded-lg bg-foreground p-6 text-background shadow-elevated">
+                <div className="absolute -left-8 -top-8 h-24 w-24 rounded-full bg-primary/20 blur-2xl" />
+                <div className="relative">
+                  <div className="mb-5 flex items-center gap-3 text-background/70"><Code className="h-5 w-5 text-primary" /><span className="text-sm font-semibold">الخدمة المطلوبة</span></div>
+                  <h3 className="text-xl font-bold leading-8">{order.service.title_ar}</h3>
+                  <div className="mt-6 flex items-center gap-2 border-t border-background/10 pt-4 text-xs text-background/70"><ShieldCheck className="h-4 w-4 text-primary" /> طلب محفوظ ومتابع</div>
+                </div>
+              </motion.div>
+            )}
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
+              className="rounded-lg border border-border bg-card p-5 shadow-card"
             >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <FileText className="h-5 w-5 text-primary" />
-                    الملفات ({files.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+              <SectionTitle icon={Paperclip} title={`الملفات (${files.length})`} compact />
                   {files.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">لا توجد ملفات</p>
+                    <button type="button" onClick={triggerFileUpload} className="group flex w-full flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/20 px-4 py-9 text-center transition-colors hover:border-primary/40 hover:bg-primary/5">
+                      <Upload className="mb-3 h-7 w-7 text-muted-foreground transition-transform group-hover:-translate-y-1 group-hover:text-primary" />
+                      <span className="text-sm font-medium text-muted-foreground">لا توجد ملفات مرفقة</span>
+                      <span className="mt-2 text-xs font-semibold text-primary">إضافة ملف</span>
+                    </button>
                   ) : (
                     <div className="space-y-2">
                       {files.map((file) => (
                         <div
                           key={file.id}
-                          className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+                          className="flex items-center justify-between rounded-md bg-muted/50 p-3 transition-colors hover:bg-muted"
                         >
                           <div className="flex items-center gap-2 flex-1 min-w-0">
                             <FileText className="h-4 w-4 text-primary flex-shrink-0" />
@@ -591,35 +588,41 @@ export default function DevOrderDetails() {
                       ))}
                     </div>
                   )}
-                </CardContent>
-              </Card>
             </motion.div>
 
-            {/* Service Info */}
-            {order.service && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Code className="h-5 w-5 text-primary" />
-                      الخدمة
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
-                      <h4 className="font-semibold">{order.service.title_ar}</h4>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="rounded-lg border border-border bg-card p-5 shadow-card">
+              <div className="mb-4 flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" /><h3 className="font-bold">ملخص ذكي</h3></div>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center justify-between"><span className="text-muted-foreground">التقدم الحالي</span><span className="font-bold text-primary">{Math.round(progress)}%</span></div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-muted"><motion.div className="h-full bg-primary" initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 1 }} /></div>
+                <p className="border-t border-border pt-3 leading-6 text-muted-foreground">{order.status === "need_info" ? "يتطلب الطلب معلومات إضافية منك للمتابعة." : order.status === "completed" ? "اكتملت جميع مراحل الطلب بنجاح." : "الطلب تحت المتابعة وستظهر جميع التحديثات هنا فوراً."}</p>
+              </div>
+            </motion.div>
+
+            <Button variant="outline" className="w-full justify-between rounded-md" onClick={() => navigate("/dashboard/dev-orders")}>
+              العودة لجميع الطلبات <ArrowUpLeft className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function HeaderMetric({ icon: Icon, label, value, className = "" }: { icon: typeof Calendar; label: string; value: string; className?: string }) {
+  return (
+    <div className={className}>
+      <div className="mb-1 flex items-center gap-1.5 text-xs text-muted-foreground"><Icon className="h-3.5 w-3.5 text-primary" />{label}</div>
+      <p className="text-sm font-bold leading-6 text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function SectionTitle({ icon: Icon, title, subtitle, compact = false }: { icon: typeof FileText; title: string; subtitle?: string; compact?: boolean }) {
+  return (
+    <div className={compact ? "mb-4 flex items-center gap-3" : "mb-7 flex items-start gap-3"}>
+      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary"><Icon className="h-5 w-5" /></div>
+      <div><h2 className="font-bold text-foreground md:text-lg">{title}</h2>{subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}</div>
     </div>
   );
 }
