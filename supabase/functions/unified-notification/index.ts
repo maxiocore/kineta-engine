@@ -197,7 +197,16 @@ async function sendEmail(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "ASH HOLDING <noreply@ash-holding.sa>",
+      from: (() => {
+        const t = String(eventType);
+        if (/order|refund/i.test(t)) return "ASH HOLDING Orders <orders@ash-holding.sa>";
+        if (/deposit|cashback|withdraw|invoice|payment|financing|balance/i.test(t)) return "ASH HOLDING Billing <billing@ash-holding.sa>";
+        if (/ticket|support|contact/i.test(t)) return "ASH HOLDING Support <support@ash-holding.sa>";
+        if (/login|otp|verify|security|password/i.test(t)) return "ASH HOLDING Security <security@ash-holding.sa>";
+        if (/career|job|application/i.test(t)) return "ASH HOLDING Careers <hr@ash-holding.sa>";
+        return "ASH HOLDING <noreply@ash-holding.sa>";
+      })(),
+      reply_to: "info@ash-holding.sa",
       to: [recipientEmail],
       subject: template.subject,
       html: template.html,

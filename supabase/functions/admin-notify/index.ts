@@ -835,6 +835,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send to all admins
     const emailResponse = await resend.emails.send({
       from: "ASH HOLDING Admin <info@ash-holding.sa>",
+      reply_to: "info@ash-holding.sa",
       to: adminEmails,
       subject: subject,
       html: html,

@@ -469,7 +469,8 @@ serve(async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "ASH HOLDING <noreply@ash-holding.sa>",
+        from: "ASH HOLDING Billing <billing@ash-holding.sa>",
+        reply_to: "info@ash-holding.sa",
         to: [profile.email],
         subject: isAdd 
           ? `🏦 إيصال إيداع | تم إضافة ${amount.toLocaleString('ar-SA')} ر.س لحسابك` 

@@ -340,7 +340,8 @@ const handler = async (req: Request): Promise<Response> => {
       if (admin.email) {
         try {
           await resend.emails.send({
-            from: "ASH HOLDING <onboarding@resend.dev>",
+            from: "ASH HOLDING <noreply@ash-holding.sa>",
+            reply_to: "info@ash-holding.sa",
             to: [admin.email],
             subject: `📊 التقرير الأسبوعي - ${weekStartDate} إلى ${weekEndDate}`,
             html: emailHtml,
