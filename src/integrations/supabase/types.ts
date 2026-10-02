@@ -1242,6 +1242,36 @@ export type Database = {
           },
         ]
       }
+      email_login_codes: {
+        Row: {
+          attempts: number
+          code_hash: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          used: boolean
+        }
+        Insert: {
+          attempts?: number
+          code_hash: string
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          used?: boolean
+        }
+        Update: {
+          attempts?: number
+          code_hash?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          used?: boolean
+        }
+        Relationships: []
+      }
       email_rate_limits: {
         Row: {
           email_address: string
