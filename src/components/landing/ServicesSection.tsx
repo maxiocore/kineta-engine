@@ -19,6 +19,7 @@ import {
   Play,
   Gem,
   Target,
+  Server,
   Clock,
   BadgeCheck,
 } from "lucide-react";
@@ -94,6 +95,17 @@ const serviceCategories = [
     bgGlow: "bg-orange-500/20",
     features: ["إعلانات ممولة", "تحسين محركات البحث SEO", "إدارة حسابات التواصل"],
     link: "/dashboard/marketing-services",
+  },
+  {
+    id: "hosting",
+    title: "الاستضافة والسيرفرات",
+    subtitle: "Hosting & Servers",
+    description: "بنية تحتية قوية وآمنة لمواقعك وتطبيقاتك مع دعم مستمر",
+    icon: Server,
+    gradient: "from-sky-500 via-blue-600 to-indigo-600",
+    bgGlow: "bg-sky-500/20",
+    features: ["استضافة مشتركة", "سيرفرات VPS ومخصصة", "تراخيص برمجية وحماية"],
+    link: "/dashboard/hosting-services",
   },
 ];
 
@@ -371,7 +383,7 @@ const ServicesSection = () => {
         </motion.div>
 
         {/* Service Categories */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto mb-12 sm:mb-16">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-7xl mx-auto mb-12 sm:mb-16">
           {serviceCategories.map((service, index) => (
             <ServiceCard 
               key={service.id} 
