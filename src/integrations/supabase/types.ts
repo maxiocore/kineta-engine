@@ -2503,10 +2503,14 @@ export type Database = {
           expected_salary: string | null
           full_name: string
           id: string
+          interview_date: string | null
+          interview_location: string | null
+          interview_type: string | null
           job_id: string | null
           linkedin_url: string | null
           phone: string | null
           portfolio_url: string | null
+          rating: number | null
           resume_url: string | null
           reviewed_at: string | null
           reviewed_by: string | null
@@ -2524,10 +2528,14 @@ export type Database = {
           expected_salary?: string | null
           full_name: string
           id?: string
+          interview_date?: string | null
+          interview_location?: string | null
+          interview_type?: string | null
           job_id?: string | null
           linkedin_url?: string | null
           phone?: string | null
           portfolio_url?: string | null
+          rating?: number | null
           resume_url?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -2545,10 +2553,14 @@ export type Database = {
           expected_salary?: string | null
           full_name?: string
           id?: string
+          interview_date?: string | null
+          interview_location?: string | null
+          interview_type?: string | null
           job_id?: string | null
           linkedin_url?: string | null
           phone?: string | null
           portfolio_url?: string | null
+          rating?: number | null
           resume_url?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
