@@ -13,233 +13,151 @@ interface CareerNotificationRequest {
   applicantName: string;
   applicantEmail: string;
   jobTitle: string;
-  status?: string;
+  status?: 'reviewing' | 'interviewed' | 'accepted' | 'rejected' | string;
   adminNotes?: string;
+  interviewDate?: string;      // ISO string
+  interviewLocation?: string;  // link or address
+  interviewType?: 'online' | 'in_person';
+}
+
+const FROM = "ASH HOLDING Careers <hr@ash-holding.sa>";
+const REPLY = "info@ash-holding.sa";
+
+function wrap(content: string, color = "#667eea") {
+  return `<div dir="rtl" style="font-family:'IBM Plex Sans Arabic',Tahoma,sans-serif;max-width:600px;margin:0 auto;padding:40px 20px;background:linear-gradient(135deg,${color}22 0%,${color}11 100%);border-radius:16px">
+    <div style="background:#fff;border-radius:12px;padding:40px;box-shadow:0 10px 40px rgba(0,0,0,.08)">
+      ${content}
+      <hr style="border:none;border-top:1px solid #e2e8f0;margin:30px 0">
+      <p style="color:#a0aec0;font-size:12px;text-align:center;margin:0">
+        للرد والاستفسار: <a href="mailto:info@ash-holding.sa" style="color:${color}">info@ash-holding.sa</a><br>
+        ASH HOLDING — فريق الموارد البشرية
+      </p>
+    </div>
+  </div>`;
+}
+
+function fmtDate(iso?: string) {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleString("ar-SA", {
+      dateStyle: "full", timeStyle: "short", timeZone: "Asia/Riyadh",
+    });
+  } catch { return iso; }
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { type, applicantName, applicantEmail, jobTitle, status, adminNotes }: CareerNotificationRequest = await req.json();
-    
-    console.log(`Processing career notification: ${type} for ${applicantEmail}`);
+    const body: CareerNotificationRequest = await req.json();
+    const { type, applicantName, applicantEmail, jobTitle, status, adminNotes,
+            interviewDate, interviewLocation, interviewType } = body;
 
+    console.log(`career-notification: ${type} -> ${applicantEmail} (status=${status || '-'})`);
+
+    // ---- Auto-reply on new application ----
     if (type === 'new_application') {
-      // Send confirmation to applicant
-      const applicantEmail1 = await resend.emails.send({
-        from: "ASH HOLDING Careers <hr@ash-holding.sa>",
-        reply_to: "info@ash-holding.sa",
+      await resend.emails.send({
+        from: FROM,
+        reply_to: REPLY,
         to: [applicantEmail],
         subject: `تم استلام طلبك للوظيفة: ${jobTitle}`,
-        html: `
-          <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px;">
-            <div style="background: white; border-radius: 12px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
-              <div style="text-align: center; margin-bottom: 30px;">
-                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
-                  <span style="font-size: 36px;">✉️</span>
-                </div>
-                <h1 style="color: #1a1a2e; margin: 0; font-size: 28px;">تم استلام طلبك بنجاح!</h1>
-              </div>
-              
-              <p style="color: #4a5568; font-size: 16px; line-height: 1.8; margin-bottom: 20px;">
-                مرحباً <strong>${applicantName}</strong>،
-              </p>
-              
-              <p style="color: #4a5568; font-size: 16px; line-height: 1.8; margin-bottom: 20px;">
-                شكراً لاهتمامك بالانضمام إلى فريق <strong>ASH HOLDING</strong>! 
-                لقد استلمنا طلبك لوظيفة <strong style="color: #667eea;">${jobTitle}</strong>.
-              </p>
-              
-              <div style="background: linear-gradient(135deg, #f6f9fc 0%, #eef2f7 100%); border-radius: 12px; padding: 24px; margin: 24px 0; border-right: 4px solid #667eea;">
-                <h3 style="color: #1a1a2e; margin: 0 0 12px 0; font-size: 18px;">📋 الخطوات التالية:</h3>
-                <ul style="color: #4a5568; margin: 0; padding-right: 20px; line-height: 2;">
-                  <li>سيقوم فريق التوظيف بمراجعة طلبك خلال 3-5 أيام عمل</li>
-                  <li>إذا كان ملفك مناسباً، سنتواصل معك لترتيب مقابلة</li>
-                  <li>ستتلقى إشعاراً بالبريد الإلكتروني عند أي تحديث</li>
-                </ul>
-              </div>
-              
-              <div style="background: #fff3cd; border-radius: 8px; padding: 16px; margin: 20px 0;">
-                <p style="color: #856404; margin: 0; font-size: 14px;">
-                  <strong>💡 نصيحة:</strong> تأكد من متابعة بريدك الإلكتروني بانتظام حتى لا تفوتك أي رسائل منا!
-                </p>
-              </div>
-              
-              <p style="color: #4a5568; font-size: 16px; line-height: 1.8;">
-                نتمنى لك التوفيق!<br>
-                <strong>فريق الموارد البشرية - ASH HOLDING</strong>
-              </p>
-              
-              <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
-              
-              <p style="color: #a0aec0; font-size: 12px; text-align: center; margin: 0;">
-                هذه رسالة تلقائية، يرجى عدم الرد عليها مباشرة.
-              </p>
-            </div>
+        html: wrap(`
+          <div style="text-align:center;margin-bottom:24px">
+            <div style="width:72px;height:72px;background:#667eea;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:32px">✉️</div>
+            <h1 style="color:#1a1a2e;margin:0;font-size:24px">تم استلام طلبك بنجاح</h1>
           </div>
-        `,
+          <p style="color:#4a5568;font-size:16px;line-height:1.9">مرحباً <strong>${applicantName}</strong>،</p>
+          <p style="color:#4a5568;font-size:16px;line-height:1.9">
+            شكراً لتقدمك لوظيفة <strong style="color:#667eea">${jobTitle}</strong> في ASH HOLDING.
+            هذه رسالة تأكيد تلقائية — طلبك وصلنا، وفريق التوظيف سيراجعه خلال 3-5 أيام عمل.
+          </p>
+          <div style="background:#f6f9fc;border-right:4px solid #667eea;border-radius:10px;padding:18px;margin:20px 0">
+            <strong style="color:#1a1a2e">الخطوات التالية:</strong>
+            <ul style="color:#4a5568;margin:8px 0 0;padding-right:20px;line-height:2">
+              <li>مراجعة الطلب والسيرة الذاتية</li>
+              <li>إذا كان ملفك مناسباً، سنتواصل معك لتحديد موعد مقابلة</li>
+              <li>ستصلك إشعارات بالبريد عند أي تحديث لحالة طلبك</li>
+            </ul>
+          </div>
+        `),
       });
 
-      console.log("Applicant email sent:", applicantEmail1);
-
-      // Send notification to admin (you can configure admin email)
-      const adminNotification = await resend.emails.send({
-        from: "ASH HOLDING Careers <hr@ash-holding.sa>",
-        reply_to: "info@ash-holding.sa",
-        to: ["hr@ash-holding.sa"], // Configure your admin email
-        subject: `📥 طلب توظيف جديد: ${jobTitle}`,
-        html: `
-          <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: #1a1a2e; color: white; padding: 20px; border-radius: 12px 12px 0 0;">
-              <h1 style="margin: 0; font-size: 20px;">🔔 طلب توظيف جديد</h1>
-            </div>
-            <div style="background: white; padding: 24px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
-              <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                  <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0; color: #718096; width: 140px;">الوظيفة:</td>
-                  <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0; color: #1a1a2e; font-weight: bold;">${jobTitle}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0; color: #718096;">اسم المتقدم:</td>
-                  <td style="padding: 12px 0; border-bottom: 1px solid #e2e8f0; color: #1a1a2e; font-weight: bold;">${applicantName}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 12px 0; color: #718096;">البريد الإلكتروني:</td>
-                  <td style="padding: 12px 0; color: #1a1a2e;"><a href="mailto:${applicantEmail}" style="color: #667eea;">${applicantEmail}</a></td>
-                </tr>
-              </table>
-              
-              <div style="margin-top: 24px;">
-                <a href="https://ash-holding.sa/admin/careers" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
-                  عرض الطلب في لوحة التحكم
-                </a>
-              </div>
-            </div>
-          </div>
-        `,
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200, headers: { "Content-Type": "application/json", ...corsHeaders },
       });
+    }
 
-      console.log("Admin notification sent:", adminNotification);
+    // ---- Status update ----
+    if (type === 'status_update' && status) {
+      const map: Record<string, { subject: string; title: string; emoji: string; color: string; body: string }> = {
+        reviewing: {
+          subject: "طلبك قيد المراجعة",
+          title: "طلبك قيد المراجعة الآن",
+          emoji: "👀", color: "#f59e0b",
+          body: `فريق التوظيف يراجع طلبك لوظيفة <strong>${jobTitle}</strong>. سنتواصل معك قريباً بالخطوة التالية.`,
+        },
+        interviewed: {
+          subject: "دعوة لمقابلة",
+          title: "🎯 تمت دعوتك لمقابلة",
+          emoji: "🎯", color: "#8b5cf6",
+          body: `يسعدنا دعوتك لمقابلة بخصوص وظيفة <strong>${jobTitle}</strong>.` +
+            (interviewDate ? `<div style="background:#8b5cf611;border-right:4px solid #8b5cf6;border-radius:10px;padding:16px;margin:18px 0">
+              <div style="font-weight:bold;color:#1a1a2e;margin-bottom:6px">📅 موعد المقابلة</div>
+              <div style="color:#4a5568">${fmtDate(interviewDate)}</div>
+              ${interviewLocation ? `<div style="margin-top:10px;color:#4a5568"><strong>${interviewType === 'in_person' ? 'العنوان' : 'الرابط'}:</strong> ${interviewType === 'online' ? `<a href="${interviewLocation}" style="color:#8b5cf6;word-break:break-all">${interviewLocation}</a>` : interviewLocation}</div>` : ''}
+              <div style="margin-top:10px;color:#718096;font-size:13px">${interviewType === 'in_person' ? 'مقابلة حضورية' : 'مقابلة عن بُعد'}</div>
+            </div>` : ''),
+        },
+        accepted: {
+          subject: "🎉 تهانينا — تم قبولك",
+          title: "🎉 تم قبولك",
+          emoji: "🎉", color: "#10b981",
+          body: `يسعدنا إبلاغك بقبولك لوظيفة <strong>${jobTitle}</strong>. سيتواصل معك فريق الموارد البشرية خلال وقت قصير لإتمام إجراءات الانضمام.`,
+        },
+        rejected: {
+          subject: "بخصوص طلب التوظيف",
+          title: "تحديث حول طلبك",
+          emoji: "📝", color: "#ef4444",
+          body: `نشكرك على اهتمامك بـ ASH HOLDING. بعد مراجعة طلبك لوظيفة <strong>${jobTitle}</strong>، لم يتم اختيارك لهذه الوظيفة حالياً. سنحتفظ بسيرتك الذاتية لفرص مستقبلية مناسبة. نتمنى لك التوفيق.`,
+        },
+      };
 
-    } else if (type === 'status_update' && status) {
-      let subject = "";
-      let statusText = "";
-      let statusEmoji = "";
-      let statusColor = "";
-      let additionalMessage = "";
-
-      switch (status) {
-        case 'reviewing':
-          subject = "طلبك قيد المراجعة";
-          statusText = "قيد المراجعة";
-          statusEmoji = "👀";
-          statusColor = "#f59e0b";
-          additionalMessage = "فريق التوظيف يراجع طلبك الآن. سنتواصل معك قريباً.";
-          break;
-        case 'interviewed':
-          subject = "تهانينا! دعوة لمقابلة";
-          statusText = "تمت دعوتك للمقابلة";
-          statusEmoji = "🎯";
-          statusColor = "#8b5cf6";
-          additionalMessage = "يسعدنا دعوتك لإجراء مقابلة معنا. سنتواصل معك لتحديد الموعد المناسب.";
-          break;
-        case 'accepted':
-          subject = "🎉 تهانينا! تم قبولك";
-          statusText = "مقبول";
-          statusEmoji = "🎉";
-          statusColor = "#10b981";
-          additionalMessage = "يسعدنا إبلاغك بأنه تم قبولك للانضمام إلى فريقنا! سنتواصل معك لترتيب الخطوات التالية.";
-          break;
-        case 'rejected':
-          subject = "بخصوص طلب التوظيف";
-          statusText = "لم يتم القبول";
-          statusEmoji = "📝";
-          statusColor = "#ef4444";
-          additionalMessage = "نشكرك على اهتمامك بالانضمام إلينا. للأسف، لم يتم اختيارك لهذه الوظيفة في الوقت الحالي. نتمنى لك التوفيق.";
-          break;
-        default:
-          subject = "تحديث حالة طلبك";
-          statusText = status;
-          statusEmoji = "📋";
-          statusColor = "#6b7280";
+      const t = map[status];
+      if (!t) {
+        return new Response(JSON.stringify({ success: true, skipped: true }), {
+          status: 200, headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
       }
 
-      const statusEmail = await resend.emails.send({
-        from: "ASH HOLDING Careers <hr@ash-holding.sa>",
-        reply_to: "info@ash-holding.sa",
+      await resend.emails.send({
+        from: FROM,
+        reply_to: REPLY,
         to: [applicantEmail],
-        subject: `${subject} - ${jobTitle}`,
-        html: `
-          <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: linear-gradient(135deg, ${statusColor}22 0%, ${statusColor}11 100%); border-radius: 16px;">
-            <div style="background: white; border-radius: 12px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
-              <div style="text-align: center; margin-bottom: 30px;">
-                <div style="width: 80px; height: 80px; background: ${statusColor}; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
-                  <span style="font-size: 36px;">${statusEmoji}</span>
-                </div>
-                <h1 style="color: #1a1a2e; margin: 0; font-size: 24px;">${subject}</h1>
-              </div>
-              
-              <p style="color: #4a5568; font-size: 16px; line-height: 1.8; margin-bottom: 20px;">
-                مرحباً <strong>${applicantName}</strong>،
-              </p>
-              
-              <div style="background: ${statusColor}11; border-radius: 12px; padding: 24px; margin: 24px 0; border-right: 4px solid ${statusColor};">
-                <p style="color: ${statusColor}; margin: 0 0 8px 0; font-weight: bold; font-size: 18px;">
-                  حالة طلبك: ${statusText}
-                </p>
-                <p style="color: #4a5568; margin: 0; font-size: 14px;">
-                  الوظيفة: ${jobTitle}
-                </p>
-              </div>
-              
-              <p style="color: #4a5568; font-size: 16px; line-height: 1.8; margin-bottom: 20px;">
-                ${additionalMessage}
-              </p>
-              
-              ${adminNotes ? `
-              <div style="background: #f8fafc; border-radius: 8px; padding: 16px; margin: 20px 0;">
-                <p style="color: #1a1a2e; margin: 0; font-size: 14px;">
-                  <strong>💬 ملاحظات:</strong><br>
-                  ${adminNotes}
-                </p>
-              </div>
-              ` : ''}
-              
-              <p style="color: #4a5568; font-size: 16px; line-height: 1.8;">
-                مع أطيب التحيات،<br>
-                <strong>فريق الموارد البشرية - ASH HOLDING</strong>
-              </p>
-              
-              <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
-              
-              <p style="color: #a0aec0; font-size: 12px; text-align: center; margin: 0;">
-                هذه رسالة تلقائية من نظام التوظيف في ASH HOLDING
-              </p>
-            </div>
+        subject: `${t.subject} — ${jobTitle}`,
+        html: wrap(`
+          <div style="text-align:center;margin-bottom:24px">
+            <div style="width:72px;height:72px;background:${t.color};border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:32px">${t.emoji}</div>
+            <h1 style="color:#1a1a2e;margin:0;font-size:24px">${t.title}</h1>
           </div>
-        `,
+          <p style="color:#4a5568;font-size:16px;line-height:1.9">مرحباً <strong>${applicantName}</strong>،</p>
+          <p style="color:#4a5568;font-size:16px;line-height:1.9">${t.body}</p>
+          ${adminNotes ? `<div style="background:#f8fafc;border-radius:10px;padding:16px;margin:18px 0">
+            <strong style="color:#1a1a2e">ملاحظات من فريق التوظيف:</strong>
+            <div style="color:#4a5568;margin-top:6px;white-space:pre-wrap">${adminNotes}</div>
+          </div>` : ''}
+        `, t.color),
       });
-
-      console.log("Status update email sent:", statusEmail);
     }
 
     return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json", ...corsHeaders },
+      status: 200, headers: { "Content-Type": "application/json", ...corsHeaders },
     });
-
   } catch (error: any) {
-    console.error("Error in career-notification function:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    console.error("career-notification error:", error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500, headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   }
 };
 
