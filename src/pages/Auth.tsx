@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, User, ArrowRight, ArrowLeft, Eye, EyeOff, Sparkles, Phone, Shield, Zap, CheckCircle2, Star, MessageCircle, Smartphone, Globe } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, ArrowLeft, Eye, EyeOff, Sparkles, Phone, Shield, Zap, CheckCircle2, Star, MessageCircle, Smartphone, Globe, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -465,6 +465,19 @@ const Auth = () => {
                 >
                   <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   {t("واتساب", "WhatsApp")}
+                </motion.button>
+                <motion.button
+                  type="button"
+                  onClick={() => setAuthMethod('email-otp')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                    authMethod === 'email-otp'
+                      ? 'bg-background shadow-sm text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <KeyRound className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  {t("رمز البريد", "Email Code")}
                 </motion.button>
               </div>
 
