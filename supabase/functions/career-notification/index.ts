@@ -30,7 +30,8 @@ const handler = async (req: Request): Promise<Response> => {
     if (type === 'new_application') {
       // Send confirmation to applicant
       const applicantEmail1 = await resend.emails.send({
-        from: "ASH HOLDING Careers <careers@resend.dev>",
+        from: "ASH HOLDING Careers <hr@ash-holding.sa>",
+        reply_to: "info@ash-holding.sa",
         to: [applicantEmail],
         subject: `تم استلام طلبك للوظيفة: ${jobTitle}`,
         html: `
@@ -86,7 +87,8 @@ const handler = async (req: Request): Promise<Response> => {
 
       // Send notification to admin (you can configure admin email)
       const adminNotification = await resend.emails.send({
-        from: "ASH HOLDING System <noreply@resend.dev>",
+        from: "ASH HOLDING Careers <hr@ash-holding.sa>",
+        reply_to: "info@ash-holding.sa",
         to: ["hr@ash-holding.sa"], // Configure your admin email
         subject: `📥 طلب توظيف جديد: ${jobTitle}`,
         html: `
@@ -166,7 +168,8 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       const statusEmail = await resend.emails.send({
-        from: "ASH HOLDING Careers <careers@resend.dev>",
+        from: "ASH HOLDING Careers <hr@ash-holding.sa>",
+        reply_to: "info@ash-holding.sa",
         to: [applicantEmail],
         subject: `${subject} - ${jobTitle}`,
         html: `

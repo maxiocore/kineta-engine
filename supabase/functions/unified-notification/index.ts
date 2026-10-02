@@ -198,6 +198,7 @@ async function sendEmail(
     },
     body: JSON.stringify({
       from: "ASH HOLDING <noreply@ash-holding.sa>",
+      reply_to: "info@ash-holding.sa",
       to: [recipientEmail],
       subject: template.subject,
       html: template.html,

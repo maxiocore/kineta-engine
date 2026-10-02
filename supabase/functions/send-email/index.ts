@@ -2799,7 +2799,8 @@ const handler = async (req: Request): Promise<Response> => {
           const html = getEmailWrapper(finalContent, finalSubject);
           
           const emailResponse = await resend.emails.send({
-            from: "ASH HOLDING <info@ash-holding.sa>",
+            from: getSenderForType(typeof emailType!=="undefined"?emailType:type),
+            reply_to: "info@ash-holding.sa",
             to: [email],
             subject: finalSubject,
             html: html,
@@ -2860,7 +2861,8 @@ const handler = async (req: Request): Promise<Response> => {
       const html = getEmailWrapper(finalContent, finalSubject);
 
       const emailResponse = await resend.emails.send({
-        from: "ASH HOLDING <info@ash-holding.sa>",
+        from: getSenderForType(typeof emailType!=="undefined"?emailType:type),
+        reply_to: "info@ash-holding.sa",
         to: [to],
         subject: finalSubject,
         html: html,

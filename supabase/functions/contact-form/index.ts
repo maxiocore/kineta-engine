@@ -25,7 +25,8 @@ async function sendEmail(to: string[], subject: string, html: string) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "ASH HOLDING <noreply@ash-holding.sa>",
+      from: "ASH HOLDING Support <support@ash-holding.sa>",
+      reply_to: "info@ash-holding.sa",
       to,
       subject,
       html,

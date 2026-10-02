@@ -169,6 +169,7 @@ serve(async (req: Request) => {
         try {
           const { error: emailError } = await resend.emails.send({
             from: "ASH HOLDING <notifications@ash-holding.sa>",
+            reply_to: "info@ash-holding.sa",
             to: [user.email],
             subject: appNotification.title_ar || appNotification.title,
             html: getEmailTemplate(appNotification, user),

@@ -199,7 +199,8 @@ async function sendEmail(email: string, otp: string): Promise<boolean> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'ASH HOLDING <noreply@ash-holding.sa>',
+        from: "ASH HOLDING Security <security@ash-holding.sa>",
+        reply_to: "info@ash-holding.sa",
         to: email,
         subject: `رمز التحقق الخاص بك: ${otp}`,
         html: `

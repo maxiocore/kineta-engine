@@ -379,7 +379,8 @@ serve(async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "ASH HOLDING <noreply@ash-holding.sa>",
+        from: "ASH HOLDING Billing <billing@ash-holding.sa>",
+        reply_to: "info@ash-holding.sa",
         to: [profile.email],
         subject: `✅ تم إيداع ${formatAmountArabic(deposit.total_credited)} ر.س في حسابك بنجاح`,
         html: emailHtml,
