@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
       <!-- Body -->
       <div style="padding:28px 40px 40px;text-align:center;">
 
-        <h2 style="color:#ffffff;font-size:20px;font-weight:bold;margin:0 0 10px;">مرحباً بك من جديد 👋</h2>
+        <h2 style="color:#ffffff;font-size:20px;font-weight:bold;margin:0 0 10px;">مرحباً بك من جديد</h2>
         <p style="color:#94a3b8;font-size:14px;line-height:1.8;margin:0 0 26px;">
           استخدم الرمز التالي لإكمال تسجيل الدخول إلى حسابك
         </p>
