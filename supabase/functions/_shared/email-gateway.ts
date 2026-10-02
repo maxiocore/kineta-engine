@@ -1,3 +1,5 @@
+import { ensureBrandedEmail } from "./email-template.ts";
+
 // Shared email gateway client for Resend (connector-gateway backed).
 // All Resend email sends MUST go through the Lovable connector gateway,
 // not api.resend.com directly — why: the linked RESEND_API_KEY is a
@@ -41,13 +43,17 @@ export function emailGatewayHeaders(): Record<string, string> {
 
 export async function sendEmail(payload: EmailPayload): Promise<EmailSendResult> {
   try {
+    const normalizedPayload = {
+      ...payload,
+      html: ensureBrandedEmail(payload.html, payload.subject),
+    };
     const response = await fetch(RESEND_GATEWAY_URL, {
       method: "POST",
       headers: {
         ...emailGatewayHeaders(),
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(normalizedPayload),
     });
     const text = await response.text();
     if (!response.ok) {
