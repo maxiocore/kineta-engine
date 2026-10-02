@@ -7,6 +7,7 @@
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { emailGatewayHeaders } from "../_shared/email-gateway.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
   NOTIFICATION_REGISTRY,
@@ -190,10 +191,10 @@ async function sendEmail(
     return { success: false, error: "Email template not found" };
   }
 
-  const response = await fetch("https://api.resend.com/emails", {
+  const response = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${resendApiKey}`,
+      ...emailGatewayHeaders(),
       "Content-Type": "application/json",
     },
     body: JSON.stringify({

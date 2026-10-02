@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { emailGatewayHeaders } from "../_shared/email-gateway.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
@@ -18,10 +19,10 @@ interface ContactFormRequest {
 }
 
 async function sendEmail(to: string[], subject: string, html: string) {
-  const response = await fetch("https://api.resend.com/emails", {
+  const response = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${RESEND_API_KEY}`,
+      ...emailGatewayHeaders(),
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
