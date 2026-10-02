@@ -1,2 +1,2 @@
-
 - Realtime channel names are made unique globally by src/lib/realtimeChannelPatch.ts (imported first in main.tsx); why: reused channel topics crash pages when a listener mounts twice.
+- All Resend email sends go through the Lovable connector gateway via supabase/functions/_shared/email-gateway.ts, never api.resend.com directly; why: the linked RESEND_API_KEY is a gateway connection key rejected by the direct Resend API.
