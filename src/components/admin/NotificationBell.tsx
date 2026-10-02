@@ -42,7 +42,7 @@ const NotificationBell = () => {
     
     // Subscribe to real-time notifications
     const channel = supabase
-      .channel("admin-notifications-realtime")
+      .channel(`admin-notifications-realtime-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { 
         event: "INSERT", 
         schema: "public", 
