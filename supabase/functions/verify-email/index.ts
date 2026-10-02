@@ -51,6 +51,7 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { brandedEmailPayload, emailGatewayHeaders } from "../_shared/email-gateway.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -195,10 +196,10 @@ async function sendEmail(email: string, otp: string): Promise<boolean> {
     const response = await fetch('https://connector-gateway.lovable.dev/resend/emails', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${resendApiKey}`,
+        ...emailGatewayHeaders(),
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
+      body: JSON.stringify(brandedEmailPayload({
         from: "ASH HOLDING Security <security@ash-holding.sa>",
         reply_to: "info@ash-holding.sa",
         to: email,
@@ -218,7 +219,7 @@ async function sendEmail(email: string, otp: string): Promise<boolean> {
             </div>
           </div>
         `,
-      }),
+      })),
     });
 
     return response.ok;

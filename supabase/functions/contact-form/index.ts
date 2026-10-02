@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { emailGatewayHeaders } from "../_shared/email-gateway.ts";
+import { brandedEmailPayload, emailGatewayHeaders } from "../_shared/email-gateway.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
@@ -25,13 +25,13 @@ async function sendEmail(to: string[], subject: string, html: string) {
       ...emailGatewayHeaders(),
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
+    body: JSON.stringify(brandedEmailPayload({
       from: "ASH HOLDING Support <support@ash-holding.sa>",
       reply_to: "info@ash-holding.sa",
       to,
       subject,
       html,
-    }),
+    })),
   });
 
   if (!response.ok) {

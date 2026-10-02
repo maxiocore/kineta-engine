@@ -1,3 +1,5 @@
+import { ensureBrandedEmail } from "./email-template.ts";
+
 // Shared email gateway client for Resend (connector-gateway backed).
 // All Resend email sends MUST go through the Lovable connector gateway,
 // not api.resend.com directly — why: the linked RESEND_API_KEY is a
@@ -27,6 +29,28 @@ export interface EmailSendResult {
   error: EmailGatewayError | null;
 }
 
+export function brandedEmailPayload(payload: EmailPayload): EmailPayload {
+  const sender = payload.from.toLowerCase();
+  const department = sender.includes("billing") ? "الشؤون المالية"
+    : sender.includes("orders") ? "إدارة الطلبات"
+    : sender.includes("support") ? "خدمة العملاء"
+    : sender.includes("security") ? "الأمن الرقمي"
+    : sender.includes("hr") ? "الموارد البشرية"
+    : sender.includes("kyc") ? "التحقق من الهوية"
+    : "الإشعارات الرسمية";
+  const isFinancial = sender.includes("billing");
+  const isSecurity = sender.includes("security");
+  const isPrivacy = sender.includes("kyc");
+  const isEmployment = sender.includes("hr");
+  const tone = isFinancial ? "financial" : isSecurity ? "security" : isPrivacy ? "info" : isEmployment ? "brand" : "brand";
+  const legal = isFinancial ? "financial" : isSecurity ? "security" : isPrivacy ? "privacy" : isEmployment ? "employment" : "standard";
+  const replyEmail = Array.isArray(payload.reply_to) ? payload.reply_to[0] : payload.reply_to;
+  return {
+    ...payload,
+    html: ensureBrandedEmail(payload.html, payload.subject, department, tone, legal, replyEmail || "info@ash-holding.sa"),
+  };
+}
+
 export function emailGatewayHeaders(): Record<string, string> {
   const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
   const connectionKey = Deno.env.get("RESEND_API_KEY");
@@ -41,13 +65,14 @@ export function emailGatewayHeaders(): Record<string, string> {
 
 export async function sendEmail(payload: EmailPayload): Promise<EmailSendResult> {
   try {
+    const normalizedPayload = brandedEmailPayload(payload);
     const response = await fetch(RESEND_GATEWAY_URL, {
       method: "POST",
       headers: {
         ...emailGatewayHeaders(),
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(normalizedPayload),
     });
     const text = await response.text();
     if (!response.ok) {

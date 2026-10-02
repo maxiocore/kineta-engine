@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { emailGatewayHeaders } from "../_shared/email-gateway.ts";
+import { brandedEmailPayload, emailGatewayHeaders } from "../_shared/email-gateway.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendSMS as sendSMSHelper, formatPhoneNumber } from "../_shared/sms-helper.ts";
 import { sendWhatsAppMessage, getDepositStatusMessage } from "../_shared/whatsapp-helper.ts";
@@ -379,13 +379,13 @@ serve(async (req: Request): Promise<Response> => {
         ...emailGatewayHeaders(),
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
+      body: JSON.stringify(brandedEmailPayload({
         from: "ASH HOLDING Billing <billing@ash-holding.sa>",
         reply_to: "info@ash-holding.sa",
         to: [profile.email],
         subject: `✅ تم إيداع ${formatAmountArabic(deposit.total_credited)} ر.س في حسابك بنجاح`,
         html: emailHtml,
-      }),
+      })), 
     });
     
     const emailResult = await emailResponse.json();
