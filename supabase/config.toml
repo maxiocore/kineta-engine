@@ -164,3 +164,6 @@ verify_jwt = false
 
 [functions.ash-deposit-webhook]
 verify_jwt = false
+
+[functions.kyc-notification]
+verify_jwt = false

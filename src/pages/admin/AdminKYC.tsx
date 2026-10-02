@@ -260,6 +260,9 @@ const AdminKYC = () => {
         type: 'kyc_approved',
       });
 
+      supabase.functions.invoke('kyc-notification', { body: { event: 'approved', verificationId: selectedKYC.id } })
+        .catch((e) => console.error('KYC email failed (non-blocking):', e));
+
       toast.success('✅ تمت الموافقة على التحقق وإخطار المستخدم');
       setConfirmApproveOpen(false);
       setReviewDialogOpen(false);
@@ -328,6 +331,9 @@ const AdminKYC = () => {
           console.error('SMS notification failed (non-blocking):', smsErr);
         }
       }
+
+      supabase.functions.invoke('kyc-notification', { body: { event: 'rejected', verificationId: selectedKYC.id } })
+        .catch((e) => console.error('KYC email failed (non-blocking):', e));
 
       toast.success('تم رفض التحقق وإخطار المستخدم');
       setReviewDialogOpen(false);

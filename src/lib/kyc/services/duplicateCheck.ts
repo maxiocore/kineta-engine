@@ -239,6 +239,10 @@ export async function updateVerificationResult(
       })
       .eq('session_id', sessionId);
     
+    if (!error) {
+      supabase.functions.invoke('kyc-notification', { body: { event: 'submitted', sessionId } })
+        .catch((e) => console.error('KYC email failed (non-blocking):', e));
+    }
     return !error;
   } catch {
     return false;
