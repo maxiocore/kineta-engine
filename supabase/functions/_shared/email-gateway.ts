@@ -38,7 +38,17 @@ export function brandedEmailPayload(payload: EmailPayload): EmailPayload {
     : sender.includes("hr") ? "الموارد البشرية"
     : sender.includes("kyc") ? "التحقق من الهوية"
     : "الإشعارات الرسمية";
-  return { ...payload, html: ensureBrandedEmail(payload.html, payload.subject, department) };
+  const isFinancial = sender.includes("billing");
+  const isSecurity = sender.includes("security");
+  const isPrivacy = sender.includes("kyc");
+  const isEmployment = sender.includes("hr");
+  const tone = isFinancial ? "financial" : isSecurity ? "security" : isPrivacy ? "info" : isEmployment ? "brand" : "brand";
+  const legal = isFinancial ? "financial" : isSecurity ? "security" : isPrivacy ? "privacy" : isEmployment ? "employment" : "standard";
+  const replyEmail = Array.isArray(payload.reply_to) ? payload.reply_to[0] : payload.reply_to;
+  return {
+    ...payload,
+    html: ensureBrandedEmail(payload.html, payload.subject, department, tone, legal, replyEmail || "info@ash-holding.sa"),
+  };
 }
 
 export function emailGatewayHeaders(): Record<string, string> {

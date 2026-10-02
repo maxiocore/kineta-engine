@@ -79,15 +79,24 @@ export function renderBrandedEmail(options: BrandedEmailOptions): string {
   return `<!doctype html><html lang="ar" dir="rtl" data-ash-email="v2"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="x-apple-disable-message-reformatting"><title>${title}</title></head><body style="margin:0;padding:0;background:#f2f6f8;font-family:'IBM Plex Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif;color:#102a43;"><div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">${preheader}</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;background:#f2f6f8;border-collapse:collapse;"><tr><td align="center" style="padding:28px 12px;"><table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:#ffffff;border:1px solid #dce7ec;border-radius:8px;border-collapse:separate;overflow:hidden;box-shadow:0 12px 30px rgba(8,51,68,.08);"><tr><td style="height:6px;background:${tone.accent};font-size:0;line-height:0;">&nbsp;</td></tr><tr><td style="padding:24px 28px;background:#0b1f33;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="right"><div style="color:#ffffff;font-size:21px;font-weight:800;">ASH HOLDING</div><div style="color:#9fcbd0;font-size:12px;margin-top:5px;">حلول رقمية موثوقة</div></td><td align="left" style="color:#d9eef0;font-size:12px;">${department}</td></tr></table></td></tr><tr><td style="padding:30px 28px 8px;">${status}<h1 style="margin:14px 0 12px;color:#0b1f33;font-size:24px;line-height:1.5;">${title}</h1><p style="margin:0 0 10px;color:#102a43;font-size:15px;line-height:1.8;">مرحباً ${name}،</p>${intro}${amount}${code}${details}${options.content || ""}${action}${notice}</td></tr><tr><td style="padding:22px 28px 28px;"><div style="height:1px;background:#dce7ec;margin-bottom:18px;"></div><p style="margin:0 0 8px;color:#5f7183;font-size:11px;line-height:1.8;">${legalCopy(options.legal)}</p><p style="margin:0;color:#7b8c9d;font-size:11px;line-height:1.8;">للمساعدة: <a href="mailto:${reply}" style="color:${tone.accent};text-decoration:none;">${reply}</a> · <a href="tel:+966555812567" dir="ltr" style="color:${tone.accent};text-decoration:none;">+966 55 581 2567</a>${ref}</p></td></tr><tr><td align="center" style="padding:16px 24px;background:#edf3f5;border-top:1px solid #dce7ec;color:#738496;font-size:10px;line-height:1.7;">© ${new Date().getFullYear()} ASH HOLDING. جميع الحقوق محفوظة.<br><a href="https://ash-holding.sa/privacy" style="color:#52697c;text-decoration:underline;">سياسة الخصوصية</a> · <a href="https://ash-holding.sa/terms" style="color:#52697c;text-decoration:underline;">الشروط والأحكام</a></td></tr></table></td></tr></table></body></html>`;
 }
 
-export function ensureBrandedEmail(html: string, title: string, department = "الإشعارات") {
+export function ensureBrandedEmail(
+  html: string,
+  title: string,
+  department = "الإشعارات",
+  tone: EmailTone = "brand",
+  legal: BrandedEmailOptions["legal"] = "standard",
+  replyEmail = "info@ash-holding.sa",
+) {
   if (html.includes('data-ash-email="v2"')) return html;
   const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
   const body = bodyMatch?.[1] || html;
   return renderBrandedEmail({
     title,
     department,
+    tone,
     intro: "نرفق لك تفاصيل الإشعار أدناه.",
     content: `<div data-ash-email="v2" style="margin-top:20px;">${body}</div>`,
-    legal: "standard",
+    legal,
+    replyEmail,
   });
 }
