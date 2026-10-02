@@ -468,9 +468,8 @@ const Careers = () => {
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                 نحن دائماً نبحث عن مواهب متميزة. أرسل سيرتك الذاتية وسنتواصل معك عند توفر فرص مناسبة.
               </p>
-              <Button variant="outline" size="lg">
-                <Send className="w-4 h-4 ml-2" />
-                أرسل سيرتك الذاتية
+              <Button asChild size="lg" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 shadow-lg shadow-primary/20">
+                <Link to="/careers/apply"><Send className="w-4 h-4 ml-2" />أرسل سيرتك الذاتية</Link>
               </Button>
             </motion.div>
           )}
@@ -493,9 +492,8 @@ const Careers = () => {
               لا تقلق! أرسل سيرتك الذاتية وسنحتفظ بها للفرص المستقبلية المناسبة لمهاراتك.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700">
-                <Send className="w-5 h-5 ml-2" />
-                أرسل طلباً عاماً
+              <Button asChild size="lg" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700">
+                <Link to="/careers/apply"><Send className="w-5 h-5 ml-2" />أرسل طلباً عاماً</Link>
               </Button>
               <Button size="lg" variant="outline">
                 تابعنا على LinkedIn
