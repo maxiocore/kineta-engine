@@ -55,6 +55,7 @@ const ClientReferrals = lazy(() => import("./pages/dashboard/ClientReferrals"));
 const ClientBalanceLogs = lazy(() => import("./pages/dashboard/ClientBalanceLogs"));
 const ClientDesignServices = lazy(() => import("./pages/dashboard/ClientDesignServices"));
 const ClientMarketingServices = lazy(() => import("./pages/dashboard/ClientMarketingServices"));
+const ClientHostingServices = lazy(() => import("./pages/dashboard/ClientHostingServices"));
 const ClientServicesHome = lazy(() => import("./pages/dashboard/ClientServicesHome"));
 const DesignServiceOrder = lazy(() => import("./pages/dashboard/DesignServiceOrder"));
 const ClientCashback = lazy(() => import("./pages/dashboard/ClientCashback"));
@@ -268,6 +269,11 @@ const App = () => (
                     <Route path="/dashboard/marketing-services" element={
                       <ProtectedRoute>
                         <ClientMarketingServices />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/dashboard/hosting-services" element={
+                      <ProtectedRoute>
+                        <ClientHostingServices />
                       </ProtectedRoute>
                     } />
                     <Route path="/dashboard/our-services" element={

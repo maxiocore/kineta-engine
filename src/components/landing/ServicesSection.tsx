@@ -19,6 +19,7 @@ import {
   Play,
   Gem,
   Target,
+  Server,
   Clock,
   BadgeCheck,
 } from "lucide-react";
