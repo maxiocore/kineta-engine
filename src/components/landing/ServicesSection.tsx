@@ -84,6 +84,17 @@ const serviceCategories = [
     features: ["مواقع ويب", "تطبيقات جوال", "متاجر إلكترونية"],
     link: "/dashboard/dev-services",
   },
+  {
+    id: "marketing",
+    title: "التسويق الرقمي",
+    subtitle: "Digital Marketing",
+    description: "حلول تسويقية متكاملة لتنمية أعمالك وزيادة مبيعاتك",
+    icon: Target,
+    gradient: "from-orange-500 via-amber-500 to-yellow-500",
+    bgGlow: "bg-orange-500/20",
+    features: ["إعلانات ممولة", "تحسين محركات البحث SEO", "إدارة حسابات التواصل"],
+    link: "/dashboard/marketing-services",
+  },
 ];
 
 const features = [
@@ -360,7 +371,7 @@ const ServicesSection = () => {
         </motion.div>
 
         {/* Service Categories */}
-        <div className="grid md:grid-cols-2 gap-4 sm:gap-6 max-w-5xl mx-auto mb-12 sm:mb-16">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto mb-12 sm:mb-16">
           {serviceCategories.map((service, index) => (
             <ServiceCard 
               key={service.id} 
