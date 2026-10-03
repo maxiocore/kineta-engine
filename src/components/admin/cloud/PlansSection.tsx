@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import RetailPlanDialog from "./RetailPlanDialog";
+import { usePricingContext, CATEGORY_LABEL } from "./pricingShared";
 import { db, useTable, useInvalidate, DataTable, Pill, toneOf, money, EditDialog, Field, T } from "./adminCloudShared";
 
 export const pricing = (retail: number, cost: number, vat: number) => {
@@ -18,6 +20,8 @@ export default function PlansSection({ t, lang, type }: { t: T; lang: string; ty
   const vat = Number(billing[0]?.vat_rate ?? 0.15);
   const inv = useInvalidate();
   const [edit, setEdit] = useState<any>(null);
+  const [rp, setRp] = useState<any>(null);
+  const ctx = usePricingContext();
   const list = plans.filter((p) => p.server_type === type);
   const costOf = (id: string) => costs.find((c) => c.plan_id === id);
 
@@ -54,23 +58,26 @@ export default function PlansSection({ t, lang, type }: { t: T; lang: string; ty
     toast.success(t("تم الحفظ", "Saved")); inv(); return true;
   };
   const del = async (id: string) => { if (!confirm(t("حذف الباقة؟", "Delete plan?"))) return; const { error } = await db.from("cloud_plans").delete().eq("id", id); error ? toast.error(t("مرتبطة بخوادم؛ عطّلها بدلاً من الحذف", "In use; disable instead")) : inv(); };
-  const open = (p?: any) => setEdit(p ? { ...p, ...(costOf(p.id) ?? {}), id: p.id } : { status: "hidden", architecture: "x86", ipv4_included: true, ipv6_included: true, billing_cycles: ["monthly"], location_codes: [], sort_order: 0, disk_type: "NVMe SSD" });
+  const open = (p?: any) => { const c = p && costOf(p.id); if (c?.provider_id && c?.provider_ref && ctx.prices.some((x) => x.server_type === c.provider_ref)) return setRp({ plan: p, c }); openManual(p); };
+  const openManual = (p?: any) => setEdit(p ? { ...p, ...(costOf(p.id) ?? {}), id: p.id } : { status: "hidden", architecture: "x86", ipv4_included: true, ipv6_included: true, billing_cycles: ["monthly"], location_codes: [], sort_order: 0, disk_type: "NVMe SSD" });
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">{t(`التسعير يدوي. الضريبة ${Math.round(vat * 100)}% من الإعدادات. التكلفة والهامش للإدارة فقط. المواقع المتاحة: `, `Manual pricing. VAT ${Math.round(vat * 100)}% from settings. Costs/margins are admin-only. Locations: `)}<span dir="ltr">{locs.map((l) => l.code).join(", ") || "—"}</span></p>
-        <Button size="sm" onClick={() => open()}><Plus className="w-4 h-4" />{t("إضافة باقة", "Add plan")}</Button>
+        <Button size="sm" onClick={() => openManual()}><Plus className="w-4 h-4" />{t("إضافة باقة", "Add plan")}</Button>
       </div>
       <DataTable empty={t("لا توجد باقات. أضف باقات بأسعار حقيقية.", "No plans yet. Add plans with real prices.")}
         cols={[t("الباقة", "Plan"), t("المواصفات", "Specs"), t("التكلفة", "Cost"), t("البيع", "Retail"), t("شامل الضريبة", "Incl. VAT"), t("الربح", "Profit"), t("الهامش", "Margin"), t("الحالة", "Status"), ""]}
         rows={list.map((p) => {
-          const c = Number(costOf(p.id)?.infra_cost ?? 0); const pr = pricing(Number(p.monthly_price), c, vat);
-          return [<span>{lang === "ar" ? p.name_ar : p.name_en} {p.featured && <Pill tone="info">★</Pill>}<br /><span className="font-mono text-[11px] text-muted-foreground">{p.code}</span></span>,
+          const pc = costOf(p.id); const live = (p.location_codes ?? []).map((l: string) => ctx.costFor(pc?.provider_id, pc?.provider_ref, l)?.adj).filter((x: any) => x != null) as number[];
+          const c = live.length ? Math.max(...live) : Number(pc?.infra_cost ?? 0); const pr = pricing(Number(p.monthly_price), c, vat);
+          return [<span>{lang === "ar" ? p.name_ar : p.name_en} {p.featured && <Pill tone="info">★</Pill>}<br /><span className="font-mono text-[11px] text-muted-foreground">{p.code}</span> <Pill>{t(...(CATEGORY_LABEL[p.category] ?? [p.category, p.category]))}</Pill>{p.pricing_mode === "location" && <Pill tone="info">{t("حسب الموقع", "per location")}</Pill>}</span>,
             <span className="text-xs">{p.vcpu ?? p.cpu_model} · {p.ram_gb}GB · {p.storage_gb}GB</span>, money(c, lang), money(p.monthly_price, lang), money(pr.incl, lang),
             <span className={pr.profit < 0 ? "text-destructive" : ""}>{money(pr.profit, lang)}</span>, `${pr.margin.toFixed(1)}%`, <Pill tone={toneOf(p.status === "active" ? "active" : p.status)}>{p.status}</Pill>,
             <div className="flex gap-1"><Button size="icon" variant="ghost" onClick={() => open(p)} aria-label="edit"><Pencil className="w-4 h-4" /></Button><Button size="icon" variant="ghost" onClick={() => del(p.id)} aria-label="delete"><Trash2 className="w-4 h-4 text-destructive" /></Button></div>];
         })} />
+      {rp && <RetailPlanDialog open onClose={() => setRp(null)} t={t} providerId={rp.c.provider_id} serverType={rp.c.provider_ref} plan={rp.plan} />}
       <EditDialog open={!!edit} onOpenChange={(o) => !o && setEdit(null)} title={type === "vps" ? "Cloud VPS" : "Dedicated"} fields={fields} initial={edit ?? {}} onSave={save} t={t} />
     </div>
   );

@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, PlugZap, RefreshCw, Plus } from "lucide-react";
 import { toast } from "sonner";
-import { db, useTable, useInvalidate, DataTable, Pill, toneOf, dt, cloudApi, EditDialog, T } from "./adminCloudShared";
+import RetailPlanDialog from "./RetailPlanDialog";
+import { db, useTable, useInvalidate, DataTable, Pill, toneOf, dt, cloudApi, T } from "./adminCloudShared";
 
 const STATUS_TEXT: Record<string, [string, string]> = {
   connected: ["متصل", "Connected"], auth_failed: ["فشل المصادقة", "Authentication failed"], unavailable: ["المزود غير متاح", "Provider unavailable"],
@@ -76,15 +77,11 @@ export default function ProvidersSection({ t, lang }: { t: T; lang: string }) {
         <DataTable empty={t("لا توجد بيانات؛ نفّذ المزامنة بعد ربط المزود", "Empty; run sync after connecting the provider")}
           cols={["Ref", t("الاسم", "Name"), t("البيانات", "Data"), t("آخر مزامنة", "Synced"), ""]}
           rows={catalog.filter((c) => c.kind === kind).map((c) => [<span className="font-mono text-xs">{c.provider_ref}</span>, c.name, <span className="font-mono text-[11px] whitespace-normal break-all line-clamp-2 max-w-md inline-block">{JSON.stringify({ ...c.data, prices: undefined })}</span>, dt(c.synced_at, lang),
-            kind === "server_type" ? <Button size="sm" onClick={() => setMk({ item: c, init: { code: c.provider_ref, name_ar: "", name_en: c.provider_ref.toUpperCase(), status: "hidden", billing_cycles: ["monthly"] } })}><Plus className="w-3 h-3" />{t("إنشاء باقة بيع", "Create retail plan")}</Button>
+            kind === "server_type" ? <Button size="sm" onClick={() => setMk({ item: c })}><Plus className="w-3 h-3" />{t("إنشاء باقة بيع", "Create retail plan")}</Button>
               : ["location", "image"].includes(kind) ? <Button size="sm" variant="outline" onClick={() => mapItem(c)}>{t("ربط برمز داخلي", "Map to internal code")}</Button> : null])} />
       </section>
 
-      <EditDialog open={!!mk} onOpenChange={(o) => !o && setMk(null)} title={t("إنشاء باقة بيع", "Create retail plan")} initial={mk?.init ?? {}} onSave={createPlan} t={t}
-        fields={[{ k: "name_ar", label: t("الاسم بالعربية", "Arabic name"), required: true }, { k: "name_en", label: t("الاسم بالإنجليزية", "English name"), required: true }, { k: "code", label: t("الرمز", "Code"), ltr: true, required: true },
-          { k: "infra_cost", label: t("تكلفة المزود الشهرية (ر.س)", "Provider monthly cost (SAR)"), type: "number" }, { k: "monthly_price", label: t("سعر البيع قبل الضريبة", "Retail price excl. VAT"), type: "number", required: true },
-          { k: "location_codes", label: t("المواقع", "Locations"), type: "list", ltr: true }, { k: "billing_cycles", label: t("دورات الفوترة", "Billing cycles"), type: "list", ltr: true },
-          { k: "status", label: t("الإتاحة", "Availability"), type: "select", options: ["active", "hidden", "out_of_stock", "disabled"].map((v) => ({ v, l: v })) }, { k: "featured", label: t("مميزة", "Featured"), type: "bool" }]} />
+      {mk && <RetailPlanDialog open onClose={() => setMk(null)} t={t} providerId={mk.item.provider_id} serverType={mk.item.provider_ref} />}
     </div>
   );
 }
