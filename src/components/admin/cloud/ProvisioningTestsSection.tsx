@@ -22,6 +22,7 @@ export default function ProvisioningTestsSection({ t, lang }: { t: T; lang: stri
   const qc = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
   const [pf, setPf] = useState<any>(null);
+  const [diag, setDiag] = useState<any>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [delOpen, setDelOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
@@ -36,7 +37,7 @@ export default function ProvisioningTestsSection({ t, lang }: { t: T; lang: stri
   // Drive the backend state machine while a test is running
   useEffect(() => {
     if (test?.status !== "running_tests") return;
-    const id = setInterval(async () => { await call("advance"); refresh(); }, 8000);
+    const id = setInterval(async () => { await call("advance"); refresh(); }, 10000);
     return () => clearInterval(id);
   }, [test?.status]);
 
@@ -112,7 +113,21 @@ export default function ProvisioningTestsSection({ t, lang }: { t: T; lang: stri
             </details>
           )}
           {test.customer_data && <pre className="text-xs rounded-lg bg-muted p-2 overflow-auto" dir="ltr">{JSON.stringify(test.customer_data, null, 2)}</pre>}
+          {test.connectivity && !test.connectivity.ok && test.connectivity.last_error && (
+            <p className="text-xs text-muted-foreground" dir="ltr">SSH: {test.connectivity.phase} / {test.connectivity.last_error} (attempts {test.connectivity.attempts})</p>
+          )}
+          {diag && <pre className="text-xs rounded-lg bg-muted p-2 overflow-auto max-h-80" dir="ltr">{JSON.stringify(diag, null, 2)}</pre>}
           <div className="flex flex-wrap gap-2">
+            {test.provider_resource_id && test.status !== "cleaned_up" && (
+              <Button variant="outline" disabled={!!busy} onClick={() => run("diag", async () => { const r = await call("diagnose_ssh"); setDiag(r.diagnosis ?? r); return r; })}>
+                {busy === "diag" && <Loader2 className="w-4 h-4 animate-spin" />}{t("تشخيص SSH", "Diagnose SSH")}
+              </Button>
+            )}
+            {test.status === "failed" && test.failed_stage === "ssh" && test.provider_resource_id && (
+              <Button disabled={!!busy} onClick={() => run("retry", () => call("retry_ssh"))}>
+                {busy === "retry" && <Loader2 className="w-4 h-4 animate-spin" />}Retry SSH
+              </Button>
+            )}
             {(test.provider_resource_id || test.provider_ssh_key_id) && test.status !== "cleaned_up" && (
               <Button variant="destructive" disabled={!!busy || test.status === "creating"} onClick={() => setDelOpen(true)}><Trash2 className="w-4 h-4" />Delete Test Server</Button>
             )}
