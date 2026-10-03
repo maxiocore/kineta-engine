@@ -740,11 +740,14 @@ export type Database = {
           code: string
           created_at: string
           dedicated_supported: boolean
+          description: string | null
           family: string
           id: string
           is_active: boolean
           name: string
           name_ar: string | null
+          provider_image_id: string | null
+          provider_status: string | null
           sort_order: number
           updated_at: string
           version: string | null
@@ -755,11 +758,14 @@ export type Database = {
           code: string
           created_at?: string
           dedicated_supported?: boolean
+          description?: string | null
           family: string
           id?: string
           is_active?: boolean
           name: string
           name_ar?: string | null
+          provider_image_id?: string | null
+          provider_status?: string | null
           sort_order?: number
           updated_at?: string
           version?: string | null
@@ -770,11 +776,14 @@ export type Database = {
           code?: string
           created_at?: string
           dedicated_supported?: boolean
+          description?: string | null
           family?: string
           id?: string
           is_active?: boolean
           name?: string
           name_ar?: string | null
+          provider_image_id?: string | null
+          provider_status?: string | null
           sort_order?: number
           updated_at?: string
           version?: string | null
@@ -846,6 +855,7 @@ export type Database = {
           included_traffic_tb: number | null
           ipv4_selected: boolean | null
           location_code: string | null
+          overage_cost_sar: number | null
           payment_method: string
           plan_id: string | null
           provider_addons_cost: number | null
@@ -886,6 +896,7 @@ export type Database = {
           included_traffic_tb?: number | null
           ipv4_selected?: boolean | null
           location_code?: string | null
+          overage_cost_sar?: number | null
           payment_method?: string
           plan_id?: string | null
           provider_addons_cost?: number | null
@@ -926,6 +937,7 @@ export type Database = {
           included_traffic_tb?: number | null
           ipv4_selected?: boolean | null
           location_code?: string | null
+          overage_cost_sar?: number | null
           payment_method?: string
           plan_id?: string | null
           provider_addons_cost?: number | null
@@ -1071,6 +1083,7 @@ export type Database = {
           pricing_mode: string
           ram_gb: number
           retail_backup_price: number | null
+          retail_overage_price_sar: number | null
           server_type: string
           setup_fee: number
           sort_order: number
@@ -1107,6 +1120,7 @@ export type Database = {
           pricing_mode?: string
           ram_gb?: number
           retail_backup_price?: number | null
+          retail_overage_price_sar?: number | null
           server_type: string
           setup_fee?: number
           sort_order?: number
@@ -1143,6 +1157,7 @@ export type Database = {
           pricing_mode?: string
           ram_gb?: number
           retail_backup_price?: number | null
+          retail_overage_price_sar?: number | null
           server_type?: string
           setup_fee?: number
           sort_order?: number
@@ -5796,6 +5811,15 @@ export type Database = {
       freeze_service_credit: {
         Args: { p_admin_id: string; p_credit_id: string; p_reason: string }
         Returns: boolean
+      }
+      get_cloud_plan_traffic: {
+        Args: never
+        Returns: {
+          extra_traffic_sar_per_tb: number
+          included_traffic_tb: number
+          location_code: string
+          plan_id: string
+        }[]
       }
       get_public_stats: { Args: never; Returns: Json }
       get_user_role: { Args: { _user_id: string }; Returns: string }
