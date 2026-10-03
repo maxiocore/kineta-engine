@@ -5387,6 +5387,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_refund_cloud_order: { Args: { p_order_id: string }; Returns: Json }
       atomic_credit_deposit: {
         Args: {
           p_actor_id?: string
