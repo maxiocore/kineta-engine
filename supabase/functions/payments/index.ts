@@ -55,6 +55,25 @@ async function gatewayReady() {
   return { ok, s, env };
 }
 
+// Scoped one-shot live test: only the override's user, wallet_topup, exactly 100 halalas, one payment.
+async function activeOverride(userId: string) {
+  const { data } = await db.from("live_payment_test_overrides").select("*").eq("user_id", userId).eq("active", true)
+    .gt("expires_at", new Date().toISOString()).order("created_at", { ascending: false }).limit(1).maybeSingle();
+  return data;
+}
+async function gatewayReadyFor(userId: string, internalPaymentId?: string) {
+  const g = await gatewayReady();
+  if (g.ok || g.env !== "live" || !provider.isConfigured() || g.env !== g.s.environment) return g;
+  const o = await activeOverride(userId);
+  if (!o) return g;
+  if (internalPaymentId) {
+    if (!o.payment_id) return g;
+    const { data: p } = await db.from("payments").select("id,internal_payment_id").eq("id", o.payment_id).maybeSingle();
+    if (p?.internal_payment_id !== internalPaymentId) return g;
+  }
+  return { ...g, ok: true, override: o, s: { ...g.s, applepay_status: "disabled", stcpay_status: "disabled" } };
+}
+
 async function verifyAndApply(paymentRow: any, providerRef: string, source: string) {
   let pp;
   try { pp = await provider.getPayment(providerRef); }
