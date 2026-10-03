@@ -13,8 +13,10 @@ import { useUserSettings } from "@/hooks/useUserSettings";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const ClientSettings = () => {
+  const { t } = useLanguage();
   const { settings, loading, saving, updateSetting, refetch } = useUserSettings();
   const { user, profile, refetchProfile } = useAuth();
   
