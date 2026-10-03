@@ -585,7 +585,7 @@ const ClientDashboard = () => {
         generatedTips.push({
           id: "tip-first-order",
           title: "ابدأ رحلتك معنا! 🚀",
-          description: "اكتشف خدماتنا المميزة واحصل على أفضل النتائج لحساباتك على السوشيال ميديا.",
+          description: "اكتشف خدماتنا في البرمجة والتصميم والتسويق واحصل على أفضل النتائج لمشروعك الرقمي.",
           type: "tip",
         });
       }
@@ -869,38 +869,93 @@ const ClientDashboard = () => {
         className="space-y-4 sm:space-y-5 md:space-y-6 px-1 sm:px-0"
       >
 
-        {/* Header Section - Compact & Modern */}
+        {/* Hero Banner - Premium ASH HOLDING Identity */}
         <motion.div 
-          initial={{ opacity: 0, y: -10 }}
+          initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-l from-primary/5 via-transparent to-accent/5 rounded-2xl p-3 sm:p-4 md:p-5 border border-border/30"
+          className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-primary/20 bg-gradient-to-l from-[#0b1f3a] via-[#0e2a4a] to-[#123a5c] text-white shadow-xl"
         >
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold mb-0.5 truncate">
-                مرحباً، {profile?.full_name || "عزيزي العميل"}! 👋
-              </h1>
-              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-muted-foreground text-[10px] sm:text-xs">
-                <span>نظرة عامة على حسابك</span>
-                <span className="hidden sm:flex items-center gap-1">
-                  <Activity className="w-3 h-3" />
-                  {formatDistanceToNow(lastUpdated, { locale: ar, addSuffix: true })}
-                </span>
-                <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 bg-success/10 border-success/30 text-success">
-                  <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse ml-1" />
-                  مباشر
-                </Badge>
+          {/* Decorative glows */}
+          <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-32 -right-16 w-80 h-80 rounded-full bg-primary/25 blur-3xl pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.06),transparent_50%)] pointer-events-none" />
+
+          <div className="relative p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-5">
+            {/* Top row: greeting + refresh */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Badge className="bg-white/10 hover:bg-white/10 text-cyan-200 border border-cyan-300/30 text-[9px] sm:text-[10px] px-2 py-0.5 h-5">
+                    ASH HOLDING
+                  </Badge>
+                  <Badge className="bg-emerald-400/15 hover:bg-emerald-400/15 text-emerald-300 border border-emerald-300/30 text-[9px] sm:text-[10px] px-2 py-0.5 h-5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-1" />
+                    مباشر
+                  </Badge>
+                </div>
+                <h1 className="text-lg sm:text-2xl md:text-3xl font-bold truncate">
+                  مرحباً، {profile?.full_name || "عزيزي العميل"} 👋
+                </h1>
+                <p className="text-cyan-100/70 text-[11px] sm:text-sm mt-1">
+                  شريكك الرقمي في البرمجة والتطوير والتصميم والتسويق
+                </p>
               </div>
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => fetchDashboardData(false)}
+                disabled={refreshing}
+                className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+              >
+                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+              </Button>
             </div>
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={() => fetchDashboardData(false)}
-              disabled={refreshing}
-              className="h-8 w-8 sm:h-9 sm:w-9 shrink-0 rounded-xl"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            </Button>
+
+            {/* Service pillars */}
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              {[
+                { label: "البرمجة والتطوير", link: "/dashboard/dev-services" },
+                { label: "التصميم الإبداعي", link: "/dashboard/design-services" },
+                { label: "التسويق الرقمي", link: "/dashboard/marketing-services" },
+                { label: "الاستضافة والسيرفرات", link: "/dashboard/hosting-services" },
+              ].map((pillar) => (
+                <Link key={pillar.label} to={pillar.link}>
+                  <span className="inline-flex items-center px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-white/10 border border-white/15 text-[10px] sm:text-xs font-medium text-white/90 hover:bg-white/20 hover:border-cyan-300/40 transition-all cursor-pointer">
+                    {pillar.label}
+                  </span>
+                </Link>
+              ))}
+            </div>
+
+            {/* Hero quick metrics */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 pt-1">
+              {[
+                { label: "الرصيد المتاح", value: `${balanceData.balance.toFixed(2)} ر.س`, icon: Wallet },
+                { label: "طلبات نشطة", value: stats.activeOrders, icon: ShoppingBag },
+                { label: "نقاط المكافآت", value: pointsData.available.toLocaleString(), icon: Zap },
+                { label: "إجمالي الطلبات", value: stats.totalOrders, icon: Package },
+              ].map((metric, index) => (
+                <motion.div
+                  key={metric.label}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 + index * 0.05 }}
+                  className="rounded-xl bg-white/[0.07] border border-white/10 backdrop-blur-sm p-2.5 sm:p-3"
+                >
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <metric.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-300" />
+                    <span className="text-[9px] sm:text-[10px] text-cyan-100/60">{metric.label}</span>
+                  </div>
+                  <p className="text-sm sm:text-lg font-bold text-white truncate">{metric.value}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Last updated */}
+            <p className="hidden sm:flex items-center gap-1 text-[10px] text-cyan-100/50">
+              <Activity className="w-3 h-3" />
+              آخر تحديث {formatDistanceToNow(lastUpdated, { locale: ar, addSuffix: true })}
+            </p>
           </div>
         </motion.div>
 
