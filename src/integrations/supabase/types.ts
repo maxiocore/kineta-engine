@@ -689,6 +689,45 @@ export type Database = {
           },
         ]
       }
+      cloud_admin_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          dedupe_key: string | null
+          details: Json
+          id: string
+          is_simulation: boolean
+          kind: string
+          message: string
+          severity: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          details?: Json
+          id?: string
+          is_simulation?: boolean
+          kind: string
+          message: string
+          severity?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          details?: Json
+          id?: string
+          is_simulation?: boolean
+          kind?: string
+          message?: string
+          severity?: string
+        }
+        Relationships: []
+      }
       cloud_backups: {
         Row: {
           created_at: string
@@ -1024,6 +1063,114 @@ export type Database = {
         }
         Relationships: []
       }
+      cloud_jobs: {
+        Row: {
+          attempts: number
+          created_at: string
+          error_class: string | null
+          finished_at: string | null
+          id: string
+          idempotency_key: string
+          is_simulation: boolean
+          job_type: string
+          last_error: string | null
+          max_attempts: number
+          payload: Json
+          resource_id: string | null
+          resource_type: string
+          scheduled_at: string
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          error_class?: string | null
+          finished_at?: string | null
+          id?: string
+          idempotency_key: string
+          is_simulation?: boolean
+          job_type: string
+          last_error?: string | null
+          max_attempts?: number
+          payload?: Json
+          resource_id?: string | null
+          resource_type?: string
+          scheduled_at?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          error_class?: string | null
+          finished_at?: string | null
+          id?: string
+          idempotency_key?: string
+          is_simulation?: boolean
+          job_type?: string
+          last_error?: string | null
+          max_attempts?: number
+          payload?: Json
+          resource_id?: string | null
+          resource_type?: string
+          scheduled_at?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cloud_lifecycle_settings: {
+        Row: {
+          auto_renew_default: boolean
+          grace_period_days: number
+          grace_server_policy: string
+          id: boolean
+          min_margin_warning_pct: number
+          notify_before_days: number[]
+          provider_backoff_seconds: number
+          provider_max_attempts: number
+          renewal_retry_hours: number[]
+          termination_delay_days: number
+          updated_at: string
+          updated_by: string | null
+          values_decided: boolean
+        }
+        Insert: {
+          auto_renew_default?: boolean
+          grace_period_days?: number
+          grace_server_policy?: string
+          id?: boolean
+          min_margin_warning_pct?: number
+          notify_before_days?: number[]
+          provider_backoff_seconds?: number
+          provider_max_attempts?: number
+          renewal_retry_hours?: number[]
+          termination_delay_days?: number
+          updated_at?: string
+          updated_by?: string | null
+          values_decided?: boolean
+        }
+        Update: {
+          auto_renew_default?: boolean
+          grace_period_days?: number
+          grace_server_policy?: string
+          id?: boolean
+          min_margin_warning_pct?: number
+          notify_before_days?: number[]
+          provider_backoff_seconds?: number
+          provider_max_attempts?: number
+          renewal_retry_hours?: number[]
+          termination_delay_days?: number
+          updated_at?: string
+          updated_by?: string | null
+          values_decided?: boolean
+        }
+        Relationships: []
+      }
       cloud_locations: {
         Row: {
           city: string | null
@@ -1072,6 +1219,51 @@ export type Database = {
           provider_available?: boolean
           sort_order?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      cloud_maintenance_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          ends_at: string | null
+          id: string
+          is_published: boolean
+          kind: string
+          location_code: string | null
+          message_ar: string | null
+          message_en: string | null
+          starts_at: string
+          title_ar: string
+          title_en: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          is_published?: boolean
+          kind: string
+          location_code?: string | null
+          message_ar?: string | null
+          message_en?: string | null
+          starts_at: string
+          title_ar: string
+          title_en: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          is_published?: boolean
+          kind?: string
+          location_code?: string | null
+          message_ar?: string | null
+          message_en?: string | null
+          starts_at?: string
+          title_ar?: string
+          title_en?: string
         }
         Relationships: []
       }
@@ -1763,6 +1955,145 @@ export type Database = {
           },
         ]
       }
+      cloud_reconciliation_findings: {
+        Row: {
+          created_at: string
+          details: Json
+          id: string
+          is_simulation: boolean
+          kind: string
+          provider_ref: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          server_id: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          id?: string
+          is_simulation?: boolean
+          kind: string
+          provider_ref?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          server_id?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          id?: string
+          is_simulation?: boolean
+          kind?: string
+          provider_ref?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          server_id?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      cloud_renewal_costs: {
+        Row: {
+          created_at: string
+          invoice_id: string
+          margin_alert: boolean
+          margin_pct: number | null
+          provider_cost_sar: number | null
+          retail_sar: number | null
+        }
+        Insert: {
+          created_at?: string
+          invoice_id: string
+          margin_alert?: boolean
+          margin_pct?: number | null
+          provider_cost_sar?: number | null
+          retail_sar?: number | null
+        }
+        Update: {
+          created_at?: string
+          invoice_id?: string
+          margin_alert?: boolean
+          margin_pct?: number | null
+          provider_cost_sar?: number | null
+          retail_sar?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_renewal_costs_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: true
+            referencedRelation: "cloud_renewal_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_renewal_invoices: {
+        Row: {
+          backup_minor: number
+          created_at: string
+          id: string
+          invoice_number: string
+          is_simulation: boolean
+          ledger_id: string | null
+          payment_method: string
+          period_end: string
+          period_start: string
+          status: string
+          subscription_id: string
+          subtotal_minor: number
+          total_minor: number
+          user_id: string
+          vat_minor: number
+          vat_rate: number
+        }
+        Insert: {
+          backup_minor?: number
+          created_at?: string
+          id?: string
+          invoice_number?: string
+          is_simulation?: boolean
+          ledger_id?: string | null
+          payment_method: string
+          period_end: string
+          period_start: string
+          status?: string
+          subscription_id: string
+          subtotal_minor: number
+          total_minor: number
+          user_id: string
+          vat_minor: number
+          vat_rate: number
+        }
+        Update: {
+          backup_minor?: number
+          created_at?: string
+          id?: string
+          invoice_number?: string
+          is_simulation?: boolean
+          ledger_id?: string | null
+          payment_method?: string
+          period_end?: string
+          period_start?: string
+          status?: string
+          subscription_id?: string
+          subtotal_minor?: number
+          total_minor?: number
+          user_id?: string
+          vat_minor?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_renewal_invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cloud_resource_mappings: {
         Row: {
           code: string
@@ -1879,6 +2210,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      cloud_server_locks: {
+        Row: {
+          acquired_at: string
+          action: string
+          expires_at: string
+          job_id: string | null
+          resource_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          action: string
+          expires_at?: string
+          job_id?: string | null
+          resource_id: string
+        }
+        Update: {
+          acquired_at?: string
+          action?: string
+          expires_at?: string
+          job_id?: string | null
+          resource_id?: string
+        }
+        Relationships: []
       }
       cloud_servers: {
         Row: {
@@ -2031,51 +2386,182 @@ export type Database = {
         }
         Relationships: []
       }
+      cloud_subscription_events: {
+        Row: {
+          actor: string | null
+          created_at: string
+          details: Json
+          event: string
+          from_status: string | null
+          id: string
+          is_simulation: boolean
+          subscription_id: string
+          to_status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          actor?: string | null
+          created_at?: string
+          details?: Json
+          event: string
+          from_status?: string | null
+          id?: string
+          is_simulation?: boolean
+          subscription_id: string
+          to_status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          actor?: string | null
+          created_at?: string
+          details?: Json
+          event?: string
+          from_status?: string | null
+          id?: string
+          is_simulation?: boolean
+          subscription_id?: string
+          to_status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_subscription_events_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cloud_subscriptions: {
         Row: {
           amount: number
+          attempt_count: number
+          auto_renew: boolean
+          backups_addon: boolean
           billing_cycle: string
+          cancel_mode: string | null
           cancelled_at: string | null
           created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          failed_at: string | null
+          failure_reason: string | null
+          grace_ends_at: string | null
           id: string
           is_e2e_test: boolean
-          order_id: string
+          is_simulation: boolean
+          next_renewal_at: string | null
+          next_retry_at: string | null
+          on_hold: boolean
+          order_id: string | null
+          payment_method: string
+          protect_from_termination: boolean
+          provider_deletion_verified_at: string | null
+          reactivated_at: string | null
           renewal_at: string | null
+          renewal_backup_minor: number
+          renewal_subtotal_minor: number | null
+          renewal_total_minor: number | null
+          renewal_vat_minor: number | null
           server_id: string | null
+          sim_wallet_minor: number | null
+          started_at: string | null
           status: string
+          suspended_at: string | null
+          suspension_reason: string | null
+          terminated_at: string | null
+          termination_scheduled_at: string | null
           updated_at: string
           user_id: string
           vat_amount: number
+          vat_rate_snapshot: number | null
         }
         Insert: {
           amount: number
+          attempt_count?: number
+          auto_renew?: boolean
+          backups_addon?: boolean
           billing_cycle?: string
+          cancel_mode?: string | null
           cancelled_at?: string | null
           created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          failed_at?: string | null
+          failure_reason?: string | null
+          grace_ends_at?: string | null
           id?: string
           is_e2e_test?: boolean
-          order_id: string
+          is_simulation?: boolean
+          next_renewal_at?: string | null
+          next_retry_at?: string | null
+          on_hold?: boolean
+          order_id?: string | null
+          payment_method?: string
+          protect_from_termination?: boolean
+          provider_deletion_verified_at?: string | null
+          reactivated_at?: string | null
           renewal_at?: string | null
+          renewal_backup_minor?: number
+          renewal_subtotal_minor?: number | null
+          renewal_total_minor?: number | null
+          renewal_vat_minor?: number | null
           server_id?: string | null
+          sim_wallet_minor?: number | null
+          started_at?: string | null
           status?: string
+          suspended_at?: string | null
+          suspension_reason?: string | null
+          terminated_at?: string | null
+          termination_scheduled_at?: string | null
           updated_at?: string
           user_id: string
           vat_amount?: number
+          vat_rate_snapshot?: number | null
         }
         Update: {
           amount?: number
+          attempt_count?: number
+          auto_renew?: boolean
+          backups_addon?: boolean
           billing_cycle?: string
+          cancel_mode?: string | null
           cancelled_at?: string | null
           created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          failed_at?: string | null
+          failure_reason?: string | null
+          grace_ends_at?: string | null
           id?: string
           is_e2e_test?: boolean
-          order_id?: string
+          is_simulation?: boolean
+          next_renewal_at?: string | null
+          next_retry_at?: string | null
+          on_hold?: boolean
+          order_id?: string | null
+          payment_method?: string
+          protect_from_termination?: boolean
+          provider_deletion_verified_at?: string | null
+          reactivated_at?: string | null
           renewal_at?: string | null
+          renewal_backup_minor?: number
+          renewal_subtotal_minor?: number | null
+          renewal_total_minor?: number | null
+          renewal_vat_minor?: number | null
           server_id?: string | null
+          sim_wallet_minor?: number | null
+          started_at?: string | null
           status?: string
+          suspended_at?: string | null
+          suspension_reason?: string | null
+          terminated_at?: string | null
+          termination_scheduled_at?: string | null
           updated_at?: string
           user_id?: string
           vat_amount?: number
+          vat_rate_snapshot?: number | null
         }
         Relationships: [
           {
@@ -6308,6 +6794,27 @@ export type Database = {
         Args: { p_amount: number; p_key: string; p_kind: string; p_uid: string }
         Returns: string
       }
+      _cloud_alert: {
+        Args: {
+          p_details?: Json
+          p_key: string
+          p_kind: string
+          p_msg: string
+          p_sev: string
+          p_sim?: boolean
+        }
+        Returns: undefined
+      }
+      _cloud_notify: {
+        Args: {
+          p_ar: string
+          p_data?: Json
+          p_en: string
+          p_event: string
+          p_sub: Database["public"]["Tables"]["cloud_subscriptions"]["Row"]
+        }
+        Returns: undefined
+      }
       _pay_service_order_as: {
         Args: {
           p_coupon_code: string
@@ -6469,11 +6976,109 @@ export type Database = {
         Returns: Json
       }
       cleanup_email_rate_limits: { Args: never; Returns: undefined }
+      cloud_acquire_lock: {
+        Args: { p_action: string; p_job: string; p_resource: string }
+        Returns: boolean
+      }
       cloud_action_rate_check: {
         Args: { p_action: string; p_server: string; p_user: string }
         Returns: boolean
       }
+      cloud_admin_job_action: {
+        Args: { p_action: string; p_job: string }
+        Returns: string
+      }
+      cloud_admin_set_protection: {
+        Args: { p_hold: boolean; p_protect: boolean; p_sub: string }
+        Returns: undefined
+      }
+      cloud_begin_suspension: {
+        Args: { p_now?: string; p_sub: string }
+        Returns: Json
+      }
+      cloud_begin_termination: {
+        Args: { p_now?: string; p_sub: string }
+        Returns: Json
+      }
+      cloud_claim_job: {
+        Args: { p_job: string }
+        Returns: {
+          attempts: number
+          created_at: string
+          error_class: string | null
+          finished_at: string | null
+          id: string
+          idempotency_key: string
+          is_simulation: boolean
+          job_type: string
+          last_error: string | null
+          max_attempts: number
+          payload: Json
+          resource_id: string | null
+          resource_type: string
+          scheduled_at: string
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "cloud_jobs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      cloud_confirm_provider_state: {
+        Args: { p_now?: string; p_state: string; p_sub: string }
+        Returns: Json
+      }
       cloud_effective_rate: { Args: never; Returns: number }
+      cloud_enqueue_job: {
+        Args: {
+          p_at?: string
+          p_key: string
+          p_payload?: Json
+          p_resource: string
+          p_sim?: boolean
+          p_type: string
+        }
+        Returns: string
+      }
+      cloud_finish_job: {
+        Args: {
+          p_class?: string
+          p_error?: string
+          p_job: string
+          p_ok: boolean
+        }
+        Returns: string
+      }
+      cloud_pay_due: { Args: { p_sub: string }; Returns: Json }
+      cloud_record_renewal_failure: {
+        Args: { p_now?: string; p_reason: string; p_sub: string }
+        Returns: Json
+      }
+      cloud_release_lock: {
+        Args: { p_job: string; p_resource: string }
+        Returns: undefined
+      }
+      cloud_renew_subscription: {
+        Args: { p_now?: string; p_sub: string }
+        Returns: Json
+      }
+      cloud_request_cancel: {
+        Args: { p_mode: string; p_sub: string }
+        Returns: Json
+      }
+      cloud_set_auto_renew: {
+        Args: { p_on: boolean; p_sub: string }
+        Returns: Json
+      }
+      cloud_sub_allowed: {
+        Args: { p_from: string; p_to: string }
+        Returns: boolean
+      }
+      cloud_undo_cancel: { Args: { p_sub: string }; Returns: Json }
       complete_deposit_verified: {
         Args: {
           p_currency: string
