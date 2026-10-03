@@ -774,7 +774,6 @@ export const generateCompanyProfilePDF = async () => {
     buildServices1(),
     buildServices2(),
     buildReadyMade(),
-    buildFinancing(),
     buildTech(),
     buildMethodology(),
     buildWhyUs(),
