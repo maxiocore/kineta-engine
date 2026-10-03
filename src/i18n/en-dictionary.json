@@ -2657,5 +2657,13 @@
 "📋 جدول سدادات التمويل": "📋 Financing Payments Schedule",
 "🔄 قيد التنفيذ": "🔄 In Progress",
 "label=\"السعر لكل 1000\" value=": "label=\"Price per 1000\" value=",
-"أيام`; return `$": "days`; return `$"
+"أيام`; return `$": "days`; return `$",
+"المركز السعودي": "Saudi Business",
+"للأعمال": "Center",
+"هيئة الاتصالات": "Communications, Space",
+"وتقنية المعلومات": "& Technology Commission",
+"الهيئة الوطنية": "National Cybersecurity",
+"للأمن السيبراني": "Authority",
+"هيئة الزكاة": "Zakat, Tax",
+"والضريبة والجمارك": "& Customs Authority"
 }
