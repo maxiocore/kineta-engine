@@ -8,6 +8,7 @@ import ServersSection from "@/components/admin/cloud/ServersSection";
 import { OrdersSection, ProvisioningSection } from "@/components/admin/cloud/OrdersSection";
 import PlansSection from "@/components/admin/cloud/PlansSection";
 import PricingSection from "@/components/admin/cloud/PricingSection";
+import StarterPlanBuilder from "@/components/admin/cloud/StarterPlanBuilder";
 import ProvidersSection from "@/components/admin/cloud/ProvidersSection";
 import { LocationsSection, ImagesSection, MappingsSection, NetworksSection, BackupsSnapshotsSection, BillingSection, ActivitySection, SettingsSection } from "@/components/admin/cloud/ResourcesSections";
 
@@ -19,7 +20,7 @@ const AdminCloud = () => {
 
   const tabs: [string, string, string][] = [
     ["overview", "نظرة عامة", "Overview"], ["servers", "الخوادم", "Servers"], ["orders", "الطلبات", "Orders"],
-    ["vps", "Cloud VPS", "Cloud VPS"], ["dedicated", "Dedicated Servers", "Dedicated Servers"], ["plans", "الباقات والأسعار", "Plans & pricing"], ["pricing", "التسعير والعملات", "Pricing & currency"],
+    ["vps", "Cloud VPS", "Cloud VPS"], ["dedicated", "Dedicated Servers", "Dedicated Servers"], ["plans", "الباقات والأسعار", "Plans & pricing"], ["pricing", "التسعير والعملات", "Pricing & currency"], ["builder", "Starter Plan Builder", "Starter Plan Builder"],
     ["locations", "المواقع", "Locations"], ["images", "أنظمة التشغيل", "Operating systems"], ["networks", "الشبكات وعناوين IP", "Networks & IPs"],
     ["backups", "النسخ الاحتياطية", "Backups"], ["snapshots", "Snapshots", "Snapshots"], ["provisioning", "عمليات Provisioning", "Provisioning"],
     ["providers", "مزودو البنية التحتية", "Providers"], ["billing", "الفوترة والاشتراكات", "Billing & subscriptions"],
@@ -39,6 +40,7 @@ const AdminCloud = () => {
       case "backups": return <BackupsSnapshotsSection t={t} lang={lang} table="cloud_backups" />;
       case "snapshots": return <BackupsSnapshotsSection t={t} lang={lang} table="cloud_snapshots" />;
       case "provisioning": return <ProvisioningSection t={t} lang={lang} />;
+      case "builder": return <StarterPlanBuilder t={t} />;
       case "pricing": return <PricingSection t={t} lang={lang} />;
       case "providers": return <ProvidersSection t={t} lang={lang} />;
       case "billing": return <BillingSection t={t} lang={lang} />;
