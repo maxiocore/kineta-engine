@@ -21,7 +21,6 @@ const DigitalWalletCard = () => {
   const [phone, setPhone] = useState<string | null>(null);
   const [balance, setBalance] = useState<number>(0);
   const [copied, setCopied] = useState(false);
-  const [showQR, setShowQR] = useState(false);
   const [loading, setLoading] = useState(true);
   const cardRef = useRef<HTMLDivElement>(null);
 
