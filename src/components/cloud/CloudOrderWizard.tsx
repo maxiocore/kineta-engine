@@ -36,7 +36,8 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
   const [planId, setPlanId] = useState<string | null>(null);
   const [image, setImage] = useState<string | null>(null);
   const [name, setName] = useState("");
-  const [hostname, setHostname] = useState("");
+  const [access, setAccess] = useState<"auto" | "ssh_key">("auto");
+  const [advanced, setAdvanced] = useState(false);
   const [sshKey, setSshKey] = useState<string | null>(null);
   const { user } = useAuth();
   const [newKeyOpen, setNewKeyOpen] = useState(false);
@@ -92,7 +93,8 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
   const vat = subtotal * VAT;
   const total = subtotal + vat;
 
-  const canNext = [!!type, !!loc, !!planId, !!image, name.trim().length >= 2 && !!sshKey && keys.some((k: any) => k.id === sshKey), true, false][step];
+  const keyOk = access === "auto" || (!!sshKey && keys.some((k: any) => k.id === sshKey));
+  const canNext = [!!type, !!loc, !!planId, !!image, name.trim().length >= 2 && keyOk, true, false][step];
   const Prev = isRtl ? ChevronRight : ChevronLeft;
   const Next = isRtl ? ChevronLeft : ChevronRight;
 
@@ -105,7 +107,7 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
     if (!(slot as any)?.ok) { setSubmitting(false); toast.error((slot as any)?.reason === "capacity_full" ? capacityMsg : t("تعذر إتمام الطلب", "Could not complete the order")); return; }
     const { error } = await db.rpc("order_cloud_server", {
       p_plan_id: planId, p_location: loc, p_image: image, p_name: name.trim(),
-      p_hostname: hostname.trim() || null, p_ssh_key_id: sshKey, p_backups: backups && backupPrice != null, p_ipv4: ipv4 && ipv4Price != null,
+      p_hostname: null, p_ssh_key_id: access === "ssh_key" ? sshKey : null, p_backups: backups && backupPrice != null, p_ipv4: ipv4 && ipv4Price != null,
       p_idempotency_key: key, p_reservation_id: (slot as any).reservation_id,
     });
     setSubmitting(false);
@@ -207,23 +209,34 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
 
         {step === 4 && (
           <div className="grid md:grid-cols-2 gap-4 max-w-3xl">
-            <div className="space-y-1.5"><Label>{t("اسم الخادم", "Server name")} *</Label><Input dir="ltr" value={name} maxLength={63} onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z0-9-]/g, ""))} placeholder="my-server-01" /></div>
-            <div className="space-y-1.5"><Label>Hostname</Label><Input dir="ltr" value={hostname} maxLength={253} onChange={(e) => setHostname(e.target.value)} placeholder="server.example.com" /></div>
-            <div className="space-y-1.5 md:col-span-2">
-              <Label>{t("مفتاح SSH", "SSH key")} *</Label>
-              <p className="text-xs text-muted-foreground">{t("أضف مفتاح SSH للوصول الآمن إلى خادمك بعد التفعيل.", "Add an SSH key for secure access to your server after activation.")}</p>
+            <div className="space-y-1.5 md:col-span-2"><Label htmlFor="srv-name">{t("اسم الخادم", "Server name")} *</Label><Input id="srv-name" dir="auto" value={name} maxLength={63} onChange={(e) => setName(e.target.value.replace(/[<>\r\n\t]/g, ""))} placeholder={t("مثال: خادم المتجر", "e.g. Store server")} /><p className="text-xs text-muted-foreground">{t("اسم يساعدك على تمييز خادمك.", "A name to help you recognise your server.")}</p></div>
+            <div className="space-y-2 md:col-span-2" role="radiogroup" aria-label={t("طريقة الوصول إلى الخادم", "Server access method")}>
+              <Label>{t("طريقة الوصول إلى الخادم", "Server access method")}</Label>
+              <button type="button" role="radio" aria-checked={access === "auto"} onClick={() => setAccess("auto")}
+                className={cn("w-full text-start p-4 rounded-xl border transition-colors", access === "auto" ? "border-primary ring-2 ring-primary/20 bg-primary/5" : "border-border hover:border-primary/40")}>
+                <div className="flex items-center gap-2"><span className={cn("w-4 h-4 rounded-full border-2", access === "auto" ? "border-primary bg-primary" : "border-muted-foreground")} /><span className="font-medium text-sm">{t("إعداد الوصول تلقائياً", "Set up access automatically")}</span><span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">{t("موصى به", "Recommended")}</span></div>
+                <p className="text-xs text-muted-foreground mt-1 ps-6">{t("سنجهز بيانات الوصول إلى خادمك تلقائياً بعد التفعيل.", "We'll prepare your server access details automatically after activation.")}</p>
+              </button>
+              <button type="button" onClick={() => setAdvanced(!advanced)} className="text-xs text-primary underline-offset-2 hover:underline">{advanced ? t("إخفاء الخيارات المتقدمة", "Hide advanced options") : t("خيارات متقدمة", "Advanced options")}</button>
+              {advanced && <button type="button" role="radio" aria-checked={access === "ssh_key"} onClick={() => setAccess("ssh_key")}
+                className={cn("w-full text-start p-4 rounded-xl border transition-colors", access === "ssh_key" ? "border-primary ring-2 ring-primary/20 bg-primary/5" : "border-border hover:border-primary/40")}>
+                <div className="flex items-center gap-2"><span className={cn("w-4 h-4 rounded-full border-2", access === "ssh_key" ? "border-primary bg-primary" : "border-muted-foreground")} /><span className="font-medium text-sm">{t("استخدام مفتاح SSH الخاص بي", "Use my own SSH key")}</span></div>
+                <p className="text-xs text-muted-foreground mt-1 ps-6">{t("للمستخدمين المتقدمين.", "For advanced users.")}</p>
+              </button>}
+            </div>
+            {access === "ssh_key" && <div className="space-y-1.5 md:col-span-2">
+              <Label>{t("مفتاح SSH العام", "SSH public key")} *</Label>
               <div className="flex flex-wrap gap-2">
                 {keys.map((k: any) => <Button key={k.id} type="button" size="sm" variant={sshKey === k.id ? "default" : "outline"} onClick={() => setSshKey(k.id)}>{k.name}</Button>)}
                 <Button type="button" size="sm" variant={newKeyOpen ? "secondary" : "outline"} onClick={() => setNewKeyOpen(!newKeyOpen)}>+ {t("إضافة مفتاح جديد", "Add new key")}</Button>
               </div>
-              {!sshKey && !newKeyOpen && <p className="text-xs text-destructive">{t("مفتاح SSH مطلوب لإكمال الطلب.", "An SSH key is required to complete the order.")}</p>}
               {newKeyOpen && <div className="rounded-xl border p-3 space-y-2">
                 <Input value={newKeyName} maxLength={64} onChange={(e) => setNewKeyName(e.target.value)} placeholder={t("اسم المفتاح، مثل: جهازي", "Key name, e.g. my-laptop")} />
                 <Textarea dir="ltr" rows={3} className="font-mono text-xs" value={newKeyVal} onChange={(e) => setNewKeyVal(e.target.value)} placeholder="ssh-ed25519 AAAA... user@host" />
                 <p className="text-xs text-muted-foreground">{t("الصق المفتاح العام فقط (محتوى ملف ‎.pub). لا تشارك المفتاح الخاص أبداً.", "Paste the public key only (contents of the .pub file). Never share your private key.")}</p>
                 <Button type="button" size="sm" onClick={saveNewKey} disabled={savingKey}>{savingKey && <Loader2 className="w-4 h-4 animate-spin" />}{t("حفظ واستخدام المفتاح", "Save and use key")}</Button>
               </div>}
-            </div>
+            </div>}
             {backupPrice != null && <div className="flex items-center justify-between p-4 rounded-xl border md:col-span-2">
               <div><p className="font-medium text-sm">{t("النسخ الاحتياطي التلقائي", "Automatic backups")}</p><p className="text-xs text-muted-foreground">+{sar(backupPrice, lang)} / {t("شهرياً", "month")}</p></div>
               <Switch checked={backups} onCheckedChange={setBackups} />
@@ -244,7 +257,8 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
                 [t("الباقة", "Plan"), lang === "ar" ? plan.name_ar : plan.name_en],
                 [t("الموقع", "Location"), (() => { const l = locations.find((x) => x.code === loc); return l ? (lang === "ar" ? l.name_ar : l.name_en) : loc; })()],
                 [t("النظام", "OS"), images.find((x) => x.code === image)?.name],
-                [t("الاسم", "Name"), name],
+                [t("اسم الخادم", "Server name"), name],
+                [t("طريقة الوصول", "Access method"), access === "auto" ? t("إعداد تلقائي", "Automatic setup") : t("مفتاح SSH الخاص بي", "My own SSH key")],
                 [t("النسخ الاحتياطي", "Backups"), backups && backupPrice != null ? t("مفعّل", "Enabled") : t("غير مفعّل", "Disabled")],
                 ["IPv4", plan.ipv4_mode === "included" ? t("مشمول", "Included") : ipv4 && ipv4Price != null ? `${t("مضاف", "Added")} (+${sar(ipv4Price, lang)})` : plan.ipv4_mode === "optional" ? t("غير مختار", "Not selected") : t("غير متاح (IPv6 فقط)", "Not available (IPv6 only)")],
                 [t("النقل المضمّن", "Included traffic"), trafficLabel(plan)],
