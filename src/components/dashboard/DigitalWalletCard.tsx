@@ -94,6 +94,7 @@ const DigitalWalletCard = () => {
         <div className="absolute -bottom-24 -right-10 h-60 w-60 rounded-full bg-primary/40 blur-3xl" />
         <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "repeating-linear-gradient(135deg, currentColor 0 1px, transparent 1px 14px)" }} />
 
+        {/* Bank-style top row: issuer + contactless */}
         <div className="relative flex items-start justify-between">
           <div className="flex items-center gap-2">
             <img src={logoImage} alt="ASH" className="h-9 w-9 rounded-lg" />
@@ -102,19 +103,30 @@ const DigitalWalletCard = () => {
               <p className="text-[10px] opacity-60">الهوية المالية الرقمية</p>
             </div>
           </div>
-          <div className="h-9 w-12 rounded-md bg-gradient-to-br from-accent to-primary opacity-90 ring-1 ring-background/20" />
+          <Wifi className="h-5 w-5 -rotate-90 opacity-70" aria-hidden="true" />
         </div>
 
-        <div className="relative mt-8">
-          <p className="text-[11px] opacity-60">رقم الحساب</p>
-          <div className="mt-1 flex items-center gap-3">
-            <p dir="ltr" className="font-mono text-xl md:text-2xl font-bold tracking-[0.2em]">{walletNumber || "---"}</p>
-            <button onClick={handleCopy} aria-label="نسخ" className="opacity-60 hover:opacity-100 transition-opacity">
-              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            </button>
+        {/* Metallic chip */}
+        <div className="relative mt-6 flex items-center gap-3">
+          <div className="h-8 w-11 rounded-md bg-gradient-to-br from-accent via-accent/80 to-primary shadow-inner ring-1 ring-background/30">
+            <div className="mt-[13px] h-px w-full bg-background/25" />
+            <div className="mx-auto h-3 w-px bg-background/25" />
           </div>
+          <p className="text-[10px] font-medium uppercase tracking-widest opacity-60">بطاقة رقمية</p>
         </div>
 
+        {/* Account number in bank grouping */}
+        <div className="relative mt-4 flex items-center gap-3">
+          <div>
+            <p className="text-[11px] opacity-60">رقم الحساب</p>
+            <p dir="ltr" className="mt-1 font-mono text-xl md:text-2xl font-bold tracking-[0.18em]">{displayNumber}</p>
+          </div>
+          <button onClick={handleCopy} aria-label="نسخ" className="mt-4 opacity-60 hover:opacity-100 transition-opacity">
+            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+          </button>
+        </div>
+
+        {/* Bottom row: holder | balance */}
         <div className="relative mt-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-[11px] opacity-60">صاحب الحساب</p>
