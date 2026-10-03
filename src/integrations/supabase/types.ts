@@ -733,6 +733,172 @@ export type Database = {
         }
         Relationships: []
       }
+      cloud_e2e_test_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          details: Json | null
+          id: string
+          result: string
+          stage: string
+          test_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          result: string
+          stage: string
+          test_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          result?: string
+          stage?: string
+          test_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_e2e_test_events_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_e2e_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_e2e_test_keys: {
+        Row: {
+          created_at: string
+          iv: string
+          private_key_enc: string
+          public_key: string
+          test_id: string
+        }
+        Insert: {
+          created_at?: string
+          iv: string
+          private_key_enc: string
+          public_key: string
+          test_id: string
+        }
+        Update: {
+          created_at?: string
+          iv?: string
+          private_key_enc?: string
+          public_key?: string
+          test_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_e2e_test_keys_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: true
+            referencedRelation: "cloud_e2e_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_e2e_tests: {
+        Row: {
+          cleaned_up_at: string | null
+          connectivity: Json | null
+          created_at: string
+          created_by: string | null
+          customer_data: Json | null
+          error: string | null
+          estimated_cost: Json | null
+          failed_stage: string | null
+          id: string
+          image: string
+          ipv4: string | null
+          ipv6: string | null
+          location: string
+          name: string
+          passed_at: string | null
+          pending_action_id: string | null
+          preflight: Json | null
+          provider_code: string
+          provider_resource_id: string | null
+          provider_ssh_key_id: string | null
+          provider_status: string | null
+          running_at: string | null
+          server_name: string
+          server_type: string
+          stage: string
+          started_at: string | null
+          status: string
+          test_key: string
+          updated_at: string
+        }
+        Insert: {
+          cleaned_up_at?: string | null
+          connectivity?: Json | null
+          created_at?: string
+          created_by?: string | null
+          customer_data?: Json | null
+          error?: string | null
+          estimated_cost?: Json | null
+          failed_stage?: string | null
+          id?: string
+          image: string
+          ipv4?: string | null
+          ipv6?: string | null
+          location: string
+          name: string
+          passed_at?: string | null
+          pending_action_id?: string | null
+          preflight?: Json | null
+          provider_code?: string
+          provider_resource_id?: string | null
+          provider_ssh_key_id?: string | null
+          provider_status?: string | null
+          running_at?: string | null
+          server_name: string
+          server_type: string
+          stage?: string
+          started_at?: string | null
+          status?: string
+          test_key: string
+          updated_at?: string
+        }
+        Update: {
+          cleaned_up_at?: string | null
+          connectivity?: Json | null
+          created_at?: string
+          created_by?: string | null
+          customer_data?: Json | null
+          error?: string | null
+          estimated_cost?: Json | null
+          failed_stage?: string | null
+          id?: string
+          image?: string
+          ipv4?: string | null
+          ipv6?: string | null
+          location?: string
+          name?: string
+          passed_at?: string | null
+          pending_action_id?: string | null
+          preflight?: Json | null
+          provider_code?: string
+          provider_resource_id?: string | null
+          provider_ssh_key_id?: string | null
+          provider_status?: string | null
+          running_at?: string | null
+          server_name?: string
+          server_type?: string
+          stage?: string
+          started_at?: string | null
+          status?: string
+          test_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cloud_images: {
         Row: {
           architecture: string | null
