@@ -82,12 +82,12 @@ const ClientFinancialHub = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 h-auto p-1 md:p-1.5 bg-muted/50 rounded-lg md:rounded-xl">
+          <TabsList className="grid w-full grid-cols-4 h-auto gap-1.5 p-1.5 md:p-2 bg-secondary border border-border rounded-lg md:rounded-xl shadow-sm">
             {tabs.map((tab) => (
               <TabsTrigger
                 key={tab.id}
                 value={tab.id}
-                className="flex items-center justify-center gap-1.5 md:gap-2 py-2.5 md:py-3 text-xs md:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md md:rounded-lg transition-all"
+                className="flex min-w-0 items-center justify-center gap-1.5 md:gap-2 border border-transparent bg-card/70 py-2.5 text-xs font-semibold text-muted-foreground shadow-none transition-all md:py-3 md:text-sm data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=inactive]:hover:border-border data-[state=inactive]:hover:bg-card data-[state=inactive]:hover:text-foreground"
               >
                 <tab.icon className="w-3.5 h-3.5 md:w-4 md:h-4" />
                 <span>{tab.label}</span>
