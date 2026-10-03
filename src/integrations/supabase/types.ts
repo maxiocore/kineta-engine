@@ -828,11 +828,19 @@ export type Database = {
       }
       cloud_orders: {
         Row: {
+          adjusted_cost_sar: number | null
+          cost_buffer_pct: number | null
           created_at: string
+          exchange_rate_used: number | null
           id: string
           idempotency_key: string
+          location_code: string | null
           payment_method: string
           plan_id: string | null
+          provider_cost_original: number | null
+          provider_cost_sar: number | null
+          provider_currency: string | null
+          retail_price_before_vat: number | null
           server_id: string | null
           status: string
           subtotal: number
@@ -844,11 +852,19 @@ export type Database = {
           vat_rate: number
         }
         Insert: {
+          adjusted_cost_sar?: number | null
+          cost_buffer_pct?: number | null
           created_at?: string
+          exchange_rate_used?: number | null
           id?: string
           idempotency_key: string
+          location_code?: string | null
           payment_method?: string
           plan_id?: string | null
+          provider_cost_original?: number | null
+          provider_cost_sar?: number | null
+          provider_currency?: string | null
+          retail_price_before_vat?: number | null
           server_id?: string | null
           status?: string
           subtotal: number
@@ -860,11 +876,19 @@ export type Database = {
           vat_rate: number
         }
         Update: {
+          adjusted_cost_sar?: number | null
+          cost_buffer_pct?: number | null
           created_at?: string
+          exchange_rate_used?: number | null
           id?: string
           idempotency_key?: string
+          location_code?: string | null
           payment_method?: string
           plan_id?: string | null
+          provider_cost_original?: number | null
+          provider_cost_sar?: number | null
+          provider_currency?: string | null
+          retail_price_before_vat?: number | null
           server_id?: string | null
           status?: string
           subtotal?: number
@@ -937,10 +961,40 @@ export type Database = {
           },
         ]
       }
+      cloud_plan_location_prices: {
+        Row: {
+          id: string
+          location_code: string
+          monthly_price: number
+          plan_id: string
+        }
+        Insert: {
+          id?: string
+          location_code: string
+          monthly_price: number
+          plan_id: string
+        }
+        Update: {
+          id?: string
+          location_code?: string
+          monthly_price?: number
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_plan_location_prices_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cloud_plans: {
         Row: {
           architecture: string | null
           billing_cycles: string[]
+          category: string
           code: string
           cores: number | null
           cpu_model: string | null
@@ -958,6 +1012,7 @@ export type Database = {
           name_ar: string
           name_en: string
           network: string | null
+          pricing_mode: string
           ram_gb: number
           server_type: string
           setup_fee: number
@@ -972,6 +1027,7 @@ export type Database = {
         Insert: {
           architecture?: string | null
           billing_cycles?: string[]
+          category?: string
           code: string
           cores?: number | null
           cpu_model?: string | null
@@ -989,6 +1045,7 @@ export type Database = {
           name_ar: string
           name_en: string
           network?: string | null
+          pricing_mode?: string
           ram_gb?: number
           server_type: string
           setup_fee?: number
@@ -1003,6 +1060,7 @@ export type Database = {
         Update: {
           architecture?: string | null
           billing_cycles?: string[]
+          category?: string
           code?: string
           cores?: number | null
           cpu_model?: string | null
@@ -1020,6 +1078,7 @@ export type Database = {
           name_ar?: string
           name_en?: string
           network?: string | null
+          pricing_mode?: string
           ram_gb?: number
           server_type?: string
           setup_fee?: number
@@ -1030,6 +1089,101 @@ export type Database = {
           traffic_tb?: number | null
           updated_at?: string
           vcpu?: number | null
+        }
+        Relationships: []
+      }
+      cloud_price_alerts: {
+        Row: {
+          created_at: string
+          id: string
+          location: string | null
+          message: string | null
+          new_value: number | null
+          old_value: number | null
+          plan_id: string | null
+          resolved: boolean
+          server_type: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location?: string | null
+          message?: string | null
+          new_value?: number | null
+          old_value?: number | null
+          plan_id?: string | null
+          resolved?: boolean
+          server_type?: string | null
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location?: string | null
+          message?: string | null
+          new_value?: number | null
+          old_value?: number | null
+          plan_id?: string | null
+          resolved?: boolean
+          server_type?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_price_alerts_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_pricing_settings: {
+        Row: {
+          auto_rate: number | null
+          auto_rate_source: string | null
+          auto_rate_updated_at: string | null
+          cost_buffer_pct: number
+          id: number
+          manual_rate: number
+          min_margin_pct: number
+          provider_currency: string
+          provisioning_mode: string
+          rate_mode: string
+          rate_stale_hours: number
+          selling_currency: string
+          updated_at: string
+        }
+        Insert: {
+          auto_rate?: number | null
+          auto_rate_source?: string | null
+          auto_rate_updated_at?: string | null
+          cost_buffer_pct?: number
+          id?: number
+          manual_rate?: number
+          min_margin_pct?: number
+          provider_currency?: string
+          provisioning_mode?: string
+          rate_mode?: string
+          rate_stale_hours?: number
+          selling_currency?: string
+          updated_at?: string
+        }
+        Update: {
+          auto_rate?: number | null
+          auto_rate_source?: string | null
+          auto_rate_updated_at?: string | null
+          cost_buffer_pct?: number
+          id?: number
+          manual_rate?: number
+          min_margin_pct?: number
+          provider_currency?: string
+          provisioning_mode?: string
+          rate_mode?: string
+          rate_stale_hours?: number
+          selling_currency?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1064,6 +1218,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "cloud_provider_catalog_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_provider_prices: {
+        Row: {
+          changed_at: string | null
+          currency: string
+          hourly_net: number | null
+          id: string
+          included_traffic_tb: number | null
+          location: string
+          monthly_gross: number | null
+          monthly_net: number
+          previous_monthly_net: number | null
+          provider_id: string
+          server_type: string
+          synced_at: string
+        }
+        Insert: {
+          changed_at?: string | null
+          currency?: string
+          hourly_net?: number | null
+          id?: string
+          included_traffic_tb?: number | null
+          location: string
+          monthly_gross?: number | null
+          monthly_net: number
+          previous_monthly_net?: number | null
+          provider_id: string
+          server_type: string
+          synced_at?: string
+        }
+        Update: {
+          changed_at?: string | null
+          currency?: string
+          hourly_net?: number | null
+          id?: string
+          included_traffic_tb?: number | null
+          location?: string
+          monthly_gross?: number | null
+          monthly_net?: number
+          previous_monthly_net?: number | null
+          provider_id?: string
+          server_type?: string
+          synced_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_provider_prices_provider_id_fkey"
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "cloud_providers"
@@ -5425,6 +5632,7 @@ export type Database = {
         Returns: Json
       }
       cleanup_email_rate_limits: { Args: never; Returns: undefined }
+      cloud_effective_rate: { Args: never; Returns: number }
       create_contract_new_version: {
         Args: {
           p_new_contract_data?: Json
