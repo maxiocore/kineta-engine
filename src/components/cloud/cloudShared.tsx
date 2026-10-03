@@ -18,6 +18,10 @@ export interface CloudServer {
 
 export const STATUS: Record<string, { ar: string; en: string; cls: string }> = {
   pending: { ar: "قيد التجهيز", en: "Provisioning", cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30" },
+  provisioning: { ar: "قيد التجهيز", en: "Provisioning", cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30" },
+  configuring: { ar: "جارٍ الإعداد", en: "Configuring", cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30" },
+  manual_review: { ar: "جاري معالجة طلبك", en: "Processing your order", cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30" },
+  refund_eligible: { ar: "جاري معالجة طلبك", en: "Processing your order", cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30" },
   running: { ar: "يعمل", en: "Running", cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30" },
   stopped: { ar: "متوقف", en: "Stopped", cls: "bg-muted text-muted-foreground border-border" },
   suspended: { ar: "معلّق", en: "Suspended", cls: "bg-destructive/15 text-destructive border-destructive/30" },

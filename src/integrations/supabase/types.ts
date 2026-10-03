@@ -1123,6 +1123,72 @@ export type Database = {
         }
         Relationships: []
       }
+      cloud_launch_reservations: {
+        Row: {
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          idempotency_key: string
+          is_simulation: boolean
+          order_id: string | null
+          plan_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          consumed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          idempotency_key: string
+          is_simulation?: boolean
+          order_id?: string | null
+          plan_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          idempotency_key?: string
+          is_simulation?: boolean
+          order_id?: string | null
+          plan_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cloud_launch_settings: {
+        Row: {
+          id: number
+          max_new_per_window: number
+          reservation_ttl_minutes: number
+          updated_at: string
+          updated_by: string | null
+          window_hours: number
+        }
+        Insert: {
+          id?: number
+          max_new_per_window?: number
+          reservation_ttl_minutes?: number
+          updated_at?: string
+          updated_by?: string | null
+          window_hours?: number
+        }
+        Update: {
+          id?: number
+          max_new_per_window?: number
+          reservation_ttl_minutes?: number
+          updated_at?: string
+          updated_by?: string | null
+          window_hours?: number
+        }
+        Relationships: []
+      }
       cloud_lifecycle_settings: {
         Row: {
           auto_renew_default: boolean
@@ -1281,6 +1347,7 @@ export type Database = {
           included_traffic_tb: number | null
           ipv4_selected: boolean | null
           is_e2e_test: boolean
+          is_simulation: boolean
           location_code: string | null
           overage_cost_sar: number | null
           payment_method: string
@@ -1325,6 +1392,7 @@ export type Database = {
           included_traffic_tb?: number | null
           ipv4_selected?: boolean | null
           is_e2e_test?: boolean
+          is_simulation?: boolean
           location_code?: string | null
           overage_cost_sar?: number | null
           payment_method?: string
@@ -1369,6 +1437,7 @@ export type Database = {
           included_traffic_tb?: number | null
           ipv4_selected?: boolean | null
           is_e2e_test?: boolean
+          is_simulation?: boolean
           location_code?: string | null
           overage_cost_sar?: number | null
           payment_method?: string
@@ -1901,10 +1970,19 @@ export type Database = {
           created_at: string
           error_code: string | null
           id: string
+          is_simulation: boolean
           last_attempt_at: string | null
+          locked_by: string | null
+          locked_until: string | null
+          manual_reason: string | null
+          next_attempt_at: string | null
           order_id: string
+          phase_started_at: string | null
           provider_request_id: string | null
           provider_resource_id: string | null
+          readiness: Json
+          reconciliation: Json
+          reservation_id: string | null
           safe_error: string | null
           server_id: string | null
           status: string
@@ -1915,10 +1993,19 @@ export type Database = {
           created_at?: string
           error_code?: string | null
           id?: string
+          is_simulation?: boolean
           last_attempt_at?: string | null
+          locked_by?: string | null
+          locked_until?: string | null
+          manual_reason?: string | null
+          next_attempt_at?: string | null
           order_id: string
+          phase_started_at?: string | null
           provider_request_id?: string | null
           provider_resource_id?: string | null
+          readiness?: Json
+          reconciliation?: Json
+          reservation_id?: string | null
           safe_error?: string | null
           server_id?: string | null
           status?: string
@@ -1929,10 +2016,19 @@ export type Database = {
           created_at?: string
           error_code?: string | null
           id?: string
+          is_simulation?: boolean
           last_attempt_at?: string | null
+          locked_by?: string | null
+          locked_until?: string | null
+          manual_reason?: string | null
+          next_attempt_at?: string | null
           order_id?: string
+          phase_started_at?: string | null
           provider_request_id?: string | null
           provider_resource_id?: string | null
+          readiness?: Json
+          reconciliation?: Json
+          reservation_id?: string | null
           safe_error?: string | null
           server_id?: string | null
           status?: string
@@ -1951,6 +2047,41 @@ export type Database = {
             columns: ["server_id"]
             isOneToOne: false
             referencedRelation: "cloud_servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_provisioning_keys: {
+        Row: {
+          created_at: string
+          iv: string
+          job_id: string
+          private_key_enc: string
+          provider_key_id: string | null
+          public_key: string
+        }
+        Insert: {
+          created_at?: string
+          iv: string
+          job_id: string
+          private_key_enc: string
+          provider_key_id?: string | null
+          public_key: string
+        }
+        Update: {
+          created_at?: string
+          iv?: string
+          job_id?: string
+          private_key_enc?: string
+          provider_key_id?: string | null
+          public_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_provisioning_keys_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "cloud_provisioning_jobs"
             referencedColumns: ["id"]
           },
         ]
@@ -6890,6 +7021,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      _cloud_reserve_launch_slot: {
+        Args: { p_key: string; p_plan: string; p_sim?: boolean; p_user: string }
+        Returns: Json
+      }
       _pay_service_order_as: {
         Args: {
           p_coupon_code: string
@@ -6951,6 +7086,7 @@ export type Database = {
           included_traffic_tb: number | null
           ipv4_selected: boolean | null
           is_e2e_test: boolean
+          is_simulation: boolean
           location_code: string | null
           overage_cost_sar: number | null
           payment_method: string
@@ -7103,6 +7239,38 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      cloud_claim_provisioning_job: {
+        Args: { p_job: string; p_ttl_seconds?: number; p_worker: string }
+        Returns: {
+          attempt_count: number
+          created_at: string
+          error_code: string | null
+          id: string
+          is_simulation: boolean
+          last_attempt_at: string | null
+          locked_by: string | null
+          locked_until: string | null
+          manual_reason: string | null
+          next_attempt_at: string | null
+          order_id: string
+          phase_started_at: string | null
+          provider_request_id: string | null
+          provider_resource_id: string | null
+          readiness: Json
+          reconciliation: Json
+          reservation_id: string | null
+          safe_error: string | null
+          server_id: string | null
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "cloud_provisioning_jobs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       cloud_confirm_backup_disabled: { Args: { p_sub: string }; Returns: Json }
       cloud_confirm_provider_state: {
         Args: { p_now?: string; p_state: string; p_sub: string }
@@ -7129,17 +7297,31 @@ export type Database = {
         }
         Returns: string
       }
+      cloud_launch_capacity: { Args: never; Returns: Json }
       cloud_pay_due: { Args: { p_sub: string }; Returns: Json }
       cloud_prepare_provider_action: {
         Args: { p_dry?: boolean; p_job: string }
         Returns: Json
       }
+      cloud_prov_allowed: {
+        Args: { p_from: string; p_to: string }
+        Returns: boolean
+      }
+      cloud_public_checkout_config: { Args: never; Returns: Json }
       cloud_record_renewal_failure: {
         Args: { p_now?: string; p_reason: string; p_sub: string }
         Returns: Json
       }
+      cloud_refund_failed_order: {
+        Args: { p_actor?: string; p_order: string }
+        Returns: Json
+      }
       cloud_release_lock: {
         Args: { p_job: string; p_resource: string }
+        Returns: undefined
+      }
+      cloud_release_provisioning_job: {
+        Args: { p_job: string; p_retry_in_seconds?: number; p_worker: string }
         Returns: undefined
       }
       cloud_renew_subscription: {
@@ -7149,6 +7331,10 @@ export type Database = {
       cloud_request_backup_cancel: { Args: { p_sub: string }; Returns: Json }
       cloud_request_cancel: {
         Args: { p_mode: string; p_sub: string }
+        Returns: Json
+      }
+      cloud_reserve_launch_slot: {
+        Args: { p_idempotency_key: string; p_plan_id: string }
         Returns: Json
       }
       cloud_scheduler_begin: {
@@ -7173,6 +7359,10 @@ export type Database = {
       }
       cloud_set_auto_renew: {
         Args: { p_on: boolean; p_sub: string }
+        Returns: Json
+      }
+      cloud_set_provisioning_state: {
+        Args: { p_fields?: Json; p_job: string; p_to: string; p_worker: string }
         Returns: Json
       }
       cloud_sub_allowed: {
@@ -7263,6 +7453,7 @@ export type Database = {
           p_location: string
           p_name: string
           p_plan_id: string
+          p_reservation_id?: string
           p_ssh_key_id: string
         }
         Returns: Json

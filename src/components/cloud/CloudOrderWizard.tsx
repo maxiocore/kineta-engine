@@ -23,7 +23,8 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
   const { data: keys = [] } = useCloudTable("cloud_ssh_keys", "keys");
 
   const idemRef = useRef<string>("");
-  const { data: billing } = useBillingQuery({ queryKey: ["cloud-billing-settings"], queryFn: async () => (await db.from("cloud_billing_settings").select("*").eq("id", 1).maybeSingle()).data });
+  // Only the public checkout whitelist (VAT, backup surcharge, currency); internal billing settings are admin-only.
+  const { data: billing } = useBillingQuery({ queryKey: ["cloud-checkout-config"], queryFn: async () => ((await db.rpc("cloud_public_checkout_config")).data as any) ?? null });
   const VAT = Number(billing?.vat_rate ?? 0.15);
   const [step, setStep] = useState(initialType ? 1 : 0);
   const [type, setType] = useState<"vps" | "dedicated" | null>(initialType ?? null);
@@ -74,17 +75,23 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
   const Prev = isRtl ? ChevronRight : ChevronLeft;
   const Next = isRtl ? ChevronLeft : ChevronRight;
 
+  const capacityMsg = t("الخدمة متاحة حالياً بالطلب والمراجعة، التفعيل الفوري غير متاح مؤقتاً", "Temporarily unavailable for instant activation, available on request and review");
   const submit = async () => {
     setSubmitting(true);
+    const key = (idemRef.current ||= crypto.randomUUID() + "-" + Date.now());
+    // Launch Guard: reserve a launch slot BEFORE any charge.
+    const { data: slot } = await db.rpc("cloud_reserve_launch_slot", { p_plan_id: planId, p_idempotency_key: "slot:" + key });
+    if (!(slot as any)?.ok) { setSubmitting(false); toast.error((slot as any)?.reason === "capacity_full" ? capacityMsg : t("تعذر إتمام الطلب", "Could not complete the order")); return; }
     const { error } = await db.rpc("order_cloud_server", {
       p_plan_id: planId, p_location: loc, p_image: image, p_name: name.trim(),
       p_hostname: hostname.trim() || null, p_ssh_key_id: sshKey, p_backups: backups && backupPrice != null, p_ipv4: ipv4 && ipv4Price != null,
-      p_idempotency_key: (idemRef.current ||= crypto.randomUUID() + "-" + Date.now()),
+      p_idempotency_key: key, p_reservation_id: (slot as any).reservation_id,
     });
     setSubmitting(false);
     if (error) {
       const msg = error.message.includes("insufficient")
         ? t("الرصيد غير كافٍ، يرجى شحن المحفظة", "Insufficient balance, please top up your wallet")
+        : error.message.includes("capacity") || error.message.includes("reservation") ? capacityMsg
         : error.message.includes("architecture") ? t("نظام التشغيل غير متوافق مع معالج الباقة", "OS image not compatible with this plan")
         : t("تعذر إتمام الطلب", "Could not complete the order");
       toast.error(msg);
