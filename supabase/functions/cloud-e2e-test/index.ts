@@ -54,6 +54,7 @@ async function decrypt(enc: string, iv: string) {
   return new TextDecoder().decode(pt);
 }
 
+let SSH_CIPHERS = ["aes128-ctr", "aes256-ctr"];
 const SSH_USER = "root"; // Hetzner system images inject the create-time ssh_keys into root's authorized_keys
 
 // Map ssh2 / socket errors to a precise, secret-free category
@@ -96,7 +97,7 @@ async function tcpProbe(host: string, port = 22, timeoutMs = 8000) {
   } finally { try { conn?.close(); } catch { /* ignore */ } }
 }
 
-function sshRun(host: string, privateKey: string, commands: readonly string[] = SSH_CMDS): Promise<Record<string, string>> {
+function sshRun(host: string, privateKey: string, commands: readonly string[] = SSH_CMDS, ciphers: string[] = SSH_CIPHERS): Promise<Record<string, string>> {
   return new Promise((resolve, reject) => {
     const c = new ssh2.Client();
     const out: Record<string, string> = {};
@@ -116,7 +117,7 @@ function sshRun(host: string, privateKey: string, commands: readonly string[] = 
           finish(null, out);
         } catch (e) { finish(e); }
       })
-      .connect({ host, port: 22, username: SSH_USER, privateKey, readyTimeout: 15000, algorithms: { cipher: ["aes128-ctr", "aes256-ctr"] } });
+      .connect({ host, port: 22, username: SSH_USER, privateKey, readyTimeout: 15000, algorithms: { cipher: ciphers } });
   });
 }
 
@@ -305,7 +306,7 @@ Deno.serve(async (req) => {
       const r: Record<string, unknown> = { ssh_user: SSH_USER, test_id: test.id };
       try {
         const s = (await h(`/servers/${test.provider_resource_id}`)).server;
-        r.provider = { id: String(s.id), status: s.status, ipv4: s.public_net?.ipv4?.ip, ipv6: s.public_net?.ipv6?.ip, image: s.image?.name ?? s.image?.description, location: s.datacenter?.location?.name, server_type: s.server_type?.name };
+        r.provider = { id: String(s.id), status: s.status, ipv4: s.public_net?.ipv4?.ip, ipv6: s.public_net?.ipv6?.ip, image: s.image?.name ?? s.image?.description, location: s.datacenter?.location?.name ?? s.location?.name ?? null, server_type: s.server_type?.name };
       } catch (e) { r.provider = { error: (e as HErr).code }; }
       const { data: k } = await db.from("cloud_e2e_test_keys").select("public_key,private_key_enc,iv").eq("test_id", test.id).maybeSingle();
       try {
@@ -325,6 +326,13 @@ Deno.serve(async (req) => {
           await sshRun(test.ipv4, privateKey, ["true"]); privateKey = "";
           r.ssh = { result: "authenticated" };
         } catch (e) { r.ssh = { result: "failed", ...classify(e) }; }
+        // Which SSH ciphers this runtime can actually use (auth-only probes, harmless `true` command)
+        const probe: Record<string, string> = {};
+        for (const cph of ["aes128-ctr", "aes256-ctr", "aes128-gcm@openssh.com", "aes256-gcm@openssh.com", "chacha20-poly1305@openssh.com"]) {
+          try { await sshRun(test.ipv4, await decrypt(k.private_key_enc, k.iv), ["true"], [cph]); probe[cph] = "ok"; }
+          catch (e) { probe[cph] = classify(e).detail.slice(0, 80); }
+        }
+        r.cipher_probe = probe;
       }
       await log("diagnose_ssh", "done", r);
       return json({ ok: true, diagnosis: r, test });
