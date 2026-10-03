@@ -47,9 +47,12 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
     { icon: CreditCard, ar: "الدفع", en: "Payment" },
   ];
 
+  const { data: locPrices = [] } = useBillingQuery({ queryKey: ["cloud-location-prices"], queryFn: async () => (await db.from("cloud_plan_location_prices").select("plan_id, location_code, monthly_price")).data ?? [] });
+  // Display only; the server recalculates the real price at checkout.
+  const priceOf = (p: any) => p?.pricing_mode === "location" ? Number(locPrices.find((x: any) => x.plan_id === p.id && x.location_code === loc)?.monthly_price ?? 0) : Number(p?.monthly_price ?? 0);
   const availablePlans = useMemo(
-    () => plans.filter((p) => p.server_type === type && (loc && p.location_codes?.includes(loc))),
-    [plans, type, loc],
+    () => plans.filter((p) => p.server_type === type && (loc && p.location_codes?.includes(loc)) && priceOf(p) > 0),
+    [plans, type, loc, locPrices],
   );
   const plan = plans.find((p) => p.id === planId);
   const monthly = plan ? priceOf(plan) * (backups ? 1 + BACKUP : 1) : 0;
