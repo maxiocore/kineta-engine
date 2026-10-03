@@ -16,7 +16,7 @@ export const STAGES = ["creating", "wait_running", "baseline", "snapshot_request
   "backup_enable", "backup_verify", "await_rebuild_confirm", "rebuild_wait", "rebuild_verify", "rescue_enable", "rescue_reboot", "rescue_verify", "rescue_disable",
   "rescue_exit_wait", "rescue_exit_verify", "rdns", "rdns_restore", "engine", "passed"];
 
-const Body = z.object({ action: z.enum(["status", "preflight", "create", "advance", "confirm_rebuild", "retry_rescue_exit", "diagnose", "cleanup", "reset"]), confirm: z.string().max(100).optional() });
+const Body = z.object({ action: z.enum(["status", "preflight", "create", "advance", "confirm_rebuild", "retry_rescue_exit", "diagnose", "rescue_diag", "cleanup", "reset"]), confirm: z.string().max(100).optional() });
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 class HErr extends Error { constructor(public code: string, public status = 0) { super(code); } }
@@ -231,6 +231,64 @@ Deno.serve(async (req) => {
       d.events = (ev ?? []).filter((e: any) => /rebuild|rescue|reset|engine/.test(e.stage)).map((e: any) => ({ at: e.created_at, stage: e.stage, result: e.result, action_id: e.details?.action_id ?? null, error: e.details?.error ?? null }));
       await lc({ diagnostics: d }); await log("diagnose", "read_only", { tcp: d.tcp });
       return json({ ok: true, diagnostics: d });
+    }
+
+    // ---------------- RESCUE DIAGNOSIS (same server; enable rescue + graceful reboot; inspection is read-only) ----------------
+    if (action === "rescue_diag") {
+      const sid = test.provider_resource_id; if (!sid || test.status === "running_tests") return json({ ok: false, error: "not_allowed" }, 409);
+      const L = test.lifecycle ?? {}; const R = { ...(L.rescue_diag ?? {}) } as Record<string, any>;
+      const save = async (p: Record<string, unknown>) => { Object.assign(R, p); await lc({ rescue_diag: R }); };
+      const s = (await h(`/servers/${sid}`)).server;
+      const act = async (path: string, body: Record<string, unknown>) => {
+        const r = await h(`/servers/${sid}/actions/${path}`, { method: "POST", body: JSON.stringify(body) });
+        await log(`rescue_diag:${path}`, "requested", { action_id: String(r.action?.id ?? "") }); // root_password intentionally discarded
+        return String(r.action?.id ?? "");
+      };
+      const done = async (id: string) => { const a = (await h(`/actions/${id}`)).action; if (a.status === "error") throw new HErr(`action_error:${a.error?.code}`); return a.status === "success"; };
+      if (!R.step) {
+        const id = await act("enable_rescue", { type: "linux64", ssh_keys: [Number(test.provider_ssh_key_id)] });
+        await save({ step: "enable_wait", action_id: id, started_at: new Date().toISOString() }); return json({ ok: true, rescue_diag: R });
+      }
+      if (R.step === "enable_wait") {
+        if (!(await done(R.action_id))) return json({ ok: true, rescue_diag: R });
+        if (!s.rescue_enabled) throw new HErr("rescue_not_enabled");
+        const id = await act("reboot", {}); // graceful ACPI reboot, not a hard reset
+        await save({ step: "reboot_wait", action_id: id, reboot_requested_at: new Date().toISOString() }); return json({ ok: true, rescue_diag: R });
+      }
+      if (R.step === "reboot_wait" || R.step === "ssh_wait") {
+        if (R.step === "reboot_wait" && !(await done(R.action_id))) return json({ ok: true, rescue_diag: R });
+        try {
+          const o = await sshRun(test.ipv4, await key(), ["hostname"]);
+          if (!/rescue/i.test(o.hostname)) { await save({ step: "ssh_wait", note: `hostname=${o.hostname}` }); return json({ ok: true, rescue_diag: R }); }
+          await save({ step: "inspect", rescue_ssh_at: new Date().toISOString() });
+        } catch (e) { await save({ step: "ssh_wait", last_error: sshErr(e), attempts: (R.attempts ?? 0) + 1 }); return json({ ok: true, rescue_diag: R }); }
+      }
+      if (R.step === "inspect" || R.step === "inspected") {
+        const M = "/mnt/ashdiag";
+        const cmds: [string, string][] = [
+          ["mount", `mkdir -p ${M}; mountpoint -q ${M} || mount -o ro,noload /dev/sda1 ${M} 2>&1; findmnt ${M} -o SOURCE,FSTYPE,OPTIONS -n`],
+          ["sshd_config_nonstd", `grep -vE '^\\s*(#|$)' ${M}/etc/ssh/sshd_config`],
+          ["sshd_config_d", `ls -la ${M}/etc/ssh/sshd_config.d/; for f in ${M}/etc/ssh/sshd_config.d/*; do echo "== $f"; grep -vE '^\\s*(#|$)' "$f"; done`],
+          ["host_keys", `ls -la --time-style=full-iso ${M}/etc/ssh/ | grep -E 'ssh_host|total'; for f in ${M}/etc/ssh/ssh_host_*_key.pub; do ssh-keygen -lf "$f" 2>&1; done`],
+          ["openssh_pkg", `chroot ${M} dpkg-query -W -f='\${Package} \${Version} \${Status}\\n' openssh-server openssh-client 2>&1; ls -la ${M}/usr/sbin/sshd 2>&1`],
+          ["ssh_enabled", `ls -la ${M}/etc/systemd/system/multi-user.target.wants/ 2>&1 | grep -i ssh; ls -la ${M}/etc/systemd/system/sockets.target.wants/ 2>&1 | grep -i ssh; ls -la ${M}/etc/systemd/system/ 2>&1 | grep -i ssh`],
+          ["sshd_t", `chroot ${M} /usr/sbin/sshd -t 2>&1; echo "exit=$?"`],
+          ["cloud_init", `cat ${M}/var/lib/cloud/data/status.json 2>&1 | head -60; echo; cat ${M}/var/lib/cloud/data/result.json 2>&1; ls -la --time-style=full-iso ${M}/var/lib/cloud/instance/boot-finished 2>&1`],
+          ["cloud_init_log_tail", `grep -iE 'ssh|error|fail|Traceback' ${M}/var/log/cloud-init.log 2>/dev/null | tail -40`],
+          ["journal_boots", `journalctl -D ${M}/var/log/journal --list-boots --no-pager 2>&1 | tail -8`],
+          ["journal_ssh_last_boots", `for b in -2 -1 0; do echo "=== boot $b"; journalctl -D ${M}/var/log/journal -b $b --no-pager -o short-iso -u ssh.service -u ssh.socket -u sshd-keygen.service 2>&1 | tail -25; done`],
+          ["journal_fail_last_boot", `journalctl -D ${M}/var/log/journal -b 0 --no-pager -o short-iso -p err 2>&1 | tail -30`],
+          ["syslog_auth", `grep -iE 'sshd|ssh.service|ssh.socket' ${M}/var/log/syslog ${M}/var/log/auth.log 2>/dev/null | tail -20`],
+        ];
+        const out: Record<string, string> = {};
+        try {
+          const r = await sshRun(test.ipv4, await key(), cmds.map(([, c]) => c));
+          cmds.forEach(([k, c]) => (out[k] = (r[c] ?? "").replace(/-----BEGIN[\s\S]*?-----END[^-]*-----/g, "[redacted]")));
+        } catch (e) { await save({ last_error: sshErr(e) }); return json({ ok: false, error: sshErr(e), rescue_diag: R }); }
+        await save({ step: "inspected", inspected_at: new Date().toISOString(), findings: out }); await log("rescue_diag", "inspected");
+        return json({ ok: true, rescue_diag: R });
+      }
+      return json({ ok: true, rescue_diag: R });
     }
 
     if (action === "retry_rescue_exit") {
