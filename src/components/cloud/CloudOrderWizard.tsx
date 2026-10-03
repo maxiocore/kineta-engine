@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { useQuery as useBillingQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronLeft, ChevronRight, Cloud, HardDrive, MapPin, Cpu, Disc, Settings2, ClipboardCheck, CreditCard, Loader2, Package } from "lucide-react";
@@ -11,7 +12,6 @@ import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
 import { db, useCatalog, useCloudTable, sar, EmptyState } from "./cloudShared";
 
-const VAT = 0.15;
 
 const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }) => {
   const { t, lang, isRtl } = useLanguage();
@@ -22,6 +22,10 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
   const { data: images = [] } = useCatalog("cloud_images");
   const { data: keys = [] } = useCloudTable("cloud_ssh_keys", "keys");
 
+  const idemRef = useRef<string>("");
+  const { data: billing } = useBillingQuery({ queryKey: ["cloud-billing-settings"], queryFn: async () => (await db.from("cloud_billing_settings").select("*").eq("id", 1).maybeSingle()).data });
+  const VAT = Number(billing?.vat_rate ?? 0.15);
+  const BACKUP = Number(billing?.backups_surcharge ?? 0.2);
   const [step, setStep] = useState(initialType ? 1 : 0);
   const [type, setType] = useState<"vps" | "dedicated" | null>(initialType ?? null);
   const [loc, setLoc] = useState<string | null>(null);
@@ -48,7 +52,7 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
     [plans, type, loc],
   );
   const plan = plans.find((p) => p.id === planId);
-  const monthly = plan ? Number(plan.monthly_price) * (backups ? 1.2 : 1) : 0;
+  const monthly = plan ? Number(plan.monthly_price) * (backups ? 1 + BACKUP : 1) : 0;
   const subtotal = plan ? monthly + Number(plan.setup_fee) : 0;
   const vat = subtotal * VAT;
   const total = subtotal + vat;
@@ -62,6 +66,7 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
     const { error } = await db.rpc("order_cloud_server", {
       p_plan_id: planId, p_location: loc, p_image: image, p_name: name.trim(),
       p_hostname: hostname.trim() || null, p_ssh_key_id: sshKey, p_backups: backups,
+      p_idempotency_key: (idemRef.current ||= crypto.randomUUID() + "-" + Date.now()),
     });
     setSubmitting(false);
     if (error) {
@@ -191,7 +196,7 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
             </div>
             <div className="rounded-xl border bg-card p-5 space-y-2 text-sm h-fit">
               <div className="flex justify-between"><span className="text-muted-foreground">{t("السعر قبل الضريبة", "Subtotal")}</span><span>{sar(subtotal, lang)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">{t("ضريبة القيمة المضافة 15%", "VAT 15%")}</span><span>{sar(vat, lang)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">{t(`ضريبة القيمة المضافة ${Math.round(VAT*100)}%`, `VAT ${Math.round(VAT*100)}%`)}</span><span>{sar(vat, lang)}</span></div>
               <div className="flex justify-between pt-2 border-t font-bold text-primary"><span>{t("الإجمالي", "Total")}</span><span>{sar(total, lang)}</span></div>
               {step === 6 && (
                 <Button className="w-full mt-3" disabled={submitting} onClick={submit}>

@@ -451,7 +451,7 @@ const AdminDashboardLayout = ({ children }: AdminDashboardLayoutProps) => {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="flex-1 lg:mr-[260px] min-h-screen">
+      <main className="flex-1 lg:mr-[260px] min-h-screen min-w-0">
         {/* Add top padding on mobile for fixed header */}
         <div className="pt-14 lg:pt-0">
           <div className="p-3 sm:p-4 lg:p-6">

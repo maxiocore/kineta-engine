@@ -709,36 +709,72 @@ export type Database = {
           },
         ]
       }
+      cloud_billing_settings: {
+        Row: {
+          backups_surcharge: number
+          currency: string
+          id: number
+          updated_at: string
+          vat_rate: number
+        }
+        Insert: {
+          backups_surcharge?: number
+          currency?: string
+          id?: number
+          updated_at?: string
+          vat_rate?: number
+        }
+        Update: {
+          backups_surcharge?: number
+          currency?: string
+          id?: number
+          updated_at?: string
+          vat_rate?: number
+        }
+        Relationships: []
+      }
       cloud_images: {
         Row: {
+          architecture: string | null
+          cloud_supported: boolean
           code: string
           created_at: string
+          dedicated_supported: boolean
           family: string
           id: string
           is_active: boolean
           name: string
+          name_ar: string | null
           sort_order: number
           updated_at: string
           version: string | null
         }
         Insert: {
+          architecture?: string | null
+          cloud_supported?: boolean
           code: string
           created_at?: string
+          dedicated_supported?: boolean
           family: string
           id?: string
           is_active?: boolean
           name: string
+          name_ar?: string | null
           sort_order?: number
           updated_at?: string
           version?: string | null
         }
         Update: {
+          architecture?: string | null
+          cloud_supported?: boolean
           code?: string
           created_at?: string
+          dedicated_supported?: boolean
           family?: string
           id?: string
           is_active?: boolean
           name?: string
+          name_ar?: string | null
           sort_order?: number
           updated_at?: string
           version?: string | null
@@ -747,9 +783,12 @@ export type Database = {
       }
       cloud_locations: {
         Row: {
+          city: string | null
+          cloud_available: boolean
           code: string
           country: string | null
           created_at: string
+          dedicated_available: boolean
           id: string
           is_active: boolean
           name_ar: string
@@ -758,9 +797,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          city?: string | null
+          cloud_available?: boolean
           code: string
           country?: string | null
           created_at?: string
+          dedicated_available?: boolean
           id?: string
           is_active?: boolean
           name_ar: string
@@ -769,9 +811,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          city?: string | null
+          cloud_available?: boolean
           code?: string
           country?: string | null
           created_at?: string
+          dedicated_available?: boolean
           id?: string
           is_active?: boolean
           name_ar?: string
@@ -781,74 +826,381 @@ export type Database = {
         }
         Relationships: []
       }
+      cloud_orders: {
+        Row: {
+          created_at: string
+          id: string
+          idempotency_key: string
+          payment_method: string
+          plan_id: string | null
+          server_id: string | null
+          status: string
+          subtotal: number
+          total: number
+          transaction_reference: string
+          updated_at: string
+          user_id: string
+          vat_amount: number
+          vat_rate: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          payment_method?: string
+          plan_id?: string | null
+          server_id?: string | null
+          status?: string
+          subtotal: number
+          total: number
+          transaction_reference: string
+          updated_at?: string
+          user_id: string
+          vat_amount: number
+          vat_rate: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          payment_method?: string
+          plan_id?: string | null
+          server_id?: string | null
+          status?: string
+          subtotal?: number
+          total?: number
+          transaction_reference?: string
+          updated_at?: string
+          user_id?: string
+          vat_amount?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_orders_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cloud_orders_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_plan_costs: {
+        Row: {
+          infra_cost: number
+          plan_id: string
+          pricing_mode: string
+          provider_id: string | null
+          provider_ref: string | null
+          provider_setup_cost: number
+          updated_at: string
+        }
+        Insert: {
+          infra_cost?: number
+          plan_id: string
+          pricing_mode?: string
+          provider_id?: string | null
+          provider_ref?: string | null
+          provider_setup_cost?: number
+          updated_at?: string
+        }
+        Update: {
+          infra_cost?: number
+          plan_id?: string
+          pricing_mode?: string
+          provider_id?: string | null
+          provider_ref?: string | null
+          provider_setup_cost?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_plan_costs_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: true
+            referencedRelation: "cloud_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cloud_plan_costs_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cloud_plans: {
         Row: {
+          architecture: string | null
+          billing_cycles: string[]
           code: string
+          cores: number | null
           cpu_model: string | null
+          cpu_type: string | null
           created_at: string
+          disk_count: number | null
           disk_type: string | null
+          featured: boolean
           id: string
+          ipv4_included: boolean
+          ipv6_included: boolean
           is_active: boolean
           location_codes: string[]
           monthly_price: number
           name_ar: string
           name_en: string
           network: string | null
-          provider_ref: string | null
           ram_gb: number
           server_type: string
           setup_fee: number
           sort_order: number
+          status: string
           storage_gb: number
+          threads: number | null
           traffic_tb: number | null
           updated_at: string
           vcpu: number | null
         }
         Insert: {
+          architecture?: string | null
+          billing_cycles?: string[]
           code: string
+          cores?: number | null
           cpu_model?: string | null
+          cpu_type?: string | null
           created_at?: string
+          disk_count?: number | null
           disk_type?: string | null
+          featured?: boolean
           id?: string
+          ipv4_included?: boolean
+          ipv6_included?: boolean
           is_active?: boolean
           location_codes?: string[]
           monthly_price?: number
           name_ar: string
           name_en: string
           network?: string | null
-          provider_ref?: string | null
           ram_gb?: number
           server_type: string
           setup_fee?: number
           sort_order?: number
+          status?: string
           storage_gb?: number
+          threads?: number | null
           traffic_tb?: number | null
           updated_at?: string
           vcpu?: number | null
         }
         Update: {
+          architecture?: string | null
+          billing_cycles?: string[]
           code?: string
+          cores?: number | null
           cpu_model?: string | null
+          cpu_type?: string | null
           created_at?: string
+          disk_count?: number | null
           disk_type?: string | null
+          featured?: boolean
           id?: string
+          ipv4_included?: boolean
+          ipv6_included?: boolean
           is_active?: boolean
           location_codes?: string[]
           monthly_price?: number
           name_ar?: string
           name_en?: string
           network?: string | null
-          provider_ref?: string | null
           ram_gb?: number
           server_type?: string
           setup_fee?: number
           sort_order?: number
+          status?: string
           storage_gb?: number
+          threads?: number | null
           traffic_tb?: number | null
           updated_at?: string
           vcpu?: number | null
         }
         Relationships: []
+      }
+      cloud_provider_catalog: {
+        Row: {
+          data: Json
+          id: string
+          kind: string
+          name: string
+          provider_id: string
+          provider_ref: string
+          synced_at: string
+        }
+        Insert: {
+          data?: Json
+          id?: string
+          kind: string
+          name: string
+          provider_id: string
+          provider_ref: string
+          synced_at?: string
+        }
+        Update: {
+          data?: Json
+          id?: string
+          kind?: string
+          name?: string
+          provider_id?: string
+          provider_ref?: string
+          synced_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_provider_catalog_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_providers: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          last_error: string | null
+          last_health_check: string | null
+          last_success_at: string | null
+          name: string
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          last_health_check?: string | null
+          last_success_at?: string | null
+          name: string
+          status?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          last_health_check?: string | null
+          last_success_at?: string | null
+          name?: string
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cloud_provisioning_jobs: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          error_code: string | null
+          id: string
+          last_attempt_at: string | null
+          order_id: string
+          provider_request_id: string | null
+          provider_resource_id: string | null
+          safe_error: string | null
+          server_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          error_code?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          order_id: string
+          provider_request_id?: string | null
+          provider_resource_id?: string | null
+          safe_error?: string | null
+          server_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          error_code?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          order_id?: string
+          provider_request_id?: string | null
+          provider_resource_id?: string | null
+          safe_error?: string | null
+          server_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_provisioning_jobs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "cloud_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cloud_provisioning_jobs_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_resource_mappings: {
+        Row: {
+          code: string
+          id: string
+          kind: string
+          provider_id: string
+          provider_ref: string
+        }
+        Insert: {
+          code: string
+          id?: string
+          kind: string
+          provider_id: string
+          provider_ref: string
+        }
+        Update: {
+          code?: string
+          id?: string
+          kind?: string
+          provider_id?: string
+          provider_ref?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_resource_mappings_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_providers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cloud_server_actions: {
         Row: {
@@ -938,6 +1290,7 @@ export type Database = {
       cloud_servers: {
         Row: {
           backups_enabled: boolean
+          cancelled_at: string | null
           created_at: string
           hostname: string | null
           id: string
@@ -955,11 +1308,14 @@ export type Database = {
           specs: Json
           ssh_key_id: string | null
           status: string
+          suspend_reason: string | null
+          suspended_at: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           backups_enabled?: boolean
+          cancelled_at?: string | null
           created_at?: string
           hostname?: string | null
           id?: string
@@ -977,11 +1333,14 @@ export type Database = {
           specs?: Json
           ssh_key_id?: string | null
           status?: string
+          suspend_reason?: string | null
+          suspended_at?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           backups_enabled?: boolean
+          cancelled_at?: string | null
           created_at?: string
           hostname?: string | null
           id?: string
@@ -999,6 +1358,8 @@ export type Database = {
           specs?: Json
           ssh_key_id?: string | null
           status?: string
+          suspend_reason?: string | null
+          suspended_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -5026,6 +5387,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_refund_cloud_order: { Args: { p_order_id: string }; Returns: Json }
       atomic_credit_deposit: {
         Args: {
           p_actor_id?: string
@@ -5117,6 +5479,7 @@ export type Database = {
         Args: {
           p_backups: boolean
           p_hostname: string
+          p_idempotency_key: string
           p_image: string
           p_location: string
           p_name: string
