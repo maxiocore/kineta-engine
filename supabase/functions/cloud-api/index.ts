@@ -2,6 +2,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.23.8";
 import { getProvider } from "./providers.ts";
+import { refreshRate, syncPrices, checkMargins } from "./pricing.ts";
+
+const LIVE = () => Deno.env.get("LIVE_PROVISIONING_ENABLED") === "true";
+const BILLABLE = ["rebuild", "rescue", "snapshot", "backup", "terminate"];
+const LIVE_OFF = { ok: false, error: "live_provisioning_disabled", message: "Live provisioning is currently disabled." };
 
 const ADMIN_ACTIONS = ["start", "stop", "restart", "rebuild", "rescue", "snapshot", "backup", "suspend", "unsuspend", "terminate"] as const;
 
@@ -13,6 +18,10 @@ const Body = z.discriminatedUnion("action", [
   z.object({ action: z.literal("admin_provision"), job_id: z.string().uuid() }),
   z.object({ action: z.literal("admin_server_action"), server_id: z.string().uuid(), type: z.enum(ADMIN_ACTIONS), payload: z.record(z.unknown()).optional() }),
   z.object({ action: z.literal("admin_process_action"), action_id: z.string().uuid() }),
+  z.object({ action: z.literal("admin_refresh_rate") }),
+  z.object({ action: z.literal("admin_sync_prices"), provider_id: z.string().uuid() }),
+  z.object({ action: z.literal("admin_check_margins") }),
+  z.object({ action: z.literal("admin_status") }),
 ]);
 
 const json = (b: unknown, status = 200) =>
@@ -64,6 +73,10 @@ async function log(admin: any, actor: string, server_id: string | null, user_id:
 }
 
 async function handleAdmin(admin: any, actor: string, b: any) {
+  if (b.action === "admin_status") return json({ live_provisioning_enabled: LIVE(), hetzner_cloud_configured: !!Deno.env.get("HETZNER_CLOUD_API_TOKEN") });
+  if (b.action === "admin_refresh_rate") return json(await refreshRate(admin));
+  if (b.action === "admin_sync_prices") return json(await syncPrices(admin, b.provider_id));
+  if (b.action === "admin_check_margins") return json({ ok: true, alerts: await checkMargins(admin) });
   if (b.action === "admin_test_provider" || b.action === "admin_sync") {
     const { data: p } = await admin.from("cloud_providers").select("*").eq("id", b.provider_id).maybeSingle();
     if (!p) return json({ error: "not found" }, 404);
@@ -93,6 +106,7 @@ async function handleAdmin(admin: any, actor: string, b: any) {
     const { data: job } = await admin.from("cloud_provisioning_jobs").select("*, cloud_orders(*)").eq("id", b.job_id).maybeSingle();
     if (!job) return json({ error: "not found" }, 404);
     if (job.status === "active") return json({ ok: true, status: "active" });
+    if (!LIVE()) return json(LIVE_OFF);
     const { data: server } = await admin.from("cloud_servers").select("*").eq("id", job.server_id).maybeSingle();
     if (!server) return json({ error: "server_missing" }, 409);
     const attempt = { attempt_count: job.attempt_count + 1, last_attempt_at: new Date().toISOString() };
@@ -155,6 +169,7 @@ async function runServerAction(admin: any, actor: string, serverId: string, type
   const patch: Record<string, unknown> = {};
   if (type === "suspend") Object.assign(patch, { status: "suspended", suspended_at: new Date().toISOString(), suspend_reason: (payload.reason as string) ?? null });
   else if (type === "unsuspend") Object.assign(patch, { status: "running", suspended_at: null, suspend_reason: null });
+  else if (s.provider_server_id && s.provider !== "manual" && BILLABLE.includes(type) && !LIVE()) return json(LIVE_OFF);
   else if (s.provider_server_id && s.provider !== "manual") {
     const r = await getProvider(s.provider).action(s.provider_server_id, type, payload);
     status = r.status === "failed" ? "failed" : "completed"; error = r.error ?? null;
