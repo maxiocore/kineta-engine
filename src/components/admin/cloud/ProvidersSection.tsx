@@ -29,17 +29,6 @@ export default function ProvidersSection({ t, lang }: { t: T; lang: string }) {
   };
   const setStatus = async (id: string, status: string) => { await db.from("cloud_providers").update({ status }).eq("id", id); inv(); };
 
-  const createPlan = async (v: any) => {
-    const c = mk.item; const d = c.data ?? {};
-    const row = { code: v.code, name_ar: v.name_ar, name_en: v.name_en, server_type: "vps", vcpu: d.cores ?? null, ram_gb: Math.round(Number(d.memory ?? 0)), storage_gb: Number(d.disk ?? 0),
-      cpu_type: d.cpu_type ?? null, architecture: d.architecture ?? "x86", monthly_price: Number(v.monthly_price), setup_fee: 0, status: v.status ?? "hidden", is_active: v.status === "active",
-      featured: !!v.featured, billing_cycles: v.billing_cycles?.length ? v.billing_cycles : ["monthly"], location_codes: v.location_codes ?? [] };
-    const res = await db.from("cloud_plans").insert(row).select("id").single();
-    if (res.error) { toast.error(res.error.message); return false; }
-    const monthly = (d.prices ?? [])[0]?.price_monthly?.gross;
-    await db.from("cloud_plan_costs").upsert({ plan_id: res.data.id, provider_id: c.provider_id, provider_ref: c.provider_ref, infra_cost: Number(v.infra_cost ?? 0), pricing_mode: "manual" });
-    toast.success(t("أُنشئت الباقة (مخفية حتى تفعيلها)", "Plan created")); inv(); return true;
-  };
   const mapItem = async (c: any) => {
     const code = prompt(t("الرمز الداخلي لربط هذا العنصر (مثلاً fsn1 أو ubuntu-24.04)", "Internal code to map (e.g. fsn1, ubuntu-24.04)"));
     if (!code) return;
