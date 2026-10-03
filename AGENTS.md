@@ -4,3 +4,5 @@
 - Cloud/server infrastructure goes through supabase/functions/cloud-api with the CloudProvider interface in providers.ts; why: provider-agnostic, credentials stay server-side, provider names never reach clients.
 - Cloud costs, provider IDs and provider mappings live only in admin-only tables (cloud_plan_costs, cloud_resource_mappings, cloud_provider_catalog); why: customer-readable catalogue tables must never expose provider data or margins.
 - Cloud orders go through order_cloud_server with a client idempotency key and create one cloud_orders row + one provisioning job; why: retries/double-clicks must never double-debit or create duplicate servers.
+- Cloud retail totals are computed only inside order_cloud_server from DB (plan/location price, VAT, effective EUR→SAR rate, buffer) and snapshotted on cloud_orders; why: browser values are never trusted and old orders must not change when prices move.
+- Billable provider calls (create, rebuild, rescue, snapshot, backup, terminate) are blocked unless the LIVE_PROVISIONING_ENABLED secret is "true"; why: no paid provider resource may be created by accident.
