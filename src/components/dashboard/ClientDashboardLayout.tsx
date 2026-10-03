@@ -531,7 +531,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                     onClick={() => navigate('/dashboard/deposit')}
                   >
                     <Plus className="w-4 h-4" />
-                    إيداع رصيد
+                    {t("إيداع رصيد", "Add funds")}
                   </Button>
                 </motion.div>
               )}
@@ -575,7 +575,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                     animate={{ opacity: 1, width: "auto" }}
                     exit={{ opacity: 0, width: 0 }}
                   >
-                    تسجيل الخروج
+                    {t("تسجيل الخروج", "Log out")}
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -694,7 +694,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                       }}
                     >
                       <Plus className="w-5 h-5" />
-                      إيداع رصيد
+                      {t("إيداع رصيد", "Add funds")}
                     </Button>
                   </motion.div>
                 </div>
