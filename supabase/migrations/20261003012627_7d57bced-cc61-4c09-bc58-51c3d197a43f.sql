@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.cloud_servers_guard() FROM public, anon, authenticated;
