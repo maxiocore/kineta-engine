@@ -137,19 +137,30 @@ Deno.serve(async (req) => {
 
     switch (b.action) {
       case "config": {
-        const { ok, s } = await gatewayReady();
+        const { ok, s } = await gatewayReadyFor(user.id);
         return json({ available: ok, methods: ok ? methodsFor(s) : [], min_topup: Number(s.min_topup), max_topup: Number(s.max_topup) });
       }
       case "create": {
-        const { ok, env } = await gatewayReady();
-        if (!ok) return json({ error: "GATEWAY_UNAVAILABLE" }, 503);
+        const g = await gatewayReadyFor(user.id);
+        if (!g.ok) return json({ error: "GATEWAY_UNAVAILABLE" }, 503);
+        const o = (g as any).override;
+        if (o) {
+          if (b.type !== "wallet_topup" || b.intent.amount !== 1) return json({ error: "GATEWAY_UNAVAILABLE" }, 503);
+          const { data: claimed } = await db.rpc("live_test_claim", { p_user: user.id, p_idempotency_key: b.idempotency_key });
+          if (!claimed) return json({ error: "GATEWAY_UNAVAILABLE" }, 503);
+        }
         const { data, error } = await db.rpc("payment_create", { p_user: user.id, p_type: b.type, p_reference_id: b.reference_id ?? null,
-          p_intent: b.intent, p_idempotency_key: b.idempotency_key, p_environment: env });
+          p_intent: b.intent, p_idempotency_key: b.idempotency_key, p_environment: g.env });
         if (error) return json({ error: dbErr(error) }, 400);
+        if (o) {
+          if ((data as any).amount_minor !== 100) return json({ error: "GATEWAY_UNAVAILABLE" }, 503);
+          await db.from("live_payment_test_overrides").update({ payment_id: (data as any).id }).eq("id", o.id).is("payment_id", null);
+          await db.from("payment_events").insert({ payment_id: (data as any).id, source: "admin", event_type: "live_test_override", details: { override_id: o.id } });
+        }
         return json({ internal_payment_id: (data as any).internal_payment_id, duplicate: (data as any).duplicate });
       }
       case "checkout": {
-        const { ok, s } = await gatewayReady();
+        const { ok, s } = await gatewayReadyFor(user.id, b.internal_payment_id);
         const { data: p } = await db.from("payments").select(CUSTOMER_FIELDS + ",user_id,intent").eq("internal_payment_id", b.internal_payment_id).maybeSingle();
         if (!p || p.user_id !== user.id) return json({ error: "PAYMENT_NOT_FOUND" }, 404);
         if (!ok) return json({ error: "GATEWAY_UNAVAILABLE" }, 503);
