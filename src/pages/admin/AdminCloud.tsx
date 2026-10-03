@@ -62,10 +62,10 @@ const AdminCloud = () => {
           <div><h1 className="text-lg font-bold">{t("الخوادم والبنية السحابية", "Cloud Infrastructure")}</h1>
             <p className="text-xs text-muted-foreground">{t("بيانات حقيقية فقط", "Live data only")}</p></div>
         </div>
-        <nav className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1" aria-label="cloud sections">
+        <nav className="flex flex-wrap gap-1.5 rounded-xl border bg-muted/40 p-2" aria-label="cloud sections">
           {tabs.map(([k, ar, en]) => (
-            <button key={k} onClick={() => go(k)} className={cn("shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
-              tab === k ? "bg-primary text-primary-foreground border-primary" : "bg-card text-foreground hover:bg-muted")}>{t(ar, en)}</button>
+            <button key={k} onClick={() => go(k)} className={cn("rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
+              tab === k ? "bg-primary text-primary-foreground border-primary shadow-sm" : "bg-card text-foreground hover:bg-accent hover:text-accent-foreground")}>{t(ar, en)}</button>
           ))}
         </nav>
         <div className="min-w-0">{body()}</div>
