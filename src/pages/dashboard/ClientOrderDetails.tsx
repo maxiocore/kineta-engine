@@ -650,8 +650,8 @@ const ClientOrderDetails = () => {
                 </div>
               </td>
               <td style="width: 48%; vertical-align: top; padding-right: 15px;">
-                <div style="background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px;">
-                  <p style="color: #6B7280; font-size: 11px; margin: 0 0 12px; font-weight: 600; border-bottom: 1px solid #E5E7EB; padding-bottom: 8px;">تفاصيل الفاتورة</p>
+                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; border-top: 3px solid #0F2B46;">
+                  <p style="color: #0F2B46; font-size: 11px; margin: 0 0 12px; font-weight: 700; border-bottom: 1px solid #E2E8F0; padding-bottom: 8px;">تفاصيل الفاتورة</p>
                   <table style="width: 100%;">
                     <tr>
                       <td style="padding: 6px 0;">
