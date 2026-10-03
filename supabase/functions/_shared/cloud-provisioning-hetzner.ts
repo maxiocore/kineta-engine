@@ -82,7 +82,37 @@ export class HetznerProvisionProvider implements ProvisionProvider {
           if (!found) throw new HErr("customer_key_unavailable"); keys.push(found);
         }
       }
-      const b = await h("/servers", { method: "POST", body: JSON.stringify({ name: i.name, server_type: i.serverType, location: i.location, image: i.image, ssh_keys: keys, labels: { [LABEL_K]: i.orderId }, public_net: { enable_ipv4: true, enable_ipv6: true } }) });
+      // Automatic access: a unique random root password per server, stored encrypted (same row reused on retries), shown to the owner once.
+      let userData: string | undefined;
+      if (!i.customerPublicKey && i.serverId && i.userId) {
+        let cred = (await this.db.from("cloud_server_credentials").select("*").eq("server_id", i.serverId).maybeSingle()).data;
+        if (!cred) {
+          const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+          const rnd = crypto.getRandomValues(new Uint8Array(24));
+          const pw = Array.from(rnd, (x) => alphabet[x % alphabet.length]).join("");
+          const e = await encrypt(pw);
+          cred = (await this.db.from("cloud_server_credentials").insert({ server_id: i.serverId, user_id: i.userId, username: "root", secret_enc: e.enc, iv: e.iv }).select("*").single()).data;
+        }
+        if (!cred?.secret_enc) throw new HErr("credential_unavailable");
+        const pw = await decrypt(cred.secret_enc, cred.iv);
+        userData = [
+          "#cloud-config",
+          "ssh_pwauth: true",
+          "chpasswd:",
+          "  expire: false",
+          "  users:",
+          `    - {name: root, password: "${pw}", type: text}`,
+          "write_files:",
+          "  - path: /etc/ssh/sshd_config.d/01-ash-access.conf",
+          "    content: |",
+          "      PasswordAuthentication yes",
+          "      PermitRootLogin yes",
+          "runcmd:",
+          "  - [sh, -c, 'systemctl restart ssh 2>/dev/null || systemctl restart sshd']",
+          "",
+        ].join("\n");
+      }
+      const b = await h("/servers", { method: "POST", body: JSON.stringify({ name: i.name, server_type: i.serverType, location: i.location, image: i.image, ssh_keys: keys, labels: { [LABEL_K]: i.orderId }, public_net: { enable_ipv4: true, enable_ipv6: true }, ...(userData ? { user_data: userData } : {}) }) });
       return { ok: true as const, server: toSrv(b.server) };
     } catch (e) { const code = (e as HErr).code; return { ok: false as const, error: code, lost: ["timeout", "unavailable"].includes(code) || (e as HErr).status >= 500 }; }
   }
