@@ -71,11 +71,37 @@ export class HetznerProvisionProvider implements ProvisionProvider {
       const keys = [Number(row.provider_key_id)];
       if (i.customerPublicKey) {
         try { const ck = await h("/ssh_keys", { method: "POST", body: JSON.stringify({ name: `ash-customer-${i.orderId}`, public_key: i.customerPublicKey, labels: { [LABEL_K]: i.orderId } }) }); keys.push(ck.ssh_key.id); }
-        catch (e) { if ((e as HErr).code !== "uniqueness_error") throw e; }
+        catch (e) {
+          if ((e as HErr).code !== "uniqueness_error") throw e;
+          // Same public key already in the project (e.g. an earlier order): reuse it so the customer key is always installed.
+          const want = i.customerPublicKey.trim().split(/\s+/).slice(0, 2).join(" "); let page = 1; let found: number | null = null;
+          while (!found && page <= 20) {
+            const l = await h(`/ssh_keys?per_page=50&page=${page}`); for (const k of l.ssh_keys ?? []) if (String(k.public_key).trim().split(/\s+/).slice(0, 2).join(" ") === want) found = k.id;
+            if (!l.meta?.pagination?.next_page) break; page++;
+          }
+          if (!found) throw new HErr("customer_key_unavailable"); keys.push(found);
+        }
       }
       const b = await h("/servers", { method: "POST", body: JSON.stringify({ name: i.name, server_type: i.serverType, location: i.location, image: i.image, ssh_keys: keys, labels: { [LABEL_K]: i.orderId }, public_net: { enable_ipv4: true, enable_ipv6: true } }) });
       return { ok: true as const, server: toSrv(b.server) };
     } catch (e) { const code = (e as HErr).code; return { ok: false as const, error: code, lost: ["timeout", "unavailable"].includes(code) || (e as HErr).status >= 500 }; }
+  }
+  /** After readiness passed: remove the platform's temporary key from the server and the project, keep the customer key. Best effort. */
+  async cleanupPlatformKey(jobId: string, host: string, customerPublicKey: string | null) {
+    const row = (await this.db.from("cloud_provisioning_keys").select("*").eq("job_id", jobId).maybeSingle()).data;
+    if (!row || !customerPublicKey) return { ok: false, reason: row ? "no_customer_key" : "no_platform_key" };
+    const cust = customerPublicKey.trim().split(/\s+/)[1]; const plat = String(row.public_key).trim().split(/\s+/)[1];
+    if (!/^[A-Za-z0-9+/=]+$/.test(cust) || !/^[A-Za-z0-9+/=]+$/.test(plat)) return { ok: false, reason: "bad_key" };
+    const f = "/root/.ssh/authorized_keys";
+    const o = await sshRun(host, await decrypt(row.private_key_enc, row.iv), [
+      `grep -qF '${cust}' ${f} && grep -vF '${plat}' ${f} > ${f}.ash && chmod 600 ${f}.ash && mv ${f}.ash ${f} && echo removed || echo kept`,
+    ]);
+    const removed = Object.values(o)[0] === "removed";
+    if (removed) {
+      try { await h(`/ssh_keys/${encodeURIComponent(row.provider_key_id)}`, { method: "DELETE" }); } catch { /* key resource stays; harmless */ }
+      await this.db.from("cloud_provisioning_keys").update({ private_key_enc: "", iv: "", cleaned_at: new Date().toISOString() }).eq("job_id", jobId);
+    }
+    return { ok: removed, reason: removed ? null : "customer_key_not_found_on_server" };
   }
   async readiness(jobId: string, host: string): Promise<ReadinessResult> {
     const r: ReadinessResult = { ssh_reachable: false, ssh_login: false, boot_finished: false, host_keys_exist: false, host_keys_nonzero: false, host_keys_valid: false, sshd_valid: false, sync_ok: false };

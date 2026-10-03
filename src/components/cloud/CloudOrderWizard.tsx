@@ -11,6 +11,10 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
 import { db, useCatalog, useCloudTable, sar, EmptyState } from "./cloudShared";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/hooks/useAuth";
+
+const PUBKEY_RE = /^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp(256|384|521)|sk-ssh-ed25519@openssh\.com|sk-ecdsa-sha2-nistp256@openssh\.com) [A-Za-z0-9+/]+={0,3}( [^\r\n]{0,200})?$/;
 
 
 const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }) => {
@@ -34,6 +38,23 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
   const [name, setName] = useState("");
   const [hostname, setHostname] = useState("");
   const [sshKey, setSshKey] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [newKeyOpen, setNewKeyOpen] = useState(false);
+  const [newKeyName, setNewKeyName] = useState("");
+  const [newKeyVal, setNewKeyVal] = useState("");
+  const [savingKey, setSavingKey] = useState(false);
+  const saveNewKey = async () => {
+    const v = newKeyVal.trim().replace(/\s+/g, " ");
+    if (/PRIVATE KEY|-----/i.test(v)) { toast.error(t("لا تشارك مفتاحك الخاص أبداً. الصق المفتاح العام فقط (ملف ‎.pub)", "Never share your private key. Paste the public key only (.pub file)")); return; }
+    if (!PUBKEY_RE.test(v) || v.length > 8000) { toast.error(t("صيغة المفتاح العام غير صحيحة", "Invalid public key format")); return; }
+    if (newKeyName.trim().length < 1) { toast.error(t("أدخل اسماً للمفتاح", "Enter a key name")); return; }
+    setSavingKey(true);
+    const { data, error } = await db.from("cloud_ssh_keys").insert({ user_id: user!.id, name: newKeyName.trim().slice(0, 64), public_key: v }).select("id").single();
+    setSavingKey(false);
+    if (error) { toast.error(error.message.includes("already") ? t("هذا المفتاح مضاف مسبقاً", "This key is already added") : t("تعذر حفظ المفتاح، تحقق من صيغته", "Could not save the key, check its format")); return; }
+    setSshKey((data as any).id); setNewKeyOpen(false); setNewKeyName(""); setNewKeyVal("");
+    qc.invalidateQueries({ queryKey: ["cloud_ssh_keys"] }); toast.success(t("تمت إضافة المفتاح", "Key added"));
+  };
   const [backups, setBackups] = useState(false);
   const [ipv4, setIpv4] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -71,7 +92,7 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
   const vat = subtotal * VAT;
   const total = subtotal + vat;
 
-  const canNext = [!!type, !!loc, !!planId, !!image, name.trim().length >= 2, true, false][step];
+  const canNext = [!!type, !!loc, !!planId, !!image, name.trim().length >= 2 && !!sshKey && keys.some((k: any) => k.id === sshKey), true, false][step];
   const Prev = isRtl ? ChevronRight : ChevronLeft;
   const Next = isRtl ? ChevronLeft : ChevronRight;
 
@@ -92,6 +113,7 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
       const msg = error.message.includes("insufficient")
         ? t("الرصيد غير كافٍ، يرجى شحن المحفظة", "Insufficient balance, please top up your wallet")
         : error.message.includes("capacity") || error.message.includes("reservation") ? capacityMsg
+        : error.message.includes("ssh key") ? t("أضف مفتاح SSH للوصول الآمن إلى خادمك بعد التفعيل.", "Add an SSH key for secure access to your server after activation.")
         : error.message.includes("architecture") ? t("نظام التشغيل غير متوافق مع معالج الباقة", "OS image not compatible with this plan")
         : t("تعذر إتمام الطلب", "Could not complete the order");
       toast.error(msg);
@@ -188,11 +210,19 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
             <div className="space-y-1.5"><Label>{t("اسم الخادم", "Server name")} *</Label><Input dir="ltr" value={name} maxLength={63} onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z0-9-]/g, ""))} placeholder="my-server-01" /></div>
             <div className="space-y-1.5"><Label>Hostname</Label><Input dir="ltr" value={hostname} maxLength={253} onChange={(e) => setHostname(e.target.value)} placeholder="server.example.com" /></div>
             <div className="space-y-1.5 md:col-span-2">
-              <Label>SSH Key</Label>
+              <Label>{t("مفتاح SSH", "SSH key")} *</Label>
+              <p className="text-xs text-muted-foreground">{t("أضف مفتاح SSH للوصول الآمن إلى خادمك بعد التفعيل.", "Add an SSH key for secure access to your server after activation.")}</p>
               <div className="flex flex-wrap gap-2">
-                <Button type="button" size="sm" variant={sshKey === null ? "default" : "outline"} onClick={() => setSshKey(null)}>{t("بدون", "None")}</Button>
-                {keys.map((k) => <Button key={k.id} type="button" size="sm" variant={sshKey === k.id ? "default" : "outline"} onClick={() => setSshKey(k.id)}>{k.name}</Button>)}
+                {keys.map((k: any) => <Button key={k.id} type="button" size="sm" variant={sshKey === k.id ? "default" : "outline"} onClick={() => setSshKey(k.id)}>{k.name}</Button>)}
+                <Button type="button" size="sm" variant={newKeyOpen ? "secondary" : "outline"} onClick={() => setNewKeyOpen(!newKeyOpen)}>+ {t("إضافة مفتاح جديد", "Add new key")}</Button>
               </div>
+              {!sshKey && !newKeyOpen && <p className="text-xs text-destructive">{t("مفتاح SSH مطلوب لإكمال الطلب.", "An SSH key is required to complete the order.")}</p>}
+              {newKeyOpen && <div className="rounded-xl border p-3 space-y-2">
+                <Input value={newKeyName} maxLength={64} onChange={(e) => setNewKeyName(e.target.value)} placeholder={t("اسم المفتاح، مثل: جهازي", "Key name, e.g. my-laptop")} />
+                <Textarea dir="ltr" rows={3} className="font-mono text-xs" value={newKeyVal} onChange={(e) => setNewKeyVal(e.target.value)} placeholder="ssh-ed25519 AAAA... user@host" />
+                <p className="text-xs text-muted-foreground">{t("الصق المفتاح العام فقط (محتوى ملف ‎.pub). لا تشارك المفتاح الخاص أبداً.", "Paste the public key only (contents of the .pub file). Never share your private key.")}</p>
+                <Button type="button" size="sm" onClick={saveNewKey} disabled={savingKey}>{savingKey && <Loader2 className="w-4 h-4 animate-spin" />}{t("حفظ واستخدام المفتاح", "Save and use key")}</Button>
+              </div>}
             </div>
             {backupPrice != null && <div className="flex items-center justify-between p-4 rounded-xl border md:col-span-2">
               <div><p className="font-medium text-sm">{t("النسخ الاحتياطي التلقائي", "Automatic backups")}</p><p className="text-xs text-muted-foreground">+{sar(backupPrice, lang)} / {t("شهرياً", "month")}</p></div>

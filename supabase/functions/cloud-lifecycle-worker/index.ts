@@ -8,8 +8,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { HetznerCloudProvider } from "../_shared/cloud-providers.ts";
 import { type Ctx, type LifecycleProvider, type ServerState, RealProvider, runProviderJob } from "../_shared/cloud-lifecycle-core.ts";
 export { classifyError } from "../_shared/cloud-lifecycle-core.ts";
-import { sendEmail } from "../_shared/email-gateway.ts";
-import { renderBrandedEmail } from "../_shared/email-template.ts";
+import { pollDelivery, processEmailQueue, renderJob } from "../_shared/cloud-email-queue.ts";
 
 const URL_ = Deno.env.get("SUPABASE_URL")!;
 const SR = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -38,48 +37,15 @@ class MockProvider implements LifecycleProvider {
   list() { return [...this.servers.values()]; }
 }
 
-// ---------- Email ----------
-const EMAIL_TEXT: Record<string, [string, string, string]> = {
-  renewal_reminder: ["تذكير بتجديد خدمة الخادم", "Server renewal reminder", "info"],
-  renewal_successful: ["تم تجديد خدمة الخادم", "Server renewal successful", "success"],
-  renewal_failed: ["فشل تجديد خدمة الخادم", "Server renewal failed", "danger"],
-  grace_started: ["بدأت مهلة السداد", "Grace period started", "warning"],
-  suspension_warning: ["تنبيه تعليق الخدمة", "Suspension warning", "warning"],
-  service_suspended: ["تم تعليق الخدمة", "Service suspended", "danger"],
-  payment_received: ["تم استلام الدفعة", "Payment received", "success"],
-  service_reactivated: ["تمت إعادة تفعيل الخدمة", "Service reactivated", "success"],
-  termination_warning: ["تنبيه موعد الحذف", "Termination warning", "danger"],
-  final_termination_warning: ["تنبيه نهائي قبل الحذف", "Final termination warning", "danger"],
-  service_terminated: ["تم إنهاء الخدمة", "Service terminated", "info"],
-  cancellation_scheduled: ["تمت جدولة الإلغاء", "Cancellation scheduled", "info"],
-};
 const emailConfigured = () => !!Deno.env.get("LOVABLE_API_KEY") && !!Deno.env.get("RESEND_API_KEY");
 
-async function sendLifecycleEmail(ctx: Ctx, job: any) {
-  const ev = String(job.payload?.event ?? ""); const t = EMAIL_TEXT[ev];
-  if (!t) return { ok: true, skipped: "no_email_for_event" };
-  const { data: u } = await ctx.db.auth.admin.getUserById(job.payload.user_id);
-  const to = u?.user?.email; if (!to) return { ok: false, error: "no_recipient" };
-  const amount = job.payload.amount_minor != null ? `${(job.payload.amount_minor / 100).toFixed(2)} SAR` : undefined;
-  const html = renderBrandedEmail({
-    title: `${t[0]} | ${t[1]}`, department: "الشؤون المالية", tone: t[2] as any, amount, legal: "financial",
-    intro: `${t[0]}. ${t[1]}.`,
-    details: job.payload.date ? [{ label: "التاريخ / Date", value: new Date(job.payload.date).toLocaleString("en-GB"), dir: "ltr" }] : [],
-    action: ["renewal_failed", "grace_started", "suspension_warning", "service_suspended", "termination_warning", "final_termination_warning"].includes(ev)
-      ? { label: "ادفع الآن / Pay now", url: "https://ash-holding.sa/dashboard/cloud" } : undefined,
-    notice: "خدمة البنية السحابية من ASH HOLDING. Cloud infrastructure service by ASH HOLDING.",
-  });
-  const r = await sendEmail({ from: "ASH HOLDING <billing@ash-holding.sa>", to, subject: `${t[0]} | ${t[1]}`, html, reply_to: "billing@ash-holding.sa" });
-  return r.error ? { ok: false, error: `email_${r.error.statusCode ?? "error"}` } : { ok: true };
-}
-
 // ---------- Scheduler scans ----------
-type Scan = { name: string; gate: string[]; run: (ctx: Ctx) => Promise<{ scanned: number; processed: number; ok: number; fail: number; notes?: string }> };
+type Scan = { name: string; gate: string[]; every?: number; run: (ctx: Ctx) => Promise<{ scanned: number; processed: number; ok: number; fail: number; notes?: string }> };
 const nowIso = (ctx: Ctx) => ctx.now ?? new Date().toISOString();
 const withNow = (ctx: Ctx, a: Record<string, unknown>) => (ctx.now ? { ...a, p_now: ctx.now } : a);
 
 const SCANS: Scan[] = [
-  { name: "renewal_due", gate: ["AUTOMATIC_RENEWALS_ENABLED"], run: async (ctx) => {
+  { name: "renewal_due", gate: ["AUTOMATIC_RENEWALS_ENABLED"], every: 60, run: async (ctx) => {
     const { data: st } = await ctx.db.from("cloud_lifecycle_settings").select("notify_before_days").single();
     const now = new Date(nowIso(ctx)).getTime();
     const { data: subs } = await ctx.db.from("cloud_subscriptions").select("*").eq("is_simulation", ctx.sim).in("status", ["active", "renewal_due"]).eq("auto_renew", true).limit(500);
@@ -98,7 +64,7 @@ const SCANS: Scan[] = [
     }
     return { scanned: subs?.length ?? 0, processed, ok, fail };
   } },
-  { name: "renewal_retry", gate: ["AUTOMATIC_RENEWALS_ENABLED"], run: async (ctx) => {
+  { name: "renewal_retry", gate: ["AUTOMATIC_RENEWALS_ENABLED"], every: 15, run: async (ctx) => {
     const { data: subs } = await ctx.db.from("cloud_subscriptions").select("id").eq("is_simulation", ctx.sim).in("status", ["payment_failed", "grace_period"]).lte("next_retry_at", nowIso(ctx)).limit(500);
     let ok = 0, fail = 0;
     for (const s of subs ?? []) {
@@ -107,18 +73,20 @@ const SCANS: Scan[] = [
     }
     return { scanned: subs?.length ?? 0, processed: subs?.length ?? 0, ok, fail };
   } },
-  { name: "grace_expiry", gate: ["AUTOMATIC_SUSPENSIONS_ENABLED"], run: async (ctx) => {
+  { name: "grace_expiry", gate: ["AUTOMATIC_SUSPENSIONS_ENABLED"], every: 15, run: async (ctx) => {
     const { data: subs } = await ctx.db.from("cloud_subscriptions").select("id").eq("is_simulation", ctx.sim).eq("status", "grace_period").lte("grace_ends_at", nowIso(ctx)).limit(500);
     let ok = 0; for (const s of subs ?? []) if ((await ctx.db.rpc("cloud_begin_suspension", withNow(ctx, { p_sub: s.id }))).data?.ok) ok++;
     return { scanned: subs?.length ?? 0, processed: subs?.length ?? 0, ok, fail: (subs?.length ?? 0) - ok };
   } },
-  { name: "termination", gate: ["AUTOMATIC_TERMINATIONS_ENABLED"], run: async (ctx) => {
+  // Detects due terminations and sends the final warning; deletion jobs only run when AUTOMATIC_TERMINATIONS_ENABLED=true.
+  { name: "termination", gate: [], every: 60, run: async (ctx) => {
     const soon = new Date(new Date(nowIso(ctx)).getTime() + 86400000).toISOString();
     const { data: subs } = await ctx.db.from("cloud_subscriptions").select("id,termination_scheduled_at,final_warning_sent_at").eq("is_simulation", ctx.sim).in("status", ["suspended", "cancellation_pending"]).lte("termination_scheduled_at", soon).limit(200);
     let ok = 0, processed = 0;
     for (const s of subs ?? []) {
       if (!s.final_warning_sent_at) { await ctx.db.rpc("cloud_send_final_warning", withNow(ctx, { p_sub: s.id })); continue; }
       if (s.termination_scheduled_at > nowIso(ctx)) continue;
+      if (!ctx.switches.AUTOMATIC_TERMINATIONS_ENABLED && !ctx.sim) continue; // detection only
       processed++; if ((await ctx.db.rpc("cloud_begin_termination", withNow(ctx, { p_sub: s.id }))).data?.ok) ok++;
     }
     return { scanned: subs?.length ?? 0, processed, ok, fail: processed - ok };
@@ -136,7 +104,7 @@ const SCANS: Scan[] = [
     }
     return { scanned: jobs?.length ?? 0, processed: ok + fail, ok, fail };
   } },
-  { name: "reconciliation", gate: [], run: async (ctx) => {
+  { name: "reconciliation", gate: [], every: 60, run: async (ctx) => {
     if (ctx.sim) return { scanned: 0, processed: 0, ok: 0, fail: 0, notes: "covered by N/O tests" };
     // Read-only: list provider servers and compare with internal mapping. Never deletes or fixes.
     const p = new HetznerCloudProvider(); let list: any[] = [];
@@ -156,23 +124,28 @@ const SCANS: Scan[] = [
     }
     return { scanned: list.length, processed: findings.length, ok: list.length, fail: 0 };
   } },
-  { name: "email_queue", gate: [], run: async (ctx) => {
-    const { data: jobs } = await ctx.db.from("cloud_jobs").select("id").eq("is_simulation", ctx.sim).eq("status", "queued").eq("job_type", "notification").lte("scheduled_at", new Date().toISOString()).limit(50);
-    if (!emailConfigured()) return { scanned: jobs?.length ?? 0, processed: 0, ok: 0, fail: 0, notes: "CONFIGURATION_REQUIRED" };
-    let ok = 0, fail = 0;
-    for (const j of jobs ?? []) {
-      const claimed = (await ctx.db.rpc("cloud_claim_job", { p_job: j.id })).data; if (!claimed?.id) continue;
-      const r = ctx.sim ? { ok: true } : await sendLifecycleEmail(ctx, claimed);
-      await ctx.db.rpc("cloud_finish_job", { p_job: j.id, p_ok: r.ok, p_class: r.ok ? null : "temporary", p_error: (r as any).error ?? null }); r.ok ? ok++ : fail++;
-    }
-    return { scanned: jobs?.length ?? 0, processed: ok + fail, ok, fail };
+  { name: "email_queue", gate: [], run: async (ctx) => (ctx.sim ? { scanned: 0, processed: 0, ok: 0, fail: 0, notes: "simulation sends no email" } : emailConfigured() ? await processEmailQueue(ctx.db) : { scanned: 0, processed: 0, ok: 0, fail: 0, notes: "CONFIGURATION_REQUIRED" }) },
+  { name: "email_delivery", gate: [], every: 10, run: async (ctx) => (ctx.sim || !emailConfigured() ? { scanned: 0, processed: 0, ok: 0, fail: 0 } : await pollDelivery(ctx.db)) },
+  { name: "provisioning_queue", gate: ["LIVE_PROVISIONING_ENABLED"], run: async (ctx) => {
+    if (ctx.sim) return { scanned: 0, processed: 0, ok: 0, fail: 0, notes: "covered by provisioning simulation" };
+    const r = await fetch(`${URL_}/functions/v1/cloud-provisioning-worker`, { method: "POST", headers: { Authorization: `Bearer ${SR}`, "Content-Type": "application/json" }, body: JSON.stringify({ action: "run_queue" }), signal: AbortSignal.timeout(140000) });
+    const b = await r.json().catch(() => ({}));
+    const outs: any[] = b.out ?? []; const bad = outs.filter((o) => o.error || o.result === "manual_review").length;
+    return { scanned: outs.length, processed: outs.filter((o) => !o.skipped).length, ok: outs.length - bad, fail: bad + (r.ok ? 0 : 1), notes: r.ok ? undefined : `http_${r.status}` };
   } },
 ];
 
+const EMAIL_SCANS = new Set(["email_queue", "email_delivery"]); // email is independent of lifecycle switches
 async function tick(ctx: Ctx, only?: string[]) {
   const out: Record<string, unknown> = {};
   for (const scan of SCANS) {
     if (only && !only.includes(scan.name)) continue;
+    if (!ctx.sim && !only && !ctx.switches.LIFECYCLE_SCHEDULER_ENABLED && !EMAIL_SCANS.has(scan.name)) { out[scan.name] = "scheduler_disabled"; continue; }
+    if (!ctx.sim && !only && scan.every) {
+      const since = new Date(Date.now() - (scan.every * 60 - 20) * 1000).toISOString();
+      const { count } = await ctx.db.from("cloud_scheduler_runs").select("id", { count: "exact", head: true }).eq("job_type", scan.name).eq("is_simulation", false).in("status", ["finished", "disabled"]).gte("started_at", since);
+      if (count) { out[scan.name] = "not_due"; continue; }
+    }
     const enabled = ctx.sim || scan.gate.every((g) => ctx.switches[g]);
     const run = (await ctx.db.rpc("cloud_scheduler_begin", { p_type: (ctx.sim ? "sim:" : "") + scan.name, p_ttl_seconds: 600, p_sim: ctx.sim })).data;
     if (!run) { out[scan.name] = "skipped_locked"; continue; }
@@ -194,7 +167,8 @@ Deno.serve(async (req) => {
   const db = createClient(URL_, SR);
   const token = (req.headers.get("Authorization") ?? "").replace("Bearer ", "");
   const schedSecret = Deno.env.get("LIFECYCLE_SCHEDULER_SECRET");
-  const isScheduler = !!schedSecret && req.headers.get("x-scheduler-secret") === schedSecret;
+  const hdr = req.headers.get("x-scheduler-secret") ?? "";
+  const isScheduler = (!!schedSecret && hdr === schedSecret) || (hdr.length >= 32 && !!(await db.rpc("cloud_scheduler_secret_ok", { p_secret: hdr })).data);
   let actor: string | null = null;
   if (token !== SR && !isScheduler) {
     const { data: u } = await db.auth.getUser(token);
@@ -211,10 +185,13 @@ Deno.serve(async (req) => {
     AUTOMATIC_RENEWALS_ENABLED: flag("AUTOMATIC_RENEWALS_ENABLED"), AUTOMATIC_SUSPENSIONS_ENABLED: flag("AUTOMATIC_SUSPENSIONS_ENABLED"),
     AUTOMATIC_TERMINATIONS_ENABLED: flag("AUTOMATIC_TERMINATIONS_ENABLED"), LIFECYCLE_SCHEDULER_ENABLED: flag("LIFECYCLE_SCHEDULER_ENABLED"),
   };
-  if (action === "status") return json({ switches, email: emailConfigured() ? "configured" : "CONFIGURATION_REQUIRED", scheduler_secret: schedSecret ? "set" : "not_set" });
-  if (action === "tick") {
-    if (!switches.LIFECYCLE_SCHEDULER_ENABLED) return json({ switches, out: "LIFECYCLE_SCHEDULER_ENABLED=false" });
-    return json({ switches, out: await tick({ db, sim: false, prov: new RealProvider(), switches, actor }) });
+  if (action === "status") {
+    return json({ switches, email: emailConfigured() ? "configured" : "CONFIGURATION_REQUIRED", scheduler_secret: schedSecret ? "set" : "vault" });
+  }
+  if (action === "tick") return json({ switches, out: await tick({ db, sim: false, prov: new RealProvider(), switches, actor }) });
+  if (action === "email_test") {
+    if (!actor) return json({ error: "admin_only" }, 403);
+    return json(await emailTest(db, actor));
   }
   if (action === "verify_provider_jobs") {
     // Dry-run of every queued real provider job: safety checks + provider read only. No mutation.
@@ -425,4 +402,34 @@ async function simulate(db: any, actor: string | null, switches: Record<string, 
     await db.from("cloud_scheduler_locks").delete().like("job_type", "sim:%");
   }
   return { ran_at: new Date().toISOString(), passed: results.filter((r) => r.pass).length, total: results.length, results, cleaned_up: created.length };
+}
+
+// ================= Admin email test (admin inbox only) =================
+const TEST_TEMPLATES: [string, string][] = [["A", "provisioning_started"], ["B", "server_ready"], ["C", "renewal_reminder"], ["D", "renewal_failed"], ["E", "suspension_warning"],
+  ["F", "service_suspended"], ["G", "service_reactivated"], ["H", "final_termination_warning"], ["I", "payment_receipt"]];
+async function emailTest(db: any, admin: string) {
+  const { data: u } = await db.auth.admin.getUserById(admin); const to = u?.user?.email;
+  if (!to) return { error: "no_admin_email" };
+  const run = crypto.randomUUID().slice(0, 8);
+  const preview = (l: string) => ({ server_name: "ash-demo-01", service_id: "SRV-DEMO0001", location: l === "ar" ? "فالكنشتاين، ألمانيا" : "Falkenstein, Germany", os: "Ubuntu 24.04 LTS",
+    vcpu: 2, ram_gb: 4, disk_gb: 40, ipv4: "203.0.113.10", ipv6: "2001:db8::1", ssh_key_name: "my-laptop", renewal_date: l === "ar" ? "3 نوفمبر 2026" : "3 November 2026",
+    due_date: l === "ar" ? "6 نوفمبر 2026" : "6 November 2026", deletion_date: l === "ar" ? "13 نوفمبر 2026" : "13 November 2026", invoice_number: "CLD-20261003-DEMO",
+    subtotal: l === "ar" ? "49.00 ر.س" : "49.00 SAR", vat: l === "ar" ? "7.35 ر.س" : "7.35 SAR", total: l === "ar" ? "56.35 ر.س" : "56.35 SAR", amount_due: l === "ar" ? "56.35 ر.س" : "56.35 SAR",
+    payment_status: l === "ar" ? "مدفوع" : "Paid", server_url: "https://ash-holding.sa/dashboard/cloud", billing_url: "https://ash-holding.sa/dashboard/cloud" });
+  const ids: string[] = [];
+  for (const [, tpl] of TEST_TEMPLATES) for (const l of ["ar", "en"]) {
+    const { data } = await db.rpc("cloud_enqueue_email", { p_user: admin, p_template: tpl, p_key: `test:${run}:${tpl}:${l}`, p_data: { preview: preview(l) }, p_test: true, p_recipient: to, p_locale: l });
+    if (data) ids.push(data);
+  }
+  // duplicate enqueue must be ignored
+  const { data: dup } = await db.rpc("cloud_enqueue_email", { p_user: admin, p_template: "server_ready", p_key: `test:${run}:server_ready:ar`, p_data: {}, p_test: true, p_recipient: to, p_locale: "ar" });
+  let sent = 0; for (let i = 0; i < 3 && sent < ids.length; i++) sent += (await processEmailQueue(db, 20)).ok;
+  const { data: rows } = await db.from("cloud_email_jobs").select("id,template,locale,sender,status,attempts,provider_message_id,last_error").in("id", ids);
+  const checks = [];
+  for (const r of rows ?? []) {
+    const m = await renderJob(db, { ...r, data: { preview: preview(r.locale) } });
+    checks.push({ template: r.template, locale: r.locale, status: r.status, attempts: r.attempts, from: m?.from, reply_to: m?.reply_to, subject: m?.subject,
+      dir_ok: !!m?.html.includes(`dir="${r.locale === "ar" ? "rtl" : "ltr"}"`), clean: m ? !/hetzner|moyasar/i.test(m.html + m.subject) : false, error: r.last_error });
+  }
+  return { run, recipient_is_admin: true, queued: ids.length, duplicate_ignored: dup === null, sent: (rows ?? []).filter((r: any) => r.status === "sent").length, checks };
 }
