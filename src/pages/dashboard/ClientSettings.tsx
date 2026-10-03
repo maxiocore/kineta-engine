@@ -171,7 +171,7 @@ const ClientSettings = () => {
       const code = String(error?.code || '');
       if (code === 'weak_password' || msg.includes('pwned') || msg.includes('weak') || msg.includes('known')) {
         toast.error(t('كلمة المرور ضعيفة أو مسرّبة، اختر كلمة أقوى', 'Password is weak or has appeared in a data leak. Choose a stronger one.'));
-      } else if (code === 'current_password_mismatch' || code === 'current_password_required' || msg.includes('current password')) {
+      } else if (code === 'current_password_invalid' || code === 'current_password_required' || msg.includes('current password')) {
         toast.error(t('كلمة المرور الحالية غير صحيحة', 'Current password is incorrect'));
       } else {
         toast.error(t('فشل في تحديث كلمة المرور', 'Failed to update password'));
