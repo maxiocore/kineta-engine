@@ -39,7 +39,7 @@ export default function CustomerE2ETestSection({ t, lang }: { t: T; lang: string
   }, [test?.status]);
   const run = async (k: string, fn: () => Promise<any>) => { setBusy(k); try { const r = await fn(); if (r?.ok === false) toast.error(r.error ?? "failed"); return r; } finally { setBusy(null); refresh(); } };
 
-  const checks = pf?.checks ?? test?.preflight ?? null;
+  const checks = pf ? { ...pf.checks, passed: pf.passed } : test?.preflight ?? null;
   const L = test?.lifecycle ?? {};
   const idx = STAGES.indexOf(test?.stage ?? "");
   const passed = test?.status === "cleaned_up" && test?.stage === "passed";
