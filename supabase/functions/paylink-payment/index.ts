@@ -134,6 +134,14 @@ async function getInvoice(
   return data;
 }
 
+async function completeVerified(supabase: any, depositId: string, amount: number, currency: string, ref: string) {
+  const { data, error } = await supabase.rpc("complete_deposit_verified", {
+    p_deposit_id: depositId, p_verified_amount: amount, p_currency: currency, p_provider_ref: ref,
+  });
+  if (error) { console.error("complete_deposit_verified failed"); return { ok: false, error: "db_error" }; }
+  return data as { ok: boolean; duplicate?: boolean; error?: string };
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -158,6 +166,19 @@ serve(async (req) => {
           cancelUrl,
         } = params;
 
+        // Caller must be the signed-in owner of the deposit; amount must be sane
+        {
+          const jwt = (req.headers.get("Authorization") || "").replace("Bearer ", "");
+          const { data: authData } = await supabase.auth.getUser(jwt);
+          if (!authData?.user || authData.user.id !== userId) {
+            return new Response(JSON.stringify({ error: "unauthorized" }),
+              { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+          if (typeof amount !== "number" || !isFinite(amount) || amount <= 0 || amount > 100000) {
+            return new Response(JSON.stringify({ error: "invalid_amount" }),
+              { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+        }
         if (!userId || !amount || !clientName || !clientMobile) {
           return new Response(
             JSON.stringify({ error: "Missing required fields" }),
@@ -271,10 +292,12 @@ serve(async (req) => {
 
         // Verify payment status with Paylink API
         let paylinkStatus: string;
+        let paylinkAmount = NaN;
         try {
           const token = await getAuthToken();
           const invoice = await getInvoice(token, deposit.transaction_id);
           paylinkStatus = invoice.orderStatus;
+          paylinkAmount = Number((invoice as any).amount);
           console.log("Paylink verification result:", paylinkStatus);
         } catch (e) {
           // CRITICAL: If we cannot verify with Paylink, we should NOT credit the balance
@@ -290,16 +313,11 @@ serve(async (req) => {
 
         if (paylinkStatus === "Paid") {
           // Update deposit to completed
-          const { error: updateError } = await supabase
-            .from("deposits")
-            .update({
-              status: "completed",
-              completed_at: new Date().toISOString(),
-            })
-            .eq("id", deposit.id);
-
-          if (updateError) {
-            console.error("Error updating deposit:", updateError);
+          // Atomic, idempotent completion with verified amount/currency/reference
+          const done = await completeVerified(supabase, deposit.id, paylinkAmount, "SAR", deposit.transaction_id);
+          if (!done.ok) {
+            return new Response(JSON.stringify({ success: false, message: "تعذر تأكيد الدفع" }),
+              { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
 
           // Note: Balance is updated automatically by the database trigger (update_balance_on_deposit)
@@ -395,17 +413,26 @@ serve(async (req) => {
           }
 
           // Update deposit to completed
-          const { error: updateError } = await supabase
-            .from("deposits")
-            .update({
-              status: "completed",
-              completed_at: new Date().toISOString(),
-            })
-            .eq("id", deposit.id);
-
-          if (updateError) {
-            console.error("Error updating deposit:", updateError);
-            throw new Error("Failed to update deposit");
+          // Never trust webhook body: re-verify with Paylink, then complete atomically
+          let verified: any;
+          try {
+            verified = await getInvoice(await getAuthToken(), deposit.transaction_id);
+          } catch (_e) {
+            return new Response(JSON.stringify({ error: "verification_failed" }),
+              { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+          if (verified?.orderStatus !== "Paid") {
+            return new Response(JSON.stringify({ error: "not_paid" }),
+              { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+          const done = await completeVerified(supabase, deposit.id, Number(verified.amount), "SAR", deposit.transaction_id);
+          if (!done.ok) {
+            return new Response(JSON.stringify({ error: done.error }),
+              { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+          if (done.duplicate) {
+            return new Response(JSON.stringify({ success: true, message: "Already processed" }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
 
           // Note: Balance is updated automatically by the database trigger (update_balance_on_deposit)

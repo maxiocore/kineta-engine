@@ -4837,6 +4837,7 @@ export type Database = {
           commission_amount: number
           commission_rate: number
           created_at: string
+          deposit_id: string | null
           id: string
           order_amount: number
           order_id: string
@@ -4848,6 +4849,7 @@ export type Database = {
           commission_amount: number
           commission_rate: number
           created_at?: string
+          deposit_id?: string | null
           id?: string
           order_amount: number
           order_id: string
@@ -4859,6 +4861,7 @@ export type Database = {
           commission_amount?: number
           commission_rate?: number
           created_at?: string
+          deposit_id?: string | null
           id?: string
           order_amount?: number
           order_id?: string
@@ -6065,6 +6068,59 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_list_cloud_orders: {
+        Args: never
+        Returns: {
+          adjusted_cost_sar: number | null
+          backups_selected: boolean | null
+          cost_buffer_pct: number | null
+          created_at: string
+          exchange_rate_used: number | null
+          gross_margin_pct: number | null
+          gross_profit: number | null
+          id: string
+          idempotency_key: string
+          included_traffic_tb: number | null
+          ipv4_selected: boolean | null
+          is_e2e_test: boolean
+          location_code: string | null
+          overage_cost_sar: number | null
+          payment_method: string
+          plan_id: string | null
+          provider_addons_cost: number | null
+          provider_backup_cost: number | null
+          provider_cost_original: number | null
+          provider_cost_sar: number | null
+          provider_currency: string | null
+          provider_ipv4_cost: number | null
+          provider_server_cost: number | null
+          raw_provider_cost: number | null
+          refund_amount: number | null
+          refunded_at: string | null
+          retail_addons_price: number | null
+          retail_backup_price: number | null
+          retail_ipv4_price: number | null
+          retail_price_before_vat: number | null
+          retail_server_price: number | null
+          server_id: string | null
+          status: string
+          subtotal: number
+          total: number
+          traffic_overage_currency: string | null
+          traffic_overage_price: number | null
+          transaction_reference: string
+          updated_at: string
+          user_id: string
+          vat_amount: number
+          vat_rate: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "cloud_orders"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       admin_refund_cloud_order: { Args: { p_order_id: string }; Returns: Json }
       admin_refund_wallet_transaction: {
         Args: {
@@ -6075,6 +6131,7 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_referral_code: { Args: { p_code: string }; Returns: Json }
       atomic_credit_deposit: {
         Args: {
           p_actor_id?: string
@@ -6112,7 +6169,20 @@ export type Database = {
         Returns: Json
       }
       cleanup_email_rate_limits: { Args: never; Returns: undefined }
+      cloud_action_rate_check: {
+        Args: { p_action: string; p_server: string; p_user: string }
+        Returns: boolean
+      }
       cloud_effective_rate: { Args: never; Returns: number }
+      complete_deposit_verified: {
+        Args: {
+          p_currency: string
+          p_deposit_id: string
+          p_provider_ref: string
+          p_verified_amount: number
+        }
+        Returns: Json
+      }
       create_contract_new_version: {
         Args: {
           p_new_contract_data?: Json
@@ -6133,6 +6203,7 @@ export type Database = {
         }
         Returns: Json
       }
+      ensure_my_referral_code: { Args: never; Returns: Json }
       execute_internal_transfer: {
         Args: {
           p_amount: number

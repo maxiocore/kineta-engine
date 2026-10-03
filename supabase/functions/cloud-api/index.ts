@@ -52,6 +52,9 @@ Deno.serve(async (req) => {
     const { data: server } = await admin.from("cloud_servers").select("*").eq("id", b.server_id).maybeSingle();
     if (!server || server.user_id !== user.id) return json({ error: "not found" }, 404);
 
+    const { data: allowed, error: rlErr } = await admin.rpc("cloud_action_rate_check", { p_user: user.id, p_server: server.id, p_action: b.action === "power" ? b.type : b.action });
+    if (rlErr || !allowed) return json({ ok: false, error: "rate_limited", message: "Too many server actions. Please wait a minute." }, 429);
+
     if (b.action === "cancel") return await customerCancel(admin, user.id, server);
     if (["pending", "suspended", "cancelled", "terminated", "terminating", "cancellation_pending", "provisioning", "configuring"].includes(server.status)) return json({ error: "server_not_ready" }, 409);
 

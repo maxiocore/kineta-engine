@@ -67,14 +67,8 @@ export function useReferral() {
       if (codeData) {
         setReferralCode(codeData);
       } else {
-        // Create referral code if it doesn't exist
-        const newCode = generateCode();
-        const { data: newCodeData } = await supabase
-          .from('referral_codes')
-          .insert({ user_id: user.id, code: newCode })
-          .select()
-          .single();
-        
+        // Created on the server
+        const { data: newCodeData } = await (supabase as any).rpc('ensure_my_referral_code');
         if (newCodeData) {
           setReferralCode(newCodeData);
         }
@@ -150,53 +144,17 @@ export function useReferral() {
     if (!user) return { success: false, error: 'يجب تسجيل الدخول أولاً' };
 
     try {
-      // Check if code exists and is active
-      const { data: codeData } = await supabase
-        .from('referral_codes')
-        .select('*')
-        .eq('code', code.toUpperCase())
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (!codeData) {
-        return { success: false, error: 'كود الإحالة غير صالح' };
+      // Validated and applied on the server (no direct writes from the browser)
+      const { data, error } = await (supabase as any).rpc('apply_referral_code', { p_code: code });
+      if (error) throw error;
+      if (!data?.ok) {
+        const map: Record<string, string> = {
+          invalid_code: 'كود الإحالة غير صالح',
+          own_code: 'لا يمكنك استخدام كود الإحالة الخاص بك',
+          already_referred: 'لقد استخدمت كود إحالة سابقاً',
+        };
+        return { success: false, error: map[data?.error] || 'كود الإحالة غير صالح' };
       }
-
-      // Check if user is trying to use their own code
-      if (codeData.user_id === user.id) {
-        return { success: false, error: 'لا يمكنك استخدام كود الإحالة الخاص بك' };
-      }
-
-      // Check if user already has a referral
-      const { data: existingReferral } = await supabase
-        .from('referrals')
-        .select('id')
-        .eq('referred_id', user.id)
-        .maybeSingle();
-
-      if (existingReferral) {
-        return { success: false, error: 'لقد استخدمت كود إحالة سابقاً' };
-      }
-
-      // Create referral
-      const { error: insertError } = await supabase
-        .from('referrals')
-        .insert({
-          referrer_id: codeData.user_id,
-          referred_id: user.id,
-          referral_code: code.toUpperCase(),
-          status: 'converted',
-          converted_at: new Date().toISOString(),
-        });
-
-      if (insertError) throw insertError;
-
-      // Update referral code stats
-      await supabase
-        .from('referral_codes')
-        .update({ total_referrals: codeData.total_referrals + 1 })
-        .eq('id', codeData.id);
-
       return { success: true };
     } catch (error) {
       console.error('Error applying referral code:', error);
