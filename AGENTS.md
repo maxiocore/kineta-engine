@@ -2,3 +2,5 @@
 - All Resend email sends go through the Lovable connector gateway via supabase/functions/_shared/email-gateway.ts, never api.resend.com directly; why: the linked RESEND_API_KEY is a gateway connection key rejected by the direct Resend API.
 - All app email HTML is rendered or normalized through supabase/functions/_shared/email-template.ts; why: every department must share the same accessible RTL brand shell, legal footer, and email-client-safe structure.
 - Cloud/server infrastructure goes through supabase/functions/cloud-api with the CloudProvider interface in providers.ts; why: provider-agnostic, credentials stay server-side, provider names never reach clients.
+- Cloud costs, provider IDs and provider mappings live only in admin-only tables (cloud_plan_costs, cloud_resource_mappings, cloud_provider_catalog); why: customer-readable catalogue tables must never expose provider data or margins.
+- Cloud orders go through order_cloud_server with a client idempotency key and create one cloud_orders row + one provisioning job; why: retries/double-clicks must never double-debit or create duplicate servers.
