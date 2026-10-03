@@ -63,6 +63,7 @@ export default function PricingSection({ t, lang }: { t: T; lang: string }) {
             <F k="min_margin_pct" label={t("حد تنبيه الهامش الأدنى %", "Minimum margin warning %")} />
             <F k="rate_stale_hours" label={t("اعتبار السعر قديماً بعد (ساعة)", "Rate stale after (hours)")} step="1" />
           </div>
+          <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-2 text-xs">{t("تنبيه: قيمتا هامش أمان التكلفة 3% وحد تنبيه الهامش 20% مؤقتتان اختارهما النظام وليستا قراراً تجارياً نهائياً — عدّلهما عند تحديد القيم.", "Note: the 3% cost buffer and 20% low-margin warning are temporary system defaults, not a final business decision — change them when decided.")}</p>
           <label className="block text-xs space-y-1"><span className="text-muted-foreground">{t("وضع التجهيز", "Provisioning mode")}</span>
             <select className="h-10 w-full rounded-md border bg-background px-2 text-sm" value="manual_approval" disabled><option value="manual_approval">{t("موافقة يدوية من الإدارة", "Manual approval")}</option></select>
             <span className="text-muted-foreground">{t("التجهيز التلقائي جاهز في النظام لكنه غير مفعّل حتى تطلبه.", "Automatic provisioning is prepared but not enabled until requested.")}</span></label>
@@ -74,6 +75,7 @@ export default function PricingSection({ t, lang }: { t: T; lang: string }) {
           <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="outline" disabled={!!busy} onClick={() => run("rate", { action: "admin_refresh_rate" }, (r) => `1 EUR = ${Number(r.rate).toFixed(4)} SAR`)}>{busy === "rate" ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}{t("تحديث سعر الصرف", "Refresh exchange rate")}</Button>
             {hz && <Button size="sm" variant="outline" disabled={!!busy} onClick={() => run("prices", { action: "admin_sync_prices", provider_id: hz.id }, (r) => t(`تم: ${r.count} سعر، ${r.changed} تغيير`, `${r.count} prices, ${r.changed} changed`))}>{busy === "prices" ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}{t("مزامنة أسعار المزود", "Sync provider prices")}</Button>}
+            {hz && <Button size="sm" variant="outline" disabled={!!busy} onClick={() => run("addons", { action: "admin_sync_addons", provider_id: hz.id }, (r) => t(`تم: ${r.addons} إضافة`, `${r.addons} add-ons`))}>{busy === "addons" ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}{t("مزامنة أسعار الإضافات", "Sync add-on prices")}</Button>}
             <Button size="sm" variant="outline" disabled={!!busy} onClick={() => run("m", { action: "admin_check_margins" }, (r) => t(`${r.alerts} تنبيه`, `${r.alerts} alerts`))}>{t("فحص الهوامش", "Check margins")}</Button>
           </div>
           <p className="text-xs text-muted-foreground">{t("المزامنة لا تغيّر أسعار البيع أبداً. أي تغيير في تكلفة المزود يظهر كتنبيه فقط.", "Sync never changes retail prices; provider cost changes only raise alerts.")}</p>
@@ -94,11 +96,19 @@ export default function PricingSection({ t, lang }: { t: T; lang: string }) {
       </div>
 
       <section className="space-y-2">
+        <h3 className="font-semibold">{t("أسعار إضافات المزود", "Provider add-on pricing")} ({ctx.addons.length})</h3>
+        <DataTable empty={t("لا توجد بيانات؛ نفّذ مزامنة أسعار الإضافات", "No data; run add-on sync")}
+          cols={[t("المورد", "Resource"), t("النوع", "Variant"), t("الموقع", "Location"), t("الوحدة", "Unit"), t("السعر الصافي", "Net price"), t("المصدر", "Source"), t("آخر مزامنة", "Synced")]}
+          rows={ctx.addons.filter((a) => a.resource !== "load_balancer").map((a) => [a.resource, a.variant || "—", <span className="font-mono text-xs">{a.location}</span>, a.unit ?? "—",
+            !a.pricing_available ? <Pill tone="warn">Pricing unavailable</Pill> : a.percentage != null ? `${Number(a.percentage)}%` : <span dir="ltr">€{Number(a.price_net).toFixed(4)}</span>, <span className="text-xs">{a.source}</span>, dt(a.synced_at, lang)])} />
+      </section>
+
+      <section className="space-y-2">
         <div className="flex items-center justify-between gap-2 flex-wrap"><h3 className="font-semibold">{t("مصفوفة تكلفة المزود حسب الموقع", "Provider cost matrix by location")} ({ctx.prices.length})</h3>
           <Input className="max-w-xs" placeholder={t("بحث بالنوع أو الموقع", "Filter type or location")} value={q} onChange={(e) => setQ(e.target.value)} /></div>
         <DataTable empty={t("لا توجد أسعار؛ نفّذ مزامنة الأسعار", "No prices; run price sync")}
-          cols={[t("النوع", "Server type"), t("الموقع", "Location"), t("شهري EUR", "Monthly EUR"), t("بالساعة EUR", "Hourly EUR"), t("محوّل SAR", "Converted SAR"), t("بعد هامش الأمان", "Adjusted SAR"), t("النقل المضمّن", "Traffic"), t("تغيّر", "Change"), t("آخر مزامنة", "Synced")]}
-          rows={matrix.map((p) => { const sar = Number(p.monthly_net) * rate; return [<span className="font-mono text-xs">{p.server_type}</span>, <span className="font-mono text-xs">{p.location}</span>, eur(Number(p.monthly_net)), p.hourly_net ? `€${Number(p.hourly_net).toFixed(4)}` : "—", sarFmt(sar), sarFmt(sar * (1 + ctx.buffer / 100)), p.included_traffic_tb ? `${Number(p.included_traffic_tb).toFixed(0)} TB` : "—",
+          cols={[t("النوع", "Server type"), t("الموقع", "Location"), t("شهري EUR", "Monthly EUR"), t("بالساعة EUR", "Hourly EUR"), t("محوّل SAR", "Converted SAR"), t("بعد هامش الأمان", "Adjusted SAR"), t("النقل المضمّن", "Traffic"), t("تجاوز €/TB", "Overage €/TB"), t("تغيّر", "Change"), t("آخر مزامنة", "Synced")]}
+          rows={matrix.map((p) => { const sar = Number(p.monthly_net) * rate; return [<span className="font-mono text-xs">{p.server_type}</span>, <span className="font-mono text-xs">{p.location}</span>, eur(Number(p.monthly_net)), p.hourly_net ? `€${Number(p.hourly_net).toFixed(4)}` : "—", sarFmt(sar), sarFmt(sar * (1 + ctx.buffer / 100)), p.included_traffic_tb ? `${Number(p.included_traffic_tb).toFixed(0)} TB` : "—", p.overage_price_per_tb != null ? `€${Number(p.overage_price_per_tb).toFixed(2)}` : <span className="text-xs">Overage pricing unavailable</span>,
             p.previous_monthly_net != null ? <span dir="ltr">{eur(Number(p.previous_monthly_net))} → {eur(Number(p.monthly_net))}</span> : "—", dt(p.synced_at, lang)]; })} />
       </section>
     </div>

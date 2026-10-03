@@ -788,11 +788,13 @@ export type Database = {
           code: string
           country: string | null
           created_at: string
+          customer_visible: boolean
           dedicated_available: boolean
           id: string
           is_active: boolean
           name_ar: string
           name_en: string
+          provider_available: boolean
           sort_order: number
           updated_at: string
         }
@@ -802,11 +804,13 @@ export type Database = {
           code: string
           country?: string | null
           created_at?: string
+          customer_visible?: boolean
           dedicated_available?: boolean
           id?: string
           is_active?: boolean
           name_ar: string
           name_en: string
+          provider_available?: boolean
           sort_order?: number
           updated_at?: string
         }
@@ -816,11 +820,13 @@ export type Database = {
           code?: string
           country?: string | null
           created_at?: string
+          customer_visible?: boolean
           dedicated_available?: boolean
           id?: string
           is_active?: boolean
           name_ar?: string
           name_en?: string
+          provider_available?: boolean
           sort_order?: number
           updated_at?: string
         }
@@ -1005,6 +1011,8 @@ export type Database = {
           featured: boolean
           id: string
           ipv4_included: boolean
+          ipv4_mode: string
+          ipv4_retail_price: number | null
           ipv6_included: boolean
           is_active: boolean
           location_codes: string[]
@@ -1014,6 +1022,7 @@ export type Database = {
           network: string | null
           pricing_mode: string
           ram_gb: number
+          retail_backup_price: number | null
           server_type: string
           setup_fee: number
           sort_order: number
@@ -1038,6 +1047,8 @@ export type Database = {
           featured?: boolean
           id?: string
           ipv4_included?: boolean
+          ipv4_mode?: string
+          ipv4_retail_price?: number | null
           ipv6_included?: boolean
           is_active?: boolean
           location_codes?: string[]
@@ -1047,6 +1058,7 @@ export type Database = {
           network?: string | null
           pricing_mode?: string
           ram_gb?: number
+          retail_backup_price?: number | null
           server_type: string
           setup_fee?: number
           sort_order?: number
@@ -1071,6 +1083,8 @@ export type Database = {
           featured?: boolean
           id?: string
           ipv4_included?: boolean
+          ipv4_mode?: string
+          ipv4_retail_price?: number | null
           ipv6_included?: boolean
           is_active?: boolean
           location_codes?: string[]
@@ -1080,6 +1094,7 @@ export type Database = {
           network?: string | null
           pricing_mode?: string
           ram_gb?: number
+          retail_backup_price?: number | null
           server_type?: string
           setup_fee?: number
           sort_order?: number
@@ -1187,6 +1202,65 @@ export type Database = {
         }
         Relationships: []
       }
+      cloud_provider_addon_prices: {
+        Row: {
+          currency: string
+          id: string
+          location: string
+          note: string | null
+          percentage: number | null
+          price_gross: number | null
+          price_net: number | null
+          pricing_available: boolean
+          provider_id: string
+          resource: string
+          source: string
+          synced_at: string
+          unit: string | null
+          variant: string
+        }
+        Insert: {
+          currency?: string
+          id?: string
+          location?: string
+          note?: string | null
+          percentage?: number | null
+          price_gross?: number | null
+          price_net?: number | null
+          pricing_available?: boolean
+          provider_id: string
+          resource: string
+          source?: string
+          synced_at?: string
+          unit?: string | null
+          variant?: string
+        }
+        Update: {
+          currency?: string
+          id?: string
+          location?: string
+          note?: string | null
+          percentage?: number | null
+          price_gross?: number | null
+          price_net?: number | null
+          pricing_available?: boolean
+          provider_id?: string
+          resource?: string
+          source?: string
+          synced_at?: string
+          unit?: string | null
+          variant?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_provider_addon_prices_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cloud_provider_catalog: {
         Row: {
           data: Json
@@ -1235,6 +1309,8 @@ export type Database = {
           location: string
           monthly_gross: number | null
           monthly_net: number
+          overage_price_per_tb: number | null
+          overage_source: string | null
           previous_monthly_net: number | null
           provider_id: string
           server_type: string
@@ -1249,6 +1325,8 @@ export type Database = {
           location: string
           monthly_gross?: number | null
           monthly_net: number
+          overage_price_per_tb?: number | null
+          overage_source?: string | null
           previous_monthly_net?: number | null
           provider_id: string
           server_type: string
@@ -1263,6 +1341,8 @@ export type Database = {
           location?: string
           monthly_gross?: number | null
           monthly_net?: number
+          overage_price_per_tb?: number | null
+          overage_source?: string | null
           previous_monthly_net?: number | null
           provider_id?: string
           server_type?: string
