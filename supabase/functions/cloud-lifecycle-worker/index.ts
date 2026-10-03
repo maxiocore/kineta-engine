@@ -321,7 +321,7 @@ async function simulate(db: any, actor: string | null, switches: Record<string, 
     const { data, error } = await db.from("cloud_subscriptions").insert({
       user_id: owner, status: "active", billing_cycle: "monthly", amount: 49, vat_amount: 7.35, is_simulation: true, sim_provider_ref: srv.id,
       started_at: at(-30), current_period_start: at(-30), current_period_end: at(0), next_renewal_at: at(0), renewal_at: at(0).slice(0, 10),
-      renewal_subtotal_minor: 4900, renewal_backup_minor: 0, vat_rate_snapshot: 15, renewal_vat_minor: 735, renewal_total_minor: 5635,
+      renewal_subtotal_minor: 4900, renewal_backup_minor: 0, vat_rate_snapshot: 0.15, renewal_vat_minor: 735, renewal_total_minor: 5635,
       sim_wallet_minor: wallet, auto_renew: true, payment_method: "wallet", ...extra,
     }).select().single();
     if (error) throw new Error("fixture: " + error.message);
@@ -364,8 +364,8 @@ async function simulate(db: any, actor: string | null, switches: Record<string, 
       const out = await tick(ctx(at(1.01)), ["renewal_retry"]); const a = await get(s.id);
       rec("D", "Scheduler retry succeeds (+24h)", a.status === "active" && a.attempt_count === 0 && a.sim_wallet_minor === 9000 - 5635, out); }
     { const s = await mkSub(0); await toGrace(s); await tick(ctx(at(1.01)), ["renewal_retry"]); const a1 = await get(s.id); await tick(ctx(at(2.02)), ["renewal_retry"]); const a = await get(s.id);
-      const hrs = Math.round((new Date(a.next_retry_at).getTime() - new Date(at(2.02)).getTime()) / 3600000);
-      rec("E", "Retry fails: attempts 1→3, next +72h, no charge", a1.attempt_count === 2 && a.attempt_count === 3 && hrs === 72 && (await invCount(s.id)) === 0 && a.status === "grace_period", { attempts: a.attempt_count, next_h: hrs }); }
+      const hrs = Math.round((new Date(a.next_retry_at).getTime() - new Date(s.next_renewal_at).getTime()) / 3600000);
+      rec("E", "Retries at due+24h, +48h → next at due+72h, no charge", a1.attempt_count === 2 && a.attempt_count === 3 && hrs === 72 && (await invCount(s.id)) === 0 && a.status === "grace_period", { attempts: a.attempt_count, next_h: hrs }); }
 
     // F suspension via real job runner (mock provider)
     { const s = await mkSub(0); await toGrace(s);
