@@ -12,6 +12,7 @@ const ADMIN_ACTIONS = ["start", "stop", "restart", "rebuild", "rescue", "snapsho
 
 const Body = z.discriminatedUnion("action", [
   z.object({ action: z.literal("power"), server_id: z.string().uuid(), type: z.enum(["start", "stop", "restart"]) }),
+  z.object({ action: z.literal("cancel"), server_id: z.string().uuid(), mode: z.literal("immediate") }),
   z.object({ action: z.literal("snapshot"), server_id: z.string().uuid(), name: z.string().trim().min(2).max(63) }),
   z.object({ action: z.literal("admin_test_provider"), provider_id: z.string().uuid() }),
   z.object({ action: z.literal("admin_sync"), provider_id: z.string().uuid(), kind: z.enum(["server_type", "location", "image", "server"]) }),
@@ -50,7 +51,9 @@ Deno.serve(async (req) => {
     const b = body as any;
     const { data: server } = await admin.from("cloud_servers").select("*").eq("id", b.server_id).maybeSingle();
     if (!server || server.user_id !== user.id) return json({ error: "not found" }, 404);
-    if (["pending", "suspended", "cancelled"].includes(server.status)) return json({ error: "server_not_ready" }, 409);
+
+    if (b.action === "cancel") return await customerCancel(admin, user.id, server);
+    if (["pending", "suspended", "cancelled", "terminated", "terminating", "cancellation_pending", "provisioning", "configuring"].includes(server.status)) return json({ error: "server_not_ready" }, 409);
 
     const provider = getProvider(server.provider);
     if (b.action === "power") {
@@ -68,6 +71,31 @@ Deno.serve(async (req) => {
     return json({ error: "internal_error" }, 500);
   }
 });
+
+// Customer "cancel immediately": active -> cancellation_pending -> terminating -> terminated.
+// Deleting a provider resource is billable-gated: allowed only when live provisioning is on OR the order is a scoped E2E test order.
+async function customerCancel(admin: any, uid: string, server: any) {
+  if (["terminated", "cancelled"].includes(server.status)) return json({ ok: true, status: server.status, duplicate: true });
+  const { data: order } = await admin.from("cloud_orders").select("id,is_e2e_test").eq("server_id", server.id).maybeSingle();
+  if (server.provider_server_id && server.provider !== "manual" && !LIVE() && !order?.is_e2e_test) return json(LIVE_OFF);
+  const now = () => new Date().toISOString();
+  await admin.from("cloud_servers").update({ status: "cancellation_pending" }).eq("id", server.id);
+  await admin.from("cloud_activity_logs").insert({ user_id: uid, server_id: server.id, event: "cancellation_requested", details: { mode: "immediate" } });
+  await admin.from("cloud_servers").update({ status: "terminating" }).eq("id", server.id);
+  if (server.provider_server_id && server.provider !== "manual") {
+    const r = await getProvider(server.provider).action(server.provider_server_id, "terminate");
+    if (r.status === "failed" && r.error !== "not_found") {
+      await admin.from("cloud_server_actions").insert({ server_id: server.id, user_id: uid, action: "terminate", status: "failed", error: r.error ?? null });
+      return json({ ok: false, status: "terminating", error: "terminate_failed" });
+    }
+  }
+  await admin.from("cloud_servers").update({ status: "terminated", cancelled_at: now() }).eq("id", server.id);
+  await admin.from("cloud_subscriptions").update({ status: "cancelled", cancelled_at: now() }).eq("server_id", server.id);
+  if (order) await admin.from("cloud_orders").update({ status: "cancelled" }).eq("id", order.id);
+  await admin.from("cloud_server_actions").insert({ server_id: server.id, user_id: uid, action: "terminate", status: "completed" });
+  await admin.from("cloud_activity_logs").insert({ user_id: uid, server_id: server.id, event: "server_terminated", details: {} });
+  return json({ ok: true, status: "terminated" });
+}
 
 async function log(admin: any, actor: string, server_id: string | null, user_id: string, event: string, details: Record<string, unknown>) {
   await admin.from("cloud_activity_logs").insert({ user_id, server_id, event, details: { ...details, actor } });
