@@ -573,29 +573,43 @@ const ClientOrderDetails = () => {
       </style>
       <div style="direction: rtl; font-family: 'Cairo', sans-serif; background: #ffffff; min-height: 842px; position: relative; padding: 0;">
         
+        <!-- Top Accent Bar -->
+        <div style="height: 6px; background: linear-gradient(90deg, #0F2B46 0%, #0E7490 55%, #22D3EE 100%);"></div>
+
         <!-- Header -->
-        <div style="background: #1F2937; padding: 30px 40px;">
+        <div style="background: linear-gradient(135deg, #0F2B46 0%, #134E5E 100%); padding: 34px 40px 30px; position: relative;">
           <table style="width: 100%;">
             <tr>
-              <td style="width: 50%;">
-                <p style="color: #FFFFFF; font-size: 28px; font-weight: 800; margin: 0; letter-spacing: 2px;">ASH HOLDING</p>
-                <p style="color: #9CA3AF; font-size: 12px; margin: 8px 0 0; font-weight: 400;">منصة الخدمات الرقمية</p>
+              <td style="width: 55%; vertical-align: middle;">
+                <table>
+                  <tr>
+                    <td style="vertical-align: middle;">
+                      <div style="width: 46px; height: 46px; border-radius: 12px; background: linear-gradient(135deg, #22D3EE, #0E7490); text-align: center; line-height: 46px; color: #0F2B46; font-size: 20px; font-weight: 800;">A</div>
+                    </td>
+                    <td style="vertical-align: middle; padding-right: 14px;">
+                      <p style="color: #FFFFFF; font-size: 24px; font-weight: 800; margin: 0; letter-spacing: 2px;">ASH HOLDING</p>
+                      <p style="color: #7DD3FC; font-size: 11px; margin: 4px 0 0; font-weight: 400;">منصة الخدمات الرقمية المتكاملة</p>
+                    </td>
+                  </tr>
+                </table>
               </td>
-              <td style="width: 50%; text-align: left;">
-                <p style="color: #9CA3AF; font-size: 11px; margin: 0; font-weight: 600;">فاتورة ضريبية مبسطة</p>
-                <p style="color: #FFFFFF; font-size: 14px; margin: 5px 0 0; font-weight: 700;">TAX INVOICE</p>
+              <td style="width: 45%; text-align: left; vertical-align: middle;">
+                <div style="display: inline-block; background: rgba(34,211,238,0.12); border: 1px solid rgba(34,211,238,0.35); border-radius: 10px; padding: 10px 18px;">
+                  <p style="color: #A5F3FC; font-size: 10px; margin: 0; font-weight: 600;">فاتورة ضريبية مبسطة</p>
+                  <p style="color: #FFFFFF; font-size: 15px; margin: 3px 0 0; font-weight: 800; letter-spacing: 1px;">TAX INVOICE</p>
+                </div>
               </td>
             </tr>
           </table>
         </div>
 
         <!-- Invoice Info Bar -->
-        <div style="background: #4F46E5; padding: 16px 40px;">
+        <div style="background: #F0FDFA; border-bottom: 1px solid #CCFBF1; padding: 16px 40px;">
           <table style="width: 100%;">
             <tr>
               <td>
-                <span style="color: rgba(255,255,255,0.7); font-size: 12px;">رقم الفاتورة:</span>
-                <span style="color: #FFFFFF; font-size: 16px; font-weight: 700; margin-right: 8px;">#ORD-${order.order_number}</span>
+                <span style="color: #0F766E; font-size: 11px; font-weight: 600;">رقم الفاتورة</span>
+                <span style="color: #0F2B46; font-size: 17px; font-weight: 800; margin-right: 8px; direction: ltr; display: inline-block;">#ORD-${order.order_number}</span>
               </td>
               <td style="text-align: left;">
                 <span style="background: ${statusStyle.bg}; color: ${statusStyle.text}; padding: 6px 20px; border-radius: 20px; font-size: 12px; font-weight: 700;">${statusLabels[order.status] || order.status}</span>
@@ -611,8 +625,8 @@ const ClientOrderDetails = () => {
           <table style="width: 100%; margin-bottom: 25px;">
             <tr>
               <td style="width: 48%; vertical-align: top; padding-left: 15px;">
-                <div style="background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px;">
-                  <p style="color: #6B7280; font-size: 11px; margin: 0 0 12px; font-weight: 600; border-bottom: 1px solid #E5E7EB; padding-bottom: 8px;">بيانات العميل</p>
+                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; border-top: 3px solid #0E7490;">
+                  <p style="color: #0E7490; font-size: 11px; margin: 0 0 12px; font-weight: 700; border-bottom: 1px solid #E2E8F0; padding-bottom: 8px;">بيانات العميل</p>
                   <table style="width: 100%;">
                     <tr>
                       <td style="padding: 6px 0;">
