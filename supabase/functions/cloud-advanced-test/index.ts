@@ -16,7 +16,7 @@ export const STAGES = ["creating", "wait_running", "baseline", "snapshot_request
   "backup_enable", "backup_verify", "await_rebuild_confirm", "rebuild_wait", "rebuild_verify", "rescue_enable", "rescue_reboot", "rescue_verify", "rescue_disable",
   "rescue_exit_wait", "rescue_exit_verify", "rdns", "rdns_restore", "engine", "passed"];
 
-const Body = z.object({ action: z.enum(["status", "preflight", "create", "advance", "confirm_rebuild", "retry_rescue_exit", "cleanup", "reset"]), confirm: z.string().max(100).optional() });
+const Body = z.object({ action: z.enum(["status", "preflight", "create", "advance", "confirm_rebuild", "retry_rescue_exit", "diagnose", "cleanup", "reset"]), confirm: z.string().max(100).optional() });
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 class HErr extends Error { constructor(public code: string, public status = 0) { super(code); } }
@@ -197,6 +197,40 @@ Deno.serve(async (req) => {
       await patch({ status: "running_tests", stage: "rebuild_wait", pending_action_id: r.action_id });
       await log("rebuild_confirmed", "passed", { action_id: r.action_id });
       return json({ ok: true, test });
+    }
+
+    // ---------------- DIAGNOSE (strictly read-only: GETs + TCP probe, no provider mutations) ----------------
+    if (action === "diagnose") {
+      const sid = test.provider_resource_id; if (!sid) return json({ ok: false, error: "no_server" }, 409);
+      const d: Record<string, unknown> = { at: new Date().toISOString(), stage: test.stage, status: test.status, failed_stage: test.failed_stage, error: test.error };
+      try {
+        const s = (await h(`/servers/${sid}`)).server;
+        d.server = { id: s.id, name: s.name, status: s.status, rescue_enabled: s.rescue_enabled, locked: s.locked, protection: s.protection,
+          image: s.image ? { id: s.image.id, name: s.image.name, type: s.image.type, os_version: s.image.os_version } : null,
+          iso: s.iso ? { id: s.iso.id, name: s.iso.name } : null, backup_window: s.backup_window, created: s.created,
+          ipv4: s.public_net?.ipv4?.ip, ipv4_ptr: s.public_net?.ipv4?.dns_ptr, firewalls: (s.public_net?.firewalls ?? []).map((f: any) => f.id), primary_disk_size: s.primary_disk_size };
+        const acts = (await h(`/servers/${sid}/actions?sort=id:desc&per_page=30`)).actions ?? [];
+        d.actions = acts.map((a: any) => ({ id: a.id, command: a.command, status: a.status, started: a.started, finished: a.finished, error: a.error ? `${a.error.code}: ${a.error.message}` : null }));
+      } catch (e) { d.provider_error = (e as HErr).code; }
+      const probe = async (port: number) => {
+        const t0 = Date.now();
+        try {
+          const conn = await Promise.race([Deno.connect({ hostname: test.ipv4, port }), new Promise<never>((_, r) => setTimeout(() => r(new Error("timeout")), 8000))]) as Deno.Conn;
+          let banner = "";
+          if (port === 22) { const buf = new Uint8Array(256); const n = await Promise.race([conn.read(buf), new Promise<null>((r) => setTimeout(() => r(null), 4000))]); banner = n ? new TextDecoder().decode(buf.subarray(0, n)).trim().slice(0, 120) : "(no banner)"; }
+          try { conn.close(); } catch { /* */ }
+          return { port, state: "reachable", ms: Date.now() - t0, banner };
+        } catch (e) { const m = String((e as Error).message); return { port, state: /refused/i.test(m) ? "refused" : /timeout/i.test(m) ? "timeout" : "error", ms: Date.now() - t0, detail: m.slice(0, 120) }; }
+      };
+      d.tcp = [await probe(22), await probe(80), await probe(443)];
+      d.icmp = "not available from the backend runtime (raw sockets not permitted)";
+      const L = test.lifecycle ?? {};
+      d.ssh = { last_error: L.last_ssh_error ?? null, attempts: L.rescue_exit_ssh_attempts ?? null, polling_started_at: L.rescue_exit_ssh_started_at ?? null,
+        elapsed_ms: L.rescue_exit_ssh_started_at ? Date.now() - new Date(L.rescue_exit_ssh_started_at).getTime() : null };
+      const { data: ev } = await db.from("cloud_e2e_test_events").select("created_at,stage,result,details").eq("test_id", test.id).order("created_at", { ascending: true }).limit(300);
+      d.events = (ev ?? []).filter((e: any) => /rebuild|rescue|reset|engine/.test(e.stage)).map((e: any) => ({ at: e.created_at, stage: e.stage, result: e.result, action_id: e.details?.action_id ?? null, error: e.details?.error ?? null }));
+      await lc({ diagnostics: d }); await log("diagnose", "read_only", { tcp: d.tcp });
+      return json({ ok: true, diagnostics: d });
     }
 
     if (action === "retry_rescue_exit") {

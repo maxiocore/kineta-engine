@@ -120,7 +120,40 @@ export default function AdvancedLifecycleTestSection({ t, lang }: { t: T; lang: 
               <div key={k} className="rounded-lg bg-muted/50 p-2 min-w-0"><div className="text-xs text-muted-foreground">{k}</div><div className="font-mono text-xs break-all">{v ?? "—"}</div></div>
             ))}
           </div>
-          {Object.keys(L).length > 0 && <pre className="text-xs rounded-lg bg-muted p-2 overflow-auto max-h-96" dir="ltr">{JSON.stringify({ ...L, token_snapshot: undefined, token_modified: undefined }, null, 2)}</pre>}
+          {(test.stage?.startsWith("rescue") || L.diagnostics) && test.provider_resource_id && test.status !== "cleaned_up" && (() => {
+            const D = L.diagnostics;
+            return (
+              <div className="rounded-lg border p-3 space-y-2" dir="ltr">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-semibold">Rescue Exit Diagnostics <span className="text-xs font-normal text-muted-foreground">(read-only)</span></span>
+                  <Button size="sm" variant="outline" disabled={!!busy || test.status === "running_tests"} onClick={() => run("diagnose", () => call("diagnose"))}>
+                    {busy === "diagnose" && <Loader2 className="w-4 h-4 animate-spin" />}Run diagnostics
+                  </Button>
+                </div>
+                {D ? (
+                  <>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                      {[["Checked", dt(D.at, lang)], ["Hetzner status", D.server?.status], ["Rescue enabled", String(D.server?.rescue_enabled)], ["Locked", String(D.server?.locked)],
+                        ["Image", D.server?.image?.name], ["ISO", D.server?.iso?.name ?? "none"], ["Stage", D.stage], ["SSH attempts", D.ssh?.attempts],
+                        ["Elapsed", D.ssh?.elapsed_ms != null ? `${Math.round(D.ssh.elapsed_ms / 1000)}s` : "—"], ["Last SSH error", D.ssh?.last_error],
+                        ...(D.tcp ?? []).map((p: any) => [`TCP ${p.port}`, `${p.state} (${p.ms}ms)${p.banner ? " " + p.banner : ""}`])].map(([k, v]: any) => (
+                        <div key={k} className="rounded bg-muted/50 p-2 min-w-0"><div className="text-muted-foreground">{k}</div><div className="font-mono break-all">{v ?? "—"}</div></div>
+                      ))}
+                    </div>
+                    <div className="overflow-auto">
+                      <table className="w-full text-xs">
+                        <thead><tr className="text-muted-foreground text-start"><th className="text-start p-1">Action ID</th><th className="text-start p-1">Command</th><th className="text-start p-1">Status</th><th className="text-start p-1">Started</th><th className="text-start p-1">Finished</th><th className="text-start p-1">Error</th></tr></thead>
+                        <tbody>{(D.actions ?? []).map((a: any) => (
+                          <tr key={a.id} className="border-t"><td className="p-1 font-mono">{a.id}</td><td className="p-1">{a.command}</td><td className="p-1">{a.status}</td><td className="p-1">{a.started?.slice(11, 19)}</td><td className="p-1">{a.finished?.slice(11, 19) ?? "—"}</td><td className="p-1">{a.error ?? "—"}</td></tr>
+                        ))}</tbody>
+                      </table>
+                    </div>
+                  </>
+                ) : <p className="text-xs text-muted-foreground">No diagnostics yet.</p>}
+              </div>
+            );
+          })()}
+          {Object.keys(L).length > 0 && <pre className="text-xs rounded-lg bg-muted p-2 overflow-auto max-h-96" dir="ltr">{JSON.stringify({ ...L, diagnostics: undefined, token_snapshot: undefined, token_modified: undefined }, null, 2)}</pre>}
           {test.status === "passed" && (
             <div className="text-sm rounded-lg bg-muted/50 p-3">
               <div className="font-medium mb-1">{t("الموارد التي ستُحذف", "Resources to be deleted")}</div>
