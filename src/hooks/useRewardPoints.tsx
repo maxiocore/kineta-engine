@@ -1,3 +1,4 @@
+import { redeemPointsToWallet, newIdempotencyKey, walletErrorMessage } from "@/lib/walletPayments";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -123,47 +124,14 @@ export const useRewardPoints = () => {
       return { success: false };
     }
 
-    // Insert redemption transaction
-    const { error: transactionError } = await supabase
-      .from("points_transactions")
-      .insert({
-        user_id: user.id,
-        points: -pointsToRedeem,
-        type: "redeemed",
-        description: description,
-        description_ar: description
-      });
-
-    if (transactionError) {
-      toast.error("خطأ في استبدال النقاط");
+    let balanceToAdd = pointsToRedeem / 100;
+    try {
+      const result = await redeemPointsToWallet(pointsToRedeem, newIdempotencyKey());
+      balanceToAdd = Number(result.credit ?? balanceToAdd);
+    } catch (e) {
+      toast.error(walletErrorMessage(e));
       return { success: false };
     }
-
-    // Update user points
-    const { error: updateError } = await supabase
-      .from("user_points")
-      .update({
-        available_points: userPoints.available_points - pointsToRedeem,
-        redeemed_points: userPoints.redeemed_points + pointsToRedeem,
-        updated_at: new Date().toISOString()
-      })
-      .eq("user_id", user.id);
-
-    if (updateError) {
-      toast.error("خطأ في تحديث النقاط");
-      return { success: false };
-    }
-
-    // Calculate balance to add (100 points = 1$)
-    const balanceToAdd = pointsToRedeem / 100;
-
-    // Add to user balance
-    const { error: balanceError } = await supabase
-      .from("user_balances")
-      .update({
-        balance: supabase.rpc ? userPoints.available_points : 0 // Will be handled differently
-      })
-      .eq("user_id", user.id);
 
     // Refresh data
     await fetchUserPoints();

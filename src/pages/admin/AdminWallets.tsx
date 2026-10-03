@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { adminAdjustWallet, newIdempotencyKey, walletErrorMessage } from "@/lib/walletPayments";
 import AdminDashboardLayout from "@/components/dashboard/AdminDashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -212,38 +213,23 @@ const AdminWallets = () => {
 
   // Mutations
   const updateBalanceMutation = useMutation({
-    mutationFn: async ({ userId, currentBalance, newBalance, action, amount, reason }: any) => {
+    mutationFn: async ({ userId, currentBalance, newBalance: requestedBalance, action, amount, reason }: any) => {
+      let newBalance = requestedBalance;
       const adminUser = await supabase.auth.getUser();
       const adminId = adminUser.data.user?.id;
 
-      // تحديث الرصيد
-      const { error } = await supabase
-        .from("user_balances")
-        .update({ balance: newBalance, updated_at: new Date().toISOString() })
-        .eq("user_id", userId);
-      if (error) throw error;
-
-      // تسجيل في سجل الرصيد
-      await supabase.from("balance_logs").insert({
-        user_id: userId,
-        action_type: action === "add" ? "admin_credit" : "admin_debit",
-        amount: action === "add" ? amount : -amount,
-        balance_before: currentBalance,
-        balance_after: newBalance,
-        notes: reason || (action === "add" ? "إضافة رصيد بواسطة الإدارة" : "خصم رصيد بواسطة الإدارة"),
-        created_by: adminId,
-        reference_type: "admin_adjustment",
+      // Server-side, audited, idempotent ledger adjustment (no direct balance writes)
+      const finalReason = (reason && String(reason).trim().length >= 3)
+        ? String(reason).trim()
+        : (action === "add" ? "إضافة رصيد بواسطة الإدارة" : "خصم رصيد بواسطة الإدارة");
+      const res = await adminAdjustWallet({
+        userId,
+        action: action === "add" ? "credit" : "debit",
+        amount: Number(amount),
+        reason: finalReason,
+        idempotencyKey: newIdempotencyKey(),
       });
-
-      // تسجيل في سجل المراجعة
-      await supabase.from("audit_logs").insert({
-        table_name: "user_balances",
-        record_id: userId,
-        action: action === "add" ? "BALANCE_ADD" : "BALANCE_DEDUCT",
-        old_value: { balance: currentBalance },
-        new_value: { balance: newBalance, change: amount, reason },
-        user_id: adminId
-      });
+      if (adminId && res?.balance_after !== undefined) newBalance = Number(res.balance_after);
 
       // إرسال إشعار للمستخدم
       await supabase.from("notifications").insert({
@@ -271,7 +257,7 @@ const AdminWallets = () => {
       setIsTransferDialogOpen(false);
       setSelectedUser(null);
     },
-    onError: () => toast.error("حدث خطأ أثناء تحديث الرصيد"),
+    onError: (e) => toast.error(walletErrorMessage(e)),
   });
 
   const updateDepositMutation = useMutation({

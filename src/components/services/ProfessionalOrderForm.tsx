@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { payServiceOrder, payDesignOrder, payDevInvoice, newIdempotencyKey, walletErrorMessage } from "@/lib/walletPayments";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -70,6 +71,7 @@ const ProfessionalOrderForm = ({
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [isOrdering, setIsOrdering] = useState(false);
+  const payKeyRef = useRef(newIdempotencyKey());
   const [quantity, setQuantity] = useState(1);
   const [link, setLink] = useState("");
   const [notes, setNotes] = useState("");
@@ -105,47 +107,19 @@ const ProfessionalOrderForm = ({
       return;
     }
 
+    if (isOrdering) return;
     setIsOrdering(true);
     try {
-      const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-      
-      // Create order with payment method info
-      const { data: orderData, error: orderError } = await supabase
-        .from("orders")
-        .insert({
-          user_id: user.id,
-          service_id: service.id,
-          total_price: totalPrice,
-          order_number: orderNumber,
-          quantity,
-          link: link || null,
-          notes: notes || null,
-          status: "pending",
-        })
-        .select('id')
-        .single();
-
-      if (orderError) throw orderError;
-
-      // خصم من الرصيد النقدي
-      const { data: currentBalance } = await supabase
-        .from("user_balances")
-        .select("balance")
-        .eq("user_id", user.id)
-        .single();
-
-      if (currentBalance) {
-        await supabase.from("balance_logs").insert({
-          user_id: user.id,
-          action_type: "order",
-          amount: -totalPrice,
-          balance_before: currentBalance.balance,
-          balance_after: currentBalance.balance - totalPrice,
-          notes: `طلب خدمة: ${service.name}`,
-          reference_id: service.id,
-          reference_type: "order"
-        });
-      }
+      // Server-side payment: trusted price, atomic wallet debit, idempotent
+      const result = await payServiceOrder({
+        serviceId: service.id,
+        quantity,
+        link: link || null,
+        notes: notes || null,
+        idempotencyKey: payKeyRef.current,
+      });
+      const orderNumber = result.order_number as string;
+      payKeyRef.current = newIdempotencyKey();
 
       // Send email notification
       try {
@@ -158,7 +132,7 @@ const ProfessionalOrderForm = ({
               orderNumber,
               serviceName: service.name,
               quantity,
-              totalPrice,
+              totalPrice: Number(result.total ?? totalPrice),
               link: link || null,
               paymentMethod: "الرصيد النقدي",
             }

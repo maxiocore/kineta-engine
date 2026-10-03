@@ -1,3 +1,4 @@
+import { redeemPointsToWallet, newIdempotencyKey, walletErrorMessage } from "@/lib/walletPayments";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -56,49 +57,9 @@ const ClientRewards = () => {
     setRedeeming(true);
 
     try {
-      const balanceToAdd = points / 100; // 100 نقطة = 1 ريال سعودي
-
-      // Insert redemption transaction
-      const { error: transactionError } = await supabase
-        .from("points_transactions")
-        .insert({
-          user_id: user?.id,
-          points: -points,
-          type: "redeemed",
-          description: `Redeemed ${points} points for ${balanceToAdd} SAR`,
-          description_ar: `تم استبدال ${points} نقطة مقابل ${balanceToAdd} ر.س`
-        });
-
-      if (transactionError) throw transactionError;
-
-      // Update user points
-      const { error: updateError } = await supabase
-        .from("user_points")
-        .update({
-          available_points: (userPoints?.available_points || 0) - points,
-          redeemed_points: (userPoints?.redeemed_points || 0) + points,
-          updated_at: new Date().toISOString()
-        })
-        .eq("user_id", user?.id);
-
-      if (updateError) throw updateError;
-
-      // Add to user balance
-      const { data: balanceData } = await supabase
-        .from("user_balances")
-        .select("balance")
-        .eq("user_id", user?.id)
-        .maybeSingle();
-
-      const currentBalance = balanceData?.balance || 0;
-
-      await supabase
-        .from("user_balances")
-        .upsert({
-          user_id: user?.id,
-          balance: currentBalance + balanceToAdd,
-          updated_at: new Date().toISOString()
-        });
+      // Server-side atomic redemption: points deducted and wallet credited in one transaction
+      const result = await redeemPointsToWallet(points, newIdempotencyKey());
+      const balanceToAdd = Number(result.credit ?? points / 100);
 
       toast.success(`تم إضافة ${balanceToAdd.toFixed(2)} ر.س إلى رصيدك!`);
       setRedeemDialogOpen(false);
@@ -106,7 +67,7 @@ const ClientRewards = () => {
       refetch();
     } catch (error) {
       console.error("Error redeeming points:", error);
-      toast.error("حدث خطأ أثناء استبدال النقاط");
+      toast.error(walletErrorMessage(error));
     } finally {
       setRedeeming(false);
     }

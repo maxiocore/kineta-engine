@@ -390,10 +390,14 @@ export type Database = {
           balance_before: number
           created_at: string
           created_by: string | null
+          currency: string
           id: string
+          idempotency_key: string | null
           notes: string | null
+          original_log_id: string | null
           reference_id: string | null
           reference_type: string | null
+          status: string
           user_id: string
         }
         Insert: {
@@ -403,10 +407,14 @@ export type Database = {
           balance_before: number
           created_at?: string
           created_by?: string | null
+          currency?: string
           id?: string
+          idempotency_key?: string | null
           notes?: string | null
+          original_log_id?: string | null
           reference_id?: string | null
           reference_type?: string | null
+          status?: string
           user_id: string
         }
         Update: {
@@ -416,10 +424,14 @@ export type Database = {
           balance_before?: number
           created_at?: string
           created_by?: string | null
+          currency?: string
           id?: string
+          idempotency_key?: string | null
           notes?: string | null
+          original_log_id?: string | null
           reference_id?: string | null
           reference_type?: string | null
+          status?: string
           user_id?: string
         }
         Relationships: []
@@ -6028,7 +6040,41 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _wallet_post: {
+        Args: {
+          p_action: string
+          p_actor: string
+          p_amount: number
+          p_key: string
+          p_notes: string
+          p_original?: string
+          p_ref_id: string
+          p_ref_type: string
+          p_spend?: boolean
+          p_user: string
+        }
+        Returns: Json
+      }
+      admin_adjust_wallet: {
+        Args: {
+          p_action: string
+          p_amount: number
+          p_idempotency_key: string
+          p_reason: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       admin_refund_cloud_order: { Args: { p_order_id: string }; Returns: Json }
+      admin_refund_wallet_transaction: {
+        Args: {
+          p_amount: number
+          p_idempotency_key: string
+          p_log_id: string
+          p_reason: string
+        }
+        Returns: Json
+      }
       atomic_credit_deposit: {
         Args: {
           p_actor_id?: string
@@ -6140,6 +6186,30 @@ export type Database = {
         }
         Returns: Json
       }
+      pay_design_order: {
+        Args: {
+          p_idempotency_key: string
+          p_link: string
+          p_notes: string
+          p_service_id: string
+        }
+        Returns: Json
+      }
+      pay_dev_invoice: {
+        Args: { p_idempotency_key: string; p_invoice_id: string }
+        Returns: Json
+      }
+      pay_service_order: {
+        Args: {
+          p_coupon_code: string
+          p_idempotency_key: string
+          p_link: string
+          p_notes: string
+          p_quantity: number
+          p_service_id: string
+        }
+        Returns: Json
+      }
       reconcile_credit_deposits: {
         Args: never
         Returns: {
@@ -6151,6 +6221,10 @@ export type Database = {
           ledger_balance: number
           recommended_action: string
         }[]
+      }
+      redeem_points_to_wallet: {
+        Args: { p_idempotency_key: string; p_points: number }
+        Returns: Json
       }
       retry_failed_deposits: {
         Args: never

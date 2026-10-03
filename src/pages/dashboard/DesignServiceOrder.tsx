@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams, useSearchParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -25,6 +25,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
+import { payServiceOrder, payDesignOrder, payDevInvoice, newIdempotencyKey, walletErrorMessage } from "@/lib/walletPayments";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -104,6 +105,7 @@ const DesignServiceOrder = () => {
   const [orderStep, setOrderStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [balance, setBalance] = useState(0);
+  const payKeyRef = useRef(newIdempotencyKey());
   
   const [formData, setFormData] = useState<OrderFormData>({
     projectName: "",
@@ -165,9 +167,9 @@ const DesignServiceOrder = () => {
       return;
     }
 
+    if (submitting) return;
     setSubmitting(true);
     try {
-      const orderNumber = `ORD-${Date.now()}`;
       
       const detailedNotes = `
 📋 تفاصيل المشروع:
@@ -191,44 +193,15 @@ ${formData.additionalNotes || "لا توجد"}
 📞 طريقة التواصل المفضلة: ${formData.contactMethod === "email" ? "البريد الإلكتروني" : formData.contactMethod === "whatsapp" ? "واتساب" : "الهاتف"}
 `.trim();
 
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .insert([{
-          user_id: user.id,
-          service_id: service.id,
-          total_price: service.price,
-          quantity: 1,
-          link: formData.referenceLinks || null,
-          notes: detailedNotes,
-          status: 'pending' as const,
-          order_number: orderNumber
-        }])
-        .select('id, order_number')
-        .single();
-
-      if (orderError) throw orderError;
-
-      const { error: balanceError } = await supabase
-        .from('user_balances')
-        .update({ 
-          balance: balance - service.price,
-          total_spent: (balance || 0) + service.price
-        })
-        .eq('user_id', user.id);
-
-      if (balanceError) throw balanceError;
-
-      // Create balance log with order reference for proper tracking
-      await supabase.from("balance_logs").insert({
-        user_id: user.id,
-        action_type: 'order',
-        amount: -service.price,
-        balance_before: balance,
-        balance_after: balance - service.price,
-        reference_type: 'order',
-        reference_id: orderData.id,
-        notes: `خصم للطلب رقم ${orderData.order_number}`
+      // Server-side payment: price is loaded from the database, wallet is locked and charged atomically
+      const result = await payDesignOrder({
+        serviceId: service.id,
+        link: formData.referenceLinks || null,
+        notes: detailedNotes,
+        idempotencyKey: payKeyRef.current,
       });
+      const orderData = { id: result.order_id as string, order_number: result.order_number as string };
+      payKeyRef.current = newIdempotencyKey();
 
       // Send instant SMS/WhatsApp/Email notification for new order
       try {
@@ -246,7 +219,7 @@ ${formData.additionalNotes || "لا توجد"}
       navigate('/dashboard/orders');
     } catch (error) {
       toast.error("حدث خطأ", {
-        description: "يرجى المحاولة مرة أخرى"
+        description: walletErrorMessage(error)
       });
     } finally {
       setSubmitting(false);

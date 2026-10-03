@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -54,6 +54,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { payServiceOrder, payDesignOrder, payDevInvoice, newIdempotencyKey, walletErrorMessage } from "@/lib/walletPayments";
 import { cn } from "@/lib/utils";
 
 const orderSchema = z.object({
@@ -178,6 +179,7 @@ const StepIndicator = ({ step, currentStep, icon: Icon, label }: { step: number;
 
 const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrderDialogProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const payKeyRef = useRef(newIdempotencyKey());
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
   const [couponCode, setCouponCode] = useState("");
@@ -417,36 +419,20 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
       return;
     }
 
+    if (isSubmitting) return;
     setIsSubmitting(true);
     try {
-      const { data: orderData, error } = await supabase
-        .from("orders")
-        .insert({
-          user_id: userId,
-          service_id: currentService.id,
-          total_price: totalPrice,
-          notes: data.notes || null,
-          link: data.link,
-          quantity: data.quantity,
-          order_number: "",
-          coupon_id: appliedCoupon?.id || null,
-          discount_amount: discount,
-        } as any)
-        .select("id, order_number")
-        .single();
-
-      if (error) throw error;
-
-      if (appliedCoupon) {
-        await supabase.from("coupon_usages").insert({
-          coupon_id: appliedCoupon.id,
-          user_id: userId,
-          order_id: orderData.id,
-          discount_applied: discount,
-        });
-      }
-
-      
+      // Server-side payment: price, coupon and total are recalculated and the wallet is charged atomically
+      const result = await payServiceOrder({
+        serviceId: currentService.id,
+        quantity: data.quantity,
+        link: data.link,
+        notes: data.notes || null,
+        couponCode: appliedCoupon?.code || null,
+        idempotencyKey: payKeyRef.current,
+      });
+      const orderData = { order_number: result.order_number as string };
+      payKeyRef.current = newIdempotencyKey();
 
       setOrderNumber(orderData.order_number);
       setOrderSuccess(true);
@@ -457,7 +443,7 @@ const ServiceOrderDialog = ({ service, open, onOpenChange, userId }: ServiceOrde
       toast.success("تم إنشاء الطلب بنجاح!");
     } catch (error: any) {
       console.error("Error creating order:", error);
-      toast.error("حدث خطأ أثناء إنشاء الطلب");
+      toast.error(walletErrorMessage(error));
     } finally {
       setIsSubmitting(false);
     }
