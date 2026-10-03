@@ -817,6 +817,7 @@ export type Database = {
           image: string
           ipv4: string | null
           ipv6: string | null
+          lifecycle: Json
           location: string
           name: string
           passed_at: string | null
@@ -849,6 +850,7 @@ export type Database = {
           image: string
           ipv4?: string | null
           ipv6?: string | null
+          lifecycle?: Json
           location: string
           name: string
           passed_at?: string | null
@@ -881,6 +883,7 @@ export type Database = {
           image?: string
           ipv4?: string | null
           ipv6?: string | null
+          lifecycle?: Json
           location?: string
           name?: string
           passed_at?: string | null

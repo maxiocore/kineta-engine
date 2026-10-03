@@ -1,0 +1,1 @@
+ALTER TABLE public.cloud_e2e_tests ADD COLUMN IF NOT EXISTS lifecycle jsonb NOT NULL DEFAULT '{}'::jsonb;
