@@ -38,36 +38,38 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface NavItem {
   label: string;
+  en?: string;
   href: string;
   icon: React.ElementType;
   children?: NavItem[];
 }
 
 const clientNavItems: NavItem[] = [
-  { label: "نظرة عامة", href: "/dashboard", icon: LayoutDashboard },
-  { label: "خدماتنا", href: "/dashboard/our-services", icon: Layers },
+  { label: "نظرة عامة", en: "Overview", href: "/dashboard", icon: LayoutDashboard },
+  { label: "خدماتنا", en: "Our Services", href: "/dashboard/our-services", icon: Layers },
   { 
-    label: "الطلبات", 
+    label: "الطلبات", en: "Orders",
     href: "/dashboard/orders", 
     icon: ShoppingBag
   },
-  { label: "الخوادم والبنية السحابية", href: "/dashboard/cloud", icon: Cloud },
-  { label: "المفضلة", href: "/dashboard/favorites", icon: Heart },
-  { label: "الإحالات", href: "/dashboard/referrals", icon: Gift },
-  { label: "المركز المالي", href: "/dashboard/financial", icon: Wallet },
-  { label: "التحقق من الهوية", href: "/dashboard/kyc", icon: ShieldCheck },
+  { label: "الخوادم والبنية السحابية", en: "Servers & Cloud", href: "/dashboard/cloud", icon: Cloud },
+  { label: "المفضلة", en: "Favorites", href: "/dashboard/favorites", icon: Heart },
+  { label: "الإحالات", en: "Referrals", href: "/dashboard/referrals", icon: Gift },
+  { label: "المركز المالي", en: "Financial Hub", href: "/dashboard/financial", icon: Wallet },
+  { label: "التحقق من الهوية", en: "Identity Verification", href: "/dashboard/kyc", icon: ShieldCheck },
   
-  { label: "الشارات والمكافآت", href: "/dashboard/badges", icon: Award },
-  { label: "التحديات", href: "/dashboard/challenges", icon: Target },
-  { label: "الإشعارات", href: "/dashboard/notifications", icon: Bell },
-  { label: "مفاتيح API", href: "/dashboard/api", icon: Server },
-  { label: "الدعم الفني", href: "/dashboard/support", icon: HeadphonesIcon },
-  { label: "الإعدادات", href: "/dashboard/settings", icon: Settings },
+  { label: "الشارات والمكافآت", en: "Badges & Rewards", href: "/dashboard/badges", icon: Award },
+  { label: "التحديات", en: "Challenges", href: "/dashboard/challenges", icon: Target },
+  { label: "الإشعارات", en: "Notifications", href: "/dashboard/notifications", icon: Bell },
+  { label: "مفاتيح API", en: "API Keys", href: "/dashboard/api", icon: Server },
+  { label: "الدعم الفني", en: "Support", href: "/dashboard/support", icon: HeadphonesIcon },
+  { label: "الإعدادات", en: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
 interface ClientDashboardLayoutProps {
@@ -78,6 +80,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
   const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { t } = useLanguage();
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const [balance, setBalance] = useState<number>(0);
   const [navBadges, setNavBadges] = useState<Record<string, number>>({});
@@ -370,7 +373,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                             exit={{ opacity: 0, width: 0 }}
                             className="font-medium whitespace-nowrap relative z-10 flex-1 text-right"
                           >
-                            {item.label}
+                            {t(item.label, item.en ?? item.label)}
                           </motion.span>
                           <motion.div
                             animate={{ rotate: expandedMenus.includes(item.href) ? 180 : 0 }}
@@ -408,7 +411,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                               )}
                             >
                               <child.icon className="w-4 h-4 shrink-0" />
-                              <span className="whitespace-nowrap">{child.label}</span>
+                              <span className="whitespace-nowrap">{t(child.label, child.en ?? child.label)}</span>
                             </Link>
                           </motion.div>
                         ))}
@@ -451,7 +454,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                           exit={{ opacity: 0, width: 0 }}
                           className="font-medium whitespace-nowrap relative z-10 flex-1"
                         >
-                          {item.label}
+                          {t(item.label, item.en ?? item.label)}
                         </motion.span>
                       )}
                     </AnimatePresence>
@@ -510,7 +513,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                     exit={{ opacity: 0, x: 20 }}
                     className="flex-1"
                   >
-                    <p className="text-xs text-muted-foreground">رصيدك الحالي</p>
+                    <p className="text-xs text-muted-foreground">{t("رصيدك الحالي", "Current balance")}</p>
                     <p className="text-lg xl:text-xl font-bold text-primary">{balance.toFixed(2)} ر.س</p>
                   </motion.div>
                 )}
@@ -528,7 +531,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                     onClick={() => navigate('/dashboard/deposit')}
                   >
                     <Plus className="w-4 h-4" />
-                    إيداع رصيد
+                    {t("إيداع رصيد", "Add funds")}
                   </Button>
                 </motion.div>
               )}
@@ -552,8 +555,8 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
                 >
-                  <p className="font-medium text-sm">{profile?.full_name || "مستخدم"}</p>
-                  <p className="text-xs text-muted-foreground">{profile?.is_verified ? "حساب موثق" : "عميل"}</p>
+                  <p className="font-medium text-sm">{profile?.full_name || t("مستخدم", "User")}</p>
+                  <p className="text-xs text-muted-foreground">{profile?.is_verified ? t("حساب موثق", "Verified account") : t("عميل", "Client")}</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -572,7 +575,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                     animate={{ opacity: 1, width: "auto" }}
                     exit={{ opacity: 0, width: 0 }}
                   >
-                    تسجيل الخروج
+                    {t("تسجيل الخروج", "Log out")}
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -647,7 +650,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                   transition={{ delay: 0.1 }}
                   className="font-display font-bold text-lg"
                 >
-                  القائمة
+                  {t("القائمة", "Menu")}
                 </motion.span>
                 <motion.div whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}>
                   <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
@@ -678,7 +681,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                       <Wallet className="w-6 h-6 text-primary-foreground" />
                     </motion.div>
                     <div className="flex-1">
-                      <p className="text-sm text-muted-foreground">رصيدك الحالي</p>
+                      <p className="text-sm text-muted-foreground">{t("رصيدك الحالي", "Current balance")}</p>
                       <p className="text-2xl font-bold text-primary">${balance.toFixed(2)}</p>
                     </div>
                   </div>
@@ -691,7 +694,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                       }}
                     >
                       <Plus className="w-5 h-5" />
-                      إيداع رصيد
+                      {t("إيداع رصيد", "Add funds")}
                     </Button>
                   </motion.div>
                 </div>
@@ -729,7 +732,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                       >
                         <item.icon className="w-5 h-5 relative z-10" />
                       </motion.div>
-                      <span className="font-medium text-base relative z-10">{item.label}</span>
+                      <span className="font-medium text-base relative z-10">{t(item.label, item.en ?? item.label)}</span>
                       {isActive(item.href) && (
                         <motion.div
                           layoutId="mobileActiveIndicator"
@@ -756,8 +759,8 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                     <User className="w-6 h-6 text-primary-foreground" />
                   </motion.div>
                   <div className="flex-1">
-                    <p className="font-medium">{profile?.full_name || "مستخدم"}</p>
-                    <p className="text-sm text-muted-foreground">{profile?.is_verified ? "حساب موثق ✓" : "عميل"}</p>
+                    <p className="font-medium">{profile?.full_name || t("مستخدم", "User")}</p>
+                    <p className="text-sm text-muted-foreground">{profile?.is_verified ? t("حساب موثق ✓", "Verified account ✓") : t("عميل", "Client")}</p>
                   </div>
                 </div>
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -770,7 +773,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                     }}
                   >
                     <LogOut className="w-5 h-5" />
-                    <span>تسجيل الخروج</span>
+                    <span>{t("تسجيل الخروج", "Log out")}</span>
                   </Button>
                 </motion.div>
               </motion.div>
