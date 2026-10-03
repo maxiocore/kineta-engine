@@ -33,6 +33,11 @@ export default function AdminPaymentGateway() {
   const [detail, setDetail] = useState<any>(null);
   const [refund, setRefund] = useState<{ amount: string; reason: string; key: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [fractional, setFractional] = useState<any[]>([]);
+  useEffect(() => {
+    supabase.from("user_balances").select("user_id,balance").then(({ data }) =>
+      setFractional((data ?? []).filter((w: any) => Math.round(Number(w.balance) * 100) / 100 !== Number(w.balance))));
+  }, []);
 
   const loadStatus = useCallback(async () => { setLoading(true); try { setSt(await call({ action: "admin_status" })); } catch (e: any) { toast.error(e.message); } setLoading(false); }, []);
   const loadList = useCallback(async () => {
@@ -124,6 +129,22 @@ export default function AdminPaymentGateway() {
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">Apple Pay يتطلب توثيق النطاق لدى المعالج، وSTC Pay يتطلب تفعيله في حساب المعالج قبل اعتبارهما جاهزين.</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {fractional.length > 0 && (
+          <Card className="border-destructive/40">
+            <CardHeader><CardTitle>Legacy fractional balance detected</CardTitle></CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <p className="text-muted-foreground">أرصدة قديمة تحتوي كسور أقل من الهللة. لم يتم تعديلها؛ أي عملية جديدة تتحرك بهللات كاملة فقط.</p>
+              {fractional.map((w) => (
+                <div key={w.user_id} className="flex flex-wrap justify-between gap-2 rounded-lg bg-muted/40 p-3">
+                  <span dir="ltr" className="font-mono text-xs">{w.user_id}</span>
+                  <span>Stored: <span dir="ltr">{String(w.balance)}</span></span>
+                  <span>Current normalized display: <b>{(Math.floor(Number(w.balance) * 100) / 100).toFixed(2)} SAR</b></span>
+                </div>
+              ))}
             </CardContent>
           </Card>
         )}
