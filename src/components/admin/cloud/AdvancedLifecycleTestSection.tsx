@@ -91,7 +91,16 @@ export default function AdvancedLifecycleTestSection({ t, lang }: { t: T; lang: 
       {test && test.status !== "ready" && (
         <div className="rounded-xl border bg-card p-4 space-y-3">
           {test.status === "passed" && <div className="rounded-lg border border-primary bg-primary/10 p-3 font-semibold">ADVANCED TEST PASSED — Ready for cleanup</div>}
-          {test.status === "failed" && <div className="rounded-lg border border-destructive bg-destructive/10 p-3 font-semibold">FAILED AT: {test.failed_stage} <span className="font-normal text-sm">({test.error})</span></div>}
+          {test.status === "failed" && (
+            <div className="rounded-lg border border-destructive bg-destructive/10 p-3 flex flex-wrap items-center justify-between gap-2">
+              <span className="font-semibold">FAILED AT: {test.failed_stage} <span className="font-normal text-sm">({test.error})</span></span>
+              {test.failed_stage === "rescue_exit_verify" && test.provider_resource_id && (
+                <Button size="sm" disabled={!!busy} onClick={() => run("retry_rescue_exit", () => call("retry_rescue_exit"))}>
+                  {busy === "retry_rescue_exit" ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCcw className="w-4 h-4" />}Retry Rescue Exit Verify
+                </Button>
+              )}
+            </div>
+          )}
           {test.status === "awaiting_confirmation" && (
             <div className="rounded-lg border border-primary bg-primary/10 p-3 flex flex-wrap items-center justify-between gap-2">
               <span className="font-semibold">{t("بانتظار تأكيد Rebuild (سيمسح القرص)", "Awaiting Rebuild confirmation (wipes the disk)")}</span>

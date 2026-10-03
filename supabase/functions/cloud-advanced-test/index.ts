@@ -16,7 +16,7 @@ export const STAGES = ["creating", "wait_running", "baseline", "snapshot_request
   "backup_enable", "backup_verify", "await_rebuild_confirm", "rebuild_wait", "rebuild_verify", "rescue_enable", "rescue_reboot", "rescue_verify", "rescue_disable",
   "rescue_exit_wait", "rescue_exit_verify", "rdns", "rdns_restore", "engine", "passed"];
 
-const Body = z.object({ action: z.enum(["status", "preflight", "create", "advance", "confirm_rebuild", "cleanup", "reset"]), confirm: z.string().max(100).optional() });
+const Body = z.object({ action: z.enum(["status", "preflight", "create", "advance", "confirm_rebuild", "retry_rescue_exit", "cleanup", "reset"]), confirm: z.string().max(100).optional() });
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 class HErr extends Error { constructor(public code: string, public status = 0) { super(code); } }
@@ -199,6 +199,15 @@ Deno.serve(async (req) => {
       return json({ ok: true, test });
     }
 
+    if (action === "retry_rescue_exit") {
+      if (test.status !== "failed" || test.failed_stage !== "rescue_exit_verify" || !test.provider_resource_id) return json({ ok: false, error: "not_retryable" }, 409);
+      if (!(await exists(`/servers/${test.provider_resource_id}`))) return json({ ok: false, error: "server_missing" }, 409);
+      await patch({ status: "running_tests", stage: "rescue_exit_verify", failed_stage: null, error: null, pending_action_id: null });
+      await lc({ rescue_exit_ssh_started_at: null, last_ssh_error: null });
+      await log("rescue_exit_verify", "retry_requested");
+      return json({ ok: true, test });
+    }
+
     // ---------------- ADVANCE (one step per call) ----------------
     if (action === "advance") {
       if (test.status !== "running_tests" || !test.provider_resource_id) return json({ ok: true, test });
@@ -320,10 +329,25 @@ Deno.serve(async (req) => {
             if (s.rescue_enabled) throw new HErr("rescue_still_enabled");
             await doAct("reset", {}, "rescue_exit_wait", "rescue_exit_verify"); break;
           case "rescue_exit_verify": {
+            // 1) Hetzner action finished and server reports running (not sufficient alone)
             if (!(await actionDone())) { timeout(5); break; }
-            const out = await ssh(["hostname", BASE_CMDS[1]], "rescue_exit_verify", 5 * 60000); if (!out) break;
-            if (!(out[BASE_CMDS[1]] ?? "").includes("Ubuntu 24.04")) throw new HErr("not_back_to_normal");
-            await lc({ rescue: { ...L.rescue, disabled: true, back_to_normal: true } }); await patch({ stage: "rdns", pending_action_id: null }); await log("rescue", "passed");
+            if (s.status !== "running") { timeout(10); break; }
+            // 2) SSH readiness polling: every ~10s (advance cadence) for up to 5 min from when running was observed
+            let started = L.rescue_exit_ssh_started_at as string | undefined;
+            if (!started) { started = new Date().toISOString(); await lc({ rescue_exit_ssh_started_at: started }); await log("rescue_exit_verify", "ssh_polling_started"); }
+            const waited = Date.now() - new Date(started).getTime();
+            let out: Record<string, string> | null = null;
+            try { out = await sshRun(test.ipv4, await key(), ["hostname", "cat /etc/os-release"]); }
+            catch (e) {
+              const err = sshErr(e); await lc({ last_ssh_error: err, rescue_exit_ssh_attempts: (Number(L.rescue_exit_ssh_attempts) || 0) + 1 });
+              if (waited > 5 * 60000) throw new HErr(`ssh_not_ready_after_5min:${err.slice(0, 60)}`);
+              break; // ECONNREFUSED / timeout = not ready yet
+            }
+            const host = (out.hostname ?? "").trim(); const osr = out["cat /etc/os-release"] ?? "";
+            if (/rescue/i.test(host)) { if (waited > 5 * 60000) throw new HErr(`still_in_rescue:${host}`); break; }
+            if (!/Ubuntu/.test(osr) || !/VERSION_ID="?24\.04/.test(osr)) throw new HErr("not_ubuntu_24_04");
+            await lc({ rescue: { ...L.rescue, disabled: true, back_to_normal: true, hostname: host, os: "Ubuntu 24.04", ssh_original_key: true }, last_ssh_error: null });
+            await patch({ stage: "rdns", pending_action_id: null }); await log("rescue_exit_verify", "passed", { hostname: host, waited_ms: waited });
             break;
           }
           case "rdns": {
