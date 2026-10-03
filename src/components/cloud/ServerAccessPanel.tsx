@@ -60,7 +60,7 @@ const ServerAccessPanel = ({ server, sshKeyName, t }: { server: any; sshKeyName:
       ) : null)}
 
       {!auto && <p className="text-xs text-muted-foreground rounded-xl border p-3">{t("يتم الدخول بمفتاح SSH الخاص بك", "You sign in with your own SSH key")}{sshKeyName ? `: ${sshKeyName}` : ""}</p>}
-      <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/cloud/keys")}><KeyRound className="w-4 h-4" />{t("إدارة مفاتيح SSH", "Manage SSH keys")}</Button>
+      <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/cloud/ssh-keys")}><KeyRound className="w-4 h-4" />{t("إدارة مفاتيح SSH", "Manage SSH keys")}</Button>
 
       <AlertDialog open={ask} onOpenChange={setAsk}>
         <AlertDialogContent>
