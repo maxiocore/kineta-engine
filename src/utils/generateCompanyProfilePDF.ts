@@ -108,7 +108,7 @@ function header(title: string, iconName: keyof typeof ICONS, color = C.primary):
   `;
 }
 
-const TOTAL = 10;
+const TOTAL = 9;
 
 // ─── PAGE 1: COVER ───
 function buildCover(): HTMLDivElement {
@@ -625,7 +625,7 @@ function buildTech(): HTMLDivElement {
         </div>
       </div>
     </div>
-    ${pageFooter(7, TOTAL)}
+    ${pageFooter(6, TOTAL)}
   `;
   return page;
 }
@@ -667,7 +667,7 @@ function buildMethodology(): HTMLDivElement {
         `).join('')}
       </div>
     </div>
-    ${pageFooter(8, TOTAL)}
+    ${pageFooter(7, TOTAL)}
   `;
   return page;
 }
@@ -728,7 +728,7 @@ function buildWhyUs(): HTMLDivElement {
         `).join('')}
       </div>
     </div>
-    ${pageFooter(9, TOTAL)}
+    ${pageFooter(8, TOTAL)}
   `;
   return page;
 }
@@ -825,7 +825,7 @@ function buildContact(): HTMLDivElement {
         <div style="font-size:10px;color:rgba(255,255,255,0.8);margin-top:2px;">© ${new Date().getFullYear()} جميع الحقوق محفوظة</div>
       </div>
     </div>
-    <div style="position:absolute;bottom:62px;left:50%;transform:translateX(-50%);font-size:10px;color:${C.textMuted};">10 / ${TOTAL}</div>
+    <div style="position:absolute;bottom:62px;left:50%;transform:translateX(-50%);font-size:10px;color:${C.textMuted};">9 / ${TOTAL}</div>
   `;
   return page;
 }
