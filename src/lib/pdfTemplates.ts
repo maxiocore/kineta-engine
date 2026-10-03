@@ -492,157 +492,109 @@ interface DepositReceiptData {
   user_email?: string;
 }
 
+// ==================== DEPOSIT RECEIPT - Modern ====================
+const escHtml = (v: unknown) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
+
+const depositStyles = `
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'IBM Plex Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif; }
+  .r { width:210mm; min-height:297mm; background:#f4f7fb; direction:rtl; text-align:right; color:#0f1d33; padding:14mm 12mm; }
+  .card { background:#fff; border-radius:22px; overflow:hidden; border:1px solid #e3e9f2; }
+  .hd { background:linear-gradient(135deg,#0b1b33 0%,#12305a 60%,#0e7c86 100%); color:#fff; padding:28px 32px; display:flex; justify-content:space-between; align-items:center; }
+  .brand { display:flex; align-items:center; gap:14px; }
+  .logo { width:54px; height:54px; border-radius:16px; background:linear-gradient(135deg,#2dd4bf,#0891b2); display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:800; color:#0b1b33; }
+  .bn { font-size:21px; font-weight:800; letter-spacing:1px; direction:ltr; }
+  .bs { font-size:12px; opacity:.75; margin-top:2px; }
+  .tt { text-align:left; }
+  .tt h1 { font-size:22px; font-weight:800; }
+  .tt p { font-size:12px; opacity:.8; margin-top:4px; direction:ltr; }
+  .chip { display:inline-block; margin-top:10px; padding:5px 14px; border-radius:999px; font-size:12px; font-weight:700; }
+  .ok { background:#d1fae5; color:#065f46; } .pd { background:#fef3c7; color:#92400e; } .bd { background:#fee2e2; color:#991b1b; }
+  .hero { margin:24px 32px 0; border-radius:18px; background:linear-gradient(135deg,#ecfeff,#f0fdfa); border:1px solid #bfeef0; padding:24px; display:flex; justify-content:space-between; align-items:center; }
+  .hero .l { font-size:13px; color:#47607d; }
+  .hero .a { font-size:38px; font-weight:800; color:#0b1b33; direction:ltr; }
+  .hero .a span { font-size:16px; color:#0e7c86; margin-left:6px; }
+  .grid { display:flex; gap:16px; margin:20px 32px 0; }
+  .box { flex:1; border:1px solid #e3e9f2; border-radius:16px; padding:18px; border-top:4px solid #14b8a6; }
+  .box.n { border-top-color:#12305a; }
+  .bt { font-size:12px; font-weight:800; color:#0e7c86; margin-bottom:12px; letter-spacing:.3px; }
+  .row { display:flex; justify-content:space-between; gap:10px; padding:7px 0; border-bottom:1px dashed #e6ebf2; font-size:12.5px; }
+  .row:last-child { border-bottom:0; }
+  .k { color:#5b6f88; } .v { font-weight:700; color:#0f1d33; } .ltr { direction:ltr; unicode-bidi:embed; }
+  .tbl { margin:20px 32px 0; border:1px solid #e3e9f2; border-radius:16px; overflow:hidden; }
+  .th { display:flex; background:#0b1b33; color:#fff; font-size:12px; font-weight:700; padding:12px 18px; }
+  .tr { display:flex; padding:12px 18px; font-size:13px; border-top:1px solid #eef2f7; }
+  .c1 { flex:1; } .c2 { width:150px; text-align:left; direction:ltr; font-weight:700; }
+  .plus { color:#047857; } .minus { color:#b91c1c; }
+  .tot { display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg,#0b1b33,#12305a); color:#fff; padding:18px; font-weight:800; }
+  .tot .c2 { color:#5eead4; font-size:20px; }
+  .ver { margin:20px 32px 0; display:flex; gap:14px; align-items:center; background:#f8fafc; border:1px solid #e3e9f2; border-radius:16px; padding:16px 18px; }
+  .seal { width:44px; height:44px; border-radius:50%; background:#14b8a6; color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .seal svg { width:22px; height:22px; }
+  .vt { font-size:13px; font-weight:800; } .vs { font-size:11px; color:#5b6f88; margin-top:3px; direction:ltr; text-align:right; }
+  .ft { margin-top:24px; padding:20px 32px 22px; background:#f8fafc; border-top:1px solid #e3e9f2; font-size:10.5px; color:#5b6f88; line-height:1.8; text-align:center; }
+  .ft b { color:#0b1b33; font-size:12px; }
+  .bar { height:6px; background:linear-gradient(90deg,#0b1b33,#14b8a6,#0b1b33); }
+`;
+
 export const generateDepositReceipt = async (data: DepositReceiptData) => {
   const receiptNumber = `DEP-${data.id.slice(0, 8).toUpperCase()}`;
-  const signatureCode = `SIG-${Date.now().toString(36).toUpperCase().slice(0, 8)}`;
-  const verifyCode = `VRF-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-  
-  const statusLabels: Record<string, { text: string; class: string }> = {
-    pending: { text: 'قيد الانتظار', class: 'status-pending' },
-    completed: { text: 'مكتمل', class: 'status-completed' },
-    failed: { text: 'فشل', class: 'status-failed' },
-    cancelled: { text: 'ملغي', class: 'status-failed' },
+  const verifyCode = `VRF-${data.id.replace(/-/g, '').slice(-10).toUpperCase()}`;
+  const st: Record<string, [string, string]> = {
+    pending: ['قيد الانتظار', 'pd'], completed: ['مكتمل', 'ok'], failed: ['فشل', 'bd'], cancelled: ['ملغي', 'bd'], rejected: ['مرفوض', 'bd'],
   };
-  const statusInfo = statusLabels[data.status] || { text: data.status, class: 'status-pending' };
+  const [stText, stCls] = st[data.status] || [data.status, 'pd'];
+  const method = data.payment_method || (data.transaction_id?.startsWith('PAY-') ? 'دفع إلكتروني بالبطاقة' : 'غير محدد');
+  const amt = (n: number) => formatAmountArabic(Number(n) || 0);
 
   const html = `
-    <style>${bankStyles}</style>
-    <div class="receipt-page">
-      <!-- Header -->
-      <div class="header-section">
-        <div class="header-content">
-          <div class="brand-section">
-            <div class="brand-logo">A</div>
-            <div class="brand-info">
-              <div class="brand-name-main">ASH HOLDING</div>
-              <div class="brand-name-sub">Digital Services</div>
-            </div>
-          </div>
-          <div class="receipt-title-box">
-            <h1 class="receipt-title">Deposit Receipt</h1>
-          </div>
+    <style>${depositStyles}</style>
+    <div class="r"><div class="card">
+      <div class="hd">
+        <div class="brand"><div class="logo">A</div><div><div class="bn">ASH HOLDING</div><div class="bs">الخدمات الرقمية والمالية</div></div></div>
+        <div class="tt"><h1>إيصال شحن رصيد</h1><p>Wallet Top-up Receipt</p><span class="chip ${stCls}">${escHtml(stText)}</span></div>
+      </div>
+
+      <div class="hero">
+        <div><div class="l">المبلغ المضاف إلى المحفظة</div><div class="l" style="margin-top:6px">رقم الإيصال: <b class="ltr" style="color:#0b1b33">${receiptNumber}</b></div></div>
+        <div class="a">${amt(data.total_credited)}<span>SAR</span></div>
+      </div>
+
+      <div class="grid">
+        <div class="box n"><div class="bt">بيانات العميل</div>
+          <div class="row"><span class="k">الاسم</span><span class="v">${escHtml(data.user_name || 'عميل')}</span></div>
+          <div class="row"><span class="k">البريد الإلكتروني</span><span class="v ltr">${escHtml(data.user_email || '-')}</span></div>
+        </div>
+        <div class="box"><div class="bt">بيانات العملية</div>
+          <div class="row"><span class="k">تاريخ العملية</span><span class="v ltr">${formatDateArabic(data.created_at)}</span></div>
+          ${data.completed_at ? `<div class="row"><span class="k">تاريخ الاعتماد</span><span class="v ltr">${formatDateArabic(data.completed_at)}</span></div>` : ''}
+          <div class="row"><span class="k">طريقة الدفع</span><span class="v">${escHtml(method)}</span></div>
+          ${data.transaction_id ? `<div class="row"><span class="k">رقم المرجع</span><span class="v ltr">${escHtml(data.transaction_id)}</span></div>` : ''}
         </div>
       </div>
-      
-      <!-- Info Bar -->
-      <div class="info-bar">
-        <div class="info-item">
-          <div class="info-label">رقم الإيصال</div>
-          <div class="info-value accent">${receiptNumber}</div>
-        </div>
-        <div class="info-item">
-          <span class="${statusInfo.class} status-tag">${statusInfo.text}</span>
-        </div>
-        <div class="info-item">
-          <div class="info-label">تاريخ العملية</div>
-          <div class="info-value">${formatDateArabic(data.created_at)}</div>
-        </div>
+
+      <div class="tbl">
+        <div class="th"><div class="c1">البيان</div><div class="c2" style="text-align:left">المبلغ (ر.س)</div></div>
+        <div class="tr"><div class="c1">مبلغ الشحن</div><div class="c2">${amt(data.amount)}</div></div>
+        ${data.bonus_amount && data.bonus_amount > 0 ? `<div class="tr"><div class="c1 plus">مكافأة مضافة</div><div class="c2 plus">+ ${amt(data.bonus_amount)}</div></div>` : ''}
+        ${data.fee_amount && data.fee_amount > 0 ? `<div class="tr"><div class="c1 minus">رسوم المعاملة</div><div class="c2 minus">- ${amt(data.fee_amount)}</div></div>` : ''}
+        <div class="tot"><div class="c1">الإجمالي المضاف للرصيد</div><div class="c2">${amt(data.total_credited)}</div></div>
       </div>
-      
-      <!-- Customer Data -->
-      <div class="section-header">بيانات العميل</div>
-      <div class="data-section">
-        <div class="data-row">
-          <div class="data-label">اسم العميل</div>
-          <div class="data-value rtl">${data.user_name || 'عميل'}</div>
-        </div>
-        <div class="data-row">
-          <div class="data-label">البريد الإلكتروني</div>
-          <div class="data-value">${data.user_email || '-'}</div>
-        </div>
+
+      <div class="ver">
+        <div class="seal"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
+        <div><div class="vt">إيصال إلكتروني موثّق من ASH HOLDING</div><div class="vs">Verification: ${verifyCode} · Issued ${format(new Date(), 'dd/MM/yyyy HH:mm')}</div></div>
       </div>
-      
-      <!-- Transaction Details -->
-      <div class="section-header">تفاصيل المعاملة</div>
-      <div class="data-section">
-        ${data.payment_method ? `
-        <div class="data-row">
-          <div class="data-label">طريقة الدفع</div>
-          <div class="data-value rtl">${data.payment_method}</div>
-        </div>
-        ` : ''}
-        ${data.transaction_id ? `
-        <div class="data-row">
-          <div class="data-label">رقم المرجع</div>
-          <div class="data-value">${data.transaction_id}</div>
-        </div>
-        ` : ''}
+
+      <div class="ft">
+        <b>ASH HOLDING</b><br/>
+        هذا إيصال إلكتروني رسمي صادر آلياً ولا يحتاج إلى توقيع. المبالغ بالريال السعودي.<br/>
+        للاستفسار: <span class="ltr">billing@ash-holding.sa</span> · ash-holding.sa
       </div>
-      
-      <!-- Amount Details -->
-      <div class="section-header">تفاصيل المبالغ</div>
-      <div class="data-section">
-        <div class="data-row">
-          <div class="data-label">مبلغ الإيداع</div>
-          <div class="data-value">${formatAmountArabic(data.amount)} ر.س</div>
-        </div>
-        ${data.bonus_amount && data.bonus_amount > 0 ? `
-        <div class="data-row highlight">
-          <div class="data-label" style="color: #16a34a;">المكافأة المضافة</div>
-          <div class="data-value success">+ ${formatAmountArabic(data.bonus_amount)} ر.س</div>
-        </div>
-        ` : ''}
-        ${data.fee_amount && data.fee_amount > 0 ? `
-        <div class="data-row warning">
-          <div class="data-label" style="color: #dc2626;">رسوم المعاملة</div>
-          <div class="data-value danger">- ${formatAmountArabic(data.fee_amount)} ر.س</div>
-        </div>
-        ` : ''}
-      </div>
-      
-      <!-- Total -->
-      <div class="total-box">
-        <div class="total-text">إجمالي المبلغ المضاف للرصيد</div>
-        <div class="total-amount">
-          <span class="amount-currency">ر.س</span>
-          <span class="amount-number">${formatAmountArabic(data.total_credited)}</span>
-        </div>
-      </div>
-      
-      <!-- Digital Signature -->
-      <div class="signature-section">
-        <div class="sig-badge">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <div class="sig-main">
-          <div class="sig-title">Digitally Verified</div>
-          <div class="sig-signer">Digital Signature: <span>ASH HOLDING</span></div>
-          <div class="sig-codes">
-            <div class="sig-code-item">
-              <span>Verification:</span>
-              <span class="sig-code-value">${signatureCode}</span>
-            </div>
-            <div class="sig-code-item">
-              <span>Confirmation:</span>
-              <span class="sig-code-value">${verifyCode}</span>
-            </div>
-          </div>
-        </div>
-        <div class="sig-timestamp">
-          <div class="sig-timestamp-label">Issue Date</div>
-          <div class="sig-timestamp-value">
-            ${format(new Date(), 'dd/MM/yyyy')}<br/>
-            ${format(new Date(), 'HH:mm:ss')}
-          </div>
-        </div>
-      </div>
-      
-      <!-- Footer -->
-      <div class="footer-section">
-        <div class="footer-brand">ASH HOLDING</div>
-        <div class="footer-note">This is an official electronic receipt</div>
-        <div class="footer-contact">Contact: support@ash-holding.sa</div>
-        <div class="footer-ref">
-          Reference: ${receiptNumber} | Date: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}
-        </div>
-        <div class="footer-bar"></div>
-      </div>
-    </div>
+      <div class="bar"></div>
+    </div></div>
   `;
 
-  await createPDFFromHTML(html, `إيصال-إيداع-${receiptNumber}.pdf`);
+  await createPDFFromHTML(html, `إيصال-شحن-${receiptNumber}.pdf`);
 };
 
 // ==================== CASHBACK RECEIPT - Arabic ====================
