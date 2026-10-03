@@ -4246,6 +4246,56 @@ export type Database = {
         }
         Relationships: []
       }
+      live_payment_test_overrides: {
+        Row: {
+          active: boolean
+          amount_minor: number
+          created_at: string
+          disabled_at: string | null
+          expires_at: string
+          id: string
+          idempotency_key: string | null
+          max_payments: number
+          payment_id: string | null
+          purpose: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          amount_minor: number
+          created_at?: string
+          disabled_at?: string | null
+          expires_at?: string
+          id?: string
+          idempotency_key?: string | null
+          max_payments?: number
+          payment_id?: string | null
+          purpose: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          amount_minor?: number
+          created_at?: string
+          disabled_at?: string | null
+          expires_at?: string
+          id?: string
+          idempotency_key?: string | null
+          max_payments?: number
+          payment_id?: string | null
+          purpose?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_payment_test_overrides_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       monthly_achievements: {
         Row: {
           achieved_at: string | null
@@ -6493,6 +6543,10 @@ export type Database = {
         Returns: undefined
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      live_test_claim: {
+        Args: { p_idempotency_key: string; p_user: string }
+        Returns: string
+      }
       order_cloud_server: {
         Args: {
           p_backups: boolean
