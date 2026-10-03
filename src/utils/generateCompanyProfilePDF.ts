@@ -161,7 +161,7 @@ function buildCover(): HTMLDivElement {
         شريكك الرقمي نحو النمو والابتكار
       </div>
       <div style="font-size:15px;color:${C.textLight};text-align:center;margin-bottom:45px;max-width:480px;line-height:1.9;">
-        نقدم حلولاً رقمية متكاملة تجمع بين التقنية والإبداع والتمويل لتحقيق رؤيتك
+        نقدم حلولاً رقمية متكاملة تجمع بين التقنية والإبداع لتحقيق رؤيتك
       </div>
 
       <!-- Feature pills -->
@@ -170,7 +170,7 @@ function buildCover(): HTMLDivElement {
           { ic: 'code' as const, text: 'تطوير برمجي', cl: C.primary },
           { ic: 'palette' as const, text: 'تصميم إبداعي', cl: C.purple },
           { ic: 'megaphone' as const, text: 'تسويق رقمي', cl: C.orange },
-          { ic: 'wallet' as const, text: 'تمويل مرن', cl: C.green },
+          { ic: 'wallet' as const, text: 'محفظة رقمية', cl: C.green },
         ].map(f => `
           <div style="background:${f.cl}08;border:1.5px solid ${f.cl}20;border-radius:50px;padding:10px 22px;display:flex;align-items:center;gap:8px;">
             ${icon(f.ic, f.cl, 18)}
@@ -223,7 +223,7 @@ function buildAbout(): HTMLDivElement {
             <div style="font-size:17px;font-weight:700;color:${C.text};">رسالتنا</div>
           </div>
           <div style="font-size:13px;line-height:2.1;color:${C.textMd};">
-            تمكين عملائنا من تحقيق أقصى إمكاناتهم الرقمية عبر تقديم خدمات تقنية عالية الجودة وحلول تمويلية مرنة، مدعومة بالابتكار المستمر والدعم الفني المتواصل.
+            تمكين عملائنا من تحقيق أقصى إمكاناتهم الرقمية عبر تقديم خدمات تقنية عالية الجودة وحلول دفع مرنة، مدعومة بالابتكار المستمر والدعم الفني المتواصل.
           </div>
         </div>
       </div>
@@ -490,74 +490,6 @@ function buildReadyMade(): HTMLDivElement {
   return page;
 }
 
-// ─── PAGE 6: FINANCING SYSTEM ───
-function buildFinancing(): HTMLDivElement {
-  const page = createPage();
-  page.innerHTML = `
-    <div style="padding:42px 42px 30px;">
-      ${header('نظام التمويل الداخلي', 'wallet', C.green)}
-
-      <div style="background:linear-gradient(135deg,${C.green}06,${C.primary}04);border:1.5px solid ${C.green}15;border-radius:16px;padding:24px;margin-bottom:20px;">
-        <div style="font-size:14.5px;line-height:2.3;color:${C.textMd};">
-          نوفر في <strong style="color:${C.green};">ASH Holding</strong> نظام تمويل داخلي مرن ومبتكر يتيح للعملاء الحصول على خدماتنا الرقمية بنظام <strong style="color:${C.text};">الأقساط الميسّرة</strong>. هذا النظام مصمم لدعم رواد الأعمال والشركات الناشئة التي ترغب في بناء حضورها الرقمي دون تحمل التكلفة الكاملة مقدماً.
-        </div>
-      </div>
-
-      <!-- How it works -->
-      <div style="font-size:16px;font-weight:700;color:${C.text};margin-bottom:16px;display:flex;align-items:center;gap:8px;">
-        ${icon('settings', C.green, 20)}
-        كيف يعمل نظام التمويل؟
-      </div>
-      <div style="display:flex;gap:10px;margin-bottom:22px;">
-        ${[
-          { step: '01', title: 'تقديم الطلب', desc: 'اختر الخدمة وقدّم طلب التمويل عبر المنصة', c: C.primary },
-          { step: '02', title: 'المراجعة والموافقة', desc: 'مراجعة سريعة والرد خلال 24 ساعة', c: C.accent },
-          { step: '03', title: 'توقيع العقد', desc: 'عقد إلكتروني شفاف بشروط واضحة', c: C.green },
-          { step: '04', title: 'بدء التنفيذ', desc: 'نبدأ العمل فوراً بعد الموافقة', c: C.purple },
-          { step: '05', title: 'سداد مرن', desc: 'أقساط شهرية مريحة حسب الاتفاق', c: C.orange },
-        ].map(s => `
-          <div style="flex:1;text-align:center;">
-            <div style="width:40px;height:40px;border-radius:50%;background:${s.c}10;border:2px solid ${s.c}25;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;">
-              <span style="font-size:13px;font-weight:700;color:${s.c};">${s.step}</span>
-            </div>
-            <div style="font-size:11.5px;font-weight:600;color:${C.text};margin-bottom:3px;">${s.title}</div>
-            <div style="font-size:9.5px;color:${C.textLight};line-height:1.5;">${s.desc}</div>
-          </div>
-        `).join('')}
-      </div>
-
-      <!-- Features grid -->
-      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
-        ${[
-          { title: 'بدون فوائد ربوية', desc: 'تمويل متوافق مع الشريعة الإسلامية', ic: 'shield' as const, c: C.green },
-          { title: 'موافقة سريعة', desc: 'الرد على طلبك خلال 24 ساعة فقط', ic: 'zap' as const, c: C.primary },
-          { title: 'عقود إلكترونية', desc: 'عقود رقمية آمنة وشفافة بالكامل', ic: 'fileText' as const, c: C.accent },
-          { title: 'أقساط مرنة', desc: 'خطط سداد مخصصة حسب قدرتك', ic: 'creditCard' as const, c: C.purple },
-          { title: 'بدء فوري', desc: 'نبدأ تنفيذ مشروعك فور الموافقة', ic: 'rocket' as const, c: C.orange },
-          { title: 'متابعة شفافة', desc: 'تتبع أقساطك ومدفوعاتك لحظياً', ic: 'barChart' as const, c: C.gold },
-        ].map(f => `
-          <div style="width:calc(50% - 6px);background:${C.bgSoft};border:1.5px solid ${f.c}12;border-radius:14px;padding:16px;display:flex;gap:12px;align-items:flex-start;box-sizing:border-box;">
-            <div style="width:38px;height:38px;border-radius:10px;background:${f.c}08;border:1px solid ${f.c}20;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              ${icon(f.ic, f.c, 20)}
-            </div>
-            <div>
-              <div style="font-size:13px;font-weight:600;color:${C.text};margin-bottom:3px;">${f.title}</div>
-              <div style="font-size:11px;color:${C.textLight};line-height:1.6;">${f.desc}</div>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-
-      <!-- CTA -->
-      <div style="background:${C.green}08;border:1.5px solid ${C.green}15;border-radius:14px;padding:18px;text-align:center;">
-        <div style="font-size:15px;font-weight:700;color:${C.green};margin-bottom:5px;">ابدأ مشروعك اليوم — ادفع لاحقاً!</div>
-        <div style="font-size:12px;color:${C.textLight};">تقدّم بطلب التمويل عبر منصتنا أو منصة ash.holdings</div>
-      </div>
-    </div>
-    ${pageFooter(6, TOTAL)}
-  `;
-  return page;
-}
 
 // ─── PAGE 7: TECHNOLOGIES ───
 function buildTech(): HTMLDivElement {
