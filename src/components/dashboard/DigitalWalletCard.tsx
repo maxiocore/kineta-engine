@@ -249,23 +249,6 @@ const DigitalWalletCard = () => {
         )}
       </AnimatePresence>
 
-      {/* Info */}
-      <Card className="p-4 bg-muted/30 border-dashed">
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <ExternalLink className="w-4 h-4 text-primary" />
-          </div>
-          <div className="text-xs space-y-1">
-            <p className="font-medium">كيفية الإيداع من ASH Holdings</p>
-            <ol className="text-muted-foreground space-y-0.5 list-decimal list-inside">
-              <li>انسخ رقم حسابك أو رقم جوالك أعلاه</li>
-              <li>اذهب إلى موقع ASH Holdings</li>
-              <li>أدخل رقم الحساب أو الجوال أو البريد واطلب السحب</li>
-              <li>سيتم إضافة الرصيد فوراً لمحفظتك</li>
-            </ol>
-          </div>
-        </div>
-      </Card>
     </div>
   );
 };
