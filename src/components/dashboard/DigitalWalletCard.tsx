@@ -196,58 +196,9 @@ const DigitalWalletCard = () => {
       </div>
 
       {/* Actions */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <Button variant="outline" onClick={handleCopy} className="h-11 gap-1.5 rounded-xl text-xs">
-          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />} نسخ الرقم
-        </Button>
-        <Button variant="outline" onClick={() => setShowQR(!showQR)} className="h-11 gap-1.5 rounded-xl text-xs">
-          <QrCode className="h-4 w-4" /> رمز QR
-        </Button>
-        <Button variant="outline" onClick={handleShare} className="h-11 gap-1.5 rounded-xl text-xs">
-          <Share2 className="h-4 w-4" /> مشاركة
-        </Button>
-        <Button onClick={handleTopUp} className="h-11 gap-1.5 rounded-xl text-xs">
-          <PlusCircle className="h-4 w-4" /> شحن الرصيد
-        </Button>
-      </div>
-
-      {/* QR Code Modal */}
-      <AnimatePresence>
-        {showQR && walletNumber && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <Card className="p-6 flex flex-col items-center gap-4">
-              <h3 className="font-bold text-sm">رمز QR للمحفظة</h3>
-              <div className="bg-white p-4 rounded-xl shadow-inner">
-                <svg viewBox="0 0 210 210" className="w-48 h-48">
-                  {qrCells.map((row, i) =>
-                    row.map((cell, j) =>
-                      cell ? (
-                        <rect
-                          key={`${i}-${j}`}
-                          x={j * 10}
-                          y={i * 10}
-                          width={10}
-                          height={10}
-                          fill="#1a1a2e"
-                        />
-                      ) : null
-                    )
-                  )}
-                </svg>
-              </div>
-              <p className="text-muted-foreground text-xs text-center">
-                امسح هذا الرمز من موقع ASH Holdings لإيداع الرصيد فوراً
-              </p>
-              <p className="font-mono text-sm font-bold">{walletNumber}</p>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <Button onClick={handleTopUp} className="h-11 gap-1.5 rounded-xl text-xs w-full">
+        <PlusCircle className="h-4 w-4" /> شحن الرصيد
+      </Button>
 
     </div>
   );
