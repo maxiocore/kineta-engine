@@ -85,4 +85,6 @@ export const EmptyState = ({ icon: Icon, title, desc, action }: { icon: LucideIc
 export const sar = (n: number, lang: string) =>
   `${Number(n || 0).toLocaleString(lang === "ar" ? "ar-SA" : "en-US", { maximumFractionDigits: 2 })} ${lang === "ar" ? "ر.س" : "SAR"}`;
 
-export const fmtDate = (d: string | null, lang: string) => (d ? new Date(d).toLocaleDateString(lang === "ar" ? "ar-SA" : "en-US") : "—");
+// Billing dates are always Gregorian (never Hijri) so due/renewal dates are unambiguous.
+export const fmtDate = (d: string | null, lang: string) =>
+  d ? new Date(d).toLocaleDateString(lang === "ar" ? "ar-SA-u-ca-gregory-nu-latn" : "en-GB", { year: "numeric", month: "long", day: "numeric", calendar: "gregory" } as Intl.DateTimeFormatOptions) : "—";
