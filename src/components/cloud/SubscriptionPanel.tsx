@@ -52,6 +52,8 @@ export default function SubscriptionPanel({ serverId, t, lang }: { serverId: str
           <Button variant="outline" disabled={busy} onClick={() => confirm(t("إلغاء في نهاية الفترة؟", "Cancel at end of period?")) && call("cloud_request_cancel", { p_sub: s.id, p_mode: "period_end" }, t("تمت الجدولة", "Scheduled"))}>{t("إلغاء نهاية الفترة", "Cancel at period end")}</Button>
           <Button variant="destructive" disabled={busy} onClick={() => confirm(t("سيتم إيقاف الخدمة فوراً. الاسترداد حسب السياسة فقط. متابعة؟", "Service stops immediately. Refunds follow policy only. Continue?")) && call("cloud_request_cancel", { p_sub: s.id, p_mode: "immediate" }, t("تم الطلب", "Requested"))}>{t("إلغاء فوري", "Cancel immediately")}</Button>
         </>}
+        {s.backup_status === "active" && <Button variant="outline" disabled={busy} onClick={() => confirm(t("إلغاء النسخ الاحتياطي؟ يبقى مفعلاً حتى يتم تأكيد الإيقاف.", "Cancel backups? They stay on until the stop is confirmed.")) && call("cloud_request_backup_cancel", { p_sub: s.id }, t("تم الطلب", "Requested"))}>{t("إلغاء النسخ الاحتياطي", "Cancel backups")}</Button>}
+        {s.backup_status === "cancellation_pending" && <Badge variant="outline">{t("جارٍ إيقاف النسخ الاحتياطي", "Backup cancellation in progress")}</Badge>}
         {s.status === "cancellation_pending" && s.cancel_mode === "period_end" && <Button variant="outline" disabled={busy} onClick={() => call("cloud_undo_cancel", { p_sub: s.id }, t("تم التراجع", "Undone"))}>{t("تراجع عن الإلغاء", "Undo cancellation")}</Button>}
       </div>
     </div>
