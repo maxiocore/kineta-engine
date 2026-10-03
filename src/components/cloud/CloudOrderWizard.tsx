@@ -209,7 +209,7 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
                 [t("النظام", "OS"), images.find((x) => x.code === image)?.name],
                 [t("الاسم", "Name"), name],
                 [t("النسخ الاحتياطي", "Backups"), backups && backupPrice != null ? t("مفعّل", "Enabled") : t("غير مفعّل", "Disabled")],
-                ["IPv4", plan.ipv4_mode === "included" || (ipv4 && ipv4Price != null) ? t("مشمول", "Included") : plan.ipv4_mode === "optional" ? t("غير مختار", "Not selected") : t("غير متاح (IPv6 فقط)", "Not available (IPv6 only)")],
+                ["IPv4", plan.ipv4_mode === "included" ? t("مشمول", "Included") : ipv4 && ipv4Price != null ? `${t("مضاف", "Added")} (+${sar(ipv4Price, lang)})` : plan.ipv4_mode === "optional" ? t("غير مختار", "Not selected") : t("غير متاح (IPv6 فقط)", "Not available (IPv6 only)")],
                 [t("النقل المضمّن", "Included traffic"), trafficLabel(plan)],
                 [t("نقل إضافي", "Additional traffic"), trafficOf(plan.id, loc)?.extra_traffic_sar_per_tb != null ? `${sar(trafficOf(plan.id, loc).extra_traffic_sar_per_tb, lang)} / TB` : "—"],
                 [t("التجديد", "Renewal"), t("شهري", "Monthly")],
