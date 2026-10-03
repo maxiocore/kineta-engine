@@ -99,6 +99,7 @@ Deno.serve(async (req) => {
     const log = (stage: string, result: string, details: Record<string, unknown> = {}) =>
       db.from("cloud_e2e_test_events").insert({ test_id: test.id, actor_id: user.id, stage, result, details });
     const patch = async (p: Record<string, unknown>) => {
+      if ("stage" in p) p.stage_started_at = new Date().toISOString();
       const { data } = await db.from("cloud_e2e_tests").update(p).eq("id", test.id).select("*").single();
       test = data; return data;
     };
@@ -197,8 +198,8 @@ Deno.serve(async (req) => {
       };
       try {
         const s = await getS();
-        const age = Date.now() - new Date(test.updated_at).getTime();
-        if (s.status !== test.provider_status) await db.from("cloud_e2e_tests").update({ provider_status: s.status, updated_at: test.updated_at }).eq("id", test.id);
+        const age = Date.now() - new Date(test.stage_started_at ?? test.updated_at).getTime();
+        if (s.status !== test.provider_status) await patch({ provider_status: s.status });
         switch (test.stage) {
           case "wait_running":
             if (s.status === "running") {
@@ -271,7 +272,7 @@ Deno.serve(async (req) => {
     // Reset only allowed once provider resources are gone (allows a future manual re-run)
     if (action === "reset") {
       if (!(["cleaned_up", "ready"].includes(test.status) || (test.status === "failed" && !test.provider_resource_id && !test.provider_ssh_key_id))) return json({ ok: false, error: "cleanup_first" }, 409);
-      await patch({ status: "ready", stage: "not_started", provider_resource_id: null, provider_ssh_key_id: null, pending_action_id: null, provider_status: null,
+      await patch({ status: "ready", stage: "not_started", stage_started_at: null, provider_resource_id: null, provider_ssh_key_id: null, pending_action_id: null, provider_status: null,
         ipv4: null, ipv6: null, connectivity: null, customer_data: null, failed_stage: null, error: null, started_at: null, running_at: null, passed_at: null, cleaned_up_at: null });
       await log("reset", "done");
       return json({ ok: true, test });
