@@ -25,7 +25,6 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
   const idemRef = useRef<string>("");
   const { data: billing } = useBillingQuery({ queryKey: ["cloud-billing-settings"], queryFn: async () => (await db.from("cloud_billing_settings").select("*").eq("id", 1).maybeSingle()).data });
   const VAT = Number(billing?.vat_rate ?? 0.15);
-  const BACKUP = Number(billing?.backups_surcharge ?? 0.2);
   const [step, setStep] = useState(initialType ? 1 : 0);
   const [type, setType] = useState<"vps" | "dedicated" | null>(initialType ?? null);
   const [loc, setLoc] = useState<string | null>(null);
@@ -35,6 +34,7 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
   const [hostname, setHostname] = useState("");
   const [sshKey, setSshKey] = useState<string | null>(null);
   const [backups, setBackups] = useState(false);
+  const [ipv4, setIpv4] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const steps = [
@@ -55,7 +55,10 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
     [plans, type, loc, locPrices],
   );
   const plan = plans.find((p) => p.id === planId);
-  const monthly = plan ? priceOf(plan) * (backups ? 1 + BACKUP : 1) : 0;
+  const backupPrice = plan?.retail_backup_price != null ? Number(plan.retail_backup_price) : null;
+  const ipv4Price = plan?.ipv4_mode === "optional" && plan?.ipv4_retail_price != null ? Number(plan.ipv4_retail_price) : null;
+  const archOk = (im: any) => (im.architecture ?? "x86").toLowerCase() === (plan?.architecture ?? "x86").toLowerCase();
+  const monthly = plan ? priceOf(plan) + (backups && backupPrice != null ? backupPrice : 0) + (ipv4 && ipv4Price != null ? ipv4Price : 0) : 0;
   const subtotal = plan ? monthly + Number(plan.setup_fee) : 0;
   const vat = subtotal * VAT;
   const total = subtotal + vat;
@@ -68,13 +71,14 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
     setSubmitting(true);
     const { error } = await db.rpc("order_cloud_server", {
       p_plan_id: planId, p_location: loc, p_image: image, p_name: name.trim(),
-      p_hostname: hostname.trim() || null, p_ssh_key_id: sshKey, p_backups: backups,
+      p_hostname: hostname.trim() || null, p_ssh_key_id: sshKey, p_backups: backups && backupPrice != null, p_ipv4: ipv4 && ipv4Price != null,
       p_idempotency_key: (idemRef.current ||= crypto.randomUUID() + "-" + Date.now()),
     });
     setSubmitting(false);
     if (error) {
       const msg = error.message.includes("insufficient")
         ? t("الرصيد غير كافٍ، يرجى شحن المحفظة", "Insufficient balance, please top up your wallet")
+        : error.message.includes("architecture") ? t("نظام التشغيل غير متوافق مع معالج الباقة", "OS image not compatible with this plan")
         : t("تعذر إتمام الطلب", "Could not complete the order");
       toast.error(msg);
       return;
@@ -137,7 +141,7 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
         {step === 2 && (availablePlans.length ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {availablePlans.map((p) => (
-              <Option key={p.id} active={planId === p.id} onClick={() => setPlanId(p.id)}>
+              <Option key={p.id} active={planId === p.id} onClick={() => { setPlanId(p.id); setImage(null); setIpv4(false); setBackups(false); }}>
                 <p className="font-semibold">{lang === "ar" ? p.name_ar : p.name_en}</p>
                 <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-muted-foreground my-3">
                   {p.server_type === "vps" ? <span>{p.vcpu} vCPU</span> : <span className="col-span-2">{p.cpu_model}</span>}
@@ -155,7 +159,7 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
 
         {step === 3 && (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {images.map((im) => (
+            {images.filter(archOk).map((im) => (
               <Option key={im.id} active={image === im.code} onClick={() => setImage(im.code)}>
                 <Disc className="w-5 h-5 text-primary mb-2" />
                 <p className="font-semibold text-sm">{im.name}</p>
@@ -175,10 +179,15 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
                 {keys.map((k) => <Button key={k.id} type="button" size="sm" variant={sshKey === k.id ? "default" : "outline"} onClick={() => setSshKey(k.id)}>{k.name}</Button>)}
               </div>
             </div>
-            <div className="flex items-center justify-between p-4 rounded-xl border md:col-span-2">
-              <div><p className="font-medium text-sm">{t("النسخ الاحتياطي التلقائي", "Automatic backups")}</p><p className="text-xs text-muted-foreground">{t("+20% من السعر الشهري", "+20% of monthly price")}</p></div>
+            {backupPrice != null && <div className="flex items-center justify-between p-4 rounded-xl border md:col-span-2">
+              <div><p className="font-medium text-sm">{t("النسخ الاحتياطي التلقائي", "Automatic backups")}</p><p className="text-xs text-muted-foreground">+{sar(backupPrice, lang)} / {t("شهرياً", "month")}</p></div>
               <Switch checked={backups} onCheckedChange={setBackups} />
-            </div>
+            </div>}
+            {plan?.ipv4_mode === "included" && <p className="text-xs text-muted-foreground md:col-span-2">{t("يشمل عنوان IPv4 و IPv6", "Includes IPv4 and IPv6 address")}</p>}
+            {ipv4Price != null && <div className="flex items-center justify-between p-4 rounded-xl border md:col-span-2">
+              <div><p className="font-medium text-sm">{t("عنوان IPv4 عام", "Public IPv4 address")}</p><p className="text-xs text-muted-foreground">+{sar(ipv4Price, lang)} / {t("شهرياً", "month")} · {t("IPv6 مشمول", "IPv6 included")}</p></div>
+              <Switch checked={ipv4} onCheckedChange={setIpv4} />
+            </div>}
           </div>
         )}
 
@@ -191,7 +200,8 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
                 [t("الموقع", "Location"), (() => { const l = locations.find((x) => x.code === loc); return l ? (lang === "ar" ? l.name_ar : l.name_en) : loc; })()],
                 [t("النظام", "OS"), images.find((x) => x.code === image)?.name],
                 [t("الاسم", "Name"), name],
-                [t("النسخ الاحتياطي", "Backups"), backups ? t("مفعّل", "Enabled") : t("غير مفعّل", "Disabled")],
+                [t("النسخ الاحتياطي", "Backups"), backups && backupPrice != null ? t("مفعّل", "Enabled") : t("غير مفعّل", "Disabled")],
+                ["IPv4", plan.ipv4_mode === "included" || (ipv4 && ipv4Price != null) ? t("مشمول", "Included") : plan.ipv4_mode === "optional" ? t("غير مختار", "Not selected") : t("غير متاح (IPv6 فقط)", "Not available (IPv6 only)")],
                 [t("التجديد", "Renewal"), t("شهري", "Monthly")],
               ].map(([k, v]) => (
                 <div key={k as string} className="flex justify-between gap-4 py-1.5 border-b last:border-0"><span className="text-muted-foreground">{k}</span><span className="font-medium" dir="auto">{v}</span></div>

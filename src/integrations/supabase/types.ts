@@ -835,22 +835,38 @@ export type Database = {
       cloud_orders: {
         Row: {
           adjusted_cost_sar: number | null
+          backups_selected: boolean | null
           cost_buffer_pct: number | null
           created_at: string
           exchange_rate_used: number | null
+          gross_margin_pct: number | null
+          gross_profit: number | null
           id: string
           idempotency_key: string
+          included_traffic_tb: number | null
+          ipv4_selected: boolean | null
           location_code: string | null
           payment_method: string
           plan_id: string | null
+          provider_addons_cost: number | null
+          provider_backup_cost: number | null
           provider_cost_original: number | null
           provider_cost_sar: number | null
           provider_currency: string | null
+          provider_ipv4_cost: number | null
+          provider_server_cost: number | null
+          raw_provider_cost: number | null
+          retail_addons_price: number | null
+          retail_backup_price: number | null
+          retail_ipv4_price: number | null
           retail_price_before_vat: number | null
+          retail_server_price: number | null
           server_id: string | null
           status: string
           subtotal: number
           total: number
+          traffic_overage_currency: string | null
+          traffic_overage_price: number | null
           transaction_reference: string
           updated_at: string
           user_id: string
@@ -859,22 +875,38 @@ export type Database = {
         }
         Insert: {
           adjusted_cost_sar?: number | null
+          backups_selected?: boolean | null
           cost_buffer_pct?: number | null
           created_at?: string
           exchange_rate_used?: number | null
+          gross_margin_pct?: number | null
+          gross_profit?: number | null
           id?: string
           idempotency_key: string
+          included_traffic_tb?: number | null
+          ipv4_selected?: boolean | null
           location_code?: string | null
           payment_method?: string
           plan_id?: string | null
+          provider_addons_cost?: number | null
+          provider_backup_cost?: number | null
           provider_cost_original?: number | null
           provider_cost_sar?: number | null
           provider_currency?: string | null
+          provider_ipv4_cost?: number | null
+          provider_server_cost?: number | null
+          raw_provider_cost?: number | null
+          retail_addons_price?: number | null
+          retail_backup_price?: number | null
+          retail_ipv4_price?: number | null
           retail_price_before_vat?: number | null
+          retail_server_price?: number | null
           server_id?: string | null
           status?: string
           subtotal: number
           total: number
+          traffic_overage_currency?: string | null
+          traffic_overage_price?: number | null
           transaction_reference: string
           updated_at?: string
           user_id: string
@@ -883,22 +915,38 @@ export type Database = {
         }
         Update: {
           adjusted_cost_sar?: number | null
+          backups_selected?: boolean | null
           cost_buffer_pct?: number | null
           created_at?: string
           exchange_rate_used?: number | null
+          gross_margin_pct?: number | null
+          gross_profit?: number | null
           id?: string
           idempotency_key?: string
+          included_traffic_tb?: number | null
+          ipv4_selected?: boolean | null
           location_code?: string | null
           payment_method?: string
           plan_id?: string | null
+          provider_addons_cost?: number | null
+          provider_backup_cost?: number | null
           provider_cost_original?: number | null
           provider_cost_sar?: number | null
           provider_currency?: string | null
+          provider_ipv4_cost?: number | null
+          provider_server_cost?: number | null
+          raw_provider_cost?: number | null
+          retail_addons_price?: number | null
+          retail_backup_price?: number | null
+          retail_ipv4_price?: number | null
           retail_price_before_vat?: number | null
+          retail_server_price?: number | null
           server_id?: string | null
           status?: string
           subtotal?: number
           total?: number
+          traffic_overage_currency?: string | null
+          traffic_overage_price?: number | null
           transaction_reference?: string
           updated_at?: string
           user_id?: string
@@ -5769,6 +5817,7 @@ export type Database = {
           p_hostname: string
           p_idempotency_key: string
           p_image: string
+          p_ipv4?: boolean
           p_location: string
           p_name: string
           p_plan_id: string
