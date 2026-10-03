@@ -65,57 +65,11 @@ const DigitalWalletCard = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleShare = async () => {
-    if (!walletNumber) return;
-    if (navigator.share) {
-      await navigator.share({
-        title: "رقم محفظة ASH",
-        text: `رقم حسابي في ASH: ${walletNumber}`,
-      });
-    } else {
-      handleCopy();
-    }
-  };
-
   const handleTopUp = () => {
     navigate("/dashboard/financial?tab=deposits");
   };
 
-  // Simple QR Code using a canvas-like SVG pattern
-  const generateQRPattern = (text: string) => {
-    // Create a simple visual pattern from the text
-    const hash = text.split("").reduce((acc, char) => {
-      return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
-    }, 0);
-    
-    const size = 21;
-    const cells: boolean[][] = [];
-    let seed = Math.abs(hash);
-    
-    for (let i = 0; i < size; i++) {
-      cells[i] = [];
-      for (let j = 0; j < size; j++) {
-        // Fixed pattern corners (QR code finder patterns)
-        if (
-          (i < 7 && j < 7) || 
-          (i < 7 && j >= size - 7) || 
-          (i >= size - 7 && j < 7)
-        ) {
-          const inOuter = i === 0 || i === 6 || j === 0 || j === 6 ||
-            (i >= size - 7 && (i === size - 7 || i === size - 1)) ||
-            (j >= size - 7 && (j === size - 7 || j === size - 1));
-          const inInner = (i >= 2 && i <= 4 && j >= 2 && j <= 4) ||
-            (i >= 2 && i <= 4 && j >= size - 5 && j <= size - 3) ||
-            (i >= size - 5 && i <= size - 3 && j >= 2 && j <= 4);
-          cells[i][j] = inOuter || inInner;
-        } else {
-          seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-          cells[i][j] = (seed % 3) === 0;
-        }
-      }
-    }
-    return cells;
-  };
+
 
   if (loading) {
     return (
