@@ -90,7 +90,7 @@ export default function PaymentCheckout() {
         {error ? (
           <Card className="border-destructive/40"><CardContent className="p-8 text-center space-y-3">
             <AlertTriangle className="w-10 h-10 text-destructive mx-auto" />
-            <p className="font-medium">{paymentErrorText(error)}</p>
+            <p className="font-medium">{t(paymentErrorText(error), error === "GATEWAY_UNAVAILABLE" ? "Online payment is temporarily unavailable. Please try again later." : error === "PAYMENT_NOT_FOUND" ? "Payment not found." : "We could not complete this request. Please try again later.")}</p>
             <Button variant="outline" onClick={() => navigate("/dashboard/financial")}>{t("العودة للمركز المالي", "Back to financial hub")}</Button>
           </CardContent></Card>
         ) : !payment ? (
