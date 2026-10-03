@@ -226,9 +226,7 @@ const ClientCashback = () => {
     mutationFn: async (amount: number) => {
       if (!user) throw new Error("Not authenticated");
       
-      const { data, error } = await supabase.rpc("withdraw_cashback", {
-        p_amount: amount,
-      });
+      const { data, error } = await supabase.rpc("cashback_withdraw_to_wallet" as any, { p_amount: Math.round(amount * 100) / 100, p_idempotency_key: cashbackKey.current } as any);
       
       if (error) throw error;
       
@@ -258,29 +256,13 @@ const ClientCashback = () => {
       if (!user) throw new Error("Not authenticated");
       
       // First deduct from cashback balance
-      const { data: rpcResult, error: rpcError } = await supabase.rpc("withdraw_cashback", {
-        p_amount: data.amount,
-      });
-      
-      if (rpcError) throw rpcError;
-      
+      const { data: rpcResult, error: rpcError } = await supabase.rpc("cashback_request_bank_withdrawal" as any, {
+        p_amount: Math.round(data.amount * 100) / 100, p_bank_name: data.bank_name, p_account_holder: data.account_holder_name,
+        p_iban: data.iban, p_idempotency_key: cashbackKey.current,
+      } as any);
+      if (rpcError) throw new Error(cashbackErrorText(rpcError.message));
       const result = rpcResult as { success: boolean; error?: string };
-      if (!result.success) {
-        throw new Error(result.error || "فشل السحب");
-      }
-      
-      // Then create bank withdrawal request
-      const { error } = await supabase
-        .from("bank_withdrawal_requests")
-        .insert({
-          user_id: user.id,
-          amount: data.amount,
-          bank_name: data.bank_name,
-          account_holder_name: data.account_holder_name,
-          iban: data.iban,
-        });
-      
-      if (error) throw error;
+      if (!result?.success) throw new Error("فشل السحب");
       
       return { success: true };
     },
