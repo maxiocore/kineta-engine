@@ -78,6 +78,7 @@ export async function checkMargins(admin: any) {
     admin.from("cloud_plans").select("*"), admin.from("cloud_plan_costs").select("*"), admin.from("cloud_provider_prices").select("*"),
     admin.from("cloud_resource_mappings").select("*").eq("kind", "location"), admin.from("cloud_plan_location_prices").select("*"),
   ]);
+  const { data: addons } = await admin.from("cloud_provider_addon_prices").select("*").eq("resource", "primary_ip").eq("variant", "ipv4");
   await admin.from("cloud_price_alerts").delete().in("type", ["low_margin", "negative_margin", "exchange_rate_stale"]).eq("resolved", false);
   const out: any[] = [];
   const staleH = s.auto_rate_updated_at ? (Date.now() - new Date(s.auto_rate_updated_at).getTime()) / 36e5 : Infinity;
@@ -87,7 +88,8 @@ export async function checkMargins(admin: any) {
     for (const loc of p.location_codes ?? []) {
       const ploc = (maps ?? []).find((m: any) => m.code === loc && m.provider_id === c.provider_id)?.provider_ref ?? loc;
       const pr = (prices ?? []).find((x: any) => x.provider_id === c.provider_id && x.server_type === c.provider_ref && x.location === ploc); if (!pr) continue;
-      const adj = Number(pr.monthly_net) * rate * (1 + Number(s.cost_buffer_pct) / 100);
+      const ip = (p.ipv4_mode ?? "included") === "included" ? Number((addons ?? []).find((a: any) => a.provider_id === c.provider_id && a.location === ploc)?.price_net ?? 0) : 0;
+      const adj = (Number(pr.monthly_net) + ip) * rate * (1 + Number(s.cost_buffer_pct) / 100);
       const retail = p.pricing_mode === "location" ? Number((locPrices ?? []).find((l: any) => l.plan_id === p.id && l.location_code === loc)?.monthly_price ?? 0) : Number(p.monthly_price);
       if (!retail) continue;
       const m = ((retail - adj) / retail) * 100;
