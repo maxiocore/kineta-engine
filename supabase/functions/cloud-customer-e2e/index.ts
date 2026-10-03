@@ -127,9 +127,11 @@ Deno.serve(async (req) => {
         const img = (await h(`/images?type=system&name=${TEST.image}&architecture=x86`)).images?.[0];
         c.image_available = img?.status === "available";
       } catch (e) { c.provider_connection_healthy = false; r.error = (e as HErr).code; }
-      const { data: others } = await db.from("cloud_e2e_tests").select("test_key,status").neq("test_key", TEST.test_key);
+      const { data: others } = await db.from("cloud_e2e_tests").select("test_key,status,provider_resource_id").neq("test_key", TEST.test_key);
       c.no_active_provisioning_test = (others ?? []).every((o: any) => ["cleaned_up", "ready"].includes(o.status));
-      c.previous_advanced_cleaned_up = (others ?? []).find((o: any) => o.test_key === "hetzner-cloud-advanced-01")?.status === "cleaned_up";
+      // Advanced record may have been reset to "ready" after cleanup; it must hold no provider resource (Hetzner checks above confirm nothing remains).
+      const adv = (others ?? []).find((o: any) => o.test_key === "hetzner-cloud-advanced-01");
+      c.previous_advanced_cleaned_up = !!adv && ["cleaned_up", "ready"].includes(adv.status) && !adv.provider_resource_id;
       const plan = await getPlan();
       c.plan_exists = !!plan && plan.status === "active";
       c.plan_hidden_from_customers = !!plan && plan.is_active === false;
