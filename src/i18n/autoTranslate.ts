@@ -53,7 +53,28 @@ function translate(raw: string): string | null {
       return withSpaces(raw, p.en.replace(PH, () => m[i++] ?? ""));
     }
   }
-  return null;
+  const w = wordFallback(n);
+  return w ? withSpaces(raw, w) : null;
+}
+
+const WORDS: Record<string, string> = {
+  "يناير": "January", "فبراير": "February", "مارس": "March", "أبريل": "April", "إبريل": "April", "مايو": "May", "يونيو": "June",
+  "يوليو": "July", "أغسطس": "August", "سبتمبر": "September", "أكتوبر": "October", "نوفمبر": "November", "ديسمبر": "December",
+  "الأحد": "Sunday", "الاثنين": "Monday", "الإثنين": "Monday", "الثلاثاء": "Tuesday", "الأربعاء": "Wednesday", "الخميس": "Thursday", "الجمعة": "Friday", "السبت": "Saturday",
+  "منذ": "ago", "خلال": "in", "تقريباً": "about", "تقريبا": "about", "أقل": "less", "من": "than", "أكثر": "more",
+  "ثانية": "second", "ثواني": "seconds", "ثوان": "seconds", "دقيقة": "minute", "دقيقتين": "2 minutes", "دقائق": "minutes",
+  "ساعة": "hour", "ساعتين": "2 hours", "ساعات": "hours", "يوم": "day", "يومين": "2 days", "أيام": "days",
+  "أسبوع": "week", "أسابيع": "weeks", "شهر": "month", "شهرين": "2 months", "أشهر": "months", "سنة": "year", "سنتين": "2 years", "سنوات": "years",
+  "ص": "AM", "م": "PM", "هـ": "AH", "ر.س": "SAR",
+};
+const INDIC = "٠١٢٣٤٥٦٧٨٩";
+
+function wordFallback(n: string): string | null {
+  let out = n.replace(/[٠-٩]/g, (c) => String(INDIC.indexOf(c))).replace(/،/g, ",");
+  out = out.replace(/[\u0600-\u06FF][\u0600-\u06FF.]*/g, (w) => WORDS[w] ?? WORDS[w.replace(/\.$/, "")] ?? w);
+  if (AR.test(out)) return null;
+  // "ago 3 months" -> "3 months ago"
+  return out.replace(/\bago (.+)$/, "$1 ago").replace(/^less than (a )?minute ago$/, "less than a minute ago");
 }
 
 function withSpaces(raw: string, en: string) {
