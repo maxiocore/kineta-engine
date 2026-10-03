@@ -69,6 +69,7 @@ const adminNavItems: NavItem[] = [
   { label: "سجل العمليات", href: "/admin/logs", icon: FileText },
   { label: "التقارير", href: "/admin/reports", icon: BarChart3 },
   { label: "التحقق من الهوية", href: "/admin/kyc", icon: Shield },
+  { label: "الخوادم السحابية", href: "/admin/cloud", icon: Server },
   { label: "مفاتيح API", href: "/admin/api-keys", icon: Server },
   { label: "الإعدادات", href: "/admin/settings", icon: Settings },
 ];

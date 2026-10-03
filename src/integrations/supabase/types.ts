@@ -639,6 +639,444 @@ export type Database = {
         }
         Relationships: []
       }
+      cloud_activity_logs: {
+        Row: {
+          created_at: string
+          details: Json
+          event: string
+          id: string
+          server_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          event: string
+          id?: string
+          server_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          event?: string
+          id?: string
+          server_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_activity_logs_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_backups: {
+        Row: {
+          created_at: string
+          id: string
+          server_id: string
+          size_gb: number | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          server_id: string
+          size_gb?: number | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          server_id?: string
+          size_gb?: number | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_backups_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_images: {
+        Row: {
+          code: string
+          created_at: string
+          family: string
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+          version: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          family: string
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+          version?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          family?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+          version?: string | null
+        }
+        Relationships: []
+      }
+      cloud_locations: {
+        Row: {
+          code: string
+          country: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name_ar: string
+          name_en: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name_ar: string
+          name_en: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name_ar?: string
+          name_en?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cloud_plans: {
+        Row: {
+          code: string
+          cpu_model: string | null
+          created_at: string
+          disk_type: string | null
+          id: string
+          is_active: boolean
+          location_codes: string[]
+          monthly_price: number
+          name_ar: string
+          name_en: string
+          network: string | null
+          provider_ref: string | null
+          ram_gb: number
+          server_type: string
+          setup_fee: number
+          sort_order: number
+          storage_gb: number
+          traffic_tb: number | null
+          updated_at: string
+          vcpu: number | null
+        }
+        Insert: {
+          code: string
+          cpu_model?: string | null
+          created_at?: string
+          disk_type?: string | null
+          id?: string
+          is_active?: boolean
+          location_codes?: string[]
+          monthly_price?: number
+          name_ar: string
+          name_en: string
+          network?: string | null
+          provider_ref?: string | null
+          ram_gb?: number
+          server_type: string
+          setup_fee?: number
+          sort_order?: number
+          storage_gb?: number
+          traffic_tb?: number | null
+          updated_at?: string
+          vcpu?: number | null
+        }
+        Update: {
+          code?: string
+          cpu_model?: string | null
+          created_at?: string
+          disk_type?: string | null
+          id?: string
+          is_active?: boolean
+          location_codes?: string[]
+          monthly_price?: number
+          name_ar?: string
+          name_en?: string
+          network?: string | null
+          provider_ref?: string | null
+          ram_gb?: number
+          server_type?: string
+          setup_fee?: number
+          sort_order?: number
+          storage_gb?: number
+          traffic_tb?: number | null
+          updated_at?: string
+          vcpu?: number | null
+        }
+        Relationships: []
+      }
+      cloud_server_actions: {
+        Row: {
+          action: string
+          created_at: string
+          error: string | null
+          id: string
+          payload: Json
+          server_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          payload?: Json
+          server_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          payload?: Json
+          server_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_server_actions_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_server_ips: {
+        Row: {
+          created_at: string
+          id: string
+          ip: string
+          is_primary: boolean
+          reverse_dns: string | null
+          server_id: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip: string
+          is_primary?: boolean
+          reverse_dns?: string | null
+          server_id: string
+          user_id: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip?: string
+          is_primary?: boolean
+          reverse_dns?: string | null
+          server_id?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_server_ips_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_servers: {
+        Row: {
+          backups_enabled: boolean
+          created_at: string
+          hostname: string | null
+          id: string
+          image_code: string | null
+          location_code: string | null
+          monthly_price: number
+          name: string
+          plan_id: string | null
+          primary_ipv4: string | null
+          primary_ipv6: string | null
+          provider: string
+          provider_server_id: string | null
+          renewal_date: string | null
+          server_type: string
+          specs: Json
+          ssh_key_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          backups_enabled?: boolean
+          created_at?: string
+          hostname?: string | null
+          id?: string
+          image_code?: string | null
+          location_code?: string | null
+          monthly_price?: number
+          name: string
+          plan_id?: string | null
+          primary_ipv4?: string | null
+          primary_ipv6?: string | null
+          provider?: string
+          provider_server_id?: string | null
+          renewal_date?: string | null
+          server_type: string
+          specs?: Json
+          ssh_key_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          backups_enabled?: boolean
+          created_at?: string
+          hostname?: string | null
+          id?: string
+          image_code?: string | null
+          location_code?: string | null
+          monthly_price?: number
+          name?: string
+          plan_id?: string | null
+          primary_ipv4?: string | null
+          primary_ipv6?: string | null
+          provider?: string
+          provider_server_id?: string | null
+          renewal_date?: string | null
+          server_type?: string
+          specs?: Json
+          ssh_key_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_servers_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_snapshots: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          server_id: string
+          size_gb: number | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          server_id: string
+          size_gb?: number | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          server_id?: string
+          size_gb?: number | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_snapshots_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cloud_ssh_keys: {
+        Row: {
+          created_at: string
+          fingerprint: string | null
+          id: string
+          name: string
+          public_key: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fingerprint?: string | null
+          id?: string
+          name: string
+          public_key: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fingerprint?: string | null
+          id?: string
+          name?: string
+          public_key?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           admin_notes: string | null
@@ -4675,6 +5113,18 @@ export type Database = {
         Returns: undefined
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      order_cloud_server: {
+        Args: {
+          p_backups: boolean
+          p_hostname: string
+          p_image: string
+          p_location: string
+          p_name: string
+          p_plan_id: string
+          p_ssh_key_id: string
+        }
+        Returns: Json
+      }
       reconcile_credit_deposits: {
         Args: never
         Returns: {

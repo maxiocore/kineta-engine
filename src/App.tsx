@@ -58,6 +58,9 @@ const ClientBalanceLogs = lazy(() => import("./pages/dashboard/ClientBalanceLogs
 const ClientDesignServices = lazy(() => import("./pages/dashboard/ClientDesignServices"));
 const ClientMarketingServices = lazy(() => import("./pages/dashboard/ClientMarketingServices"));
 const ClientHostingServices = lazy(() => import("./pages/dashboard/ClientHostingServices"));
+const CloudCenter = lazy(() => import("./pages/dashboard/cloud/CloudCenter"));
+const CloudServerDetails = lazy(() => import("./pages/dashboard/cloud/CloudServerDetails"));
+const AdminCloud = lazy(() => import("./pages/admin/AdminCloud"));
 const ClientServicesHome = lazy(() => import("./pages/dashboard/ClientServicesHome"));
 const DesignServiceOrder = lazy(() => import("./pages/dashboard/DesignServiceOrder"));
 const ClientCashback = lazy(() => import("./pages/dashboard/ClientCashback"));
@@ -275,6 +278,10 @@ const App = () => (
                         <ClientMarketingServices />
                       </ProtectedRoute>
                     } />
+                    <Route path="/dashboard/cloud" element={<ProtectedRoute><CloudCenter /></ProtectedRoute>} />
+                    <Route path="/dashboard/cloud/servers/:id" element={<ProtectedRoute><CloudServerDetails /></ProtectedRoute>} />
+                    <Route path="/dashboard/cloud/:section" element={<ProtectedRoute><CloudCenter /></ProtectedRoute>} />
+                    <Route path="/admin/cloud" element={<ProtectedRoute requireAdmin><AdminCloud /></ProtectedRoute>} />
                     <Route path="/dashboard/hosting-services" element={
                       <ProtectedRoute>
                         <ClientHostingServices />
