@@ -5,7 +5,6 @@ import HeroSection from "@/components/landing/HeroSection";
 const ServicesSection = lazy(() => import("@/components/landing/ServicesSection"));
 const WhyUsSection = lazy(() => import("@/components/landing/WhyUsSection"));
 const HowItWorksSection = lazy(() => import("@/components/landing/HowItWorksSection"));
-const FinancingSection = lazy(() => import("@/components/landing/FinancingSection"));
 const TestimonialsSection = lazy(() => import("@/components/landing/TestimonialsSection"));
 const CompanyProfileSection = lazy(() => import("@/components/landing/CompanyProfileSection"));
 const FAQSection = lazy(() => import("@/components/landing/FAQSection"));
@@ -36,9 +35,6 @@ const Index = () => {
           <section id="how-it-works">
             <HowItWorksSection />
           </section>
-        </Suspense>
-        <Suspense fallback={<SectionFallback />}>
-          <FinancingSection />
         </Suspense>
         <Suspense fallback={<SectionFallback />}>
           <TestimonialsSection />
