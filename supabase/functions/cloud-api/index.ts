@@ -3,6 +3,8 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.23.8";
 import { getProvider } from "./providers.ts";
 import { refreshRate, syncPrices, checkMargins, syncAddonPrices } from "./pricing.ts";
+import { runProvisioningJob } from "../_shared/cloud-provisioning-core.ts";
+import { HetznerProvisionProvider } from "../_shared/cloud-provisioning-hetzner.ts";
 
 const LIVE = () => Deno.env.get("LIVE_PROVISIONING_ENABLED") === "true";
 const BILLABLE = ["rebuild", "rescue", "snapshot", "backup", "terminate"];
@@ -136,54 +138,11 @@ async function handleAdmin(admin: any, actor: string, b: any) {
   }
 
   if (b.action === "admin_provision") {
-    const { data: job } = await admin.from("cloud_provisioning_jobs").select("*, cloud_orders(*)").eq("id", b.job_id).maybeSingle();
-    if (!job) return json({ error: "not found" }, 404);
-    if (job.status === "active") return json({ ok: true, status: "active" });
-    if (!LIVE()) return json(LIVE_OFF);
-    const { data: server } = await admin.from("cloud_servers").select("*").eq("id", job.server_id).maybeSingle();
-    if (!server) return json({ error: "server_missing" }, 409);
-    const attempt = { attempt_count: job.attempt_count + 1, last_attempt_at: new Date().toISOString() };
-
-    // Idempotency: never create a second provider resource for the same order.
-    if (job.provider_resource_id || server.provider_server_id) {
-      const ref = job.provider_resource_id ?? server.provider_server_id;
-      const r = await getProvider(server.provider).getServer(ref);
-      if (r.status === "failed") { await admin.from("cloud_provisioning_jobs").update({ ...attempt, status: "provisioning_failed", error_code: r.error, safe_error: "تعذر التحقق من حالة الخادم" }).eq("id", job.id); return json({ ok: false, error: r.error }); }
-      const active = r.status === "completed";
-      await admin.from("cloud_servers").update({ primary_ipv4: (r.data?.ipv4 as string) ?? server.primary_ipv4, primary_ipv6: (r.data?.ipv6 as string) ?? server.primary_ipv6, status: active ? "running" : "provisioning" }).eq("id", server.id);
-      await admin.from("cloud_provisioning_jobs").update({ ...attempt, status: active ? "active" : "provisioning", provider_resource_id: ref, error_code: null, safe_error: null }).eq("id", job.id);
-      if (active) await admin.from("cloud_orders").update({ status: "active" }).eq("id", job.order_id);
-      return json({ ok: true, status: active ? "active" : "provisioning" });
-    }
-
-    const { data: cost } = await admin.from("cloud_plan_costs").select("*, cloud_providers(code)").eq("plan_id", server.plan_id).maybeSingle();
-    const providerCode = cost?.cloud_providers?.code;
-    if (!cost?.provider_ref || !providerCode || providerCode === "manual") {
-      await admin.from("cloud_provisioning_jobs").update({ ...attempt, status: "provisioning_failed", error_code: "mapping_missing", safe_error: "الباقة غير مربوطة بمزود" }).eq("id", job.id);
-      return json({ ok: false, error: "mapping_missing" });
-    }
-    const { data: maps } = await admin.from("cloud_resource_mappings").select("*").eq("provider_id", cost.provider_id).in("code", [server.location_code, server.image_code]);
-    const loc = maps?.find((m: any) => m.kind === "location" && m.code === server.location_code)?.provider_ref;
-    const img = maps?.find((m: any) => m.kind === "image" && m.code === server.image_code)?.provider_ref;
-    if (!loc || !img) {
-      await admin.from("cloud_provisioning_jobs").update({ ...attempt, status: "provisioning_failed", error_code: "mapping_missing", safe_error: "الموقع أو النظام غير مربوط بالمزود" }).eq("id", job.id);
-      return json({ ok: false, error: "mapping_missing" });
-    }
-    await admin.from("cloud_provisioning_jobs").update({ ...attempt, status: "provisioning" }).eq("id", job.id);
-    const hostname = (server.hostname || server.name).toLowerCase().replace(/[^a-z0-9-]/g, "-").slice(0, 63) || `srv-${server.id.slice(0, 8)}`;
-    const r = await getProvider(providerCode).createServer({ name: hostname, serverType: cost.provider_ref, location: loc, image: img, idempotencyKey: job.cloud_orders.idempotency_key });
-    if (r.status === "failed") {
-      await admin.from("cloud_provisioning_jobs").update({ status: "provisioning_failed", error_code: r.error, provider_request_id: r.requestId ?? null, safe_error: "فشل إنشاء الخادم لدى المزود" }).eq("id", job.id);
-      await admin.from("cloud_servers").update({ status: "failed" }).eq("id", server.id);
-      await admin.from("cloud_orders").update({ status: "failed" }).eq("id", job.order_id);
-      await log(admin, actor, server.id, server.user_id, "provisioning_failed", { code: r.error });
-      return json({ ok: false, error: r.error });
-    }
-    await admin.from("cloud_provisioning_jobs").update({ provider_resource_id: r.providerRef, provider_request_id: r.requestId ?? null, error_code: null, safe_error: null }).eq("id", job.id);
-    await admin.from("cloud_servers").update({ provider: providerCode, provider_server_id: r.providerRef, status: "provisioning", primary_ipv4: (r.data?.ipv4 as string) ?? null, primary_ipv6: (r.data?.ipv6 as string) ?? null }).eq("id", server.id);
-    await admin.from("cloud_orders").update({ status: "provisioning" }).eq("id", job.order_id);
-    await log(admin, actor, server.id, server.user_id, "provisioning_started", {});
-    return json({ ok: true, status: "provisioning" });
+    // Recovery/manual-review tool only. Normal flow is the automatic queue (cloud-provisioning-worker).
+    // Uses the same engine: atomic job lock, provider lookup/adoption before any create, readiness before active.
+    const r = await runProvisioningJob({ db: admin, prov: new HetznerProvisionProvider(admin), worker: `admin:${actor}`, sim: false, liveProvisioning: LIVE() }, b.job_id);
+    if (r.skipped === "live_provisioning_disabled") return json(LIVE_OFF);
+    return json({ ok: !r.error && !r.skipped, ...r });
   }
 
   if (b.action === "admin_process_action") {

@@ -109,7 +109,8 @@ const CloudServerDetails = () => {
         </div>
 
         <Tabs defaultValue="overview" dir={lang === "ar" ? "rtl" : "ltr"} className="text-start">
-          <TabsList dir={lang === "ar" ? "rtl" : "ltr"} className="h-auto w-full flex-wrap justify-start gap-1 bg-muted/50 p-1">
+          {/* flex-row overrides the shared reversed tab order so tabs follow the reading direction (RTL Arabic, LTR English). */}
+          <TabsList dir={lang === "ar" ? "rtl" : "ltr"} className="flex-row h-auto w-full flex-wrap justify-start gap-1 bg-muted/50 p-1">
             {tabs.map(([v, ar, en]) => <TabsTrigger key={v} value={v} className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">{t(ar, en)}</TabsTrigger>)}
           </TabsList>
 
