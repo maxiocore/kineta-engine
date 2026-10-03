@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Copy, Check, 
-  Shield, Phone, PlusCircle 
+  Shield, Phone, PlusCircle, Wifi 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
