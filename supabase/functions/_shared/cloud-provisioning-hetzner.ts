@@ -21,7 +21,7 @@ async function aesKey() {
   return crypto.subtle.importKey("raw", await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw)), "AES-GCM", false, ["encrypt", "decrypt"]);
 }
 async function encrypt(t: string) { const iv = crypto.getRandomValues(new Uint8Array(12)); return { enc: b64(new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, await aesKey(), new TextEncoder().encode(t)))), iv: b64(iv) }; }
-async function decrypt(enc: string, iv: string) { return new TextDecoder().decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(iv) }, await aesKey(), unb64(enc))); }
+export async function decrypt(enc: string, iv: string) { return new TextDecoder().decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(iv) }, await aesKey(), unb64(enc))); }
 
 function sshRun(host: string, privateKey: string, cmds: string[]): Promise<Record<string, string>> {
   return new Promise((resolve, reject) => {
