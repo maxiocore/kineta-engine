@@ -5,7 +5,7 @@
 // `simulate` runs the same scan + job code against simulation subscriptions with a MockProvider.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { HetznerCloudProvider } from "../cloud-api/providers.ts";
+import { HetznerCloudProvider } from "../_shared/cloud-providers.ts";
 import { sendEmail } from "../_shared/email-gateway.ts";
 import { renderBrandedEmail } from "../_shared/email-template.ts";
 
