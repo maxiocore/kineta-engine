@@ -4486,6 +4486,83 @@ export type Database = {
           },
         ]
       }
+      payment_events: {
+        Row: {
+          created_at: string
+          details: Json
+          event_type: string
+          id: string
+          payment_id: string | null
+          provider_event_id: string | null
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          event_type: string
+          id?: string
+          payment_id?: string | null
+          provider_event_id?: string | null
+          source: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          event_type?: string
+          id?: string
+          payment_id?: string | null
+          provider_event_id?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_events_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_gateway_settings: {
+        Row: {
+          applepay_status: string
+          card_enabled: boolean
+          environment: string
+          id: boolean
+          max_topup: number
+          min_topup: number
+          paylink_new_payments: boolean
+          stcpay_status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          applepay_status?: string
+          card_enabled?: boolean
+          environment?: string
+          id?: boolean
+          max_topup?: number
+          min_topup?: number
+          paylink_new_payments?: boolean
+          stcpay_status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          applepay_status?: string
+          card_enabled?: boolean
+          environment?: string
+          id?: boolean
+          max_topup?: number
+          min_topup?: number
+          paylink_new_payments?: boolean
+          stcpay_status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       payment_methods: {
         Row: {
           created_at: string
@@ -4537,6 +4614,137 @@ export type Database = {
           provider?: string | null
           type?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_refunds: {
+        Row: {
+          admin_id: string
+          amount_minor: number
+          created_at: string
+          failure_code: string | null
+          id: string
+          idempotency_key: string
+          payment_id: string
+          reason: string
+          status: string
+          updated_at: string
+          wallet_reversed: boolean
+        }
+        Insert: {
+          admin_id: string
+          amount_minor: number
+          created_at?: string
+          failure_code?: string | null
+          id?: string
+          idempotency_key: string
+          payment_id: string
+          reason: string
+          status?: string
+          updated_at?: string
+          wallet_reversed?: boolean
+        }
+        Update: {
+          admin_id?: string
+          amount_minor?: number
+          created_at?: string
+          failure_code?: string | null
+          id?: string
+          idempotency_key?: string
+          payment_id?: string
+          reason?: string
+          status?: string
+          updated_at?: string
+          wallet_reversed?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_refunds_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount_minor: number
+          card_last4: string | null
+          created_at: string
+          currency: string
+          description: string | null
+          environment: string
+          failure_code: string | null
+          id: string
+          idempotency_key: string
+          intent: Json
+          internal_payment_id: string
+          paid_at: string | null
+          payment_method: string | null
+          processed_at: string | null
+          provider: string
+          provider_payment_id: string | null
+          provider_status: string | null
+          reference_id: string | null
+          reference_type: string
+          refunded_minor: number
+          result: Json
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_minor: number
+          card_last4?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          environment: string
+          failure_code?: string | null
+          id?: string
+          idempotency_key: string
+          intent?: Json
+          internal_payment_id: string
+          paid_at?: string | null
+          payment_method?: string | null
+          processed_at?: string | null
+          provider?: string
+          provider_payment_id?: string | null
+          provider_status?: string | null
+          reference_id?: string | null
+          reference_type: string
+          refunded_minor?: number
+          result?: Json
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_minor?: number
+          card_last4?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          environment?: string
+          failure_code?: string | null
+          id?: string
+          idempotency_key?: string
+          intent?: Json
+          internal_payment_id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          processed_at?: string | null
+          provider?: string
+          provider_payment_id?: string | null
+          provider_status?: string | null
+          reference_id?: string | null
+          reference_type?: string
+          refunded_minor?: number
+          result?: Json
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -6043,6 +6251,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _pay_service_order_as: {
+        Args: {
+          p_coupon_code: string
+          p_idempotency_key: string
+          p_link: string
+          p_method?: string
+          p_notes: string
+          p_quantity: number
+          p_service_id: string
+          p_uid: string
+        }
+        Returns: Json
+      }
+      _quote_service_order: {
+        Args: {
+          p_coupon_code: string
+          p_quantity: number
+          p_service_id: string
+        }
+        Returns: Json
+      }
       _wallet_post: {
         Args: {
           p_action: string
@@ -6278,6 +6507,45 @@ export type Database = {
           p_notes: string
           p_quantity: number
           p_service_id: string
+        }
+        Returns: Json
+      }
+      payment_apply_verified: {
+        Args: {
+          p_amount_minor: number
+          p_currency: string
+          p_last4: string
+          p_meta_internal_id: string
+          p_method: string
+          p_payment_id: string
+          p_provider_payment_id: string
+          p_provider_status: string
+          p_source: string
+        }
+        Returns: Json
+      }
+      payment_create: {
+        Args: {
+          p_environment: string
+          p_idempotency_key: string
+          p_intent: Json
+          p_reference_id: string
+          p_type: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      payment_refund_finish: {
+        Args: { p_failure: string; p_refund_id: string; p_success: boolean }
+        Returns: Json
+      }
+      payment_refund_prepare: {
+        Args: {
+          p_admin: string
+          p_amount_minor: number
+          p_idempotency_key: string
+          p_payment_id: string
+          p_reason: string
         }
         Returns: Json
       }

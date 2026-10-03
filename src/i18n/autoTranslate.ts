@@ -81,6 +81,8 @@ function wordFallback(n: string): string | null {
   out = out.replace(/[\u0600-\u06FF][\u0600-\u06FF.]*/g, (w) => WORDS[w] ?? WORDS[w.replace(/\.$/, "")] ?? w);
   if (AR.test(out)) return null;
   // "ago 3 months" -> "3 months ago"
+  // Arabic uses singular nouns after 11+, English needs the plural.
+  out = out.replace(/\b(\d+) (second|minute|hour|day|week|month|year)\b(?!s)/g, (m, n, u) => (Number(n) === 1 ? m : `${n} ${u}s`));
   return out.replace(/\bago (.+)$/, "$1 ago").replace(/^less than (a )?minute ago$/, "less than a minute ago");
 }
 
