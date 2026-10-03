@@ -80,7 +80,7 @@ export class HetznerCloudProvider implements CloudProvider {
       data: kind === "server_type"
         ? { cores: x.cores, memory: x.memory, disk: x.disk, cpu_type: x.cpu_type, architecture: x.architecture, deprecated: x.deprecated, prices: x.prices }
         : kind === "location" ? { country: x.country, city: x.city, network_zone: x.network_zone }
-        : kind === "image" ? { os_flavor: x.os_flavor, os_version: x.os_version, architecture: x.architecture, name: x.name }
+        : kind === "image" ? { os_flavor: x.os_flavor, os_version: x.os_version, architecture: x.architecture, name: x.name, description: x.description, status: x.status, deprecated: x.deprecated ?? null }
         : { status: x.status, ipv4: x.public_net?.ipv4?.ip, server_type: x.server_type?.name, location: x.datacenter?.location?.name },
     }));
   }
