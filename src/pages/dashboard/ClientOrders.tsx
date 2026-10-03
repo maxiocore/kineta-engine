@@ -425,7 +425,7 @@ const ClientOrders = () => {
               )}
             </motion.div>
           ) : (
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence>
               {filteredOrders.map((order) => (
                 <OrderCard
                   key={order.id}

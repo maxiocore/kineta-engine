@@ -1481,7 +1481,7 @@ const ClientBalanceLogs = () => {
               ) : (
                 <>
                   <div className="space-y-3">
-                    <AnimatePresence mode="popLayout">
+                    <AnimatePresence>
                       {paginatedLogs.map((log, index) => (
                         <TransactionCard
                           key={log.id}

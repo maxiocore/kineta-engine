@@ -497,7 +497,7 @@ export default function UnifiedOrders() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <AnimatePresence mode="popLayout">
+                  <AnimatePresence>
                     {displayedOrders.map((order) => (
                       <OrderRow
                         key={order.id}
@@ -511,7 +511,7 @@ export default function UnifiedOrders() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <AnimatePresence mode="popLayout">
+              <AnimatePresence>
                 {displayedOrders.map((order) => (
                   <OrderCard
                     key={order.id}

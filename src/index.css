@@ -805,3 +805,6 @@
     perspective: 1000px;
   }
 }
+
+/* English (LTR) mode: physical right-alignment used by the Arabic-first UI follows reading direction */
+html[dir="ltr"] .text-right { text-align: left; }
