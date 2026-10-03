@@ -94,6 +94,9 @@ const ClientFinancialHub = () => {
   return (
     <ClientDashboardLayout>
       <div dir="rtl" className="space-y-5 md:space-y-6 text-right">
+        {/* Digital ID card at the very top */}
+        <DigitalWalletCard />
+
         {/* Banking header */}
         <motion.section
           initial={{ opacity: 0, y: -12 }}
@@ -193,7 +196,6 @@ const ClientFinancialHub = () => {
           </TabsList>
 
           <div className="mt-5">
-            <TabsContent value="digital-id" className="m-0"><DigitalWalletCard /></TabsContent>
             <TabsContent value="deposits" className="m-0"><ClientDepositsContent /></TabsContent>
             <TabsContent value="balance-logs" className="m-0"><ClientBalanceLogsContent /></TabsContent>
             <TabsContent value="cashback" className="m-0"><ClientCashbackContent /></TabsContent>
