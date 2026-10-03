@@ -80,7 +80,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
   const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { t } = useLanguage();
+  const { t, isRtl } = useLanguage();
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const [balance, setBalance] = useState<number>(0);
   const [navBadges, setNavBadges] = useState<Record<string, number>>({});
@@ -255,7 +255,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
   };
 
   const mobileMenuVariants = {
-    hidden: { x: "100%", opacity: 0 },
+    hidden: { x: isRtl ? "100%" : "-100%", opacity: 0 },
     visible: { 
       x: 0, 
       opacity: 1,
@@ -266,7 +266,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
       }
     },
     exit: { 
-      x: "100%", 
+      x: isRtl ? "100%" : "-100%", 
       opacity: 0,
       transition: {
         type: "spring" as const,
@@ -277,7 +277,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex w-full" dir="rtl">
+    <div className="min-h-screen bg-background flex w-full" dir={isRtl ? "rtl" : "ltr"}>
       {/* Desktop Sidebar */}
       <motion.aside
         initial={false}
@@ -285,7 +285,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
         animate={isSidebarOpen ? "open" : "closed"}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
         className={cn(
-          "hidden lg:flex flex-col fixed top-0 right-0 h-full bg-card/95 backdrop-blur-xl border-l border-border z-40"
+          "hidden lg:flex flex-col fixed top-0 start-0 h-full bg-card/95 backdrop-blur-xl border-e border-border z-40"
         )}
       >
         {/* Logo */}
@@ -394,7 +394,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="mr-4 mt-1 space-y-1 border-r-2 border-primary/20 pr-2"
+                        className="ms-4 mt-1 space-y-1 border-s-2 border-primary/20 ps-2"
                       >
                         {item.children.map((child) => (
                           <motion.div
@@ -471,7 +471,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                     {isActive(item.href) && (
                       <motion.div
                         layoutId="activeIndicator"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary-foreground rounded-r-full"
+                        className="absolute end-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary-foreground rounded-r-full"
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
                     )}
@@ -590,7 +590,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
         className="lg:hidden fixed top-0 left-0 right-0 h-14 sm:h-16 bg-card/95 backdrop-blur-xl border-b border-border z-50 flex items-center justify-between px-3 sm:px-4"
-        dir="rtl"
+        dir={isRtl ? "rtl" : "ltr"}
       >
         <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
           <Button variant="ghost" size="icon" className="w-9 h-9 sm:w-10 sm:h-10" onClick={() => setIsMobileMenuOpen(true)}>
@@ -639,8 +639,8 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="lg:hidden fixed top-0 right-0 h-full w-[300px] max-w-[85vw] bg-card border-l border-border z-[70] overflow-hidden flex flex-col"
-              dir="rtl"
+              className="lg:hidden fixed top-0 start-0 h-full w-[300px] max-w-[85vw] bg-card border-e border-border z-[70] overflow-hidden flex flex-col"
+              dir={isRtl ? "rtl" : "ltr"}
             >
               {/* Header */}
               <div className="p-4 border-b border-border flex items-center justify-between shrink-0">
@@ -736,7 +736,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
                       {isActive(item.href) && (
                         <motion.div
                           layoutId="mobileActiveIndicator"
-                          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary-foreground rounded-r-full"
+                          className="absolute end-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary-foreground rounded-r-full"
                         />
                       )}
                     </Link>
@@ -786,7 +786,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
       <motion.main
         initial={false}
         animate={{
-          marginRight: isMobile ? 0 : (isSidebarOpen ? 280 : 72)
+          marginInlineStart: isMobile ? 0 : (isSidebarOpen ? 280 : 72)
         }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
         className="flex-1 min-w-0 pt-14 sm:pt-16 lg:pt-0 w-full"

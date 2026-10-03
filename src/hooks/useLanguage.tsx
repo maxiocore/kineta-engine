@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { enableEnglish, disableEnglish } from '@/i18n/autoTranslate';
 
 type Lang = 'ar' | 'en';
 
@@ -29,6 +30,14 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     setLang(newLang);
     try { localStorage.setItem('app-lang', newLang); } catch {}
   };
+
+  useEffect(() => {
+    const el = document.documentElement;
+    el.lang = lang;
+    el.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    if (lang === 'en') void enableEnglish();
+    else disableEnglish();
+  }, [lang]);
 
   const t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const isRtl = lang === 'ar';
