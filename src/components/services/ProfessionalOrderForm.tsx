@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { payServiceOrder, payDesignOrder, payDevInvoice, newIdempotencyKey, walletErrorMessage } from "@/lib/walletPayments";
+import { startPayment, paymentErrorText } from "@/lib/payments";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -91,19 +92,24 @@ const ProfessionalOrderForm = ({
     if (!user || !service) return;
     
     // التحقق من الرصيد حسب طريقة الدفع
-    if (!hasEnoughBalance) {
-      toast.error("رصيدك غير كافي", {
-        description: "قم بشحن رصيدك للمتابعة",
-        action: {
-          label: "شحن الرصيد",
-          onClick: () => navigate("/dashboard/deposit")
-        }
-      });
+    if (requiresLink && !link.trim()) {
+      toast.error("يرجى إدخال الرابط");
       return;
     }
 
-    if (requiresLink && !link.trim()) {
-      toast.error("يرجى إدخال الرابط");
+    if (!hasEnoughBalance) {
+      toast.error("رصيدك غير كافي", {
+        description: "يمكنك الدفع إلكترونياً مباشرة أو شحن رصيدك",
+        action: {
+          label: "الدفع الإلكتروني",
+          onClick: async () => {
+            try {
+              const pid = await startPayment("service_order", { intent: { service_id: service.id, quantity, link: link || undefined, notes: notes || undefined } });
+              navigate(`/payment/${pid}`);
+            } catch (e: any) { toast.error(paymentErrorText(e?.message)); }
+          },
+        },
+      });
       return;
     }
 

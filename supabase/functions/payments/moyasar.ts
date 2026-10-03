@@ -51,6 +51,16 @@ export class MoyasarPaymentProvider implements PaymentProvider {
     };
   }
 
+  keyFormats() {
+    return { publishable: /^pk_(test|live)_/.test(this.pk) ? (this.pk.startsWith("pk_live_") ? "live" : "test") : "invalid",
+      secret: /^sk_(test|live)_/.test(this.sk) ? (this.sk.startsWith("sk_live_") ? "live" : "test") : "invalid" };
+  }
+  // Read-only: which webhook endpoints/events are registered (no secrets returned).
+  async listWebhooks() {
+    const r = await this.call("/webhooks");
+    const list = Array.isArray(r) ? r : (r.webhooks ?? r.data ?? []);
+    return list.map((w: any) => ({ url: String(w.url ?? ""), http_method: w.http_method ?? null, events: Array.isArray(w.events) ? w.events : [] }));
+  }
   async testConnection() {
     try { await this.call("/payments?page=1"); return { ok: true }; }
     catch (e) { return { ok: false, code: (e as ProviderError).code }; }
