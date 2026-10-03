@@ -17,3 +17,4 @@ DROP FUNCTION IF EXISTS public.cloud_action_rate_check(uuid, uuid, text);
 -- calculate_referral_commission_on_deposit) previous bodies are stored in the migration history
 -- (supabase/migrations) and in docs/security/audit-2026-10-03.md references; restore from there if needed.
 -- Auth: leaked-password protection was enabled via auth settings (password_hibp_enabled=true); disable there if required.
+-- Also added: referral_commissions.deposit_id + unique indexes (safe to keep); deposits_client_guard trigger.
