@@ -189,7 +189,7 @@ const CloudCenter = () => {
                     [t("طلب خادم مخصص", "Order dedicated"), "/dashboard/cloud/dedicated?order=1", HardDrive],
                     [t("إضافة SSH Key", "Add SSH key"), "/dashboard/cloud/ssh-keys", KeyRound],
                     [t("إنشاء Snapshot", "Create snapshot"), "/dashboard/cloud/snapshots", Camera],
-                    [t("فتح تذكرة دعم", "Open ticket"), "/dashboard/support/new", HeadphonesIcon],
+                    [t("فتح تذكرة دعم", "Open ticket"), "/dashboard/support", HeadphonesIcon],
                   ].map(([l, h, I]: any) => (
                     <Link key={h} to={h} className="flex items-center gap-2 p-3 rounded-xl border hover:border-primary/40 hover:bg-primary/5 text-sm transition-colors"><I className="w-4 h-4 text-primary" />{l}</Link>
                   ))}
@@ -255,7 +255,7 @@ const CloudCenter = () => {
       case "activity":
         return logs.length ? <Card><LogList logs={logs} serverName={serverName} /></Card> : <EmptyState icon={History} title={t("لا توجد عمليات بعد", "No activity yet")} />;
       case "support":
-        return <EmptyState icon={HeadphonesIcon} title={t("فريق دعم البنية السحابية", "Cloud support team")} desc={t("افتح تذكرة وسيتواصل معك فريقنا التقني على مدار الساعة.", "Open a ticket and our technical team will respond 24/7.")} action={<Button onClick={() => navigate("/dashboard/support/new")}>{t("فتح تذكرة دعم", "Open a ticket")}</Button>} />;
+        return <EmptyState icon={HeadphonesIcon} title={t("فريق دعم البنية السحابية", "Cloud support team")} desc={t("افتح تذكرة وسيتواصل معك فريقنا التقني على مدار الساعة.", "Open a ticket and our technical team will respond 24/7.")} action={<Button onClick={() => navigate("/dashboard/support")}>{t("فتح تذكرة دعم", "Open a ticket")}</Button>} />;
     }
   };
 

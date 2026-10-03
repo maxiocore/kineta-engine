@@ -149,7 +149,7 @@ const CloudServerDetails = () => {
               <EmptyState icon={v === "rebuild" ? Disc : v === "rescue" ? RotateCw : Globe}
                 title={v === "rebuild" ? t("إعادة بناء الخادم", "Rebuild server") : v === "rescue" ? t("وضع الإنقاذ", "Rescue mode") : t("الوصول والكونسول", "Access & console")}
                 desc={t("هذه الميزة تُفعّل قريباً. حالياً يمكنك طلبها عبر الدعم الفني وسننفذها لك.", "This feature is coming soon. Meanwhile request it through support and we'll handle it.")}
-                action={<Button variant="outline" onClick={() => navigate("/dashboard/support/new")}>{t("طلب عبر الدعم", "Request via support")}</Button>} />
+                action={<Button variant="outline" onClick={() => navigate("/dashboard/support")}>{t("طلب عبر الدعم", "Request via support")}</Button>} />
             </TabsContent>
           ))}
 
