@@ -786,7 +786,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
           marginRight: isMobile ? 0 : (isSidebarOpen ? 280 : 72)
         }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="flex-1 pt-14 sm:pt-16 lg:pt-0 w-full"
+        className="flex-1 min-w-0 pt-14 sm:pt-16 lg:pt-0 w-full"
       >
         <div className="p-3 sm:p-4 md:p-6 lg:p-8">{children}</div>
       </motion.main>
