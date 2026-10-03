@@ -14,3 +14,7 @@
 - [x] Live keys supported, LIVE_PAYMENTS_ENABLED=false gate, pre-live report
 - [ ] First production payment test — waiting for owner approval
 - [ ] Payment provider architecture + white-label customer UI (see upload)
+
+## Cloud production hardening (2026-10-03)
+- [x] Lifecycle, renewals, grace, suspension, termination, jobs, reconciliation, simulation A–R
+- [ ] Enable automatic switches / real provider job runner — waiting for owner approval

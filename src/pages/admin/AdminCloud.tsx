@@ -14,6 +14,7 @@ import AdvancedLifecycleTestSection from "@/components/admin/cloud/AdvancedLifec
 import CustomerE2ETestSection from "@/components/admin/cloud/CustomerE2ETestSection";
 import ProvidersSection from "@/components/admin/cloud/ProvidersSection";
 import { LocationsSection, ImagesSection, MappingsSection, NetworksSection, BackupsSnapshotsSection, BillingSection, ActivitySection, SettingsSection } from "@/components/admin/cloud/ResourcesSections";
+import { LifecycleHealth, RenewalsSection, SubscriptionsByStatus, FailedJobsSection, ReconciliationSection, LifecycleSettingsSection, SimulationSection } from "@/components/admin/cloud/LifecycleSection";
 
 const AdminCloud = () => {
   const { t, lang, isRtl } = useLanguage();
@@ -27,7 +28,11 @@ const AdminCloud = () => {
     ["locations", "المواقع", "Locations"], ["images", "أنظمة التشغيل", "Operating systems"], ["networks", "الشبكات وعناوين IP", "Networks & IPs"],
     ["backups", "النسخ الاحتياطية", "Backups"], ["snapshots", "Snapshots", "Snapshots"], ["provisioning", "عمليات Provisioning", "Provisioning"], ["e2e-tests", "اختبارات Provisioning", "Provisioning Tests"],
     ["providers", "مزودو البنية التحتية", "Providers"], ["billing", "الفوترة والاشتراكات", "Billing & subscriptions"],
-    ["suspensions", "الإيقافات والإلغاءات", "Suspensions & cancellations"], ["activity", "سجل العمليات", "Activity log"], ["settings", "الإعدادات", "Settings"],
+    ["suspensions", "الإيقافات والإلغاءات", "Suspensions & cancellations"],
+    ["health", "صحة البنية", "Infrastructure health"], ["renewals", "التجديدات", "Renewals"], ["sub-suspensions", "تعليق الاشتراكات", "Subscription suspensions"],
+    ["terminations", "الإنهاءات", "Terminations"], ["failed-jobs", "المهام الفاشلة", "Failed jobs"], ["reconciliation", "المطابقة", "Reconciliation"],
+    ["lifecycle-settings", "إعدادات دورة الحياة", "Lifecycle settings"], ["lifecycle-sim", "محاكاة دورة الحياة", "Lifecycle simulation"],
+    ["activity", "سجل العمليات", "Activity log"], ["settings", "الإعدادات", "Settings"],
   ];
 
   const body = () => {
@@ -49,6 +54,14 @@ const AdminCloud = () => {
       case "providers": return <ProvidersSection t={t} lang={lang} />;
       case "billing": return <BillingSection t={t} lang={lang} />;
       case "suspensions": return <ServersSection t={t} lang={lang} statusFilter={["suspended", "cancelled"]} />;
+      case "health": return <LifecycleHealth t={t} />;
+      case "renewals": return <RenewalsSection t={t} />;
+      case "sub-suspensions": return <SubscriptionsByStatus t={t} statuses={["grace_period", "suspension_pending", "suspended", "reactivation_pending"]} withProtect />;
+      case "terminations": return <SubscriptionsByStatus t={t} statuses={["cancellation_pending", "termination_pending", "terminated"]} withProtect />;
+      case "failed-jobs": return <FailedJobsSection t={t} />;
+      case "reconciliation": return <ReconciliationSection t={t} />;
+      case "lifecycle-settings": return <LifecycleSettingsSection t={t} />;
+      case "lifecycle-sim": return <SimulationSection t={t} />;
       case "activity": return <ActivitySection t={t} lang={lang} />;
       case "settings": return <SettingsSection t={t} />;
       default: return <OverviewSection t={t} lang={lang} go={go} />;
