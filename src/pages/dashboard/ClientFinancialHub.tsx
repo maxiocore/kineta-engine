@@ -1,47 +1,82 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
-  Landmark, 
-  History, 
-  Coins,
-  CreditCard,
-  Fingerprint
+import {
+  Landmark, History, Coins, CreditCard, Fingerprint, Wallet, TrendingDown,
+  ShieldCheck, Mail, MessageSquare, PlusCircle, BellRing,
 } from "lucide-react";
 import ClientDashboardLayout from "@/components/dashboard/ClientDashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-// Import the content components from existing pages
 import ClientDepositsContent from "@/components/financial/ClientDepositsContent";
 import ClientBalanceLogsContent from "@/components/financial/ClientBalanceLogsContent";
 import ClientCashbackContent from "@/components/financial/ClientCashbackContent";
 import DigitalWalletCard from "@/components/dashboard/DigitalWalletCard";
 
+const validTabs = ["digital-id", "deposits", "balance-logs", "cashback"];
+
+const fmt = (n: number) =>
+  n.toLocaleString("ar-SA", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 const ClientFinancialHub = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  
-  // Get initial tab from URL or default to "deposits"
   const urlTab = searchParams.get("tab");
-  const validTabs = ["deposits", "balance-logs", "cashback", "digital-id"];
-  const initialTab = urlTab && validTabs.includes(urlTab) ? urlTab : "deposits";
-  
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const [activeTab, setActiveTab] = useState(
+    urlTab && validTabs.includes(urlTab) ? urlTab : "digital-id"
+  );
+  const [stats, setStats] = useState({ balance: 0, spent: 0, cashback: 0 });
+  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [emailAlerts, setEmailAlerts] = useState(true);
 
-  // Update URL when tab changes
-  const handleTabChange = (newTab: string) => {
-    setActiveTab(newTab);
-    setSearchParams({ tab: newTab });
+  const handleTabChange = (t: string) => {
+    setActiveTab(t);
+    setSearchParams({ tab: t });
   };
 
-  // Sync with URL changes
   useEffect(() => {
-    const tab = searchParams.get("tab");
-    if (tab && validTabs.includes(tab) && tab !== activeTab) {
-      setActiveTab(tab);
-    }
+    const t = searchParams.get("tab");
+    if (t && validTabs.includes(t) && t !== activeTab) setActiveTab(t);
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    (async () => {
+      const [b, c, p, s] = await Promise.all([
+        supabase.from("user_balances").select("balance,total_spent").eq("user_id", user.id).maybeSingle(),
+        supabase.from("user_cashback").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("profiles").select("phone_verified").eq("id", user.id).maybeSingle(),
+        supabase.from("user_settings").select("notification_email").eq("user_id", user.id).maybeSingle(),
+      ]);
+      const cb = (c.data as Record<string, unknown> | null) ?? {};
+      setStats({
+        balance: Number(b.data?.balance ?? 0),
+        spent: Number(b.data?.total_spent ?? 0),
+        cashback: Number((cb.available_balance ?? cb.balance ?? 0) as number),
+      });
+      setPhoneVerified(!!p.data?.phone_verified);
+      if (s.data) setEmailAlerts(s.data.notification_email ?? true);
+    })();
+  }, [user?.id]);
+
+  const toggleEmail = async (v: boolean) => {
+    if (!user?.id) return;
+    setEmailAlerts(v);
+    const { error } = await supabase
+      .from("user_settings")
+      .update({ notification_email: v, updated_at: new Date().toISOString() })
+      .eq("user_id", user.id);
+    if (error) {
+      setEmailAlerts(!v);
+      toast.error("تعذر حفظ الإعداد");
+    } else toast.success(v ? "تم تفعيل تنبيهات البريد" : "تم إيقاف تنبيهات البريد");
+  };
 
   const tabs = [
     { id: "digital-id", label: "الهوية الرقمية", icon: Fingerprint },
@@ -50,67 +85,118 @@ const ClientFinancialHub = () => {
     { id: "cashback", label: "كاش باك", icon: Coins },
   ];
 
+  const kpis = [
+    { label: "الرصيد المتاح", value: stats.balance, icon: Wallet },
+    { label: "إجمالي المصروف", value: stats.spent, icon: TrendingDown },
+    { label: "رصيد الكاش باك", value: stats.cashback, icon: Coins },
+  ];
+
   return (
     <ClientDashboardLayout>
-      <div className="space-y-4 md:space-y-6">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
+      <div dir="rtl" className="space-y-5 md:space-y-6 text-right">
+        {/* Banking header */}
+        <motion.section
+          initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-xl md:rounded-2xl bg-gradient-to-l from-primary/10 via-accent/5 to-background border border-border p-4 md:p-6"
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-primary via-primary/90 to-accent p-5 md:p-7 text-primary-foreground shadow-xl"
         >
-          <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-          <motion.div
-            className="absolute -top-20 -left-20 w-40 h-40 rounded-full bg-primary/20 blur-3xl"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-            transition={{ duration: 4, repeat: Infinity }}
-          />
-          
-          <div className="relative flex items-center gap-3 md:gap-4">
-            <motion.div 
-              className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg"
-              whileHover={{ rotate: 5, scale: 1.05 }}
+          <div className="absolute -top-24 -left-16 h-64 w-64 rounded-full bg-primary-foreground/10 blur-3xl" />
+          <div className="absolute -bottom-24 right-1/3 h-56 w-56 rounded-full bg-accent/40 blur-3xl" />
+
+          <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-foreground/15 ring-1 ring-primary-foreground/25 backdrop-blur">
+                <Landmark className="h-7 w-7" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold">المركز المالي</h1>
+                <p className="mt-1 flex items-center gap-1.5 text-xs md:text-sm opacity-80">
+                  <ShieldCheck className="h-4 w-4" />
+                  حساب محمي بتشفير بنكي وتنبيهات فورية
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={() => handleTabChange("deposits")}
+              className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 gap-2 self-start md:self-auto"
             >
-              <Landmark className="w-6 h-6 md:w-7 md:h-7 text-primary-foreground" />
-            </motion.div>
+              <PlusCircle className="h-4 w-4" />
+              شحن الرصيد
+            </Button>
+          </div>
+
+          <div className="relative mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {kpis.map((k, i) => (
+              <motion.div
+                key={k.label}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 + i * 0.08 }}
+                className="rounded-xl bg-primary-foreground/10 p-4 ring-1 ring-primary-foreground/15 backdrop-blur"
+              >
+                <div className="flex items-center justify-between text-xs opacity-80">
+                  <span>{k.label}</span>
+                  <k.icon className="h-4 w-4" />
+                </div>
+                <p className="mt-2 text-xl md:text-2xl font-bold tabular-nums">
+                  {fmt(k.value)} <span className="text-xs font-medium opacity-70">ر.س</span>
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* Alerts channels */}
+        <section className="grid gap-3 rounded-2xl border border-border bg-card p-4 md:grid-cols-[auto_1fr_1fr] md:items-center md:gap-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <BellRing className="h-5 w-5" />
+            </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold">المركز المالي</h1>
-              <p className="text-xs md:text-sm text-muted-foreground">إدارة الإيداعات وسجل الرصيد والكاش باك</p>
+              <p className="text-sm font-bold">التنبيهات المالية</p>
+              <p className="text-xs text-muted-foreground">إشعار عند كل إيداع وخصم واسترداد</p>
             </div>
           </div>
-        </motion.div>
+          <div className="flex items-center justify-between rounded-xl bg-muted/50 px-4 py-3">
+            <span className="flex items-center gap-2 text-sm font-medium">
+              <Mail className="h-4 w-4 text-primary" /> البريد الإلكتروني
+            </span>
+            <Switch checked={emailAlerts} onCheckedChange={toggleEmail} />
+          </div>
+          <div className="flex items-center justify-between rounded-xl bg-muted/50 px-4 py-3">
+            <span className="flex items-center gap-2 text-sm font-medium">
+              <MessageSquare className="h-4 w-4 text-primary" /> رسائل SMS
+            </span>
+            {phoneVerified ? (
+              <span className="text-xs font-semibold text-primary">مفعّلة للجوال الموثّق</span>
+            ) : (
+              <Button size="sm" variant="outline" onClick={() => navigate("/dashboard/settings")}>
+                وثّق جوالك
+              </Button>
+            )}
+          </div>
+        </section>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 h-auto gap-1.5 p-1.5 md:p-2 bg-secondary border border-border rounded-lg md:rounded-xl shadow-sm">
+        {/* Tabs (RTL) */}
+        <Tabs dir="rtl" value={activeTab} onValueChange={handleTabChange} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto gap-1.5 rounded-2xl border border-border bg-secondary p-1.5">
             {tabs.map((tab) => (
               <TabsTrigger
                 key={tab.id}
                 value={tab.id}
-                className="flex min-w-0 items-center justify-center gap-1.5 md:gap-2 border border-transparent bg-card/70 py-2.5 text-xs font-semibold text-muted-foreground shadow-none transition-all md:py-3 md:text-sm data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=inactive]:hover:border-border data-[state=inactive]:hover:bg-card data-[state=inactive]:hover:text-foreground"
+                className="flex min-w-0 items-center justify-center gap-2 rounded-xl border border-transparent py-3 text-xs md:text-sm font-semibold text-muted-foreground transition-all data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=inactive]:hover:bg-card data-[state=inactive]:hover:text-foreground"
               >
-                <tab.icon className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <tab.icon className="h-4 w-4" />
                 <span>{tab.label}</span>
               </TabsTrigger>
             ))}
           </TabsList>
 
-          <div className="mt-4 md:mt-6">
-            <TabsContent value="digital-id" className="m-0">
-              <DigitalWalletCard />
-            </TabsContent>
-
-            <TabsContent value="deposits" className="m-0">
-              <ClientDepositsContent />
-            </TabsContent>
-
-            <TabsContent value="balance-logs" className="m-0">
-              <ClientBalanceLogsContent />
-            </TabsContent>
-
-            <TabsContent value="cashback" className="m-0">
-              <ClientCashbackContent />
-            </TabsContent>
+          <div className="mt-5">
+            <TabsContent value="digital-id" className="m-0"><DigitalWalletCard /></TabsContent>
+            <TabsContent value="deposits" className="m-0"><ClientDepositsContent /></TabsContent>
+            <TabsContent value="balance-logs" className="m-0"><ClientBalanceLogsContent /></TabsContent>
+            <TabsContent value="cashback" className="m-0"><ClientCashbackContent /></TabsContent>
           </div>
         </Tabs>
       </div>
