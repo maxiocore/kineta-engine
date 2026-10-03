@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { RealtimeChannel } from "@supabase/supabase-js";
@@ -44,6 +44,17 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+
+
+const CASHBACK_ERRORS: Record<string, string> = {
+  INSUFFICIENT_CASHBACK: "رصيد الكاش باك غير كافٍ",
+  INVALID_AMOUNT: "المبلغ غير صالح",
+  INVALID_AMOUNT_PRECISION: "المبلغ يجب ألا يتجاوز منزلتين عشريتين",
+  BELOW_MINIMUM: "الحد الأدنى للسحب البنكي 100 ر.س",
+  INVALID_IBAN: "رقم الآيبان غير صحيح (SA + 22 رقماً)",
+  INVALID_BANK_DETAILS: "يرجى التحقق من بيانات البنك",
+};
+const cashbackErrorText = (msg?: string) => CASHBACK_ERRORS[(msg ?? "").match(/[A-Z_]{5,}/)?.[0] ?? ""] ?? "تعذر تنفيذ السحب، حاول مرة أخرى";
 
 interface CashbackData {
   cashback_balance: number;
@@ -96,6 +107,7 @@ const MIN_BANK_WITHDRAWAL = 100;
 const ClientCashbackContent = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const cashbackKey = useRef<string>(crypto.randomUUID());
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [showAllTransactions, setShowAllTransactions] = useState(false);
@@ -170,12 +182,13 @@ const ClientCashbackContent = () => {
     mutationFn: async (amount: number) => {
       if (!user) throw new Error("Not authenticated");
       const { data, error } = await supabase.rpc("cashback_withdraw_to_wallet" as any, { p_amount: Math.round(amount * 100) / 100, p_idempotency_key: cashbackKey.current } as any);
-      if (error) throw error;
+      if (error) throw new Error(cashbackErrorText(error.message));
       const result = data as { success: boolean; error?: string };
       if (!result.success) throw new Error(result.error || "فشل السحب");
       return result;
     },
     onSuccess: () => {
+      cashbackKey.current = crypto.randomUUID();
       toast.success("تم سحب الكاش باك بنجاح إلى رصيدك الرئيسي!");
       queryClient.invalidateQueries({ queryKey: ["user-cashback"] });
       queryClient.invalidateQueries({ queryKey: ["cashback-transactions"] });
@@ -198,6 +211,7 @@ const ClientCashbackContent = () => {
       return { success: true };
     },
     onSuccess: () => {
+      cashbackKey.current = crypto.randomUUID();
       toast.success("تم إرسال طلب السحب البنكي بنجاح!");
       queryClient.invalidateQueries({ queryKey: ["user-cashback"] });
       queryClient.invalidateQueries({ queryKey: ["cashback-transactions"] });
