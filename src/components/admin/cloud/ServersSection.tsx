@@ -17,7 +17,7 @@ export default function ServersSection({ t, lang, statusFilter }: { t: T; lang: 
   const { data: profiles = [] } = useQuery({
     queryKey: ["admin-cloud", "profiles", servers.length],
     enabled: servers.length > 0,
-    queryFn: async () => (await db.from("profiles").select("user_id, full_name, email").in("user_id", [...new Set(servers.map((s) => s.user_id))])).data ?? [],
+    queryFn: async () => (await db.from("profiles").select("user_id:id, full_name, email").in("id", [...new Set(servers.map((s) => s.user_id))])).data ?? [],
   });
   const [q, setQ] = useState(""); const [type, setType] = useState(""); const [st, setSt] = useState(""); const [prov, setProv] = useState(""); const [loc, setLoc] = useState("");
   const [open, setOpen] = useState<any>(null);
