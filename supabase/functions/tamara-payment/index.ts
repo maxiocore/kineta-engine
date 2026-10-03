@@ -173,6 +173,14 @@ async function authoriseOrder(orderId: string): Promise<boolean> {
   return true;
 }
 
+async function completeVerified(supabase: any, depositId: string, amount: number, currency: string, ref: string) {
+  const { data, error } = await supabase.rpc("complete_deposit_verified", {
+    p_deposit_id: depositId, p_verified_amount: amount, p_currency: currency, p_provider_ref: ref,
+  });
+  if (error) { console.error("complete_deposit_verified failed"); return { ok: false, error: "db_error" }; }
+  return data as { ok: boolean; duplicate?: boolean; error?: string };
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -318,16 +326,10 @@ serve(async (req) => {
           }
 
           // Update deposit to completed
-          const { error: updateError } = await supabase
-            .from("deposits")
-            .update({
-              status: "completed",
-              completed_at: new Date().toISOString(),
-            })
-            .eq("id", deposit.id);
-
-          if (updateError) {
-            console.error("Error updating deposit:", updateError);
+          const done = await completeVerified(supabase, deposit.id, Number(tamaraOrder.total_amount?.amount), String(tamaraOrder.total_amount?.currency || ""), deposit.transaction_id);
+          if (!done.ok) {
+            return new Response(JSON.stringify({ success: false, message: "تعذر تأكيد الدفع" }),
+              { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
 
           console.log("Tamara deposit completed:", deposit.id);
@@ -411,22 +413,23 @@ serve(async (req) => {
             );
           }
 
-          // Authorise the order
-          await authoriseOrder(order_id);
-
           // Update deposit to completed
-          const { error: updateError } = await supabase
-            .from("deposits")
-            .update({
-              status: "completed",
-              completed_at: new Date().toISOString(),
-            })
-            .eq("id", deposit.id);
-
-          if (updateError) {
-            console.error("Error updating deposit:", updateError);
-            throw new Error("Failed to update deposit");
+          // Never trust webhook body: re-verify with Tamara, then complete atomically
+          let verified: any;
+          try { verified = await getOrderDetails(order_id); } catch (_e) {
+            return new Response(JSON.stringify({ error: "verification_failed" }),
+              { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
+          if (!["approved", "authorised", "captured", "fully_captured"].includes(verified?.status)) {
+            return new Response(JSON.stringify({ error: "not_approved" }),
+              { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+          const done = await completeVerified(supabase, deposit.id, Number(verified.total_amount?.amount), String(verified.total_amount?.currency || ""), deposit.transaction_id);
+          if (!done.ok) {
+            return new Response(JSON.stringify({ error: done.error }),
+              { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+          if (verified.status === "approved") await authoriseOrder(order_id);
 
           console.log("Deposit completed via Tamara webhook:", deposit.id);
 
