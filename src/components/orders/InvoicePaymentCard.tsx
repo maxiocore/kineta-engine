@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { payServiceOrder, payDesignOrder, payDevInvoice, newIdempotencyKey, walletErrorMessage } from "@/lib/walletPayments";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -66,6 +67,7 @@ export default function InvoicePaymentCard({
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
+  const payKeyRef = useRef(newIdempotencyKey());
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showPayDialog, setShowPayDialog] = useState(false);
   const [userBalance, setUserBalance] = useState(0);
@@ -155,77 +157,12 @@ export default function InvoicePaymentCard({
       return;
     }
 
+    if (paying) return;
     setPaying(true);
     try {
-      const { data: currentBalance, error: balanceError } = await supabase
-        .from('user_balances')
-        .select('balance, total_spent')
-        .eq('user_id', user.id)
-        .single();
-
-      if (balanceError || !currentBalance) {
-        throw new Error('خطأ في جلب الرصيد');
-      }
-
-      if (currentBalance.balance < selectedInvoice.amount) {
-        throw new Error('رصيد غير كافي');
-      }
-
-      const { error: updateError } = await supabase
-        .from('user_balances')
-        .update({
-          balance: currentBalance.balance - selectedInvoice.amount,
-          total_spent: currentBalance.total_spent + selectedInvoice.amount,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', user.id);
-
-      if (updateError) throw updateError;
-
-      const { error: invoiceError } = await supabase
-        .from('dev_order_invoices')
-        .update({
-          status: 'paid',
-          paid_at: new Date().toISOString(),
-          payment_method: 'balance',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', selectedInvoice.id);
-
-      if (invoiceError) throw invoiceError;
-
-      await supabase
-        .from('dev_orders')
-        .update({ status: 'in_progress', updated_at: new Date().toISOString() })
-        .eq('id', orderId);
-
-      await supabase.from('dev_order_events').insert({
-        order_id: orderId,
-        event_type: 'payment_received',
-        actor_role: 'user',
-        actor_id: user.id,
-        message_text: `تم دفع الفاتورة رقم ${selectedInvoice.invoice_number} بمبلغ ${selectedInvoice.amount.toFixed(2)} ر.س`,
-        payload: { invoice_id: selectedInvoice.id, amount: selectedInvoice.amount },
-      });
-
-      await supabase.from('balance_logs').insert({
-        user_id: user.id,
-        action_type: 'order',
-        amount: -selectedInvoice.amount,
-        balance_before: userBalance,
-        balance_after: userBalance - selectedInvoice.amount,
-        reference_type: 'invoice',
-        reference_id: selectedInvoice.id,
-        notes: `دفع فاتورة رقم ${selectedInvoice.invoice_number} للطلب ${orderNo}`,
-      });
-
-      await supabase.from('admin_notifications').insert({
-        title: '💰 تم دفع فاتورة',
-        message: `قام ${profile?.full_name || 'العميل'} بدفع فاتورة بمبلغ ${selectedInvoice.amount.toFixed(2)} ر.س للطلب ${orderNo}`,
-        type: 'success',
-        related_order_id: null,
-        metadata: { order_id: orderId, invoice_id: selectedInvoice.id },
-      });
+      // Server-side payment: invoice amount, ownership and status are verified and charged atomically
+      await payDevInvoice(selectedInvoice.id, payKeyRef.current);
+      payKeyRef.current = newIdempotencyKey();
 
       setShowPayDialog(false);
       setSelectedInvoice(null);
@@ -238,7 +175,7 @@ export default function InvoicePaymentCard({
       console.error('Error paying invoice:', err);
       toast({
         title: "خطأ في الدفع",
-        description: err.message,
+        description: walletErrorMessage(err),
         variant: "destructive",
       });
     } finally {
