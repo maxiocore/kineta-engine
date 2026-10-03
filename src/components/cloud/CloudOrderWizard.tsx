@@ -48,11 +48,14 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
   ];
 
   const availablePlans = useMemo(
-    () => plans.filter((p) => p.server_type === type && (!p.location_codes?.length || (loc && p.location_codes.includes(loc)))),
+    () => plans.filter((p) => p.server_type === type && (loc && p.location_codes?.includes(loc))),
     [plans, type, loc],
   );
+  const { data: locPrices = [] } = useBillingQuery({ queryKey: ["cloud-location-prices"], queryFn: async () => (await db.from("cloud_plan_location_prices").select("plan_id, location_code, monthly_price")).data ?? [] });
+  // Display only; the server recalculates the real price at checkout.
+  const priceOf = (p: any) => p?.pricing_mode === "location" ? Number(locPrices.find((x: any) => x.plan_id === p.id && x.location_code === loc)?.monthly_price ?? 0) : Number(p?.monthly_price ?? 0);
   const plan = plans.find((p) => p.id === planId);
-  const monthly = plan ? Number(plan.monthly_price) * (backups ? 1 + BACKUP : 1) : 0;
+  const monthly = plan ? priceOf(plan) * (backups ? 1 + BACKUP : 1) : 0;
   const subtotal = plan ? monthly + Number(plan.setup_fee) : 0;
   const vat = subtotal * VAT;
   const total = subtotal + vat;
@@ -143,7 +146,7 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
                   <span>{p.traffic_tb} TB {t("نقل", "traffic")}</span>
                   {p.network && <span>{p.network}</span>}
                 </div>
-                <p className="text-primary font-bold">{sar(p.monthly_price, lang)} <span className="text-xs font-normal text-muted-foreground">/ {t("شهرياً", "month")}</span></p>
+                <p className="text-primary font-bold">{sar(priceOf(p), lang)} <span className="text-xs font-normal text-muted-foreground">/ {t("شهرياً", "month")}</span></p>
                 {Number(p.setup_fee) > 0 && <p className="text-xs text-muted-foreground">{t("رسوم التجهيز", "Setup fee")}: {sar(p.setup_fee, lang)}</p>}
               </Option>
             ))}
