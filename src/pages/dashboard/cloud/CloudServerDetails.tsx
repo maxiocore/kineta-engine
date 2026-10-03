@@ -36,7 +36,9 @@ const CloudServerDetails = () => {
         db.from("cloud_activity_logs").select("*").eq("server_id", id).order("created_at", { ascending: false }).limit(50),
         db.from("cloud_server_actions").select("*").eq("server_id", id).order("created_at", { ascending: false }).limit(20),
       ]);
-      return { server: s.data as CloudServer | null, ips: ips.data ?? [], snaps: snaps.data ?? [], backups: backups.data ?? [], logs: logs.data ?? [], actions: actions.data ?? [] };
+      const keyId = (s.data as any)?.ssh_key_id;
+      const sshKey = keyId ? (await db.from("cloud_ssh_keys").select("name, fingerprint").eq("id", keyId).maybeSingle()).data : null;
+      return { sshKey: sshKey as { name: string; fingerprint: string | null } | null, server: s.data as CloudServer | null, ips: ips.data ?? [], snaps: snaps.data ?? [], backups: backups.data ?? [], logs: logs.data ?? [], actions: actions.data ?? [] };
     },
   });
 
@@ -124,6 +126,8 @@ const CloudServerDetails = () => {
             <Info k={t("تاريخ الإنشاء", "Created")} v={fmtDate(s.created_at, lang)} />
             <Info k={t("تاريخ التجديد", "Renewal")} v={fmtDate(s.renewal_date, lang)} />
             <Info k={t("معرف الخادم", "Server ID")} v={s.id.slice(0, 8)} ltr />
+            <Info k={t("اسم مستخدم SSH", "SSH username")} v="root" ltr />
+            <Info k={t("مفتاح SSH", "SSH key")} v={data?.sshKey ? `${data.sshKey.name}${data.sshKey.fingerprint ? ` · ${data.sshKey.fingerprint.slice(0, 22)}…` : ""}` : "—"} ltr />
           </TabsContent>
 
           <TabsContent value="metrics" className="mt-4">{pendingNote}</TabsContent>
