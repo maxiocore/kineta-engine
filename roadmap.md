@@ -19,3 +19,15 @@
 - [x] Lifecycle, renewals, grace, suspension, termination, jobs, reconciliation, simulation A–R
 - [x] Phase 2: real provider actions (dry-verified), scheduler, emails, backup cancel
 - [ ] Real lifecycle test on a dedicated test VPS — waiting for owner approval
+
+## Limited Cloud Launch activation + Cloud email (2026-10-03, two uploads)
+- [ ] SSH public key required at checkout (saved or new), validated server-side, no passwords, customer key on server
+- [ ] Scheduler secret + server-side cron for all queues; one scheduler cycle test
+- [ ] Cloud email: cloud@/billing@ routing, unified template AR/EN, email jobs table (idempotent, retries), admin Email Delivery tab
+- [ ] Domain auth check SPF/DKIM/DMARC + sender verification (report only, no DNS changes)
+- [ ] Cloud email tests A–I to admin only
+- [ ] Verify Moyasar health/methods; enable switches (scheduler, renewals, suspensions, payments, provisioning; terminations stay false)
+- [ ] Make only "سحابي S" visible; verify 5 image mappings and 3 locations
+- [ ] Server details customer view (root, SSH key shown, no provider data)
+- [ ] CV upload check (stop if unrestricted); medium findings to backlog
+- [ ] Final read-only check + two reports

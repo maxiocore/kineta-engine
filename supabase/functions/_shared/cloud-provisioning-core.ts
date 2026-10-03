@@ -18,6 +18,7 @@ export interface ProvisionProvider {
   create(input: { orderId: string; name: string; serverType: string; location: string; image: string; jobId: string; customerPublicKey?: string | null }):
     Promise<{ ok: true; server: ProvServer; requestId?: string } | { ok: false; error: string; lost: boolean }>;
   readiness(jobId: string, host: string): Promise<ReadinessResult>;
+  cleanupPlatformKey?(jobId: string, host: string, customerPublicKey: string | null): Promise<{ ok: boolean; reason: string | null }>;
 }
 
 export const MAX_CREATE_ATTEMPTS = 3;
@@ -132,7 +133,16 @@ export async function runProvisioningJob(ctx: ProvCtx, jobId: string): Promise<R
       const rd = await prov.readiness(jobId, s.ipv4);
       const all = READINESS_KEYS.every((k) => rd[k] === true);
       const readiness = { ...base, ...rd, ipv4_assigned: !!s.ipv4, ipv6_assigned: !!s.ipv6, all_passed: all, at: new Date(now()).toISOString() };
-      if (all) { await set("active", { ipv4: s.ipv4, ipv6: s.ipv6, readiness }); await release(); return { job: jobId, result: "active" }; }
+      if (all) {
+        await set("active", { ipv4: s.ipv4, ipv6: s.ipv6, readiness }); await release();
+        let cleanup: unknown = null;
+        if (prov.cleanupPlatformKey) {
+          const { data: srvRow } = await db.from("cloud_servers").select("ssh_key_id").eq("id", job.server_id).single();
+          const { data: ck } = srvRow?.ssh_key_id ? await db.from("cloud_ssh_keys").select("public_key").eq("id", srvRow.ssh_key_id).maybeSingle() : { data: null };
+          try { cleanup = await prov.cleanupPlatformKey(jobId, s.ipv4, ck?.public_key ?? null); } catch (e) { cleanup = { ok: false, reason: String((e as Error).message).slice(0, 80) }; }
+        }
+        return { job: jobId, result: "active", platform_key_cleanup: cleanup };
+      }
       if (rd.ssh_login && (!rd.host_keys_nonzero || !rd.host_keys_valid)) return await manual("ssh_host_keys_invalid", { readiness }); // never recreate
       if (timedOut) return await manual("readiness_timeout", { readiness });
       await set("configuring", { readiness }); await release(30);

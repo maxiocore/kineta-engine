@@ -1006,6 +1006,87 @@ export type Database = {
         }
         Relationships: []
       }
+      cloud_email_jobs: {
+        Row: {
+          attempts: number
+          category: string
+          created_at: string
+          data: Json
+          delivery_checked_at: string | null
+          delivery_status: string | null
+          id: string
+          idempotency_key: string
+          is_test: boolean
+          last_error: string | null
+          locale: string
+          locked_until: string | null
+          order_id: string | null
+          provider_message_id: string | null
+          recipient: string | null
+          scheduled_at: string
+          sender: string
+          sent_at: string | null
+          server_id: string | null
+          status: string
+          subscription_id: string | null
+          template: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          attempts?: number
+          category: string
+          created_at?: string
+          data?: Json
+          delivery_checked_at?: string | null
+          delivery_status?: string | null
+          id?: string
+          idempotency_key: string
+          is_test?: boolean
+          last_error?: string | null
+          locale?: string
+          locked_until?: string | null
+          order_id?: string | null
+          provider_message_id?: string | null
+          recipient?: string | null
+          scheduled_at?: string
+          sender: string
+          sent_at?: string | null
+          server_id?: string | null
+          status?: string
+          subscription_id?: string | null
+          template: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          attempts?: number
+          category?: string
+          created_at?: string
+          data?: Json
+          delivery_checked_at?: string | null
+          delivery_status?: string | null
+          id?: string
+          idempotency_key?: string
+          is_test?: boolean
+          last_error?: string | null
+          locale?: string
+          locked_until?: string | null
+          order_id?: string | null
+          provider_message_id?: string | null
+          recipient?: string | null
+          scheduled_at?: string
+          sender?: string
+          sent_at?: string | null
+          server_id?: string | null
+          status?: string
+          subscription_id?: string | null
+          template?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       cloud_images: {
         Row: {
           architecture: string | null
@@ -2053,6 +2134,7 @@ export type Database = {
       }
       cloud_provisioning_keys: {
         Row: {
+          cleaned_at: string | null
           created_at: string
           iv: string
           job_id: string
@@ -2061,6 +2143,7 @@ export type Database = {
           public_key: string
         }
         Insert: {
+          cleaned_at?: string | null
           created_at?: string
           iv: string
           job_id: string
@@ -2069,6 +2152,7 @@ export type Database = {
           public_key: string
         }
         Update: {
+          cleaned_at?: string | null
           created_at?: string
           iv?: string
           job_id?: string
@@ -7211,6 +7295,41 @@ export type Database = {
         Args: { p_now?: string; p_sub: string }
         Returns: Json
       }
+      cloud_claim_email_jobs: {
+        Args: { p_limit?: number }
+        Returns: {
+          attempts: number
+          category: string
+          created_at: string
+          data: Json
+          delivery_checked_at: string | null
+          delivery_status: string | null
+          id: string
+          idempotency_key: string
+          is_test: boolean
+          last_error: string | null
+          locale: string
+          locked_until: string | null
+          order_id: string | null
+          provider_message_id: string | null
+          recipient: string | null
+          scheduled_at: string
+          sender: string
+          sent_at: string | null
+          server_id: string | null
+          status: string
+          subscription_id: string | null
+          template: string
+          updated_at: string
+          user_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "cloud_email_jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       cloud_claim_job: {
         Args: { p_job: string }
         Returns: {
@@ -7277,6 +7396,21 @@ export type Database = {
         Returns: Json
       }
       cloud_effective_rate: { Args: never; Returns: number }
+      cloud_enqueue_email: {
+        Args: {
+          p_data?: Json
+          p_key: string
+          p_locale?: string
+          p_order?: string
+          p_recipient?: string
+          p_server?: string
+          p_sub?: string
+          p_template: string
+          p_test?: boolean
+          p_user: string
+        }
+        Returns: string
+      }
       cloud_enqueue_job: {
         Args: {
           p_at?: string
@@ -7285,6 +7419,16 @@ export type Database = {
           p_resource: string
           p_sim?: boolean
           p_type: string
+        }
+        Returns: string
+      }
+      cloud_finish_email_job: {
+        Args: {
+          p_error?: string
+          p_id: string
+          p_message_id?: string
+          p_ok: boolean
+          p_permanent?: boolean
         }
         Returns: string
       }
@@ -7352,6 +7496,10 @@ export type Database = {
           p_status?: string
         }
         Returns: undefined
+      }
+      cloud_scheduler_secret_ok: {
+        Args: { p_secret: string }
+        Returns: boolean
       }
       cloud_send_final_warning: {
         Args: { p_now?: string; p_sub: string }

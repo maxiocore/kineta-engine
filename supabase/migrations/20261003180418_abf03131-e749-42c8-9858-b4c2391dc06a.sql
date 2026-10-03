@@ -1,0 +1,1 @@
+ALTER TABLE public.cloud_provisioning_keys ADD COLUMN IF NOT EXISTS cleaned_at timestamptz;

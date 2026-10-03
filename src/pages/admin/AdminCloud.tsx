@@ -15,6 +15,7 @@ import CustomerE2ETestSection from "@/components/admin/cloud/CustomerE2ETestSect
 import ProvidersSection from "@/components/admin/cloud/ProvidersSection";
 import { LocationsSection, ImagesSection, MappingsSection, NetworksSection, BackupsSnapshotsSection, BillingSection, ActivitySection, SettingsSection } from "@/components/admin/cloud/ResourcesSections";
 import { LifecycleHealth, RenewalsSection, SubscriptionsByStatus, FailedJobsSection, ReconciliationSection, LifecycleSettingsSection, SimulationSection } from "@/components/admin/cloud/LifecycleSection";
+import EmailDeliverySection from "@/components/admin/cloud/EmailDeliverySection";
 
 const AdminCloud = () => {
   const { t, lang, isRtl } = useLanguage();
@@ -32,7 +33,7 @@ const AdminCloud = () => {
     ["health", "صحة البنية", "Infrastructure health"], ["renewals", "التجديدات", "Renewals"], ["sub-suspensions", "تعليق الاشتراكات", "Subscription suspensions"],
     ["terminations", "الإنهاءات", "Terminations"], ["failed-jobs", "المهام الفاشلة", "Failed jobs"], ["reconciliation", "المطابقة", "Reconciliation"],
     ["lifecycle-settings", "إعدادات دورة الحياة", "Lifecycle settings"], ["lifecycle-sim", "محاكاة دورة الحياة", "Lifecycle simulation"],
-    ["activity", "سجل العمليات", "Activity log"], ["settings", "الإعدادات", "Settings"],
+    ["email-delivery", "تسليم البريد", "Email Delivery"], ["activity", "سجل العمليات", "Activity log"], ["settings", "الإعدادات", "Settings"],
   ];
 
   const body = () => {
@@ -62,6 +63,7 @@ const AdminCloud = () => {
       case "reconciliation": return <ReconciliationSection t={t} />;
       case "lifecycle-settings": return <LifecycleSettingsSection t={t} />;
       case "lifecycle-sim": return <SimulationSection t={t} />;
+      case "email-delivery": return <EmailDeliverySection t={t} />;
       case "activity": return <ActivitySection t={t} lang={lang} />;
       case "settings": return <SettingsSection t={t} />;
       default: return <OverviewSection t={t} lang={lang} go={go} />;
