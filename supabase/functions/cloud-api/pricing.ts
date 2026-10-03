@@ -60,7 +60,7 @@ export async function syncPrices(admin: any, providerId: string) {
     const old: any = prev.get(`${st.name}|${p.location}`);
     const changed = old && Number(old.monthly_net) !== net;
     rows.push({ provider_id: providerId, server_type: st.name, location: p.location, currency: "EUR", monthly_net: net, monthly_gross: Number(p.price_monthly?.gross ?? 0) || null,
-      hourly_net: Number(p.price_hourly?.net ?? 0) || null, included_traffic_tb: p.included_traffic ? Number(p.included_traffic) / 1e12 : null,
+      hourly_net: Number(p.price_hourly?.net ?? 0) || null, included_traffic_tb: p.included_traffic ? Number(p.included_traffic) / 1099511627776 : null,
       previous_monthly_net: changed ? Number(old.monthly_net) : old?.previous_monthly_net ?? null, changed_at: changed ? now : old?.changed_at ?? null, synced_at: now });
     if (changed) alerts.push({ type: net > Number(old.monthly_net) ? "provider_cost_increased" : "provider_cost_decreased", server_type: st.name, location: p.location, old_value: Number(old.monthly_net), new_value: net, message: "EUR monthly" });
   }
@@ -136,7 +136,7 @@ export async function syncAddonPrices(admin: any, providerId: string) {
   for (const st of p.server_types ?? []) for (const pr of st.prices ?? []) {
     const o = num(pr.price_per_tb_traffic);
     const patch: any = { overage_price_per_tb: o, overage_source: o === null ? "unavailable" : "hetzner:/v1/pricing" };
-    if (pr.included_traffic != null) patch.included_traffic_tb = Number(pr.included_traffic) / 1e12;
+    if (pr.included_traffic != null) patch.included_traffic_tb = Number(pr.included_traffic) / 1099511627776;
     await admin.from("cloud_provider_prices").update(patch).eq("provider_id", providerId).eq("server_type", st.name).eq("location", pr.location);
     if (o !== null) overage++;
   }
