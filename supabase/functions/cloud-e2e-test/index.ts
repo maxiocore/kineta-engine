@@ -54,7 +54,8 @@ async function decrypt(enc: string, iv: string) {
   return new TextDecoder().decode(pt);
 }
 
-let SSH_CIPHERS = ["aes128-ctr", "aes256-ctr"];
+// Edge runtime crypto lacks AES-CTR and ChaCha20; AES-GCM verified working against the test server.
+const SSH_CIPHERS = ["aes256-gcm@openssh.com", "aes128-gcm@openssh.com"];
 const SSH_USER = "root"; // Hetzner system images inject the create-time ssh_keys into root's authorized_keys
 
 // Map ssh2 / socket errors to a precise, secret-free category
@@ -249,7 +250,7 @@ Deno.serve(async (req) => {
           case "wait_running":
             if (s.status === "running") {
               await patch({ stage: "ssh", running_at: new Date().toISOString(), ipv4: s.public_net?.ipv4?.ip, ipv6: s.public_net?.ipv6?.ip });
-              await log("running", "passed", { status: s.status, ipv4: s.public_net?.ipv4?.ip, ipv6: s.public_net?.ipv6?.ip, location: s.datacenter?.location?.name, server_type: s.server_type?.name });
+              await log("running", "passed", { status: s.status, ipv4: s.public_net?.ipv4?.ip, ipv6: s.public_net?.ipv6?.ip, location: s.datacenter?.location?.name ?? s.location?.name, server_type: s.server_type?.name });
             } else if (Date.now() - new Date(test.started_at).getTime() > 15 * 60000) return await fail("wait_running", "timeout");
             break;
           case "ssh": {
@@ -286,7 +287,7 @@ Deno.serve(async (req) => {
             if ((await actionDone()) && s.status === "running") {
               await log("verify_reboot", "passed", { status: s.status });
               const cd = { status: s.status, ipv4: s.public_net?.ipv4?.ip ?? null, ipv6: s.public_net?.ipv6?.ip ?? null,
-                location: s.datacenter?.location?.city ?? null, os: s.image?.description ?? null,
+                location: s.datacenter?.location?.city ?? s.location?.city ?? null, os: s.image?.description ?? null,
                 vcpu: s.server_type?.cores ?? null, ram_gb: s.server_type?.memory ?? null, disk_gb: s.server_type?.disk ?? null };
               const complete = Object.values(cd).every((v) => v !== null && v !== undefined);
               await patch({ customer_data: { ...cd, complete }, pending_action_id: null });
