@@ -207,6 +207,19 @@ serve(async (req) => {
           cancelUrl,
         } = body;
 
+        // Caller must be the signed-in owner of the deposit; amount must be sane
+        {
+          const jwt = (req.headers.get("Authorization") || "").replace("Bearer ", "");
+          const { data: authData } = await supabase.auth.getUser(jwt);
+          if (!authData?.user || authData.user.id !== userId) {
+            return new Response(JSON.stringify({ error: "unauthorized" }),
+              { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+          if (typeof amount !== "number" || !isFinite(amount) || amount <= 0 || amount > 100000) {
+            return new Response(JSON.stringify({ error: "invalid_amount" }),
+              { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+        }
         if (!userId || !amount || !clientName || !clientPhone) {
           return new Response(
             JSON.stringify({ error: "Missing required fields" }),
