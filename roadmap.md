@@ -5,8 +5,8 @@
 - [x] True wallet concurrency (5 rounds + refund/charge combos)
 - [x] Real invoice isolation
 - [x] Test accounts sec-test-a/b removed via admin tool
-- [ ] Full English customer portal (LTR) + desktop/tablet/mobile test
-- [ ] Final report incl. 22 warnings classification
+- [x] Full English customer portal (LTR) + desktop/tablet/mobile test
+- [x] Final report incl. 22 warnings classification
 
 ## Next: Replace Paylink with white-label online payment (processor hidden from customers)
 - [ ] Inventory Paylink usage, stop new Paylink payments, keep history

@@ -13,3 +13,4 @@
 - Deposits are completed only by service-role complete_deposit_verified after re-checking the provider (amount, SAR, reference); wallet credit happens once via _wallet_post keyed by deposit/external ID; why: webhook bodies and browser values are never trusted.
 - Referral codes are applied/created only via apply_referral_code / ensure_my_referral_code RPCs and commissions are idempotent per order/deposit; why: browser could forge referrals and commissions.
 - cloud_orders cost/margin columns are not granted to authenticated; admins read full rows via admin_list_cloud_orders(); why: customers must never see provider costs or margins.
+- English mode is rendered by src/i18n/autoTranslate.ts (dictionary src/i18n/en-dictionary.json) toggled from useLanguage, which also sets document dir; why: thousands of Arabic-first strings get one consistent LTR English layer including dialogs/toasts. New UI text should still prefer t(ar,en).
