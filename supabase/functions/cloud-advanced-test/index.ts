@@ -308,6 +308,28 @@ Deno.serve(async (req) => {
       const key = async () => { const { data } = await db.from("cloud_e2e_test_keys").select("*").eq("test_id", test.id).single(); return decrypt(data.private_key_enc, data.iv); };
       const s = (await h(`/servers/${sid}`)).server;
       if (R.step === "failed" || R.step === "done") return json({ ok: R.step === "done", rescue_repair: R });
+      // Enter rescue on the same server if not already there (enable_rescue + graceful reboot; no hard reset).
+      if (!R.step || R.step === "enter_wait") {
+        let inRescue = false;
+        try { inRescue = /rescue/i.test((await sshRun(test.ipv4, await key(), ["hostname"])).hostname); } catch { /* not reachable */ }
+        if (!inRescue) {
+          if (!R.step) {
+            const r1 = await h(`/servers/${sid}/actions/enable_rescue`, { method: "POST", body: JSON.stringify({ type: "linux64", ssh_keys: [Number(test.provider_ssh_key_id)] }) });
+            await log("rescue_repair:enable_rescue", "requested", { action_id: String(r1.action?.id ?? "") });
+            await save({ step: "enable_wait", action_id: String(r1.action?.id ?? ""), at: new Date().toISOString() }); return json({ ok: true, rescue_repair: R });
+          }
+          if (Date.now() - new Date(R.at).getTime() > 6 * 60000) { await save({ step: "failed", error: "graceful_reboot_timeout" }); return json({ ok: false, rescue_repair: R }); }
+          return json({ ok: true, rescue_repair: R });
+        }
+        R.step = undefined;
+      }
+      if (R.step === "enable_wait") {
+        const a = (await h(`/actions/${R.action_id}`)).action;
+        if (a.status !== "success") return json({ ok: true, rescue_repair: R });
+        const r2 = await h(`/servers/${sid}/actions/reboot`, { method: "POST", body: "{}" });
+        await log("rescue_repair:reboot_into_rescue", "requested", { action_id: String(r2.action?.id ?? ""), graceful: true });
+        await save({ step: "enter_wait", at: new Date().toISOString() }); return json({ ok: true, rescue_repair: R });
+      }
       if (!R.step) {
         const SCRIPT = [
           "set -u; M=/mnt/ashdiag; mkdir -p $M",
