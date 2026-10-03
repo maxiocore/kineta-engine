@@ -224,8 +224,8 @@ const ClientDeposit = () => {
   };
 
   const handleDirectPayment = async () => {
-    if (!user || numericAmount < 10) {
-      toast({ title: 'خطأ', description: 'يرجى إدخال مبلغ لا يقل عن 10 ر.س', variant: 'destructive' });
+    if (!user || numericAmount < 1) {
+      toast({ title: 'خطأ', description: 'يرجى إدخال مبلغ لا يقل عن 1.00 ر.س', variant: 'destructive' });
       return;
     }
     setDirectLoading(true);
@@ -738,7 +738,7 @@ const ClientDeposit = () => {
                     <Button
                       className="w-full h-14 text-lg gap-3 bg-gradient-to-l from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-lg shadow-emerald-500/30"
                       size="lg"
-                      disabled={!useDirectPay || numericAmount < 10 || directLoading}
+                      disabled={!useDirectPay || numericAmount < 1 || directLoading}
                       onClick={handleDirectPayment}
                     >
                       {directLoading ? (
@@ -751,7 +751,7 @@ const ClientDeposit = () => {
                       ) : (
                         <>
                           <ExternalLink className="w-5 h-5" />
-                          ادفع الآن {numericAmount > 0 && `(${numericAmount} ر.س)`}
+                          ادفع الآن {numericAmount > 0 && `(${numericAmount.toFixed(2)} ر.س)`}
                         </>
                       )}
                     </Button>
