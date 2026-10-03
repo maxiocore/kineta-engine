@@ -1,0 +1,1 @@
+ALTER TABLE public.cloud_e2e_tests ADD COLUMN stage_started_at timestamptz;

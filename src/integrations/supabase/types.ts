@@ -830,6 +830,7 @@ export type Database = {
           server_name: string
           server_type: string
           stage: string
+          stage_started_at: string | null
           started_at: string | null
           status: string
           test_key: string
@@ -861,6 +862,7 @@ export type Database = {
           server_name: string
           server_type: string
           stage?: string
+          stage_started_at?: string | null
           started_at?: string | null
           status?: string
           test_key: string
@@ -892,6 +894,7 @@ export type Database = {
           server_name?: string
           server_type?: string
           stage?: string
+          stage_started_at?: string | null
           started_at?: string | null
           status?: string
           test_key?: string
