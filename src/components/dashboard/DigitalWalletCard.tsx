@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
-  Copy, Check, QrCode, Share2, 
+  Copy, Check, 
   Shield, Phone, PlusCircle 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,6 @@ const DigitalWalletCard = () => {
   const [phone, setPhone] = useState<string | null>(null);
   const [balance, setBalance] = useState<number>(0);
   const [copied, setCopied] = useState(false);
-  const [showQR, setShowQR] = useState(false);
   const [loading, setLoading] = useState(true);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -66,57 +65,11 @@ const DigitalWalletCard = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleShare = async () => {
-    if (!walletNumber) return;
-    if (navigator.share) {
-      await navigator.share({
-        title: "رقم محفظة ASH",
-        text: `رقم حسابي في ASH: ${walletNumber}`,
-      });
-    } else {
-      handleCopy();
-    }
-  };
-
   const handleTopUp = () => {
     navigate("/dashboard/financial?tab=deposits");
   };
 
-  // Simple QR Code using a canvas-like SVG pattern
-  const generateQRPattern = (text: string) => {
-    // Create a simple visual pattern from the text
-    const hash = text.split("").reduce((acc, char) => {
-      return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
-    }, 0);
-    
-    const size = 21;
-    const cells: boolean[][] = [];
-    let seed = Math.abs(hash);
-    
-    for (let i = 0; i < size; i++) {
-      cells[i] = [];
-      for (let j = 0; j < size; j++) {
-        // Fixed pattern corners (QR code finder patterns)
-        if (
-          (i < 7 && j < 7) || 
-          (i < 7 && j >= size - 7) || 
-          (i >= size - 7 && j < 7)
-        ) {
-          const inOuter = i === 0 || i === 6 || j === 0 || j === 6 ||
-            (i >= size - 7 && (i === size - 7 || i === size - 1)) ||
-            (j >= size - 7 && (j === size - 7 || j === size - 1));
-          const inInner = (i >= 2 && i <= 4 && j >= 2 && j <= 4) ||
-            (i >= 2 && i <= 4 && j >= size - 5 && j <= size - 3) ||
-            (i >= size - 5 && i <= size - 3 && j >= 2 && j <= 4);
-          cells[i][j] = inOuter || inInner;
-        } else {
-          seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-          cells[i][j] = (seed % 3) === 0;
-        }
-      }
-    }
-    return cells;
-  };
+
 
   if (loading) {
     return (
@@ -125,8 +78,6 @@ const DigitalWalletCard = () => {
       </Card>
     );
   }
-
-  const qrCells = walletNumber ? generateQRPattern(walletNumber) : [];
 
   return (
     <div dir="rtl" className="space-y-4 text-right">
@@ -196,58 +147,9 @@ const DigitalWalletCard = () => {
       </div>
 
       {/* Actions */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <Button variant="outline" onClick={handleCopy} className="h-11 gap-1.5 rounded-xl text-xs">
-          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />} نسخ الرقم
-        </Button>
-        <Button variant="outline" onClick={() => setShowQR(!showQR)} className="h-11 gap-1.5 rounded-xl text-xs">
-          <QrCode className="h-4 w-4" /> رمز QR
-        </Button>
-        <Button variant="outline" onClick={handleShare} className="h-11 gap-1.5 rounded-xl text-xs">
-          <Share2 className="h-4 w-4" /> مشاركة
-        </Button>
-        <Button onClick={handleTopUp} className="h-11 gap-1.5 rounded-xl text-xs">
-          <PlusCircle className="h-4 w-4" /> شحن الرصيد
-        </Button>
-      </div>
-
-      {/* QR Code Modal */}
-      <AnimatePresence>
-        {showQR && walletNumber && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <Card className="p-6 flex flex-col items-center gap-4">
-              <h3 className="font-bold text-sm">رمز QR للمحفظة</h3>
-              <div className="bg-white p-4 rounded-xl shadow-inner">
-                <svg viewBox="0 0 210 210" className="w-48 h-48">
-                  {qrCells.map((row, i) =>
-                    row.map((cell, j) =>
-                      cell ? (
-                        <rect
-                          key={`${i}-${j}`}
-                          x={j * 10}
-                          y={i * 10}
-                          width={10}
-                          height={10}
-                          fill="#1a1a2e"
-                        />
-                      ) : null
-                    )
-                  )}
-                </svg>
-              </div>
-              <p className="text-muted-foreground text-xs text-center">
-                امسح هذا الرمز من موقع ASH Holdings لإيداع الرصيد فوراً
-              </p>
-              <p className="font-mono text-sm font-bold">{walletNumber}</p>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <Button onClick={handleTopUp} className="h-11 gap-1.5 rounded-xl text-xs w-full">
+        <PlusCircle className="h-4 w-4" /> شحن الرصيد
+      </Button>
 
     </div>
   );
