@@ -82,7 +82,7 @@ const CloudServerDetails = () => {
 
   return (
     <ClientDashboardLayout>
-      <div className="space-y-5 pb-8" dir={lang === "ar" ? "rtl" : "ltr"}>
+      <div className="space-y-5 pb-8 w-full min-w-0 max-w-full overflow-x-hidden" dir={lang === "ar" ? "rtl" : "ltr"}>
         <Link to="/dashboard/cloud/servers" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"><Back className="w-4 h-4" />{t("خوادمي", "My servers")}</Link>
 
         <div className="rounded-2xl border bg-card p-5 animate-fade-in">
