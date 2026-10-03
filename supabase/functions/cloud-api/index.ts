@@ -4,7 +4,7 @@ import { z } from "npm:zod@3.23.8";
 import { getProvider } from "./providers.ts";
 import { refreshRate, syncPrices, checkMargins, syncAddonPrices } from "./pricing.ts";
 import { runProvisioningJob } from "../_shared/cloud-provisioning-core.ts";
-import { HetznerProvisionProvider } from "../_shared/cloud-provisioning-hetzner.ts";
+import { HetznerProvisionProvider, decrypt } from "../_shared/cloud-provisioning-hetzner.ts";
 
 const LIVE = () => Deno.env.get("LIVE_PROVISIONING_ENABLED") === "true";
 const BILLABLE = ["rebuild", "rescue", "snapshot", "backup", "terminate"];
@@ -16,6 +16,8 @@ const Body = z.discriminatedUnion("action", [
   z.object({ action: z.literal("power"), server_id: z.string().uuid(), type: z.enum(["start", "stop", "restart"]) }),
   z.object({ action: z.literal("cancel"), server_id: z.string().uuid(), mode: z.literal("immediate") }),
   z.object({ action: z.literal("snapshot"), server_id: z.string().uuid(), name: z.string().trim().min(2).max(63) }),
+  z.object({ action: z.literal("access_info"), server_id: z.string().uuid() }),
+  z.object({ action: z.literal("reveal_credentials"), server_id: z.string().uuid() }),
   z.object({ action: z.literal("admin_test_provider"), provider_id: z.string().uuid() }),
   z.object({ action: z.literal("admin_sync"), provider_id: z.string().uuid(), kind: z.enum(["server_type", "location", "image", "server"]) }),
   z.object({ action: z.literal("admin_provision"), job_id: z.string().uuid() }),
@@ -53,6 +55,22 @@ Deno.serve(async (req) => {
     const b = body as any;
     const { data: server } = await admin.from("cloud_servers").select("*").eq("id", b.server_id).maybeSingle();
     if (!server || server.user_id !== user.id) return json({ error: "not found" }, 404);
+
+    // Customer access details: owner only, never logged, password returned exactly once then wiped.
+    if (b.action === "access_info" || b.action === "reveal_credentials") {
+      const { data: cred } = await admin.from("cloud_server_credentials").select("server_id, username, revealed_at, wiped_at").eq("server_id", server.id).eq("user_id", user.id).maybeSingle();
+      const info = { access_method: server.access_method, username: cred?.username ?? "root", has_password: !!cred, revealed: !!cred?.revealed_at, ready: server.status === "active" };
+      if (b.action === "access_info") return json(info);
+      if (server.status !== "active" || !cred) return json({ error: "not_available" }, 409);
+      const { data: claimed } = await admin.from("cloud_server_credentials").update({ revealed_at: new Date().toISOString() })
+        .eq("server_id", server.id).eq("user_id", user.id).is("revealed_at", null).neq("secret_enc", "").select("secret_enc, iv, username").maybeSingle();
+      if (!claimed) return json({ error: "already_revealed" }, 410);
+      const password = await decrypt(claimed.secret_enc, claimed.iv);
+      await admin.from("cloud_server_credentials").update({ secret_enc: "", iv: "", wiped_at: new Date().toISOString() }).eq("server_id", server.id);
+      await admin.from("cloud_activity_logs").insert({ user_id: user.id, server_id: server.id, event: "credentials_revealed", details: { one_time: true } });
+      return new Response(JSON.stringify({ username: claimed.username, password }), { headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store" } });
+    }
+
 
     const { data: allowed, error: rlErr } = await admin.rpc("cloud_action_rate_check", { p_user: user.id, p_server: server.id, p_action: b.action === "power" ? b.type : b.action });
     if (rlErr || !allowed) return json({ ok: false, error: "rate_limited", message: "Too many server actions. Please wait a minute." }, 429);

@@ -2445,6 +2445,47 @@ export type Database = {
           },
         ]
       }
+      cloud_server_credentials: {
+        Row: {
+          created_at: string
+          iv: string
+          revealed_at: string | null
+          secret_enc: string
+          server_id: string
+          user_id: string
+          username: string
+          wiped_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          iv?: string
+          revealed_at?: string | null
+          secret_enc?: string
+          server_id: string
+          user_id: string
+          username?: string
+          wiped_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          iv?: string
+          revealed_at?: string | null
+          secret_enc?: string
+          server_id?: string
+          user_id?: string
+          username?: string
+          wiped_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_server_credentials_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: true
+            referencedRelation: "cloud_servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cloud_server_ips: {
         Row: {
           created_at: string
@@ -2512,6 +2553,7 @@ export type Database = {
       }
       cloud_servers: {
         Row: {
+          access_method: string
           backups_enabled: boolean
           cancelled_at: string | null
           created_at: string
@@ -2537,6 +2579,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          access_method?: string
           backups_enabled?: boolean
           cancelled_at?: string | null
           created_at?: string
@@ -2562,6 +2605,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          access_method?: string
           backups_enabled?: boolean
           cancelled_at?: string | null
           created_at?: string

@@ -13,6 +13,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { db, StatusBadge, EmptyState, sar, fmtDate, CloudServer } from "@/components/cloud/cloudShared";
 import { LogList } from "./CloudCenter";
 import SubscriptionPanel from "@/components/cloud/SubscriptionPanel";
+import ServerAccessPanel from "@/components/cloud/ServerAccessPanel";
 
 const CloudServerDetails = () => {
   const { id } = useParams();
@@ -93,7 +94,7 @@ const CloudServerDetails = () => {
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">{s.server_type === "vps" ? <Cloud className="w-6 h-6" /> : <HardDrive className="w-6 h-6" />}</div>
               <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap"><h1 className="text-lg font-bold truncate" dir="ltr">{s.name}</h1><StatusBadge status={s.status} t={t} /></div>
+                <div className="flex items-center gap-2 flex-wrap"><h1 className="text-lg font-bold truncate" dir="auto">{s.name}</h1><StatusBadge status={s.status} t={t} /></div>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground mt-1">
                   <span className="flex items-center gap-1" dir="ltr"><Globe className="w-3.5 h-3.5" />{s.primary_ipv4 ?? t("بانتظار IP", "IP pending")}</span>
                   <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{s.location_code}</span>
@@ -150,10 +151,11 @@ const CloudServerDetails = () => {
             {data!.snaps.map((sn: any) => <div key={sn.id} className="flex justify-between p-4 rounded-xl border bg-card text-sm"><span dir="ltr">{sn.name}</span><div className="flex items-center gap-3"><span className="text-xs text-muted-foreground">{fmtDate(sn.created_at, lang)}</span><StatusBadge status={sn.status} t={t} /></div></div>)}
           </TabsContent>
 
-          {["rebuild", "rescue", "access"].map((v) => (
+          <TabsContent value="access" className="mt-4"><ServerAccessPanel server={s} sshKeyName={data?.sshKey?.name ?? null} t={t} /></TabsContent>
+          {["rebuild", "rescue"].map((v) => (
             <TabsContent key={v} value={v} className="mt-4">
-              <EmptyState icon={v === "rebuild" ? Disc : v === "rescue" ? RotateCw : Globe}
-                title={v === "rebuild" ? t("إعادة بناء الخادم", "Rebuild server") : v === "rescue" ? t("وضع الإنقاذ", "Rescue mode") : t("الوصول والكونسول", "Access & console")}
+              <EmptyState icon={v === "rebuild" ? Disc : RotateCw}
+                title={v === "rebuild" ? t("إعادة بناء الخادم", "Rebuild server") : t("وضع الإنقاذ", "Rescue mode")}
                 desc={t("هذه الميزة تُفعّل قريباً. حالياً يمكنك طلبها عبر الدعم الفني وسننفذها لك.", "This feature is coming soon. Meanwhile request it through support and we'll handle it.")}
                 action={<Button variant="outline" onClick={() => navigate("/dashboard/support")}>{t("طلب عبر الدعم", "Request via support")}</Button>} />
             </TabsContent>
