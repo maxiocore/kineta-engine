@@ -85,40 +85,11 @@ const Auth = () => {
   }, [searchParams]);
 
   // Apply referral code after successful signup
-  const applyRefCodeAfterSignup = async (userId: string) => {
+  const applyRefCodeAfterSignup = async (_userId: string) => {
     if (!refCode) return;
     try {
-      const { data: codeData } = await supabase
-        .from('referral_codes')
-        .select('*')
-        .eq('code', refCode.toUpperCase())
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (!codeData || codeData.user_id === userId) return;
-
-      const { data: existingReferral } = await supabase
-        .from('referrals')
-        .select('id')
-        .eq('referred_id', userId)
-        .maybeSingle();
-
-      if (existingReferral) return;
-
-      await supabase.from('referrals').insert({
-        referrer_id: codeData.user_id,
-        referred_id: userId,
-        referral_code: refCode.toUpperCase(),
-        status: 'converted',
-        converted_at: new Date().toISOString(),
-      });
-
-      await supabase
-        .from('referral_codes')
-        .update({ total_referrals: codeData.total_referrals + 1 })
-        .eq('id', codeData.id);
-
-      console.log('[Referral] Applied referral code:', refCode);
+      // Validated and applied on the server (no direct writes from the browser)
+      await (supabase as any).rpc('apply_referral_code', { p_code: refCode });
     } catch (err) {
       console.error('[Referral] Error applying code:', err);
     }
