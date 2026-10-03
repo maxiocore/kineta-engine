@@ -515,6 +515,7 @@ export type Database = {
           description: string | null
           description_ar: string | null
           id: string
+          idempotency_key: string | null
           reference_id: string | null
           type: string
           user_id: string
@@ -525,6 +526,7 @@ export type Database = {
           description?: string | null
           description_ar?: string | null
           id?: string
+          idempotency_key?: string | null
           reference_id?: string | null
           type?: string
           user_id: string
@@ -535,6 +537,7 @@ export type Database = {
           description?: string | null
           description_ar?: string | null
           id?: string
+          idempotency_key?: string | null
           reference_id?: string | null
           type?: string
           user_id?: string
@@ -6251,6 +6254,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _cashback_debit: {
+        Args: { p_amount: number; p_key: string; p_kind: string; p_uid: string }
+        Returns: string
+      }
       _pay_service_order_as: {
         Args: {
           p_coupon_code: string
@@ -6379,6 +6386,20 @@ export type Database = {
       }
       can_execute_internal_transfer: {
         Args: { p_application_id?: string; p_user_id: string }
+        Returns: Json
+      }
+      cashback_request_bank_withdrawal: {
+        Args: {
+          p_account_holder: string
+          p_amount: number
+          p_bank_name: string
+          p_iban: string
+          p_idempotency_key: string
+        }
+        Returns: Json
+      }
+      cashback_withdraw_to_wallet: {
+        Args: { p_amount: number; p_idempotency_key: string }
         Returns: Json
       }
       check_email_rate_limit: {
