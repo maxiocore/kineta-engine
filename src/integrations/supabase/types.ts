@@ -2513,6 +2513,7 @@ export type Database = {
           grace_ends_at: string | null
           id: string
           is_e2e_test: boolean
+          is_lifecycle_test: boolean
           is_simulation: boolean
           next_renewal_at: string | null
           next_retry_at: string | null
@@ -2560,6 +2561,7 @@ export type Database = {
           grace_ends_at?: string | null
           id?: string
           is_e2e_test?: boolean
+          is_lifecycle_test?: boolean
           is_simulation?: boolean
           next_renewal_at?: string | null
           next_retry_at?: string | null
@@ -2607,6 +2609,7 @@ export type Database = {
           grace_ends_at?: string | null
           id?: string
           is_e2e_test?: boolean
+          is_lifecycle_test?: boolean
           is_simulation?: boolean
           next_renewal_at?: string | null
           next_retry_at?: string | null
