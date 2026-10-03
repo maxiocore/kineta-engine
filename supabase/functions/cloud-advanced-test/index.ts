@@ -16,7 +16,7 @@ export const STAGES = ["creating", "wait_running", "baseline", "snapshot_request
   "backup_enable", "backup_verify", "await_rebuild_confirm", "rebuild_wait", "rebuild_verify", "rescue_enable", "rescue_reboot", "rescue_verify", "rescue_disable",
   "rescue_exit_wait", "rescue_exit_verify", "rdns", "rdns_restore", "engine", "passed"];
 
-const Body = z.object({ action: z.enum(["status", "preflight", "create", "advance", "confirm_rebuild", "retry_rescue_exit", "diagnose", "rescue_diag", "cleanup", "reset"]), confirm: z.string().max(100).optional() });
+const Body = z.object({ action: z.enum(["status", "preflight", "create", "advance", "confirm_rebuild", "retry_rescue_exit", "diagnose", "rescue_diag", "rescue_repair", "cleanup", "reset"]), confirm: z.string().max(100).optional() });
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 class HErr extends Error { constructor(public code: string, public status = 0) { super(code); } }
@@ -64,6 +64,14 @@ function sshRun(host: string, privateKey: string, commands: string[]): Promise<R
 }
 const sshErr = (e: unknown) => String((e as any)?.message ?? e).replace(/-----BEGIN[\s\S]*?-----END[^-]*-----/g, "[redacted]").slice(0, 160);
 const BASE_CMDS = ["hostname", "grep PRETTY_NAME /etc/os-release", "nproc", "grep MemTotal /proc/meminfo", "df -h / | tail -1", "ip -4 -o addr show scope global | awk '{print $4}'", "ip -6 -o addr show scope global | awk '{print $4}'"];
+// First-boot readiness: cloud-init finished, valid non-zero host keys, sshd config valid, data flushed.
+const READY_CMD = `test -f /var/lib/cloud/instance/boot-finished && echo BF_OK || echo BF_MISSING; n=0; for f in /etc/ssh/ssh_host_*_key; do if [ -s "$f" ] && [ -s "$f.pub" ] && ssh-keygen -lf "$f.pub" >/dev/null 2>&1; then n=$((n+1)); else echo "BADKEY $f"; fi; done; echo "KEYS_OK=$n"; sshd -t >/dev/null 2>&1 && echo SSHD_OK || echo SSHD_FAIL; sync && echo SYNC_OK`;
+function readiness(o: string) {
+  const keys = Number(/KEYS_OK=(\d+)/.exec(o)?.[1] ?? 0);
+  const r = { boot_finished: o.includes("BF_OK"), host_keys_valid: keys > 0 && !o.includes("BADKEY"), host_keys_count: keys, sshd_valid: o.includes("SSHD_OK"), synced: o.includes("SYNC_OK") };
+  const reason = !r.boot_finished ? "cloud_init_incomplete" : !r.host_keys_valid ? "no_hostkeys" : !r.sshd_valid ? "sshd_config_invalid" : !r.synced ? "sync_failed" : null;
+  return { ...r, ready: !reason, reason };
+}
 const READ_FILE = `cat ${FILE} 2>/dev/null || echo __MISSING__`;
 const token = () => Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join("");
 
@@ -292,6 +300,65 @@ Deno.serve(async (req) => {
       return json({ ok: true, rescue_diag: R });
     }
 
+    // ---------------- APPROVED MINIMAL REPAIR: regenerate zero-byte SSH host keys from rescue, graceful reboot ----------------
+    if (action === "rescue_repair") {
+      const sid = test.provider_resource_id; if (!sid || test.status === "running_tests") return json({ ok: false, error: "not_allowed" }, 409);
+      const L = test.lifecycle ?? {}; const R = { ...(L.rescue_repair ?? {}) } as Record<string, any>;
+      const save = async (p: Record<string, unknown>) => { Object.assign(R, p); await lc({ rescue_repair: R }); };
+      const key = async () => { const { data } = await db.from("cloud_e2e_test_keys").select("*").eq("test_id", test.id).single(); return decrypt(data.private_key_enc, data.iv); };
+      const s = (await h(`/servers/${sid}`)).server;
+      if (R.step === "failed" || R.step === "done") return json({ ok: R.step === "done", rescue_repair: R });
+      if (!R.step) {
+        const SCRIPT = [
+          "set -u; M=/mnt/ashdiag; mkdir -p $M",
+          "[ \"$(hostname)\" = rescue ] || { echo ERR_NOT_RESCUE; exit 10; }",
+          "mountpoint -q $M && umount $M",
+          "mount -o rw /dev/sda1 $M || { echo ERR_MOUNT; exit 11; }",
+          "ls $M/etc/ssh/ssh_host_* >/dev/null 2>&1 || { echo ERR_NOKEYFILES; umount $M; exit 12; }",
+          "for f in $M/etc/ssh/ssh_host_*; do if [ -s \"$f\" ]; then echo ERR_NONZERO $f; umount $M; exit 13; fi; done; echo PRECHECK_ALL_ZERO",
+          "find $M/etc/ssh -maxdepth 1 -name 'ssh_host_*' -type f -size 0 -delete; echo DELETED_ZERO",
+          "mount --bind /dev $M/dev; mount --bind /proc $M/proc; mount --bind /sys $M/sys",
+          "chroot $M ssh-keygen -A >/dev/null 2>&1 && echo KEYGEN_OK || echo ERR_KEYGEN",
+          "bad=0; for f in $M/etc/ssh/ssh_host_*_key; do if [ -s \"$f\" ] && [ -s \"$f.pub\" ] && chroot $M ssh-keygen -y -f \"${f#$M}\" >/dev/null 2>&1 && chroot $M ssh-keygen -lf \"${f#$M}.pub\"; then :; else echo BADKEY $f; bad=1; fi; done; [ $bad = 0 ] && echo KEYS_VALID",
+          "ls -la $M/etc/ssh/ | grep ssh_host | awk '{print $1, $3, $4, $5, $9}'",
+          "chroot $M /usr/sbin/sshd -t 2>&1 && echo SSHD_OK || echo SSHD_FAIL",
+          "sync && echo SYNC_OK",
+          "umount $M/dev $M/proc $M/sys; umount $M && echo UMOUNT_OK || echo ERR_UMOUNT",
+        ].join("\n");
+        let o = "";
+        try { o = (await sshRun(test.ipv4, await key(), [SCRIPT]))[SCRIPT] ?? ""; } catch (e) { await save({ step: "failed", error: `ssh:${sshErr(e)}` }); return json({ ok: false, rescue_repair: R }); }
+        const ok = ["PRECHECK_ALL_ZERO", "DELETED_ZERO", "KEYGEN_OK", "KEYS_VALID", "SSHD_OK", "SYNC_OK", "UMOUNT_OK"].every((m) => o.includes(m)) && !/ERR_|BADKEY|SSHD_FAIL/.test(o);
+        await save({ output: o.replace(/-----BEGIN[\s\S]*?-----END[^-]*-----/g, "[redacted]").slice(0, 4000), repaired_at: new Date().toISOString() });
+        await log("rescue_repair", ok ? "repaired" : "failed");
+        if (!ok) { await save({ step: "failed", error: "repair_checks_failed" }); return json({ ok: false, rescue_repair: R }); }
+        const id = String((await h(`/servers/${sid}/actions/reboot`, { method: "POST", body: "{}" })).action?.id ?? "");
+        await log("rescue_repair:reboot", "requested", { action_id: id, graceful: true });
+        await save({ step: "reboot_wait", action_id: id, reboot_at: new Date().toISOString() }); return json({ ok: true, rescue_repair: R });
+      }
+      if (R.step === "reboot_wait") {
+        const a = (await h(`/actions/${R.action_id}`)).action;
+        if (a.status === "error") { await save({ step: "failed", error: `graceful_reboot_failed:${a.error?.code}` }); return json({ ok: false, rescue_repair: R }); }
+        if (a.status !== "success" || s.status !== "running") return json({ ok: true, rescue_repair: R });
+        if (s.rescue_enabled) { await save({ step: "failed", error: "rescue_still_active" }); return json({ ok: false, rescue_repair: R }); }
+        const waited = Date.now() - new Date(R.reboot_at).getTime();
+        let o: Record<string, string>;
+        try { o = await sshRun(test.ipv4, await key(), ["hostname", "cat /etc/os-release", "systemctl is-active ssh", READY_CMD]); }
+        catch (e) { await save({ last_error: sshErr(e), attempts: (R.attempts ?? 0) + 1 }); if (waited > 6 * 60000) await save({ step: "failed", error: `ssh_not_ready:${sshErr(e)}` }); return json({ ok: true, rescue_repair: R }); }
+        const host = o.hostname.trim();
+        if (/rescue/i.test(host)) { if (waited > 6 * 60000) await save({ step: "failed", error: "graceful_reboot_timeout" }); return json({ ok: true, rescue_repair: R }); }
+        const RD = readiness(o[READY_CMD]); const ubuntu = /VERSION_ID="?24\.04/.test(o["cat /etc/os-release"]);
+        const verify = { hostname: host, ubuntu_24_04: ubuntu, ssh_active: o["systemctl is-active ssh"], ...RD, rescue_enabled: s.rescue_enabled };
+        if (host !== TEST.server_name || !ubuntu || !RD.ready) { await save({ step: "failed", error: "post_repair_verify_failed", verify }); return json({ ok: false, rescue_repair: R }); }
+        await save({ step: "done", verify, done_at: new Date().toISOString() }); await log("rescue_repair", "verified", verify);
+        // Continue the SAME test after rescue_exit_verify (snapshot/restore/backup/rebuild/rescue are not repeated).
+        await lc({ rescue: { ...(test.lifecycle?.rescue ?? {}), disabled: true, back_to_normal: true, hostname: host, os: "Ubuntu 24.04", ssh_original_key: true, repaired_host_keys: true }, last_ssh_error: null });
+        await patch({ status: "running_tests", stage: "rdns", failed_stage: null, error: null, pending_action_id: null });
+        await log("rescue_exit_verify", "passed", { via: "approved_repair" });
+        return json({ ok: true, rescue_repair: R });
+      }
+      return json({ ok: true, rescue_repair: R });
+    }
+
     if (action === "retry_rescue_exit") {
       if (test.status !== "failed" || test.failed_stage !== "rescue_exit_verify" || !test.provider_resource_id) return json({ ok: false, error: "not_retryable" }, 409);
       if (!(await exists(`/servers/${test.provider_resource_id}`))) return json({ ok: false, error: "server_missing" }, 409);
@@ -337,6 +404,8 @@ Deno.serve(async (req) => {
             else timeout(15);
             break;
           case "baseline": {
+            { const rd = await ssh([READY_CMD], "baseline"); if (!rd) break; const R = readiness(rd[READY_CMD]); await lc({ first_boot_create: R });
+              if (!R.ready) { if (age > 6 * 60000) throw new HErr(R.reason!); break; } }
             const tok = token();
             const out = await ssh([...BASE_CMDS, `echo ${tok} > ${FILE} && sync && cat ${FILE}`], "baseline");
             if (!out) break;
@@ -393,7 +462,9 @@ Deno.serve(async (req) => {
             else timeout(20);
             break;
           case "rebuild_verify": {
-            const out = await ssh([READ_FILE, BASE_CMDS[1]], "rebuild_verify"); if (!out) break;
+            const out = await ssh([READ_FILE, BASE_CMDS[1], READY_CMD], "rebuild_verify"); if (!out) break;
+            const RD = readiness(out[READY_CMD]); await lc({ first_boot_rebuild: RD });
+            if (!RD.ready) { if (age > 6 * 60000) throw new HErr(RD.reason!); break; } // gate before any disruptive step
             const os = out[BASE_CMDS[1]] ?? ""; const gone = out[READ_FILE] === "__MISSING__";
             await lc({ rebuild: { os, file_absent: gone } });
             if (!os.includes("Ubuntu 24.04")) throw new HErr("rebuild_os_mismatch");
@@ -406,21 +477,30 @@ Deno.serve(async (req) => {
             if (!(await actionDone())) { timeout(5); break; }
             if (!s.rescue_enabled) throw new HErr("rescue_not_enabled");
             await lc({ rescue: { enabled: true } });
-            await doAct("reset", {}, "rescue_reboot", "rescue_verify"); break;
+            await doAct("restart", {}, "rescue_reboot", "rescue_verify", { lifecycle: { ...(test.lifecycle ?? {}), rescue_fallback_reset: false } }); break;
           case "rescue_verify": {
             if (!(await actionDone())) { timeout(5); break; }
-            const out = await ssh(["hostname", "cat /etc/issue 2>/dev/null | head -1"], "rescue_verify", 5 * 60000); if (!out) break;
-            const inRescue = /rescue/i.test(out.hostname + " " + out["cat /etc/issue 2>/dev/null | head -1"]);
+            let out: Record<string, string> | null = null;
+            try { out = await sshRun(test.ipv4, await key(), ["hostname", "cat /etc/issue 2>/dev/null | head -1"]); } catch (e) { await lc({ last_ssh_error: sshErr(e) }); }
+            const inRescue = !!out && /rescue/i.test(out.hostname + " " + out["cat /etc/issue 2>/dev/null | head -1"]);
+            if (!inRescue) {
+              if (age < 4 * 60000) break;
+              if (!L.rescue_fallback_reset) { await log("rescue_verify", "graceful_reboot_timeout_fallback_reset"); await doAct("reset", {}, "rescue_verify", "rescue_verify", { lifecycle: { ...(test.lifecycle ?? {}), rescue_fallback_reset: true } }); break; }
+              throw new HErr(out ? "not_in_rescue" : "graceful_reboot_timeout");
+            }
             await lc({ rescue: { enabled: true, reachable: true, hostname: out.hostname, in_rescue: inRescue } });
             if (!inRescue) throw new HErr("not_in_rescue");
             await patch({ stage: "rescue_disable", pending_action_id: null }); await log("rescue_verify", "passed");
             break;
           }
-          case "rescue_disable": await doAct("rescue_disable", {}, "rescue_disable", "rescue_exit_wait"); break;
+          case "rescue_disable":
+            if (s.rescue_enabled) await doAct("rescue_disable", {}, "rescue_disable", "rescue_exit_wait");
+            else { await patch({ stage: "rescue_exit_wait", pending_action_id: null }); await log("rescue_disable", "skipped_already_consumed"); }
+            break;
           case "rescue_exit_wait":
             if (!(await actionDone())) { timeout(5); break; }
-            if (s.rescue_enabled) throw new HErr("rescue_still_enabled");
-            await doAct("reset", {}, "rescue_exit_wait", "rescue_exit_verify"); break;
+            if (s.rescue_enabled) throw new HErr("rescue_still_active");
+            await doAct("restart", {}, "rescue_exit_wait", "rescue_exit_verify", { lifecycle: { ...(test.lifecycle ?? {}), rescue_exit_fallback_reset: false, rescue_exit_ssh_started_at: null } }); break;
           case "rescue_exit_verify": {
             // 1) Hetzner action finished and server reports running (not sufficient alone)
             if (!(await actionDone())) { timeout(5); break; }
@@ -433,11 +513,15 @@ Deno.serve(async (req) => {
             try { out = await sshRun(test.ipv4, await key(), ["hostname", "cat /etc/os-release"]); }
             catch (e) {
               const err = sshErr(e); await lc({ last_ssh_error: err, rescue_exit_ssh_attempts: (Number(L.rescue_exit_ssh_attempts) || 0) + 1 });
-              if (waited > 5 * 60000) throw new HErr(`ssh_not_ready_after_5min:${err.slice(0, 60)}`);
+              if (waited > 5 * 60000) throw new HErr(`ssh_not_ready:${err.slice(0, 60)}${/ECONNREFUSED/.test(err) ? " (port closed: sshd not running, check no_hostkeys via rescue diagnostics)" : ""}`);
               break; // ECONNREFUSED / timeout = not ready yet
             }
             const host = (out.hostname ?? "").trim(); const osr = out["cat /etc/os-release"] ?? "";
-            if (/rescue/i.test(host)) { if (waited > 5 * 60000) throw new HErr(`still_in_rescue:${host}`); break; }
+            if (/rescue/i.test(host)) {
+              if (waited < 4 * 60000) break;
+              if (!L.rescue_exit_fallback_reset) { await log("rescue_exit_verify", "graceful_reboot_timeout_fallback_reset"); await doAct("reset", {}, "rescue_exit_verify", "rescue_exit_verify", { lifecycle: { ...(test.lifecycle ?? {}), rescue_exit_fallback_reset: true, rescue_exit_ssh_started_at: null } }); break; }
+              throw new HErr(`rescue_still_active:${host}`);
+            }
             if (!/Ubuntu/.test(osr) || !/VERSION_ID="?24\.04/.test(osr)) throw new HErr("not_ubuntu_24_04");
             await lc({ rescue: { ...L.rescue, disabled: true, back_to_normal: true, hostname: host, os: "Ubuntu 24.04", ssh_original_key: true }, last_ssh_error: null });
             await patch({ stage: "rdns", pending_action_id: null }); await log("rescue_exit_verify", "passed", { hostname: host, waited_ms: waited });
