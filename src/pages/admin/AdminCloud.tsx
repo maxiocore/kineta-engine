@@ -11,6 +11,7 @@ import PricingSection from "@/components/admin/cloud/PricingSection";
 import StarterPlanBuilder from "@/components/admin/cloud/StarterPlanBuilder";
 import ProvisioningTestsSection from "@/components/admin/cloud/ProvisioningTestsSection";
 import AdvancedLifecycleTestSection from "@/components/admin/cloud/AdvancedLifecycleTestSection";
+import CustomerE2ETestSection from "@/components/admin/cloud/CustomerE2ETestSection";
 import ProvidersSection from "@/components/admin/cloud/ProvidersSection";
 import { LocationsSection, ImagesSection, MappingsSection, NetworksSection, BackupsSnapshotsSection, BillingSection, ActivitySection, SettingsSection } from "@/components/admin/cloud/ResourcesSections";
 
@@ -42,7 +43,7 @@ const AdminCloud = () => {
       case "backups": return <BackupsSnapshotsSection t={t} lang={lang} table="cloud_backups" />;
       case "snapshots": return <BackupsSnapshotsSection t={t} lang={lang} table="cloud_snapshots" />;
       case "provisioning": return <ProvisioningSection t={t} lang={lang} />;
-      case "e2e-tests": return <div className="space-y-8"><AdvancedLifecycleTestSection t={t} lang={lang} /><ProvisioningTestsSection t={t} lang={lang} /></div>;
+      case "e2e-tests": return <div className="space-y-8"><CustomerE2ETestSection t={t} lang={lang} /><AdvancedLifecycleTestSection t={t} lang={lang} /><ProvisioningTestsSection t={t} lang={lang} /></div>;
       case "builder": return <StarterPlanBuilder t={t} />;
       case "pricing": return <PricingSection t={t} lang={lang} />;
       case "providers": return <ProvidersSection t={t} lang={lang} />;
