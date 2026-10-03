@@ -32,6 +32,7 @@ import {
   MonitorSmartphone,
   Server,
   ShieldCheck,
+  Cloud,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,7 @@ const clientNavItems: NavItem[] = [
     href: "/dashboard/orders", 
     icon: ShoppingBag
   },
+  { label: "الخوادم والبنية السحابية", href: "/dashboard/cloud", icon: Cloud },
   { label: "المفضلة", href: "/dashboard/favorites", icon: Heart },
   { label: "الإحالات", href: "/dashboard/referrals", icon: Gift },
   { label: "المركز المالي", href: "/dashboard/financial", icon: Wallet },
