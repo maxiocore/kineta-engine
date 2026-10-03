@@ -24,6 +24,15 @@ const DigitalWalletCard = () => {
   const [loading, setLoading] = useState(true);
   const cardRef = useRef<HTMLDivElement>(null);
 
+  // Bank-style grouping: ASH-680519 -> ASH 6805 19
+  const displayNumber = (() => {
+    if (!walletNumber) return "---";
+    const letters = walletNumber.replace(/[0-9]/g, "").replace(/[^A-Za-z]/g, "");
+    const digits = walletNumber.replace(/[^0-9]/g, "");
+    const groups = digits.replace(/(\d{4})(?=\d)/g, "$1 ");
+    return [letters, groups].filter(Boolean).join(" ");
+  })();
+
   useEffect(() => {
     if (!user?.id) return;
 
@@ -108,9 +117,9 @@ const DigitalWalletCard = () => {
 
         {/* Metallic chip */}
         <div className="relative mt-6 flex items-center gap-3">
-          <div className="h-8 w-11 rounded-md bg-gradient-to-br from-accent via-accent/80 to-primary shadow-inner ring-1 ring-background/30">
-            <div className="mt-[13px] h-px w-full bg-background/25" />
-            <div className="mx-auto h-3 w-px bg-background/25" />
+          <div className="relative h-8 w-11 overflow-hidden rounded-md bg-gradient-to-br from-accent via-accent/80 to-primary shadow-inner ring-1 ring-background/30">
+            <div className="absolute inset-x-1 top-1/2 h-px -translate-y-1/2 bg-background/30" />
+            <div className="absolute inset-y-1 left-1/2 w-px -translate-x-1/2 bg-background/30" />
           </div>
           <p className="text-[10px] font-medium uppercase tracking-widest opacity-60">بطاقة رقمية</p>
         </div>
