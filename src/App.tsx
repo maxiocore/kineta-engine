@@ -332,6 +332,16 @@ const App = () => (
                         <DevOrderDetails />
                       </ProtectedRoute>
                     } />
+                    <Route path="/dashboard/dev-orders" element={
+                      <ProtectedRoute>
+                        <MyDevOrders />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/dashboard/dev-orders/:orderId" element={
+                      <ProtectedRoute>
+                        <DevOrderDetails />
+                      </ProtectedRoute>
+                    } />
                     <Route path="/dashboard/verify-email" element={
                       <ProtectedRoute>
                         <VerifyEmailPage />
