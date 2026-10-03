@@ -16,8 +16,8 @@ let observer: MutationObserver | null = null;
 const originalText = new WeakMap<Text, string>();
 const originalAttr = new WeakMap<Element, Record<string, string>>();
 const flippedDir = new WeakSet<Element>();
-const touchedTexts = new Set<WeakRef<Text>>();
-const touchedEls = new Set<WeakRef<Element>>();
+const touchedTexts = new Set<Text>();
+const touchedEls = new Set<Element>();
 
 const norm = (s: string) => s.replace(/\s+/g, " ").trim();
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -68,7 +68,7 @@ function processText(node: Text) {
   const en = translate(v);
   if (en != null && en !== v) {
     if (!originalText.has(node)) originalText.set(node, v);
-    touchedTexts.add(new WeakRef(node));
+    touchedTexts.add(node);
     node.nodeValue = en;
   }
 }
@@ -77,7 +77,7 @@ function processEl(el: Element) {
   if (el.getAttribute("dir") === "rtl") {
     el.setAttribute("dir", "ltr");
     flippedDir.add(el);
-    touchedEls.add(new WeakRef(el));
+    touchedEls.add(el);
   }
   for (const a of ATTRS) {
     const v = el.getAttribute(a);
@@ -87,7 +87,7 @@ function processEl(el: Element) {
         const rec = originalAttr.get(el) ?? {};
         if (!(a in rec)) rec[a] = v;
         originalAttr.set(el, rec);
-        touchedEls.add(new WeakRef(el));
+        touchedEls.add(el);
         el.setAttribute(a, en);
       }
     }
@@ -134,13 +134,11 @@ export async function enableEnglish() {
 export function disableEnglish() {
   observer?.disconnect();
   observer = null;
-  touchedTexts.forEach((r) => {
-    const n = r.deref();
+  touchedTexts.forEach((n) => {
     const o = n && originalText.get(n);
     if (n && o != null) n.nodeValue = o;
   });
-  touchedEls.forEach((r) => {
-    const el = r.deref();
+  touchedEls.forEach((el) => {
     if (!el) return;
     if (flippedDir.has(el)) el.setAttribute("dir", "rtl");
     const rec = originalAttr.get(el);
