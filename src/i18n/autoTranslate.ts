@@ -54,7 +54,14 @@ function translate(raw: string): string | null {
     }
   }
   const w = wordFallback(n);
-  return w ? withSpaces(raw, w) : null;
+  if (w) return withSpaces(raw, w);
+  // Compound labels: "A - B", "A: B", "A! B", "A | B", "A • B"
+  const parts = n.split(/(\s[-–|•·]\s|[:!؟?]\s)/);
+  if (parts.length > 1) {
+    const tr = parts.map((p, i) => (i % 2 ? p.replace("؟", "?") : AR.test(p) ? dict.get(p.trim()) ?? wordFallback(p.trim()) : p));
+    if (tr.every((p) => p != null)) return withSpaces(raw, tr.join(""));
+  }
+  return null;
 }
 
 const WORDS: Record<string, string> = {

@@ -1597,5 +1597,11 @@
 "كبار العملاء": "VIP Customers",
 "مبتدئ": "Beginner",
 "تم التحقق في ${date}": "Verified on ${date}",
-"مكتمل ولم يتم": "Completed but not done"
+"مكتمل ولم يتم": "Completed but not done",
+"مفتوحة": "Open",
+"تم التحقق في": "Verified on",
+"ممتاز! حسابك معتمد وجاهز للاستخدام": "Great! Your account is verified and ready to use",
+"تمارا - الدفع على أقساط": "Tamara - Pay in installments",
+"مغلق": "Closed",
+"مفتوح": "Open"
 }
