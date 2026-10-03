@@ -289,7 +289,7 @@ Deno.serve(async (req) => {
           os: s.image_code === IMG_CODE, vcpu_2: spec.vcpu === 2, ram_4: spec.ram_gb === 4, disk_40: spec.storage_gb === 40, traffic_20tb: Number(spec.traffic_tb) === 20,
           renewal: !!s.renewal_date, price: Number(s.monthly_price) > 0, billing_status: sub?.status === "active" };
         // Leak check on customer-readable order row
-        const { data: co } = await cust.from("cloud_orders").select("*").eq("id", oid).maybeSingle();
+        const { data: co } = await cust.from("cloud_orders").select("id,user_id,server_id,plan_id,subtotal,vat_rate,vat_amount,total,status,location_code,is_e2e_test").eq("id", oid).maybeSingle();
         const exposedCols = co ? Object.keys(co).filter((k) => /provider|cost|margin|profit|exchange|buffer/.test(k) && co[k] !== null) : [];
         const leak = { customer_order_exposed_columns: exposedCols, server_row_has_provider_fields: false, notification_text_clean: true };
         const { data: notes } = await db.from("notifications").select("title,message").eq("user_id", user.id).eq("type", "cloud").gte("created_at", test.started_at);

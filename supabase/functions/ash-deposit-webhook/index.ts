@@ -6,6 +6,12 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-ash-api-key",
 };
 
+function safeEqual(a: string, b: string) {
+  if (a.length !== b.length) return false;
+  let r = 0; for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return r === 0;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -16,7 +22,7 @@ Deno.serve(async (req) => {
     const apiKey = req.headers.get("x-ash-api-key");
     const expectedKey = Deno.env.get("ASH_HOLDINGS_API_KEY");
 
-    if (!apiKey || apiKey !== expectedKey) {
+    if (!apiKey || !expectedKey || !safeEqual(apiKey, expectedKey)) {
       return new Response(
         JSON.stringify({ success: false, error: "unauthorized", message_ar: "مفتاح API غير صالح" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -130,68 +136,37 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Add balance to user
-    const newBalance = Number(wallet.balance) + Number(amount);
-    const { error: updateError } = await supabase
-      .from("user_balances")
-      .update({
-        balance: newBalance,
-        total_deposited: undefined, // will be handled by trigger
-        updated_at: new Date().toISOString(),
-      })
-      .eq("user_id", wallet.user_id);
-
-    // Actually update total_deposited separately
-    await supabase.rpc("increment_total_deposited_external", {
-      p_user_id: wallet.user_id,
-      p_amount: amount,
-    }).catch(() => {
-      // Fallback: direct update
-      return supabase
-        .from("user_balances")
-        .update({
-          balance: newBalance,
-          total_deposited: Number(wallet.balance) + Number(amount), // approximate
-          updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", wallet.user_id);
+    const amt = Number(amount);
+    if (!external_transaction_id || !isFinite(amt) || amt <= 0 || amt > 1000000) {
+      return new Response(
+        JSON.stringify({ success: false, error: "invalid_request", message_ar: "بيانات العملية غير صالحة" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    // Atomic, locked, idempotent ledger credit (same external id => one credit)
+    const { data: post, error: postErr } = await supabase.rpc("_wallet_post", {
+      p_user: wallet.user_id, p_amount: Math.round(amt * 100) / 100, p_action: "external_deposit", p_ref_type: "external_deposit",
+      p_ref_id: null, p_key: `ash:${external_transaction_id}`, p_notes: "إيداع خارجي من ASH Holdings",
+      p_actor: null, p_original: null, p_spend: false,
     });
-
-    if (updateError) {
-      console.error("Balance update error:", updateError);
+    if (postErr) {
+      console.error("ledger credit failed");
       return new Response(
         JSON.stringify({ success: false, error: "update_failed", message_ar: "فشل تحديث الرصيد" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    // Record external deposit
-    const { error: depositError } = await supabase
-      .from("external_deposits")
-      .insert({
-        wallet_account_number,
-        user_id: wallet.user_id,
-        amount,
-        source: "ash_holdings",
-        external_transaction_id: external_transaction_id || null,
-        status: "completed",
-        metadata: metadata || null,
-      });
-
-    if (depositError) {
-      console.error("Deposit record error:", depositError);
+    if ((post as any)?.duplicate) {
+      return new Response(
+        JSON.stringify({ success: false, error: "duplicate_transaction", message_ar: "هذه العملية تمت معالجتها مسبقاً" }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
+    const newBalance = Number((post as any).balance_after);
 
-    // Log balance change
-    await supabase.from("balance_logs").insert({
-      user_id: wallet.user_id,
-      action_type: "external_deposit",
-      amount: amount,
-      balance_before: Number(wallet.balance),
-      balance_after: newBalance,
-      reference_type: "external_deposit",
-      reference_id: external_transaction_id || null,
-      notes: "إيداع خارجي من ASH Holdings",
+    await supabase.from("external_deposits").insert({
+      wallet_account_number, user_id: wallet.user_id, amount: amt, source: "ash_holdings",
+      external_transaction_id, status: "completed", metadata: metadata || null,
     });
 
     // Send notification to user

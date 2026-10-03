@@ -32,6 +32,12 @@ type EventType =
   | "deposit.completed"
   | "deposit.failed";
 
+function safeEqual(a: string, b: string) {
+  if (a.length !== b.length) return false;
+  let r = 0; for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return r === 0;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -48,7 +54,7 @@ Deno.serve(async (req) => {
     const apiKey = req.headers.get("x-ash-api-key");
     const expectedKey = Deno.env.get("ASH_HOLDINGS_API_KEY");
 
-    if (!apiKey || apiKey !== expectedKey) {
+    if (!apiKey || !expectedKey || !safeEqual(apiKey, expectedKey)) {
       return json({ success: false, error: "unauthorized", message_ar: "مفتاح API غير صالح" }, 401);
     }
 
@@ -156,16 +162,16 @@ async function handleWalletCredit(supabase: ReturnType<typeof createClient>, use
   const { data: wallet } = await supabase.from("user_balances").select("balance, wallet_account_number").eq("user_id", userId).single();
   if (!wallet) throw new Error("Wallet not found");
 
-  const newBalance = Number(wallet.balance) + amount;
-
-  await supabase.from("user_balances").update({ balance: newBalance, updated_at: new Date().toISOString() }).eq("user_id", userId);
-
-  await supabase.from("balance_logs").insert({
-    user_id: userId, action_type: "finance_credit", amount,
-    balance_before: Number(wallet.balance), balance_after: newBalance,
-    reference_type: "finance_webhook", reference_id: payload.external_transaction_id || null,
-    notes: payload.metadata?.notes as string || "إيداع تمويلي من ash.holdings",
+  if (!payload.external_transaction_id) throw new Error("external_transaction_id required");
+  // Atomic, locked, idempotent ledger credit (same external id => one credit)
+  const { data: post, error: postErr } = await supabase.rpc("_wallet_post", {
+    p_user: userId, p_amount: Math.round(amount * 100) / 100, p_action: "finance_credit", p_ref_type: "finance_webhook",
+    p_ref_id: null, p_key: `fin:${payload.external_transaction_id}`,
+    p_notes: (payload.metadata?.notes as string) || "إيداع تمويلي من ash.holdings", p_actor: null, p_original: null, p_spend: false,
   });
+  if (postErr) throw new Error("ledger_failed");
+  if ((post as any)?.duplicate) return { success: true, duplicate: true, data: { new_balance: (post as any).balance_after } };
+  const newBalance = Number((post as any).balance_after);
 
   if (payload.external_transaction_id) {
     await supabase.from("external_deposits").insert({
@@ -191,16 +197,15 @@ async function handleWalletDebit(supabase: ReturnType<typeof createClient>, user
   const { data: wallet } = await supabase.from("user_balances").select("balance, wallet_account_number").eq("user_id", userId).single();
   if (!wallet) throw new Error("Wallet not found");
 
-  const newBalance = Math.max(0, Number(wallet.balance) - amount);
-
-  await supabase.from("user_balances").update({ balance: newBalance, updated_at: new Date().toISOString() }).eq("user_id", userId);
-
-  await supabase.from("balance_logs").insert({
-    user_id: userId, action_type: "finance_debit", amount: -amount,
-    balance_before: Number(wallet.balance), balance_after: newBalance,
-    reference_type: "finance_webhook", reference_id: payload.external_transaction_id || null,
-    notes: payload.metadata?.notes as string || "خصم تمويلي",
+  if (!payload.external_transaction_id) throw new Error("external_transaction_id required");
+  const { data: post, error: postErr } = await supabase.rpc("_wallet_post", {
+    p_user: userId, p_amount: -Math.round(amount * 100) / 100, p_action: "finance_debit", p_ref_type: "finance_webhook",
+    p_ref_id: null, p_key: `fin:${payload.external_transaction_id}`,
+    p_notes: (payload.metadata?.notes as string) || "خصم تمويلي", p_actor: null, p_original: null, p_spend: false,
   });
+  if (postErr) throw new Error(postErr.message?.includes("INSUFFICIENT_BALANCE") ? "insufficient_balance" : "ledger_failed");
+  if ((post as any)?.duplicate) return { success: true, duplicate: true, data: { new_balance: (post as any).balance_after } };
+  const newBalance = Number((post as any).balance_after);
 
   await supabase.from("notifications").insert({
     user_id: userId, title: "تم خصم مبلغ من المحفظة",

@@ -17,7 +17,10 @@ export const useTable = (table: string, order = "created_at", asc = false, selec
   useQuery({
     queryKey: ["admin-cloud", table, select],
     queryFn: async () => {
-      const { data, error } = await db.from(table).select(select).order(order, { ascending: asc }).limit(1000);
+      // cloud_orders cost/margin columns are not readable via the table API; admins use a checked RPC
+      const { data, error } = table === "cloud_orders"
+        ? await (db as any).rpc("admin_list_cloud_orders")
+        : await db.from(table).select(select).order(order, { ascending: asc }).limit(1000);
       if (error) throw error;
       return (data ?? []) as any[];
     },
