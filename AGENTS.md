@@ -6,3 +6,4 @@
 - Cloud orders go through order_cloud_server with a client idempotency key and create one cloud_orders row + one provisioning job; why: retries/double-clicks must never double-debit or create duplicate servers.
 - Cloud retail totals are computed only inside order_cloud_server from DB (plan/location price, VAT, effective EUR→SAR rate, buffer) and snapshotted on cloud_orders; why: browser values are never trusted and old orders must not change when prices move.
 - Billable provider calls (create, rebuild, rescue, snapshot, backup, terminate) are blocked unless the LIVE_PROVISIONING_ENABLED secret is "true"; why: no paid provider resource may be created by accident.
+- Admin infrastructure E2E tests run only through supabase/functions/cloud-e2e-test with hard-coded parameters, an atomic one-shot create claim and AES-encrypted SSH keys readable only server-side; why: a real billable test must never reuse customer order paths or the global live-provisioning gate.

@@ -9,6 +9,7 @@ import { OrdersSection, ProvisioningSection } from "@/components/admin/cloud/Ord
 import PlansSection from "@/components/admin/cloud/PlansSection";
 import PricingSection from "@/components/admin/cloud/PricingSection";
 import StarterPlanBuilder from "@/components/admin/cloud/StarterPlanBuilder";
+import ProvisioningTestsSection from "@/components/admin/cloud/ProvisioningTestsSection";
 import ProvidersSection from "@/components/admin/cloud/ProvidersSection";
 import { LocationsSection, ImagesSection, MappingsSection, NetworksSection, BackupsSnapshotsSection, BillingSection, ActivitySection, SettingsSection } from "@/components/admin/cloud/ResourcesSections";
 
@@ -22,7 +23,7 @@ const AdminCloud = () => {
     ["overview", "نظرة عامة", "Overview"], ["servers", "الخوادم", "Servers"], ["orders", "الطلبات", "Orders"],
     ["vps", "Cloud VPS", "Cloud VPS"], ["dedicated", "Dedicated Servers", "Dedicated Servers"], ["plans", "الباقات والأسعار", "Plans & pricing"], ["pricing", "التسعير والعملات", "Pricing & currency"], ["builder", "Starter Plan Builder", "Starter Plan Builder"],
     ["locations", "المواقع", "Locations"], ["images", "أنظمة التشغيل", "Operating systems"], ["networks", "الشبكات وعناوين IP", "Networks & IPs"],
-    ["backups", "النسخ الاحتياطية", "Backups"], ["snapshots", "Snapshots", "Snapshots"], ["provisioning", "عمليات Provisioning", "Provisioning"],
+    ["backups", "النسخ الاحتياطية", "Backups"], ["snapshots", "Snapshots", "Snapshots"], ["provisioning", "عمليات Provisioning", "Provisioning"], ["e2e-tests", "اختبارات Provisioning", "Provisioning Tests"],
     ["providers", "مزودو البنية التحتية", "Providers"], ["billing", "الفوترة والاشتراكات", "Billing & subscriptions"],
     ["suspensions", "الإيقافات والإلغاءات", "Suspensions & cancellations"], ["activity", "سجل العمليات", "Activity log"], ["settings", "الإعدادات", "Settings"],
   ];
@@ -40,6 +41,7 @@ const AdminCloud = () => {
       case "backups": return <BackupsSnapshotsSection t={t} lang={lang} table="cloud_backups" />;
       case "snapshots": return <BackupsSnapshotsSection t={t} lang={lang} table="cloud_snapshots" />;
       case "provisioning": return <ProvisioningSection t={t} lang={lang} />;
+      case "e2e-tests": return <ProvisioningTestsSection t={t} lang={lang} />;
       case "builder": return <StarterPlanBuilder t={t} />;
       case "pricing": return <PricingSection t={t} lang={lang} />;
       case "providers": return <ProvidersSection t={t} lang={lang} />;
