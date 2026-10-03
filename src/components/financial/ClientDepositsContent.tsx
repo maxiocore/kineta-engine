@@ -497,7 +497,7 @@ const ClientDepositsContent = () => {
                           </div>
                           <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground">
                             <CreditCard className="w-3 h-3" />
-                            <span>{deposit.payment_method?.name_ar || 'غير محدد'}</span>
+                            <span>{deposit.payment_method?.name_ar || (deposit.transaction_id?.startsWith('PAY-') ? 'دفع إلكتروني بالبطاقة' : 'غير محدد')}</span>
                           </div>
                           <div className="flex items-center gap-2 mt-1 text-[10px] md:text-xs text-muted-foreground">
                             <Calendar className="w-3 h-3" />
@@ -623,7 +623,7 @@ const ClientDepositsContent = () => {
                     طريقة الدفع
                   </span>
                   <span className="text-sm font-medium">
-                    {selectedDeposit.payment_method?.name_ar || 'غير محدد'}
+                    {selectedDeposit.payment_method?.name_ar || (selectedDeposit.transaction_id?.startsWith('PAY-') ? 'دفع إلكتروني بالبطاقة' : 'غير محدد')}
                   </span>
                 </div>
 
