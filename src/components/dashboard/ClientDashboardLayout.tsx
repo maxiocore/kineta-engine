@@ -80,7 +80,7 @@ const ClientDashboardLayout = ({ children }: ClientDashboardLayoutProps) => {
   const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { t } = useLanguage();
+  const { t, isRtl } = useLanguage();
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const [balance, setBalance] = useState<number>(0);
   const [navBadges, setNavBadges] = useState<Record<string, number>>({});
