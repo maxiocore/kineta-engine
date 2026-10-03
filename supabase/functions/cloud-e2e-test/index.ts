@@ -197,8 +197,8 @@ Deno.serve(async (req) => {
       };
       try {
         const s = await getS();
-        await patch({ provider_status: s.status });
         const age = Date.now() - new Date(test.updated_at).getTime();
+        if (s.status !== test.provider_status) await db.from("cloud_e2e_tests").update({ provider_status: s.status, updated_at: test.updated_at }).eq("id", test.id);
         switch (test.stage) {
           case "wait_running":
             if (s.status === "running") {
@@ -270,7 +270,7 @@ Deno.serve(async (req) => {
 
     // Reset only allowed once provider resources are gone (allows a future manual re-run)
     if (action === "reset") {
-      if (!["cleaned_up", "ready"].includes(test.status)) return json({ ok: false, error: "cleanup_first" }, 409);
+      if (!(["cleaned_up", "ready"].includes(test.status) || (test.status === "failed" && !test.provider_resource_id && !test.provider_ssh_key_id))) return json({ ok: false, error: "cleanup_first" }, 409);
       await patch({ status: "ready", stage: "not_started", provider_resource_id: null, provider_ssh_key_id: null, pending_action_id: null, provider_status: null,
         ipv4: null, ipv6: null, connectivity: null, customer_data: null, failed_stage: null, error: null, started_at: null, running_at: null, passed_at: null, cleaned_up_at: null });
       await log("reset", "done");
