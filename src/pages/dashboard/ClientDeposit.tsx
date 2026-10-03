@@ -696,13 +696,14 @@ const ClientDeposit = () => {
                     </div>
 
                     {/* Custom Amount Input */}
-                    <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="grid gap-4">
                       <div className="space-y-2">
-                        <Label className="text-sm text-muted-foreground">مبلغ مخصص</Label>
+                        <Label className="text-sm text-muted-foreground">مبلغ مخصص (من 1.00 ر.س)</Label>
                         <div className="relative">
                           <Input
                             id="direct-custom-amount"
                             type="number"
+                            inputMode="decimal"
                             placeholder="أدخل المبلغ"
                             value={useDirectPay ? amount : ''}
                             onChange={(e) => {
@@ -710,23 +711,12 @@ const ClientDeposit = () => {
                               setUseDirectPay(true);
                               setSelectedMethod(null);
                             }}
-                            min={10}
+                            min={1}
+                            step="0.01"
                             className="h-12 pr-4 text-center border-2 focus:border-emerald-500"
                           />
                           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">ر.س</span>
                         </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="text-sm text-muted-foreground">رقم الجوال <span className="text-destructive">*</span></Label>
-                        <Input
-                          type="tel"
-                          placeholder="05xxxxxxxx"
-                          value={clientMobile}
-                          onChange={(e) => setClientMobile(e.target.value)}
-                          className="h-12 border-2 focus:border-emerald-500"
-                          dir="ltr"
-                        />
                       </div>
                     </div>
 
