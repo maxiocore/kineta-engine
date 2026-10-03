@@ -79,8 +79,6 @@ const DigitalWalletCard = () => {
     );
   }
 
-  const qrCells = walletNumber ? generateQRPattern(walletNumber) : [];
-
   return (
     <div dir="rtl" className="space-y-4 text-right">
       <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
