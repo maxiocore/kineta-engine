@@ -48,6 +48,13 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
   ];
 
   const { data: locPrices = [] } = useBillingQuery({ queryKey: ["cloud-location-prices"], queryFn: async () => (await db.from("cloud_plan_location_prices").select("plan_id, location_code, monthly_price")).data ?? [] });
+  const { data: traffic = [] } = useBillingQuery({ queryKey: ["cloud-plan-traffic"], queryFn: async () => ((await db.rpc("get_cloud_plan_traffic")).data as any[]) ?? [] });
+  const trafficOf = (planIdArg: string, code: string | null) => traffic.find((x: any) => x.plan_id === planIdArg && x.location_code === code);
+  const trafficLabel = (p: any) => {
+    const tr = trafficOf(p.id, loc);
+    if (tr?.included_traffic_tb != null) return `${Number(tr.included_traffic_tb)} TB / ${t("شهرياً", "month")}`;
+    return t("يختلف حسب الموقع", "Varies by location");
+  };
   // Display only; the server recalculates the real price at checkout.
   const priceOf = (p: any) => p?.pricing_mode === "location" ? Number(locPrices.find((x: any) => x.plan_id === p.id && x.location_code === loc)?.monthly_price ?? 0) : Number(p?.monthly_price ?? 0);
   const availablePlans = useMemo(
@@ -147,7 +154,8 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
                   {p.server_type === "vps" ? <span>{p.vcpu} vCPU</span> : <span className="col-span-2">{p.cpu_model}</span>}
                   <span>{p.ram_gb} GB RAM</span>
                   <span>{p.storage_gb} GB {p.disk_type}</span>
-                  <span>{p.traffic_tb} TB {t("نقل", "traffic")}</span>
+                  <span className="col-span-2">{t("النقل المضمّن", "Included traffic")}: <span dir="ltr">{trafficLabel(p)}</span></span>
+                  {trafficOf(p.id, loc)?.extra_traffic_sar_per_tb != null && <span className="col-span-2">{t("نقل إضافي", "Additional traffic")}: {sar(trafficOf(p.id, loc).extra_traffic_sar_per_tb, lang)} / TB</span>}
                   {p.network && <span>{p.network}</span>}
                 </div>
                 <p className="text-primary font-bold">{sar(priceOf(p), lang)} <span className="text-xs font-normal text-muted-foreground">/ {t("شهرياً", "month")}</span></p>
@@ -202,6 +210,8 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
                 [t("الاسم", "Name"), name],
                 [t("النسخ الاحتياطي", "Backups"), backups && backupPrice != null ? t("مفعّل", "Enabled") : t("غير مفعّل", "Disabled")],
                 ["IPv4", plan.ipv4_mode === "included" || (ipv4 && ipv4Price != null) ? t("مشمول", "Included") : plan.ipv4_mode === "optional" ? t("غير مختار", "Not selected") : t("غير متاح (IPv6 فقط)", "Not available (IPv6 only)")],
+                [t("النقل المضمّن", "Included traffic"), trafficLabel(plan)],
+                [t("نقل إضافي", "Additional traffic"), trafficOf(plan.id, loc)?.extra_traffic_sar_per_tb != null ? `${sar(trafficOf(plan.id, loc).extra_traffic_sar_per_tb, lang)} / TB` : "—"],
                 [t("التجديد", "Renewal"), t("شهري", "Monthly")],
               ].map(([k, v]) => (
                 <div key={k as string} className="flex justify-between gap-4 py-1.5 border-b last:border-0"><span className="text-muted-foreground">{k}</span><span className="font-medium" dir="auto">{v}</span></div>
