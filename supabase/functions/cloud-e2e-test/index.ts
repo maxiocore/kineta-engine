@@ -18,7 +18,7 @@ const API = "https://api.hetzner.cloud/v1";
 const SSH_CMDS = ["hostname", "uname -a", "cat /etc/os-release", "uptime", "df -h", "free -m"];
 
 const Body = z.object({
-  action: z.enum(["status", "preflight", "create", "advance", "cleanup", "reset"]),
+  action: z.enum(["status", "preflight", "create", "advance", "cleanup", "reset", "diagnose_ssh", "retry_ssh"]),
   confirm: z.string().max(100).optional(),
 });
 
@@ -54,25 +54,69 @@ async function decrypt(enc: string, iv: string) {
   return new TextDecoder().decode(pt);
 }
 
-function sshRun(host: string, privateKey: string): Promise<Record<string, string>> {
+const SSH_USER = "root"; // Hetzner system images inject the create-time ssh_keys into root's authorized_keys
+
+// Map ssh2 / socket errors to a precise, secret-free category
+function classify(e: unknown): { category: string; detail: string } {
+  const m = String((e as any)?.message ?? e ?? "").slice(0, 200);
+  const code = String((e as any)?.code ?? "");
+  const lvl = String((e as any)?.level ?? "");
+  const has = (x: string) => m.toLowerCase().includes(x.toLowerCase()) || code === x;
+  let category = "other";
+  if (has("ECONNREFUSED") || has("refused")) category = "tcp_refused";
+  else if (has("ETIMEDOUT") || has("Timed out while waiting for handshake") || has("ssh_timeout")) category = lvl === "client-timeout" || has("handshake") ? "ssh_handshake_timeout" : "tcp_timeout";
+  else if (has("EHOSTUNREACH") || has("ENETUNREACH") || has("PermissionDenied") || has("not allowed")) category = "network_or_runtime_blocked";
+  else if (has("All configured authentication methods failed")) category = "authentication_failed";
+  else if (has("privateKey") || has("Cannot parse")) category = "invalid_private_key";
+  else if (has("host key") || has("hostVerifier")) category = "host_key_failure";
+  else if (lvl === "handshake" || has("handshake") || has("not supported") || has("kex") || has("cipher")) category = "ssh_handshake_failure";
+  else if (has("ECONNRESET") || has("closed")) category = "connection_reset";
+  return { category, detail: (code ? code + ": " : "") + m.replace(/-----BEGIN[\s\S]*?-----END[^-]*-----/g, "[redacted]") };
+}
+
+async function tcpProbe(host: string, port = 22, timeoutMs = 8000) {
+  const t0 = Date.now();
+  let conn: Deno.TcpConn | null = null;
+  try {
+    conn = await Promise.race([
+      Deno.connect({ hostname: host, port }),
+      new Promise<never>((_, r) => setTimeout(() => r(Object.assign(new Error("tcp_timeout"), { code: "ETIMEDOUT" })), timeoutMs)),
+    ]);
+    const buf = new Uint8Array(256);
+    const n = await Promise.race([conn.read(buf), new Promise<null>((r) => setTimeout(() => r(null), 5000))]);
+    const banner = n ? new TextDecoder().decode(buf.subarray(0, n)).trim().slice(0, 120) : null;
+    return { result: "reachable", ms: Date.now() - t0, banner };
+  } catch (e) {
+    const name = (e as any)?.name ?? "";
+    const c = classify(e);
+    const result = name === "ConnectionRefused" || c.category === "tcp_refused" ? "refused"
+      : c.category === "tcp_timeout" || name === "TimedOut" ? "timeout"
+      : name === "PermissionDenied" || c.category === "network_or_runtime_blocked" ? "runtime/network blocked" : "error";
+    return { result, ms: Date.now() - t0, error: `${name}: ${c.detail}`.slice(0, 200) };
+  } finally { try { conn?.close(); } catch { /* ignore */ } }
+}
+
+function sshRun(host: string, privateKey: string, commands: readonly string[] = SSH_CMDS): Promise<Record<string, string>> {
   return new Promise((resolve, reject) => {
     const c = new ssh2.Client();
     const out: Record<string, string> = {};
-    const timer = setTimeout(() => { c.end(); reject(new Error("ssh_timeout")); }, 25000);
-    c.on("error", (e: Error) => { clearTimeout(timer); reject(new Error("ssh_" + (e.message.includes("authentication") ? "auth_failed" : "unreachable"))); })
+    let done = false;
+    const finish = (err: unknown, val?: Record<string, string>) => { if (done) return; done = true; clearTimeout(timer); try { c.end(); } catch { /* */ } err ? reject(err) : resolve(val!); };
+    const timer = setTimeout(() => finish(Object.assign(new Error("ssh_timeout"), { code: "ETIMEDOUT" })), 25000);
+    c.on("error", (e: Error) => finish(e))
       .on("ready", async () => {
         try {
-          for (const cmd of SSH_CMDS) {
+          for (const cmd of commands) {
             out[cmd] = await new Promise<string>((res, rej) => c.exec(cmd, (err: Error, s: any) => {
               if (err) return rej(err);
               let d = ""; s.on("data", (x: Uint8Array) => (d += new TextDecoder().decode(x))).stderr.on("data", () => {});
               s.on("close", () => res(d.slice(0, 4000)));
             }));
           }
-          clearTimeout(timer); c.end(); resolve(out);
-        } catch (e) { clearTimeout(timer); c.end(); reject(e); }
+          finish(null, out);
+        } catch (e) { finish(e); }
       })
-      .connect({ host, port: 22, username: "root", privateKey, readyTimeout: 15000, algorithms: { cipher: ["aes128-ctr", "aes256-ctr"] } });
+      .connect({ host, port: 22, username: SSH_USER, privateKey, readyTimeout: 15000, algorithms: { cipher: ["aes128-ctr", "aes256-ctr"] } });
   });
 }
 
@@ -209,14 +253,22 @@ Deno.serve(async (req) => {
             break;
           case "ssh": {
             const { data: k } = await db.from("cloud_e2e_test_keys").select("*").eq("test_id", test.id).single();
+            const tries = (test.connectivity?.attempts ?? 0) + 1;
+            const tcp = await tcpProbe(test.ipv4, 22, 6000);
+            if (tcp.result !== "reachable") {
+              await patch({ connectivity: { ok: false, attempts: tries, phase: "tcp", last_error: tcp.result, detail: tcp.error } });
+              if (age > 3 * 60000) return await fail("ssh", `tcp_${tcp.result}`);
+              break;
+            }
             try {
               const out = await sshRun(test.ipv4, await decrypt(k.private_key_enc, k.iv));
-              await patch({ connectivity: { ok: true, output: out, at: new Date().toISOString() }, stage: "power_off" });
-              await log("ssh", "passed", { commands: SSH_CMDS });
+              await patch({ connectivity: { ok: true, attempts: tries, user: SSH_USER, banner: tcp.banner, output: out, at: new Date().toISOString() }, stage: "power_off" });
+              await log("ssh", "passed", { commands: SSH_CMDS, user: SSH_USER, attempts: tries });
             } catch (e) {
-              const tries = (test.connectivity?.attempts ?? 0) + 1;
-              await patch({ connectivity: { ok: false, attempts: tries, last_error: (e as Error).message } });
-              if (tries >= 10) return await fail("ssh", (e as Error).message);
+              const c = classify(e);
+              await patch({ connectivity: { ok: false, attempts: tries, phase: "ssh", banner: tcp.banner, last_error: c.category, detail: c.detail } });
+              // auth / key errors will not fix themselves with retries
+              if (["authentication_failed", "invalid_private_key"].includes(c.category) || age > 3 * 60000) return await fail("ssh", c.category);
             }
             break;
           }
@@ -245,6 +297,47 @@ Deno.serve(async (req) => {
         }
         return json({ ok: true, test });
       } catch (e) { return await fail(test.stage, (e as HErr).code ?? "internal"); }
+    }
+
+    // ---------------- DIAGNOSE (read-only; no provider changes) ----------------
+    if (action === "diagnose_ssh") {
+      if (!test.provider_resource_id || !test.ipv4) return json({ ok: false, error: "no_server" }, 409);
+      const r: Record<string, unknown> = { ssh_user: SSH_USER, test_id: test.id };
+      try {
+        const s = (await h(`/servers/${test.provider_resource_id}`)).server;
+        r.provider = { id: String(s.id), status: s.status, ipv4: s.public_net?.ipv4?.ip, ipv6: s.public_net?.ipv6?.ip, image: s.image?.name ?? s.image?.description, location: s.datacenter?.location?.name, server_type: s.server_type?.name };
+      } catch (e) { r.provider = { error: (e as HErr).code }; }
+      const { data: k } = await db.from("cloud_e2e_test_keys").select("public_key,private_key_enc,iv").eq("test_id", test.id).maybeSingle();
+      try {
+        const pk = test.provider_ssh_key_id ? (await h(`/ssh_keys/${test.provider_ssh_key_id}`)).ssh_key : null;
+        const norm = (x?: string) => (x ?? "").trim().split(/\s+/).slice(0, 2).join(" ");
+        r.ssh_key = { provider_ssh_key_id: test.provider_ssh_key_id, exists_at_provider: !!pk, fingerprint: pk?.fingerprint ?? null,
+          matches_test_record: !!pk && !!k && norm(pk.public_key) === norm(k.public_key),
+          attached_at_create: true /* passed in ssh_keys of the single create request (see audit 'create') */ };
+      } catch (e) { r.ssh_key = { error: (e as HErr).code }; }
+      r.tcp_22 = await tcpProbe(test.ipv4, 22, 8000);
+      r.runtime_supports_outbound_tcp = r.tcp_22 && (r.tcp_22 as any).result === "reachable" ? true : (r.tcp_22 as any).result === "runtime/network blocked" ? false : "unknown";
+      if ((r.tcp_22 as any).result === "reachable" && k) {
+        try {
+          let privateKey = await decrypt(k.private_key_enc, k.iv);
+          try { ssh2.utils.parseKey(privateKey); r.private_key_parses = true; } catch { r.private_key_parses = false; }
+          // auth-only probe: runs the harmless `true` command, no state change
+          await sshRun(test.ipv4, privateKey, ["true"]); privateKey = "";
+          r.ssh = { result: "authenticated" };
+        } catch (e) { r.ssh = { result: "failed", ...classify(e) }; }
+      }
+      await log("diagnose_ssh", "done", r);
+      return json({ ok: true, diagnosis: r, test });
+    }
+
+    // ---------------- RETRY SSH (same test, same server) ----------------
+    if (action === "retry_ssh") {
+      if (!(test.status === "failed" && test.failed_stage === "ssh" && test.provider_resource_id)) return json({ ok: false, error: "retry_not_allowed" }, 409);
+      const s = (await h(`/servers/${test.provider_resource_id}`)).server;
+      if (s.status !== "running") return json({ ok: false, error: "server_not_running" }, 409);
+      await patch({ status: "running_tests", stage: "ssh", failed_stage: null, error: null, connectivity: { attempts: 0 } });
+      await log("retry_ssh", "requested", { provider_resource_id: test.provider_resource_id });
+      return json({ ok: true, test });
     }
 
     // ---------------- CLEANUP (explicit admin confirmation) ----------------
