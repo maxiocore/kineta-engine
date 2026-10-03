@@ -733,6 +733,53 @@ export type Database = {
         }
         Relationships: []
       }
+      cloud_e2e_customer_grants: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          image_code: string
+          location_code: string
+          order_id: string | null
+          plan_id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          image_code: string
+          location_code: string
+          order_id?: string | null
+          plan_id: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          image_code?: string
+          location_code?: string
+          order_id?: string | null
+          plan_id?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_e2e_customer_grants_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cloud_e2e_test_events: {
         Row: {
           actor_id: string | null
@@ -1026,6 +1073,7 @@ export type Database = {
           idempotency_key: string
           included_traffic_tb: number | null
           ipv4_selected: boolean | null
+          is_e2e_test: boolean
           location_code: string | null
           overage_cost_sar: number | null
           payment_method: string
@@ -1038,6 +1086,8 @@ export type Database = {
           provider_ipv4_cost: number | null
           provider_server_cost: number | null
           raw_provider_cost: number | null
+          refund_amount: number | null
+          refunded_at: string | null
           retail_addons_price: number | null
           retail_backup_price: number | null
           retail_ipv4_price: number | null
@@ -1067,6 +1117,7 @@ export type Database = {
           idempotency_key: string
           included_traffic_tb?: number | null
           ipv4_selected?: boolean | null
+          is_e2e_test?: boolean
           location_code?: string | null
           overage_cost_sar?: number | null
           payment_method?: string
@@ -1079,6 +1130,8 @@ export type Database = {
           provider_ipv4_cost?: number | null
           provider_server_cost?: number | null
           raw_provider_cost?: number | null
+          refund_amount?: number | null
+          refunded_at?: string | null
           retail_addons_price?: number | null
           retail_backup_price?: number | null
           retail_ipv4_price?: number | null
@@ -1108,6 +1161,7 @@ export type Database = {
           idempotency_key?: string
           included_traffic_tb?: number | null
           ipv4_selected?: boolean | null
+          is_e2e_test?: boolean
           location_code?: string | null
           overage_cost_sar?: number | null
           payment_method?: string
@@ -1120,6 +1174,8 @@ export type Database = {
           provider_ipv4_cost?: number | null
           provider_server_cost?: number | null
           raw_provider_cost?: number | null
+          refund_amount?: number | null
+          refunded_at?: string | null
           retail_addons_price?: number | null
           retail_backup_price?: number | null
           retail_ipv4_price?: number | null
@@ -1959,6 +2015,69 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      cloud_subscriptions: {
+        Row: {
+          amount: number
+          billing_cycle: string
+          cancelled_at: string | null
+          created_at: string
+          id: string
+          is_e2e_test: boolean
+          order_id: string
+          renewal_at: string | null
+          server_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          vat_amount: number
+        }
+        Insert: {
+          amount: number
+          billing_cycle?: string
+          cancelled_at?: string | null
+          created_at?: string
+          id?: string
+          is_e2e_test?: boolean
+          order_id: string
+          renewal_at?: string | null
+          server_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          vat_amount?: number
+        }
+        Update: {
+          amount?: number
+          billing_cycle?: string
+          cancelled_at?: string | null
+          created_at?: string
+          id?: string
+          is_e2e_test?: boolean
+          order_id?: string
+          renewal_at?: string | null
+          server_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          vat_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cloud_subscriptions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "cloud_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cloud_subscriptions_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "cloud_servers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contact_messages: {
         Row: {
