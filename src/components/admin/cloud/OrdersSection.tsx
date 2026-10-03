@@ -48,12 +48,8 @@ export function ProvisioningSection({ t, lang }: { t: T; lang: string }) {
     const o = orders.find((x) => x.id === j.order_id); if (!o) return;
     if (o.status === "refunded") return toast.error(t("مسترد مسبقاً", "Already refunded"));
     if (!confirm(t(`استرداد ${money(o.total, lang)} إلى محفظة العميل؟`, `Refund ${money(o.total, lang)} to customer wallet?`))) return;
-    const { data: bal } = await db.from("user_balances").select("balance").eq("user_id", o.user_id).maybeSingle();
-    const { error } = await db.from("cloud_orders").update({ status: "refunded" }).eq("id", o.id).neq("status", "refunded");
-    if (error || !bal) return toast.error(t("تعذر الاسترداد", "Refund failed"));
-    await db.from("user_balances").update({ balance: Number(bal.balance) + Number(o.total) }).eq("user_id", o.user_id);
-    await db.from("cloud_provisioning_jobs").update({ status: "cancelled" }).eq("id", j.id);
-    if (j.server_id) await db.from("cloud_servers").update({ status: "cancelled", cancelled_at: new Date().toISOString() }).eq("id", j.server_id);
+    const { error } = await db.rpc("admin_refund_cloud_order", { p_order_id: o.id });
+    if (error) return toast.error(t("تعذر الاسترداد", "Refund failed"));
     toast.success(t("تم الاسترداد", "Refunded")); inv();
   };
   const process = async (id: string) => { setBusy(id); const r = await cloudApi({ action: "admin_process_action", action_id: id }); setBusy(null); inv(); r?.ok ? toast.success(r.status) : toast.error(r?.error ?? "error"); };
