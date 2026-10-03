@@ -6573,6 +6573,10 @@ export type Database = {
         }[]
       }
       update_overdue_installments: { Args: never; Returns: undefined }
+      vat_halalas: {
+        Args: { p_rate: number; p_subtotal_minor: number }
+        Returns: number
+      }
       withdraw_cashback:
         | { Args: { p_amount: number }; Returns: Json }
         | { Args: { p_amount: number; p_user_id: string }; Returns: Json }

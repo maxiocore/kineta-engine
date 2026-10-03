@@ -186,7 +186,7 @@ Deno.serve(async (req) => {
         if (b.search) q = q.or(`internal_payment_id.ilike.%${b.search.replace(/[^A-Za-z0-9-]/g, "")}%,provider_payment_id.ilike.%${b.search.replace(/[^A-Za-z0-9-]/g, "")}%`);
         const { data } = await q;
         const ids = [...new Set((data ?? []).map((r: any) => r.user_id))];
-        const { data: profs } = ids.length ? await db.from("profiles").select("user_id,full_name,email").in("user_id", ids) : { data: [] };
+        const { data: profs } = ids.length ? await db.from("profiles").select("id,full_name,email").in("id", ids) : { data: [] };
         return json({ payments: data ?? [], profiles: profs ?? [] });
       }
       case "admin_detail": {
