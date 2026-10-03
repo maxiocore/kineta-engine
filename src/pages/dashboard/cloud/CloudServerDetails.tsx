@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
 import { db, StatusBadge, EmptyState, sar, fmtDate, CloudServer } from "@/components/cloud/cloudShared";
 import { LogList } from "./CloudCenter";
+import SubscriptionPanel from "@/components/cloud/SubscriptionPanel";
 
 const CloudServerDetails = () => {
   const { id } = useParams();
@@ -157,10 +158,8 @@ const CloudServerDetails = () => {
             {data!.logs.length ? <div className="rounded-2xl border bg-card p-5"><LogList logs={data!.logs} serverName={() => s.name} /></div> : <EmptyState icon={LineChart} title={t("لا توجد عمليات", "No activity")} />}
           </TabsContent>
 
-          <TabsContent value="billing" className="grid sm:grid-cols-3 gap-3 mt-4">
-            <Info k={t("السعر الشهري", "Monthly price")} v={sar(s.monthly_price, lang)} />
-            <Info k={t("ضريبة 15%", "VAT 15%")} v={sar(s.monthly_price * 0.15, lang)} />
-            <Info k={t("التجديد القادم", "Next renewal")} v={fmtDate(s.renewal_date, lang)} />
+          <TabsContent value="billing" className="mt-4">
+            <SubscriptionPanel serverId={s.id} t={t} lang={lang} />
           </TabsContent>
 
           <TabsContent value="settings" className="mt-4 max-w-lg space-y-3">
