@@ -140,6 +140,11 @@ const ClientSettings = () => {
       return;
     }
 
+    if (!currentPassword) {
+      toast.error(t('أدخل كلمة المرور الحالية', 'Enter your current password'));
+      return;
+    }
+
     if (newPassword.length < 6) {
       toast.error('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
       return;
@@ -148,7 +153,8 @@ const ClientSettings = () => {
     setSavingPassword(true);
     try {
       const { error } = await supabase.auth.updateUser({
-        password: newPassword
+        password: newPassword,
+        current_password: currentPassword,
       });
 
       if (error) throw error;
@@ -159,7 +165,15 @@ const ClientSettings = () => {
       setConfirmPassword("");
     } catch (error: any) {
       console.error('Error updating password:', error);
-      toast.error('فشل في تحديث كلمة المرور');
+      const msg = String(error?.message || '').toLowerCase();
+      const code = String(error?.code || '');
+      if (code === 'weak_password' || msg.includes('pwned') || msg.includes('weak') || msg.includes('known')) {
+        toast.error(t('كلمة المرور ضعيفة أو مسرّبة، اختر كلمة أقوى', 'Password is weak or has appeared in a data leak. Choose a stronger one.'));
+      } else if (code === 'current_password_mismatch' || code === 'current_password_required' || msg.includes('current password')) {
+        toast.error(t('كلمة المرور الحالية غير صحيحة', 'Current password is incorrect'));
+      } else {
+        toast.error(t('فشل في تحديث كلمة المرور', 'Failed to update password'));
+      }
     } finally {
       setSavingPassword(false);
     }
