@@ -108,8 +108,8 @@ const CloudServerDetails = () => {
           {s.status === "pending" && <p className="mt-4 text-xs rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300 p-3">{t("خادمك قيد التجهيز، سنرسل لك إشعاراً فور تفعيله.", "Your server is being provisioned; we'll notify you once it's active.")}</p>}
         </div>
 
-        <Tabs defaultValue="overview" dir={lang === "ar" ? "rtl" : "ltr"}>
-          <TabsList className="h-auto flex-wrap justify-start gap-1 bg-muted/50 p-1">
+        <Tabs defaultValue="overview" dir={lang === "ar" ? "rtl" : "ltr"} className="text-start">
+          <TabsList dir={lang === "ar" ? "rtl" : "ltr"} className="h-auto w-full flex-wrap justify-start gap-1 bg-muted/50 p-1">
             {tabs.map(([v, ar, en]) => <TabsTrigger key={v} value={v} className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">{t(ar, en)}</TabsTrigger>)}
           </TabsList>
 
