@@ -95,12 +95,12 @@ export class HetznerCloudProvider implements CloudProvider {
   getServer(id: string) {
     return this.wrap(async () => {
       const { body } = await this.req(`/servers/${encodeURIComponent(id)}`);
-      return { status: body.server.status === "running" ? "completed" : "requested", providerRef: id, data: { ipv4: body.server.public_net?.ipv4?.ip, ipv6: body.server.public_net?.ipv6?.ip, status: body.server.status } };
+      return { status: body.server.status === "running" ? "completed" : "requested", providerRef: id, data: { ipv4: body.server.public_net?.ipv4?.ip, ipv6: body.server.public_net?.ipv6?.ip, status: body.server.status, backup_window: body.server.backup_window ?? null, labels: body.server.labels ?? {} } };
     });
   }
 
   action(id: string, action: string, payload: Record<string, unknown> = {}) {
-    const paths: Record<string, string> = { start: "poweron", stop: "shutdown", restart: "reboot", rebuild: "rebuild", rescue: "enable_rescue", snapshot: "create_image", backup: "enable_backup" };
+    const paths: Record<string, string> = { start: "poweron", stop: "shutdown", restart: "reboot", rebuild: "rebuild", rescue: "enable_rescue", snapshot: "create_image", backup: "enable_backup", poweroff: "poweroff", poweron: "poweron", disable_backup: "disable_backup" };
     return this.wrap(async () => {
       if (action === "terminate") { const { requestId } = await this.req(`/servers/${encodeURIComponent(id)}`, { method: "DELETE" }); return { status: "requested", requestId }; }
       const p = paths[action]; if (!p) return { status: "failed", error: "not_supported" };
