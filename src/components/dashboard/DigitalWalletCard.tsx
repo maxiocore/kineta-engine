@@ -129,125 +129,85 @@ const DigitalWalletCard = () => {
   const qrCells = walletNumber ? generateQRPattern(walletNumber) : [];
 
   return (
-    <div className="space-y-4">
-      {/* Digital Card */}
+    <div dir="rtl" className="space-y-4 text-right">
+      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+      {/* Digital ID Card */}
       <motion.div
         ref={cardRef}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl p-6 min-h-[220px]"
-        style={{
-          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
-        }}
+        initial={{ opacity: 0, y: 20, rotateX: 8 }}
+        animate={{ opacity: 1, y: 0, rotateX: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-foreground via-foreground/95 to-primary p-6 md:p-7 min-h-[240px] text-background shadow-2xl"
       >
-        {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-primary/10 blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-accent/10 blur-3xl translate-y-1/2 -translate-x-1/2" />
-        
-        {/* Card chip pattern */}
-        <div className="absolute top-6 left-6 w-12 h-9 rounded-md bg-gradient-to-br from-yellow-300/80 to-yellow-500/80 flex items-center justify-center">
-          <div className="w-8 h-5 rounded-sm border border-yellow-600/30 grid grid-cols-3 grid-rows-2 gap-px p-0.5">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-yellow-600/40 rounded-[1px]" />
-            ))}
+        <div className="absolute -top-20 -left-20 h-64 w-64 rounded-full bg-accent/30 blur-3xl" />
+        <div className="absolute -bottom-24 -right-10 h-60 w-60 rounded-full bg-primary/40 blur-3xl" />
+        <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "repeating-linear-gradient(135deg, currentColor 0 1px, transparent 1px 14px)" }} />
+
+        <div className="relative flex items-start justify-between">
+          <div className="flex items-center gap-2">
+            <img src={logoImage} alt="ASH" className="h-9 w-9 rounded-lg" />
+            <div>
+              <p className="text-sm font-bold">ASH HOLDING</p>
+              <p className="text-[10px] opacity-60">الهوية المالية الرقمية</p>
+            </div>
           </div>
+          <div className="h-9 w-12 rounded-md bg-gradient-to-br from-accent to-primary opacity-90 ring-1 ring-background/20" />
         </div>
 
-        {/* Logo */}
-        <div className="absolute top-4 right-4 flex items-center gap-2">
-          <img src={logoImage} alt="ASH" className="w-8 h-8 rounded-lg" />
-          <span className="text-white/90 font-bold text-sm">ASH</span>
-        </div>
-
-        {/* Account Number */}
-        <div className="mt-16 mb-4">
-          <p className="text-white/50 text-xs mb-1">رقم الحساب</p>
-          <div className="flex items-center gap-3">
-            <motion.p 
-              className="text-white text-xl font-mono tracking-[0.25em] font-bold"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              {walletNumber || "---"}
-            </motion.p>
-            <button
-              onClick={handleCopy}
-              className="text-white/60 hover:text-white transition-colors"
-            >
-              {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+        <div className="relative mt-8">
+          <p className="text-[11px] opacity-60">رقم الحساب</p>
+          <div className="mt-1 flex items-center gap-3">
+            <p dir="ltr" className="font-mono text-xl md:text-2xl font-bold tracking-[0.2em]">{walletNumber || "---"}</p>
+            <button onClick={handleCopy} aria-label="نسخ" className="opacity-60 hover:opacity-100 transition-opacity">
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             </button>
           </div>
         </div>
 
-        {/* Phone number */}
-        {phone && (
-          <div className="mb-3">
-            <p className="text-white/50 text-xs mb-0.5 flex items-center gap-1">
-              <Phone className="w-3 h-3" />
-              رقم الجوال
-            </p>
-            <p className="text-white text-sm font-mono tracking-wider" dir="ltr">{phone}</p>
-          </div>
-        )}
-
-        {/* Card holder & balance */}
-        <div className="flex justify-between items-end">
+        <div className="relative mt-6 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-white/50 text-xs">صاحب الحساب</p>
-            <p className="text-white font-medium text-sm">{fullName || "---"}</p>
+            <p className="text-[11px] opacity-60">صاحب الحساب</p>
+            <p className="text-sm font-semibold">{fullName || "---"}</p>
+            {phone && <p dir="ltr" className="mt-1 flex items-center gap-1 text-xs font-mono opacity-80"><Phone className="h-3 w-3" />{phone}</p>}
           </div>
           <div className="text-left">
-            <p className="text-white/50 text-xs">الرصيد</p>
-            <p className="text-white font-bold text-lg">{balance.toFixed(2)} <span className="text-xs text-white/60">ر.س</span></p>
+            <p className="text-[11px] opacity-60">الرصيد</p>
+            <p className="text-2xl font-bold tabular-nums">{balance.toFixed(2)} <span className="text-xs opacity-60">ر.س</span></p>
           </div>
-        </div>
-
-        {/* Security badge */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-          <Badge variant="outline" className="border-white/20 text-white/40 text-[10px]">
-            <Shield className="w-3 h-3 ml-1" />
-            محفظة رقمية آمنة
-          </Badge>
         </div>
       </motion.div>
 
+      {/* Side panel */}
+      <Card className="flex flex-col justify-between gap-4 rounded-3xl p-5">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><Shield className="h-5 w-5" /></div>
+          <div>
+            <p className="text-sm font-bold">حالة الهوية</p>
+            <p className="text-xs text-muted-foreground">محفظة رقمية موثّقة ومحمية</p>
+          </div>
+          <Badge className="mr-auto">نشطة</Badge>
+        </div>
+        <div className="space-y-2 text-xs">
+          <div className="flex justify-between rounded-lg bg-muted/50 px-3 py-2"><span className="text-muted-foreground">نوع الحساب</span><span className="font-semibold">محفظة عميل</span></div>
+          <div className="flex justify-between rounded-lg bg-muted/50 px-3 py-2"><span className="text-muted-foreground">العملة</span><span className="font-semibold">ريال سعودي</span></div>
+          <div className="flex justify-between rounded-lg bg-muted/50 px-3 py-2"><span className="text-muted-foreground">الجوال</span><span className="font-semibold">{phone ? "موثّق" : "غير موثّق"}</span></div>
+        </div>
+      </Card>
+      </div>
+
       {/* Actions */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleCopy}
-          className="flex items-center gap-1.5 text-xs h-10"
-        >
-          {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-          نسخ الرقم
+        <Button variant="outline" onClick={handleCopy} className="h-11 gap-1.5 rounded-xl text-xs">
+          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />} نسخ الرقم
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowQR(!showQR)}
-          className="flex items-center gap-1.5 text-xs h-10"
-        >
-          <QrCode className="w-3.5 h-3.5" />
-          رمز QR
+        <Button variant="outline" onClick={() => setShowQR(!showQR)} className="h-11 gap-1.5 rounded-xl text-xs">
+          <QrCode className="h-4 w-4" /> رمز QR
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleShare}
-          className="flex items-center gap-1.5 text-xs h-10"
-        >
-          <Share2 className="w-3.5 h-3.5" />
-          مشاركة
+        <Button variant="outline" onClick={handleShare} className="h-11 gap-1.5 rounded-xl text-xs">
+          <Share2 className="h-4 w-4" /> مشاركة
         </Button>
-        <Button
-          size="sm"
-          onClick={handleTopUp}
-          className="flex items-center gap-1.5 text-xs h-10 bg-primary text-primary-foreground hover:bg-primary/90"
-        >
-          <PlusCircle className="w-3.5 h-3.5" />
-          شحن الرصيد
+        <Button onClick={handleTopUp} className="h-11 gap-1.5 rounded-xl text-xs">
+          <PlusCircle className="h-4 w-4" /> شحن الرصيد
         </Button>
       </div>
 
