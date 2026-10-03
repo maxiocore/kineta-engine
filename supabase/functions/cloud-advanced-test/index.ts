@@ -238,6 +238,7 @@ Deno.serve(async (req) => {
       const sid = test.provider_resource_id; if (!sid || test.status === "running_tests") return json({ ok: false, error: "not_allowed" }, 409);
       const L = test.lifecycle ?? {}; const R = { ...(L.rescue_diag ?? {}) } as Record<string, any>;
       const save = async (p: Record<string, unknown>) => { Object.assign(R, p); await lc({ rescue_diag: R }); };
+      const key = async () => { const { data } = await db.from("cloud_e2e_test_keys").select("*").eq("test_id", test.id).single(); return decrypt(data.private_key_enc, data.iv); };
       const s = (await h(`/servers/${sid}`)).server;
       const act = async (path: string, body: Record<string, unknown>) => {
         const r = await h(`/servers/${sid}/actions/${path}`, { method: "POST", body: JSON.stringify(body) });
