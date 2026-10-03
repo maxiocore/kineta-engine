@@ -38,7 +38,7 @@ export default function AdminPaymentGateway() {
   const loadList = useCallback(async () => {
     try {
       const r = await call({ action: "admin_list", status: filter === "all" ? undefined : filter, search: search || undefined });
-      setList(r.payments); setProfiles(Object.fromEntries((r.profiles ?? []).map((p: any) => [p.user_id, p])));
+      setList(r.payments); setProfiles(Object.fromEntries((r.profiles ?? []).map((p: any) => [p.id, p])));
     } catch (e: any) { toast.error(e.message); }
   }, [filter, search]);
   useEffect(() => { loadStatus(); }, [loadStatus]);

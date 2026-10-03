@@ -42,7 +42,7 @@ export class MoyasarPaymentProvider implements PaymentProvider {
     return {
       id: String(p?.id ?? ""),
       status: ["initiated", "paid", "authorized", "captured", "failed", "refunded", "voided"].includes(s) ? s : "unknown",
-      amountMinor: Number(p?.amount),
+      amountMinor: Number.isInteger(p?.amount) ? p.amount : NaN, // halalas, integer only
       currency: String(p?.currency ?? ""),
       internalId: p?.metadata?.internal_payment_id ? String(p.metadata.internal_payment_id) : null,
       method,
