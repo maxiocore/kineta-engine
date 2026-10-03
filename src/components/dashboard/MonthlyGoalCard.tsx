@@ -192,7 +192,7 @@ const MonthlyGoalCard = ({
                 <h3 className="font-bold text-base sm:text-lg text-foreground">
                   تقدم الطلبات هذا الشهر
                 </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1.5">
+                <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1.5">
                   <span>{format(new Date(), "MMMM yyyy", { locale: ar })}</span>
                   {currentMilestone && (
                     <Badge 
@@ -206,7 +206,7 @@ const MonthlyGoalCard = ({
                       {currentMilestone.label}
                     </Badge>
                   )}
-                </p>
+                </div>
               </div>
             </div>
 
