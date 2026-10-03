@@ -98,3 +98,47 @@ export async function checkMargins(admin: any) {
   if (out.length) await admin.from("cloud_price_alerts").insert(out);
   return out.length;
 }
+
+const num = (v: any) => { const n = Number(v?.net ?? v); return Number.isFinite(n) && v !== null && v !== undefined && v !== "" ? n : null; };
+
+/** Reads Hetzner GET /pricing (read-only) for add-on resources + traffic overage. Missing data => pricing_available=false, never 0. */
+export async function syncAddonPrices(admin: any, providerId: string) {
+  const token = Deno.env.get("HETZNER_CLOUD_API_TOKEN");
+  if (!token) return { ok: false, error: "config_missing" };
+  let p: any;
+  try {
+    const r = await fetch("https://api.hetzner.cloud/v1/pricing", { headers: { Authorization: `Bearer ${token}` } });
+    if (r.status === 401 || r.status === 403) return { ok: false, error: "auth_failed" };
+    if (!r.ok) return { ok: false, error: "unavailable" };
+    p = (await r.json()).pricing ?? {};
+  } catch { return { ok: false, error: "unavailable" }; }
+  const now = new Date().toISOString();
+  const rows: any[] = [];
+  const add = (resource: string, location: string, variant: string, unit: string, price: any, extra: Record<string, unknown> = {}) => {
+    const net = num(price);
+    rows.push({ provider_id: providerId, resource, location, variant, unit, price_net: net, price_gross: num(price?.gross), currency: p.currency ?? "EUR",
+      pricing_available: net !== null || extra.percentage != null, note: net === null && extra.percentage == null ? "Pricing unavailable" : null, source: "hetzner:/v1/pricing", synced_at: now, ...extra });
+  };
+  for (const ip of p.primary_ips ?? []) for (const pr of ip.prices ?? []) add("primary_ip", pr.location, ip.type, "month", pr.price_monthly);
+  for (const ip of p.floating_ips ?? []) for (const pr of ip.prices ?? []) add("floating_ip", pr.location, ip.type, "month", pr.price_monthly);
+  add("volume", "*", "", "GB/month", p.volume?.price_per_gb_month);
+  add("snapshot", "*", "", "GB/month", p.image?.price_per_gb_month);
+  const pct = num(p.server_backup?.percentage);
+  rows.push({ provider_id: providerId, resource: "backup", location: "*", variant: "", unit: "% of server price", price_net: null, price_gross: null, percentage: pct,
+    currency: p.currency ?? "EUR", pricing_available: pct !== null, note: pct === null ? "Pricing unavailable" : null, source: "hetzner:/v1/pricing", synced_at: now });
+  for (const lb of p.load_balancer_types ?? []) for (const pr of lb.prices ?? []) add("load_balancer", pr.location, lb.name, "month", pr.price_monthly);
+  // IPv6 primary IPs are typically free; if the API omits IPv6 we record unavailable (not 0)
+  if (!rows.some((r) => r.resource === "primary_ip" && r.variant === "ipv6")) rows.push({ provider_id: providerId, resource: "primary_ip", location: "*", variant: "ipv6", unit: "month", price_net: null, currency: "EUR", pricing_available: false, note: "Pricing unavailable", source: "hetzner:/v1/pricing", synced_at: now });
+  await admin.from("cloud_provider_addon_prices").delete().eq("provider_id", providerId).eq("source", "hetzner:/v1/pricing");
+  if (rows.length) { const { error } = await admin.from("cloud_provider_addon_prices").insert(rows); if (error) return { ok: false, error: "db" }; }
+  // Traffic overage per server type + location
+  let overage = 0;
+  for (const st of p.server_types ?? []) for (const pr of st.prices ?? []) {
+    const o = num(pr.price_per_tb_traffic);
+    const patch: any = { overage_price_per_tb: o, overage_source: o === null ? "unavailable" : "hetzner:/v1/pricing" };
+    if (pr.included_traffic != null) patch.included_traffic_tb = Number(pr.included_traffic) / 1e12;
+    await admin.from("cloud_provider_prices").update(patch).eq("provider_id", providerId).eq("server_type", st.name).eq("location", pr.location);
+    if (o !== null) overage++;
+  }
+  return { ok: true, addons: rows.length, overage_rows: overage, vat_rate: p.vat_rate ?? null, raw_keys: Object.keys(p) };
+}

@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3.23.8";
 import { getProvider } from "./providers.ts";
-import { refreshRate, syncPrices, checkMargins } from "./pricing.ts";
+import { refreshRate, syncPrices, checkMargins, syncAddonPrices } from "./pricing.ts";
 
 const LIVE = () => Deno.env.get("LIVE_PROVISIONING_ENABLED") === "true";
 const BILLABLE = ["rebuild", "rescue", "snapshot", "backup", "terminate"];
@@ -21,6 +21,7 @@ const Body = z.discriminatedUnion("action", [
   z.object({ action: z.literal("admin_refresh_rate") }),
   z.object({ action: z.literal("admin_sync_prices"), provider_id: z.string().uuid() }),
   z.object({ action: z.literal("admin_check_margins") }),
+  z.object({ action: z.literal("admin_sync_addons"), provider_id: z.string().uuid() }),
   z.object({ action: z.literal("admin_status") }),
 ]);
 
@@ -76,6 +77,7 @@ async function handleAdmin(admin: any, actor: string, b: any) {
   if (b.action === "admin_status") return json({ live_provisioning_enabled: LIVE(), hetzner_cloud_configured: !!Deno.env.get("HETZNER_CLOUD_API_TOKEN") });
   if (b.action === "admin_refresh_rate") return json(await refreshRate(admin));
   if (b.action === "admin_sync_prices") return json(await syncPrices(admin, b.provider_id));
+  if (b.action === "admin_sync_addons") return json(await syncAddonPrices(admin, b.provider_id));
   if (b.action === "admin_check_margins") return json({ ok: true, alerts: await checkMargins(admin) });
   if (b.action === "admin_test_provider" || b.action === "admin_sync") {
     const { data: p } = await admin.from("cloud_providers").select("*").eq("id", b.provider_id).maybeSingle();
