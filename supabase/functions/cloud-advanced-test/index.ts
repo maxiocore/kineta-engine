@@ -307,6 +307,7 @@ Deno.serve(async (req) => {
       const save = async (p: Record<string, unknown>) => { Object.assign(R, p); await lc({ rescue_repair: R }); };
       const key = async () => { const { data } = await db.from("cloud_e2e_test_keys").select("*").eq("test_id", test.id).single(); return decrypt(data.private_key_enc, data.iv); };
       const s = (await h(`/servers/${sid}`)).server;
+      if (R.step === "failed" && R.error === "repair_checks_failed") { R.step = undefined; R.error = undefined; } // re-validate only; keygen is idempotent below
       if (R.step === "failed" || R.step === "done") return json({ ok: R.step === "done", rescue_repair: R });
       // Enter rescue on the same server if not already there (enable_rescue + graceful reboot; no hard reset).
       if (!R.step || R.step === "enter_wait") {
@@ -337,19 +338,20 @@ Deno.serve(async (req) => {
           "mountpoint -q $M && umount $M",
           "mount -o rw /dev/sda1 $M || { echo ERR_MOUNT; exit 11; }",
           "ls $M/etc/ssh/ssh_host_* >/dev/null 2>&1 || { echo ERR_NOKEYFILES; umount $M; exit 12; }",
-          "for f in $M/etc/ssh/ssh_host_*; do if [ -s \"$f\" ]; then echo ERR_NONZERO $f; umount $M; exit 13; fi; done; echo PRECHECK_ALL_ZERO",
-          "find $M/etc/ssh -maxdepth 1 -name 'ssh_host_*' -type f -size 0 -delete; echo DELETED_ZERO",
-          "mount --bind /dev $M/dev; mount --bind /proc $M/proc; mount --bind /sys $M/sys",
-          "chroot $M ssh-keygen -A >/dev/null 2>&1 && echo KEYGEN_OK || echo ERR_KEYGEN",
+          "mount --bind /dev $M/dev; mount --bind /proc $M/proc; mount --bind /sys $M/sys; mount -t tmpfs tmpfs $M/run; mkdir -p $M/run/sshd",
+          "z=0; nz=0; for f in $M/etc/ssh/ssh_host_*; do if [ -s \"$f\" ]; then nz=$((nz+1)); else z=$((z+1)); fi; done",
+          "if [ $nz = 0 ]; then echo PRECHECK_ALL_ZERO; find $M/etc/ssh -maxdepth 1 -name 'ssh_host_*' -type f -size 0 -delete; echo DELETED_ZERO; chroot $M ssh-keygen -A >/dev/null 2>&1 && echo KEYGEN_OK || echo ERR_KEYGEN;",
+          "elif [ $z = 0 ]; then echo KEYS_ALREADY_REGENERATED; else echo ERR_MIXED_KEYS; fi",
           "bad=0; for f in $M/etc/ssh/ssh_host_*_key; do if [ -s \"$f\" ] && [ -s \"$f.pub\" ] && chroot $M ssh-keygen -y -f \"${f#$M}\" >/dev/null 2>&1 && chroot $M ssh-keygen -lf \"${f#$M}.pub\"; then :; else echo BADKEY $f; bad=1; fi; done; [ $bad = 0 ] && echo KEYS_VALID",
           "ls -la $M/etc/ssh/ | grep ssh_host | awk '{print $1, $3, $4, $5, $9}'",
           "chroot $M /usr/sbin/sshd -t 2>&1 && echo SSHD_OK || echo SSHD_FAIL",
           "sync && echo SYNC_OK",
-          "umount $M/dev $M/proc $M/sys; umount $M && echo UMOUNT_OK || echo ERR_UMOUNT",
+          "umount $M/run $M/dev $M/proc $M/sys; umount $M && echo UMOUNT_OK || echo ERR_UMOUNT",
         ].join("\n");
         let o = "";
         try { o = (await sshRun(test.ipv4, await key(), [SCRIPT]))[SCRIPT] ?? ""; } catch (e) { await save({ step: "failed", error: `ssh:${sshErr(e)}` }); return json({ ok: false, rescue_repair: R }); }
-        const ok = ["PRECHECK_ALL_ZERO", "DELETED_ZERO", "KEYGEN_OK", "KEYS_VALID", "SSHD_OK", "SYNC_OK", "UMOUNT_OK"].every((m) => o.includes(m)) && !/ERR_|BADKEY|SSHD_FAIL/.test(o);
+        const fresh = ["PRECHECK_ALL_ZERO", "DELETED_ZERO", "KEYGEN_OK"].every((m) => o.includes(m)) || o.includes("KEYS_ALREADY_REGENERATED");
+        const ok = fresh && ["KEYS_VALID", "SSHD_OK", "SYNC_OK", "UMOUNT_OK"].every((m) => o.includes(m)) && !/ERR_|BADKEY|SSHD_FAIL/.test(o);
         await save({ output: o.replace(/-----BEGIN[\s\S]*?-----END[^-]*-----/g, "[redacted]").slice(0, 4000), repaired_at: new Date().toISOString() });
         await log("rescue_repair", ok ? "repaired" : "failed");
         if (!ok) { await save({ step: "failed", error: "repair_checks_failed" }); return json({ ok: false, rescue_repair: R }); }
