@@ -62,6 +62,7 @@ const CloudOrderWizard = ({ initialType }: { initialType?: "vps" | "dedicated" }
     const { error } = await db.rpc("order_cloud_server", {
       p_plan_id: planId, p_location: loc, p_image: image, p_name: name.trim(),
       p_hostname: hostname.trim() || null, p_ssh_key_id: sshKey, p_backups: backups,
+      p_idempotency_key: (idemRef.current ||= crypto.randomUUID() + "-" + Date.now()),
     });
     setSubmitting(false);
     if (error) {
