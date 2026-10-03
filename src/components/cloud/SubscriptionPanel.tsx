@@ -36,7 +36,7 @@ export default function SubscriptionPanel({ serverId, t, lang }: { serverId: str
   const Row = ({ k, v }: { k: string; v: React.ReactNode }) => <div className="rounded-xl border bg-card p-3"><div className="text-xs text-muted-foreground">{k}</div><div className="font-semibold mt-1">{v}</div></div>;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-start" dir={lang === "ar" ? "rtl" : "ltr"}>
       <div className="grid sm:grid-cols-3 gap-3">
         <Row k={t("حالة الاشتراك", "Subscription status")} v={<Badge variant={due ? "destructive" : "outline"}>{t(ar, en)}</Badge>} />
         <Row k={t("التجديد القادم", "Next renewal")} v={fmtDate(s.next_renewal_at, lang)} />
