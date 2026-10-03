@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  CreditCard, Copy, Check, QrCode, Download, Share2, 
-  Wallet, Shield, ExternalLink, Phone, ArrowUpLeft, Loader2 
+  Copy, Check, QrCode, Share2, 
+  Shield, ExternalLink, Phone, PlusCircle 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,6 +15,7 @@ import logoImage from "@/assets/maxiocore-logo-transparent.png";
 
 const DigitalWalletCard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [walletNumber, setWalletNumber] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string>("");
   const [phone, setPhone] = useState<string | null>(null);
@@ -21,7 +23,6 @@ const DigitalWalletCard = () => {
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [ssoLoading, setSsoLoading] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -77,31 +78,8 @@ const DigitalWalletCard = () => {
     }
   };
 
-  const handleGoToFinance = async () => {
-    if (ssoLoading) return;
-    setSsoLoading(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        toast.error("يرجى تسجيل الدخول أولاً");
-        return;
-      }
-
-      const { data, error } = await supabase.functions.invoke("sso-token", {
-        body: { service_id: null },
-      });
-
-      if (error || !data?.redirect_url) {
-        throw new Error(error?.message || "فشل الحصول على رابط الدخول");
-      }
-
-      window.open(data.redirect_url, "_blank", "noopener,noreferrer");
-    } catch (err: any) {
-      console.error("SSO error:", err);
-      toast.error("تعذر الانتقال لمنصة التمويل، حاول مرة أخرى");
-    } finally {
-      setSsoLoading(false);
-    }
+  const handleTopUp = () => {
+    navigate("/dashboard/financial?tab=deposits");
   };
 
   // Simple QR Code using a canvas-like SVG pattern
@@ -265,12 +243,11 @@ const DigitalWalletCard = () => {
         </Button>
         <Button
           size="sm"
-          onClick={handleGoToFinance}
-          disabled={ssoLoading}
+          onClick={handleTopUp}
           className="flex items-center gap-1.5 text-xs h-10 bg-primary text-primary-foreground hover:bg-primary/90"
         >
-          {ssoLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArrowUpLeft className="w-3.5 h-3.5" />}
-          منصة التمويل
+          <PlusCircle className="w-3.5 h-3.5" />
+          شحن الرصيد
         </Button>
       </div>
 
