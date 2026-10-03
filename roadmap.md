@@ -17,4 +17,5 @@
 
 ## Cloud production hardening (2026-10-03)
 - [x] Lifecycle, renewals, grace, suspension, termination, jobs, reconciliation, simulation A–R
-- [ ] Enable automatic switches / real provider job runner — waiting for owner approval
+- [x] Phase 2: real provider actions (dry-verified), scheduler, emails, backup cancel
+- [ ] Real lifecycle test on a dedicated test VPS — waiting for owner approval

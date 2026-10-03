@@ -77,7 +77,7 @@ export function RenewalsSection({ t }: { t: T }) {
     <h3 className="font-semibold">{t("فواتير التجديد", "Renewal invoices")}</h3>
     <Table rows={data} empty={t("لا توجد تجديدات بعد", "No renewals yet")} cols={[
       [t("الفاتورة", "Invoice"), (r) => r.invoice_number], [t("الفترة", "Period"), (r) => `${dt(r.period_start)} → ${dt(r.period_end)}`],
-      [t("قبل الضريبة", "Subtotal"), (r) => ((r.subtotal_minor + r.backup_minor) / 100).toFixed(2)], [t("الضريبة", "VAT"), (r) => `${(r.vat_minor / 100).toFixed(2)} (${r.vat_rate}%)`],
+      [t("قبل الضريبة", "Subtotal"), (r) => ((r.subtotal_minor + r.backup_minor) / 100).toFixed(2)], [t("الضريبة", "VAT"), (r) => `${(r.vat_minor / 100).toFixed(2)} (${Math.round(r.vat_rate * 100)}%)`],
       [t("الإجمالي", "Total"), (r) => (r.total_minor / 100).toFixed(2)], [t("الهامش", "Margin"), (r) => r.cost?.margin_pct != null ? <span className={r.cost.margin_alert ? "text-destructive font-semibold" : ""}>{r.cost.margin_pct}%</span> : "—"]]} />
   </div>;
 }
