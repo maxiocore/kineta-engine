@@ -2126,6 +2126,66 @@ export type Database = {
           },
         ]
       }
+      cloud_scheduler_locks: {
+        Row: {
+          job_type: string
+          locked_until: string
+          run_id: string
+        }
+        Insert: {
+          job_type: string
+          locked_until: string
+          run_id: string
+        }
+        Update: {
+          job_type?: string
+          locked_until?: string
+          run_id?: string
+        }
+        Relationships: []
+      }
+      cloud_scheduler_runs: {
+        Row: {
+          failures: number
+          finished_at: string | null
+          id: string
+          is_simulation: boolean
+          job_type: string
+          notes: string | null
+          records_processed: number
+          records_scanned: number
+          started_at: string
+          status: string
+          successes: number
+        }
+        Insert: {
+          failures?: number
+          finished_at?: string | null
+          id?: string
+          is_simulation?: boolean
+          job_type: string
+          notes?: string | null
+          records_processed?: number
+          records_scanned?: number
+          started_at?: string
+          status?: string
+          successes?: number
+        }
+        Update: {
+          failures?: number
+          finished_at?: string | null
+          id?: string
+          is_simulation?: boolean
+          job_type?: string
+          notes?: string | null
+          records_processed?: number
+          records_scanned?: number
+          started_at?: string
+          status?: string
+          successes?: number
+        }
+        Relationships: []
+      }
       cloud_server_actions: {
         Row: {
           action: string
@@ -2438,6 +2498,8 @@ export type Database = {
           amount: number
           attempt_count: number
           auto_renew: boolean
+          backup_cancel_requested_at: string | null
+          backup_status: string
           backups_addon: boolean
           billing_cycle: string
           cancel_mode: string | null
@@ -2447,6 +2509,7 @@ export type Database = {
           current_period_start: string | null
           failed_at: string | null
           failure_reason: string | null
+          final_warning_sent_at: string | null
           grace_ends_at: string | null
           id: string
           is_e2e_test: boolean
@@ -2465,6 +2528,7 @@ export type Database = {
           renewal_total_minor: number | null
           renewal_vat_minor: number | null
           server_id: string | null
+          sim_provider_ref: string | null
           sim_wallet_minor: number | null
           started_at: string | null
           status: string
@@ -2481,6 +2545,8 @@ export type Database = {
           amount: number
           attempt_count?: number
           auto_renew?: boolean
+          backup_cancel_requested_at?: string | null
+          backup_status?: string
           backups_addon?: boolean
           billing_cycle?: string
           cancel_mode?: string | null
@@ -2490,6 +2556,7 @@ export type Database = {
           current_period_start?: string | null
           failed_at?: string | null
           failure_reason?: string | null
+          final_warning_sent_at?: string | null
           grace_ends_at?: string | null
           id?: string
           is_e2e_test?: boolean
@@ -2508,6 +2575,7 @@ export type Database = {
           renewal_total_minor?: number | null
           renewal_vat_minor?: number | null
           server_id?: string | null
+          sim_provider_ref?: string | null
           sim_wallet_minor?: number | null
           started_at?: string | null
           status?: string
@@ -2524,6 +2592,8 @@ export type Database = {
           amount?: number
           attempt_count?: number
           auto_renew?: boolean
+          backup_cancel_requested_at?: string | null
+          backup_status?: string
           backups_addon?: boolean
           billing_cycle?: string
           cancel_mode?: string | null
@@ -2533,6 +2603,7 @@ export type Database = {
           current_period_start?: string | null
           failed_at?: string | null
           failure_reason?: string | null
+          final_warning_sent_at?: string | null
           grace_ends_at?: string | null
           id?: string
           is_e2e_test?: boolean
@@ -2551,6 +2622,7 @@ export type Database = {
           renewal_total_minor?: number | null
           renewal_vat_minor?: number | null
           server_id?: string | null
+          sim_provider_ref?: string | null
           sim_wallet_minor?: number | null
           started_at?: string | null
           status?: string
@@ -7028,6 +7100,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      cloud_confirm_backup_disabled: { Args: { p_sub: string }; Returns: Json }
       cloud_confirm_provider_state: {
         Args: { p_now?: string; p_state: string; p_sub: string }
         Returns: Json
@@ -7054,6 +7127,10 @@ export type Database = {
         Returns: string
       }
       cloud_pay_due: { Args: { p_sub: string }; Returns: Json }
+      cloud_prepare_provider_action: {
+        Args: { p_dry?: boolean; p_job: string }
+        Returns: Json
+      }
       cloud_record_renewal_failure: {
         Args: { p_now?: string; p_reason: string; p_sub: string }
         Returns: Json
@@ -7066,8 +7143,29 @@ export type Database = {
         Args: { p_now?: string; p_sub: string }
         Returns: Json
       }
+      cloud_request_backup_cancel: { Args: { p_sub: string }; Returns: Json }
       cloud_request_cancel: {
         Args: { p_mode: string; p_sub: string }
+        Returns: Json
+      }
+      cloud_scheduler_begin: {
+        Args: { p_sim?: boolean; p_ttl_seconds?: number; p_type: string }
+        Returns: string
+      }
+      cloud_scheduler_end: {
+        Args: {
+          p_fail: number
+          p_notes?: string
+          p_ok: number
+          p_processed: number
+          p_run: string
+          p_scanned: number
+          p_status?: string
+        }
+        Returns: undefined
+      }
+      cloud_send_final_warning: {
+        Args: { p_now?: string; p_sub: string }
         Returns: Json
       }
       cloud_set_auto_renew: {
