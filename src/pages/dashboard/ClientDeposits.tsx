@@ -327,13 +327,10 @@ const ClientDeposits = () => {
     setLoading(false);
     
     try {
-      const { data, error } = await supabase.functions.invoke('paylink-payment', {
-        body: {
-          action: 'verify-payment',
-          orderNumber,
-          transactionNo,
-        },
-      });
+      // Legacy return links: read-only status of the customer's own deposit (no external calls).
+      const { data: dep, error } = await supabase.from('deposits').select('status,total_credited')
+        .eq('transaction_id', transactionNo ?? orderNumber).maybeSingle();
+      const data = { success: dep?.status === 'completed', amount: dep?.total_credited, message: undefined as string | undefined };
 
       if (error) throw error;
 

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { payServiceOrder, payDesignOrder, payDevInvoice, newIdempotencyKey, walletErrorMessage } from "@/lib/walletPayments";
+import { startPayment, paymentErrorText } from "@/lib/payments";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -390,30 +391,31 @@ export default function InvoicePaymentCard({
                     <div className="flex-1 h-px bg-border" />
                   </div>
 
-                  <div className="grid gap-2">
-                    {paymentMethods.slice(0, 4).map((method) => (
-                      <motion.button
-                        key={method.id}
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
-                        onClick={() => {
-                          toast({
-                            title: "قريباً",
-                            description: `الدفع عبر ${method.name_ar} سيكون متاحاً قريباً`,
-                          });
-                        }}
-                        className="w-full p-3 rounded-lg border border-border hover:border-primary/40 bg-card hover:bg-muted/50 transition-all flex items-center gap-3 text-right"
-                      >
-                        <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                          <BanknoteIcon className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium">{method.name_ar}</p>
-                          <p className="text-xs text-muted-foreground">{method.name}</p>
-                        </div>
-                      </motion.button>
-                    ))}
-                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    disabled={paying}
+                    onClick={async () => {
+                      if (paying) return;
+                      setPaying(true);
+                      try {
+                        const pid = await startPayment('dev_invoice', { reference_id: selectedInvoice.id });
+                        navigate(`/payment/${pid}`);
+                      } catch (e: any) {
+                        toast({ title: "خطأ في الدفع", description: paymentErrorText(e?.message), variant: "destructive" });
+                      } finally { setPaying(false); }
+                    }}
+                    className="w-full p-4 rounded-xl border-2 border-border hover:border-primary/40 bg-card hover:bg-muted/50 transition-all flex items-center gap-4 text-right"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
+                      <CreditCard className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold">الدفع الإلكتروني</p>
+                      <p className="text-xs text-muted-foreground">مدى · Visa · Mastercard</p>
+                    </div>
+                    {paying && <Loader2 className="h-4 w-4 animate-spin" />}
+                  </motion.button>
 
                   {userBalance < selectedInvoice.amount && (
                     <Button

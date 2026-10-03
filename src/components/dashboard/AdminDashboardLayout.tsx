@@ -54,6 +54,7 @@ const adminNavItems: NavItem[] = [
   { label: "الطلبات", href: "/admin/orders", icon: ShoppingBag },
   { label: "الإحالات", href: "/admin/referrals", icon: Gift },
   { label: "مركز المدفوعات", href: "/admin/payments-hub", icon: CreditCard },
+  { label: "بوابة الدفع الإلكتروني", href: "/admin/payment-gateway", icon: CreditCard },
   { label: "المركز المالي", href: "/admin/financial", icon: Landmark },
   
   { label: "الكوبونات", href: "/admin/coupons", icon: Ticket },

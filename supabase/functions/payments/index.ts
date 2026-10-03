@@ -50,7 +50,7 @@ function methodsFor(s: any) {
 async function gatewayReady() {
   const s = await settings();
   const env = provider.environment();
-  const liveUnlocked = Deno.env.get("PAYMENTS_LIVE_ENABLED") === "true";
+  const liveUnlocked = Deno.env.get("LIVE_PAYMENTS_ENABLED") === "true";
   const ok = provider.isConfigured() && env === s.environment && (env === "sandbox" || liveUnlocked);
   return { ok, s, env };
 }
@@ -169,9 +169,15 @@ Deno.serve(async (req) => {
         return json({
           processor: provider.name, environment: provider.environment(), configured_environment: s.environment,
           keys_configured: provider.isConfigured(), webhook_secret_configured: provider.webhookConfigured?.() ?? false,
-          live_unlocked: Deno.env.get("PAYMENTS_LIVE_ENABLED") === "true", connection: conn.ok ? "connected" : "disconnected", connection_code: conn.code ?? null,
+          live_payments_enabled: Deno.env.get("LIVE_PAYMENTS_ENABLED") === "true", connection: conn.ok ? "connected" : "disconnected", connection_code: conn.code ?? null,
           webhook_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/payments?hook=processor`,
           settings: s, paylink_new_payments: false,
+          key_formats: (provider as any).keyFormats?.() ?? null,
+          webhooks: conn.ok ? await (provider as any).listWebhooks?.().catch(() => null) : null,
+          methods: {
+            mada: s.card_enabled ? "ready" : "unavailable", visa: s.card_enabled ? "ready" : "unavailable", mastercard: s.card_enabled ? "ready" : "unavailable",
+            applepay: s.applepay_status === "enabled" ? "ready" : s.applepay_status, stcpay: s.stcpay_status === "enabled" ? "ready" : s.stcpay_status,
+          },
         });
       }
       case "admin_list": {

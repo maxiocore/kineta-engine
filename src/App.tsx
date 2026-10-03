@@ -52,6 +52,9 @@ const ClientSettings = lazy(() => import("./pages/dashboard/ClientSettings"));
 const ClientAPI = lazy(() => import("./pages/dashboard/ClientAPI"));
 const ClientDeposit = lazy(() => import("./pages/dashboard/ClientDeposit"));
 const ClientDeposits = lazy(() => import("./pages/dashboard/ClientDeposits"));
+const PaymentCheckout = lazy(() => import("./pages/payment/PaymentCheckout"));
+const PaymentReturn = lazy(() => import("./pages/payment/PaymentReturn"));
+const AdminPaymentGateway = lazy(() => import("./pages/admin/AdminPaymentGateway"));
 const ClientFavorites = lazy(() => import("./pages/dashboard/ClientFavorites"));
 const ClientReferrals = lazy(() => import("./pages/dashboard/ClientReferrals"));
 const ClientBalanceLogs = lazy(() => import("./pages/dashboard/ClientBalanceLogs"));
@@ -228,6 +231,8 @@ const App = () => (
                         <ClientAPI />
                       </ProtectedRoute>
                     } />
+                    <Route path="/payment/return" element={<ProtectedRoute><PaymentReturn /></ProtectedRoute>} />
+                    <Route path="/payment/:pid" element={<ProtectedRoute><PaymentCheckout /></ProtectedRoute>} />
                     <Route path="/dashboard/deposit" element={
                       <ProtectedRoute>
                         <ClientDeposit />
@@ -492,6 +497,7 @@ const App = () => (
                         <AdminFeaturedOffers />
                       </ProtectedRoute>
                     } />
+                    <Route path="/admin/payment-gateway" element={<ProtectedRoute requireAdmin><AdminPaymentGateway /></ProtectedRoute>} />
                     <Route path="/admin/tamara-payments" element={
                       <ProtectedRoute requireAdmin>
                         <AdminTamaraPayments />

@@ -9,5 +9,8 @@
 - [x] Final report incl. 22 warnings classification
 
 ## Next: Replace Paylink with white-label online payment (processor hidden from customers)
-- [ ] Inventory Paylink usage, stop new Paylink payments, keep history
+- [x] Inventory Paylink usage, stop new Paylink payments, keep history
+- [x] Payment service (provider abstraction, processor adapter, checkout, callback, webhook, verification, wallet/invoice/order, refunds, admin)
+- [x] Live keys supported, LIVE_PAYMENTS_ENABLED=false gate, pre-live report
+- [ ] First production payment test — waiting for owner approval
 - [ ] Payment provider architecture + white-label customer UI (see upload)

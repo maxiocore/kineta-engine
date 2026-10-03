@@ -37,6 +37,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { notifyDepositPending } from '@/lib/adminNotifyService';
+import { useNavigate } from 'react-router-dom';
+import { startPayment, paymentErrorText } from '@/lib/payments';
 
 interface PaymentMethod {
   id: string;
@@ -72,7 +74,6 @@ const paymentIcons: Record<string, { icon: typeof CreditCard; gradient: string; 
   'vodafone': { icon: Smartphone, gradient: 'from-red-500 to-red-600', color: 'text-red-500' },
   'instapay': { icon: Zap, gradient: 'from-purple-500 to-pink-500', color: 'text-purple-500' },
   'usdt': { icon: DollarSign, gradient: 'from-green-400 to-teal-500', color: 'text-green-400' },
-  'paylink': { icon: CreditCard, gradient: 'from-emerald-500 to-teal-600', color: 'text-emerald-500' },
   'default': { icon: CreditCard, gradient: 'from-primary to-primary/80', color: 'text-primary' },
 };
 
@@ -129,6 +130,7 @@ const glowAnimation = {
 const ClientDeposit = () => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
@@ -140,9 +142,9 @@ const ClientDeposit = () => {
   const [currentBalance, setCurrentBalance] = useState(0);
   const [copied, setCopied] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const [usePaylinkDirect, setUsePaylinkDirect] = useState(false);
+  const [useDirectPay, setUseDirectPay] = useState(false);
   const [useTamara, setUseTamara] = useState(false);
-  const [paylinkLoading, setPaylinkLoading] = useState(false);
+  const [directLoading, setDirectLoading] = useState(false);
   const [tamaraLoading, setTamaraLoading] = useState(false);
   const [clientMobile, setClientMobile] = useState('');
 
@@ -207,7 +209,7 @@ const ClientDeposit = () => {
   };
 
   const numericAmount = parseFloat(amount) || 0;
-  const fee = usePaylinkDirect ? 0 : calculateFee(numericAmount);
+  const fee = useDirectPay ? 0 : calculateFee(numericAmount);
   const bonus = calculateBonus(numericAmount);
   const totalCredited = numericAmount - fee + bonus;
 
@@ -221,52 +223,19 @@ const ClientDeposit = () => {
     });
   };
 
-  const handlePaylinkPayment = async () => {
-    if (!user || numericAmount <= 0 || !clientMobile) {
-      toast({
-        title: 'خطأ',
-        description: 'يرجى إدخال المبلغ ورقم الجوال',
-        variant: 'destructive',
-      });
+  const handleDirectPayment = async () => {
+    if (!user || numericAmount < 10) {
+      toast({ title: 'خطأ', description: 'يرجى إدخال مبلغ لا يقل عن 10 ر.س', variant: 'destructive' });
       return;
     }
-
-    setPaylinkLoading(true);
-
+    setDirectLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('paylink-payment', {
-        body: {
-          action: 'create-payment',
-          userId: user.id,
-          amount: numericAmount,
-          clientName: profile?.full_name || user.email?.split('@')[0] || 'عميل',
-          clientEmail: user.email || '',
-          clientMobile: clientMobile,
-          callbackUrl: `${window.location.origin}/dashboard/deposits?payment=success`,
-          cancelUrl: `${window.location.origin}/dashboard/deposit?payment=cancelled`,
-        },
-      });
-
-      if (error) throw error;
-
-      if (data?.paymentUrl) {
-        toast({
-          title: 'جاري التحويل لصفحة الدفع',
-          description: 'سيتم تحويلك إلى بوابة الدفع الآمنة',
-        });
-        window.location.href = data.paymentUrl;
-      } else {
-        throw new Error('لم يتم الحصول على رابط الدفع');
-      }
+      const pid = await startPayment('wallet_topup', { intent: { amount: numericAmount } });
+      navigate(`/payment/${pid}`);
     } catch (error: any) {
-      console.error('Paylink error:', error);
-      toast({
-        title: 'خطأ',
-        description: error.message || 'حدث خطأ أثناء إنشاء طلب الدفع',
-        variant: 'destructive',
-      });
+      toast({ title: 'خطأ', description: paymentErrorText(error?.message), variant: 'destructive' });
     } finally {
-      setPaylinkLoading(false);
+      setDirectLoading(false);
     }
   };
 
@@ -593,7 +562,7 @@ const ClientDeposit = () => {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Paylink Direct Payment - Featured */}
+            {/* Electronic payment - featured */}
             <motion.div variants={itemVariants}>
               <Card className="border-2 border-emerald-500/50 shadow-lg overflow-hidden bg-gradient-to-l from-emerald-500/5 to-transparent">
                 <CardHeader className="border-b border-emerald-500/20">
@@ -669,7 +638,7 @@ const ClientDeposit = () => {
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
                   <div className="grid gap-4">
-                    {/* Amount Selection for Paylink */}
+                    {/* Amount selection */}
                     <div>
                       <Label className="text-sm text-muted-foreground mb-3 block">اختر المبلغ (ريال سعودي)</Label>
                       <div className="flex flex-wrap gap-3">
@@ -683,12 +652,12 @@ const ClientDeposit = () => {
                             whileTap={{ scale: 0.95 }}
                             onClick={() => {
                               setAmount(preset.toString());
-                              setUsePaylinkDirect(true);
+                              setUseDirectPay(true);
                               setSelectedMethod(null);
                             }}
                             className={cn(
                               "px-5 py-3 rounded-xl font-semibold transition-all border-2",
-                              usePaylinkDirect && amount === preset.toString() && !isNaN(Number(amount)) && [50, 100, 200, 500, 1000].includes(Number(amount))
+                              useDirectPay && amount === preset.toString() && !isNaN(Number(amount)) && [50, 100, 200, 500, 1000].includes(Number(amount))
                                 ? "bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/30"
                                 : "bg-secondary/50 border-border hover:border-emerald-500/50 hover:bg-emerald-500/10"
                             )}
@@ -705,17 +674,17 @@ const ClientDeposit = () => {
                           whileTap={{ scale: 0.95 }}
                           onClick={() => {
                             setAmount('');
-                            setUsePaylinkDirect(true);
+                            setUseDirectPay(true);
                             setSelectedMethod(null);
                             // Focus on the custom amount input
                             setTimeout(() => {
-                              const input = document.getElementById('paylink-custom-amount');
+                              const input = document.getElementById('direct-custom-amount');
                               if (input) input.focus();
                             }, 100);
                           }}
                           className={cn(
                             "px-5 py-3 rounded-xl font-semibold transition-all border-2 gap-2 flex items-center",
-                            usePaylinkDirect && amount !== '' && !isNaN(Number(amount)) && ![50, 100, 200, 500, 1000].includes(Number(amount))
+                            useDirectPay && amount !== '' && !isNaN(Number(amount)) && ![50, 100, 200, 500, 1000].includes(Number(amount))
                               ? "bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/30"
                               : "bg-secondary/50 border-border hover:border-emerald-500/50 hover:bg-emerald-500/10"
                           )}
@@ -732,13 +701,13 @@ const ClientDeposit = () => {
                         <Label className="text-sm text-muted-foreground">مبلغ مخصص</Label>
                         <div className="relative">
                           <Input
-                            id="paylink-custom-amount"
+                            id="direct-custom-amount"
                             type="number"
                             placeholder="أدخل المبلغ"
-                            value={usePaylinkDirect ? amount : ''}
+                            value={useDirectPay ? amount : ''}
                             onChange={(e) => {
                               setAmount(e.target.value);
-                              setUsePaylinkDirect(true);
+                              setUseDirectPay(true);
                               setSelectedMethod(null);
                             }}
                             min={10}
@@ -761,7 +730,7 @@ const ClientDeposit = () => {
                       </div>
                     </div>
 
-                    {/* Paylink Benefits */}
+                    {/* Benefits */}
                     <div className="grid sm:grid-cols-3 gap-3">
                       {[
                         { icon: Zap, label: 'إضافة فورية', color: 'text-yellow-500' },
@@ -779,10 +748,10 @@ const ClientDeposit = () => {
                     <Button
                       className="w-full h-14 text-lg gap-3 bg-gradient-to-l from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-lg shadow-emerald-500/30"
                       size="lg"
-                      disabled={!usePaylinkDirect || numericAmount < 10 || !clientMobile || paylinkLoading}
-                      onClick={handlePaylinkPayment}
+                      disabled={!useDirectPay || numericAmount < 10 || directLoading}
+                      onClick={handleDirectPayment}
                     >
-                      {paylinkLoading ? (
+                      {directLoading ? (
                         <motion.div
                           animate={{ rotate: 360 }}
                           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -857,7 +826,7 @@ const ClientDeposit = () => {
                             onClick={() => {
                               setAmount(preset.toString());
                               setUseTamara(true);
-                              setUsePaylinkDirect(false);
+                              setUseDirectPay(false);
                               setSelectedMethod(null);
                             }}
                             className={cn(
@@ -885,7 +854,7 @@ const ClientDeposit = () => {
                             onChange={(e) => {
                               setAmount(e.target.value);
                               setUseTamara(true);
-                              setUsePaylinkDirect(false);
+                              setUseDirectPay(false);
                               setSelectedMethod(null);
                             }}
                             min={100}
@@ -1015,7 +984,7 @@ const ClientDeposit = () => {
                             whileTap={{ scale: 0.98 }}
                             onClick={() => {
                               setSelectedMethod(method);
-                              setUsePaylinkDirect(false);
+                              setUseDirectPay(false);
                             }}
                             className={cn(
                               "relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 group overflow-hidden",
@@ -1505,7 +1474,7 @@ const ClientDeposit = () => {
                   </motion.div>
 
                   {/* Selected Method */}
-                  {(selectedMethod || usePaylinkDirect) && (
+                  {(selectedMethod || useDirectPay) && (
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -1515,12 +1484,12 @@ const ClientDeposit = () => {
                       <div className="flex items-center gap-2 sm:gap-3">
                         <div className={cn(
                           "w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center bg-gradient-to-br",
-                          usePaylinkDirect ? "from-emerald-500 to-teal-600" : (selectedMethod ? getPaymentIcon(selectedMethod.type, selectedMethod.name).gradient : "")
+                          useDirectPay ? "from-emerald-500 to-teal-600" : (selectedMethod ? getPaymentIcon(selectedMethod.type, selectedMethod.name).gradient : "")
                         )}>
                           <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                         </div>
                         <span className="font-semibold text-sm sm:text-base">
-                          {usePaylinkDirect ? 'الدفع الالكتروني' : selectedMethod?.name_ar}
+                          {useDirectPay ? 'الدفع الالكتروني' : selectedMethod?.name_ar}
                         </span>
                       </div>
                     </motion.div>
@@ -1590,7 +1559,7 @@ const ClientDeposit = () => {
                   </div>
 
                   {/* Submit Button for manual methods */}
-                  {selectedMethod && !usePaylinkDirect && (
+                  {selectedMethod && !useDirectPay && (
                     <Button
                       className="w-full h-12 sm:h-14 text-base sm:text-lg gap-2 sm:gap-3 shadow-lg shadow-primary/30"
                       size="lg"
@@ -1627,7 +1596,7 @@ const ClientDeposit = () => {
                     <span>دفع آمن ومشفر 100%</span>
                   </motion.div>
 
-                  {selectedMethod && !usePaylinkDirect && (
+                  {selectedMethod && !useDirectPay && (
                     <p className="text-[10px] sm:text-xs text-center text-muted-foreground bg-secondary/50 p-2 sm:p-3 rounded-lg">
                       سيتم مراجعة طلبك وإضافة الرصيد خلال 24 ساعة كحد أقصى
                     </p>
